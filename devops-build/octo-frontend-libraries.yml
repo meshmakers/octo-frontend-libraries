@@ -1,0 +1,49 @@
+name: $(MajorVersion).$(MinorVersion).$(date:yyMM).$(DayOfMonth)$(rev:rrr)
+
+trigger:
+- main
+
+variables:
+  Company: "meshmakers GmbH"
+  Copyright: "(c) 2022-2023 meshmakers GmbH"
+
+pool:
+  name: Gerald-Local-Linux
+
+steps:
+- template: setversion.yml
+- task: Npm@1
+  displayName: npm install
+  inputs:
+    workingDir: src/Backend/AdminPanel/ClientApp/
+    verbose: false
+- template: npm-publish-to-npmjs.yml
+  parameters:
+    npmCommand: 'build:shared-services'
+    buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
+    publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-services'
+    libName: 'shared-services'
+- template: npm-publish-to-npmjs.yml
+  parameters:
+    npmCommand: 'build:shared-auth'
+    buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
+    publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-auth'
+    libName: 'shared-auth'    
+- template: npm-publish-to-npmjs.yml
+  parameters:
+    npmCommand: ' build:shared-ui'
+    buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
+    publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-ui'
+    libName: 'shared-ui'
+- template: npm-publish-to-npmjs.yml
+  parameters:
+    npmCommand: ' build:octo-services'
+    buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
+    publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/octo-services'
+    libName: 'octo-services'
+- template: npm-publish-to-npmjs.yml
+  parameters:
+    npmCommand: ' build:octo-ui'
+    buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
+    publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/octo-ui'
+    libName: 'octo-ui'            
