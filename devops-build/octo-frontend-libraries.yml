@@ -15,7 +15,7 @@ steps:
 - task: Npm@1
   displayName: npm install
   inputs:
-    workingDir: src/Backend/AdminPanel/ClientApp/
+    workingDir: src/FrontendLibraries/ClientApp/
     verbose: false
 - template: npm-publish-to-npmjs.yml
   parameters:
