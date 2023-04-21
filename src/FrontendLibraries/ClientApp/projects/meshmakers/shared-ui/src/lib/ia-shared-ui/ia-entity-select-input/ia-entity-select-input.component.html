@@ -1,0 +1,14 @@
+<input #input (blur)="onTouched()" (focusout)="onFocusOut()" [formControl]="searchFormControl" [matAutocomplete]="auto"
+       [placeholder]="placeholder" matInput>
+<mat-autocomplete #auto="matAutocomplete" (closed)="onEntityClosed()"
+                  (optionActivated)="onEntityActivated($event)" (optionSelected)="onEntitySelected($event)"
+                  [displayWith]="dataSource?.onDisplayEntity ?? null">
+  <mat-option *ngIf="isLoading" class="is-loading">
+    <mat-spinner diameter="50"></mat-spinner>
+  </mat-option>
+  <ng-container *ngIf="!isLoading">
+    <mat-option *ngFor="let entity of filteredEntities" [value]="entity">
+      {{dataSource?.onDisplayEntity(entity) ?? null}}
+    </mat-option>
+  </ng-container>
+</mat-autocomplete>

@@ -1,0 +1,14 @@
+<input #input (blur)="onTouched()" (focusout)="onFocusOut()" [formControl]="searchFormControl" [matAutocomplete]="auto"
+       [placeholder]="placeholder" matInput>
+<mat-autocomplete #auto="matAutocomplete"
+                  (closed)="onAutoCompleteClosed()" (optionActivated)="onOptionActivated($event)"
+                  (optionSelected)="onOptionSelected($event)">
+  <mat-option *ngIf="isLoading" class="is-loading">
+    <mat-spinner diameter="50"></mat-spinner>
+  </mat-option>
+  <ng-container *ngIf="!isLoading">
+    <mat-option *ngFor="let str of filteredStrings" [value]="str">
+      {{str}}
+    </mat-option>
+  </ng-container>
+</mat-autocomplete>

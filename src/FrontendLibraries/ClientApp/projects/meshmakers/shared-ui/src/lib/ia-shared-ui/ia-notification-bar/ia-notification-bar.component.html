@@ -1,0 +1,8 @@
+<mat-toolbar [hidden]="!errorMessage" color="warn">
+  <a (click)="onShowDetails()"><span class="mat-small"><u>{{ errorMessage?.title }}</u></span></a>
+
+  <!-- This fills the remaining space of the current row -->
+  <span class="notification-fill-remaining-space"></span>
+
+  <button (click)="onHide()" color="warn" mat-raised-button><i class="pi pi-angle-double-up"></i></button>
+</mat-toolbar>
