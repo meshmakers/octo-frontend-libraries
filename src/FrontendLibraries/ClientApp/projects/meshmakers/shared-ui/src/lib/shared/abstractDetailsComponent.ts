@@ -6,15 +6,15 @@ export abstract class AbstractDetailsComponent<TEntity> {
   public loading: boolean;
   protected entity: TEntity | null;
 
-  protected constructor() {
+  protected constructor(formGroup: FormGroup) {
     this.loading = true;
     this.entity = null;
-    this._ownerForm = null;
+    this._ownerForm = formGroup;
   }
 
-  protected _ownerForm: FormGroup | null;
+  private _ownerForm: FormGroup;
 
-  public get ownerForm(): FormGroup | null {
+  public get ownerForm(): FormGroup {
     return this._ownerForm;
   }
 
