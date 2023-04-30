@@ -38,27 +38,27 @@
     "angular-oauth2-oidc": "^15.0.1",
     "apollo-angular": "^4.2.1",
     "moment": "^2.29.4",
-    "rxjs": "~7.8.0",
+    "rxjs": "~7.8.1",
     "tslib": "^2.5.0",
     "zone.js": "~0.13.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^15.2.6",
-    "@angular/cli": "~15.2.6",
+    "@angular-devkit/build-angular": "^15.2.7",
+    "@angular/cli": "~15.2.7",
     "@angular/compiler-cli": "^15.2.8",
-    "@graphql-codegen/cli": "^3.3.0",
+    "@graphql-codegen/cli": "^3.3.1",
     "@graphql-codegen/near-operation-file-preset": "^2.5.0",
     "@graphql-codegen/typescript-apollo-angular": "^3.5.6",
-    "@graphql-codegen/typescript-operations": "^3.0.3",
+    "@graphql-codegen/typescript-operations": "^3.0.4",
     "@types/jasmine": "~4.3.1",
     "jasmine-core": "~4.6.0",
-    "karma": "~6.4.1",
-    "karma-chrome-launcher": "~3.1.1",
+    "karma": "~6.4.2",
+    "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
     "ng-packagr": "^15.2.2",
     "run-script-os": "^1.1.6",
-    "typescript": "~4.9.5"
+    "typescript": "4.9.5"
   }
 }

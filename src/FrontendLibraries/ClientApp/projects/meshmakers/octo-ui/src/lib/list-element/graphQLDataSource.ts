@@ -6,11 +6,7 @@ export class GraphQLDataSource<TDto> extends DataSourceBase<TDto> {
 
   constructor(protected messageService: MessageService) {
     super();
-    this.abc = 789;
   }
-  
-  public abc: number;
-
   public loadData(tenantId: string, skip: number = 0, take: number = 10, searchFilter: SearchFilterDto | null = null,
                   fieldFilter: FieldFilterDto[] | null = null, sort: SortDto[] | null = null) {
 
