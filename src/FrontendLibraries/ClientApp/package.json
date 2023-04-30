@@ -8,6 +8,7 @@
     "start:windows": "ng serve --port 44484 --host=0.0.0.0 --ssl --ssl-cert %APPDATA%\\ASP.NET\\https\\%npm_package_name%.pem --ssl-key %APPDATA%\\ASP.NET\\https\\%npm_package_name%.key",
     "start:default": "ng serve --port 44484 --host=0.0.0.0 --ssl --ssl-cert $HOME/.aspnet/https/${npm_package_name}.pem --ssl-key $HOME/.aspnet/https/${npm_package_name}.key",
     "build": "npm run build:shared-services && npm run build:shared-auth && npm run build:shared-ui && npm run build:octo-services && npm run build:octo-ui && npm run build:test-app",
+    "build:prod": "npm run build:shared-services -- --configuration=production && npm run build:shared-auth -- --configuration=production && npm run build:shared-ui -- --configuration=production && npm run build:octo-services -- --configuration=production && npm run build:octo-ui -- --configuration=production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "build:shared-auth": "ng build @meshmakers/shared-auth",
