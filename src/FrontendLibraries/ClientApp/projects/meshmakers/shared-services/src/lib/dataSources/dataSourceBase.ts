@@ -9,9 +9,9 @@ export class DataSourceBase<TDto> implements DataSource<TDto> {
   private totalCountSubject = new BehaviorSubject<number>(0);
   public readonly totalCount$ = this.totalCountSubject.asObservable();
 
-  constructor() {
+  public get totalCount(): Observable<number>{
+    return this.totalCount$;
   }
-
   connect(collectionViewer: CollectionViewer): Observable<readonly TDto[]> {
     return this.dataSubject.asObservable();
   }

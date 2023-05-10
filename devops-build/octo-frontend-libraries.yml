@@ -39,6 +39,12 @@ steps:
       }
   displayName: 'Set build number'  
 - template: setversion.yml
+- task: NodeTool@0
+  displayName:  Using latest NodeJS 18.x version
+  inputs:
+    versionSource: 'spec'
+    versionSpec: '18.x'
+    checkLatest: true
 - task: Npm@1
   displayName: npm install
   inputs:

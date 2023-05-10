@@ -1,24 +1,6 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "paths": {
-      "@meshmakers/octo-services": [
-        "dist/meshmakers/octo-services"
-      ],
-      "@meshmakers/octo-ui": [
-        "dist/meshmakers/octo-ui"
-      ],
-      "@meshmakers/shared-auth": [
-        "dist/meshmakers/shared-auth"
-      ],
-      "@meshmakers/shared-services": [
-        "dist/meshmakers/shared-services"
-      ],
-      "@meshmakers/shared-ui": [
-        "dist/meshmakers/shared-ui"
-      ]
-    },
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
@@ -33,17 +15,38 @@
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "es2020",
-    "module": "es2020",
+    "target": "ES2022",
+    "module": "es2022",
+    "typeRoots": [
+      "node_modules/@types",
+    ],
     "lib": [
-      "es2020",
+      "es2022",
       "dom"
-    ]
+    ],
+    "paths": {
+      "@meshmakers/shared-ui": [
+        "dist/meshmakers/shared-ui"
+      ],
+      "@meshmakers/shared-auth": [
+        "dist/meshmakers/shared-auth"
+      ],
+      "@meshmakers/shared-services": [
+        "dist/meshmakers/shared-services"
+      ],
+      "@meshmakers/octo-ui": [
+        "dist/meshmakers/octo-ui"
+      ],
+      "@meshmakers/octo-services": [
+        "dist/meshmakers/octo-services"
+      ]
+    }
   },
+  "exclude": ["node_modules"],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
-    "strictInputAccessModifiers": true,
-    "strictTemplates": true
+    "strictInputAccessModifiers": true
+    //"strictTemplates": true
   }
 }

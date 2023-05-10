@@ -18,6 +18,14 @@ export class CommonValidators {
     return Validators.pattern("^(http:\\/\\/|https:\\/\\/)([a-zA-Z0-9-_]+\\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+(\\.[a-zA-Z]{2,11}?)*(:[0-9]{2,5}){0,1}\\/{0,1}$");
   }
 
+  public static ensureSameValue(sourceControlName: string): ValidatorFn {
+
+    return (control: AbstractControl) => {
+      const value = control.value;
+      return value === control.parent?.get(sourceControlName)?.value ? null : {notSame: true}
+    }
+  }
+
   public static conditionalRequired<TCompareValue>(sourceControlName: string, sourceValueCompareExpression: CompareValueFn<TCompareValue>): ValidatorFn {
 
     return (control: AbstractControl) => {
