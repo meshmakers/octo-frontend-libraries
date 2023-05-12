@@ -7,7 +7,9 @@ parameters:
     type: string    
   - name: libName
     type: string
-
+  - name: isRelease
+    type: boolean
+    
 steps:
   - task: Npm@1
     displayName: npm build ${{ parameters.libName }}
@@ -17,6 +19,7 @@ steps:
       verbose: false
       customCommand: run ${{ parameters.npmCommand }} -- --configuration production
   - task: Npm@1
+    condition: ${{ eq(parameters.isRelease, true) }}
     displayName: npm publish ${{ parameters.libName }}
     inputs:
       command: publish

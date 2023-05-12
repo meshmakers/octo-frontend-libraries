@@ -21,7 +21,8 @@
     "watch:shared-ui": "ng build @meshmakers/shared-ui --watch --configuration development",
     "build:test-app": "ng build --project test-app",
     "postinstall": "node environments/version.ts",
-    "codegen": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen --config codegen.yml"
+    "codegen": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen --config codegen.yml",
+    "link-dist": "cd dist/meshmakers/shared-auth && npm link && cd ../shared-services && npm link && cd ../shared-ui && npm link && cd ../octo-services && npm link && cd ../octo-ui && npm link"
   },
   "private": true,
   "dependencies": {
