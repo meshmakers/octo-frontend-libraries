@@ -3,15 +3,22 @@ const { resolve, relative } = require('path');
 const { writeFileSync } = require('fs-extra');
 
 const versionInfo = {
-  version
+  version,
 };
 
 const file = resolve(__dirname, 'currentVersion.ts');
-writeFileSync(file,
+writeFileSync(
+  file,
   `// IMPORTANT: THIS FILE IS AUTO GENERATED! DO NOT MANUALLY EDIT OR CHECKIN!
 /* tslint:disable */
 export const VERSION = ${JSON.stringify(versionInfo, null, 4)};
 /* tslint:enable */
-`, { encoding: 'utf-8' });
+`,
+  { encoding: 'utf-8' }
+);
 
-console.log(`Wrote version info ${versionInfo.version} to ${relative(resolve(__dirname, '..'), file)}`);
+console.log(
+  `Wrote version info ${String(versionInfo.version)} to ${String(
+    relative(resolve(__dirname, '..'), file)
+  )}`
+);

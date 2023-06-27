@@ -14,11 +14,11 @@ export class MessageService {
     this.errorMessages = new Array<ErrorMessage>();
   }
 
-  getErrorMessageCount() {
+  getErrorMessageCount(): number {
     return this.errorMessages.length;
   }
 
-  getErrorMessage(index: number) {
+  getErrorMessage(index: number): ErrorMessage {
     return this.errorMessages[index];
   }
 
@@ -26,24 +26,24 @@ export class MessageService {
     return this.latestErrorMessage.asObservable();
   }
 
-  showError(message: string, title: string) {
+  showError(message: string, title: string): void {
     console.error(message);
 
     const errorMessage = <ErrorMessage>{
       title,
-      message
+      message,
     };
     this.errorMessages.push(errorMessage);
 
     this.latestErrorMessage.next(errorMessage);
   }
 
-  showInformation(message: string) {
+  showInformation(message: string): void {
     this.snackBar.open(message, undefined, {
       duration: 3000,
       // here specify the position
       horizontalPosition: 'center',
-      verticalPosition: 'bottom'
+      verticalPosition: 'bottom',
     });
   }
 }

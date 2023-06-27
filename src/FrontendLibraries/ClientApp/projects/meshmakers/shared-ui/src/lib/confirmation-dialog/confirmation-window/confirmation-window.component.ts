@@ -1,11 +1,16 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType } from '../shared/confirmation';
+import {
+  ButtonTypes,
+  ConfirmationWindowData,
+  ConfirmationWindowResult,
+  DialogType,
+} from '../shared/confirmation';
 
 @Component({
   selector: 'lib-shared-ui-confirmation-window',
   templateUrl: './confirmation-window.component.html',
-  styleUrls: ['./confirmation-window.component.css']
+  styleUrls: ['./confirmation-window.component.css'],
 })
 export class ConfirmationWindowComponent implements OnInit {
   button1Text: string;
@@ -15,7 +20,10 @@ export class ConfirmationWindowComponent implements OnInit {
   button3Text: string | null;
   button3Result: ButtonTypes | null;
 
-  constructor(private readonly dialogRef: MatDialogRef<ConfirmationWindowComponent>, @Inject(MAT_DIALOG_DATA) public data: ConfirmationWindowData) {
+  constructor(
+    private readonly dialogRef: MatDialogRef<ConfirmationWindowComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: ConfirmationWindowData
+  ) {
     this.button2Text = null;
     this.button2Result = null;
     this.button3Text = null;
@@ -44,25 +52,23 @@ export class ConfirmationWindowComponent implements OnInit {
     }
   }
 
-  ngOnInit(): void {
+  ngOnInit(): void {}
 
-  }
-
-  onButton1() {
+  onButton1(): void {
     this.dialogRef.close(<ConfirmationWindowResult>{
-      result: this.button1Result
+      result: this.button1Result,
     });
   }
 
-  onButton2() {
+  onButton2(): void {
     this.dialogRef.close(<ConfirmationWindowResult>{
-      result: this.button2Result
+      result: this.button2Result,
     });
   }
 
-  onButton3() {
+  onButton3(): void {
     this.dialogRef.close(<ConfirmationWindowResult>{
-      result: this.button3Result
+      result: this.button3Result,
     });
   }
 }

@@ -9,24 +9,28 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { EntitySelectDataSource } from '@meshmakers/shared-services';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormControl, NG_VALIDATORS,
+  FormControl,
+  NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   NgControl,
   ValidationErrors,
-  Validator
+  Validator,
 } from '@angular/forms';
 import { of, Subject } from 'rxjs';
 import { MatInput } from '@angular/material/input';
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
-import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import {
+  MatAutocompleteActivatedEvent,
+  MatAutocompleteSelectedEvent,
+} from '@angular/material/autocomplete';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
@@ -36,26 +40,34 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
   styleUrls: ['./ia-multiple-entity-select-input.component.css'],
   host: {
     '[id]': 'id',
-    '[attr.aria-describedby]': 'describedBy'
+    '[attr.aria-describedby]': 'describedBy',
   },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => IaMultipleEntitySelectInput),
-      multi: true
+      multi: true,
     },
     {
       provide: MatFormFieldControl,
-      useExisting: IaMultipleEntitySelectInput
+      useExisting: IaMultipleEntitySelectInput,
     },
     {
       provide: NG_VALIDATORS,
       useExisting: forwardRef(() => IaMultipleEntitySelectInput),
-      multi: true
-    }
-  ]
+      multi: true,
+    },
+  ],
 })
-export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any[]>, Validator {
+export class IaMultipleEntitySelectInput
+  implements
+    OnInit,
+    OnDestroy,
+    DoCheck,
+    ControlValueAccessor,
+    MatFormFieldControl<any[]>,
+    Validator
+{
   private static nextId = 0;
   public readonly valuesFormControl: FormControl;
   public readonly searchFormControl: FormControl;
@@ -65,7 +77,9 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   public errorState: boolean;
   public focused: boolean;
   public readonly stateChanges = new Subject<void>();
-  @HostBinding() public readonly id = `ia-multiple-entity-select-${IaMultipleEntitySelectInput.nextId++}`;
+  @HostBinding()
+  public readonly id = `ia-multiple-entity-select-${IaMultipleEntitySelectInput.nextId++}`;
+
   public valuesChange: EventEmitter<any[]> = new EventEmitter<any[]>();
   private _selectedEntities: any[] | null;
   @ViewChild('input') private readonly inputField: MatInput | null;
@@ -73,7 +87,11 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   private activatedValue: any;
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
 
-  constructor(public elRef: ElementRef, private readonly injector: Injector, private readonly fm: FocusMonitor) {
+  constructor(
+    public elRef: ElementRef,
+    private readonly injector: Injector,
+    private readonly fm: FocusMonitor
+  ) {
     this.ngControl = null;
     this.errorState = false;
     this.inputField = null;
@@ -87,7 +105,7 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
     this.isLoading = false;
     this._disabled = false;
     this.focused = false;
-    fm.monitor(elRef.nativeElement, true).subscribe(origin => {
+    fm.monitor(elRef.nativeElement, true).subscribe((origin) => {
       this.focused = !!origin;
       this.stateChanges.next();
     });
@@ -107,20 +125,22 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   private _disabled = false;
 
   @Input()
-  public get disabled() {
+  public get disabled(): boolean {
     return this._disabled;
   }
 
   public set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
-    this._disabled ? this.searchFormControl.disable() : this.searchFormControl.enable();
+    this._disabled
+      ? this.searchFormControl.disable()
+      : this.searchFormControl.enable();
     this.stateChanges.next();
   }
 
   private _placeholder: string;
 
   @Input()
-  public get placeholder() {
+  public get placeholder(): string {
     return this._placeholder;
   }
 
@@ -132,7 +152,7 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   private _required = false;
 
   @Input()
-  public get required() {
+  public get required(): boolean {
     return this._required;
   }
 
@@ -168,17 +188,17 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
     }
   }
 
-  public get empty() {
+  public get empty(): boolean {
     const n = this.valuesFormControl.value;
     return !n;
   }
 
   @HostBinding('class.floating')
-  public get shouldLabelFloat() {
+  public get shouldLabelFloat(): boolean {
     return this.focused || !this.empty;
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.ngControl = this.injector.get(NgControl, null);
     if (this.ngControl != null) {
       this.ngControl.valueAccessor = this;
@@ -187,17 +207,21 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
     // If prefix defined, usually this is used for a code scanner.
     // The goal is to select the entity in direct way.
     if (this._prefix) {
-      this.searchFormControl
-        .valueChanges
+      this.searchFormControl.valueChanges
         .pipe(
           debounceTime(300),
-          filter(value => typeof value === 'string'),
-          filter(value => value.startsWith(this._prefix)),
-          tap(() => this.isLoading = true),
-          switchMap(value => this._dataSource?.onFilter(value.replace(this._prefix, '').trim()) ?? of(null))
+          filter((value) => typeof value === 'string'),
+          filter((value) => value.startsWith(this._prefix)),
+          tap(() => (this.isLoading = true)),
+          switchMap(
+            (value) =>
+              this._dataSource?.onFilter(
+                value.replace(this._prefix, '').trim()
+              ) ?? of(null)
+          )
         )
-        .subscribe(resultSet => {
-          if ((resultSet != null) && resultSet.list) {
+        .subscribe((resultSet) => {
+          if (resultSet?.list) {
             this.filteredEntities = resultSet.list;
           }
           this.isLoading = false;
@@ -205,23 +229,27 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
     }
 
     // This is the search functionality when search by human.
-    this.searchFormControl
-      .valueChanges
+    this.searchFormControl.valueChanges
       .pipe(
         debounceTime(300),
-        tap(() => this.filteredEntities = []),
-        filter(value => typeof value === 'string'),
-        filter(value => value.toString().length >= 3),
-        tap(() => this.isLoading = true),
-        switchMap(value => this._dataSource?.onFilter(value) ?? of(null))
+        tap(() => (this.filteredEntities = [])),
+        filter((value) => typeof value === 'string'),
+        filter((value) => value.toString().length >= 3),
+        tap(() => (this.isLoading = true)),
+        switchMap((value) => this._dataSource?.onFilter(value) ?? of(null))
       )
-      .subscribe(resultSet => {
+      .subscribe((resultSet) => {
         const resultList = new Array<any>();
 
-        if ((resultSet != null) && resultSet.list) {
-          resultSet.list.forEach(value1 => {
-            if (!this.value?.find(value2 =>
-              this._dataSource?.getIdEntity(value2) === this._dataSource?.getIdEntity(value1))) {
+        if (resultSet?.list) {
+          resultSet.list.forEach((value1) => {
+            if (
+              !this.value?.find(
+                (value2) =>
+                  this._dataSource?.getIdEntity(value2) ===
+                  this._dataSource?.getIdEntity(value1)
+              )
+            ) {
               resultList.push(value1);
             }
           });
@@ -229,8 +257,7 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
 
         this.filteredEntities = resultList;
         this.isLoading = false;
-      }
-      );
+      });
   }
 
   ngOnDestroy(): void {
@@ -240,21 +267,22 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
 
   ngDoCheck(): void {
     if (this.ngControl != null) {
-      this.errorState = (this.ngControl.invalid && this.ngControl.touched) ?? false;
+      this.errorState =
+        (this.ngControl.invalid && this.ngControl.touched) ?? false;
       this.stateChanges.next();
     }
   }
 
-  public clear() {
+  public clear(): void {
     this.filteredEntities = [];
     this.searchFormControl.reset(null);
   }
 
-  public focus() {
+  public focus(): void {
     this.elRef.nativeElement.querySelector('input').focus();
   }
 
-  public onEntitySelected(event: MatAutocompleteSelectedEvent) {
+  public onEntitySelected(event: MatAutocompleteSelectedEvent): void {
     let list = this.value;
     if (list == null) {
       list = new Array<any>();
@@ -267,30 +295,29 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
     this.valuesFormControl.updateValueAndValidity();
   }
 
-  public onEntityActivated(event: MatAutocompleteActivatedEvent) {
+  public onEntityActivated(event: MatAutocompleteActivatedEvent): void {
     this.activatedValue = event.option?.value;
   }
 
-  public onEntityClosed() {
+  public onEntityClosed(): void {
     if (this.activatedValue) {
       this.value = this.activatedValue;
       this.activatedValue = null;
     }
   }
 
-  public reset() {
+  public reset(): void {
     this.value = new Array<any>();
   }
 
-  public onFocusOut() {
-
+  public onFocusOut(): void {
     // if (this.filteredEntities.length === 1) {
     //   this.activatedValue = this.filteredEntities[0];
     //   this.value = this.filteredEntities[0];
     // }
   }
 
-  public onTouched() {
+  public onTouched(): void {
     this._onTouched();
     this.stateChanges.next();
   }
@@ -313,7 +340,7 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   }
 
   public onContainerClick(event: MouseEvent): void {
-    if ((event.target as Element).tagName.toLowerCase() != 'input') {
+    if ((event.target as Element).tagName.toLowerCase() !== 'input') {
       this.focus();
     }
   }
@@ -330,7 +357,7 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
     return null;
   }
 
-  remove(value: any) {
+  remove(value: any): void {
     const list = this.value;
     if (list != null) {
       const index = list.indexOf(value);
@@ -341,13 +368,11 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
     }
   }
 
-  private _propagateChange = (_: any[]) => {
-  };
+  private _propagateChange = (_: any[]): void => {};
 
-  private readonly _onTouched = () => {
-  };
+  private readonly _onTouched = (): void => {};
 
-  private setValue(values: any[] | null) {
+  private setValue(values: any[] | null): void {
     if (values !== this._selectedEntities) {
       this._selectedEntities = values;
       this.valuesChange.emit(values ?? []);

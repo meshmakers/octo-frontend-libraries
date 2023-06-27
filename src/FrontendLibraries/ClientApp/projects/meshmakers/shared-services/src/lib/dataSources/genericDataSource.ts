@@ -8,7 +8,7 @@ export class GenericDataSource<TEntity> implements DataSource<TEntity> {
     this.dataSubject.next(data);
   }
 
-  emitChanged() {
+  emitChanged(): void {
     this.dataSubject.next(this.data);
   }
 

@@ -22,17 +22,17 @@ export class DataSourceBase<TDto> implements DataSource<TDto> {
     this.loadingSubject.complete();
   }
 
-  clear() {
+  clear(): void {
     this.loadingSubject.next(false);
     this.dataSubject.next([]);
     this.totalCountSubject.next(0);
   }
 
-  protected onBeginLoad() {
+  protected onBeginLoad(): void {
     this.loadingSubject.next(true);
   }
 
-  protected onCompleteLoad(pagedResult: PagedResultDto<TDto>) {
+  protected onCompleteLoad(pagedResult: PagedResultDto<TDto>): void {
     this.loadingSubject.next(false);
     this.dataSubject.next(pagedResult.list);
     this.totalCountSubject.next(pagedResult.totalCount);

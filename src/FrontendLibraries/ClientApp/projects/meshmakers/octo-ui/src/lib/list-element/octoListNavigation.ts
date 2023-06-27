@@ -3,7 +3,12 @@ import { MatSort, SortDirection } from '@angular/material/sort';
 import { ElementRef, EventEmitter } from '@angular/core';
 import { fromEvent, merge } from 'rxjs';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
-import { SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from './globalTypes';
+import {
+  SearchFilterDto,
+  SearchFilterTypesDto,
+  SortDto,
+  SortOrdersDto,
+} from './globalTypes';
 
 export class OctoListNavigationDataInfo {
   skip: number;
@@ -34,13 +39,18 @@ export class OctoListNavigation {
   lastSortField: string | null;
   lastSearchText: string | null;
 
-  constructor(private readonly paginator: MatPaginator, private readonly sort: MatSort, private readonly searchBox: ElementRef, private readonly octoOptions: OctoListNavigationOptions) {
+  constructor(
+    private readonly paginator: MatPaginator,
+    private readonly sort: MatSort,
+    private readonly searchBox: ElementRef,
+    private readonly octoOptions: OctoListNavigationOptions
+  ) {
     this.lastSortDirection = null;
     this.lastSortField = null;
     this.lastSearchText = null;
   }
 
-  public get loadDataInfo() {
+  public get loadDataInfo(): OctoListNavigationDataInfo {
     const filterString = this.searchBox.nativeElement.value;
     const sortField = this.sort.active;
     const sortDirection = this.sort.direction;
@@ -51,7 +61,7 @@ export class OctoListNavigation {
         language: this.octoOptions.language,
         searchTerm: filterString,
         type: this.octoOptions.searchFilterType,
-        attributeNames: this.octoOptions.searchFilterAttributeNames
+        attributeNames: this.octoOptions.searchFilterAttributeNames,
       };
     }
 
@@ -59,7 +69,10 @@ export class OctoListNavigation {
     if (sortField && sortDirection) {
       sort.push(<SortDto>{
         attributeName: sortField,
-        sortOrder: sortDirection === 'asc' ? SortOrdersDto.AscendingDto : SortOrdersDto.DescendingDto
+        sortOrder:
+          sortDirection === 'asc'
+            ? SortOrdersDto.AscendingDto
+            : SortOrdersDto.DescendingDto,
       });
     }
 
@@ -67,11 +80,11 @@ export class OctoListNavigation {
       skip: this.paginator.pageIndex * this.paginator.pageSize,
       take: this.paginator.pageSize,
       searchFilter: filter,
-      sort
+      sort,
     };
   }
 
-  init() {
+  init(): void {
     // server-side search
     fromEvent(this.searchBox.nativeElement, 'keyup')
       .pipe(
@@ -93,10 +106,18 @@ export class OctoListNavigation {
           this.lastSearchText = searchText;
 
           if (!searchText && this.lastSortField) {
-            if (this.lastSortDirection == 'asc') {
-              this.sort.sort({ id: this.lastSortField, start: 'asc', disableClear: true });
-            } else if (this.lastSortDirection == 'desc') {
-              this.sort.sort({ id: this.lastSortField, start: 'desc', disableClear: true });
+            if (this.lastSortDirection === 'asc') {
+              this.sort.sort({
+                id: this.lastSortField,
+                start: 'asc',
+                disableClear: true,
+              });
+            } else if (this.lastSortDirection === 'desc') {
+              this.sort.sort({
+                id: this.lastSortField,
+                start: 'desc',
+                disableClear: true,
+              });
             }
           }
 
@@ -106,16 +127,18 @@ export class OctoListNavigation {
       .subscribe();
 
     // reset the paginator after sorting
-    this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+    this.sort.sortChange.subscribe(() => (this.paginator.pageIndex = 0));
 
     merge(this.sort.sortChange, this.paginator.page)
       .pipe(
-        tap(() => { this.loadData(); })
+        tap(() => {
+          this.loadData();
+        })
       )
       .subscribe();
   }
 
-  private loadData() {
+  private loadData(): void {
     this.loadDataRequest.emit(this.loadDataInfo);
   }
 }

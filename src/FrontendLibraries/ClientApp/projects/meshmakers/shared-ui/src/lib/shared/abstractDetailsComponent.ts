@@ -21,31 +21,35 @@ export abstract class AbstractDetailsComponent<TEntity> {
     return this.entity !== null;
   }
 
-  public hasError = (controlName: string, errorName: string) => {
+  public hasError = (controlName: string, errorName: string): boolean => {
     return this.ownerForm?.controls[controlName].hasError(errorName);
   };
 
-  public hasFormError = (errorName: string) => {
+  public hasFormError = (errorName: string): boolean => {
     return this.ownerForm?.hasError(errorName);
   };
 
-  public updateDateTime(controlName: string) {
-    this.ownerForm?.get(controlName)?.setValue(IsoDateTime.utcToLocalDateTimeIso(IsoDateTime.currentUtcDateTimeIso()));
+  public updateDateTime(controlName: string): void {
+    this.ownerForm
+      ?.get(controlName)
+      ?.setValue(
+        IsoDateTime.utcToLocalDateTimeIso(IsoDateTime.currentUtcDateTimeIso())
+      );
   }
 
-  public copyInputMessage(inputElement: any) {
+  public copyInputMessage(inputElement: any): void {
     inputElement.select();
     document.execCommand('copy');
     inputElement.setSelectionRange(0, 0);
   }
 
-  protected onProgressStarting() {
+  protected onProgressStarting(): void {
     this.loading = true;
     this.ownerForm?.disable();
     this.ownerForm?.updateValueAndValidity();
   }
 
-  protected onProgressCompleted() {
+  protected onProgressCompleted(): void {
     this.ownerForm?.enable();
     this.loading = false;
   }

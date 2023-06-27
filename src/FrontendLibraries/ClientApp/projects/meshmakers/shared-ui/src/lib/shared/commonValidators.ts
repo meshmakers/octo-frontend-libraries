@@ -13,19 +13,31 @@ export class CommonValidators {
   }
 
   public static httpUri(): ValidatorFn {
-    return Validators.pattern('^(http:\\/\\/|https:\\/\\/)([a-zA-Z0-9-_]+\\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+(\\.[a-zA-Z]{2,11}?)*(:[0-9]{2,5}){0,1}\\/{0,1}$');
+    return Validators.pattern(
+      '^(http:\\/\\/|https:\\/\\/)([a-zA-Z0-9-_]+\\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+(\\.[a-zA-Z]{2,11}?)*(:[0-9]{2,5}){0,1}\\/{0,1}$'
+    );
   }
 
   public static ensureSameValue(sourceControlName: string): ValidatorFn {
     return (control: AbstractControl) => {
       const value = control.value;
-      return value === control.parent?.get(sourceControlName)?.value ? null : { notSame: true };
+      return value === control.parent?.get(sourceControlName)?.value
+        ? null
+        : { notSame: true };
     };
   }
 
-  public static conditionalRequired<TCompareValue>(sourceControlName: string, sourceValueCompareExpression: CompareValueFn<TCompareValue>): ValidatorFn {
+  public static conditionalRequired<TCompareValue>(
+    sourceControlName: string,
+    sourceValueCompareExpression: CompareValueFn<TCompareValue>
+  ): ValidatorFn {
     return (control: AbstractControl) => {
-      if ((control.parent != null) && sourceValueCompareExpression(control.parent.get(sourceControlName)?.value)) {
+      if (
+        control.parent != null &&
+        sourceValueCompareExpression(
+          control.parent.get(sourceControlName)?.value
+        )
+      ) {
         return isEmptyInputValue(control.value) ? { required: true } : null;
       }
       return null;
@@ -34,7 +46,7 @@ export class CommonValidators {
 
   public static dependentControls(controlNames: string[]): ValidatorFn {
     return (control: AbstractControl) => {
-      controlNames.forEach(controlName => {
+      controlNames.forEach((controlName) => {
         control.parent?.get(controlName)?.updateValueAndValidity();
       });
       return null;

@@ -10,24 +10,22 @@ import { AuthorizeGuard } from './authorize.guard';
   declarations: [LoginMenuComponent],
   exports: [LoginMenuComponent],
   providers: [],
-  imports: [
-    CommonModule,
-    HttpClientModule,
-    OAuthModule.forRoot()
-  ]
+  imports: [CommonModule, HttpClientModule, OAuthModule.forRoot()],
 })
 export class SharedAuthModule {
-  static forRoot(authorizeOptions: AuthorizeOptions): ModuleWithProviders<SharedAuthModule> {
+  static forRoot(
+    authorizeOptions: AuthorizeOptions
+  ): ModuleWithProviders<SharedAuthModule> {
     return {
       ngModule: SharedAuthModule,
       providers: [
         {
           provide: AuthorizeOptions,
-          useValue: authorizeOptions
+          useValue: authorizeOptions,
         },
         AuthorizeService,
-        AuthorizeGuard
-      ]
+        AuthorizeGuard,
+      ],
     };
   }
 }

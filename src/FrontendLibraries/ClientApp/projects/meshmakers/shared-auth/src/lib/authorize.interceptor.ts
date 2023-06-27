@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import {
+  HttpEvent,
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest,
+} from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthorizeService } from './authorize.service';
 
@@ -9,10 +14,10 @@ export class AuthorizeInterceptor implements HttpInterceptor {
 
   constructor(private readonly authorize: AuthorizeService) {
     this.accessToken = null;
-    authorize.getAccessToken().subscribe(value => this.accessToken = value);
+    authorize.getAccessToken().subscribe((value) => (this.accessToken = value));
   }
 
-  private static isSameOriginUrl(req: any) {
+  private static isSameOriginUrl(req: any): boolean {
     // It's an absolute url with the same origin.
     if (req.url.startsWith(`${window.location.origin}/`)) {
       return true;
@@ -25,7 +30,7 @@ export class AuthorizeInterceptor implements HttpInterceptor {
     }
 
     // It's a relative url like /api/Products
-    if (/^\/[^\/].*/.test(req.url)) {
+    if (/^\/[^/].*/.test(req.url)) {
       return true;
     }
 
@@ -37,24 +42,34 @@ export class AuthorizeInterceptor implements HttpInterceptor {
   // Checks if there is an access_token available in the authorize service
   // and adds it to the request in case it's targeted at the same origin as the
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
     return this.processRequestWithToken(this.accessToken, req, next);
   }
 
   // single page application.
-  private processRequestWithToken(token: string | null, req: HttpRequest<any>, next: HttpHandler) {
-    if (!!token && (AuthorizeInterceptor.isSameOriginUrl(req) || this.isKnownServiceUri(req))) {
+  private processRequestWithToken(
+    token: string | null,
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
+    if (
+      !!token &&
+      (AuthorizeInterceptor.isSameOriginUrl(req) || this.isKnownServiceUri(req))
+    ) {
       req = req.clone({
         setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
     }
 
     return next.handle(req);
   }
 
-  private isKnownServiceUri(req: any) {
+  private isKnownServiceUri(req: any): boolean {
     const serviceUris = this.authorize.getServiceUris();
 
     if (serviceUris != null) {

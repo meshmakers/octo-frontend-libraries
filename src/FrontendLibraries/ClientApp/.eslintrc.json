@@ -3,7 +3,7 @@
         "browser": true,
         "es2021": true
     },
-    "extends": "standard-with-typescript",
+    "extends": ["standard-with-typescript", "plugin:prettier/recommended"],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": "latest",
@@ -23,14 +23,16 @@
         "@typescript-eslint/space-before-function-paren": "off",
         "@typescript-eslint/comma-dangle":"off",
         "@typescript-eslint/no-extraneous-class": "off",
-        "@typescript-eslint/strict-boolean-expressions": "warn",
+        "@typescript-eslint/strict-boolean-expressions": "off",
         "@typescript-eslint/consistent-type-assertions": "off",
-        "@typescript-eslint/explicit-function-return-type":"warn",
-        "no-return-assign": "warn",
         "@typescript-eslint/member-delimiter-style": ["error",
         {
             "multiline":{"delimiter":"semi","requireLast":true}
         }],
-        "@typescript-eslint/no-var-requires": "off"
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/restrict-template-expressions": ["error", { "allowNumber": true, "allowBoolean": true }],
+        "no-multiple-empty-lines":["error", {"max": 3, "maxEOF": 1}],
+        "no-return-assign": "warn"
+
     }
 }

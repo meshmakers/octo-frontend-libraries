@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 
 @NgModule({
   declarations: [],
-  imports: [
-    CommonModule
-  ]
+  imports: [CommonModule],
 })
-export class ListElementModule {
-}
+export class ListElementModule {}

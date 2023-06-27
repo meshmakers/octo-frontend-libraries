@@ -11,13 +11,13 @@ export interface ProgressWindowData {
   cancelOperation: () => void;
 }
 
-export interface ProgressWindowResult {
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface ProgressWindowResult {}
 
 @Component({
   selector: 'lib-progress-window',
   templateUrl: './progress-window.component.html',
-  styleUrls: ['./progress-window.component.css']
+  styleUrls: ['./progress-window.component.css'],
 })
 export class ProgressWindowComponent implements OnInit {
   public statusText: string | null;
@@ -27,16 +27,15 @@ export class ProgressWindowComponent implements OnInit {
     this.statusText = null;
     this.progressValue = 0;
 
-    data.progress.subscribe(value => {
+    data.progress.subscribe((value) => {
       this.statusText = value.statusText;
       this.progressValue = value.progressValue;
     });
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
-  onCancelClick() {
+  onCancelClick(): void {
     this.data.cancelOperation();
   }
 }

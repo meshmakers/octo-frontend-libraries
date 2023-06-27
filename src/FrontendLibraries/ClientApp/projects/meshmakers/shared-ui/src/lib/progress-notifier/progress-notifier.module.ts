@@ -14,16 +14,14 @@ import { ProgressNotifierService } from './services/progress-notifier.service';
     MatDialogModule,
     FlexLayoutModule,
     MatButtonModule,
-    MatProgressBarModule
-  ]
+    MatProgressBarModule,
+  ],
 })
 export class ProgressNotifierModule {
   static forRoot(): ModuleWithProviders<ProgressNotifierModule> {
     return {
       ngModule: ProgressNotifierModule,
-      providers: [
-        ProgressNotifierService
-      ]
+      providers: [ProgressNotifierService],
     };
   }
 }
