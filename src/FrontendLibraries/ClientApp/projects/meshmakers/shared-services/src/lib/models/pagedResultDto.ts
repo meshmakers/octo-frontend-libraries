@@ -1,9 +1,8 @@
 export class PagedResultDto<T> {
-
   skip: number;
   take: number;
   totalCount: number;
-  list: Array<T>;
+  list: T[];
 
   constructor() {
     this.skip = 0;

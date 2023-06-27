@@ -1,4 +1,4 @@
-import {AuthorizeOptions} from "@meshmakers/shared-auth";
+import { AuthorizeOptions } from '@meshmakers/shared-auth';
 
 export const defaultAuthorizeOptions: AuthorizeOptions = {
 
@@ -20,4 +20,4 @@ export const defaultAuthorizeOptions: AuthorizeOptions = {
   sessionChecksEnabled: true,
 
   wellKnownServiceUris: []
-}
+};

@@ -1,8 +1,7 @@
-import {FormGroup} from "@angular/forms";
-import {IsoDateTime} from "@meshmakers/shared-services";
+import { FormGroup } from '@angular/forms';
+import { IsoDateTime } from '@meshmakers/shared-services';
 
 export abstract class AbstractDetailsComponent<TEntity> {
-
   public loading: boolean;
   protected entity: TEntity | null;
 
@@ -12,7 +11,7 @@ export abstract class AbstractDetailsComponent<TEntity> {
     this._ownerForm = formGroup;
   }
 
-  private _ownerForm: FormGroup;
+  private readonly _ownerForm: FormGroup;
 
   public get ownerForm(): FormGroup {
     return this._ownerForm;
@@ -34,7 +33,7 @@ export abstract class AbstractDetailsComponent<TEntity> {
     this.ownerForm?.get(controlName)?.setValue(IsoDateTime.utcToLocalDateTimeIso(IsoDateTime.currentUtcDateTimeIso()));
   }
 
-  public copyInputMessage(inputElement : any) {
+  public copyInputMessage(inputElement: any) {
     inputElement.select();
     document.execCommand('copy');
     inputElement.setSelectionRange(0, 0);

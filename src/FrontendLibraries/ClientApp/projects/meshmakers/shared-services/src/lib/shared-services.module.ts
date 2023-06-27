@@ -1,6 +1,5 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
-import {MessageService} from "./services/message.service";
-
+import { ModuleWithProviders, NgModule } from '@angular/core';
+import { MessageService } from './services/message.service';
 
 @NgModule({
   declarations: [],
@@ -14,6 +13,6 @@ export class SharedServicesModule {
       providers: [
         MessageService
       ]
-    }
+    };
   }
 }

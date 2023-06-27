@@ -1,6 +1,5 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
-import {OctoServiceOptions} from "./options/octo-service-options";
-
+import { ModuleWithProviders, NgModule } from '@angular/core';
+import { OctoServiceOptions } from './options/octo-service-options';
 
 @NgModule({
   declarations: [],
@@ -17,6 +16,6 @@ export class OctoServicesModule {
           useValue: octoServiceOptions
         }
       ]
-    }
+    };
   }
 }

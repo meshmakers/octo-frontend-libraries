@@ -11,7 +11,7 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import {EntitySelectDataSource} from "@meshmakers/shared-services";
+import { EntitySelectDataSource } from '@meshmakers/shared-services';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -20,15 +20,15 @@ import {
   NgControl,
   ValidationErrors,
   Validator
-} from "@angular/forms";
-import {of, Subject} from "rxjs";
-import {MatInput} from "@angular/material/input";
-import {FocusMonitor} from "@angular/cdk/a11y";
-import {coerceBooleanProperty} from "@angular/cdk/coercion";
-import {debounceTime, filter, switchMap, tap} from "rxjs/operators";
-import {MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent} from "@angular/material/autocomplete";
-import {MatFormFieldControl} from "@angular/material/form-field";
-import {COMMA, ENTER} from "@angular/cdk/keycodes";
+} from '@angular/forms';
+import { of, Subject } from 'rxjs';
+import { MatInput } from '@angular/material/input';
+import { FocusMonitor } from '@angular/cdk/a11y';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
+import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatFormFieldControl } from '@angular/material/form-field';
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
 @Component({
   selector: 'ia-multiple-entity-select',
@@ -55,8 +55,7 @@ import {COMMA, ENTER} from "@angular/cdk/keycodes";
     }
   ]
 })
-export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<Array<any>>, Validator {
-
+export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any[]>, Validator {
   private static nextId = 0;
   public readonly valuesFormControl: FormControl;
   public readonly searchFormControl: FormControl;
@@ -67,20 +66,20 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   public focused: boolean;
   public readonly stateChanges = new Subject<void>();
   @HostBinding() public readonly id = `ia-multiple-entity-select-${IaMultipleEntitySelectInput.nextId++}`;
-  public valuesChange: EventEmitter<Array<any>> = new EventEmitter<Array<any>>();
-  private _selectedEntities: Array<any> | null;
+  public valuesChange: EventEmitter<any[]> = new EventEmitter<any[]>();
+  private _selectedEntities: any[] | null;
   @ViewChild('input') private readonly inputField: MatInput | null;
   @HostBinding('attr.aria-describedby') private describedBy = '';
   private activatedValue: any;
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
 
-  constructor(public elRef: ElementRef, private injector: Injector, private fm: FocusMonitor) {
+  constructor(public elRef: ElementRef, private readonly injector: Injector, private readonly fm: FocusMonitor) {
     this.ngControl = null;
     this.errorState = false;
     this.inputField = null;
     this._dataSource = null;
-    this._placeholder = "";
-    this._prefix = "";
+    this._placeholder = '';
+    this._prefix = '';
     this._selectedEntities = null;
 
     this.valuesFormControl = new FormControl();
@@ -139,7 +138,7 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
 
   public set required(req) {
     this._required = coerceBooleanProperty(req);
-    if (this.inputField) {
+    if (this.inputField != null) {
       this.inputField.required = this._required;
     }
     this.stateChanges.next();
@@ -158,11 +157,11 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
     }
   }
 
-  public get value(): Array<any> | null {
+  public get value(): any[] | null {
     return this._selectedEntities;
   }
 
-  public set value(value: Array<any> | null) {
+  public set value(value: any[] | null) {
     if (value !== this._selectedEntities) {
       this.valuesFormControl.setValue(value);
       this.setValue(value);
@@ -170,7 +169,7 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   }
 
   public get empty() {
-    let n = this.valuesFormControl.value;
+    const n = this.valuesFormControl.value;
     return !n;
   }
 
@@ -195,11 +194,10 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
           filter(value => typeof value === 'string'),
           filter(value => value.startsWith(this._prefix)),
           tap(() => this.isLoading = true),
-          switchMap(value => this._dataSource?.onFilter(value.replace(this._prefix, "").trim()) ?? of(null))
+          switchMap(value => this._dataSource?.onFilter(value.replace(this._prefix, '').trim()) ?? of(null))
         )
         .subscribe(resultSet => {
-
-          if (resultSet && resultSet.list) {
+          if ((resultSet != null) && resultSet.list) {
             this.filteredEntities = resultSet.list;
           }
           this.isLoading = false;
@@ -218,22 +216,20 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
         switchMap(value => this._dataSource?.onFilter(value) ?? of(null))
       )
       .subscribe(resultSet => {
+        const resultList = new Array<any>();
 
-          const resultList = new Array<any>();
-
-          if (resultSet && resultSet.list) {
-
-            resultSet.list.forEach(value1 => {
-              if (!this.value?.find(value2 =>
-                this._dataSource?.getIdEntity(value2) === this._dataSource?.getIdEntity(value1))) {
-                resultList.push(value1);
-              }
-            })
-          }
-
-          this.filteredEntities = resultList;
-          this.isLoading = false;
+        if ((resultSet != null) && resultSet.list) {
+          resultSet.list.forEach(value1 => {
+            if (!this.value?.find(value2 =>
+              this._dataSource?.getIdEntity(value2) === this._dataSource?.getIdEntity(value1))) {
+              resultList.push(value1);
+            }
+          });
         }
+
+        this.filteredEntities = resultList;
+        this.isLoading = false;
+      }
       );
   }
 
@@ -243,7 +239,7 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   }
 
   ngDoCheck(): void {
-    if (this.ngControl) {
+    if (this.ngControl != null) {
       this.errorState = (this.ngControl.invalid && this.ngControl.touched) ?? false;
       this.stateChanges.next();
     }
@@ -259,9 +255,8 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   }
 
   public onEntitySelected(event: MatAutocompleteSelectedEvent) {
-
     let list = this.value;
-    if (!list) {
+    if (list == null) {
       list = new Array<any>();
     }
     list.push(event.option.value);
@@ -277,12 +272,9 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   }
 
   public onEntityClosed() {
-
     if (this.activatedValue) {
-
       this.value = this.activatedValue;
       this.activatedValue = null;
-
     }
   }
 
@@ -299,7 +291,6 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   }
 
   public onTouched() {
-
     this._onTouched();
     this.stateChanges.next();
   }
@@ -334,14 +325,14 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
   validate(control: AbstractControl): ValidationErrors | null {
     const selection: any = control.value;
     if (typeof selection === 'string') {
-      return {incorrect: true};
+      return { incorrect: true };
     }
     return null;
   }
 
   remove(value: any) {
     const list = this.value;
-    if (list) {
+    if (list != null) {
       const index = list.indexOf(value);
       if (index !== -1) {
         list.splice(index, 1);
@@ -350,13 +341,13 @@ export class IaMultipleEntitySelectInput implements OnInit, OnDestroy, DoCheck, 
     }
   }
 
-  private _propagateChange = (_: Array<any>) => {
+  private _propagateChange = (_: any[]) => {
   };
 
-  private _onTouched = () => {
+  private readonly _onTouched = () => {
   };
 
-  private setValue(values: Array<any> | null) {
+  private setValue(values: any[] | null) {
     if (values !== this._selectedEntities) {
       this._selectedEntities = values;
       this.valuesChange.emit(values ?? []);

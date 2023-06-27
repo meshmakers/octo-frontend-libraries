@@ -4,16 +4,13 @@ export class EnumTuple<TValue = number> {
 }
 
 export class EnumReader<TValue = number> {
-
-
-  constructor(private value: Object) {
+  constructor(private readonly value: Object) {
   }
 
-  public getNamesAndValues(): EnumTuple<TValue>[] {
-
+  public getNamesAndValues(): Array<EnumTuple<TValue>> {
     return this.getNames().map((n) => {
-      // @ts-ignore
-      return <EnumTuple<TValue>>{name: this.value[n] as TValue, id: n};
+      // @ts-expect-error
+      return <EnumTuple<TValue>>{ name: this.value[n] as TValue, id: n };
     });
   }
 
@@ -22,7 +19,7 @@ export class EnumReader<TValue = number> {
   }
 
   private getObjValues(): TValue[] {
-    // @ts-ignore
+    // @ts-expect-error
     return Object.keys(this.value).map(k => this.value[k]);
   }
 }

@@ -20,15 +20,15 @@ import {
   NgControl,
   ValidationErrors,
   Validator
-} from "@angular/forms";
-import {MatFormFieldControl} from "@angular/material/form-field";
-import {MatInput} from "@angular/material/input";
-import {EntitySelectDataSource} from "@meshmakers/shared-services";
-import {of, Subject} from "rxjs";
-import {FocusMonitor} from "@angular/cdk/a11y";
-import {debounceTime, filter, switchMap, tap} from "rxjs/operators";
-import {MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent} from "@angular/material/autocomplete";
-import {coerceBooleanProperty} from "@angular/cdk/coercion";
+} from '@angular/forms';
+import { MatFormFieldControl } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { EntitySelectDataSource } from '@meshmakers/shared-services';
+import { of, Subject } from 'rxjs';
+import { FocusMonitor } from '@angular/cdk/a11y';
+import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
+import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 @Component({
   selector: 'ia-entity-select',
@@ -56,7 +56,6 @@ import {coerceBooleanProperty} from "@angular/cdk/coercion";
   ]
 })
 export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any>, Validator {
-
   private static nextId = 0;
   public readonly searchFormControl: FormControl;
   public isLoading: boolean;
@@ -72,13 +71,13 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   @HostBinding('attr.aria-describedby') private describedBy = '';
   private activatedValue: any;
 
-  constructor(public elRef: ElementRef, private injector: Injector, private fm: FocusMonitor) {
+  constructor(public elRef: ElementRef, private readonly injector: Injector, private readonly fm: FocusMonitor) {
     this.ngControl = null;
     this.errorState = false;
     this.inputField = null;
     this._dataSource = null;
-    this._placeholder = "";
-    this._prefix = "";
+    this._placeholder = '';
+    this._prefix = '';
 
     this.searchFormControl = new FormControl();
     this.isLoading = false;
@@ -135,7 +134,7 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
 
   public set required(req) {
     this._required = coerceBooleanProperty(req);
-    if (this.inputField) {
+    if (this.inputField != null) {
       this.inputField.required = this._required;
     }
     this.stateChanges.next();
@@ -166,7 +165,7 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   public get empty() {
-    let n = this.searchFormControl.value;
+    const n = this.searchFormControl.value;
     return !n;
   }
 
@@ -192,10 +191,10 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
           filter(value => value.startsWith(this._prefix)),
           tap(() => this.value = null),
           tap(() => this.isLoading = true),
-          switchMap(value => this._dataSource?.onFilter(value.replace(this._prefix, "").trim()) ?? of(null))
+          switchMap(value => this._dataSource?.onFilter(value.replace(this._prefix, '').trim()) ?? of(null))
         )
         .subscribe(resultSet => {
-          if (resultSet && resultSet.list) {
+          if ((resultSet != null) && resultSet.list) {
             if (resultSet.list.length === 1) {
               this.value = resultSet.list[0];
             } else {
@@ -213,17 +212,17 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
         debounceTime(300),
         tap(() => this.filteredEntities = []),
         filter(value => typeof value === 'string'),
-        tap(() => this.setValue(null)),
+        tap(() => { this.setValue(null); }),
         filter(value => value.toString().length >= 3),
         tap(() => this.isLoading = true),
         switchMap(value => this._dataSource?.onFilter(value) ?? of(null))
       )
       .subscribe(resultSet => {
-          if (resultSet && resultSet.list) {
-            this.filteredEntities = resultSet.list;
-          }
-          this.isLoading = false;
+        if ((resultSet != null) && resultSet.list) {
+          this.filteredEntities = resultSet.list;
         }
+        this.isLoading = false;
+      }
       );
   }
 
@@ -233,7 +232,7 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   ngDoCheck(): void {
-    if (this.ngControl) {
+    if (this.ngControl != null) {
       this.errorState = (this.ngControl.invalid && this.ngControl.touched) ?? false;
       this.stateChanges.next();
     }
@@ -258,12 +257,9 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   public onEntityClosed() {
-
     if (this.activatedValue) {
-
       this.value = this.activatedValue;
       this.activatedValue = null;
-
     }
   }
 
@@ -272,7 +268,6 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   public onFocusOut() {
-
     if (this.filteredEntities.length === 1) {
       this.activatedValue = this.filteredEntities[0];
       this.value = this.filteredEntities[0];
@@ -280,7 +275,6 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   public onTouched() {
-
     this._onTouched();
     this.stateChanges.next();
   }
@@ -315,7 +309,7 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   validate(control: AbstractControl): ValidationErrors | null {
     const selection: any = control.value;
     if (typeof selection === 'string') {
-      return {incorrect: true};
+      return { incorrect: true };
     }
     return null;
   }
@@ -323,7 +317,7 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   private _propagateChange = (_: any) => {
   };
 
-  private _onTouched = () => {
+  private readonly _onTouched = () => {
   };
 
   private setValue(value: any) {
@@ -334,5 +328,4 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
       this.stateChanges.next();
     }
   }
-
 }

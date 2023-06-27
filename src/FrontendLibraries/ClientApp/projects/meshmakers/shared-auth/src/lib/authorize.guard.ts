@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
   ActivatedRouteSnapshot,
   CanActivate,
@@ -9,18 +9,18 @@ import {
   RouterStateSnapshot, UrlSegment,
   UrlTree
 } from '@angular/router';
-import {AuthorizeService} from './authorize.service';
-import {firstValueFrom, lastValueFrom, Observable} from "rxjs";
+import { AuthorizeService } from './authorize.service';
+import { firstValueFrom, lastValueFrom, Observable } from 'rxjs';
 
 @Injectable()
 export class AuthorizeGuard implements CanActivate, CanActivateChild, CanDeactivate<unknown>, CanLoad {
-  constructor(private authorizeService: AuthorizeService, private router: Router) {
+  constructor(private readonly authorizeService: AuthorizeService, private readonly router: Router) {
   }
 
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    let url: string = state.url;
+    const url: string = state.url;
     return this.handleAuthorization(next, url);
   }
 
@@ -45,8 +45,7 @@ export class AuthorizeGuard implements CanActivate, CanActivateChild, CanDeactiv
   }
 
   private async handleAuthorization(route: ActivatedRouteSnapshot, url: any): Promise<boolean> {
-
-    await this.authorizeService.initialize()
+    await this.authorizeService.initialize();
 
     const isAuthenticated = await firstValueFrom(this.authorizeService.getIsAuthenticated());
     if (isAuthenticated) {

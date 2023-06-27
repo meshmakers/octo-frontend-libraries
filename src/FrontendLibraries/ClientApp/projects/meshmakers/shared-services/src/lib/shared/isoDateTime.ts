@@ -5,7 +5,7 @@ export class IsoDateTime {
     if (!utcDateTime) {
       return null;
     }
-    return moment(utcDateTime).local().format("YYYY-MM-DDTHH:mm:ss");
+    return moment(utcDateTime).local().format('YYYY-MM-DDTHH:mm:ss');
   }
 
   public static localToUtcDateTimeIso(localDateTime: string) {

@@ -1,18 +1,15 @@
-import {Injectable} from '@angular/core';
-import {HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
-import {Observable} from 'rxjs';
-import {AuthorizeService} from './authorize.service';
+import { Injectable } from '@angular/core';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthorizeService } from './authorize.service';
 
 @Injectable()
 export class AuthorizeInterceptor implements HttpInterceptor {
-
   accessToken: string | null;
 
-  constructor(private authorize: AuthorizeService) {
-
+  constructor(private readonly authorize: AuthorizeService) {
     this.accessToken = null;
     authorize.getAccessToken().subscribe(value => this.accessToken = value);
-
   }
 
   private static isSameOriginUrl(req: any) {
@@ -58,10 +55,9 @@ export class AuthorizeInterceptor implements HttpInterceptor {
   }
 
   private isKnownServiceUri(req: any) {
-
     const serviceUris = this.authorize.getServiceUris();
 
-    if (serviceUris) {
+    if (serviceUris != null) {
       for (let i = 0; i < serviceUris.length; i++) {
         if (req.url.startsWith(`${serviceUris[i]}`)) {
           return true;
