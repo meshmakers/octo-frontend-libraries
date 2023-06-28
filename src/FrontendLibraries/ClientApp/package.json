@@ -16,7 +16,6 @@
     "build:octo-ui": "ng build @meshmakers/octo-ui",
     "build:octo-services": "ng build @meshmakers/octo-services",
     "build:shared-services": "ng build @meshmakers/shared-services",
-    "build:eslint-config": "ng build @meshmakers/eslint-config",
     "watch:shared-auth": "ng build @meshmakers/shared-auth --watch --configuration development",
     "watch:shared-services": "ng build @meshmakers/shared-services --watch --configuration development",
     "watch:shared-ui": "ng build @meshmakers/shared-ui --watch --configuration development",

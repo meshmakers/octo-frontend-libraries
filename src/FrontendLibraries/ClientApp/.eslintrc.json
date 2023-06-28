@@ -33,6 +33,5 @@
         "@typescript-eslint/restrict-template-expressions": ["error", { "allowNumber": true, "allowBoolean": true }],
         "no-multiple-empty-lines":["error", {"max": 3, "maxEOF": 1}],
         "no-return-assign": "warn"
-
     }
 }
