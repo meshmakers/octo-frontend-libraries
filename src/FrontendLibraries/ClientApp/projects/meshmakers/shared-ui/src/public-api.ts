@@ -16,4 +16,4 @@ export * from './lib/confirmation-dialog/services/confirmation.service';
 export * from './lib/confirmation-dialog/shared/confirmation';
 
 export * from './lib/shared/commonValidators';
-export * from './lib/shared/abstractDetailsComponent'
+export * from './lib/shared/abstractDetailsComponent';

@@ -7,4 +7,3 @@ export * from './lib/login-menu/login-menu.component';
 export * from './lib/shared-auth.module';
 export * from './lib/authorize.interceptor';
 export * from './lib/authorize.guard';
-

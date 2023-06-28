@@ -1,5 +1,4 @@
 export class GraphQL {
-
   public static getCursor(position: number): string {
     return btoa(`arrayconnection:${position}`);
   }
@@ -13,4 +12,4 @@ export class GraphQL {
   }
 }
 
-export const GraphQLCloneIgnoredProperties = ["id", "rtId", "__typename"];
+export const GraphQLCloneIgnoredProperties = ['id', 'rtId', '__typename'];

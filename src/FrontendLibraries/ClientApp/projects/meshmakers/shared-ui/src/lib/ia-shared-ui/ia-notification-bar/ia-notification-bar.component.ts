@@ -1,37 +1,38 @@
-import {Component, OnInit} from '@angular/core';
-import {ErrorMessage, MessageService} from "@meshmakers/shared-services";
-import {MatDialog} from "@angular/material/dialog";
-import {MessageDetailsComponent} from "../message-details/message-details.component";
+import { Component, OnInit } from '@angular/core';
+import { ErrorMessage, MessageService } from '@meshmakers/shared-services';
+import { MatDialog } from '@angular/material/dialog';
+import { MessageDetailsComponent } from '../message-details/message-details.component';
 
 @Component({
   selector: 'ia-notification-bar',
   templateUrl: './ia-notification-bar.component.html',
-  styleUrls: ['./ia-notification-bar.component.css']
+  styleUrls: ['./ia-notification-bar.component.css'],
 })
 export class IaNotificationBarComponent implements OnInit {
-
   public errorMessage: ErrorMessage | null;
 
-  constructor(private messageService: MessageService, private dialog: MatDialog) {
+  constructor(
+    private readonly messageService: MessageService,
+    private readonly dialog: MatDialog
+  ) {
     this.errorMessage = null;
   }
 
-  ngOnInit() {
-
-    this.messageService.getLatestErrorMessage().subscribe(value => {
+  ngOnInit(): void {
+    this.messageService.getLatestErrorMessage().subscribe((value) => {
       this.errorMessage = value;
     });
   }
 
-  onHide() {
+  onHide(): void {
     this.errorMessage = null;
   }
 
-  onShowDetails() {
+  onShowDetails(): void {
     this.dialog.open(MessageDetailsComponent, {
       data: {
-        errorMessage: this.errorMessage
-      }
+        errorMessage: this.errorMessage,
+      },
     });
   }
 }

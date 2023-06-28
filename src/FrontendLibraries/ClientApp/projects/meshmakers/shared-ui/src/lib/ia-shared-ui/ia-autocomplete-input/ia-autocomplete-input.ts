@@ -9,9 +9,9 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
-import {MatFormFieldControl} from "@angular/material/form-field";
+import { MatFormFieldControl } from '@angular/material/form-field';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -20,15 +20,18 @@ import {
   NG_VALUE_ACCESSOR,
   NgControl,
   ValidationErrors,
-  Validator
-} from "@angular/forms";
-import {coerceBooleanProperty} from "@angular/cdk/coercion";
-import {debounceTime, filter, map, switchMap, tap} from "rxjs/operators";
-import {MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent} from "@angular/material/autocomplete";
-import {MatInput} from "@angular/material/input";
-import {of, Subject} from "rxjs";
-import {FocusMonitor} from "@angular/cdk/a11y";
-import {AutoCompleteDataSource} from "@meshmakers/shared-services";
+  Validator,
+} from '@angular/forms';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
+import {
+  MatAutocompleteActivatedEvent,
+  MatAutocompleteSelectedEvent,
+} from '@angular/material/autocomplete';
+import { MatInput } from '@angular/material/input';
+import { of, Subject } from 'rxjs';
+import { FocusMonitor } from '@angular/cdk/a11y';
+import { AutoCompleteDataSource } from '@meshmakers/shared-services';
 
 @Component({
   selector: 'ia-autocomplete',
@@ -36,28 +39,34 @@ import {AutoCompleteDataSource} from "@meshmakers/shared-services";
   styleUrls: ['./ia-autocomplete-input.css'],
   host: {
     '[id]': 'id',
-    '[attr.aria-describedby]': 'describedBy'
+    '[attr.aria-describedby]': 'describedBy',
   },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => IaAutocompleteInput),
-      multi: true
+      multi: true,
     },
     {
       provide: MatFormFieldControl,
-      useExisting: IaAutocompleteInput
+      useExisting: IaAutocompleteInput,
     },
     {
       provide: NG_VALIDATORS,
       useExisting: forwardRef(() => IaAutocompleteInput),
-      multi: true
-    }
-  ]
+      multi: true,
+    },
+  ],
 })
-export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any>, Validator {
-
-
+export class IaAutocompleteInput
+  implements
+    OnInit,
+    OnDestroy,
+    DoCheck,
+    ControlValueAccessor,
+    MatFormFieldControl<any>,
+    Validator
+{
   private static nextId = 0;
   public readonly searchFormControl: FormControl;
   public isLoading: boolean;
@@ -66,27 +75,33 @@ export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlV
   public errorState: boolean;
   public focused: boolean;
   public readonly stateChanges = new Subject<void>();
-  @HostBinding() public readonly id = `ia-autocomplete-${IaAutocompleteInput.nextId++}`;
+  @HostBinding()
+  public readonly id = `ia-autocomplete-${IaAutocompleteInput.nextId++}`;
+
   public valueChange: EventEmitter<any> = new EventEmitter<any>();
   private _selectedString: string | null;
-  @ViewChild('input') private inputField: MatInput | null;
+  @ViewChild('input') private readonly inputField: MatInput | null;
   @HostBinding('attr.aria-describedby') private describedBy = '';
   private activatedValue: any;
 
-  constructor(public elRef: ElementRef, private injector: Injector, private fm: FocusMonitor) {
+  constructor(
+    public elRef: ElementRef,
+    private readonly injector: Injector,
+    private readonly fm: FocusMonitor
+  ) {
     this.ngControl = null;
     this.errorState = false;
     this._selectedString = null;
     this.inputField = null;
     this._dataSource = null;
-    this._placeholder = "";
-    this._prefix = "";
+    this._placeholder = '';
+    this._prefix = '';
 
     this.searchFormControl = new FormControl();
     this.isLoading = false;
     this._disabled = false;
     this.focused = false;
-    fm.monitor(elRef.nativeElement, true).subscribe(origin => {
+    fm.monitor(elRef.nativeElement, true).subscribe((origin) => {
       this.focused = !!origin;
       this.stateChanges.next();
     });
@@ -106,13 +121,15 @@ export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlV
   private _disabled = false;
 
   @Input()
-  public get disabled() {
+  public get disabled(): boolean {
     return this._disabled;
   }
 
   public set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
-    this._disabled ? this.searchFormControl.disable() : this.searchFormControl.enable();
+    this._disabled
+      ? this.searchFormControl.disable()
+      : this.searchFormControl.enable();
     this.stateChanges.next();
   }
 
@@ -131,13 +148,13 @@ export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlV
   private _required = false;
 
   @Input()
-  public get required() {
+  public get required(): boolean {
     return this._required;
   }
 
   public set required(req) {
     this._required = coerceBooleanProperty(req);
-    if (this.inputField) {
+    if (this.inputField != null) {
       this.inputField.required = this._required;
     }
     this.stateChanges.next();
@@ -170,17 +187,17 @@ export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlV
     }
   }
 
-  public get empty() {
-    let n = this.searchFormControl.value;
+  public get empty(): boolean {
+    const n = this.searchFormControl.value;
     return !n;
   }
 
   @HostBinding('class.floating')
-  public get shouldLabelFloat() {
+  public get shouldLabelFloat(): boolean {
     return this.focused || !this.empty;
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.ngControl = this.injector.get(NgControl, null);
     if (this.ngControl != null) {
       this.ngControl.valueAccessor = this;
@@ -189,55 +206,60 @@ export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlV
     // If prefix defined, usually this is used for a code scanner.
     // The goal is to select the entity in direct way.
     if (this._prefix) {
-      this.searchFormControl
-        .valueChanges
+      this.searchFormControl.valueChanges
         .pipe(
           debounceTime(300),
-          filter(value => typeof value === 'string'),
-          filter(value => value.startsWith(this._prefix)),
-          tap(() => this.value = null),
-          tap(() => this.isLoading = true),
-          map(value => this._dataSource?.onPreprocessSearchString(value) ?? ""),
-          switchMap(value => this._dataSource?.onFilter(value) ?? of(null))
+          filter((value) => typeof value === 'string'),
+          filter((value) => value.startsWith(this._prefix)),
+          tap(() => (this.value = null)),
+          tap(() => (this.isLoading = true)),
+          map(
+            (value) => this._dataSource?.onPreprocessSearchString(value) ?? ''
+          ),
+          switchMap((value) => this._dataSource?.onFilter(value) ?? of(null))
         )
-        .subscribe(resultSet => {
-
-          if (resultSet && resultSet.list) {
+        .subscribe((resultSet) => {
+          if (resultSet?.list != null) {
             if (resultSet.list.length === 1) {
               this.value = resultSet.list[0];
             } else {
               this.filteredStrings = resultSet.list;
-              this.searchFormControl.patchValue(resultSet.searchTerm, {emitEvent: false});
+              this.searchFormControl.patchValue(resultSet.searchTerm, {
+                emitEvent: false,
+              });
             }
           }
           this.isLoading = false;
-
         });
     }
 
     // This is the search functionality when search by human.
-    this.searchFormControl
-      .valueChanges
+    this.searchFormControl.valueChanges
       .pipe(
         debounceTime(300),
-        tap(_ => {
-            this.filteredStrings = [];
+        tap((_) => {
+          this.filteredStrings = [];
+        }),
+        filter((value) => value != null && value.toString().length >= 1),
+        tap(() => (this.isLoading = true)),
+        map((value) => this._dataSource?.onPreprocessSearchString(value)),
+        tap((value) => (this.value = value)),
+        switchMap((value) => {
+          if (value !== null) {
+            return this._dataSource?.onFilter(String(value)) ?? of(null);
           }
-        ),
-        filter(value => value != null && value.toString().length >= 1),
-        tap(() => this.isLoading = true),
-        map(value => this._dataSource?.onPreprocessSearchString(value)),
-        tap(value => this.value = value),
-        switchMap(value => this._dataSource?.onFilter(value!) ?? of(null))
+          return of(null);
+        })
       )
-      .subscribe(resultSet => {
-          if (resultSet && resultSet.list) {
-            this.filteredStrings = resultSet.list;
-            this.searchFormControl.patchValue(resultSet.searchTerm, {emitEvent: false});
-          }
-          this.isLoading = false;
+      .subscribe((resultSet) => {
+        if (resultSet?.list != null) {
+          this.filteredStrings = resultSet.list;
+          this.searchFormControl.patchValue(resultSet.searchTerm, {
+            emitEvent: false,
+          });
         }
-      );
+        this.isLoading = false;
+      });
   }
 
   ngOnDestroy(): void {
@@ -246,54 +268,50 @@ export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   ngDoCheck(): void {
-    if (this.ngControl) {
-      this.errorState = (this.ngControl.invalid && this.ngControl.touched) ?? false;
+    if (this.ngControl != null) {
+      this.errorState =
+        (this.ngControl.invalid && this.ngControl.touched) ?? false;
       this.stateChanges.next();
     }
   }
 
-  public clear() {
+  public clear(): void {
     this.filteredStrings = [];
     this.searchFormControl.reset(null);
   }
 
-  public focus() {
+  public focus(): void {
     this.elRef.nativeElement.querySelector('input').focus();
   }
 
-  public onOptionSelected(event: MatAutocompleteSelectedEvent) {
+  public onOptionSelected(event: MatAutocompleteSelectedEvent): void {
     this.value = event.option.value;
     this.filteredStrings = [];
   }
 
-  public onOptionActivated(event: MatAutocompleteActivatedEvent) {
+  public onOptionActivated(event: MatAutocompleteActivatedEvent): void {
     this.activatedValue = event.option?.value;
   }
 
-  public onAutoCompleteClosed() {
-
+  public onAutoCompleteClosed(): void {
     if (this.activatedValue) {
-
       this.value = this.activatedValue;
       this.activatedValue = null;
-
     }
   }
 
-  public reset() {
+  public reset(): void {
     this.value = null;
   }
 
-  public onFocusOut() {
-
+  public onFocusOut(): void {
     if (this.filteredStrings.length === 1) {
       this.activatedValue = this.filteredStrings[0];
       this.value = this.filteredStrings[0];
     }
   }
 
-  public onTouched() {
-
+  public onTouched(): void {
     this._onTouched();
     this.stateChanges.next();
   }
@@ -316,7 +334,7 @@ export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   public onContainerClick(event: MouseEvent): void {
-    if ((event.target as Element).tagName.toLowerCase() != 'input') {
+    if ((event.target as Element).tagName.toLowerCase() !== 'input') {
       this.focus();
     }
   }
@@ -327,15 +345,13 @@ export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlV
 
   validate(control: AbstractControl): ValidationErrors | null {
     const selection: any = control.value;
-    if (typeof selection === 'string' && (<string>selection).length < 1) {
-      return {incorrect: true};
+    if (typeof selection === 'string' && selection.length < 1) {
+      return { incorrect: true };
     }
     return null;
   }
 
-  private _propagateChange = (_: any) => {
-  };
+  private _propagateChange = (_: any): void => {};
 
-  private _onTouched = () => {
-  };
+  private readonly _onTouched = (): void => {};
 }

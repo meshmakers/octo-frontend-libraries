@@ -1,7 +1,7 @@
-import {Inject, Injectable} from '@angular/core';
-import {BehaviorSubject, firstValueFrom, Observable} from 'rxjs';
-import {filter, map} from 'rxjs/operators';
-import {AuthConfig, OAuthService} from "angular-oauth2-oidc";
+import { Inject, Injectable } from '@angular/core';
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
+import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
 
 export interface IUser {
   name: string;
@@ -26,60 +26,67 @@ export class AuthorizeOptions {
 
 @Injectable()
 export class AuthorizeService {
-  private isAuthenticated: BehaviorSubject<boolean> = new BehaviorSubject(false);
-  private isAdmin: BehaviorSubject<boolean> = new BehaviorSubject(false);
-  private isDeveloper: BehaviorSubject<boolean> = new BehaviorSubject(false);
-  private isManager: BehaviorSubject<boolean> = new BehaviorSubject(false);
-  private authority: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
-  private accessToken: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
-  private user: BehaviorSubject<IUser | null> = new BehaviorSubject<IUser | null>(null);
-  private isInitialized : BehaviorSubject<boolean> = new BehaviorSubject(false);
-  private isInitializing : BehaviorSubject<boolean> = new BehaviorSubject(false);
+  private readonly isAuthenticated = new BehaviorSubject<boolean>(false);
+  private readonly isAdmin = new BehaviorSubject<boolean>(false);
+  private readonly isDeveloper = new BehaviorSubject<boolean>(false);
+  private readonly isManager = new BehaviorSubject<boolean>(false);
+  private readonly authority: BehaviorSubject<string | null> =
+    new BehaviorSubject<string | null>(null);
 
-  constructor(@Inject(AuthorizeOptions) private authorizeOptions: AuthorizeOptions, private oauthService: OAuthService) {
-    console.debug("AuthorizeService::created");
+  private readonly accessToken: BehaviorSubject<string | null> =
+    new BehaviorSubject<string | null>(null);
 
-    this.getUser().subscribe(s => {
-      this.isAuthenticated.next(!!s);
-      this.isAdmin.next(!!s && (s.role.includes("Administrators")));
-      this.isDeveloper.next(!!s && (s.role.includes("Developers")));
-      this.isManager.next(!!s && s.role.includes("Managers"));
+  private readonly user: BehaviorSubject<IUser | null> =
+    new BehaviorSubject<IUser | null>(null);
+
+  private readonly isInitialized = new BehaviorSubject<boolean>(false);
+  private readonly isInitializing = new BehaviorSubject<boolean>(false);
+
+  constructor(
+    @Inject(AuthorizeOptions)
+    private readonly authorizeOptions: AuthorizeOptions,
+    private readonly oauthService: OAuthService
+  ) {
+    console.debug('AuthorizeService::created');
+
+    this.getUser().subscribe((s) => {
+      this.isAuthenticated.next(!(s == null));
+      this.isAdmin.next(!(s == null) && s.role.includes('Administrators'));
+      this.isDeveloper.next(!(s == null) && s.role.includes('Developers'));
+      this.isManager.next(!(s == null) && s.role.includes('Managers'));
     });
 
-    this.oauthService.events.subscribe(e => {
-      // tslint:disable-next-line:no-console
+    this.oauthService.events.subscribe((e) => {
       console.debug('oauth/oidc event', e);
     });
 
     this.oauthService.events
-      .pipe(filter(e => e.type === 'session_terminated'))
-      .subscribe(_ => {
-        // tslint:disable-next-line:no-console
+      .pipe(filter((e) => e.type === 'session_terminated'))
+      .subscribe((_) => {
         console.debug('Your session has been terminated!');
       });
 
     this.oauthService.events
-      .pipe(filter(e => e.type === 'token_received'))
-      .subscribe(_ => {
+      .pipe(filter((e) => e.type === 'token_received'))
+      .subscribe((_) => {
         this.loadUser();
       });
 
     this.oauthService.events
-      .pipe(filter(e => e.type === 'logout'))
-      .subscribe(_ => {
+      .pipe(filter((e) => e.type === 'logout'))
+      .subscribe((_) => {
         this.accessToken.next(null);
         this.user.next(null);
       });
-
   }
 
-  public getRoles(): Observable<Array<string>>{
+  public getRoles(): Observable<string[]> {
     return this.getUser().pipe(
-      map(u=> u != null ? u.role : new Array<string>())
+      map((u) => (u != null ? u.role : new Array<string>()))
     );
   }
 
-  public getServiceUris(): Array<string> | null {
+  public getServiceUris(): string[] | null {
     return this.authorizeOptions.wellKnownServiceUris ?? null;
   }
 
@@ -111,21 +118,19 @@ export class AuthorizeService {
     return this.user;
   }
 
-  public login() {
+  public login(): void {
     this.oauthService.initImplicitFlow();
   }
 
-  public logout() {
+  public logout(): void {
     this.oauthService.logOut(false);
   }
 
-
-  public async initialize() {
-
-    console.debug("AuthorizeService::initialize::started");
+  public async initialize(): Promise<void> {
+    console.debug('AuthorizeService::initialize::started');
 
     if (await firstValueFrom(this.isInitializing)) {
-      return
+      return;
     }
     if (await firstValueFrom(this.isInitialized)) {
       return;
@@ -140,7 +145,7 @@ export class AuthorizeService {
       clientId: this.authorizeOptions.clientId,
       scope: this.authorizeOptions.scope,
       showDebugInformation: this.authorizeOptions.showDebugInformation,
-      sessionChecksEnabled: this.authorizeOptions.sessionChecksEnabled
+      sessionChecksEnabled: this.authorizeOptions.sessionChecksEnabled,
     };
 
     this.oauthService.configure(config);
@@ -157,13 +162,13 @@ export class AuthorizeService {
     this.isInitializing.next(false);
     this.isInitialized.next(true);
 
-    console.debug("AuthorizeService::initialize::done");
+    console.debug('AuthorizeService::initialize::done');
   }
 
-  private loadUser() {
+  private loadUser(): void {
     const claims = this.oauthService.getIdentityClaims();
     if (!claims) {
-      console.error("claims where null when loading identity claims");
+      console.error('claims where null when loading identity claims');
       return;
     }
 

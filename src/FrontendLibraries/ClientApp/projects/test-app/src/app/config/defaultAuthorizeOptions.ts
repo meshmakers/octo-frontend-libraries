@@ -1,7 +1,6 @@
-import {AuthorizeOptions} from "@meshmakers/shared-auth";
+import { AuthorizeOptions } from '@meshmakers/shared-auth';
 
 export const defaultAuthorizeOptions: AuthorizeOptions = {
-
   // Url of the Identity Provider
   issuer: '', // defined by backend using endpoint _configuration/{clientId}
 
@@ -19,5 +18,5 @@ export const defaultAuthorizeOptions: AuthorizeOptions = {
   showDebugInformation: true,
   sessionChecksEnabled: true,
 
-  wellKnownServiceUris: []
-}
+  wellKnownServiceUris: [],
+};

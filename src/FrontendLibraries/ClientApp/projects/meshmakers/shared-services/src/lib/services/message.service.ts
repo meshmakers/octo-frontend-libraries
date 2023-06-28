@@ -1,27 +1,24 @@
-import {Injectable} from '@angular/core';
-import {MatSnackBar} from "@angular/material/snack-bar";
-import {BehaviorSubject, Observable} from "rxjs";
-import {ErrorMessage} from "../models/errorMessage";
+import { Injectable } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { ErrorMessage } from '../models/errorMessage';
 
 @Injectable()
 export class MessageService {
-
   latestErrorMessage: BehaviorSubject<ErrorMessage | null>;
 
-  errorMessages: Array<ErrorMessage>;
+  errorMessages: ErrorMessage[];
 
-
-  constructor(private snackBar: MatSnackBar) {
-
+  constructor(private readonly snackBar: MatSnackBar) {
     this.latestErrorMessage = new BehaviorSubject<ErrorMessage | null>(null);
     this.errorMessages = new Array<ErrorMessage>();
   }
 
-  getErrorMessageCount() {
+  getErrorMessageCount(): number {
     return this.errorMessages.length;
   }
 
-  getErrorMessage(index: number) {
+  getErrorMessage(index: number): ErrorMessage {
     return this.errorMessages[index];
   }
 
@@ -29,25 +26,24 @@ export class MessageService {
     return this.latestErrorMessage.asObservable();
   }
 
-  showError(message: string, title: string) {
+  showError(message: string, title: string): void {
     console.error(message);
 
     const errorMessage = <ErrorMessage>{
-      title: title,
-      message: message
+      title,
+      message,
     };
     this.errorMessages.push(errorMessage);
 
     this.latestErrorMessage.next(errorMessage);
   }
 
-  showInformation(message: string) {
-
+  showInformation(message: string): void {
     this.snackBar.open(message, undefined, {
       duration: 3000,
       // here specify the position
-      horizontalPosition: "center",
-      verticalPosition: 'bottom'
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
     });
   }
 }
