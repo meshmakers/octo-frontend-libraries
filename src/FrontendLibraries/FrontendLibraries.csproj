@@ -10,6 +10,13 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="7.0.7" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <Content Remove="appsettings.json" />
+        <Content Remove="appsettings.Development.json" />
+        <Content Include="appsettings.json" CopyToPublishDirectory="Never" />
+        <Content Include="appsettings.Development.json" CopyToPublishDirectory="Never" />
+    </ItemGroup>
 
     <ItemGroup>
         <!-- Don't publish the SPA source files, but do show them in the project files list -->
