@@ -9,7 +9,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  ViewChild
 } from '@angular/core';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import {
@@ -20,13 +20,13 @@ import {
   NG_VALUE_ACCESSOR,
   NgControl,
   ValidationErrors,
-  Validator,
+  Validator
 } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
 import {
   MatAutocompleteActivatedEvent,
-  MatAutocompleteSelectedEvent,
+  MatAutocompleteSelectedEvent
 } from '@angular/material/autocomplete';
 import { MatInput } from '@angular/material/input';
 import { of, Subject } from 'rxjs';
@@ -39,24 +39,24 @@ import { AutoCompleteDataSource } from '@meshmakers/shared-services';
   styleUrls: ['./ia-autocomplete-input.css'],
   host: {
     '[id]': 'id',
-    '[attr.aria-describedby]': 'describedBy',
+    '[attr.aria-describedby]': 'describedBy'
   },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => IaAutocompleteInput),
-      multi: true,
+      multi: true
     },
     {
       provide: MatFormFieldControl,
-      useExisting: IaAutocompleteInput,
+      useExisting: IaAutocompleteInput
     },
     {
       provide: NG_VALIDATORS,
       useExisting: forwardRef(() => IaAutocompleteInput),
-      multi: true,
-    },
-  ],
+      multi: true
+    }
+  ]
 })
 export class IaAutocompleteInput
   implements
@@ -85,7 +85,7 @@ export class IaAutocompleteInput
   private activatedValue: any;
 
   constructor(
-    public elRef: ElementRef,
+    public elRef: ElementRef<HTMLElement>,
     private readonly injector: Injector,
     private readonly fm: FocusMonitor
   ) {
@@ -214,7 +214,8 @@ export class IaAutocompleteInput
           tap(() => (this.value = null)),
           tap(() => (this.isLoading = true)),
           map(
-            (value) => this._dataSource?.onPreprocessSearchString(value) ?? ''
+            (value: string) =>
+              this._dataSource?.onPreprocessSearchString(value) ?? ''
           ),
           switchMap((value) => this._dataSource?.onFilter(value) ?? of(null))
         )
@@ -225,7 +226,7 @@ export class IaAutocompleteInput
             } else {
               this.filteredStrings = resultSet.list;
               this.searchFormControl.patchValue(resultSet.searchTerm, {
-                emitEvent: false,
+                emitEvent: false
               });
             }
           }
@@ -242,7 +243,9 @@ export class IaAutocompleteInput
         }),
         filter((value) => value != null && value.toString().length >= 1),
         tap(() => (this.isLoading = true)),
-        map((value) => this._dataSource?.onPreprocessSearchString(value)),
+        map((value: string) =>
+          this._dataSource?.onPreprocessSearchString(value)
+        ),
         tap((value) => (this.value = value)),
         switchMap((value) => {
           if (value !== null) {
@@ -255,7 +258,7 @@ export class IaAutocompleteInput
         if (resultSet?.list != null) {
           this.filteredStrings = resultSet.list;
           this.searchFormControl.patchValue(resultSet.searchTerm, {
-            emitEvent: false,
+            emitEvent: false
           });
         }
         this.isLoading = false;
@@ -281,7 +284,7 @@ export class IaAutocompleteInput
   }
 
   public focus(): void {
-    this.elRef.nativeElement.querySelector('input').focus();
+    this.elRef.nativeElement.querySelector('input')?.focus();
   }
 
   public onOptionSelected(event: MatAutocompleteSelectedEvent): void {

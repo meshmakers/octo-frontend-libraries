@@ -6,7 +6,7 @@ import { MessageDetailsComponent } from '../message-details/message-details.comp
 @Component({
   selector: 'ia-notification-bar',
   templateUrl: './ia-notification-bar.component.html',
-  styleUrls: ['./ia-notification-bar.component.css'],
+  styleUrls: ['./ia-notification-bar.component.css']
 })
 export class IaNotificationBarComponent implements OnInit {
   public errorMessage: ErrorMessage | null;
@@ -31,8 +31,8 @@ export class IaNotificationBarComponent implements OnInit {
   onShowDetails(): void {
     this.dialog.open(MessageDetailsComponent, {
       data: {
-        errorMessage: this.errorMessage,
-      },
+        errorMessage: this.errorMessage
+      }
     });
   }
 }

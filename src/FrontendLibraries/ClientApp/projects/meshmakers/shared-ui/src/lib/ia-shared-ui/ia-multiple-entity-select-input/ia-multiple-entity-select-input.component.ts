@@ -9,7 +9,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  ViewChild
 } from '@angular/core';
 import { EntitySelectDataSource } from '@meshmakers/shared-services';
 import {
@@ -20,7 +20,7 @@ import {
   NG_VALUE_ACCESSOR,
   NgControl,
   ValidationErrors,
-  Validator,
+  Validator
 } from '@angular/forms';
 import { of, Subject } from 'rxjs';
 import { MatInput } from '@angular/material/input';
@@ -29,7 +29,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import {
   MatAutocompleteActivatedEvent,
-  MatAutocompleteSelectedEvent,
+  MatAutocompleteSelectedEvent
 } from '@angular/material/autocomplete';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
@@ -40,24 +40,24 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
   styleUrls: ['./ia-multiple-entity-select-input.component.css'],
   host: {
     '[id]': 'id',
-    '[attr.aria-describedby]': 'describedBy',
+    '[attr.aria-describedby]': 'describedBy'
   },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => IaMultipleEntitySelectInput),
-      multi: true,
+      multi: true
     },
     {
       provide: MatFormFieldControl,
-      useExisting: IaMultipleEntitySelectInput,
+      useExisting: IaMultipleEntitySelectInput
     },
     {
       provide: NG_VALIDATORS,
       useExisting: forwardRef(() => IaMultipleEntitySelectInput),
-      multi: true,
-    },
-  ],
+      multi: true
+    }
+  ]
 })
 export class IaMultipleEntitySelectInput
   implements
@@ -78,7 +78,8 @@ export class IaMultipleEntitySelectInput
   public focused: boolean;
   public readonly stateChanges = new Subject<void>();
   @HostBinding()
-  public readonly id = `ia-multiple-entity-select-${IaMultipleEntitySelectInput.nextId++}`;
+  public readonly id =
+    `ia-multiple-entity-select-${IaMultipleEntitySelectInput.nextId++}`;
 
   public valuesChange: EventEmitter<any[]> = new EventEmitter<any[]>();
   private _selectedEntities: any[] | null;
@@ -88,7 +89,7 @@ export class IaMultipleEntitySelectInput
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
 
   constructor(
-    public elRef: ElementRef,
+    public elRef: ElementRef<HTMLElement>,
     private readonly injector: Injector,
     private readonly fm: FocusMonitor
   ) {
@@ -211,7 +212,7 @@ export class IaMultipleEntitySelectInput
         .pipe(
           debounceTime(300),
           filter((value) => typeof value === 'string'),
-          filter((value) => value.startsWith(this._prefix)),
+          filter((value: string) => value.startsWith(this._prefix)),
           tap(() => (this.isLoading = true)),
           switchMap(
             (value) =>
@@ -236,7 +237,9 @@ export class IaMultipleEntitySelectInput
         filter((value) => typeof value === 'string'),
         filter((value) => value.toString().length >= 3),
         tap(() => (this.isLoading = true)),
-        switchMap((value) => this._dataSource?.onFilter(value) ?? of(null))
+        switchMap(
+          (value: string) => this._dataSource?.onFilter(value) ?? of(null)
+        )
       )
       .subscribe((resultSet) => {
         const resultList = new Array<any>();
@@ -279,7 +282,7 @@ export class IaMultipleEntitySelectInput
   }
 
   public focus(): void {
-    this.elRef.nativeElement.querySelector('input').focus();
+    this.elRef.nativeElement.querySelector('input')?.focus();
   }
 
   public onEntitySelected(event: MatAutocompleteSelectedEvent): void {

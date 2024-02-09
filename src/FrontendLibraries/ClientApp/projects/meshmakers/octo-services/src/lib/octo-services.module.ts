@@ -4,7 +4,7 @@ import { OctoServiceOptions } from './options/octo-service-options';
 @NgModule({
   declarations: [],
   imports: [],
-  exports: [],
+  exports: []
 })
 export class OctoServicesModule {
   static forRoot(
@@ -15,9 +15,9 @@ export class OctoServicesModule {
       providers: [
         {
           provide: OctoServiceOptions,
-          useValue: octoServiceOptions,
-        },
-      ],
+          useValue: octoServiceOptions
+        }
+      ]
     };
   }
 }

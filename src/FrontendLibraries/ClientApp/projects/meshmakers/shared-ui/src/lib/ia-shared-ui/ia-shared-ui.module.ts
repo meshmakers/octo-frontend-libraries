@@ -22,19 +22,13 @@ import { MatIconModule } from '@angular/material/icon';
     MessageDetailsComponent,
     IaAutocompleteInput,
     IaEntitySelectInput,
-    IaMultipleEntitySelectInput,
+    IaMultipleEntitySelectInput
   ],
   exports: [
     IaNotificationBarComponent,
     IaAutocompleteInput,
     IaEntitySelectInput,
-    IaMultipleEntitySelectInput,
-  ],
-  entryComponents: [
-    MessageDetailsComponent,
-    IaAutocompleteInput,
-    IaEntitySelectInput,
-    IaMultipleEntitySelectInput,
+    IaMultipleEntitySelectInput
   ],
   imports: [
     CommonModule,
@@ -47,7 +41,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatProgressSpinnerModule,
     MatChipsModule,
     MatIconModule,
-    ReactiveFormsModule,
-  ],
+    ReactiveFormsModule
+  ]
 })
 export class IaSharedUIModule {}

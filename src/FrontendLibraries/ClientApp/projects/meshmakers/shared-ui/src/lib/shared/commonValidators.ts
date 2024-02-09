@@ -35,7 +35,7 @@ export class CommonValidators {
       if (
         control.parent != null &&
         sourceValueCompareExpression(
-          control.parent.get(sourceControlName)?.value
+          <TCompareValue>control.parent.get(sourceControlName)?.value
         )
       ) {
         return isEmptyInputValue(control.value) ? { required: true } : null;

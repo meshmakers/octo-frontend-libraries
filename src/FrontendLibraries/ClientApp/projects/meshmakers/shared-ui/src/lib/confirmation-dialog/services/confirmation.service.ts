@@ -7,11 +7,11 @@ import {
   ButtonTypes,
   ConfirmationWindowData,
   ConfirmationWindowResult,
-  DialogType,
+  DialogType
 } from '../shared/confirmation';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ConfirmationService {
   constructor(private readonly dialog: MatDialog) {}
@@ -30,8 +30,8 @@ export class ConfirmationService {
       data: <ConfirmationWindowData>{
         title,
         message,
-        dialogType: DialogType.YesNo,
-      },
+        dialogType: DialogType.YesNo
+      }
     });
 
     return dialogRef
@@ -53,8 +53,8 @@ export class ConfirmationService {
       data: <ConfirmationWindowData>{
         title,
         message,
-        dialogType: DialogType.YesNoCancel,
-      },
+        dialogType: DialogType.YesNoCancel
+      }
     });
 
     return dialogRef.afterClosed();
@@ -74,8 +74,8 @@ export class ConfirmationService {
       data: <ConfirmationWindowData>{
         title,
         message,
-        dialogType: DialogType.OkCancel,
-      },
+        dialogType: DialogType.OkCancel
+      }
     });
 
     return dialogRef
@@ -94,8 +94,8 @@ export class ConfirmationService {
       data: <ConfirmationWindowData>{
         title,
         message,
-        dialogType: DialogType.Ok,
-      },
+        dialogType: DialogType.Ok
+      }
     });
 
     return dialogRef

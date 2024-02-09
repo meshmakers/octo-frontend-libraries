@@ -145,7 +145,7 @@ export class AuthorizeService {
       clientId: this.authorizeOptions.clientId,
       scope: this.authorizeOptions.scope,
       showDebugInformation: this.authorizeOptions.showDebugInformation,
-      sessionChecksEnabled: this.authorizeOptions.sessionChecksEnabled,
+      sessionChecksEnabled: this.authorizeOptions.sessionChecksEnabled
     };
 
     this.oauthService.configure(config);

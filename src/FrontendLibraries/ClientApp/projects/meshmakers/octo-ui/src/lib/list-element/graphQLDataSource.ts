@@ -3,7 +3,7 @@ import { catchError } from 'rxjs/operators';
 import {
   DataSourceBase,
   MessageService,
-  PagedResultDto,
+  PagedResultDto
 } from '@meshmakers/shared-services';
 import { FieldFilterDto, SearchFilterDto, SortDto } from './globalTypes';
 export class GraphQLDataSource<TDto> extends DataSourceBase<TDto> {
@@ -23,7 +23,7 @@ export class GraphQLDataSource<TDto> extends DataSourceBase<TDto> {
 
     this.executeLoad(tenantId, skip, take, searchFilter, fieldFilter, sort)
       .pipe(
-        catchError((error) => {
+        catchError((error: string) => {
           this.messageService.showError(error, 'Error during load of data');
 
           return of(new PagedResultDto<TDto>());

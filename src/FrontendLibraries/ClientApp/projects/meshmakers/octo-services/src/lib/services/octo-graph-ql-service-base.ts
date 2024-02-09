@@ -126,7 +126,7 @@ export class OctoGraphQLServiceBase {
       .use(tenantId)
       .mutate<TResult>({
         mutation: queryNode,
-        variables,
+        variables
       })
       .pipe(
         map((value) => f(value.data)),
@@ -155,7 +155,7 @@ export class OctoGraphQLServiceBase {
       .use(tenantId)
       .mutate<TResult>({
         mutation: queryNode,
-        variables,
+        variables
       })
       .pipe(
         map((value) => f(value.data)),
@@ -184,8 +184,8 @@ export class OctoGraphQLServiceBase {
     this.apollo.createNamed(tenantId, {
       link: this.httpLink.create({ uri }),
       cache: new InMemoryCache({
-        dataIdFromObject: (o) => <string>o['rtId'],
-      }),
+        dataIdFromObject: (o) => <string>o['rtId']
+      })
     });
   }
 
@@ -198,7 +198,7 @@ export class OctoGraphQLServiceBase {
 
     return this.apollo.use(tenantId).watchQuery<TResult>({
       query: queryNode,
-      variables,
+      variables
     }).valueChanges;
   }
 
@@ -212,7 +212,7 @@ export class OctoGraphQLServiceBase {
     return this.apollo.use(tenantId).query<TResult>({
       query: queryNode,
       variables,
-      fetchPolicy: 'network-only',
+      fetchPolicy: 'network-only'
     });
   }
 }

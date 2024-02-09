@@ -8,13 +8,13 @@ import { MatButtonModule } from '@angular/material/button';
 
 @NgModule({
   declarations: [ConfirmationWindowComponent],
-  imports: [CommonModule, MatDialogModule, FlexLayoutModule, MatButtonModule],
+  imports: [CommonModule, MatDialogModule, FlexLayoutModule, MatButtonModule]
 })
 export class ConfirmationDialogModule {
   static forRoot(): ModuleWithProviders<ConfirmationDialogModule> {
     return {
       ngModule: ConfirmationDialogModule,
-      providers: [ConfirmationService],
+      providers: [ConfirmationService]
     };
   }
 }

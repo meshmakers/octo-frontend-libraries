@@ -17,7 +17,7 @@ export interface ProgressWindowResult {}
 @Component({
   selector: 'lib-progress-window',
   templateUrl: './progress-window.component.html',
-  styleUrls: ['./progress-window.component.css'],
+  styleUrls: ['./progress-window.component.css']
 })
 export class ProgressWindowComponent implements OnInit {
   public statusText: string | null;

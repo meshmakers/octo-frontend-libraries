@@ -1,23 +1,17 @@
 import { Injectable } from '@angular/core';
 import {
   ActivatedRouteSnapshot,
-  CanActivate,
-  CanActivateChild,
-  CanDeactivate,
-  CanLoad,
   Route,
   Router,
   RouterStateSnapshot,
   UrlSegment,
-  UrlTree,
+  UrlTree
 } from '@angular/router';
 import { AuthorizeService } from './authorize.service';
 import { firstValueFrom, Observable } from 'rxjs';
 
 @Injectable()
-export class AuthorizeGuard
-  implements CanActivate, CanActivateChild, CanDeactivate<unknown>, CanLoad
-{
+export class AuthorizeGuard {
   constructor(
     private readonly authorizeService: AuthorizeService,
     private readonly router: Router

@@ -31,7 +31,7 @@ export class MessageService {
 
     const errorMessage = <ErrorMessage>{
       title,
-      message,
+      message
     };
     this.errorMessages.push(errorMessage);
 
@@ -43,7 +43,7 @@ export class MessageService {
       duration: 3000,
       // here specify the position
       horizontalPosition: 'center',
-      verticalPosition: 'bottom',
+      verticalPosition: 'bottom'
     });
   }
 }

@@ -18,5 +18,5 @@ export const defaultAuthorizeOptions: AuthorizeOptions = {
   showDebugInformation: true,
   sessionChecksEnabled: true,
 
-  wellKnownServiceUris: [],
+  wellKnownServiceUris: []
 };

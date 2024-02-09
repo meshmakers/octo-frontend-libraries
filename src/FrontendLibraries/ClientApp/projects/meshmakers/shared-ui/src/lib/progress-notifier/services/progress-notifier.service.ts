@@ -5,7 +5,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import {
   ProgressWindowComponent,
   ProgressWindowData,
-  ProgressWindowResult,
+  ProgressWindowResult
 } from '../progress-window/progress-window.component';
 
 @Injectable()
@@ -57,8 +57,8 @@ export class ProgressNotifierService {
         cancelOperation: () => {
           this.reportProgressIndeterminate('Canceling operation...');
           this.isCanceled = true;
-        },
-      },
+        }
+      }
     });
   }
 
@@ -71,14 +71,14 @@ export class ProgressNotifierService {
 
     this._currentProgressValue.next(<ProgressValue>{
       statusText,
-      progressValue: progressPercentage,
+      progressValue: progressPercentage
     });
   }
 
   reportProgressIndeterminate(statusText: string): void {
     this._currentProgressValue.next(<ProgressValue>{
       statusText,
-      progressValue: 0,
+      progressValue: 0
     });
   }
 

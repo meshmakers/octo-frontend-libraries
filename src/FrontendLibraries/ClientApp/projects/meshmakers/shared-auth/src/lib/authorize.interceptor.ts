@@ -3,7 +3,7 @@ import {
   HttpEvent,
   HttpHandler,
   HttpInterceptor,
-  HttpRequest,
+  HttpRequest
 } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthorizeService } from './authorize.service';
@@ -17,7 +17,7 @@ export class AuthorizeInterceptor implements HttpInterceptor {
     authorize.getAccessToken().subscribe((value) => (this.accessToken = value));
   }
 
-  private static isSameOriginUrl(req: any): boolean {
+  private static isSameOriginUrl(req: HttpRequest<any>): boolean {
     // It's an absolute url with the same origin.
     if (req.url.startsWith(`${window.location.origin}/`)) {
       return true;
@@ -61,8 +61,8 @@ export class AuthorizeInterceptor implements HttpInterceptor {
     ) {
       req = req.clone({
         setHeaders: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
     }
 

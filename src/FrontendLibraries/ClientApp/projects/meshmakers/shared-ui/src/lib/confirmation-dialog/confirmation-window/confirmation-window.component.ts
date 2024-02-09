@@ -4,13 +4,13 @@ import {
   ButtonTypes,
   ConfirmationWindowData,
   ConfirmationWindowResult,
-  DialogType,
+  DialogType
 } from '../shared/confirmation';
 
 @Component({
   selector: 'lib-shared-ui-confirmation-window',
   templateUrl: './confirmation-window.component.html',
-  styleUrls: ['./confirmation-window.component.css'],
+  styleUrls: ['./confirmation-window.component.css']
 })
 export class ConfirmationWindowComponent implements OnInit {
   button1Text: string;
@@ -56,19 +56,19 @@ export class ConfirmationWindowComponent implements OnInit {
 
   onButton1(): void {
     this.dialogRef.close(<ConfirmationWindowResult>{
-      result: this.button1Result,
+      result: this.button1Result
     });
   }
 
   onButton2(): void {
     this.dialogRef.close(<ConfirmationWindowResult>{
-      result: this.button2Result,
+      result: this.button2Result
     });
   }
 
   onButton3(): void {
     this.dialogRef.close(<ConfirmationWindowResult>{
-      result: this.button3Result,
+      result: this.button3Result
     });
   }
 }

@@ -7,7 +7,7 @@ import {
   SearchFilterDto,
   SearchFilterTypesDto,
   SortDto,
-  SortOrdersDto,
+  SortOrdersDto
 } from './globalTypes';
 
 export class OctoListNavigationDataInfo {
@@ -42,7 +42,7 @@ export class OctoListNavigation {
   constructor(
     private readonly paginator: MatPaginator,
     private readonly sort: MatSort,
-    private readonly searchBox: ElementRef,
+    private readonly searchBox: ElementRef<HTMLInputElement>,
     private readonly octoOptions: OctoListNavigationOptions
   ) {
     this.lastSortDirection = null;
@@ -61,7 +61,7 @@ export class OctoListNavigation {
         language: this.octoOptions.language,
         searchTerm: filterString,
         type: this.octoOptions.searchFilterType,
-        attributeNames: this.octoOptions.searchFilterAttributeNames,
+        attributeNames: this.octoOptions.searchFilterAttributeNames
       };
     }
 
@@ -72,7 +72,7 @@ export class OctoListNavigation {
         sortOrder:
           sortDirection === 'asc'
             ? SortOrdersDto.AscendingDto
-            : SortOrdersDto.DescendingDto,
+            : SortOrdersDto.DescendingDto
       });
     }
 
@@ -80,13 +80,13 @@ export class OctoListNavigation {
       skip: this.paginator.pageIndex * this.paginator.pageSize,
       take: this.paginator.pageSize,
       searchFilter: filter,
-      sort,
+      sort
     };
   }
 
   init(): void {
     // server-side search
-    fromEvent(this.searchBox.nativeElement, 'keyup')
+    fromEvent<ElementRef>(this.searchBox.nativeElement, 'keyup')
       .pipe(
         debounceTime(500),
         distinctUntilChanged(),
@@ -110,13 +110,13 @@ export class OctoListNavigation {
               this.sort.sort({
                 id: this.lastSortField,
                 start: 'asc',
-                disableClear: true,
+                disableClear: true
               });
             } else if (this.lastSortDirection === 'desc') {
               this.sort.sort({
                 id: this.lastSortField,
                 start: 'desc',
-                disableClear: true,
+                disableClear: true
               });
             }
           }

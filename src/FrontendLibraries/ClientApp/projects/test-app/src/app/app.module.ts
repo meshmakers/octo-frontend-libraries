@@ -21,7 +21,7 @@ export function initServices(
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    SharedAuthModule.forRoot(defaultAuthorizeOptions),
+    SharedAuthModule.forRoot(defaultAuthorizeOptions)
   ],
   providers: [
     ConfigurationService,
@@ -29,9 +29,9 @@ export function initServices(
       provide: APP_INITIALIZER,
       useFactory: initServices,
       deps: [ConfigurationService, AuthorizeService],
-      multi: true,
-    },
+      multi: true
+    }
   ],
-  bootstrap: [AppComponent],
+  bootstrap: [AppComponent]
 })
 export class AppModule {}

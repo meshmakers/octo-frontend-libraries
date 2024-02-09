@@ -6,7 +6,7 @@ import { map } from 'rxjs/operators';
 @Component({
   selector: 'app-login-menu',
   templateUrl: './login-menu.component.html',
-  styleUrls: ['./login-menu.component.css'],
+  styleUrls: ['./login-menu.component.css']
 })
 export class LoginMenuComponent implements OnInit {
   public isAuthenticated: BehaviorSubject<boolean>;

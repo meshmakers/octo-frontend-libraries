@@ -2,14 +2,14 @@ export enum ButtonTypes {
   Ok,
   Cancel,
   Yes,
-  No,
+  No
 }
 
 export enum DialogType {
   YesNo = 0,
   YesNoCancel = 1,
   OkCancel = 2,
-  Ok = 3,
+  Ok = 3
 }
 
 export interface ConfirmationWindowData {

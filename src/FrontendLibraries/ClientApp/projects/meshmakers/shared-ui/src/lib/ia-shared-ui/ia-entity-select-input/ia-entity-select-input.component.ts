@@ -9,7 +9,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  ViewChild,
+  ViewChild
 } from '@angular/core';
 import {
   AbstractControl,
@@ -19,7 +19,7 @@ import {
   NG_VALUE_ACCESSOR,
   NgControl,
   ValidationErrors,
-  Validator,
+  Validator
 } from '@angular/forms';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
@@ -29,7 +29,7 @@ import { FocusMonitor } from '@angular/cdk/a11y';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import {
   MatAutocompleteActivatedEvent,
-  MatAutocompleteSelectedEvent,
+  MatAutocompleteSelectedEvent
 } from '@angular/material/autocomplete';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
@@ -39,24 +39,24 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
   styleUrls: ['./ia-entity-select-input.component.css'],
   host: {
     '[id]': 'id',
-    '[attr.aria-describedby]': 'describedBy',
+    '[attr.aria-describedby]': 'describedBy'
   },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => IaEntitySelectInput),
-      multi: true,
+      multi: true
     },
     {
       provide: MatFormFieldControl,
-      useExisting: IaEntitySelectInput,
+      useExisting: IaEntitySelectInput
     },
     {
       provide: NG_VALIDATORS,
       useExisting: forwardRef(() => IaEntitySelectInput),
-      multi: true,
-    },
-  ],
+      multi: true
+    }
+  ]
 })
 export class IaEntitySelectInput
   implements
@@ -85,7 +85,7 @@ export class IaEntitySelectInput
   private activatedValue: any;
 
   constructor(
-    public elRef: ElementRef,
+    public elRef: ElementRef<HTMLElement>,
     private readonly injector: Injector,
     private readonly fm: FocusMonitor
   ) {
@@ -210,7 +210,7 @@ export class IaEntitySelectInput
           tap(() => (this.value = null)),
           tap(() => (this.isLoading = true)),
           switchMap(
-            (value) =>
+            (value: string) =>
               this._dataSource?.onFilter(
                 value.replace(this._prefix, '').trim()
               ) ?? of(null)
@@ -233,13 +233,15 @@ export class IaEntitySelectInput
       .pipe(
         debounceTime(300),
         tap(() => (this.filteredEntities = [])),
-        filter((value) => typeof value === 'string'),
+        filter((value: any) => typeof value === 'string'),
         tap(() => {
           this.setValue(null);
         }),
         filter((value) => value.toString().length >= 3),
         tap(() => (this.isLoading = true)),
-        switchMap((value) => this._dataSource?.onFilter(value) ?? of(null))
+        switchMap(
+          (value: string) => this._dataSource?.onFilter(value) ?? of(null)
+        )
       )
       .subscribe((resultSet) => {
         if (resultSet?.list) {
@@ -268,7 +270,7 @@ export class IaEntitySelectInput
   }
 
   public focus(): void {
-    this.elRef.nativeElement.querySelector('input').focus();
+    this.elRef.nativeElement.querySelector('input')?.focus();
   }
 
   public onEntitySelected(event: MatAutocompleteSelectedEvent): void {

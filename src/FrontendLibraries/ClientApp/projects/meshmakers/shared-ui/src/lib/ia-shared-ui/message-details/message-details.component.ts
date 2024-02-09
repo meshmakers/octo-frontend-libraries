@@ -5,7 +5,7 @@ import { ErrorMessage } from '@meshmakers/shared-services';
 @Component({
   selector: 'app-message-details',
   templateUrl: './message-details.component.html',
-  styleUrls: ['./message-details.component.css'],
+  styleUrls: ['./message-details.component.css']
 })
 export class MessageDetailsComponent implements OnInit {
   errorMessage: ErrorMessage;

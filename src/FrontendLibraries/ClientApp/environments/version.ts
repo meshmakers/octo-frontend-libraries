@@ -3,7 +3,7 @@ const { resolve, relative } = require('path');
 const { writeFileSync } = require('fs-extra');
 
 const versionInfo = {
-  version,
+  version
 };
 
 const file = resolve(__dirname, 'currentVersion.ts');

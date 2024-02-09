@@ -4,13 +4,13 @@ import { MessageService } from './services/message.service';
 @NgModule({
   declarations: [],
   imports: [],
-  exports: [],
+  exports: []
 })
 export class SharedServicesModule {
   static forRoot(): ModuleWithProviders<SharedServicesModule> {
     return {
       ngModule: SharedServicesModule,
-      providers: [MessageService],
+      providers: [MessageService]
     };
   }
 }
