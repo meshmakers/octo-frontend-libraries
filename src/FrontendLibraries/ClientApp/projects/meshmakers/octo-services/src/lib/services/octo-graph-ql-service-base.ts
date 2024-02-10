@@ -136,7 +136,7 @@ export class OctoGraphQLServiceBase {
             .client.reFetchObservableQueries(true);
           promise
             .then(() => {})
-            .catch((error) => {
+            .catch((error: string) => {
               console.error(error);
             });
         })
@@ -165,7 +165,7 @@ export class OctoGraphQLServiceBase {
             .client.reFetchObservableQueries(true);
           promise
             .then(() => {})
-            .catch((error) => {
+            .catch((error: string) => {
               console.error(error);
             });
         })

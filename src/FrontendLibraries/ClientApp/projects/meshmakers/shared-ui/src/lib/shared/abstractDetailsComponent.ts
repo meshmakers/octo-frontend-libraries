@@ -2,23 +2,38 @@ import { FormGroup } from '@angular/forms';
 import { IsoDateTime } from '@meshmakers/shared-services';
 
 export abstract class AbstractDetailsComponent<TEntity> {
-  public loading: boolean;
-  protected entity: TEntity | null;
+  private _loading: boolean;
+  private readonly _ownerForm: FormGroup;
+  private _entity: TEntity | null;
 
   protected constructor(formGroup: FormGroup) {
-    this.loading = true;
-    this.entity = null;
+    this._loading = true;
+    this._entity = null;
     this._ownerForm = formGroup;
   }
 
-  private readonly _ownerForm: FormGroup;
+  public get loading(): boolean {
+    return this._loading;
+  }
+
+  public set loading(value: boolean) {
+    this._loading = value;
+  }
+
+  public get entity(): TEntity | null {
+    return this._entity;
+  }
+
+  public set entity(value: TEntity | null) {
+    this._entity = value;
+  }
 
   public get ownerForm(): FormGroup {
     return this._ownerForm;
   }
 
   public get isLoaded(): boolean {
-    return this.entity !== null;
+    return this._entity !== null;
   }
 
   public hasError = (controlName: string, errorName: string): boolean => {
@@ -44,13 +59,13 @@ export abstract class AbstractDetailsComponent<TEntity> {
   }
 
   protected onProgressStarting(): void {
-    this.loading = true;
+    this._loading = true;
     this.ownerForm?.disable();
     this.ownerForm?.updateValueAndValidity();
   }
 
   protected onProgressCompleted(): void {
     this.ownerForm?.enable();
-    this.loading = false;
+    this._loading = false;
   }
 }
