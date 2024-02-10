@@ -1,21 +1,22 @@
-import * as moment from 'moment';
+import { formatISO, parseISO } from 'date-fns';
 
 export class IsoDateTime {
   public static utcToLocalDateTimeIso(utcDateTime: string): string | null {
     if (!utcDateTime) {
       return null;
     }
-    return moment(utcDateTime).local().format('YYYY-MM-DDTHH:mm:ss');
+
+    return parseISO(utcDateTime).toISOString();
   }
 
   public static localToUtcDateTimeIso(localDateTime: string): string | null {
     if (!localDateTime) {
       return null;
     }
-    return moment(localDateTime).toISOString();
+    return formatISO(localDateTime);
   }
 
   public static currentUtcDateTimeIso(): string {
-    return moment(Date.now()).toISOString();
+    return formatISO(Date.now());
   }
 }
