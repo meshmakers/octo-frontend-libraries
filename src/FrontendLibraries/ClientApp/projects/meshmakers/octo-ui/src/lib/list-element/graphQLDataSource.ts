@@ -1,6 +1,10 @@
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { DataSourceBase, MessageService, PagedResultDto } from '@meshmakers/shared-services';
+import {
+  DataSourceBase,
+  MessageService,
+  PagedResultDto
+} from '@meshmakers/shared-services';
 import { FieldFilterDto, SearchFilterDto, SortDto } from './globalTypes';
 
 export class GraphQLDataSource<TDto> extends DataSourceBase<TDto> {

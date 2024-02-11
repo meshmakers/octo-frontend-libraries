@@ -10,26 +10,33 @@ export type InputMaybe<T> = Maybe<T>;
 
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
-  /** The `DateTime` scalar type represents a date and time. `DateTime` expects timestamps to be formatted in accordance with the [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601) standard. */
-  DateTime: any;
-  Decimal: any;
-  OspObjectIdType: any;
-  SimpleScalarType: any;
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
+  BigInt: { input: any; output: any; }
+  CkAttributeId: { input: string; output: string; }
+  CkEnumId: { input: string; output: string; }
+  CkRecordId: { input: string; output: string; }
+  CkTypeId: { input: string; output: string; }
+  DateTime: { input: any; output: any; }
+  Decimal: { input: any; output: any; }
+  LargeBinary: { input: any; output: any; }
+  OctoObjectId: { input: string; output: string; }
+  SimpleScalarType: { input: any; output: any; }
+  Uri: { input: any; output: any; }
 };
 
 export type FieldFilterDto = {
-  attributeName: Scalars['String'];
-  comparisonValue?: InputMaybe<Scalars['SimpleScalarType']>;
+  attributeName: Scalars['String']['input']
+  comparisonValue?: InputMaybe<Scalars['SimpleScalarType']['input']>;
   operator?: InputMaybe<FieldFilterOperatorsDto>;
 };
 
 /** Defines the operator of field compare */
 export enum FieldFilterOperatorsDto {
+  AnyEqDto = 'ANY_EQ',
   EqualsDto = 'EQUALS',
   GreaterEqualThanDto = 'GREATER_EQUAL_THAN',
   GreaterThanDto = 'GREATER_THAN',
@@ -39,23 +46,14 @@ export enum FieldFilterOperatorsDto {
   LikeDto = 'LIKE',
   MatchRegExDto = 'MATCH_REG_EX',
   NotEqualsDto = 'NOT_EQUALS',
-  NotInDto = 'NOT_IN',
-  NotMatchRegExDto = 'NOT_MATCH_REG_EX'
+  NotInDto = 'NOT_IN'
 }
 
-/** The scope of the construction kit model */
-export enum ScopesDto {
-  ApplicationDto = 'APPLICATION',
-  Layer_2Dto = 'LAYER_2',
-  Layer_3Dto = 'LAYER_3',
-  Layer_4Dto = 'LAYER_4',
-  SystemDto = 'SYSTEM'
-}
 
 export type SearchFilterDto = {
-  attributeNames?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
-  language?: InputMaybe<Scalars['String']>;
-  searchTerm: Scalars['String'];
+  attributeNames?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  language?: InputMaybe<Scalars['String']['input']>;
+  searchTerm: Scalars['String']['input'];
   type?: InputMaybe<SearchFilterTypesDto>;
 };
 
@@ -66,7 +64,7 @@ export enum SearchFilterTypesDto {
 }
 
 export type SortDto = {
-  attributeName: Scalars['String'];
+  attributeName: Scalars['String']['input'];
   sortOrder?: InputMaybe<SortOrdersDto>;
 };
 
