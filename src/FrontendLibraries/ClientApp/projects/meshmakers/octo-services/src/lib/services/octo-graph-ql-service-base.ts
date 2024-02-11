@@ -5,7 +5,7 @@ import { OctoServiceOptions } from '../options/octo-service-options';
 import { PagedGraphResultDto } from '../models/pagedGraphResultDto';
 import { PagedResultDto } from '@meshmakers/shared-services';
 import { HttpLink } from 'apollo-angular/http';
-import { InMemoryCache, ApolloQueryResult } from '@apollo/client/core';
+import { ApolloQueryResult, InMemoryCache } from '@apollo/client/core';
 import { OperationVariables } from '@apollo/client/core/types';
 import { Observable } from 'rxjs';
 

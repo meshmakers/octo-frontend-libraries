@@ -3,12 +3,7 @@ import { MatSort, SortDirection } from '@angular/material/sort';
 import { ElementRef, EventEmitter } from '@angular/core';
 import { fromEvent, merge } from 'rxjs';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
-import {
-  SearchFilterDto,
-  SearchFilterTypesDto,
-  SortDto,
-  SortOrdersDto
-} from './globalTypes';
+import { SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from './globalTypes';
 
 export class OctoListNavigationDataInfo {
   skip: number;
