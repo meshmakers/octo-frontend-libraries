@@ -2,7 +2,6 @@ import { ModuleWithProviders, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProgressWindowComponent } from './progress-window/progress-window.component';
 import { MatDialogModule } from '@angular/material/dialog';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ProgressNotifierService } from './services/progress-notifier.service';
@@ -12,7 +11,6 @@ import { ProgressNotifierService } from './services/progress-notifier.service';
   imports: [
     CommonModule,
     MatDialogModule,
-    FlexLayoutModule,
     MatButtonModule,
     MatProgressBarModule
   ]
