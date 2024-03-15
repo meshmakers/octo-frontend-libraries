@@ -36,6 +36,10 @@
       <_ContentIncludedByDefault Remove="ClientApp\tsconfig.spec.json" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="ClientApp\projects\meshmakers\shared-ui\src\lib\breadcrumb\services\" />
+    </ItemGroup>
+
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
         <!-- Ensure Node.js is installed -->
         <Exec Command="node --version" ContinueOnError="true">

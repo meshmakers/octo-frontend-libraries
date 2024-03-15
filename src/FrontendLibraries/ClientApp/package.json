@@ -19,6 +19,7 @@
     "watch:shared-auth": "ng build @meshmakers/shared-auth --watch --configuration development",
     "watch:shared-services": "ng build @meshmakers/shared-services --watch --configuration development",
     "watch:shared-ui": "ng build @meshmakers/shared-ui --watch --configuration development",
+    "watch:octo-ui": "ng build @meshmakers/octo-ui --watch --configuration development",
     "build:test-app": "ng build --project test-app",
     "postinstall": "node environments/version.ts",
     "codegen": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 graphql-codegen --config codegen.yml",

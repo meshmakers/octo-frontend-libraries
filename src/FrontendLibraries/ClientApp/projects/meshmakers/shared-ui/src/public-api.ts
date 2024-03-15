@@ -17,3 +17,7 @@ export * from './lib/confirmation-dialog/shared/confirmation';
 
 export * from './lib/shared/commonValidators';
 export * from './lib/shared/abstractDetailsComponent';
+
+export * from './lib/breadcrumb/breadcrumb.module';
+export * from './lib/breadcrumb/mat-breadcrumb/mat-breadcrumb.component';
+export * from './lib/breadcrumb/services/breadcrumb.service';

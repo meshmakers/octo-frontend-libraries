@@ -1,0 +1,143 @@
+import { map, of, Subscription } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import {
+  DataSourceBase,
+  MessageService,
+  PagedResultDto
+} from '@meshmakers/shared-services';
+import {
+  FieldFilterDto,
+  InputMaybe,
+  SearchFilterDto,
+  SortDto
+} from './globalTypes';
+import { Query, QueryRef } from 'apollo-angular';
+import type {
+  ApolloQueryResult,
+  OperationVariables
+} from '@apollo/client/core';
+import { GraphQL } from '@meshmakers/octo-services';
+
+export interface IQueryVariablesDto extends OperationVariables {
+  first?: number | null | undefined;
+  after?: string | null | undefined;
+  sort?:
+    | InputMaybe<InputMaybe<SortDto> | Array<InputMaybe<SortDto>>>
+    | undefined;
+  searchFilter?: SearchFilterDto | null | undefined;
+  fieldFilters?: InputMaybe<
+    Array<InputMaybe<FieldFilterDto>> | InputMaybe<FieldFilterDto>
+  >;
+}
+
+export class NewGraphQlDataSource<
+  TDto,
+  TQueryDto,
+  TVariablesDto extends IQueryVariablesDto
+> extends DataSourceBase<TDto> {
+  private queryRef: QueryRef<TQueryDto, TVariablesDto> | null;
+  private subscription: Subscription | null;
+
+  constructor(
+    protected messageService: MessageService,
+    private readonly query: Query<TQueryDto, TVariablesDto>,
+    private readonly defaultSort: SortDto[] | null = null
+  ) {
+    super();
+    this.queryRef = null;
+    this.subscription = null;
+  }
+
+  override clear(): void {
+    super.clear();
+    this.queryRef?.stopPolling();
+    this.queryRef = null;
+    this.subscription?.unsubscribe();
+    this.subscription = null;
+  }
+
+  public async refetch(): Promise<void> {
+    await this.queryRef?.refetch();
+  }
+
+  public async refetchWith(
+    skip: number = 0,
+    take: number = 10,
+    searchFilter: SearchFilterDto | null = null,
+    fieldFilter: FieldFilterDto[] | null = null,
+    sort: SortDto[] | null = null
+  ): Promise<void> {
+    const variables = this.createVariables(
+      skip,
+      take,
+      searchFilter,
+      fieldFilter,
+      sort
+    );
+    await this.queryRef?.refetch(variables);
+  }
+
+  protected createVariables(
+    skip: number = 0,
+    take: number = 10,
+    searchFilter: SearchFilterDto | null = null,
+    fieldFilter: FieldFilterDto[] | null = null,
+    sort: SortDto[] | null = null
+  ): TVariablesDto {
+    // Default sort
+    if ((!sort || (sort && sort.length === 0)) && searchFilter === null) {
+      sort = new Array<SortDto>();
+      if (this.defaultSort) {
+        sort = this.defaultSort;
+      }
+    }
+
+    return <TVariablesDto>{
+      first: take,
+      after: GraphQL.offsetToCursor(skip),
+      sort,
+      searchFilter,
+      fieldFilters: fieldFilter
+    };
+  }
+
+  public loadData(
+    skip: number = 0,
+    take: number = 10,
+    searchFilter: SearchFilterDto | null = null,
+    fieldFilter: FieldFilterDto[] | null = null,
+    sort: SortDto[] | null = null
+  ): void {
+    super.onBeginLoad();
+    this.clear();
+
+    const variables = this.createVariables(
+      skip,
+      take,
+      searchFilter,
+      fieldFilter,
+      sort
+    );
+    this.queryRef = this.query.watch(variables);
+
+    this.subscription = this.queryRef.valueChanges
+      .pipe(map((v, i) => this.executeLoad(v, i)))
+      .pipe(
+        catchError((error: string) => {
+          this.messageService.showError(error, 'Error during load of data');
+
+          return of(new PagedResultDto<TDto>());
+        })
+      )
+      .subscribe((pagedResult) => {
+        super.onCompleteLoad(pagedResult);
+      });
+  }
+
+  protected executeLoad(
+    value: ApolloQueryResult<TQueryDto>,
+    index: number
+  ): PagedResultDto<TDto> {
+    return new PagedResultDto<TDto>();
+  }
+}

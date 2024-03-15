@@ -5,8 +5,9 @@ import { PagedResultDto } from '../models/pagedResultDto';
 export class DataSourceBase<TDto> implements DataSource<TDto> {
   private readonly dataSubject = new BehaviorSubject<TDto[]>([]);
   private readonly loadingSubject = new BehaviorSubject<boolean>(false);
-  public readonly loading$ = this.loadingSubject.asObservable();
   private readonly totalCountSubject = new BehaviorSubject<number>(0);
+
+  public readonly loading$ = this.loadingSubject.asObservable();
   public readonly totalCount$ = this.totalCountSubject.asObservable();
 
   public get totalCount(): Observable<number> {
@@ -18,23 +19,22 @@ export class DataSourceBase<TDto> implements DataSource<TDto> {
   }
 
   disconnect(collectionViewer: CollectionViewer): void {
-    this.dataSubject.complete();
-    this.loadingSubject.complete();
+    this.clear();
   }
 
   clear(): void {
-    this.loadingSubject.next(false);
-    this.dataSubject.next([]);
-    this.totalCountSubject.next(0);
+    this.loadingSubject?.next(false);
+    this.dataSubject?.next([]);
+    this.totalCountSubject?.next(0);
   }
 
   protected onBeginLoad(): void {
-    this.loadingSubject.next(true);
+    this.loadingSubject?.next(true);
   }
 
   protected onCompleteLoad(pagedResult: PagedResultDto<TDto>): void {
-    this.loadingSubject.next(false);
-    this.dataSubject.next(pagedResult.list);
-    this.totalCountSubject.next(pagedResult.totalCount);
+    this.loadingSubject?.next(false);
+    this.dataSubject?.next(pagedResult.list);
+    this.totalCountSubject?.next(pagedResult.totalCount);
   }
 }
