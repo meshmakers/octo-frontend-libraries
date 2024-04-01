@@ -8,12 +8,7 @@ import { ProgressNotifierService } from './services/progress-notifier.service';
 
 @NgModule({
   declarations: [ProgressWindowComponent],
-  imports: [
-    CommonModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatProgressBarModule
-  ]
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatProgressBarModule]
 })
 export class ProgressNotifierModule {
   static forRoot(): ModuleWithProviders<ProgressNotifierModule> {

@@ -1,10 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  HttpEvent,
-  HttpHandler,
-  HttpInterceptor,
-  HttpRequest
-} from '@angular/common/http';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthorizeService } from './authorize.service';
 
@@ -42,23 +37,13 @@ export class AuthorizeInterceptor implements HttpInterceptor {
   // Checks if there is an access_token available in the authorize service
   // and adds it to the request in case it's targeted at the same origin as the
 
-  intercept(
-    req: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return this.processRequestWithToken(this.accessToken, req, next);
   }
 
   // single page application.
-  private processRequestWithToken(
-    token: string | null,
-    req: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
-    if (
-      !!token &&
-      (AuthorizeInterceptor.isSameOriginUrl(req) || this.isKnownServiceUri(req))
-    ) {
+  private processRequestWithToken(token: string | null, req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    if (!!token && (AuthorizeInterceptor.isSameOriginUrl(req) || this.isKnownServiceUri(req))) {
       req = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`

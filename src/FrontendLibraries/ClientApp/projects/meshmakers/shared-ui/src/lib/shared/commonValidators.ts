@@ -21,9 +21,7 @@ export class CommonValidators {
   public static ensureSameValue(sourceControlName: string): ValidatorFn {
     return (control: AbstractControl) => {
       const value = control.value;
-      return value === control.parent?.get(sourceControlName)?.value
-        ? null
-        : { notSame: true };
+      return value === control.parent?.get(sourceControlName)?.value ? null : { notSame: true };
     };
   }
 
@@ -32,12 +30,7 @@ export class CommonValidators {
     sourceValueCompareExpression: CompareValueFn<TCompareValue>
   ): ValidatorFn {
     return (control: AbstractControl) => {
-      if (
-        control.parent != null &&
-        sourceValueCompareExpression(
-          <TCompareValue>control.parent.get(sourceControlName)?.value
-        )
-      ) {
+      if (control.parent != null && sourceValueCompareExpression(<TCompareValue>control.parent.get(sourceControlName)?.value)) {
         return isEmptyInputValue(control.value) ? { required: true } : null;
       }
       return null;

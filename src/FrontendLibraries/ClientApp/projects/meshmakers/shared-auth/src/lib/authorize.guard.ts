@@ -1,12 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  Route,
-  Router,
-  RouterStateSnapshot,
-  UrlSegment,
-  UrlTree
-} from '@angular/router';
+import { ActivatedRouteSnapshot, Route, Router, RouterStateSnapshot, UrlSegment, UrlTree } from '@angular/router';
 import { AuthorizeService } from './authorize.service';
 import { firstValueFrom, Observable } from 'rxjs';
 
@@ -20,11 +13,7 @@ export class AuthorizeGuard {
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ):
-    | Observable<boolean | UrlTree>
-    | Promise<boolean | UrlTree>
-    | boolean
-    | UrlTree {
+  ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     const url: string = state.url;
     return this.handleAuthorization(next, url);
   }
@@ -32,11 +21,7 @@ export class AuthorizeGuard {
   canActivateChild(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ):
-    | Observable<boolean | UrlTree>
-    | Promise<boolean | UrlTree>
-    | boolean
-    | UrlTree {
+  ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     return this.canActivate(next, state);
   }
 
@@ -45,38 +30,21 @@ export class AuthorizeGuard {
     currentRoute: ActivatedRouteSnapshot,
     currentState: RouterStateSnapshot,
     nextState?: RouterStateSnapshot
-  ):
-    | Observable<boolean | UrlTree>
-    | Promise<boolean | UrlTree>
-    | boolean
-    | UrlTree {
+  ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     return true;
   }
 
-  canLoad(
-    route: Route,
-    segments: UrlSegment[]
-  ): Observable<boolean> | Promise<boolean> | boolean {
+  canLoad(route: Route, segments: UrlSegment[]): Observable<boolean> | Promise<boolean> | boolean {
     return true;
   }
 
-  private async handleAuthorization(
-    route: ActivatedRouteSnapshot,
-    url: any
-  ): Promise<boolean> {
+  private async handleAuthorization(route: ActivatedRouteSnapshot, url: any): Promise<boolean> {
     await this.authorizeService.initialize();
 
-    const isAuthenticated = await firstValueFrom(
-      this.authorizeService.getIsAuthenticated()
-    );
+    const isAuthenticated = await firstValueFrom(this.authorizeService.getIsAuthenticated());
     if (isAuthenticated) {
       const userRoles = await firstValueFrom(this.authorizeService.getRoles());
-      if (
-        route.data['roles'] &&
-        !route.data['roles'].filter((value: string) =>
-          userRoles.includes(value)
-        )
-      ) {
+      if (route.data['roles'] && !route.data['roles'].filter((value: string) => userRoles.includes(value))) {
         await this.router.navigate(['']);
         return false;
       }

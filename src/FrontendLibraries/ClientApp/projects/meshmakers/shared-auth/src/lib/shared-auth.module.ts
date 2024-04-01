@@ -13,9 +13,7 @@ import { AuthorizeGuard } from './authorize.guard';
   imports: [CommonModule, HttpClientModule, OAuthModule.forRoot()]
 })
 export class SharedAuthModule {
-  static forRoot(
-    authorizeOptions: AuthorizeOptions
-  ): ModuleWithProviders<SharedAuthModule> {
+  static forRoot(authorizeOptions: AuthorizeOptions): ModuleWithProviders<SharedAuthModule> {
     return {
       ngModule: SharedAuthModule,
       providers: [

@@ -24,10 +24,7 @@ import {
 } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
-import {
-  MatAutocompleteActivatedEvent,
-  MatAutocompleteSelectedEvent
-} from '@angular/material/autocomplete';
+import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatInput } from '@angular/material/input';
 import { of, Subject } from 'rxjs';
 import { FocusMonitor } from '@angular/cdk/a11y';
@@ -58,15 +55,7 @@ import { AutoCompleteDataSource } from '@meshmakers/shared-services';
     }
   ]
 })
-export class IaAutocompleteInput
-  implements
-    OnInit,
-    OnDestroy,
-    DoCheck,
-    ControlValueAccessor,
-    MatFormFieldControl<any>,
-    Validator
-{
+export class IaAutocompleteInput implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any>, Validator {
   private static nextId = 0;
   public readonly searchFormControl: FormControl;
   public isLoading: boolean;
@@ -127,9 +116,7 @@ export class IaAutocompleteInput
 
   public set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
-    this._disabled
-      ? this.searchFormControl.disable()
-      : this.searchFormControl.enable();
+    this._disabled ? this.searchFormControl.disable() : this.searchFormControl.enable();
     this.stateChanges.next();
   }
 
@@ -213,10 +200,7 @@ export class IaAutocompleteInput
           filter((value) => value.startsWith(this._prefix)),
           tap(() => (this.value = null)),
           tap(() => (this.isLoading = true)),
-          map(
-            (value: string) =>
-              this._dataSource?.onPreprocessSearchString(value) ?? ''
-          ),
+          map((value: string) => this._dataSource?.onPreprocessSearchString(value) ?? ''),
           switchMap((value) => this._dataSource?.onFilter(value) ?? of(null))
         )
         .subscribe((resultSet) => {
@@ -243,9 +227,7 @@ export class IaAutocompleteInput
         }),
         filter((value) => value != null && value.toString().length >= 1),
         tap(() => (this.isLoading = true)),
-        map((value: string) =>
-          this._dataSource?.onPreprocessSearchString(value)
-        ),
+        map((value: string) => this._dataSource?.onPreprocessSearchString(value)),
         tap((value) => (this.value = value)),
         switchMap((value) => {
           if (value !== null) {
@@ -272,8 +254,7 @@ export class IaAutocompleteInput
 
   ngDoCheck(): void {
     if (this.ngControl != null) {
-      this.errorState =
-        (this.ngControl.invalid && this.ngControl.touched) ?? false;
+      this.errorState = (this.ngControl.invalid && this.ngControl.touched) ?? false;
       this.stateChanges.next();
     }
   }

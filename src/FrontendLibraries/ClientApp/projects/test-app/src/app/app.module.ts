@@ -8,21 +8,13 @@ import { ConfigurationService } from './services/configuration.service';
 import { AuthorizeService, SharedAuthModule } from '@meshmakers/shared-auth';
 import { defaultAuthorizeOptions } from './config/defaultAuthorizeOptions';
 
-export function initServices(
-  configurationService: ConfigurationService,
-  authorizeService: AuthorizeService
-) {
+export function initServices(configurationService: ConfigurationService, authorizeService: AuthorizeService) {
   return async () => {};
 }
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    SharedAuthModule.forRoot(defaultAuthorizeOptions)
-  ],
+  imports: [BrowserModule, AppRoutingModule, BrowserAnimationsModule, SharedAuthModule.forRoot(defaultAuthorizeOptions)],
   providers: [
     ConfigurationService,
     {

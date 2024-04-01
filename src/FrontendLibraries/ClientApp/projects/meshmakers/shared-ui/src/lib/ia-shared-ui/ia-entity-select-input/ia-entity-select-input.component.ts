@@ -27,10 +27,7 @@ import { EntitySelectDataSource } from '@meshmakers/shared-services';
 import { of, Subject } from 'rxjs';
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
-import {
-  MatAutocompleteActivatedEvent,
-  MatAutocompleteSelectedEvent
-} from '@angular/material/autocomplete';
+import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 @Component({
@@ -58,15 +55,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
     }
   ]
 })
-export class IaEntitySelectInput
-  implements
-    OnInit,
-    OnDestroy,
-    DoCheck,
-    ControlValueAccessor,
-    MatFormFieldControl<any>,
-    Validator
-{
+export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any>, Validator {
   private static nextId = 0;
   public readonly searchFormControl: FormControl;
   public isLoading: boolean;
@@ -126,9 +115,7 @@ export class IaEntitySelectInput
 
   public set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
-    this._disabled
-      ? this.searchFormControl.disable()
-      : this.searchFormControl.enable();
+    this._disabled ? this.searchFormControl.disable() : this.searchFormControl.enable();
     this.stateChanges.next();
   }
 
@@ -209,12 +196,7 @@ export class IaEntitySelectInput
           filter((value) => value.startsWith(this._prefix)),
           tap(() => (this.value = null)),
           tap(() => (this.isLoading = true)),
-          switchMap(
-            (value: string) =>
-              this._dataSource?.onFilter(
-                value.replace(this._prefix, '').trim()
-              ) ?? of(null)
-          )
+          switchMap((value: string) => this._dataSource?.onFilter(value.replace(this._prefix, '').trim()) ?? of(null))
         )
         .subscribe((resultSet) => {
           if (resultSet?.list) {
@@ -239,9 +221,7 @@ export class IaEntitySelectInput
         }),
         filter((value) => value.toString().length >= 3),
         tap(() => (this.isLoading = true)),
-        switchMap(
-          (value: string) => this._dataSource?.onFilter(value) ?? of(null)
-        )
+        switchMap((value: string) => this._dataSource?.onFilter(value) ?? of(null))
       )
       .subscribe((resultSet) => {
         if (resultSet?.list) {
@@ -258,8 +238,7 @@ export class IaEntitySelectInput
 
   ngDoCheck(): void {
     if (this.ngControl != null) {
-      this.errorState =
-        (this.ngControl.invalid && this.ngControl.touched) ?? false;
+      this.errorState = (this.ngControl.invalid && this.ngControl.touched) ?? false;
       this.stateChanges.next();
     }
   }

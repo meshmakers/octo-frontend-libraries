@@ -1,11 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {
-  ButtonTypes,
-  ConfirmationWindowData,
-  ConfirmationWindowResult,
-  DialogType
-} from '../shared/confirmation';
+import { ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType } from '../shared/confirmation';
 
 @Component({
   selector: 'lib-shared-ui-confirmation-window',

@@ -24,11 +24,7 @@ export class OctoGraphQLServiceBase {
     f: (resultSet: PagedResultDto<TEntity>, result: TResult) => void
   ): Observable<PagedResultDto<TEntity>> {
     const query = watchQuery
-      ? this.prepareWatchQuery<TResult, TVariable>(
-          tenantId,
-          variables,
-          queryNode
-        )
+      ? this.prepareWatchQuery<TResult, TVariable>(tenantId, variables, queryNode)
       : this.prepareQuery<TResult, TVariable>(tenantId, variables, queryNode);
     return query.pipe(
       map((result) => {
@@ -45,12 +41,7 @@ export class OctoGraphQLServiceBase {
     );
   }
 
-  protected getGraphEntities<
-    TResult,
-    TP,
-    TC,
-    TVariable extends OperationVariables
-  >(
+  protected getGraphEntities<TResult, TP, TC, TVariable extends OperationVariables>(
     tenantId: string,
     variables: TVariable,
     queryNode: DocumentNode,
@@ -58,11 +49,7 @@ export class OctoGraphQLServiceBase {
     f: (resultSet: PagedGraphResultDto<TP, TC>, result: TResult) => void
   ): Observable<PagedGraphResultDto<TP, TC>> {
     const query = watchQuery
-      ? this.prepareWatchQuery<TResult, TVariable>(
-          tenantId,
-          variables,
-          queryNode
-        )
+      ? this.prepareWatchQuery<TResult, TVariable>(tenantId, variables, queryNode)
       : this.prepareQuery<TResult, TVariable>(tenantId, variables, queryNode);
     return query.pipe(
       map((result) => {
@@ -79,11 +66,7 @@ export class OctoGraphQLServiceBase {
     );
   }
 
-  protected getEntityDetail<
-    TResult,
-    TEntity,
-    TVariable extends OperationVariables
-  >(
+  protected getEntityDetail<TResult, TEntity, TVariable extends OperationVariables>(
     tenantId: string,
     variables: TVariable,
     queryNode: DocumentNode,
@@ -91,11 +74,7 @@ export class OctoGraphQLServiceBase {
     f: (result: TResult) => TEntity
   ): Observable<TEntity | null> {
     const query = watchQuery
-      ? this.prepareWatchQuery<TResult, TVariable>(
-          tenantId,
-          variables,
-          queryNode
-        )
+      ? this.prepareWatchQuery<TResult, TVariable>(tenantId, variables, queryNode)
       : this.prepareQuery<TResult, TVariable>(tenantId, variables, queryNode);
     return query.pipe(
       map((result) => {
@@ -110,11 +89,7 @@ export class OctoGraphQLServiceBase {
     );
   }
 
-  protected createUpdateEntity<
-    TResult,
-    TEntity,
-    TVariable extends OperationVariables
-  >(
+  protected createUpdateEntity<TResult, TEntity, TVariable extends OperationVariables>(
     tenantId: string,
     variables: TVariable,
     queryNode: DocumentNode,
@@ -131,9 +106,7 @@ export class OctoGraphQLServiceBase {
       .pipe(
         map((value) => f(value.data)),
         finalize(() => {
-          const promise = this.apollo
-            .use(tenantId)
-            .client.reFetchObservableQueries(true);
+          const promise = this.apollo.use(tenantId).client.reFetchObservableQueries(true);
           promise
             .then(() => {})
             .catch((error: string) => {
@@ -160,9 +133,7 @@ export class OctoGraphQLServiceBase {
       .pipe(
         map((value) => f(value.data)),
         finalize(() => {
-          const promise = this.apollo
-            .use(tenantId)
-            .client.reFetchObservableQueries(true);
+          const promise = this.apollo.use(tenantId).client.reFetchObservableQueries(true);
           promise
             .then(() => {})
             .catch((error: string) => {

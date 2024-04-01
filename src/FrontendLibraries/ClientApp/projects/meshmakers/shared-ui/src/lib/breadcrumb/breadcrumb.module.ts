@@ -8,13 +8,7 @@ import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [MatBreadcrumbComponent],
-  imports: [
-    RouterModule,
-    CommonModule,
-    BrowserAnimationsModule,
-    MatToolbarModule,
-    MatListModule
-  ],
+  imports: [RouterModule, CommonModule, BrowserAnimationsModule, MatToolbarModule, MatListModule],
   exports: [MatBreadcrumbComponent]
 })
 export class BreadcrumbModule {}

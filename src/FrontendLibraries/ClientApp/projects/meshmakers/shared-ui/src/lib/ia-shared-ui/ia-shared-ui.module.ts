@@ -24,12 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
     IaEntitySelectInput,
     IaMultipleEntitySelectInput
   ],
-  exports: [
-    IaNotificationBarComponent,
-    IaAutocompleteInput,
-    IaEntitySelectInput,
-    IaMultipleEntitySelectInput
-  ],
+  exports: [IaNotificationBarComponent, IaAutocompleteInput, IaEntitySelectInput, IaMultipleEntitySelectInput],
   imports: [
     CommonModule,
     MatToolbarModule,

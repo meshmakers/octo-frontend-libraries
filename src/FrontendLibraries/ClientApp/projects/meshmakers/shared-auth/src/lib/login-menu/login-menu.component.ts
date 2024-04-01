@@ -15,9 +15,7 @@ export class LoginMenuComponent implements OnInit {
 
   constructor(private readonly authorizeService: AuthorizeService) {
     this.isAuthenticated = this.authorizeService.getIsAuthenticated();
-    this.userName = this.authorizeService
-      .getUser()
-      .pipe(map((u) => u?.name ?? null));
+    this.userName = this.authorizeService.getUser().pipe(map((u) => u?.name ?? null));
     this.isAdmin = this.authorizeService.getIsAdmin();
   }
 

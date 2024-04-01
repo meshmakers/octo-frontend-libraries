@@ -17,8 +17,4 @@ export const VERSION = ${JSON.stringify(versionInfo, null, 4)};
   { encoding: 'utf-8' }
 );
 
-console.log(
-  `Wrote version info ${String(versionInfo.version)} to ${String(
-    relative(resolve(__dirname, '..'), file)
-  )}`
-);
+console.log(`Wrote version info ${String(versionInfo.version)} to ${String(relative(resolve(__dirname, '..'), file))}`);

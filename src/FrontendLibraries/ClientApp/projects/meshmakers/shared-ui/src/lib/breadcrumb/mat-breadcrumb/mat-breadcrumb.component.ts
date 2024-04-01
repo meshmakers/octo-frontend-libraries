@@ -1,11 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Breadcrumb } from '../model/breadcrumb';
-import {
-  ActivatedRoute,
-  NavigationEnd,
-  PRIMARY_OUTLET,
-  Router
-} from '@angular/router';
+import { ActivatedRoute, NavigationEnd, PRIMARY_OUTLET, Router } from '@angular/router';
 import { BreadcrumbService } from '../services/breadcrumb.service';
 import { filter, map } from 'rxjs/operators';
 
@@ -37,10 +32,7 @@ export class MatBreadcrumbComponent implements OnInit {
           if (labelParams) {
             for (const labelParam of labelParams) {
               if (labelParam === key) {
-                crumb.label = crumb.label.replace(
-                  '{{' + labelParam + '}}',
-                  <string>value
-                );
+                crumb.label = crumb.label.replace('{{' + labelParam + '}}', <string>value);
               }
             }
           }
@@ -48,13 +40,11 @@ export class MatBreadcrumbComponent implements OnInit {
       });
     });
 
-    this.breadcrumbService.newBreadcrumb.subscribe(
-      (breadcrumb: Breadcrumb[]) => {
-        if (breadcrumb.length > 0) {
-          this.updateData(this.activatedRoute, breadcrumb);
-        }
+    this.breadcrumbService.newBreadcrumb.subscribe((breadcrumb: Breadcrumb[]) => {
+      if (breadcrumb.length > 0) {
+        this.updateData(this.activatedRoute, breadcrumb);
       }
-    );
+    });
   }
 
   breadCrumbData(): void {
@@ -75,14 +65,9 @@ export class MatBreadcrumbComponent implements OnInit {
       });
   }
 
-  private updateData(
-    route: ActivatedRoute,
-    newBreadcrumb: Breadcrumb[] | null
-  ): void {
+  private updateData(route: ActivatedRoute, newBreadcrumb: Breadcrumb[] | null): void {
     if (route.snapshot.data['breadcrumb'] || newBreadcrumb) {
-      const data = route.snapshot.data['breadcrumb']
-        ? route.snapshot.data['breadcrumb']
-        : newBreadcrumb;
+      const data = route.snapshot.data['breadcrumb'] ? route.snapshot.data['breadcrumb'] : newBreadcrumb;
       const breadcrumb = <Breadcrumb[]>JSON.parse(JSON.stringify(data));
       breadcrumb.forEach((crumb) => {
         if (crumb.url) {
@@ -99,14 +84,9 @@ export class MatBreadcrumbComponent implements OnInit {
         const labelParams = crumb.label.match(/[^{{]+(?=}})/g);
         if (labelParams) {
           for (const labelParam of labelParams) {
-            const routerParamID = <string>(
-              route.snapshot.params[labelParam.trim()]
-            );
+            const routerParamID = <string>route.snapshot.params[labelParam.trim()];
             if (routerParamID) {
-              crumb.label = crumb.label.replace(
-                '{{' + labelParam + '}}',
-                routerParamID
-              );
+              crumb.label = crumb.label.replace('{{' + labelParam + '}}', routerParamID);
             } else {
               // crumb.label = crumb.label.replace('{{' + labelParam + '}}', '');
             }

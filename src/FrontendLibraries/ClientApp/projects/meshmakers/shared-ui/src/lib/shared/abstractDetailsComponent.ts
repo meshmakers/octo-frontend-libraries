@@ -45,11 +45,7 @@ export abstract class AbstractDetailsComponent<TEntity> {
   };
 
   public updateDateTime(controlName: string): void {
-    this.ownerForm
-      ?.get(controlName)
-      ?.setValue(
-        IsoDateTime.utcToLocalDateTimeIso(IsoDateTime.currentUtcDateTimeIso())
-      );
+    this.ownerForm?.get(controlName)?.setValue(IsoDateTime.utcToLocalDateTimeIso(IsoDateTime.currentUtcDateTimeIso()));
   }
 
   public copyInputMessage(inputElement: any): void {

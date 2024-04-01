@@ -1,40 +1,40 @@
 import { map, of, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import {
-  DataSourceBase,
-  MessageService,
-  PagedResultDto
-} from '@meshmakers/shared-services';
-import {
-  FieldFilterDto,
-  InputMaybe,
-  SearchFilterDto,
-  SortDto
-} from './globalTypes';
+import { DataSourceBase, MessageService, PagedResultDto } from '@meshmakers/shared-services';
+import { FieldFilterDto, InputMaybe, SearchFilterDto, SortDto } from './globalTypes';
 import { Query, QueryRef } from 'apollo-angular';
-import type {
-  ApolloQueryResult,
-  OperationVariables
-} from '@apollo/client/core';
+import type { ApolloQueryResult, OperationVariables } from '@apollo/client/core';
 import { GraphQL } from '@meshmakers/octo-services';
 
 export interface IQueryVariablesDto extends OperationVariables {
   first?: number | null | undefined;
   after?: string | null | undefined;
-  sort?:
-    | InputMaybe<InputMaybe<SortDto> | Array<InputMaybe<SortDto>>>
-    | undefined;
+  sort?: InputMaybe<InputMaybe<SortDto> | Array<InputMaybe<SortDto>>> | undefined;
   searchFilter?: SearchFilterDto | null | undefined;
-  fieldFilters?: InputMaybe<
-    Array<InputMaybe<FieldFilterDto>> | InputMaybe<FieldFilterDto>
-  >;
+  fieldFilters?: InputMaybe<Array<InputMaybe<FieldFilterDto>> | InputMaybe<FieldFilterDto>>;
 }
 
-export class NewGraphQlDataSource<
-  TDto,
-  TQueryDto,
-  TVariablesDto extends IQueryVariablesDto
-> extends DataSourceBase<TDto> {
+export abstract class GraphQlDataSource<TDto> extends DataSourceBase<TDto> {
+  public abstract refetch(): Promise<void>;
+
+  public abstract refetchWith(
+    skip?: number,
+    take?: number,
+    searchFilter?: SearchFilterDto | null,
+    fieldFilter?: FieldFilterDto[] | null,
+    sort?: SortDto[] | null
+  ): Promise<void>;
+
+  public abstract loadData(
+    skip?: number,
+    take?: number,
+    searchFilter?: SearchFilterDto | null,
+    fieldFilter?: FieldFilterDto[] | null,
+    sort?: SortDto[] | null
+  ): void;
+}
+
+export class NewGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends IQueryVariablesDto> extends GraphQlDataSource<TDto> {
   private queryRef: QueryRef<TQueryDto, TVariablesDto> | null;
   private subscription: Subscription | null;
 
@@ -67,13 +67,7 @@ export class NewGraphQlDataSource<
     fieldFilter: FieldFilterDto[] | null = null,
     sort: SortDto[] | null = null
   ): Promise<void> {
-    const variables = this.createVariables(
-      skip,
-      take,
-      searchFilter,
-      fieldFilter,
-      sort
-    );
+    const variables = this.createVariables(skip, take, searchFilter, fieldFilter, sort);
     await this.queryRef?.refetch(variables);
   }
 
@@ -111,13 +105,7 @@ export class NewGraphQlDataSource<
     super.onBeginLoad();
     this.clear();
 
-    const variables = this.createVariables(
-      skip,
-      take,
-      searchFilter,
-      fieldFilter,
-      sort
-    );
+    const variables = this.createVariables(skip, take, searchFilter, fieldFilter, sort);
     this.queryRef = this.query.watch(variables);
 
     this.subscription = this.queryRef.valueChanges
@@ -134,10 +122,7 @@ export class NewGraphQlDataSource<
       });
   }
 
-  protected executeLoad(
-    value: ApolloQueryResult<TQueryDto>,
-    index: number
-  ): PagedResultDto<TDto> {
+  protected executeLoad(value: ApolloQueryResult<TQueryDto>, index: number): PagedResultDto<TDto> {
     return new PagedResultDto<TDto>();
   }
 }

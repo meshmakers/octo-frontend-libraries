@@ -27,10 +27,7 @@ import { MatInput } from '@angular/material/input';
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
-import {
-  MatAutocompleteActivatedEvent,
-  MatAutocompleteSelectedEvent
-} from '@angular/material/autocomplete';
+import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
@@ -60,13 +57,7 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
   ]
 })
 export class IaMultipleEntitySelectInput
-  implements
-    OnInit,
-    OnDestroy,
-    DoCheck,
-    ControlValueAccessor,
-    MatFormFieldControl<any[]>,
-    Validator
+  implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any[]>, Validator
 {
   private static nextId = 0;
   public readonly valuesFormControl: FormControl;
@@ -78,8 +69,7 @@ export class IaMultipleEntitySelectInput
   public focused: boolean;
   public readonly stateChanges = new Subject<void>();
   @HostBinding()
-  public readonly id =
-    `ia-multiple-entity-select-${IaMultipleEntitySelectInput.nextId++}`;
+  public readonly id = `ia-multiple-entity-select-${IaMultipleEntitySelectInput.nextId++}`;
 
   public valuesChange: EventEmitter<any[]> = new EventEmitter<any[]>();
   private _selectedEntities: any[] | null;
@@ -132,9 +122,7 @@ export class IaMultipleEntitySelectInput
 
   public set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
-    this._disabled
-      ? this.searchFormControl.disable()
-      : this.searchFormControl.enable();
+    this._disabled ? this.searchFormControl.disable() : this.searchFormControl.enable();
     this.stateChanges.next();
   }
 
@@ -214,12 +202,7 @@ export class IaMultipleEntitySelectInput
           filter((value) => typeof value === 'string'),
           filter((value: string) => value.startsWith(this._prefix)),
           tap(() => (this.isLoading = true)),
-          switchMap(
-            (value) =>
-              this._dataSource?.onFilter(
-                value.replace(this._prefix, '').trim()
-              ) ?? of(null)
-          )
+          switchMap((value) => this._dataSource?.onFilter(value.replace(this._prefix, '').trim()) ?? of(null))
         )
         .subscribe((resultSet) => {
           if (resultSet?.list) {
@@ -237,22 +220,14 @@ export class IaMultipleEntitySelectInput
         filter((value) => typeof value === 'string'),
         filter((value) => value.toString().length >= 3),
         tap(() => (this.isLoading = true)),
-        switchMap(
-          (value: string) => this._dataSource?.onFilter(value) ?? of(null)
-        )
+        switchMap((value: string) => this._dataSource?.onFilter(value) ?? of(null))
       )
       .subscribe((resultSet) => {
         const resultList = new Array<any>();
 
         if (resultSet?.list) {
           resultSet.list.forEach((value1) => {
-            if (
-              !this.value?.find(
-                (value2) =>
-                  this._dataSource?.getIdEntity(value2) ===
-                  this._dataSource?.getIdEntity(value1)
-              )
-            ) {
+            if (!this.value?.find((value2) => this._dataSource?.getIdEntity(value2) === this._dataSource?.getIdEntity(value1))) {
               resultList.push(value1);
             }
           });
@@ -270,8 +245,7 @@ export class IaMultipleEntitySelectInput
 
   ngDoCheck(): void {
     if (this.ngControl != null) {
-      this.errorState =
-        (this.ngControl.invalid && this.ngControl.touched) ?? false;
+      this.errorState = (this.ngControl.invalid && this.ngControl.touched) ?? false;
       this.stateChanges.next();
     }
   }

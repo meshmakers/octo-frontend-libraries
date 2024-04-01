@@ -30,14 +30,11 @@ export class AuthorizeService {
   private readonly isAdmin = new BehaviorSubject<boolean>(false);
   private readonly isDeveloper = new BehaviorSubject<boolean>(false);
   private readonly isManager = new BehaviorSubject<boolean>(false);
-  private readonly authority: BehaviorSubject<string | null> =
-    new BehaviorSubject<string | null>(null);
+  private readonly authority: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-  private readonly accessToken: BehaviorSubject<string | null> =
-    new BehaviorSubject<string | null>(null);
+  private readonly accessToken: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-  private readonly user: BehaviorSubject<IUser | null> =
-    new BehaviorSubject<IUser | null>(null);
+  private readonly user: BehaviorSubject<IUser | null> = new BehaviorSubject<IUser | null>(null);
 
   private readonly isInitialized = new BehaviorSubject<boolean>(false);
   private readonly isInitializing = new BehaviorSubject<boolean>(false);
@@ -60,30 +57,22 @@ export class AuthorizeService {
       console.debug('oauth/oidc event', e);
     });
 
-    this.oauthService.events
-      .pipe(filter((e) => e.type === 'session_terminated'))
-      .subscribe((_) => {
-        console.debug('Your session has been terminated!');
-      });
+    this.oauthService.events.pipe(filter((e) => e.type === 'session_terminated')).subscribe((_) => {
+      console.debug('Your session has been terminated!');
+    });
 
-    this.oauthService.events
-      .pipe(filter((e) => e.type === 'token_received'))
-      .subscribe((_) => {
-        this.loadUser();
-      });
+    this.oauthService.events.pipe(filter((e) => e.type === 'token_received')).subscribe((_) => {
+      this.loadUser();
+    });
 
-    this.oauthService.events
-      .pipe(filter((e) => e.type === 'logout'))
-      .subscribe((_) => {
-        this.accessToken.next(null);
-        this.user.next(null);
-      });
+    this.oauthService.events.pipe(filter((e) => e.type === 'logout')).subscribe((_) => {
+      this.accessToken.next(null);
+      this.user.next(null);
+    });
   }
 
   public getRoles(): Observable<string[]> {
-    return this.getUser().pipe(
-      map((u) => (u != null ? u.role : new Array<string>()))
-    );
+    return this.getUser().pipe(map((u) => (u != null ? u.role : new Array<string>())));
   }
 
   public getServiceUris(): string[] | null {

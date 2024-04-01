@@ -8,9 +8,7 @@ import { Breadcrumb } from '../model/breadcrumb';
 export class BreadcrumbService {
   public breadcrumbLabels: BehaviorSubject<any> = new BehaviorSubject<any>([]);
 
-  public newBreadcrumb: BehaviorSubject<Breadcrumb[]> = new BehaviorSubject<
-    Breadcrumb[]
-  >([]);
+  public newBreadcrumb: BehaviorSubject<Breadcrumb[]> = new BehaviorSubject<Breadcrumb[]>([]);
 
   updateBreadcrumbLabels(labels: any): void {
     this.breadcrumbLabels.next(labels);
