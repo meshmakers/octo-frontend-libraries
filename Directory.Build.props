@@ -20,3 +20,4 @@
         <RestoreSources Condition="'$(Configuration)'=='DebugL'">$(SolutionDir)../nuget</RestoreSources>
     </PropertyGroup>
 </Project>
+
