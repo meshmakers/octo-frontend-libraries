@@ -6,6 +6,9 @@ import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
 export interface IUser {
   name: string;
   role: string[];
+  sub: string;
+  idp: string;
+  email: string | null;
 }
 
 export class AuthorizeOptions {
