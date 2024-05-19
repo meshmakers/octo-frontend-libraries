@@ -5,12 +5,13 @@ import { LoginMenuComponent } from './login-menu/login-menu.component';
 import { AuthorizeOptions, AuthorizeService } from './authorize.service';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthorizeGuard } from './authorize.guard';
+import { RouterLink } from "@angular/router";
 
 @NgModule({
   declarations: [LoginMenuComponent],
   exports: [LoginMenuComponent],
   providers: [],
-  imports: [CommonModule, HttpClientModule, OAuthModule.forRoot()]
+  imports: [CommonModule, HttpClientModule, OAuthModule.forRoot(), RouterLink]
 })
 export class SharedAuthModule {
   static forRoot(authorizeOptions: AuthorizeOptions): ModuleWithProviders<SharedAuthModule> {

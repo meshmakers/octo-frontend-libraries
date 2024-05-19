@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
+import { Roles } from "./roles";
 
 export interface IUser {
   name: string;
@@ -30,9 +31,6 @@ export class AuthorizeOptions {
 @Injectable()
 export class AuthorizeService {
   private readonly isAuthenticated = new BehaviorSubject<boolean>(false);
-  private readonly isAdmin = new BehaviorSubject<boolean>(false);
-  private readonly isDeveloper = new BehaviorSubject<boolean>(false);
-  private readonly isManager = new BehaviorSubject<boolean>(false);
   private readonly authority: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
   private readonly accessToken: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
@@ -51,9 +49,6 @@ export class AuthorizeService {
 
     this.getUser().subscribe((s) => {
       this.isAuthenticated.next(!(s == null));
-      this.isAdmin.next(!(s == null) && s.role.includes('Administrators'));
-      this.isDeveloper.next(!(s == null) && s.role.includes('Developers'));
-      this.isManager.next(!(s == null) && s.role.includes('Managers'));
     });
 
     this.oauthService.events.subscribe((e) => {
@@ -74,6 +69,11 @@ export class AuthorizeService {
     });
   }
 
+  public isInRole(role: Roles): boolean
+  {
+    return this.getUser()?.value?.role.includes(role) ?? false;
+  }
+
   public getRoles(): Observable<string[]> {
     return this.getUser().pipe(map((u) => (u != null ? u.role : new Array<string>())));
   }
@@ -88,18 +88,6 @@ export class AuthorizeService {
 
   public getIsAuthenticated(): BehaviorSubject<boolean> {
     return this.isAuthenticated;
-  }
-
-  public getIsAdmin(): BehaviorSubject<boolean> {
-    return this.isAdmin;
-  }
-
-  public getIsDeveloper(): BehaviorSubject<boolean> {
-    return this.isDeveloper;
-  }
-
-  public getIsManager(): BehaviorSubject<boolean> {
-    return this.isManager;
   }
 
   public getAccessToken(): BehaviorSubject<string | null> {
