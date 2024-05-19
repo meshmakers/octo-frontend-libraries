@@ -5,7 +5,7 @@ import { LoginMenuComponent } from './login-menu/login-menu.component';
 import { AuthorizeOptions, AuthorizeService } from './authorize.service';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthorizeGuard } from './authorize.guard';
-import { RouterLink } from "@angular/router";
+import { RouterLink } from '@angular/router';
 
 @NgModule({
   declarations: [LoginMenuComponent],

@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
-import { Roles } from "./roles";
+import { Roles } from './roles';
 
 export interface IUser {
   name: string;
@@ -69,8 +69,7 @@ export class AuthorizeService {
     });
   }
 
-  public isInRole(role: Roles): boolean
-  {
+  public isInRole(role: Roles): boolean {
     return this.getUser()?.value?.role.includes(role) ?? false;
   }
 

@@ -1,4 +1,3 @@
-
 export enum Roles {
   UserManagement = 'UserManagement',
   CommunicationManagement = 'CommunicationManagement',
