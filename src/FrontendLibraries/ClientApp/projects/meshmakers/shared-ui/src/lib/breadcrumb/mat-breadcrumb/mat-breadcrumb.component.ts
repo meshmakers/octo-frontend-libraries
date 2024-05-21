@@ -10,7 +10,7 @@ import { filter, map } from 'rxjs/operators';
   styleUrl: './mat-breadcrumb.component.css'
 })
 export class MatBreadcrumbComponent implements OnInit {
-  breadcrumb: Breadcrumb[] = [];
+  protected breadcrumb: Breadcrumb[] = [];
   @Input() fontSize = '18px';
   @Input() fontColor = '#0275d8';
   @Input() lastLinkColor = '#000';
@@ -27,7 +27,7 @@ export class MatBreadcrumbComponent implements OnInit {
   ngOnInit(): void {
     this.breadcrumbService.breadcrumbLabels.subscribe((labelData: object) => {
       Object.entries(labelData).forEach(([key, value]) => {
-        this.breadcrumb.forEach((crumb) => {
+        this.breadcrumb.forEach((crumb: Breadcrumb) => {
           const labelParams = crumb.label.match(/[^{{]+(?=}})/g);
           if (labelParams) {
             for (const labelParam of labelParams) {
@@ -84,7 +84,7 @@ export class MatBreadcrumbComponent implements OnInit {
         const labelParams = crumb.label.match(/[^{{]+(?=}})/g);
         if (labelParams) {
           for (const labelParam of labelParams) {
-            const routerParamID = <string>route.snapshot.params[labelParam.trim()];
+            const routerParamID = decodeURIComponent(<string>route.snapshot.params[labelParam.trim()]);
             if (routerParamID) {
               crumb.label = crumb.label.replace('{{' + labelParam + '}}', routerParamID);
             } else {
