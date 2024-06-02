@@ -20,7 +20,7 @@ steps:
       customCommand: run ${{ parameters.npmCommand }} -- --configuration production
   - task: Npm@1
     condition: ${{ eq(parameters.isRelease, true) }}
-    displayName: npm publish ${{ parameters.libName }}
+    displayName: npm publish to public registry ${{ parameters.libName }}
     inputs:
       command: publish
       workingDir: ${{ parameters.publishWorkingDirectory }}
@@ -28,7 +28,7 @@ steps:
       publishEndpoint: $(NpmPublicConnection)
   - task: Npm@1
     condition: ${{ eq(parameters.isRelease, false) }}
-    displayName: npm publish ${{ parameters.libName }}
+    displayName: npm publish to private registry ${{ parameters.libName }}
     inputs:
       command: publish
       workingDir: ${{ parameters.publishWorkingDirectory }}

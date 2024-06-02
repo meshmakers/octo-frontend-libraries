@@ -47,11 +47,6 @@ steps:
     versionSource: 'spec'
     versionSpec: '20.x'
     checkLatest: true
-- task: Npm@1
-  displayName: npm install
-  inputs:
-    workingDir: src/FrontendLibraries/ClientApp/
-    verbose: false
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: 'build:shared-services'
