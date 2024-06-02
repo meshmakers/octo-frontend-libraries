@@ -26,11 +26,13 @@ steps:
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
       publishEndpoint: $(NpmPublicConnection)
-  - script: |
-      echo "Setting npm cafile configuration"
-      npm config set cafile /etc/ssl/certs/ca-certificates.crt
-    displayName: 'Set npm cafile configuration'
+  - task: Npm@1
+    displayName: 'NPM Config'
     condition: ${{ eq(parameters.isRelease, false) }}
+    inputs:
+      command: custom
+      verbose: false
+      customCommand: 'onfig set cafile /etc/ssl/certs/ca-certificates.crt'      
   - task: Npm@1
     condition: ${{ eq(parameters.isRelease, false) }}
     displayName: npm publish to private registry ${{ parameters.libName }}
