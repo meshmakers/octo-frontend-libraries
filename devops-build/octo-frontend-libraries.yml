@@ -41,12 +41,11 @@ steps:
       }
   displayName: 'Set build number'
 - template: setversion.yml
-- task: NodeTool@0
-  displayName:  Using latest NodeJS 20.x version
+- task: Npm@1
+  displayName: npm install
   inputs:
-    versionSource: 'spec'
-    versionSpec: '20.x'
-    checkLatest: true
+    workingDir: src/FrontendLibraries/ClientApp/
+    verbose: false
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: 'build:shared-services'
