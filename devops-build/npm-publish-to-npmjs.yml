@@ -32,7 +32,7 @@ steps:
     inputs:
       command: custom
       verbose: false
-      customCommand: 'onfig set cafile /etc/ssl/certs/ca-certificates.crt'      
+      customCommand: 'config set cafile /etc/ssl/certs/ca-certificates.crt'      
   - task: Npm@1
     condition: ${{ eq(parameters.isRelease, false) }}
     displayName: npm publish to private registry ${{ parameters.libName }}
