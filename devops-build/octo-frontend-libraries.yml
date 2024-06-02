@@ -11,9 +11,11 @@ trigger:
       - '*'
   
 variables:
-  isRelease: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/r') }}
-  MajorVersion: 0
-  MinorVersion: 0
+  - group: GitSSHGroup
+  - group: ApiKeys
+  - group: OctoDefault
+  - name: isRelease
+    value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/r') }}  
 
 pool:
   name: Gerald-Local-Linux

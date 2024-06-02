@@ -25,4 +25,12 @@ steps:
       command: publish
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
-      publishEndpoint: 'npm@meshmakers'
+      publishEndpoint: $(NpmPublicConnection)
+  - task: Npm@1
+    condition: ${{ eq(parameters.isRelease, false) }}
+    displayName: npm publish ${{ parameters.libName }}
+    inputs:
+      command: publish
+      workingDir: ${{ parameters.publishWorkingDirectory }}
+      verbose: false
+      publishEndpoint: $(NpmPrivateConnection)
