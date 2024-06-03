@@ -26,6 +26,7 @@ steps:
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
       publishEndpoint: $(NpmPublicConnection)
+  - script: echo $NODE_EXTRA_CA_CERTS
   - task: Npm@1
     displayName: npm publish to private registry ${{ parameters.libName }}
     inputs:
