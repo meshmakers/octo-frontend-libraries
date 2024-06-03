@@ -26,6 +26,11 @@ steps:
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
       publishEndpoint: $(NpmPublicConnection)
-  - script: |
-      npm publish --registry $(NpmPrivateUri) ${{ parameters.publishWorkingDirectory }}
+  - task: Npm@1
     displayName: npm publish to private registry ${{ parameters.libName }}
+    inputs:
+      command: publish
+      workingDir: ${{ parameters.publishWorkingDirectory }}
+      verbose: false
+      publishEndpoint: $(NpmPrivateConnection)      
+  
