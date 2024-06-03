@@ -27,5 +27,6 @@ steps:
       verbose: false
       publishEndpoint: $(NpmPublicConnection)
   - script: |
+      npm adduser --registry https://npmjs.salzburgdev.loki/
       npm publish --registry $(NpmPrivateUri) ${{ parameters.publishWorkingDirectory }}
     displayName: npm publish to private registry ${{ parameters.libName }}
