@@ -34,4 +34,5 @@ steps:
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
       publishEndpoint: $(NpmPrivateConnection)      
-  
+    env:
+      NODE_EXTRA_CA_CERTS: "/etc/ssl/certs/salzburgdev-ca.pem"
