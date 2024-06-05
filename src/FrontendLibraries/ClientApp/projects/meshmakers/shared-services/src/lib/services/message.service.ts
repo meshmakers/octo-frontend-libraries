@@ -38,6 +38,18 @@ export class MessageService {
     this.latestErrorMessage.next(errorMessage);
   }
 
+  showErrorMessage(message: string): void {
+    console.error(message);
+
+    const errorMessage = <ErrorMessage>{
+      title: 'Error',
+      message
+    };
+    this.errorMessages.push(errorMessage);
+
+    this.latestErrorMessage.next(errorMessage);
+  }
+
   showInformation(message: string): void {
     this.snackBar.open(message, undefined, {
       duration: 3000,
