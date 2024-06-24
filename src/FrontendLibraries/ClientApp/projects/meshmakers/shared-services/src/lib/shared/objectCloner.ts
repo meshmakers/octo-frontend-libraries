@@ -4,11 +4,11 @@ export class ObjectCloner {
 
     if (ignoreProperties != null) {
       for (const prop of ignoreProperties) {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+         
         delete clonedObject[prop];
       }
     }
-    return <TR>clonedObject;
+    return clonedObject as TR;
   }
 
   public static cloneObject2<TR, TS1, TS2>(source: TS1, source2: TS2, ignoreProperties: string[] | null = null): TR {
@@ -16,10 +16,10 @@ export class ObjectCloner {
 
     if (ignoreProperties != null) {
       for (const prop of ignoreProperties) {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+         
         delete clonedObject[prop];
       }
     }
-    return <TR>clonedObject;
+    return clonedObject as TR;
   }
 }

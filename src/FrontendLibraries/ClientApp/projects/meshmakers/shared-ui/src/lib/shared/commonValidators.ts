@@ -30,7 +30,7 @@ export class CommonValidators {
     sourceValueCompareExpression: CompareValueFn<TCompareValue>
   ): ValidatorFn {
     return (control: AbstractControl) => {
-      if (control.parent != null && sourceValueCompareExpression(<TCompareValue>control.parent.get(sourceControlName)?.value)) {
+      if (control.parent != null && sourceValueCompareExpression((control.parent.get(sourceControlName)?.value as TCompareValue))) {
         return isEmptyInputValue(control.value) ? { required: true } : null;
       }
       return null;

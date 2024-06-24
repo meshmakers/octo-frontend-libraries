@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ErrorMessage, MessageService } from '@meshmakers/shared-services';
 import { MatDialog } from '@angular/material/dialog';
-import { MessageDetailsComponent } from '../message-details/message-details.component';
+import { MmMessageDetailsComponent } from '../mm-message-details/mm-message-details.component';
 
 @Component({
-  selector: 'ia-notification-bar',
-  templateUrl: './ia-notification-bar.component.html',
-  styleUrls: ['./ia-notification-bar.component.css']
+  selector: 'mm-notification-bar',
+  templateUrl: './mm-notification-bar.component.html',
+  styleUrls: ['./mm-notification-bar.component.css']
 })
-export class IaNotificationBarComponent implements OnInit {
+export class MmNotificationBarComponent implements OnInit {
   public errorMessage: ErrorMessage | null;
 
   constructor(
@@ -29,7 +29,7 @@ export class IaNotificationBarComponent implements OnInit {
   }
 
   onShowDetails(): void {
-    this.dialog.open(MessageDetailsComponent, {
+    this.dialog.open(MmMessageDetailsComponent, {
       data: {
         errorMessage: this.errorMessage
       }

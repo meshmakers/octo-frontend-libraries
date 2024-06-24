@@ -10,7 +10,8 @@ import {
   OnDestroy,
   OnInit,
   ViewChild
-} from '@angular/core';
+} from "@angular/core";
+import { MatFormFieldControl } from "@angular/material/form-field";
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -20,57 +21,56 @@ import {
   NgControl,
   ValidationErrors,
   Validator
-} from '@angular/forms';
-import { MatFormFieldControl } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
-import { EntitySelectDataSource } from '@meshmakers/shared-services';
-import { of, Subject } from 'rxjs';
-import { FocusMonitor } from '@angular/cdk/a11y';
-import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
-import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
+} from "@angular/forms";
+import { coerceBooleanProperty } from "@angular/cdk/coercion";
+import { debounceTime, filter, map, switchMap, tap } from "rxjs/operators";
+import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
+import { MatInput } from "@angular/material/input";
+import { of, Subject } from "rxjs";
+import { FocusMonitor } from "@angular/cdk/a11y";
+import { AutoCompleteDataSource } from "@meshmakers/shared-services";
 
 @Component({
-  selector: 'ia-entity-select',
-  templateUrl: './ia-entity-select-input.component.html',
-  styleUrls: ['./ia-entity-select-input.component.css'],
+  selector: "mm-autocomplete",
+  templateUrl: "./mm-autocomplete-input.component.html",
+  styleUrls: ["./mm-autocomplete-input.component.css"],
   host: {
-    '[id]': 'id',
-    '[attr.aria-describedby]': 'describedBy'
+    "[id]": "id",
+    "[attr.aria-describedby]": "describedBy"
   },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => IaEntitySelectInput),
+      useExisting: forwardRef(() => MmAutocompleteInputComponent),
       multi: true
     },
     {
       provide: MatFormFieldControl,
-      useExisting: IaEntitySelectInput
+      useExisting: MmAutocompleteInputComponent
     },
     {
       provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => IaEntitySelectInput),
+      useExisting: forwardRef(() => MmAutocompleteInputComponent),
       multi: true
     }
   ]
 })
-export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any>, Validator {
+export class MmAutocompleteInputComponent implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any>, Validator {
   private static nextId = 0;
   public readonly searchFormControl: FormControl;
   public isLoading: boolean;
-  public filteredEntities: any[] = [];
+  public filteredStrings: string[] = [];
   public ngControl: NgControl | null;
   public errorState: boolean;
   public focused: boolean;
   public readonly stateChanges = new Subject<void>();
   @HostBinding()
-  public readonly id = `ia-entity-select-${IaEntitySelectInput.nextId++}`;
+  public readonly id = `ia-autocomplete-${MmAutocompleteInputComponent.nextId++}`;
 
   public valueChange: EventEmitter<any> = new EventEmitter<any>();
-  private _selectedEntity: any;
-  @ViewChild('input') private readonly inputField: MatInput | null;
-  @HostBinding('attr.aria-describedby') private describedBy = '';
+  private _selectedString: string | null;
+  @ViewChild("input") private readonly inputField: MatInput | null;
+  @HostBinding("attr.aria-describedby") private describedBy = "";
   private activatedValue: any;
 
   constructor(
@@ -80,10 +80,11 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   ) {
     this.ngControl = null;
     this.errorState = false;
+    this._selectedString = null;
     this.inputField = null;
     this._dataSource = null;
-    this._placeholder = '';
-    this._prefix = '';
+    this._placeholder = "";
+    this._prefix = "";
 
     this.searchFormControl = new FormControl();
     this.isLoading = false;
@@ -95,14 +96,14 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
     });
   }
 
-  private _dataSource: EntitySelectDataSource<any> | null;
+  private _dataSource: AutoCompleteDataSource | null;
 
-  public get dataSource(): EntitySelectDataSource<any> | null {
+  public get dataSource(): AutoCompleteDataSource | null {
     return this._dataSource;
   }
 
   @Input()
-  public set dataSource(value: EntitySelectDataSource<any> | null) {
+  public set dataSource(value: AutoCompleteDataSource | null) {
     this._dataSource = value;
   }
 
@@ -115,7 +116,11 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
 
   public set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
-    this._disabled ? this.searchFormControl.disable() : this.searchFormControl.enable();
+    if (this._disabled) {
+      this.searchFormControl.disable();
+    } else {
+      this.searchFormControl.enable();
+    }
     this.stateChanges.next();
   }
 
@@ -126,7 +131,7 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
     return this._placeholder;
   }
 
-  public set placeholder(plh) {
+  public set placeholder(plh: string) {
     this._placeholder = plh;
     this.stateChanges.next();
   }
@@ -160,13 +165,16 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   public get value(): any {
-    return this._selectedEntity;
+    return this._selectedString;
   }
 
   public set value(value: any) {
-    if (value !== this._selectedEntity) {
+    if (value !== this._selectedString) {
+      this._selectedString = value;
       this.searchFormControl.setValue(value);
-      this.setValue(value);
+      this.valueChange.emit(value);
+      this._propagateChange(this._selectedString);
+      this.stateChanges.next();
     }
   }
 
@@ -175,7 +183,7 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
     return !n;
   }
 
-  @HostBinding('class.floating')
+  @HostBinding("class.floating")
   public get shouldLabelFloat(): boolean {
     return this.focused || !this.empty;
   }
@@ -192,18 +200,22 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
       this.searchFormControl.valueChanges
         .pipe(
           debounceTime(300),
-          filter((value) => typeof value === 'string'),
+          filter((value) => typeof value === "string"),
           filter((value) => value.startsWith(this._prefix)),
           tap(() => (this.value = null)),
           tap(() => (this.isLoading = true)),
-          switchMap((value: string) => this._dataSource?.onFilter(value.replace(this._prefix, '').trim()) ?? of(null))
+          map((value: string) => this._dataSource?.onPreprocessSearchString(value) ?? ""),
+          switchMap((value) => this._dataSource?.onFilter(value) ?? of(null))
         )
         .subscribe((resultSet) => {
-          if (resultSet?.list) {
+          if (resultSet?.list != null) {
             if (resultSet.list.length === 1) {
               this.value = resultSet.list[0];
             } else {
-              this.filteredEntities = resultSet.list;
+              this.filteredStrings = resultSet.list;
+              this.searchFormControl.patchValue(resultSet.searchTerm, {
+                emitEvent: false
+              });
             }
           }
           this.isLoading = false;
@@ -214,18 +226,26 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
     this.searchFormControl.valueChanges
       .pipe(
         debounceTime(300),
-        tap(() => (this.filteredEntities = [])),
-        filter((value: any) => typeof value === 'string'),
-        tap(() => {
-          this.setValue(null);
+        tap((_) => {
+          this.filteredStrings = [];
         }),
-        filter((value) => value.toString().length >= 3),
+        filter((value) => value != null && value.toString().length >= 1),
         tap(() => (this.isLoading = true)),
-        switchMap((value: string) => this._dataSource?.onFilter(value) ?? of(null))
+        map((value: string) => this._dataSource?.onPreprocessSearchString(value)),
+        tap((value) => (this.value = value)),
+        switchMap((value) => {
+          if (value !== null) {
+            return this._dataSource?.onFilter(String(value)) ?? of(null);
+          }
+          return of(null);
+        })
       )
       .subscribe((resultSet) => {
-        if (resultSet?.list) {
-          this.filteredEntities = resultSet.list;
+        if (resultSet?.list != null) {
+          this.filteredStrings = resultSet.list;
+          this.searchFormControl.patchValue(resultSet.searchTerm, {
+            emitEvent: false
+          });
         }
         this.isLoading = false;
       });
@@ -244,24 +264,24 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   public clear(): void {
-    this.filteredEntities = [];
+    this.filteredStrings = [];
     this.searchFormControl.reset(null);
   }
 
   public focus(): void {
-    this.elRef.nativeElement.querySelector('input')?.focus();
+    this.elRef.nativeElement.querySelector("input")?.focus();
   }
 
-  public onEntitySelected(event: MatAutocompleteSelectedEvent): void {
+  public onOptionSelected(event: MatAutocompleteSelectedEvent): void {
     this.value = event.option.value;
-    this.filteredEntities = [];
+    this.filteredStrings = [];
   }
 
-  public onEntityActivated(event: MatAutocompleteActivatedEvent): void {
+  public onOptionActivated(event: MatAutocompleteActivatedEvent): void {
     this.activatedValue = event.option?.value;
   }
 
-  public onEntityClosed(): void {
+  public onAutoCompleteClosed(): void {
     if (this.activatedValue) {
       this.value = this.activatedValue;
       this.activatedValue = null;
@@ -273,9 +293,9 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   public onFocusOut(): void {
-    if (this.filteredEntities.length === 1) {
-      this.activatedValue = this.filteredEntities[0];
-      this.value = this.filteredEntities[0];
+    if (this.filteredStrings.length === 1) {
+      this.activatedValue = this.filteredStrings[0];
+      this.value = this.filteredStrings[0];
     }
   }
 
@@ -302,33 +322,26 @@ export class IaEntitySelectInput implements OnInit, OnDestroy, DoCheck, ControlV
   }
 
   public onContainerClick(event: MouseEvent): void {
-    if ((event.target as Element).tagName.toLowerCase() !== 'input') {
+    if ((event.target as Element).tagName.toLowerCase() !== "input") {
       this.focus();
     }
   }
 
   public setDescribedByIds(ids: string[]): void {
-    this.describedBy = ids.join(' ');
+    this.describedBy = ids.join(" ");
   }
 
   validate(control: AbstractControl): ValidationErrors | null {
     const selection: any = control.value;
-    if (typeof selection === 'string') {
+    if (typeof selection === "string" && selection.length < 1) {
       return { incorrect: true };
     }
     return null;
   }
 
-  private _propagateChange = (_: any): void => {};
+  private _propagateChange = (_: any): void => {
+  };
 
-  private readonly _onTouched = (): void => {};
-
-  private setValue(value: any): void {
-    if (value !== this._selectedEntity) {
-      this._selectedEntity = value;
-      this.valueChange.emit(value);
-      this._propagateChange(this._selectedEntity);
-      this.stateChanges.next();
-    }
-  }
+  private readonly _onTouched = (): void => {
+  };
 }

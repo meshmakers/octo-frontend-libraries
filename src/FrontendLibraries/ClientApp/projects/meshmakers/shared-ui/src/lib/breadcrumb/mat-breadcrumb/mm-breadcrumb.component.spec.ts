@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MatBreadcrumbComponent } from './mat-breadcrumb.component';
+import { MmBreadcrumbComponent } from './mm-breadcrumb.component';
 
 describe('MatBreadcrumbComponent', () => {
-  let component: MatBreadcrumbComponent;
-  let fixture: ComponentFixture<MatBreadcrumbComponent>;
+  let component: MmBreadcrumbComponent;
+  let fixture: ComponentFixture<MmBreadcrumbComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MatBreadcrumbComponent]
+      imports: [MmBreadcrumbComponent]
     })
     .compileComponents();
-    
-    fixture = TestBed.createComponent(MatBreadcrumbComponent);
+
+    fixture = TestBed.createComponent(MmBreadcrumbComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

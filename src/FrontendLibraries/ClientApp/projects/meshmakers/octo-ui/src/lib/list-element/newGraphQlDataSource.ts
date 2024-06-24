@@ -9,9 +9,9 @@ import { GraphQL } from '@meshmakers/octo-services';
 export interface IQueryVariablesDto extends OperationVariables {
   first?: number | null | undefined;
   after?: string | null | undefined;
-  sort?: InputMaybe<InputMaybe<SortDto> | Array<InputMaybe<SortDto>>> | undefined;
+  sort?: InputMaybe<InputMaybe<SortDto> | InputMaybe<SortDto>[]> | undefined;
   searchFilter?: SearchFilterDto | null | undefined;
-  fieldFilters?: InputMaybe<Array<InputMaybe<FieldFilterDto>> | InputMaybe<FieldFilterDto>>;
+  fieldFilters?: InputMaybe<InputMaybe<FieldFilterDto>[] | InputMaybe<FieldFilterDto>>;
 }
 
 export abstract class GraphQlDataSource<TDto> extends DataSourceBase<TDto> {
@@ -61,8 +61,8 @@ export class NewGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends IQueryV
   }
 
   public async refetchWith(
-    skip: number = 0,
-    take: number = 10,
+    skip = 0,
+    take = 10,
     searchFilter: SearchFilterDto | null = null,
     fieldFilter: FieldFilterDto[] | null = null,
     sort: SortDto[] | null = null
@@ -72,8 +72,8 @@ export class NewGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends IQueryV
   }
 
   protected createVariables(
-    skip: number = 0,
-    take: number = 10,
+    skip = 0,
+    take = 10,
     searchFilter: SearchFilterDto | null = null,
     fieldFilter: FieldFilterDto[] | null = null,
     sort: SortDto[] | null = null
@@ -86,18 +86,18 @@ export class NewGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends IQueryV
       }
     }
 
-    return <TVariablesDto>{
+    return {
       first: take,
       after: GraphQL.offsetToCursor(skip),
       sort,
       searchFilter,
       fieldFilters: fieldFilter
-    };
+    } as TVariablesDto;
   }
 
   public loadData(
-    skip: number = 0,
-    take: number = 10,
+    skip = 0,
+    take = 10,
     searchFilter: SearchFilterDto | null = null,
     fieldFilter: FieldFilterDto[] | null = null,
     sort: SortDto[] | null = null

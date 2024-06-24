@@ -155,7 +155,7 @@ export class OctoGraphQLServiceBase {
     this.apollo.createNamed(tenantId, {
       link: this.httpLink.create({ uri }),
       cache: new InMemoryCache({
-        dataIdFromObject: (o) => <string>o['rtId']
+        dataIdFromObject: (o) => (o['rtId'] as string)
       })
     });
   }

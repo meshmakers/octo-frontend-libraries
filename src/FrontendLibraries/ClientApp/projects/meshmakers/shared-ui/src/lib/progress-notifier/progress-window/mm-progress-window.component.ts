@@ -11,15 +11,14 @@ export interface ProgressWindowData {
   cancelOperation: () => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ProgressWindowResult {}
+export type ProgressWindowResult = object
 
 @Component({
-  selector: 'lib-progress-window',
-  templateUrl: './progress-window.component.html',
-  styleUrls: ['./progress-window.component.css']
+  selector: 'mm-progress-window',
+  templateUrl: './mm-progress-window.component.html',
+  styleUrls: ['./mm-progress-window.component.css']
 })
-export class ProgressWindowComponent implements OnInit {
+export class MmProgressWindowComponent implements OnInit {
   public statusText: string | null;
   public progressValue: number;
 

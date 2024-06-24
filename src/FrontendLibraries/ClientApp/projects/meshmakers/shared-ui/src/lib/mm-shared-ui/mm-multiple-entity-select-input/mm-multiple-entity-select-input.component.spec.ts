@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { IaMultipleEntitySelectInputComponent } from './ia-multiple-entity-select-input.component';
+import { IaMultipleEntitySelectInputComponent } from './mm-multiple-entity-select-input.component';
 
 describe('IaMultipleEntitySelectInputComponent', () => {
   let component: IaMultipleEntitySelectInputComponent;

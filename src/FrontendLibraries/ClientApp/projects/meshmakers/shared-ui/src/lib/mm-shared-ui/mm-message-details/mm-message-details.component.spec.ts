@@ -1,20 +1,20 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {IaNotificationBarComponent} from './ia-notification-bar.component';
+import {MmMessageDetailsComponent} from './mm-message-details.component';
 
-describe('IaNotificationBarComponent', () => {
-  let component: IaNotificationBarComponent;
-  let fixture: ComponentFixture<IaNotificationBarComponent>;
+describe('MessageDetailsComponent', () => {
+  let component: MmMessageDetailsComponent;
+  let fixture: ComponentFixture<MmMessageDetailsComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [IaNotificationBarComponent]
+      declarations: [MmMessageDetailsComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(IaNotificationBarComponent);
+    fixture = TestBed.createComponent(MmMessageDetailsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

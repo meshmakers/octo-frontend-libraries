@@ -5,11 +5,11 @@ import { BreadcrumbService } from '../services/breadcrumb.service';
 import { filter, map } from 'rxjs/operators';
 
 @Component({
-  selector: 'ia-mat-breadcrumb',
-  templateUrl: './mat-breadcrumb.component.html',
-  styleUrl: './mat-breadcrumb.component.css'
+  selector: 'mm-breadcrumb',
+  templateUrl: './mm-breadcrumb.component.html',
+  styleUrl: './mm-breadcrumb.component.css'
 })
-export class MatBreadcrumbComponent implements OnInit {
+export class MmBreadcrumbComponent implements OnInit {
   protected breadcrumb: Breadcrumb[] = [];
   @Input() fontSize = '18px';
   @Input() fontColor = '#0275d8';
@@ -32,7 +32,7 @@ export class MatBreadcrumbComponent implements OnInit {
           if (labelParams) {
             for (const labelParam of labelParams) {
               if (labelParam === key) {
-                crumb.label = crumb.label.replace('{{' + labelParam + '}}', <string>value);
+                crumb.label = crumb.label.replace('{{' + labelParam + '}}', (value as string));
               }
             }
           }
@@ -68,14 +68,14 @@ export class MatBreadcrumbComponent implements OnInit {
   private updateData(route: ActivatedRoute, newBreadcrumb: Breadcrumb[] | null): void {
     if (route.snapshot.data['breadcrumb'] || newBreadcrumb) {
       const data = route.snapshot.data['breadcrumb'] ? route.snapshot.data['breadcrumb'] : newBreadcrumb;
-      const breadcrumb = <Breadcrumb[]>JSON.parse(JSON.stringify(data));
+      const breadcrumb = JSON.parse(JSON.stringify(data)) as Breadcrumb[];
       breadcrumb.forEach((crumb) => {
         if (crumb.url) {
           const urlChunks = crumb.url.split('/');
           for (const chunk of urlChunks) {
             if (chunk.includes(':')) {
               const paramID = chunk.replace(':', '');
-              const routerParamID = <string>route.snapshot.params[paramID];
+              const routerParamID = route.snapshot.params[paramID] as string;
               crumb.url = crumb.url.replace(`:${paramID}`, routerParamID);
             }
           }
@@ -84,7 +84,7 @@ export class MatBreadcrumbComponent implements OnInit {
         const labelParams = crumb.label.match(/[^{{]+(?=}})/g);
         if (labelParams) {
           for (const labelParam of labelParams) {
-            const routerParamID = decodeURIComponent(<string>route.snapshot.params[labelParam.trim()]);
+            const routerParamID = decodeURIComponent((route.snapshot.params[labelParam.trim()] as string));
             if (routerParamID) {
               crumb.label = crumb.label.replace('{{' + labelParam + '}}', routerParamID);
             } else {

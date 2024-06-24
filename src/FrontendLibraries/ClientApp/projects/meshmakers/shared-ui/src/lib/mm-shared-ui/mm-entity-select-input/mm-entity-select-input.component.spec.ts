@@ -1,20 +1,20 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {IaEntitySelectInput} from './ia-entity-select-input.component';
+import {MmEntitySelectInputComponent} from './mm-entity-select-input.component';
 
 describe('IaEntitySelectInputComponent', () => {
-  let component: IaEntitySelectInput;
-  let fixture: ComponentFixture<IaEntitySelectInput>;
+  let component: MmEntitySelectInputComponent;
+  let fixture: ComponentFixture<MmEntitySelectInputComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [IaEntitySelectInput]
+      declarations: [MmEntitySelectInputComponent]
     })
       .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(IaEntitySelectInput);
+    fixture = TestBed.createComponent(MmEntitySelectInputComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

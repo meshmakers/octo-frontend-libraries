@@ -29,10 +29,10 @@ export class MessageService {
   showError(message: string, title: string): void {
     console.error(message);
 
-    const errorMessage = <ErrorMessage>{
+    const errorMessage = {
       title,
       message
-    };
+    } as ErrorMessage;
     this.errorMessages.push(errorMessage);
 
     this.latestErrorMessage.next(errorMessage);
@@ -41,10 +41,10 @@ export class MessageService {
   showErrorMessage(message: string): void {
     console.error(message);
 
-    const errorMessage = <ErrorMessage>{
+    const errorMessage = {
       title: 'Error',
       message
-    };
+    } as ErrorMessage;
     this.errorMessages.push(errorMessage);
 
     this.latestErrorMessage.next(errorMessage);

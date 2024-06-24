@@ -32,9 +32,9 @@ import { MatFormFieldControl } from '@angular/material/form-field';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
 @Component({
-  selector: 'ia-multiple-entity-select',
-  templateUrl: './ia-multiple-entity-select-input.component.html',
-  styleUrls: ['./ia-multiple-entity-select-input.component.css'],
+  selector: 'mm-multiple-entity-select',
+  templateUrl: './mm-multiple-entity-select-input.component.html',
+  styleUrls: ['./mm-multiple-entity-select-input.component.css'],
   host: {
     '[id]': 'id',
     '[attr.aria-describedby]': 'describedBy'
@@ -42,21 +42,21 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => IaMultipleEntitySelectInput),
+      useExisting: forwardRef(() => MmMultipleEntitySelectInputComponent),
       multi: true
     },
     {
       provide: MatFormFieldControl,
-      useExisting: IaMultipleEntitySelectInput
+      useExisting: MmMultipleEntitySelectInputComponent
     },
     {
       provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => IaMultipleEntitySelectInput),
+      useExisting: forwardRef(() => MmMultipleEntitySelectInputComponent),
       multi: true
     }
   ]
 })
-export class IaMultipleEntitySelectInput
+export class MmMultipleEntitySelectInputComponent
   implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any[]>, Validator
 {
   private static nextId = 0;
@@ -69,7 +69,7 @@ export class IaMultipleEntitySelectInput
   public focused: boolean;
   public readonly stateChanges = new Subject<void>();
   @HostBinding()
-  public readonly id = `ia-multiple-entity-select-${IaMultipleEntitySelectInput.nextId++}`;
+  public readonly id = `ia-multiple-entity-select-${MmMultipleEntitySelectInputComponent.nextId++}`;
 
   public valuesChange: EventEmitter<any[]> = new EventEmitter<any[]>();
   private _selectedEntities: any[] | null;
@@ -122,7 +122,11 @@ export class IaMultipleEntitySelectInput
 
   public set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
-    this._disabled ? this.searchFormControl.disable() : this.searchFormControl.enable();
+    if (this._disabled) {
+      this.searchFormControl.disable();
+    } else {
+      this.searchFormControl.enable();
+    }
     this.stateChanges.next();
   }
 

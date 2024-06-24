@@ -109,7 +109,7 @@
       "projectType": "library",
       "root": "projects/meshmakers/octo-services",
       "sourceRoot": "projects/meshmakers/octo-services/src",
-      "prefix": "lib",
+      "prefix": "mm",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
@@ -135,6 +135,16 @@
               "zone.js/testing"
             ]
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/meshmakers/octo-services/**/*.ts",
+              "projects/meshmakers/octo-services/**/*.html"
+            ],
+            "eslintConfig": "projects/meshmakers/octo-services/eslint.config.js"
+          }
         }
       }
     },
@@ -142,7 +152,7 @@
       "projectType": "library",
       "root": "projects/meshmakers/octo-ui",
       "sourceRoot": "projects/meshmakers/octo-ui/src",
-      "prefix": "lib",
+      "prefix": "mm",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
@@ -168,6 +178,16 @@
               "zone.js/testing"
             ]
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/meshmakers/octo-ui/**/*.ts",
+              "projects/meshmakers/octo-ui/**/*.html"
+            ],
+            "eslintConfig": "projects/meshmakers/octo-ui/eslint.config.js"
+          }
         }
       }
     },
@@ -175,7 +195,7 @@
       "projectType": "library",
       "root": "projects/meshmakers/shared-ui",
       "sourceRoot": "projects/meshmakers/shared-ui/src",
-      "prefix": "lib",
+      "prefix": "mm",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
@@ -201,6 +221,16 @@
               "zone.js/testing"
             ]
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/meshmakers/shared-ui/**/*.ts",
+              "projects/meshmakers/shared-ui/**/*.html"
+            ],
+            "eslintConfig": "projects/meshmakers/shared-ui/eslint.config.js"
+          }
         }
       }
     },
@@ -208,7 +238,7 @@
       "projectType": "library",
       "root": "projects/meshmakers/shared-services",
       "sourceRoot": "projects/meshmakers/shared-services/src",
-      "prefix": "lib",
+      "prefix": "mm",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
@@ -234,6 +264,16 @@
               "zone.js/testing"
             ]
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/meshmakers/shared-services/**/*.ts",
+              "projects/meshmakers/shared-services/**/*.html"
+            ],
+            "eslintConfig": "projects/meshmakers/shared-services/eslint.config.js"
+          }
         }
       }
     },
@@ -241,7 +281,7 @@
       "projectType": "library",
       "root": "projects/meshmakers/shared-auth",
       "sourceRoot": "projects/meshmakers/shared-auth/src",
-      "prefix": "lib",
+      "prefix": "mm",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
@@ -266,6 +306,16 @@
               "zone.js",
               "zone.js/testing"
             ]
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/meshmakers/shared-auth/**/*.ts",
+              "projects/meshmakers/shared-auth/**/*.html"
+            ],
+            "eslintConfig": "projects/meshmakers/shared-auth/eslint.config.js"
           }
         }
       }

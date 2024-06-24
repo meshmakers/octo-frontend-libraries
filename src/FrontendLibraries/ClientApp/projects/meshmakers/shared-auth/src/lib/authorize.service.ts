@@ -151,7 +151,7 @@ export class AuthorizeService {
       return;
     }
 
-    const user = <IUser>claims;
+    const user = claims as IUser;
     const accessToken = this.oauthService.getAccessToken();
     this.user.next(user);
     this.accessToken.next(accessToken);

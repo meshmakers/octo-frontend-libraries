@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { ProgressValue } from '../shared/progressValue';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { ProgressWindowComponent, ProgressWindowData, ProgressWindowResult } from '../progress-window/progress-window.component';
+import { MmProgressWindowComponent, ProgressWindowData, ProgressWindowResult } from '../progress-window/mm-progress-window.component';
 
 @Injectable()
 export class ProgressNotifierService {
   private readonly _currentProgressValue: BehaviorSubject<ProgressValue | null>;
-  private currentDialogRef: MatDialogRef<ProgressWindowComponent, ProgressWindowResult> | null;
+  private currentDialogRef: MatDialogRef<MmProgressWindowComponent, ProgressWindowResult> | null;
 
   constructor(private readonly dialog: MatDialog) {
     this._currentProgressValue = new BehaviorSubject<ProgressValue | null>(null);
@@ -29,10 +29,10 @@ export class ProgressNotifierService {
     this.isCanceled = false;
     this.reportProgressDeterminate(0, 100, 'Working...');
 
-    this.currentDialogRef = this.dialog.open<ProgressWindowComponent, ProgressWindowData, ProgressWindowResult>(ProgressWindowComponent, {
+    this.currentDialogRef = this.dialog.open<MmProgressWindowComponent, ProgressWindowData, ProgressWindowResult>(MmProgressWindowComponent, {
       width: '50vw',
       maxWidth: '50vw',
-      data: <ProgressWindowData>{
+      data: {
         title,
         isDeterminate,
         progress: this._currentProgressValue.asObservable(),
@@ -41,24 +41,24 @@ export class ProgressNotifierService {
           this.reportProgressIndeterminate('Canceling operation...');
           this.isCanceled = true;
         }
-      }
+      } as ProgressWindowData
     });
   }
 
   reportProgressDeterminate(progressCurrent: number, progressMax: number, statusText: string): void {
     const progressPercentage = (progressMax / 100) * progressCurrent;
 
-    this._currentProgressValue.next(<ProgressValue>{
+    this._currentProgressValue.next(({
       statusText,
       progressValue: progressPercentage
-    });
+    } as ProgressValue));
   }
 
   reportProgressIndeterminate(statusText: string): void {
-    this._currentProgressValue.next(<ProgressValue>{
+    this._currentProgressValue.next(({
       statusText,
       progressValue: 0
-    });
+    } as ProgressValue));
   }
 
   complete(): void {

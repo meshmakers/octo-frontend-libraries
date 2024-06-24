@@ -52,28 +52,28 @@ export class OctoListNavigation {
 
     let filter = null;
     if (filterString) {
-      filter = <SearchFilterDto>{
+      filter = {
         language: this.octoOptions.language,
         searchTerm: filterString,
         type: this.octoOptions.searchFilterType,
         attributeNames: this.octoOptions.searchFilterAttributeNames
-      };
+      } as SearchFilterDto;
     }
 
     const sort = [];
     if (sortField && sortDirection) {
-      sort.push(<SortDto>{
+      sort.push(({
         attributeName: sortField,
         sortOrder: sortDirection === 'asc' ? SortOrdersDto.AscendingDto : SortOrdersDto.DescendingDto
-      });
+      } as SortDto));
     }
 
-    return <OctoListNavigationDataInfo>{
+    return {
       skip: this.paginator.pageIndex * this.paginator.pageSize,
       take: this.paginator.pageSize,
       searchFilter: filter,
       sort
-    };
+    } as OctoListNavigationDataInfo;
   }
 
   init(): void {

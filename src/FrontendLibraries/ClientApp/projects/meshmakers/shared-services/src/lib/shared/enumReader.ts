@@ -6,9 +6,9 @@ export class EnumTuple<TValue = number> {
 export class EnumReader<TValue = number> {
   constructor(private readonly value: Record<string, TValue>) {}
 
-  public getNamesAndValues(): Array<EnumTuple<TValue>> {
+  public getNamesAndValues(): EnumTuple<TValue>[] {
     return this.getNames().map((n) => {
-      return <EnumTuple<TValue>>{ name: this.value[n], id: n };
+      return { name: this.value[n], id: n } as EnumTuple<TValue>;
     });
   }
 

@@ -58,8 +58,8 @@ export class AuthorizeInterceptor implements HttpInterceptor {
     const serviceUris = this.authorize.getServiceUris();
 
     if (serviceUris != null) {
-      for (let i = 0; i < serviceUris.length; i++) {
-        if (req.url.startsWith(`${serviceUris[i]}`)) {
+      for (const serviceUri of serviceUris) {
+        if (req.url.startsWith(`${serviceUri}`)) {
           return true;
         }
       }
