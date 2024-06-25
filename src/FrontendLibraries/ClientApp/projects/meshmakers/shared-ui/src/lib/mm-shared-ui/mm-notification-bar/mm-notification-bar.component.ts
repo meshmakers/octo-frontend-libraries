@@ -6,7 +6,7 @@ import { MmMessageDetailsComponent } from '../mm-message-details/mm-message-deta
 @Component({
   selector: 'mm-notification-bar',
   templateUrl: './mm-notification-bar.component.html',
-  styleUrls: ['./mm-notification-bar.component.css']
+  styleUrls: ['./mm-notification-bar.component.scss']
 })
 export class MmNotificationBarComponent implements OnInit {
   public errorMessage: ErrorMessage | null;
