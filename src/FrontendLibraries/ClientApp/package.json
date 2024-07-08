@@ -54,7 +54,7 @@
     "@graphql-codegen/cli": "^5.0.2",
     "@graphql-codegen/near-operation-file-preset": "^3.0.0",
     "@graphql-codegen/typescript-apollo-angular": "^4.0.0",
-    "@graphql-codegen/typescript-operations": "^4.2.1",
+    "@graphql-codegen/typescript-operations": "^4.2.3",
     "@types/jasmine": "~5.1.4",
     "@types/node": "^20.14.8",
     "angular-eslint": "18.0.1",
