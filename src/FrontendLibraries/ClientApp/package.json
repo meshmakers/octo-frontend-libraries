@@ -36,7 +36,7 @@
     "@angular/forms": "^18.1.0",
     "@angular/material": "^18.0.6",
     "@angular/platform-browser": "^18.0.6",
-    "@angular/platform-browser-dynamic": "^18.0.4",
+    "@angular/platform-browser-dynamic": "^18.1.0",
     "@angular/router": "^18.0.4",
     "angular-oauth2-oidc": "^17.0.2",
     "apollo-angular": "^7.0.2",
