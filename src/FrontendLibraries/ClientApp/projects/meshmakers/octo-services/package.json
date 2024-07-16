@@ -2,8 +2,8 @@
   "name": "@meshmakers/octo-services",
   "version": "0.0.0",
   "peerDependencies": {
-    "@angular/common": "^18.0.3",
-    "@angular/core": "^18.0.3"
+    "@angular/common": "^18.0.5",
+    "@angular/core": "^18.0.4"
   },
   "dependencies": {
     "tslib": "^2.6.3"
