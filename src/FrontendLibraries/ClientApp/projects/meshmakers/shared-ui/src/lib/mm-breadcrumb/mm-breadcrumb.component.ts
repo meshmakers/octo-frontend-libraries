@@ -1,7 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { Breadcrumb } from '../model/breadcrumb';
 import { ActivatedRoute, NavigationEnd, PRIMARY_OUTLET, Router } from '@angular/router';
-import { BreadcrumbService } from '../services/breadcrumb.service';
+import { Breadcrumb, BreadcrumbService } from '@meshmakers/shared-services';
 import { filter, map } from 'rxjs/operators';
 
 @Component({

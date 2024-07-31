@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
-import { ProgressValue } from '../shared/progressValue';
+import { ProgressValue } from '../models/progressValue';
 
 export interface ProgressWindowData {
   title: string;

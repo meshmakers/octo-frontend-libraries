@@ -15,16 +15,22 @@ import { MmEntitySelectInputComponent } from './mm-entity-select-input/mm-entity
 import { MmMultipleEntitySelectInputComponent } from './mm-multiple-entity-select-input/mm-multiple-entity-select-input.component';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
+import {MmBreadcrumbComponent} from "./mm-breadcrumb/mm-breadcrumb.component";
+import {MmConfirmationWindowComponent} from "./mm-confirmation-window/mm-confirmation-window.component";
+import {MmProgressWindowComponent} from "./mm-progress-window/mm-progress-window.component";
 
 @NgModule({
   declarations: [
+    MmBreadcrumbComponent,
+    MmConfirmationWindowComponent,
+    MmProgressWindowComponent,
     MmNotificationBarComponent,
     MmMessageDetailsComponent,
     MmAutocompleteInputComponent,
     MmEntitySelectInputComponent,
-    MmMultipleEntitySelectInputComponent
+    MmMultipleEntitySelectInputComponent,
   ],
-  exports: [MmNotificationBarComponent, MmAutocompleteInputComponent, MmEntitySelectInputComponent, MmMultipleEntitySelectInputComponent],
+  exports: [MmBreadcrumbComponent, MmConfirmationWindowComponent, MmNotificationBarComponent, MmAutocompleteInputComponent, MmEntitySelectInputComponent, MmMultipleEntitySelectInputComponent],
   imports: [
     CommonModule,
     MatToolbarModule,

@@ -3,10 +3,12 @@
  */
 
 export * from './lib/shared-services.module';
+export * from './lib/services/breadcrumb.service';
 export * from './lib/services/message.service';
 export * from './lib/models/autoCompleteResult';
 export * from './lib/models/errorMessage';
 export * from './lib/models/pagedResultDto';
+export * from './lib/models/breadcrumb';
 export * from './lib/dataSources/dataSourceBase';
 export * from './lib/dataSources/genericDataSource';
 export * from './lib/dataSources/entitySelectDataSource';

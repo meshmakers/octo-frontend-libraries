@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { ProgressValue } from '../shared/progressValue';
+import { ProgressValue } from '../models/progressValue';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MmProgressWindowComponent, ProgressWindowData, ProgressWindowResult } from '../progress-window/mm-progress-window.component';
+import { MmProgressWindowComponent, ProgressWindowData, ProgressWindowResult } from '../mm-progress-window/mm-progress-window.component';
 
 @Injectable()
 export class ProgressNotifierService {

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { MmConfirmationWindowComponent } from '../confirmation-window/mm-confirmation-window.component';
 import { map } from 'rxjs/operators';
-import { ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType } from '../shared/confirmation';
+import {MmConfirmationWindowComponent} from "../mm-confirmation-window/mm-confirmation-window.component";
+import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType} from "../models/confirmation";
 
 @Injectable({
   providedIn: 'root'
