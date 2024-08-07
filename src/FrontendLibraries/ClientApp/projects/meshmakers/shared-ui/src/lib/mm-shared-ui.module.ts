@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { ModuleWithProviders, NgModule } from "@angular/core";
 import { CommonModule } from '@angular/common';
 import { MmNotificationBarComponent } from './mm-notification-bar/mm-notification-bar.component';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -14,10 +14,12 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MmEntitySelectInputComponent } from './mm-entity-select-input/mm-entity-select-input.component';
 import { MmMultipleEntitySelectInputComponent } from './mm-multiple-entity-select-input/mm-multiple-entity-select-input.component';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from "@angular/material/icon";
 import {MmBreadcrumbComponent} from "./mm-breadcrumb/mm-breadcrumb.component";
 import {MmConfirmationWindowComponent} from "./mm-confirmation-window/mm-confirmation-window.component";
 import {MmProgressWindowComponent} from "./mm-progress-window/mm-progress-window.component";
+import { ConfirmationService } from "./services/confirmation.service";
+import { ProgressNotifierService } from "./services/progress-notifier.service";
 
 @NgModule({
   declarations: [
@@ -42,7 +44,19 @@ import {MmProgressWindowComponent} from "./mm-progress-window/mm-progress-window
     MatProgressSpinnerModule,
     MatChipsModule,
     MatIconModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatIcon,
+    MatIcon
   ]
 })
-export class MmSharedUiModule {}
+export class MmSharedUiModule {
+  static forRoot(): ModuleWithProviders<MmSharedUiModule> {
+    return {
+      ngModule: MmSharedUiModule,
+      providers: [
+        ConfirmationService,
+        ProgressNotifierService
+      ]
+    };
+  }
+}
