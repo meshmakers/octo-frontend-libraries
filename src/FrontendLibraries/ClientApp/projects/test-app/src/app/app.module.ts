@@ -7,6 +7,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ConfigurationService } from './services/configuration.service';
 import { AuthorizeService, SharedAuthModule } from '@meshmakers/shared-auth';
 import { defaultAuthorizeOptions } from './config/defaultAuthorizeOptions';
+import { MmSharedUiModule } from "@meshmakers/shared-ui";
+import { MatButtonModule } from "@angular/material/button";
 
 export function initServices(configurationService: ConfigurationService, authorizeService: AuthorizeService) {
   return async () => {};
@@ -14,7 +16,14 @@ export function initServices(configurationService: ConfigurationService, authori
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, AppRoutingModule, BrowserAnimationsModule, SharedAuthModule.forRoot(defaultAuthorizeOptions)],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    BrowserAnimationsModule,
+    MmSharedUiModule.forRoot(),
+    SharedAuthModule.forRoot(defaultAuthorizeOptions),
+    MatButtonModule
+  ],
   providers: [
     ConfigurationService,
     {

@@ -1,0 +1,43 @@
+.file-upload-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  border: 2px dashed #ccc;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.file-upload-wrapper.success {
+  border-color: green;
+}
+
+.file-upload-wrapper.error {
+  border-color: red;
+}
+
+.file-dropper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.image-name {
+  font-weight: bold;
+}
+
+.image-preview {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 0.5rem;
+  border-radius: 10px;
+}
+
+.delete-icon {
+  cursor: pointer;
+  color: red;
+}

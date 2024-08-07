@@ -21,3 +21,14 @@ export interface ConfirmationWindowData {
 export interface ConfirmationWindowResult {
   result: ButtonTypes;
 }
+
+export interface FileUploadData{
+  title: string;
+  message: string;
+  mimeTypes: string;
+}
+
+export interface FileUploadResult {
+  success: boolean;
+  selectedFile: File | null;
+}

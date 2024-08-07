@@ -1,0 +1,35 @@
+<h1 mat-dialog-title>{{data.title}}</h1>
+<div
+  class="file-upload-wrapper"
+  [class.success]="uploadSuccess"
+  [class.error]="uploadError"
+  (drop)="onFileDrop($event)"
+  (dragover)="onDragOver($event)"
+>
+  <input
+    type="file"
+    accept="{{data.mimeTypes}}"
+    (change)="onFileChange($event)"
+    hidden
+    #fileInput
+  />
+  <div class="file-dropper" (click)="fileInput.click()">
+    <mat-icon class="material-symbols-outlined">upload</mat-icon>
+    <p>{{data.message}}</p>
+    <div *ngIf="fileName()">
+      <div *ngIf="selectedFile">
+        <p>
+          <span class="image-name">{{ fileName() }}</span> ({{
+            fileSize()
+          }} KB)
+        </p>
+        <mat-icon class="material-symbols-outlined delete-icon" (click)="removeFile()">delete</mat-icon>
+      </div>
+    </div>
+  </div>
+</div>
+<div style="justify-content: flex-end;" mat-dialog-actions>
+  <button (click)="onOk()" [disabled]="!selectedFile" mat-flat-button>Upload</button>
+  <button (click)="onCancel()" mat-button>Cancel</button>
+</div>
+

@@ -20,6 +20,8 @@ import {MmConfirmationWindowComponent} from "./mm-confirmation-window/mm-confirm
 import {MmProgressWindowComponent} from "./mm-progress-window/mm-progress-window.component";
 import { ConfirmationService } from "./services/confirmation.service";
 import { ProgressNotifierService } from "./services/progress-notifier.service";
+import { FileUploadService } from "./services/file-upload.service";
+import { MmFileUploadComponent } from "./mm-file-upload/mm-file-upload.component";
 
 @NgModule({
   declarations: [
@@ -31,8 +33,17 @@ import { ProgressNotifierService } from "./services/progress-notifier.service";
     MmAutocompleteInputComponent,
     MmEntitySelectInputComponent,
     MmMultipleEntitySelectInputComponent,
+    MmFileUploadComponent
   ],
-  exports: [MmBreadcrumbComponent, MmConfirmationWindowComponent, MmNotificationBarComponent, MmAutocompleteInputComponent, MmEntitySelectInputComponent, MmMultipleEntitySelectInputComponent],
+  exports: [
+    MmBreadcrumbComponent,
+    MmConfirmationWindowComponent,
+    MmNotificationBarComponent,
+    MmAutocompleteInputComponent,
+    MmEntitySelectInputComponent,
+    MmMultipleEntitySelectInputComponent,
+    MmFileUploadComponent
+  ],
   imports: [
     CommonModule,
     MatToolbarModule,
@@ -54,6 +65,7 @@ export class MmSharedUiModule {
     return {
       ngModule: MmSharedUiModule,
       providers: [
+        FileUploadService,
         ConfirmationService,
         ProgressNotifierService
       ]

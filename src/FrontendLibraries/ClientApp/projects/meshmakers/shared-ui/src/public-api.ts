@@ -9,9 +9,11 @@ export * from './lib/mm-entity-select-input/mm-entity-select-input.component';
 export * from './lib/mm-multiple-entity-select-input/mm-multiple-entity-select-input.component';
 export * from './lib/mm-confirmation-window/mm-confirmation-window.component';
 export * from './lib/mm-breadcrumb/mm-breadcrumb.component';
-export * from './lib/services/confirmation.service';
+export * from './lib/mm-file-upload/mm-file-upload.component';
 
+export * from './lib/services/confirmation.service';
 export * from './lib/services/progress-notifier.service';
+export * from './lib/services/file-upload.service';
 
 export * from './lib/models/confirmation';
 export * from './lib/models/commonValidators';

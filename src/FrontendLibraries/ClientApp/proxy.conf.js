@@ -7,6 +7,8 @@ const PROXY_CONFIG = [
   {
     context: [
       "/_configuration",
+      "/fileUpload",
+      "/fileUpload/upload"
     ],
     target: target,
     secure: false,
