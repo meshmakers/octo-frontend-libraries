@@ -14,8 +14,8 @@ export class MmFileUploadComponent  {
   protected uploadProgress = signal(0);
   @ViewChild('fileInput') protected fileInput: ElementRef | undefined;
   protected selectedFile: File | null = null;
-  protected uploadSuccess: boolean = false;
-  protected uploadError: boolean = false;
+  protected uploadSuccess: boolean;
+  protected uploadError: boolean;
 
 
   constructor(
@@ -23,6 +23,8 @@ export class MmFileUploadComponent  {
     @Inject(MAT_DIALOG_DATA) protected data: FileUploadData,
     private snackBar: MatSnackBar
   ) {
+    this.uploadError = false;
+    this.uploadSuccess = false;
   }
 
   // Handler for file input change
