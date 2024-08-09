@@ -22,6 +22,8 @@ import { ConfirmationService } from "./services/confirmation.service";
 import { ProgressNotifierService } from "./services/progress-notifier.service";
 import { FileUploadService } from "./services/file-upload.service";
 import { MmFileUploadComponent } from "./mm-file-upload/mm-file-upload.component";
+import { MatListModule } from "@angular/material/list";
+import { RouterLink } from "@angular/router";
 
 @NgModule({
   declarations: [
@@ -57,7 +59,8 @@ import { MmFileUploadComponent } from "./mm-file-upload/mm-file-upload.component
     MatIconModule,
     ReactiveFormsModule,
     MatIcon,
-    MatIcon
+    MatListModule,
+    RouterLink
   ]
 })
 export class MmSharedUiModule {
