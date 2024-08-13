@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, PRIMARY_OUTLET, Router } from '@angular/router';
 import { Breadcrumb, BreadcrumbService } from '@meshmakers/shared-services';
 import { filter, map } from 'rxjs/operators';
+import { BreadcrumbData } from "../services/breadcrumbData";
 
 @Component({
   selector: 'mm-breadcrumb',
@@ -9,7 +10,7 @@ import { filter, map } from 'rxjs/operators';
   styleUrl: './mm-breadcrumb.component.css'
 })
 export class MmBreadcrumbComponent implements OnInit {
-  protected breadcrumb: Breadcrumb[] = [];
+  protected breadcrumbData: BreadcrumbData[] = [];
   @Input() fontSize = '18px';
   @Input() fontColor = '#0275d8';
   @Input() lastLinkColor = '#000';
@@ -26,12 +27,12 @@ export class MmBreadcrumbComponent implements OnInit {
   ngOnInit(): void {
     this.breadcrumbService.breadcrumbLabels.subscribe((labelData: object) => {
       Object.entries(labelData).forEach(([key, value]) => {
-        this.breadcrumb.forEach((crumb: Breadcrumb) => {
-          const labelParams = crumb.label.match(/[^{{]+(?=}})/g);
+        this.breadcrumbData.forEach((breadcrumbData: BreadcrumbData) => {
+          const labelParams = breadcrumbData.labelTemplate.match(/[^{{]+(?=}})/g);
           if (labelParams) {
             for (const labelParam of labelParams) {
               if (labelParam === key) {
-                crumb.label = crumb.label.replace('{{' + labelParam + '}}', (value as string));
+                breadcrumbData.label = breadcrumbData.labelTemplate.replace('{{' + labelParam + '}}', (value as string));
               }
             }
           }
@@ -68,33 +69,37 @@ export class MmBreadcrumbComponent implements OnInit {
     if (route.snapshot.data['breadcrumb'] || newBreadcrumb) {
       const data = route.snapshot.data['breadcrumb'] ? route.snapshot.data['breadcrumb'] : newBreadcrumb;
       const breadcrumb = JSON.parse(JSON.stringify(data)) as Breadcrumb[];
-      breadcrumb.forEach((crumb) => {
-        if (crumb.url) {
-          const urlChunks = crumb.url.split('/');
+      const breadcrumbData = new Array<BreadcrumbData>();
+      breadcrumb.forEach((crumb : Breadcrumb) => {
+        const breadcrumbDataItem = new BreadcrumbData(crumb.label, crumb.label, crumb.url);
+        breadcrumbData.push(breadcrumbDataItem);
+
+        if (breadcrumbDataItem.url) {
+          const urlChunks = breadcrumbDataItem.url.split('/');
           for (const chunk of urlChunks) {
             if (chunk.includes(':')) {
               const paramID = chunk.replace(':', '');
               const routerParamID = route.snapshot.params[paramID] as string;
-              crumb.url = crumb.url.replace(`:${paramID}`, routerParamID);
+              breadcrumbDataItem.url = crumb.url.replace(`:${paramID}`, routerParamID);
             }
           }
         }
 
-        const labelParams = crumb.label.match(/[^{{]+(?=}})/g);
+        const labelParams = breadcrumbDataItem.labelTemplate.match(/[^{{]+(?=}})/g);
         if (labelParams) {
           for (const labelParam of labelParams) {
             const routerParamID = decodeURIComponent((route.snapshot.params[labelParam.trim()] as string));
             if (routerParamID) {
-              crumb.label = crumb.label.replace('{{' + labelParam + '}}', routerParamID);
+              breadcrumbDataItem.label = breadcrumbDataItem.labelTemplate.replace('{{' + labelParam + '}}', routerParamID);
             } else {
-              // crumb.label = crumb.label.replace('{{' + labelParam + '}}', '');
+              breadcrumbDataItem.label = breadcrumbDataItem.labelTemplate.replace('{{' + labelParam + '}}', '');
             }
           }
         }
       });
-      this.breadcrumb = breadcrumb;
+      this.breadcrumbData = breadcrumbData;
     } else {
-      this.breadcrumb = [];
+      this.breadcrumbData = [];
     }
   }
 }
