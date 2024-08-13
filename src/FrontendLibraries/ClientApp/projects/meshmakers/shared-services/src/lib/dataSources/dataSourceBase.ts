@@ -1,6 +1,6 @@
-import { BehaviorSubject, Observable } from 'rxjs';
-import { CollectionViewer, DataSource } from '@angular/cdk/collections';
-import { PagedResultDto } from '../models/pagedResultDto';
+import { BehaviorSubject, Observable } from "rxjs";
+import { CollectionViewer, DataSource } from "@angular/cdk/collections";
+import { PagedResultDto } from "../models/pagedResultDto";
 
 export class DataSourceBase<TDto> implements DataSource<TDto> {
   private readonly dataSubject = new BehaviorSubject<TDto[]>([]);
@@ -10,8 +10,21 @@ export class DataSourceBase<TDto> implements DataSource<TDto> {
   public readonly loading$ = this.loadingSubject.asObservable();
   public readonly totalCount$ = this.totalCountSubject.asObservable();
 
+  private readonly addedDtoList: TDto[] = new Array<TDto>();
+  private lastPagedResult: PagedResultDto<TDto> | null = null;
+
   public get totalCount(): Observable<number> {
     return this.totalCount$;
+  }
+
+  public addTemporaryDto(dto: TDto): void {
+
+    this.addedDtoList.push(dto);
+    this.onEndLoad();
+  }
+
+  public get temporaryDtos(): TDto[] {
+    return this.addedDtoList;
   }
 
   connect(collectionViewer: CollectionViewer): Observable<readonly TDto[]> {
@@ -33,8 +46,22 @@ export class DataSourceBase<TDto> implements DataSource<TDto> {
   }
 
   protected onCompleteLoad(pagedResult: PagedResultDto<TDto>): void {
-    this.loadingSubject?.next(false);
-    this.dataSubject?.next(pagedResult.list);
-    this.totalCountSubject?.next(pagedResult.totalCount);
+
+    this.lastPagedResult = pagedResult;
+
+    this.onEndLoad();
+  }
+
+  private onEndLoad(): void {
+
+    if (this.lastPagedResult !== null) {
+
+      const totalCount = this.lastPagedResult?.totalCount + this.addedDtoList.length;
+      const list = this.lastPagedResult.list.concat(this.addedDtoList);
+
+      this.loadingSubject?.next(false);
+      this.dataSubject?.next(list);
+      this.totalCountSubject?.next(totalCount);
+    }
   }
 }
