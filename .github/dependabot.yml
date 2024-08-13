@@ -13,5 +13,5 @@ updates:
     directories:
       - "/src/FrontendLibraries/ClientApp/**/*"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     versioning-strategy: increase

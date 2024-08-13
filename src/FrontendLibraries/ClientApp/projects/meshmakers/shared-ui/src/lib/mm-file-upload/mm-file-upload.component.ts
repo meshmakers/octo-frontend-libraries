@@ -51,6 +51,7 @@ export class MmFileUploadComponent  {
     if (!file) {
       return;
     }
+    console.log(file.type);
     if (allowedMimeTypes.length > 0 && allowedMimeTypes.includes(file.type)) {
       this.selectedFile = file;
       this.fileSize.set(Math.round(file.size / 1024)); // Set file size in KB
