@@ -58,7 +58,7 @@
     "@graphql-codegen/typescript-apollo-angular": "^4.0.0",
     "@graphql-codegen/typescript-operations": "^4.2.3",
     "@types/jasmine": "~5.1.4",
-    "@types/node": "^22.1.0",
+    "@types/node": "^22.2.0",
     "angular-eslint": "18.2.0",
     "cross-env": "^7.0.3",
     "eslint": "^9.8.0",
