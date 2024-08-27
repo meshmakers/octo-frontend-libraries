@@ -10,7 +10,7 @@ export interface IQueryVariablesDto extends OperationVariables {
   first?: number | null | undefined;
   after?: string | null | undefined;
   sort?: InputMaybe<InputMaybe<SortDto> | InputMaybe<SortDto>[]> | undefined;
-  searchFilter?: SearchFilterDto | null | undefined;
+  searchFilter?: InputMaybe<SearchFilterDto> | undefined;
   fieldFilters?: InputMaybe<InputMaybe<FieldFilterDto>[] | InputMaybe<FieldFilterDto>>;
 }
 
