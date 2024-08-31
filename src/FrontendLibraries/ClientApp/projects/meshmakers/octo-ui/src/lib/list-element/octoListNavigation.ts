@@ -37,8 +37,8 @@ export class OctoListNavigation {
   constructor(
     private readonly paginator: MatPaginator,
     private readonly sort: MatSort,
-    private readonly searchBox: ElementRef<HTMLInputElement>,
-    private readonly octoOptions: OctoListNavigationOptions
+    private readonly searchBox?: ElementRef<HTMLInputElement>,
+    private readonly octoOptions?: OctoListNavigationOptions
   ) {
     this.lastSortDirection = null;
     this.lastSortField = null;
@@ -46,12 +46,12 @@ export class OctoListNavigation {
   }
 
   public get loadDataInfo(): OctoListNavigationDataInfo {
-    const filterString = this.searchBox.nativeElement.value;
+    const filterString = this.searchBox?.nativeElement.value;
     const sortField = this.sort.active;
     const sortDirection = this.sort.direction;
 
     let filter = null;
-    if (filterString) {
+    if (filterString && this.octoOptions) {
       filter = {
         language: this.octoOptions.language,
         searchTerm: filterString,
@@ -77,46 +77,52 @@ export class OctoListNavigation {
   }
 
   init(): void {
-    // server-side search
-    fromEvent<ElementRef>(this.searchBox.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(500),
-        distinctUntilChanged(),
-        tap(() => {
-          this.paginator.pageIndex = 0;
 
-          const searchText = this.searchBox.nativeElement.value;
-
-          if (!this.lastSearchText && searchText) {
-            this.lastSortDirection = this.sort.direction;
-            this.lastSortField = this.sort.active;
-
-            // Reset sorting to see the score rating (default sorting returned from server)
-            this.sort.sort({ id: '', start: 'asc', disableClear: false });
-          }
-
-          this.lastSearchText = searchText;
-
-          if (!searchText && this.lastSortField) {
-            if (this.lastSortDirection === 'asc') {
-              this.sort.sort({
-                id: this.lastSortField,
-                start: 'asc',
-                disableClear: true
-              });
-            } else if (this.lastSortDirection === 'desc') {
-              this.sort.sort({
-                id: this.lastSortField,
-                start: 'desc',
-                disableClear: true
-              });
+    if (this.searchBox) {
+      // server-side search
+      fromEvent<ElementRef>(this.searchBox.nativeElement, 'keyup')
+        .pipe(
+          debounceTime(500),
+          distinctUntilChanged(),
+          tap(() => {
+            this.paginator.pageIndex = 0;
+            if (!this.searchBox) {
+              return;
             }
-          }
 
-          this.loadData();
-        })
-      )
-      .subscribe();
+            const searchText = this.searchBox.nativeElement.value;
+
+            if (!this.lastSearchText && searchText) {
+              this.lastSortDirection = this.sort.direction;
+              this.lastSortField = this.sort.active;
+
+              // Reset sorting to see the score rating (default sorting returned from server)
+              this.sort.sort({ id: '', start: 'asc', disableClear: false });
+            }
+
+            this.lastSearchText = searchText;
+
+            if (!searchText && this.lastSortField) {
+              if (this.lastSortDirection === 'asc') {
+                this.sort.sort({
+                  id: this.lastSortField,
+                  start: 'asc',
+                  disableClear: true
+                });
+              } else if (this.lastSortDirection === 'desc') {
+                this.sort.sort({
+                  id: this.lastSortField,
+                  start: 'desc',
+                  disableClear: true
+                });
+              }
+            }
+
+            this.loadData();
+          })
+        )
+        .subscribe();
+    }
 
     // reset the paginator after sorting
     this.sort.sortChange.subscribe(() => (this.paginator.pageIndex = 0));
