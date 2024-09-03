@@ -10,6 +10,7 @@ export * from './lib/mm-multiple-entity-select-input/mm-multiple-entity-select-i
 export * from './lib/mm-confirmation-window/mm-confirmation-window.component';
 export * from './lib/mm-breadcrumb/mm-breadcrumb.component';
 export * from './lib/mm-file-upload/mm-file-upload.component';
+export * from './lib/mm-table-simple/mm-table-simple.component'
 
 export * from './lib/services/confirmation.service';
 export * from './lib/services/progress-notifier.service';
