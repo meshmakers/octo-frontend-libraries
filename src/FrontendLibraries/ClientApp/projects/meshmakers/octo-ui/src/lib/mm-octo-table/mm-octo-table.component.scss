@@ -1,0 +1,7 @@
+.table-container {
+  display: block;
+  width: 100%;
+  max-height:70vh; /* Adjust the height as needed */
+  overflow-x: auto; /* Enables horizontal scrolling */
+  overflow-y: auto; /* Enables vertical scrolling */
+}

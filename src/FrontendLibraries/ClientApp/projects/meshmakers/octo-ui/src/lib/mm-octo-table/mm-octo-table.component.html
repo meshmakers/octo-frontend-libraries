@@ -1,0 +1,48 @@
+<div>
+  <mat-progress-bar *ngIf="loading || (dataSource?.loading$ | async)" mode="indeterminate"></mat-progress-bar>
+</div>
+
+<mat-toolbar class="octo-toolbar octo-detail-toolbar">
+  <div class="octo-spacer"></div>
+
+  <div class="octo-toolbar-search">
+    <mat-form-field appearance="outline">
+      <mat-label>
+        <mat-icon class="material-symbols-outlined">search</mat-icon>
+        Search
+      </mat-label>
+      <input #input matInput [disabled]="loading">
+    </mat-form-field>
+  </div>
+</mat-toolbar>
+
+<mat-table [class.isMobile]="isMobile" [dataSource]="dataSource" class="mat-elevation-z8 table-container" mat-table matSort matSortActive="{{currentId}}" matSortDirection="asc" matSortDisableClear="true">
+
+  <ng-container *ngFor="let column of dataColumns?.columnNames" [matColumnDef]="column">
+    <mat-header-cell *matHeaderCellDef mat-sort-header> {{ column | pascalCase }} </mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      @if (isMobile) {
+        <span>{{ column | pascalCase }}:</span>‚
+      }
+      {{ accessElement(element, column, dataColumns.accessPaths)}}
+    </mat-cell>
+  </ng-container>
+
+  <!-- Action Column -->
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <button mat-button routerLink="{{currentRoute}}/{{encodeURIComponent(element[currentId])}}">
+        <mat-icon class="material-symbols-outlined">edit</mat-icon>
+      </button>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="dataColumns?.columnNames?.concat(['actions'])"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: dataColumns?.columnNames?.concat(['actions'])"></mat-row>
+
+</mat-table>
+
+
+<mat-paginator [length]="dataSource?.totalCount$ | async" (page)="selectedPageSizeChanged($event)" [pageSizeOptions]="[10, 20, 50]"
+               [pageSize]="selectedPageSize.getValue()"></mat-paginator>

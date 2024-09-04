@@ -2,6 +2,13 @@ import { Component } from "@angular/core";
 import { FileUploadService } from "@meshmakers/shared-ui";
 import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
 import { firstValueFrom } from "rxjs";
+import { NewGraphQlDataSource } from "@meshmakers/octo-ui";
+
+
+class TestNewGraphQlDataSource extends NewGraphQlDataSource<any, any, any> {
+   // TODO test impl, return dummy data
+}
+
 
 @Component({
   selector: "app-root",
@@ -10,6 +17,7 @@ import { firstValueFrom } from "rxjs";
 })
 export class AppComponent {
   title = "test-app";
+  mmOctoTableDataSource: any;
 
   constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient) {
   }

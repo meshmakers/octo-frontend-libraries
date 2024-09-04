@@ -1,2 +1,31 @@
 <button mat-flat-button (click)="onFileUpload()">FileUpload</button>
 <mm-table-simple [sortColumn]="'name'" [items]="[{'name': 'test'}]" [columns]="[{ key: 'name', header: 'Name' }]"></mm-table-simple>
+
+<!--simple example-->
+<mm-octo-table
+  [dataSource]="mmOctoTableDataSource"
+  [dataColumns]="{
+  columnNames: ['id', 'name'],
+  accessPaths: {}
+  }"
+  [actionColumns]="['edit']"
+  [currentRoute]="'enums'"
+  [currentId]="'ckEnumId'"
+></mm-octo-table>
+
+
+<!--advanced example with special item access-->
+<mm-octo-table
+  [dataSource]="mmOctoTableDataSource"
+  [actionColumns]="['edit']"
+  [dataColumns]="{
+            columnNames: ['ckTypeId', 'baseType', 'isAbstract', 'isFinal'],
+            accessPaths: {'baseType': 'baseType.ckTypeId'}
+          }"
+  [currentRoute]="'types'"
+  [currentId]="'id'"
+></mm-octo-table>
+<!--[selectedPageSize]="this.ckTreeViewService.selectedMaxPageItems"-->
+
+
+
