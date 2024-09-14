@@ -29,7 +29,8 @@ import { RouterLink } from '@angular/router';
 // pascal-case.pipe.ts
 import { Pipe, PipeTransform } from '@angular/core';
 import { MatTooltip } from "@angular/material/tooltip";
-import { NewGraphQlDataSource, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from "@meshmakers/octo-ui";
+import { NewGraphQlDataSource } from "../list-element/newGraphQlDataSource";
+import { SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from "../list-element/globalTypes";
 
 @Pipe({
   standalone: true,
