@@ -1,1 +1,44 @@
+<h1>File upload</h1>
+
 <button mat-flat-button (click)="onFileUpload()">FileUpload</button>
+
+<div class="divider"></div>
+<h1>Generic Table simple</h1>
+<!-- when making changes to lib components, you need to rebuild the lib and the app to see the changes, using "Invoke-BuildFrontend" command -->
+
+<mm-table-simple [sortColumn]="'name'" [items]="[{'name': 'test'}]" [columns]="[{ key: 'name', header: 'Name' }]"></mm-table-simple>
+
+<div class="divider"></div>
+<h1>Octo Table simple</h1>
+
+<!--simple example-->
+<mm-octo-table
+  [dataSource]="mmOctoTableDataSource"
+  [dataColumns]="{
+  columnNames: ['id', 'name'],
+  accessPaths: {}
+  }"
+  [actionColumns]="['edit']"
+  [currentRoute]="'enums'"
+  [currentId]="'ckEnumId'"
+></mm-octo-table>
+
+<div class="divider"></div>
+<h1>Octo Table advanced</h1>
+
+<!--advanced example with special item access-->
+<mm-octo-table
+  [dataSource]="mmOctoTableAdvancedDataSource"
+  [actionColumns]="['edit']"
+  [dataColumns]="{
+            columnNames: ['ckTypeId', 'baseType', 'isAbstract', 'isFinal'],
+            accessPaths: {'baseType': 'baseType.ckTypeId'}
+          }"
+  [currentRoute]="'types'"
+  [currentId]="'id'"
+></mm-octo-table>
+
+<!--[selectedPageSize]="this.ckTreeViewService.selectedMaxPageItems"-->
+
+
+

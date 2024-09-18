@@ -1,7 +1,31 @@
 import { Component } from "@angular/core";
 import { FileUploadService } from "@meshmakers/shared-ui";
 import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
-import { firstValueFrom } from "rxjs";
+import { firstValueFrom, Observable } from "rxjs";
+import { NewGraphQlDataSource } from "@meshmakers/octo-ui";
+import { CollectionViewer } from "@angular/cdk/collections";
+
+
+class TestNewGraphQlDataSource extends NewGraphQlDataSource<any, any, any> {
+  private dataColumns: any[] = [];
+
+  constructor(messageService: any, query: any, defaultSort: any, dataColumns: any = null) {
+    super(messageService, query, defaultSort
+    );
+    this.dataColumns = dataColumns;
+  }
+
+  override connect(collectionViewer: CollectionViewer): Observable<any[]> {
+
+    // return dummy data
+    return  new Observable<any[]>(subscriber => {
+      subscriber.next(this.dataColumns);
+    });
+  }
+
+
+}
+
 
 @Component({
   selector: "app-root",
@@ -10,6 +34,11 @@ import { firstValueFrom } from "rxjs";
 })
 export class AppComponent {
   title = "test-app";
+  mmOctoTableDataSource: NewGraphQlDataSource<any, any, any> = new TestNewGraphQlDataSource(null, null, null,[{id: 1, name: 'test1'}, {id: 2, name: 'test2'}]);
+
+  // based on this    columnNames: ['ckTypeId', 'baseType', 'isAbstract', 'isFinal'],
+  //             accessPaths: {'baseType': 'baseType.ckTypeId'}
+  mmOctoTableAdvancedDataSource: NewGraphQlDataSource<any, any, any> = new TestNewGraphQlDataSource(null, null, null, [{ckTypeId: 'test1', baseType: {ckTypeId: 'test2'}, isAbstract: true, isFinal: false}]);
 
   constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient) {
   }

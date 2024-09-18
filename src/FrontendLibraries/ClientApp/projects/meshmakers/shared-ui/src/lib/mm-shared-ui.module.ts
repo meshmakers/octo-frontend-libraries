@@ -24,6 +24,7 @@ import { FileUploadService } from "./services/file-upload.service";
 import { MmFileUploadComponent } from "./mm-file-upload/mm-file-upload.component";
 import { MatListModule } from "@angular/material/list";
 import { RouterLink } from "@angular/router";
+import { MmTableSimpleComponent } from "./mm-table-simple/mm-table-simple.component";
 
 @NgModule({
   declarations: [
@@ -44,7 +45,8 @@ import { RouterLink } from "@angular/router";
     MmAutocompleteInputComponent,
     MmEntitySelectInputComponent,
     MmMultipleEntitySelectInputComponent,
-    MmFileUploadComponent
+    MmFileUploadComponent,
+    MmTableSimpleComponent
   ],
   imports: [
     CommonModule,
@@ -60,7 +62,8 @@ import { RouterLink } from "@angular/router";
     ReactiveFormsModule,
     MatIcon,
     MatListModule,
-    RouterLink
+    RouterLink,
+    MmTableSimpleComponent
   ]
 })
 export class MmSharedUiModule {

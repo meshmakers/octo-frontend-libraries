@@ -8,7 +8,8 @@ import { ConfigurationService } from './services/configuration.service';
 import { AuthorizeService, SharedAuthModule } from '@meshmakers/shared-auth';
 import { defaultAuthorizeOptions } from './config/defaultAuthorizeOptions';
 import { MmSharedUiModule } from "@meshmakers/shared-ui";
-import { MatButtonModule } from "@angular/material/button";
+import { MmOctoUiModule } from "@meshmakers/octo-ui";
+import { MatButton } from "@angular/material/button";
 
 export function initServices(configurationService: ConfigurationService, authorizeService: AuthorizeService) {
   return async () => {};
@@ -22,7 +23,8 @@ export function initServices(configurationService: ConfigurationService, authori
     BrowserAnimationsModule,
     MmSharedUiModule.forRoot(),
     SharedAuthModule.forRoot(defaultAuthorizeOptions),
-    MatButtonModule
+    MmOctoUiModule,
+    MatButton
   ],
   providers: [
     ConfigurationService,
