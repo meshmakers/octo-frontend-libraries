@@ -15,7 +15,7 @@ export class FileUploadService {
   constructor(private readonly dialog: MatDialog) { }
 
 
-  async showUploadDialog(title: string, message: string, mimeTypes: string): Promise<File | null> {
+  async showUploadDialog(title: string, message: string, mimeTypes: string, fileExtensions: string | null = null): Promise<File | null> {
     const dialogRef = this.dialog.open<MmFileUploadComponent, FileUploadData, FileUploadResult>(
       MmFileUploadComponent,
       {
@@ -24,7 +24,8 @@ export class FileUploadService {
         data: {
           title,
           message,
-          mimeTypes
+          mimeTypes,
+          fileExtensions
         } as FileUploadData
       }
     );

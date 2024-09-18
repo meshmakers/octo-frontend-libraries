@@ -26,6 +26,7 @@ export interface FileUploadData{
   title: string;
   message: string;
   mimeTypes: string;
+  fileExtensions: string | null;
 }
 
 export interface FileUploadResult {

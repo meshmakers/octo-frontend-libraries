@@ -33,7 +33,7 @@ export class MmFileUploadComponent  {
     this.uploadFile(file);
   }
 
-  // Handler for file drop
+  // Handler for the file drop
   onFileDrop(event: DragEvent): void {
     event.preventDefault();
     const file = event.dataTransfer?.files[0] as File | null;
@@ -48,11 +48,16 @@ export class MmFileUploadComponent  {
   // Method to handle file upload
   uploadFile(file: File | null): void {
     const allowedMimeTypes = this.data.mimeTypes.split(',').map((mimeType) => mimeType.trim());
+    const allowedFileExtensions = this.data.fileExtensions?.split(',').map((mimeType) => mimeType.trim()) ?? [];
     if (!file) {
       return;
     }
-    console.log(file.type);
-    if (allowedMimeTypes.length > 0 && allowedMimeTypes.includes(file.type)) {
+    console.log("type: " + file.type);
+    console.log("name: " + file.name);
+    const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    console.log("extension: " + extension);
+
+    if (allowedFileExtensions.includes(extension) || allowedMimeTypes.includes(file.type)) {
       this.selectedFile = file;
       this.fileSize.set(Math.round(file.size / 1024)); // Set file size in KB
 
