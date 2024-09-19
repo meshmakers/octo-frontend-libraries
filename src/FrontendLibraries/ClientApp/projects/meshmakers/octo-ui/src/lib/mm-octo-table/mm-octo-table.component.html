@@ -29,20 +29,27 @@
   </ng-container>
 
   <!-- Action Column -->
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-    <mat-cell *matCellDef="let element">
-      <button mat-button routerLink="{{currentRoute}}/{{encodeURIComponent(element[currentId])}}">
-        <mat-icon class="material-symbols-outlined">edit</mat-icon>
-      </button>
-    </mat-cell>
-  </ng-container>
 
-  <mat-header-row *matHeaderRowDef="dataColumns?.columnNames?.concat(['actions'])"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: dataColumns?.columnNames?.concat(['actions'])"></mat-row>
+  @if (actionColumns.length > 0) {
+    @for (column of actionColumns; track column) {
+      <ng-container matColumnDef="{{column.columnName}}">
+        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-cell *matCellDef="let element">
+          <button mat-button routerLink="{{currentRoute}}/{{encodeURIComponent(element[currentId])}}">
+            <mat-icon class="material-symbols-outlined">{{ column.iconName }}</mat-icon>
+          </button>
+        </mat-cell>
+      </ng-container>
+    }
+    <mat-header-row *matHeaderRowDef="dataColumns?.columnNames?.concat(getActionColumnNames())"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: dataColumns?.columnNames?.concat(getActionColumnNames())"></mat-row>
+  } @else {
+    <mat-header-row *matHeaderRowDef="dataColumns?.columnNames"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: dataColumns?.columnNames"></mat-row>
+  }
 
 </mat-table>
 
 
-<mat-paginator [length]="dataSource?.totalCount$ | async" (page)="selectedPageSizeChanged($event)" [pageSizeOptions]="[10, 20, 50]"
-               [pageSize]="selectedPageSize.getValue()"></mat-paginator>
+<mat-paginator [length]="dataSource?.totalCount$ | async" (page)="selectedPageSizeChanged($event)" [pageSizeOptions]="pageSizeOptions"
+               [pageSize]="selectedPageSizeSubject.getValue()"></mat-paginator>
