@@ -48,6 +48,11 @@ export interface DataColumns {
   accessPaths: Record<string, string>
 }
 
+export interface ActionColumn {
+  columnName: string;
+  iconName: string;
+}
+
 
 @Component({
   selector: 'mm-octo-table',
@@ -88,11 +93,15 @@ export interface DataColumns {
 export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Input() dataSource!: NewGraphQlDataSource<any, any, any>;
   @Input() dataColumns: DataColumns =  { columnNames: [], accessPaths: {} };
-  @Input() actionColumns: string[] = [];
+  @Input() actionColumns: ActionColumn[] = [];
   @Input() searchFilterColumns: string[] = [];
   @Input() currentRoute = "";
   @Input() currentId = "";
-  @Input() selectedPageSize= new BehaviorSubject<number>(10);
+
+  @Input() pageSizeOptions= [10, 20, 50];
+  @Input() selectedPageSize = 10;
+  selectedPageSizeSubject: BehaviorSubject<number> = new BehaviorSubject<number>(this.selectedPageSize);
+
 
   @ViewChild(MatPaginator, { static: false }) paginator?: MatPaginator;
   @ViewChild(MatSort, { static: false }) sort?: MatSort;
@@ -107,6 +116,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
 
+    this.selectedPageSizeSubject.next(this.selectedPageSize);
     // at least add the currentId to the search filter columns
     if(this.currentId && !this.searchFilterColumns.includes(this.currentId)) {
       this.searchFilterColumns.push(this.currentId);
@@ -204,6 +214,11 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   }
 
   selectedPageSizeChanged($event: PageEvent) {
-    this.selectedPageSize.next($event.pageSize);
+    console.log($event.pageSize)
+    this.selectedPageSizeSubject.next($event.pageSize);
+  }
+
+  getActionColumnNames(): string[] {
+    return this.actionColumns.map(ac => ac.columnName);
   }
 }

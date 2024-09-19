@@ -18,9 +18,11 @@
   columnNames: ['id', 'name'],
   accessPaths: {}
   }"
-  [actionColumns]="['edit']"
   [currentRoute]="'enums'"
-  [currentId]="'ckEnumId'"
+  [currentId]="'ckEnumId'">
+  <!--[actionColumns]="[]"-->
+  <!--[pageSizeOptions]="[2,3,5]"-->
+  <!--[selectedPageSize]="2"-->
 ></mm-octo-table>
 
 <div class="divider"></div>
@@ -29,7 +31,10 @@
 <!--advanced example with special item access-->
 <mm-octo-table
   [dataSource]="mmOctoTableAdvancedDataSource"
-  [actionColumns]="['edit']"
+  [actionColumns]="[
+    {columnName: 'edit', iconName: 'edit'},
+    {columnName: 'delete', iconName: 'delete'},
+  ]"
   [dataColumns]="{
             columnNames: ['ckTypeId', 'baseType', 'isAbstract', 'isFinal'],
             accessPaths: {'baseType': 'baseType.ckTypeId'}
@@ -39,6 +44,4 @@
 ></mm-octo-table>
 
 <!--[selectedPageSize]="this.ckTreeViewService.selectedMaxPageItems"-->
-
-
 
