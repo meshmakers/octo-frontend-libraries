@@ -32,20 +32,30 @@
 
   @if (actionColumns.length > 0) {
     @for (column of actionColumns; track column) {
-      <ng-container matColumnDef="{{column.columnName}}">
+      <ng-container matColumnDef="{{ column.columnName }}">
         <mat-header-cell *matHeaderCellDef></mat-header-cell>
         <mat-cell *matCellDef="let element">
-          <button mat-button routerLink="{{currentRoute}}/{{encodeURIComponent(element[currentId])}}">
+          <button mat-button routerLink="{{ currentRoute }}/{{ encodeURIComponent(element[currentId]) }}">
             <mat-icon class="material-symbols-outlined">{{ column.iconName }}</mat-icon>
           </button>
         </mat-cell>
       </ng-container>
     }
     <mat-header-row *matHeaderRowDef="dataColumns?.columnNames?.concat(getActionColumnNames())"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: dataColumns?.columnNames?.concat(getActionColumnNames())"></mat-row>
+    <mat-row
+      *matRowDef="let row; columns: dataColumns?.columnNames?.concat(getActionColumnNames())"
+      (click)="onRowClick(row)"
+      [class.highlight]="isRowSelected(row)"
+      [class.clickable]="rowIsClickable"
+    ></mat-row>
   } @else {
     <mat-header-row *matHeaderRowDef="dataColumns?.columnNames"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: dataColumns?.columnNames"></mat-row>
+    <mat-row
+      *matRowDef="let row; columns: dataColumns?.columnNames"
+      (click)="onRowClick(row)"
+      [class.highlight]="isRowSelected(row)"
+      [class.clickable]="rowIsClickable"
+    ></mat-row>
   }
 
 </mat-table>

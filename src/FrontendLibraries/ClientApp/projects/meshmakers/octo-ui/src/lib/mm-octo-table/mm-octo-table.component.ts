@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewChild, OnInit, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild, OnInit, AfterViewInit, Output, EventEmitter } from "@angular/core";
 import { MatPaginator, PageEvent } from "@angular/material/paginator";
 import { MatSort, MatSortHeader } from '@angular/material/sort';
 import { BehaviorSubject, fromEvent, merge } from 'rxjs';
@@ -97,9 +97,15 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Input() searchFilterColumns: string[] = [];
   @Input() currentRoute = "";
   @Input() currentId = "";
+  @Input() rowIsClickable = false;
 
   @Input() pageSizeOptions= [10, 20, 50];
   @Input() selectedPageSize = 10;
+
+  @Output() rowClicked = new EventEmitter<any>();
+
+  selectedRow: any = null;  // Track the selected row
+
   selectedPageSizeSubject: BehaviorSubject<number> = new BehaviorSubject<number>(this.selectedPageSize);
 
 
@@ -221,4 +227,17 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   getActionColumnNames(): string[] {
     return this.actionColumns.map(ac => ac.columnName);
   }
+
+
+  onRowClick(row: any) {
+    if (this.rowIsClickable) {
+      this.selectedRow = row;  // Set the clicked row as the selected one
+      this.rowClicked.emit(row);  // Emit the clicked row data
+    }
+  }
+
+  isRowSelected(row: any): boolean {
+    return this.selectedRow === row;  // Check if the row is selected
+  }
+
 }

@@ -5,3 +5,16 @@
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
 }
+
+
+clickable {
+  cursor: pointer;  // Change cursor to pointer for clickable rows
+}
+
+.highlight {
+  background-color: #999999;  // Highlight color for the selected row
+}
+
+.highlight:hover {
+  background-color: #999999;  // Change color on hover for the selected row
+}
