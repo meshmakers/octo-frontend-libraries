@@ -97,12 +97,13 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Input() searchFilterColumns: string[] = [];
   @Input() currentRoute = "";
   @Input() currentId = "";
-  @Input() rowIsClickable = false;
+  @Input() rowIsClickable = true;
 
   @Input() pageSizeOptions= [10, 20, 50];
   @Input() selectedPageSize = 10;
 
   @Output() rowClicked = new EventEmitter<any>();
+  @Input() selectedRowId = ""
 
   selectedRow: any = null;  // Track the selected row
 
@@ -131,6 +132,8 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
     if (!this.dataSource) {
       throw new Error('No dataSource provided');
     }
+
+    this.checkSelectedRow();
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -238,6 +241,18 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
 
   isRowSelected(row: any): boolean {
     return this.selectedRow === row;  // Check if the row is selected
+  }
+
+  checkSelectedRow() {
+
+    // @ts-expect-error jnu
+    this.dataSource.connect(null).subscribe((data) => {
+      for(const entry of data) {
+        if(entry.rtId === this.selectedRowId) {
+          this.onRowClick(entry)
+        }
+      }
+    });
   }
 
 }
