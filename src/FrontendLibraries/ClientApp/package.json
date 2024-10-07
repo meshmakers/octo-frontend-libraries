@@ -71,6 +71,6 @@
     "ng-packagr": "^18.2.1",
     "run-script-os": "^1.1.6",
     "typescript": "~5.5.4",
-    "typescript-eslint": "8.7.0"
+    "typescript-eslint": "8.8.0"
   }
 }
