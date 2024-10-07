@@ -92,5 +92,13 @@ export class DataSourceBase<TDto> implements DataSource<TDto> {
       this.dataSubject?.next(list);
       this.totalCountSubject?.next(totalCount);
     }
+    else {
+      const totalCount = this.addedDtoList.length;
+      const list = this.addedDtoList;
+
+      this.loadingSubject?.next(false);
+      this.dataSubject?.next(list);
+      this.totalCountSubject?.next(totalCount);
+    }
   }
 }
