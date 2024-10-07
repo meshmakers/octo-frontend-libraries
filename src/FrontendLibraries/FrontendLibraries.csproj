@@ -34,6 +34,11 @@
       <_ContentIncludedByDefault Remove="ClientApp\tsconfig.app.json" />
       <_ContentIncludedByDefault Remove="ClientApp\tsconfig.json" />
       <_ContentIncludedByDefault Remove="ClientApp\tsconfig.spec.json" />
+      <_ContentIncludedByDefault Remove="ClientApp\dist\meshmakers\octo-services\package.json" />
+      <_ContentIncludedByDefault Remove="ClientApp\dist\meshmakers\octo-ui\package.json" />
+      <_ContentIncludedByDefault Remove="ClientApp\dist\meshmakers\shared-auth\package.json" />
+      <_ContentIncludedByDefault Remove="ClientApp\dist\meshmakers\shared-services\package.json" />
+      <_ContentIncludedByDefault Remove="ClientApp\dist\meshmakers\shared-ui\package.json" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

@@ -5,16 +5,3 @@
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
 }
-
-
-.clickable {
-  cursor: pointer;  // Change cursor to pointer for clickable rows
-}
-
-.highlight {
-  background-color: rgba(255, 255, 255, 0.16);  // Highlight color for the selected row
-}
-
-.clickable:hover {
-  background-color: rgba(255, 255, 255, 0.16);  // Change color on hover for the selected row
-}

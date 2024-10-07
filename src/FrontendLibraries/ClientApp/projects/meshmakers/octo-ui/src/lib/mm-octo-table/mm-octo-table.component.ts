@@ -105,6 +105,8 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Output() rowClicked = new EventEmitter<any>();
   @Input() selectedRowId = ""
 
+  @Output() actionColumnClick = new EventEmitter<{ action: string; id: string }>()
+
   selectedRow: any = null;  // Track the selected row
 
   selectedPageSizeSubject: BehaviorSubject<number> = new BehaviorSubject<number>(this.selectedPageSize);
@@ -255,4 +257,8 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
     });
   }
 
+
+  emitRowData(param: { action: string; id: string }) {
+    this.actionColumnClick.emit(param)
+  }
 }
