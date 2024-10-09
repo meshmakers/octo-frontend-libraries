@@ -43,7 +43,6 @@
     "aspnet-prerendering": "^3.0.1",
     "date-fns": "^4.1.0",
     "material-symbols": "^0.24.0",
-    "run-script-os": "^1.1.6",
     "rxjs": "~7.8.1",
     "tslib": "^2.6.3",
     "zone.js": "~0.14.10"

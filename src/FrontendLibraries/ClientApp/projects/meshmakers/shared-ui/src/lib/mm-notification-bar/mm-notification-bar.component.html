@@ -1,4 +1,4 @@
-<mat-toolbar [hidden]="!errorMessage" class="mm-notification-bar-background">
+<mat-toolbar [ngClass]="{ 'notification-bar-hidden': !errorMessage }" class="mm-notification-bar-background">
   <a (click)="onShowDetails()"><span class="mat-small"><u>{{ errorMessage?.title }}</u></span></a>
 
   <!-- This fills the remaining space of the current row -->
