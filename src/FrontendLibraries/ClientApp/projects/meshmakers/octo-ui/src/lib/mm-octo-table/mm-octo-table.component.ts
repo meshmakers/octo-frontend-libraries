@@ -52,7 +52,8 @@ export interface DataColumns {
 
 export interface ActionColumn {
   columnName: string;
-  iconName: string;
+  iconName?: string;
+  svgIconName?: string;
 }
 
 
@@ -95,7 +96,9 @@ export interface ActionColumn {
     MatMenuItem,
     MatTooltip,
     RouterLink,
-    MatMenuTrigger
+    MatMenuTrigger,
+    MatIcon,
+    MatIcon
   ],
   templateUrl: './mm-octo-table.component.html',
   styleUrl: './mm-octo-table.component.scss'
