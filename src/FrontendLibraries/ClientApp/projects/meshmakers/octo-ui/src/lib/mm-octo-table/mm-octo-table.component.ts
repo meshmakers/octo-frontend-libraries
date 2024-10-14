@@ -5,7 +5,7 @@ import { BehaviorSubject, fromEvent, merge } from 'rxjs';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 
 import { AsyncPipe, NgClass, NgForOf, NgIf, TitleCasePipe } from "@angular/common";
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from "@angular/material/button";
 import {
   MatCell,
   MatCellDef,
@@ -31,6 +31,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { MatTooltip } from "@angular/material/tooltip";
 import { NewGraphQlDataSource } from "../list-element/newGraphQlDataSource";
 import { SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from "../list-element/globalTypes";
+import { MatDivider } from "@angular/material/divider";
+import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 
 @Pipe({
   standalone: true,
@@ -50,7 +52,8 @@ export interface DataColumns {
 
 export interface ActionColumn {
   columnName: string;
-  iconName: string;
+  iconName?: string;
+  svgIconName?: string;
 }
 
 
@@ -85,7 +88,17 @@ export interface ActionColumn {
     TitleCasePipe,
     NgClass,
     PascalCasePipe,
-    MatTooltip
+    MatTooltip,
+    MatDivider,
+    MatIcon,
+    MatIconButton,
+    MatMenu,
+    MatMenuItem,
+    MatTooltip,
+    RouterLink,
+    MatMenuTrigger,
+    MatIcon,
+    MatIcon
   ],
   templateUrl: './mm-octo-table.component.html',
   styleUrl: './mm-octo-table.component.scss'
@@ -94,6 +107,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Input() dataSource!: NewGraphQlDataSource<any, any, any>;
   @Input() dataColumns: DataColumns =  { columnNames: [], accessPaths: {} };
   @Input() actionColumns: ActionColumn[] = [];
+  @Input() optionActions: ActionColumn[] = [];
   @Input() searchFilterColumns: string[] = [];
   @Input() currentRoute = "";
   @Input() currentId = "";
@@ -258,7 +272,19 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   }
 
 
-  emitRowData(param: { action: string; id: string }) {
-    this.actionColumnClick.emit(param)
+  emitRowData(data: { action: string; id: string, entry: any }) {
+    this.actionColumnClick.emit(data)
   }
+
+
+  // Predicate for rows with optionActions
+  hasOptionActions = (row: any) => {
+    return this.optionActions.length > 0;
+  };
+
+  // Predicate for rows with actionColumns but no optionActions
+  hasActionColumns = (row: any) => {
+    return this.actionColumns.length > 0 && this.optionActions.length === 0;
+  };
+
 }
