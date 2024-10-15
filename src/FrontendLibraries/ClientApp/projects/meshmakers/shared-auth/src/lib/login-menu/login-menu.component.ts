@@ -9,7 +9,7 @@ import { map } from 'rxjs/operators';
   styleUrls: ['./login-menu.component.css']
 })
 export class LoginMenuComponent implements OnInit {
-  public isAuthenticated: BehaviorSubject<boolean>;
+  public isAuthenticated: Observable<boolean>;
   public userName: Observable<string | null>;
 
   constructor(private readonly authorizeService: AuthorizeService) {

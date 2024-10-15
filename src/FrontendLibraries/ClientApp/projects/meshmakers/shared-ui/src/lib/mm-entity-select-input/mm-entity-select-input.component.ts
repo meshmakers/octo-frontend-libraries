@@ -10,7 +10,7 @@ import {
   OnDestroy,
   OnInit,
   ViewChild
-} from '@angular/core';
+} from "@angular/core";
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -20,23 +20,23 @@ import {
   NgControl,
   ValidationErrors,
   Validator
-} from '@angular/forms';
-import { MatFormFieldControl } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
-import { EntitySelectDataSource } from '@meshmakers/shared-services';
-import { of, Subject } from 'rxjs';
-import { FocusMonitor } from '@angular/cdk/a11y';
-import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
-import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
+} from "@angular/forms";
+import { MatFormFieldControl } from "@angular/material/form-field";
+import { MatInput } from "@angular/material/input";
+import { EntitySelectDataSource, PagedResultDto } from "@meshmakers/shared-services";
+import { of, Subject } from "rxjs";
+import { FocusMonitor } from "@angular/cdk/a11y";
+import { catchError, debounceTime, filter, switchMap, tap } from "rxjs/operators";
+import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
+import { coerceBooleanProperty } from "@angular/cdk/coercion";
 
 @Component({
-  selector: 'mm-entity-select',
-  templateUrl: './mm-entity-select-input.component.html',
-  styleUrls: ['./mm-entity-select-input.component.css'],
+  selector: "mm-entity-select",
+  templateUrl: "./mm-entity-select-input.component.html",
+  styleUrls: ["./mm-entity-select-input.component.css"],
   host: {
-    '[id]': 'id',
-    '[attr.aria-describedby]': 'describedBy'
+    "[id]": "id",
+    "[attr.aria-describedby]": "describedBy"
   },
   providers: [
     {
@@ -69,8 +69,8 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
 
   public valueChange: EventEmitter<any> = new EventEmitter<any>();
   private _selectedEntity: any;
-  @ViewChild('input') private readonly inputField: MatInput | null;
-  @HostBinding('attr.aria-describedby') private describedBy = '';
+  @ViewChild("input") private readonly inputField: MatInput | null;
+  @HostBinding("attr.aria-describedby") private describedBy = "";
   private activatedValue: any;
 
   constructor(
@@ -82,8 +82,8 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     this.errorState = false;
     this.inputField = null;
     this._dataSource = null;
-    this._placeholder = '';
-    this._prefix = '';
+    this._placeholder = "";
+    this._prefix = "";
 
     this.searchFormControl = new FormControl();
     this.isLoading = false;
@@ -179,7 +179,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     return !n;
   }
 
-  @HostBinding('class.floating')
+  @HostBinding("class.floating")
   public get shouldLabelFloat(): boolean {
     return this.focused || !this.empty;
   }
@@ -196,14 +196,22 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
       this.searchFormControl.valueChanges
         .pipe(
           debounceTime(300),
-          filter((value) => typeof value === 'string'),
+          filter((value) => typeof value === "string"),
           filter((value) => value.startsWith(this._prefix)),
           tap(() => (this.value = null)),
-          tap(() => (this.isLoading = true)),
-          switchMap((value: string) => this._dataSource?.onFilter(value.replace(this._prefix, '').trim()) ?? of(null))
+          tap(() => (this.isLoading = true))
         )
-        .subscribe((resultSet) => {
-          if (resultSet?.list) {
+        .subscribe(async (value: string) => {
+
+          if (!this._dataSource)
+          {
+            this.isLoading = false;
+            return;
+          }
+
+          const resultSet = await this._dataSource?.onFilter(value.replace(this._prefix, "").trim());
+
+          if (resultSet.list) {
             if (resultSet.list.length === 1) {
               this.value = resultSet.list[0];
             } else {
@@ -219,15 +227,23 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
       .pipe(
         debounceTime(300),
         tap(() => (this.filteredEntities = [])),
-        filter((value: any) => typeof value === 'string'),
+        filter((value: any) => typeof value === "string"),
         tap(() => {
           this.setValue(null);
         }),
         filter((value) => value.toString().length >= 3),
-        tap(() => (this.isLoading = true)),
-        switchMap((value: string) => this._dataSource?.onFilter(value) ?? of(null))
+        tap(() => (this.isLoading = true))
       )
-      .subscribe((resultSet) => {
+      .subscribe(async (value : string) => {
+
+        if (!this._dataSource)
+        {
+          this.isLoading = false;
+          return;
+        }
+
+        const resultSet = await this._dataSource.onFilter(value);
+
         if (resultSet?.list) {
           this.filteredEntities = resultSet.list;
         }
@@ -253,7 +269,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
   }
 
   public focus(): void {
-    this.elRef.nativeElement.querySelector('input')?.focus();
+    this.elRef.nativeElement.querySelector("input")?.focus();
   }
 
   public onEntitySelected(event: MatAutocompleteSelectedEvent): void {
@@ -306,26 +322,28 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
   }
 
   public onContainerClick(event: MouseEvent): void {
-    if ((event.target as Element).tagName.toLowerCase() !== 'input') {
+    if ((event.target as Element).tagName.toLowerCase() !== "input") {
       this.focus();
     }
   }
 
   public setDescribedByIds(ids: string[]): void {
-    this.describedBy = ids.join(' ');
+    this.describedBy = ids.join(" ");
   }
 
   validate(control: AbstractControl): ValidationErrors | null {
     const selection: any = control.value;
-    if (typeof selection === 'string') {
+    if (typeof selection === "string") {
       return { incorrect: true };
     }
     return null;
   }
 
-  private _propagateChange = (_: any): void => {};
+  private _propagateChange = (_: any): void => {
+  };
 
-  private readonly _onTouched = (): void => {};
+  private readonly _onTouched = (): void => {
+  };
 
   private setValue(value: any): void {
     if (value !== this._selectedEntity) {

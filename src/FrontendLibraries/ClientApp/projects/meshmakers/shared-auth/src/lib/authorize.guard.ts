@@ -39,8 +39,6 @@ export class AuthorizeGuard {
   }
 
   private async handleAuthorization(route: ActivatedRouteSnapshot, url: any): Promise<boolean> {
-    await this.authorizeService.initialize();
-
     const isAuthenticated = await firstValueFrom(this.authorizeService.getIsAuthenticated());
     if (isAuthenticated) {
       const userRoles = await firstValueFrom(this.authorizeService.getRoles());

@@ -1,8 +1,8 @@
-import { Inject, Injectable } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
-import { Roles } from './roles';
+import { Injectable } from "@angular/core";
+import { BehaviorSubject, firstValueFrom, Observable } from "rxjs";
+import { filter, map } from "rxjs/operators";
+import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
+import { Roles } from "./roles";
 
 export interface IUser {
   name: string;
@@ -40,37 +40,43 @@ export class AuthorizeService {
   private readonly isInitialized = new BehaviorSubject<boolean>(false);
   private readonly isInitializing = new BehaviorSubject<boolean>(false);
 
+  private authorizeOptions: AuthorizeOptions | null = null;
+
   constructor(
-    @Inject(AuthorizeOptions)
-    private readonly authorizeOptions: AuthorizeOptions,
     private readonly oauthService: OAuthService
   ) {
-    console.debug('AuthorizeService::created');
+    console.debug("AuthorizeService::created");
 
     this.getUser().subscribe((s) => {
       this.isAuthenticated.next(!(s == null));
     });
 
     this.oauthService.events.subscribe((e) => {
-      console.debug('oauth/oidc event', e);
+      console.debug("oauth/oidc event", e);
     });
 
-    this.oauthService.events.pipe(filter((e) => e.type === 'session_terminated')).subscribe((_) => {
-      console.debug('Your session has been terminated!');
+    this.oauthService.events.pipe(filter((e) => e.type === "session_terminated")).subscribe((_) => {
+      console.debug("Your session has been terminated!");
     });
 
-    this.oauthService.events.pipe(filter((e) => e.type === 'token_received')).subscribe((_) => {
+    this.oauthService.events.pipe(filter((e) => e.type === "token_received")).subscribe((_) => {
       this.loadUser();
     });
 
-    this.oauthService.events.pipe(filter((e) => e.type === 'logout')).subscribe((_) => {
+    this.oauthService.events.pipe(filter((e) => e.type === "session_unchanged")).subscribe((_) => {
+      if (this.user.value == null) {
+        this.loadUser();
+      }
+    });
+
+    this.oauthService.events.pipe(filter((e) => e.type === "logout")).subscribe((_) => {
       this.accessToken.next(null);
       this.user.next(null);
     });
   }
 
   public isInRole(role: Roles): boolean {
-    return this.getUser()?.value?.role.includes(role) ?? false;
+    return this.user?.value?.role.includes(role) ?? false;
   }
 
   public getRoles(): Observable<string[]> {
@@ -78,22 +84,22 @@ export class AuthorizeService {
   }
 
   public getServiceUris(): string[] | null {
-    return this.authorizeOptions.wellKnownServiceUris ?? null;
+    return this.authorizeOptions?.wellKnownServiceUris ?? null;
   }
 
-  public getAuthority(): BehaviorSubject<string | null> {
+  public getAuthority(): Observable<string | null> {
     return this.authority;
   }
 
-  public getIsAuthenticated(): BehaviorSubject<boolean> {
+  public getIsAuthenticated(): Observable<boolean> {
     return this.isAuthenticated;
   }
 
-  public getAccessToken(): BehaviorSubject<string | null> {
+  public getAccessToken(): Observable<string | null> {
     return this.accessToken;
   }
 
-  public getUser(): BehaviorSubject<IUser | null> {
+  public getUser(): Observable<IUser | null> {
     return this.user;
   }
 
@@ -105,49 +111,88 @@ export class AuthorizeService {
     this.oauthService.logOut(false);
   }
 
-  public async initialize(): Promise<void> {
-    console.debug('AuthorizeService::initialize::started');
+  public async initialize(authorizeOptions: AuthorizeOptions): Promise<void> {
+    console.debug("AuthorizeService::initialize::started");
+
+    await this.uninitialize();
 
     if (await firstValueFrom(this.isInitializing)) {
       return;
     }
     if (await firstValueFrom(this.isInitialized)) {
+      console.debug("AuthorizeService::initialize::alreadyInitialized");
       return;
     }
     this.isInitializing.next(true);
 
-    const config: AuthConfig = {
-      responseType: 'code',
-      issuer: this.authorizeOptions.issuer,
-      redirectUri: this.authorizeOptions.redirectUri,
-      postLogoutRedirectUri: this.authorizeOptions.postLogoutRedirectUri,
-      clientId: this.authorizeOptions.clientId,
-      scope: this.authorizeOptions.scope,
-      showDebugInformation: this.authorizeOptions.showDebugInformation,
-      sessionChecksEnabled: this.authorizeOptions.sessionChecksEnabled
-    };
+    try {
+      const config: AuthConfig = {
+        responseType: "code",
+        issuer: authorizeOptions.issuer,
+        redirectUri: authorizeOptions.redirectUri,
+        postLogoutRedirectUri: authorizeOptions.postLogoutRedirectUri,
+        clientId: authorizeOptions.clientId,
+        scope: authorizeOptions.scope,
+        showDebugInformation: authorizeOptions.showDebugInformation,
+        sessionChecksEnabled: authorizeOptions.sessionChecksEnabled,
+        preserveRequestedRoute: true
+      };
 
-    this.oauthService.configure(config);
-    this.oauthService.setStorage(localStorage);
-    await this.oauthService.loadDiscoveryDocumentAndTryLogin();
+      this.authorizeOptions = authorizeOptions;
 
-    this.oauthService.setupAutomaticSilentRefresh();
+      this.oauthService.configure(config);
+      this.oauthService.setStorage(localStorage);
+      console.debug("AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin");
+      await this.oauthService.loadDiscoveryDocumentAndTryLogin();
 
-    if (this.oauthService.hasValidAccessToken()) {
-      this.loadUser();
+      console.debug("AuthorizeService::initialize::setupAutomaticSilentRefresh");
+      this.oauthService.setupAutomaticSilentRefresh();
+
+      this.authority.next(authorizeOptions.issuer ?? null);
+
+
+      this.isInitialized.next(true);
+      console.debug("AuthorizeService::initialize::done");
+    }
+    finally {
+      this.isInitializing.next(false);
     }
 
-    this.authority.next(this.authorizeOptions.issuer ?? null);
-    this.isInitializing.next(false);
-    this.isInitialized.next(true);
+    console.debug("AuthorizeService::initialize::completed");
+  }
 
-    console.debug('AuthorizeService::initialize::done');
+  public async uninitialize(): Promise<void> {
+    console.debug("AuthorizeService::uninitialize::started");
+
+    if (await firstValueFrom(this.isInitializing)) {
+      return;
+    }
+    if (!await firstValueFrom(this.isInitialized)) {
+      console.debug("AuthorizeService::uninitialize::alreadyUninitialized");
+      return;
+    }
+
+    try {
+      this.isInitializing.next(true);
+
+      this.oauthService.stopAutomaticRefresh();
+
+      this.authorizeOptions = null;
+
+      this.isInitialized.next(false);
+      console.debug("AuthorizeService::uninitialize::done");
+    }
+    finally {
+      this.isInitializing.next(false);
+    }
+
+    console.debug("AuthorizeService::uninitialize::completed");
   }
 
   private loadUser(): void {
     const claims = this.oauthService.getIdentityClaims();
     if (!claims) {
-      console.error('claims where null when loading identity claims');
+      console.error("claims where null when loading identity claims");
       return;
     }
 
