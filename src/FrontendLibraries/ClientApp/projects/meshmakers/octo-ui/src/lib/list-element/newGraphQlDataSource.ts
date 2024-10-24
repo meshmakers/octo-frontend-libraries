@@ -118,6 +118,7 @@ export class NewGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends IQueryV
         })
       )
       .subscribe((pagedResult) => {
+        //TODO apply client side filter only take one
         super.onCompleteLoad(pagedResult);
       });
   }
