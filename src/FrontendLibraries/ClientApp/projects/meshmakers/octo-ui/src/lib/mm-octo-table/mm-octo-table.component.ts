@@ -116,9 +116,8 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Input() pageSizeOptions= [5, 10, 20, 50];
   @Input() selectedPageSize = 5;
 
-  @Input() clientSideSearchEnabled = false;
-
   @Output() rowClicked = new EventEmitter<any>();
+  @Output() searchFilterStringUpdated = new EventEmitter<string>();
   @Input() selectedRowId = ""
 
   @Output() actionColumnClick = new EventEmitter<{ action: string; id: string }>()
@@ -163,21 +162,12 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
           debounceTime(500),
           distinctUntilChanged(),
           tap(() => {
-
-            if(!this.clientSideSearchEnabled) {
-              // server-side search
-              if (this.paginator) {
-                this.paginator.pageIndex = 0;
-              }
-              this.loadData();
-            } else {
-              // TODO client-side search
-              // @ts-expect-error not
-              this.dataSource.connect(null).subscribe( data => {
-                console.log(data)
-              });
+            // server-side search
+            if (this.paginator) {
+              this.paginator.pageIndex = 0;
             }
-
+            this.searchFilterStringUpdated.emit(this.input?.nativeElement?.value ?? "");
+            this.loadData();
           })
         )
         .subscribe();
