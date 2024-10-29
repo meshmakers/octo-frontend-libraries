@@ -113,10 +113,11 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Input() currentId = "";
   @Input() rowIsClickable = true;
 
-  @Input() pageSizeOptions= [10, 20, 50];
-  @Input() selectedPageSize = 10;
+  @Input() pageSizeOptions= [5, 10, 20, 50];
+  @Input() selectedPageSize = 5;
 
   @Output() rowClicked = new EventEmitter<any>();
+  @Output() searchFilterStringUpdated = new EventEmitter<string>();
   @Input() selectedRowId = ""
 
   @Output() actionColumnClick = new EventEmitter<{ action: string; id: string }>()
@@ -155,15 +156,17 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   // noinspection JSUnusedGlobalSymbols
   ngAfterViewInit(): void {
     if (this.sort && this.input && this.paginator) {
-      // server-side search
+
       fromEvent(this.input.nativeElement, 'keyup')
         .pipe(
           debounceTime(500),
           distinctUntilChanged(),
           tap(() => {
+            // server-side search
             if (this.paginator) {
               this.paginator.pageIndex = 0;
             }
+            this.searchFilterStringUpdated.emit(this.input?.nativeElement?.value ?? "");
             this.loadData();
           })
         )
