@@ -286,8 +286,8 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   };
 
   // Predicate for rows with actionColumns but no optionActions
-  hasActionColumns = (row: any) => {
-    return this.actionColumns.length > 0 && this.optionActions.length === 0;
+  hasActionColumns = () => {
+    return this.actionColumns.length > 0 || this.optionActions.length > 0;
   };
 
 }

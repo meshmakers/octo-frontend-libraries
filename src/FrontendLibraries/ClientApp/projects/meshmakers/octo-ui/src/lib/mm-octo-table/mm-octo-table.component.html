@@ -21,70 +21,55 @@
   <ng-container *ngFor="let column of dataColumns?.columnNames" [matColumnDef]="column">
     <mat-header-cell *matHeaderCellDef mat-sort-header> {{ column | pascalCase }} </mat-header-cell>
     <mat-cell *matCellDef="let element">
-      @if (isMobile) {
-        <span>{{ column | pascalCase }}:</span>
-      }
+      <span *ngIf="isMobile">{{ column | pascalCase }}:</span>
       {{ accessElement(element, column, dataColumns.accessPaths)}}
     </mat-cell>
   </ng-container>
 
-  <!-- Action Column -->
-  @if (actionColumns.length > 0) {
-    @for (column of actionColumns; track column) {
-      <ng-container matColumnDef="{{ column.columnName }}">
-        <mat-header-cell *matHeaderCellDef></mat-header-cell>
-        <mat-cell *matCellDef="let element">
+  <!-- Consolidated Action Column with multiple buttons -->
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      @for (column of actionColumns; track column) {
+          <ng-container>
           <button mat-button (click)="emitRowData({action: column.columnName, id: encodeURIComponent(element[currentId]), entry: element})">
-            @if(column?.svgIconName) {
-              <mat-icon class="svg-icon" svgIcon="{{ column.svgIconName }}" matListItemIcon></mat-icon>
-            }
-            @if (column?.iconName) {
-              <mat-icon class="material-symbols-outlined">{{ column.iconName }}</mat-icon>
-            }
+            <mat-icon *ngIf="column?.svgIconName" class="svg-icon" svgIcon="{{ column.svgIconName }}" matListItemIcon></mat-icon>
+            <mat-icon *ngIf="column?.iconName" class="material-symbols-outlined">{{ column.iconName }}</mat-icon>
           </button>
-        </mat-cell>
-      </ng-container>
-    }
-  }
+        </ng-container>
+      }
 
-  <!-- Options Column with more_vert button and mat-menu -->
-  @if (optionActions.length > 0) {
-    <ng-container matColumnDef="options">
-      <mat-header-cell *matHeaderCellDef></mat-header-cell>
-      <mat-cell *matCellDef="let element">
-        <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Options">
+      <!-- Options menu with additional actions -->
+      @if (optionActions.length > 0) {
+        <button   mat-icon-button [matMenuTriggerFor]="menu" aria-label="Options">
           <mat-icon class="material-symbols-outlined">more_vert</mat-icon>
         </button>
+      }
 
-        <!-- Define mat-menu -->
-        <mat-menu #menu="matMenu">
-          @for (optionAction of optionActions; track optionAction) {
-            <button mat-menu-item (click)="emitRowData({action: optionAction.columnName, id: encodeURIComponent(element[currentId]), entry: element})">
-              @if(optionAction?.svgIconName) {
-                <mat-icon class="svg-icon" svgIcon="{{ optionAction.svgIconName }}" matListItemIcon></mat-icon>
-              }
-              @if (optionAction?.iconName) {
-                <mat-icon class="material-symbols-outlined">{{ optionAction.iconName }}</mat-icon>
-              }
-              {{ optionAction.columnName | pascalCase }}
-            </button>
-          }
-        </mat-menu>
-      </mat-cell>
-    </ng-container>
-  }
+      <mat-menu #menu="matMenu">
+        @for (optionAction of optionActions; track optionAction) {
+        <ng-container>
+          <button mat-menu-item (click)="emitRowData({action: optionAction.columnName, id: encodeURIComponent(element[currentId]), entry: element})">
+            @if(optionAction?.svgIconName) {
+              <mat-icon class="svg-icon" svgIcon="{{ optionAction.svgIconName }}" matListItemIcon></mat-icon>
+            }
+            @if (optionAction?.iconName) {
+              <mat-icon class="material-symbols-outlined">{{ optionAction.iconName }}</mat-icon>
+            }
+            {{ optionAction.columnName | pascalCase }}
+          </button>
+        </ng-container>
+        }
+      </mat-menu>
+    </mat-cell>
+  </ng-container>
 
-  <!-- Define row templates with when predicates to avoid multiple default rows -->
-  <mat-header-row *matHeaderRowDef="dataColumns?.columnNames?.concat(getActionColumnNames(), optionActions.length > 0 ? ['options'] : [])"></mat-header-row>
-
-  <!-- Row when there are optionActions -->
-  <mat-row *matRowDef="let row; columns: dataColumns?.columnNames?.concat(getActionColumnNames(), optionActions.length > 0 ? ['options'] : []); when: hasOptionActions"></mat-row>
-
-  <!-- Row when there are actionColumns but no options -->
-  <mat-row *matRowDef="let row; columns: dataColumns?.columnNames?.concat(getActionColumnNames()); when: hasActionColumns"></mat-row>
-
-  <!-- Default row when there are no optionActions or actionColumns -->
-  <mat-row *matRowDef="let row; columns: dataColumns?.columnNames"></mat-row>
+  <!-- Row when there are actions -->
+   @if (hasActionColumns()) {
+      <mat-row *matRowDef="let row; columns: dataColumns?.columnNames?.concat(['actions'])"></mat-row>
+    } @else {
+      <mat-row *matRowDef="let row; columns: dataColumns?.columnNames"></mat-row>
+   }
 
 </mat-table>
 
