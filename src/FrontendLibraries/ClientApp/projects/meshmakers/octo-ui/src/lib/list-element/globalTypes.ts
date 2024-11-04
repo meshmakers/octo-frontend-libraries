@@ -18,20 +18,23 @@ export type Scalars = {
   BigInt: { input: any; output: any; }
   CkAttributeId: { input: string; output: string; }
   CkEnumId: { input: string; output: string; }
+  CkModelId: { input: any; output: any; }
   CkRecordId: { input: string; output: string; }
   CkTypeId: { input: string; output: string; }
   DateTime: { input: any; output: any; }
   Decimal: { input: any; output: any; }
   LargeBinary: { input: any; output: any; }
   OctoObjectId: { input: string; output: string; }
-  SimpleScalarType: { input: any; output: any; }
+  Seconds: { input: any; output: any; }
+  SimpleScalar: { input: any; output: any; }
+  ULong: { input: any; output: any; }
   Uri: { input: any; output: any; }
 };
 
 export type FieldFilterDto = {
-  attributeName: Scalars['String']['input']
-  comparisonValue?: InputMaybe<Scalars['SimpleScalarType']['input']>;
-  operator?: InputMaybe<FieldFilterOperatorsDto>;
+  attributeName: Scalars['String']['input'];
+  comparisonValue?: InputMaybe<Scalars['SimpleScalar']['input']>;
+  operator: FieldFilterOperatorsDto;
 };
 
 /** Defines the operator of field compare */
@@ -44,6 +47,7 @@ export enum FieldFilterOperatorsDto {
   LessEqualThanDto = 'LESS_EQUAL_THAN',
   LessThanDto = 'LESS_THAN',
   LikeDto = 'LIKE',
+  MatchDto = 'MATCH',
   MatchRegExDto = 'MATCH_REG_EX',
   NotEqualsDto = 'NOT_EQUALS',
   NotInDto = 'NOT_IN'

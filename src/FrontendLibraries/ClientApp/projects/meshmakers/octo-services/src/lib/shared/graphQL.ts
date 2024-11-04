@@ -12,4 +12,5 @@ export class GraphQL {
   }
 }
 
+export const GraphQLCommonIgnoredProperties = ['__typename'];
 export const GraphQLCloneIgnoredProperties = ['id', 'rtId', 'ckTypeId', '__typename'];
