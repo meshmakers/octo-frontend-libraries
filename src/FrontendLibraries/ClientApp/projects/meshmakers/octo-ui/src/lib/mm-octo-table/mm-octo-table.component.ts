@@ -1,38 +1,35 @@
 import { Component, ElementRef, Input, ViewChild, OnInit, AfterViewInit, Output, EventEmitter } from "@angular/core";
 import { MatPaginator, PageEvent } from "@angular/material/paginator";
 import { MatSort, MatSortHeader } from '@angular/material/sort';
-import { BehaviorSubject, fromEvent, merge } from 'rxjs';
+import { BehaviorSubject, fromEvent, merge, Observable } from "rxjs";
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 
-import { AsyncPipe, NgClass, NgForOf, NgIf, TitleCasePipe } from "@angular/common";
+import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import {
   MatCell,
   MatCellDef,
   MatColumnDef,
   MatHeaderCell,
-  MatHeaderCellDef,
-  MatHeaderRow,
-  MatHeaderRowDef,
+  MatHeaderCellDef, MatHeaderRow, MatHeaderRowDef,
   MatRow,
   MatRowDef,
   MatTable
-} from '@angular/material/table';
+} from "@angular/material/table";
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatToolbar } from '@angular/material/toolbar';
-import { RouterLink } from '@angular/router';
 
 
 // pascal-case.pipe.ts
 import { Pipe, PipeTransform } from '@angular/core';
-import { MatTooltip } from "@angular/material/tooltip";
 import { NewGraphQlDataSource } from "../list-element/newGraphQlDataSource";
 import { SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from "../list-element/globalTypes";
-import { MatDivider } from "@angular/material/divider";
 import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
+import { MatListItemIcon } from "@angular/material/list";
+import { RouterLink } from "@angular/router";
 
 @Pipe({
   standalone: true,
@@ -56,6 +53,13 @@ export interface ActionColumn {
   svgIconName?: string;
 }
 
+export interface ToolbarAction {
+  iconName?: string;
+  svgIconName?: string;
+  route?: string;
+  actionText: string;
+  isDisabled?: Observable<boolean>;
+}
 
 @Component({
   selector: 'mm-octo-table',
@@ -68,8 +72,6 @@ export interface ActionColumn {
     MatColumnDef,
     MatFormField,
     MatHeaderCell,
-    MatHeaderRow,
-    MatHeaderRowDef,
     MatIcon,
     MatInput,
     MatLabel,
@@ -82,22 +84,24 @@ export interface ActionColumn {
     MatTable,
     MatToolbar,
     NgIf,
-    RouterLink,
     MatHeaderCellDef,
     NgForOf,
-    TitleCasePipe,
-    NgClass,
     PascalCasePipe,
-    MatTooltip,
-    MatDivider,
     MatIcon,
     MatIconButton,
     MatMenu,
     MatMenuItem,
-    MatTooltip,
-    RouterLink,
     MatMenuTrigger,
     MatIcon,
+    MatIcon,
+    MatListItemIcon,
+    MatHeaderRow,
+    MatHeaderRowDef,
+    MatHeaderRow,
+    MatHeaderRowDef,
+    MatButton,
+    MatIcon,
+    RouterLink,
     MatIcon
   ],
   templateUrl: './mm-octo-table.component.html',
@@ -107,10 +111,12 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Input() dataSource!: NewGraphQlDataSource<any, any, any>;
   @Input() dataColumns: DataColumns =  { columnNames: [], accessPaths: {} };
   @Input() actionColumns: ActionColumn[] = [];
+  @Input() leftToolbarActions: ToolbarAction[] = [];
   @Input() optionActions: ActionColumn[] = [];
   @Input() searchFilterColumns: string[] = [];
   @Input() currentRoute = "";
   @Input() currentId = "";
+  @Input() defaultSortColumn = "";
   @Input() rowIsClickable = true;
 
   @Input() pageSizeOptions= [5, 10, 20, 50];
@@ -120,7 +126,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Output() searchFilterStringUpdated = new EventEmitter<string>();
   @Input() selectedRowId = ""
 
-  @Output() actionColumnClick = new EventEmitter<{ action: string; id: string }>()
+  @Output() actionColumnClick = new EventEmitter<{ action: string; id: string, entry: any }>()
 
   selectedRow: any = null;  // Track the selected row
 
@@ -289,5 +295,4 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   hasActionColumns = () => {
     return this.actionColumns.length > 0 || this.optionActions.length > 0;
   };
-
 }
