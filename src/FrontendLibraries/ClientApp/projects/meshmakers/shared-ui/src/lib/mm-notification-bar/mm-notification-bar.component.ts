@@ -4,6 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MmMessageDetailsComponent } from '../mm-message-details/mm-message-details.component';
 
 @Component({
+  standalone: false,
   selector: 'mm-notification-bar',
   templateUrl: './mm-notification-bar.component.html',
   styleUrls: ['./mm-notification-bar.component.scss']

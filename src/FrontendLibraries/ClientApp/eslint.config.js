@@ -2,6 +2,7 @@
 const eslint = require("@eslint/js");
 const tseslint = require("typescript-eslint");
 const angular = require("angular-eslint");
+const unusedImports = require("eslint-plugin-unused-imports");
 
 module.exports = tseslint.config(
   {
@@ -10,6 +11,9 @@ module.exports = tseslint.config(
       "src/app/graphQL/**.*",
       "src/environments/version.ts"
     ],
+    plugins: {
+      "unused-imports": unusedImports,
+    },
     extends: [
       eslint.configs.recommended,
       ...tseslint.configs.recommended,
@@ -18,6 +22,7 @@ module.exports = tseslint.config(
     ],
     processor: angular.processInlineTemplates,
     rules: {
+      "unused-imports/no-unused-imports": "error",
       "@angular-eslint/directive-selector": [
         "error",
         {
@@ -40,11 +45,23 @@ module.exports = tseslint.config(
           "allowShortCircuit": true
         }
       ],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "args": "all",
+          "argsIgnorePattern": "^_",
+          "caughtErrors": "all",
+          "caughtErrorsIgnorePattern": "^_",
+          "destructuredArrayIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+          "ignoreRestSiblings": true
+        }
+      ],
       // To be fixed:
-      "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-empty-function": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "@angular-eslint/no-empty-lifecycle-method": "off",
+      "@angular-eslint/prefer-standalone": "off",
       "no-empty": "off",
     },
   }

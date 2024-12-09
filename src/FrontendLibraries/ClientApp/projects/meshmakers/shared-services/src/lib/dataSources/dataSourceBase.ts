@@ -56,11 +56,11 @@ export class DataSourceBase<TDto> implements DataSource<TDto> {
   }
 
 
-  connect(collectionViewer: CollectionViewer): Observable<readonly TDto[]> {
+  connect(_: CollectionViewer): Observable<readonly TDto[]> {
     return this.dataSubject.asObservable();
   }
 
-  disconnect(collectionViewer: CollectionViewer): void {
+  disconnect(_: CollectionViewer): void {
     this.clear();
   }
 

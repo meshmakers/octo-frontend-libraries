@@ -5,6 +5,7 @@ import { filter, map } from 'rxjs/operators';
 import { BreadcrumbData } from "../services/breadcrumbData";
 
 @Component({
+  standalone: false,
   selector: 'mm-breadcrumb',
   templateUrl: './mm-breadcrumb.component.html',
   styleUrl: './mm-breadcrumb.component.css'

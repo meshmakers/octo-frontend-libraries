@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType} from "../models/confirmation";
 
 @Component({
+  standalone: false,
   selector: 'mm-confirmation-window',
   templateUrl: './mm-confirmation-window.component.html',
   styleUrls: ['./mm-confirmation-window.component.css']

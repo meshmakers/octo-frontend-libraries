@@ -15,12 +15,15 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/test-app",
+            "outputPath": {
+              "base": "dist/test-app"
+            },
             "index": "projects/test-app/src/index.html",
-            "main": "projects/test-app/src/main.ts",
-            "polyfills": "projects/test-app/src/polyfills.ts",
+            "polyfills": [
+              "projects/test-app/src/polyfills.ts"
+            ],
             "tsConfig": "projects/test-app/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -31,14 +34,15 @@
               "@angular/material/prebuilt-themes/purple-green.css",
               "projects/test-app/src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "browser": "projects/test-app/src/main.ts"
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
+                  "maximumWarning": "1.1mb",
                   "maximumError": "2mb"
                 },
                 {
@@ -56,9 +60,7 @@
               "outputHashing": "all"
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true

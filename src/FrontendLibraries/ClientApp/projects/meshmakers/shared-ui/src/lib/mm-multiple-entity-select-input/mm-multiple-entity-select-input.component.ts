@@ -32,6 +32,7 @@ import { MatFormFieldControl } from '@angular/material/form-field';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
 @Component({
+  standalone: false,
   selector: 'mm-multiple-entity-select',
   templateUrl: './mm-multiple-entity-select-input.component.html',
   styleUrls: ['./mm-multiple-entity-select-input.component.css'],
