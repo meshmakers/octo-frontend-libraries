@@ -4,7 +4,6 @@ import { FileUploadData, FileUploadResult } from "../models/confirmation";
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 @Component({
-  standalone: false,
   selector: 'mm-mm-file-upload',
   templateUrl: './mm-file-upload.component.html',
   styleUrl: './mm-file-upload.component.css'

@@ -12,11 +12,11 @@ export class GenericDataSource<TEntity> implements DataSource<TEntity> {
     this.dataSubject.next(this.data);
   }
 
-  connect(_: CollectionViewer): Observable<TEntity[]> {
+  connect(collectionViewer: CollectionViewer): Observable<TEntity[]> {
     return this.dataSubject.asObservable();
   }
 
-  disconnect(_: CollectionViewer): void {
+  disconnect(collectionViewer: CollectionViewer): void {
     this.dataSubject.complete();
   }
 }

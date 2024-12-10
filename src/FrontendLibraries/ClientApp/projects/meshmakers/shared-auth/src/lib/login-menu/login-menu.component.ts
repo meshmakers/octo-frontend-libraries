@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthorizeService } from '../authorize.service';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'mm-login-menu',
-  standalone: false,
   templateUrl: './login-menu.component.html',
   styleUrls: ['./login-menu.component.css']
 })
@@ -36,7 +35,5 @@ export class LoginMenuComponent implements OnInit {
     this.authorizeService.logout();
   }
 
-  public register(): void {
-    // Intentionally left blank
-  }
+  public register(): void {}
 }

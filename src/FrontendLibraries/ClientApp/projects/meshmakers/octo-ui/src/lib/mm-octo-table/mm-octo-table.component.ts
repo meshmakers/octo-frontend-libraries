@@ -8,10 +8,12 @@ import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import {
   MatCell,
+  MatCellDef,
   MatColumnDef,
   MatHeaderCell,
-  MatHeaderRow,
+  MatHeaderCellDef, MatHeaderRow, MatHeaderRowDef,
   MatRow,
+  MatRowDef,
   MatTable
 } from "@angular/material/table";
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -66,6 +68,7 @@ export interface ToolbarAction {
     AsyncPipe,
     MatButton,
     MatCell,
+    MatCellDef,
     MatColumnDef,
     MatFormField,
     MatHeaderCell,
@@ -75,11 +78,13 @@ export interface ToolbarAction {
     MatPaginator,
     MatProgressBar,
     MatRow,
+    MatRowDef,
     MatSort,
     MatSortHeader,
     MatTable,
     MatToolbar,
     NgIf,
+    MatHeaderCellDef,
     NgForOf,
     PascalCasePipe,
     MatIcon,
@@ -91,7 +96,9 @@ export interface ToolbarAction {
     MatIcon,
     MatListItemIcon,
     MatHeaderRow,
+    MatHeaderRowDef,
     MatHeaderRow,
+    MatHeaderRowDef,
     MatButton,
     MatIcon,
     RouterLink,
@@ -234,7 +241,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
         result = result[p];
       }
       return result;
-    } catch (_) {
+    } catch (e) {
       //console.log(`Error accessing element: ${e}`);
       return "NONE";
     }
@@ -280,7 +287,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
 
 
   // Predicate for rows with optionActions
-  hasOptionActions = (_: any) => {
+  hasOptionActions = (row: any) => {
     return this.optionActions.length > 0;
   };
 
