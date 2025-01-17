@@ -43,33 +43,28 @@ steps:
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-services'
     libName: 'shared-services'
-    isRelease: ${{ variables.isRelease }}
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: 'build:shared-auth'
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-auth'
     libName: 'shared-auth'
-    isRelease: ${{ variables.isRelease }}
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: ' build:shared-ui'
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-ui'
     libName: 'shared-ui'
-    isRelease: ${{ variables.isRelease }}
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: ' build:octo-services'
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/octo-services'
     libName: 'octo-services'
-    isRelease: ${{ variables.isRelease }}
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: ' build:octo-ui'
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/octo-ui'
     libName: 'octo-ui'
-    isRelease: ${{ variables.isRelease }}
 - template: handle-artifacts.yml
