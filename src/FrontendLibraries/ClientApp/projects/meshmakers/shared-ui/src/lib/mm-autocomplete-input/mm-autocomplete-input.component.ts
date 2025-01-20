@@ -31,7 +31,6 @@ import { FocusMonitor } from "@angular/cdk/a11y";
 import { AutoCompleteDataSource } from "@meshmakers/shared-services";
 
 @Component({
-  standalone: false,
   selector: "mm-autocomplete",
   templateUrl: "./mm-autocomplete-input.component.html",
   styleUrls: ["./mm-autocomplete-input.component.css"],

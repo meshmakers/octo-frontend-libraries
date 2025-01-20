@@ -1,10 +1,9 @@
 @use '@angular/material' as mat;
 @use './styles/octo-theme';
 @use "sass:string";
-@use 'material-symbols';
 
 @include mat.core();
-
+@import 'material-symbols';
 
 @mixin theme($theme) {
 

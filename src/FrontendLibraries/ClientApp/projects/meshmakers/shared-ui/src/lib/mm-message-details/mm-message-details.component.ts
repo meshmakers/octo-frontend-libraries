@@ -3,7 +3,6 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ErrorMessage } from '@meshmakers/shared-services';
 
 @Component({
-  standalone: false,
   selector: 'mm-message-details',
   templateUrl: './mm-message-details.component.html',
   styleUrls: ['./mm-message-details.component.css']

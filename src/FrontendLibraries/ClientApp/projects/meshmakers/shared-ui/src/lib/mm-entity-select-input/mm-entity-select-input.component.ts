@@ -23,15 +23,14 @@ import {
 } from "@angular/forms";
 import { MatFormFieldControl } from "@angular/material/form-field";
 import { MatInput } from "@angular/material/input";
-import { EntitySelectDataSource, } from "@meshmakers/shared-services";
-import { Subject } from "rxjs";
+import { EntitySelectDataSource, PagedResultDto } from "@meshmakers/shared-services";
+import { of, Subject } from "rxjs";
 import { FocusMonitor } from "@angular/cdk/a11y";
-import { debounceTime, filter, tap } from "rxjs/operators";
+import { catchError, debounceTime, filter, switchMap, tap } from "rxjs/operators";
 import { MatAutocompleteActivatedEvent, MatAutocompleteSelectedEvent } from "@angular/material/autocomplete";
 import { coerceBooleanProperty } from "@angular/cdk/coercion";
 
 @Component({
-  standalone: false,
   selector: "mm-entity-select",
   templateUrl: "./mm-entity-select-input.component.html",
   styleUrls: ["./mm-entity-select-input.component.css"],
