@@ -243,7 +243,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
         result = result[p];
       }
       return result;
-    } catch (e) {
+    } catch  {
       //console.log(`Error accessing element: ${e}`);
       return "NONE";
     }
@@ -289,7 +289,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
 
 
   // Predicate for rows with optionActions
-  hasOptionActions = (row: any) => {
+  hasOptionActions = (_row: any) => {
     return this.optionActions.length > 0;
   };
 

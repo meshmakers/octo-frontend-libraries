@@ -33,6 +33,7 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
 @Component({
   selector: 'mm-multiple-entity-select',
+  standalone: false,
   templateUrl: './mm-multiple-entity-select-input.component.html',
   styleUrls: ['./mm-multiple-entity-select-input.component.css'],
   host: {

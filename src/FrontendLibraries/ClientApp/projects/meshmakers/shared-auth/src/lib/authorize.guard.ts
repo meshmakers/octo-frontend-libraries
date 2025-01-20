@@ -26,19 +26,19 @@ export class AuthorizeGuard {
   }
 
   canDeactivate(
-    component: unknown,
-    currentRoute: ActivatedRouteSnapshot,
-    currentState: RouterStateSnapshot,
-    nextState?: RouterStateSnapshot
+    _component: unknown,
+    _currentRoute: ActivatedRouteSnapshot,
+    _currentState: RouterStateSnapshot,
+    _nextState?: RouterStateSnapshot
   ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     return true;
   }
 
-  canLoad(route: Route, segments: UrlSegment[]): Observable<boolean> | Promise<boolean> | boolean {
+  canLoad(_route: Route, _segments: UrlSegment[]): Observable<boolean> | Promise<boolean> | boolean {
     return true;
   }
 
-  private async handleAuthorization(route: ActivatedRouteSnapshot, url: any): Promise<boolean> {
+  private async handleAuthorization(route: ActivatedRouteSnapshot, _url: any): Promise<boolean> {
     const isAuthenticated = await firstValueFrom(this.authorizeService.getIsAuthenticated());
     if (isAuthenticated) {
       const userRoles = await firstValueFrom(this.authorizeService.getRoles());

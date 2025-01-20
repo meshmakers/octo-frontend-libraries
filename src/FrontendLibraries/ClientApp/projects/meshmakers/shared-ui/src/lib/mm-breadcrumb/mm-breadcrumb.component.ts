@@ -6,6 +6,7 @@ import { BreadcrumbData } from "../services/breadcrumbData";
 
 @Component({
   selector: 'mm-breadcrumb',
+  standalone: false,
   templateUrl: './mm-breadcrumb.component.html',
   styleUrl: './mm-breadcrumb.component.css'
 })

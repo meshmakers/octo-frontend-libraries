@@ -4,6 +4,7 @@ import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogTyp
 
 @Component({
   selector: 'mm-confirmation-window',
+  standalone: false,
   templateUrl: './mm-confirmation-window.component.html',
   styleUrls: ['./mm-confirmation-window.component.css']
 })
