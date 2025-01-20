@@ -7,11 +7,11 @@ import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import {
-  MatCell,
+  MatCell, MatCellDef,
   MatColumnDef,
-  MatHeaderCell,
-  MatHeaderRow,
-  MatRow,
+  MatHeaderCell, MatHeaderCellDef,
+  MatHeaderRow, MatHeaderRowDef,
+  MatRow, MatRowDef,
   MatTable
 } from "@angular/material/table";
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -95,7 +95,11 @@ export interface ToolbarAction {
     MatButton,
     MatIcon,
     RouterLink,
-    MatIcon
+    MatIcon,
+    MatHeaderCellDef,
+    MatCellDef,
+    MatHeaderRowDef,
+    MatRowDef
   ],
   templateUrl: './mm-octo-table.component.html',
   styleUrl: './mm-octo-table.component.scss'
