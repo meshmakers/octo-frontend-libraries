@@ -11,7 +11,6 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.0" />
     </ItemGroup>
     
     <ItemGroup>
