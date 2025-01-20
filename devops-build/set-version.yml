@@ -11,10 +11,12 @@ steps:
     FileVersionNumber: $(BuildNumberLong)
     InformationalVersion: $(Build.BuildNumber)
     PackageVersion: $(BuildNumberLong)
-    DisableTelemetry: true 
+    DisableTelemetry: true
+    Authors: $(Authors)
+    Company: $(Company)
+    Copyright: $(Copyright)
 - task: VersionJSONFile@3
   displayName: Set Version package.json
   inputs:
     versionForJSONFileFormat: '{1}.{2}.{3}-{4}'
-    FilenamePattern: ^package.json
- 
+    FilenamePattern: ^package.json    

@@ -4,6 +4,7 @@ import { ErrorMessage } from '@meshmakers/shared-services';
 
 @Component({
   selector: 'mm-message-details',
+  standalone: false,
   templateUrl: './mm-message-details.component.html',
   styleUrls: ['./mm-message-details.component.css']
 })

@@ -15,6 +15,7 @@ export type ProgressWindowResult = object
 
 @Component({
   selector: 'mm-progress-window',
+  standalone: false,
   templateUrl: './mm-progress-window.component.html',
   styleUrls: ['./mm-progress-window.component.css']
 })

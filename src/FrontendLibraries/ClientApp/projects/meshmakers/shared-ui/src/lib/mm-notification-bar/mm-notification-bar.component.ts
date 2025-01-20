@@ -5,6 +5,7 @@ import { MmMessageDetailsComponent } from '../mm-message-details/mm-message-deta
 
 @Component({
   selector: 'mm-notification-bar',
+  standalone: false,
   templateUrl: './mm-notification-bar.component.html',
   styleUrls: ['./mm-notification-bar.component.scss']
 })

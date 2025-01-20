@@ -32,6 +32,7 @@ import { AutoCompleteDataSource } from "@meshmakers/shared-services";
 
 @Component({
   selector: "mm-autocomplete",
+  standalone: false,
   templateUrl: "./mm-autocomplete-input.component.html",
   styleUrls: ["./mm-autocomplete-input.component.css"],
   host: {

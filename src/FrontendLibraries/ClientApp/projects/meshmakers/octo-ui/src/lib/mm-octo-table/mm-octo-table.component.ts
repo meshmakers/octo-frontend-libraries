@@ -7,13 +7,11 @@ import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { AsyncPipe, NgForOf, NgIf } from "@angular/common";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import {
-  MatCell,
-  MatCellDef,
+  MatCell, MatCellDef,
   MatColumnDef,
-  MatHeaderCell,
-  MatHeaderCellDef, MatHeaderRow, MatHeaderRowDef,
-  MatRow,
-  MatRowDef,
+  MatHeaderCell, MatHeaderCellDef,
+  MatHeaderRow, MatHeaderRowDef,
+  MatRow, MatRowDef,
   MatTable
 } from "@angular/material/table";
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -102,7 +100,11 @@ export interface ToolbarAction {
     MatButton,
     MatIcon,
     RouterLink,
-    MatIcon
+    MatIcon,
+    MatHeaderCellDef,
+    MatCellDef,
+    MatHeaderRowDef,
+    MatRowDef
   ],
   templateUrl: './mm-octo-table.component.html',
   styleUrl: './mm-octo-table.component.scss'
@@ -241,7 +243,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
         result = result[p];
       }
       return result;
-    } catch (e) {
+    } catch  {
       //console.log(`Error accessing element: ${e}`);
       return "NONE";
     }
@@ -287,7 +289,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
 
 
   // Predicate for rows with optionActions
-  hasOptionActions = (row: any) => {
+  hasOptionActions = (_row: any) => {
     return this.optionActions.length > 0;
   };
 

@@ -122,7 +122,7 @@ export class NewGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends IQueryV
       });
   }
 
-  protected executeLoad(value: ApolloQueryResult<TQueryDto>, index: number): PagedResultDto<TDto> {
+  protected executeLoad(_value: ApolloQueryResult<TQueryDto>, _index: number): PagedResultDto<TDto> {
     return new PagedResultDto<TDto>();
   }
 }

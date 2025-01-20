@@ -14,12 +14,17 @@ variables:
   - group: GitSSHGroup
   - group: ApiKeys
   - group: OctoDefault
+  - name: artifactsFrameworkVersion
+    value: 'net9.0'
+  - name: buildConfiguration
+    value: 'Release'
+  - name: buildPlatform
+    value: 'Any CPU'
   - name: isRelease
-    value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/r') }}  
-  - name: MajorVersion
-    value: '0'
-  - name: MinorVersion
-    value: '1'
+    value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/r') }}
+  - name: isMain
+    value: ${{ eq(variables['Build.SourceBranch'], 'refs/heads/main') }}
+    
 
 pool:
   name: Gerald-Local-Linux
@@ -38,32 +43,28 @@ steps:
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-services'
     libName: 'shared-services'
-    isRelease: ${{ variables.isRelease }}
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: 'build:shared-auth'
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-auth'
     libName: 'shared-auth'
-    isRelease: ${{ variables.isRelease }}
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: ' build:shared-ui'
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-ui'
     libName: 'shared-ui'
-    isRelease: ${{ variables.isRelease }}
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: ' build:octo-services'
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/octo-services'
     libName: 'octo-services'
-    isRelease: ${{ variables.isRelease }}
 - template: npm-publish-to-npmjs.yml
   parameters:
     npmCommand: ' build:octo-ui'
     buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
     publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/octo-ui'
     libName: 'octo-ui'
-    isRelease: ${{ variables.isRelease }}
+- template: handle-artifacts.yml
