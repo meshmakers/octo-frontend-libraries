@@ -1,6 +1,6 @@
 <h1 mat-dialog-title>{{data.title}}</h1>
 <div mat-dialog-content>
-  <div fxLayout="column">
+  <div>
     <mat-progress-bar *ngIf="data.isDeterminate" [value]="progressValue" mode="determinate"></mat-progress-bar>
     <mat-progress-bar *ngIf="!data.isDeterminate" mode="indeterminate"></mat-progress-bar>
     <p>{{statusText}}</p>

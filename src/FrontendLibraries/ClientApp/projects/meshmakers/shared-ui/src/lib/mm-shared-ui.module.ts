@@ -25,6 +25,7 @@ import { MmFileUploadComponent } from "./mm-file-upload/mm-file-upload.component
 import { MatListModule } from "@angular/material/list";
 import { RouterLink } from "@angular/router";
 import { MmTableSimpleComponent } from "./mm-table-simple/mm-table-simple.component";
+import { MatProgressBar } from "@angular/material/progress-bar";
 
 @NgModule({
   declarations: [
@@ -63,7 +64,8 @@ import { MmTableSimpleComponent } from "./mm-table-simple/mm-table-simple.compon
     MatIcon,
     MatListModule,
     RouterLink,
-    MmTableSimpleComponent
+    MmTableSimpleComponent,
+    MatProgressBar
   ]
 })
 export class MmSharedUiModule {
