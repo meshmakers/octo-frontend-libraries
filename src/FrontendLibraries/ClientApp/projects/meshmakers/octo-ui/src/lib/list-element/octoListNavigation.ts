@@ -3,7 +3,7 @@ import { MatSort, SortDirection } from '@angular/material/sort';
 import { ElementRef, EventEmitter } from '@angular/core';
 import { fromEvent, merge } from 'rxjs';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
-import { SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from './globalTypes';
+import { SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from "@meshmakers/octo-services";
 
 export class OctoListNavigationDataInfo {
   skip: number;
@@ -20,7 +20,7 @@ export class OctoListNavigationDataInfo {
 export class OctoListNavigationOptions {
   language: string | null;
   searchFilterType?: SearchFilterTypesDto;
-  searchFilterAttributeNames?: string[];
+  searchFilterAttributePaths?: string[];
 
   constructor() {
     this.language = null;
@@ -56,14 +56,14 @@ export class OctoListNavigation {
         language: this.octoOptions.language,
         searchTerm: filterString,
         type: this.octoOptions.searchFilterType,
-        attributeNames: this.octoOptions.searchFilterAttributeNames
+        attributePaths: this.octoOptions.searchFilterAttributePaths
       } as SearchFilterDto;
     }
 
     const sort = [];
     if (sortField && sortDirection) {
       sort.push(({
-        attributeName: sortField,
+        attributePath: sortField,
         sortOrder: sortDirection === 'asc' ? SortOrdersDto.AscendingDto : SortOrdersDto.DescendingDto
       } as SortDto));
     }

@@ -1,10 +1,9 @@
-import { map, of, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { map, Subscription } from 'rxjs';
 import { DataSourceBase, MessageService, PagedResultDto } from '@meshmakers/shared-services';
-import { FieldFilterDto, InputMaybe, SearchFilterDto, SortDto } from './globalTypes';
+import { FieldFilterDto, InputMaybe, SearchFilterDto, SortDto } from '../shared/globalTypes';
 import { Query, QueryRef } from 'apollo-angular';
 import type { ApolloQueryResult, OperationVariables } from '@apollo/client/core';
-import { GraphQL } from '@meshmakers/octo-services';
+import { GraphQL } from "../shared/graphQL";
 
 export interface IQueryVariablesDto extends OperationVariables {
   first?: number | null | undefined;
@@ -34,7 +33,7 @@ export abstract class GraphQlDataSource<TDto> extends DataSourceBase<TDto> {
   ): void;
 }
 
-export class NewGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends IQueryVariablesDto> extends GraphQlDataSource<TDto> {
+export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends IQueryVariablesDto> extends GraphQlDataSource<TDto> {
   private queryRef: QueryRef<TQueryDto, TVariablesDto> | null;
   private subscription: Subscription | null;
 
@@ -106,19 +105,17 @@ export class NewGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends IQueryV
     this.clear();
 
     const variables = this.createVariables(skip, take, searchFilter, fieldFilter, sort);
-    this.queryRef = this.query.watch(variables);
+    this.queryRef = this.query.watch(variables, { errorPolicy: 'all' });
 
     this.subscription = this.queryRef.valueChanges
-      .pipe(map((v, i) => this.executeLoad(v, i)))
       .pipe(
-        catchError((error: string) => {
-          this.messageService.showError(error, 'Error during load of data');
-
-          return of(new PagedResultDto<TDto>());
-        })
-      )
-      .subscribe((pagedResult) => {
-        super.onCompleteLoad(pagedResult);
+        map((v, i) => this.executeLoad(v, i)))
+     .subscribe({
+        next: (pagedResult) => super.onCompleteLoad(pagedResult),
+        error: (e) => {
+          this.messageService.showErrorWithDetails(e);
+          super.onCompleteLoad(new PagedResultDto<TDto>());
+        }
       });
   }
 

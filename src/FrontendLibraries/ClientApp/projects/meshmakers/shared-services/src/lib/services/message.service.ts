@@ -38,6 +38,18 @@ export class MessageService {
     this.latestErrorMessage.next(errorMessage);
   }
 
+  showErrorWithDetails(error: any): void {
+    if (error instanceof Error) {
+      this.showError(error.message, 'Error');
+    } else if (error === 'string') {
+      this.showError(error, 'Error');
+    } else if (error instanceof Object) {
+      this.showError(JSON.stringify(error), 'Error');
+    } else {
+      this.showError('Unknown error', 'Error');
+    }
+  }
+
   showErrorMessage(message: string): void {
     console.error(message);
 

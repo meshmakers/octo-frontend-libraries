@@ -32,7 +32,7 @@ export type Scalars = {
 };
 
 export type FieldFilterDto = {
-  attributeName: Scalars['String']['input'];
+  attributePath: Scalars['String']['input'];
   comparisonValue?: InputMaybe<Scalars['SimpleScalar']['input']>;
   operator: FieldFilterOperatorsDto;
 };
@@ -40,6 +40,7 @@ export type FieldFilterDto = {
 /** Defines the operator of field compare */
 export enum FieldFilterOperatorsDto {
   AnyEqDto = 'ANY_EQ',
+  AnyLikeDto = 'ANY_LIKE',
   EqualsDto = 'EQUALS',
   GreaterEqualThanDto = 'GREATER_EQUAL_THAN',
   GreaterThanDto = 'GREATER_THAN',
@@ -47,7 +48,6 @@ export enum FieldFilterOperatorsDto {
   LessEqualThanDto = 'LESS_EQUAL_THAN',
   LessThanDto = 'LESS_THAN',
   LikeDto = 'LIKE',
-  MatchDto = 'MATCH',
   MatchRegExDto = 'MATCH_REG_EX',
   NotEqualsDto = 'NOT_EQUALS',
   NotInDto = 'NOT_IN'
@@ -55,7 +55,7 @@ export enum FieldFilterOperatorsDto {
 
 
 export type SearchFilterDto = {
-  attributeNames?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  attributePaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   language?: InputMaybe<Scalars['String']['input']>;
   searchTerm: Scalars['String']['input'];
   type?: InputMaybe<SearchFilterTypesDto>;
@@ -68,7 +68,7 @@ export enum SearchFilterTypesDto {
 }
 
 export type SortDto = {
-  attributeName: Scalars['String']['input'];
+  attributePath: Scalars['String']['input'];
   sortOrder?: InputMaybe<SortOrdersDto>;
 };
 

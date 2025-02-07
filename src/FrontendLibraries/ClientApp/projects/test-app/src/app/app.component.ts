@@ -2,11 +2,11 @@ import { Component } from "@angular/core";
 import { FileUploadService } from "@meshmakers/shared-ui";
 import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
 import { firstValueFrom, Observable } from "rxjs";
-import { NewGraphQlDataSource } from "@meshmakers/octo-ui";
 import { CollectionViewer } from "@angular/cdk/collections";
+import { AssetRepoGraphQlDataSource } from "@meshmakers/octo-services";
 
 
-class TestNewGraphQlDataSource extends NewGraphQlDataSource<any, any, any> {
+class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any, any> {
   private dataColumns: any[] = [];
 
   constructor(messageService: any, query: any, defaultSort: any, dataColumns: any = null) {
@@ -15,7 +15,7 @@ class TestNewGraphQlDataSource extends NewGraphQlDataSource<any, any, any> {
     this.dataColumns = dataColumns;
   }
 
-  override connect(collectionViewer: CollectionViewer): Observable<any[]> {
+  override connect(_: CollectionViewer): Observable<any[]> {
 
     // return dummy data
     return  new Observable<any[]>(subscriber => {
@@ -35,11 +35,11 @@ class TestNewGraphQlDataSource extends NewGraphQlDataSource<any, any, any> {
 })
 export class AppComponent {
   title = "test-app";
-  mmOctoTableDataSource: NewGraphQlDataSource<any, any, any> = new TestNewGraphQlDataSource(null, null, null,[{id: 1, name: 'test1'}, {id: 2, name: 'test2'},  {id: 3, name: 'test3'} , {id: 4, name: 'test4'},  {id: 5, name: 'test5'} ,  {id: 6, name: 'test6'} ,  {id: 7, name: 'test7'} ,  {id: 8, name: 'test8'} ,  {id: 9, name: 'test9'} ,  {id: 10, name: 'test10'}]);
+  mmOctoTableDataSource: AssetRepoGraphQlDataSource<any, any, any> = new TestAssetRepoGraphQlDataSource(null, null, null,[{id: 1, name: 'test1'}, {id: 2, name: 'test2'},  {id: 3, name: 'test3'} , {id: 4, name: 'test4'},  {id: 5, name: 'test5'} ,  {id: 6, name: 'test6'} ,  {id: 7, name: 'test7'} ,  {id: 8, name: 'test8'} ,  {id: 9, name: 'test9'} ,  {id: 10, name: 'test10'}]);
 
   // based on this    columnNames: ['ckTypeId', 'baseType', 'isAbstract', 'isFinal'],
   //             accessPaths: {'baseType': 'baseType.ckTypeId'}
-  mmOctoTableAdvancedDataSource: NewGraphQlDataSource<any, any, any> = new TestNewGraphQlDataSource(null, null, null, [{ckTypeId: 'test1', baseType: {ckTypeId: 'test2'}, isAbstract: true, isFinal: false}]);
+  mmOctoTableAdvancedDataSource: AssetRepoGraphQlDataSource<any, any, any> = new TestAssetRepoGraphQlDataSource(null, null, null, [{ckTypeId: 'test1', baseType: {ckTypeId: 'test2'}, isAbstract: true, isFinal: false}]);
 
   constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient) {
   }

@@ -23,11 +23,10 @@ import { MatToolbar } from '@angular/material/toolbar';
 
 // pascal-case.pipe.ts
 import { Pipe, PipeTransform } from '@angular/core';
-import { NewGraphQlDataSource } from "../list-element/newGraphQlDataSource";
-import { SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from "../list-element/globalTypes";
 import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { MatListItemIcon } from "@angular/material/list";
 import { RouterLink } from "@angular/router";
+import { AssetRepoGraphQlDataSource, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from "@meshmakers/octo-services";
 
 @Pipe({
   standalone: true,
@@ -110,7 +109,7 @@ export interface ToolbarAction {
   styleUrl: './mm-octo-table.component.scss'
 })
 export class MmOctoTableComponent implements OnInit, AfterViewInit {
-  @Input() dataSource!: NewGraphQlDataSource<any, any, any>;
+  @Input() dataSource!: AssetRepoGraphQlDataSource<any, any, any>;
   @Input() dataColumns: DataColumns =  { columnNames: [], accessPaths: {} };
   @Input() actionColumns: ActionColumn[] = [];
   @Input() leftToolbarActions: ToolbarAction[] = [];
@@ -215,7 +214,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
     const sort = [];
     if (field) {
       sort.push(({
-        attributeName: field,
+        attributePath: field,
         sortOrder: direction === 'asc' ? SortOrdersDto.AscendingDto : SortOrdersDto.DescendingDto
       } as SortDto));
     }
