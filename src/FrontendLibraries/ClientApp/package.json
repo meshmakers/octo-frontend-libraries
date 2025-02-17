@@ -39,7 +39,7 @@
     "@angular/platform-browser-dynamic": "^19.1.5",
     "@angular/router": "^19.1.5",
     "angular-oauth2-oidc": "^19.0.0",
-    "apollo-angular": "^8.0.2",
+    "apollo-angular": "9.0.0-rc-20250217063714-b8b937afdf37b767791c54a6259571a39fd7f648",
     "aspnet-prerendering": "^3.0.1",
     "date-fns": "^4.1.0",
     "material-symbols": "^0.28.1",

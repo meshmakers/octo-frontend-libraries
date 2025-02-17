@@ -4,7 +4,7 @@
   "peerDependencies": {
     "@angular/common": "^19.1.2",
     "@angular/core": "^19.1.2",
-    "apollo-angular": "^8.0.2"
+    "apollo-angular": "9.0.0-rc-20250217063714-b8b937afdf37b767791c54a6259571a39fd7f648"
   },
   "dependencies": {
     "tslib": "^2.6.3"
