@@ -27,6 +27,7 @@ import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { MatListItemIcon } from "@angular/material/list";
 import { RouterLink } from "@angular/router";
 import { AssetRepoGraphQlDataSource, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from "@meshmakers/octo-services";
+import { ColumnDefinition, getDisplayName, TableColumn } from "./mm-octo-table.model";
 
 @Pipe({
   standalone: true,
@@ -37,11 +38,6 @@ export class PascalCasePipe implements PipeTransform {
     if (!value) return value;
     return value.charAt(0).toUpperCase() + value.slice(1);
   }
-}
-
-export interface DataColumns {
-  columnNames: string[];
-  accessPaths: Record<string, string>
 }
 
 export interface ActionColumn {
@@ -110,12 +106,11 @@ export interface ToolbarAction {
 })
 export class MmOctoTableComponent implements OnInit, AfterViewInit {
   @Input() dataSource!: AssetRepoGraphQlDataSource<any, any, any>;
-  @Input() dataColumns: DataColumns =  { columnNames: [], accessPaths: {} };
+
   @Input() actionColumns: ActionColumn[] = [];
   @Input() leftToolbarActions: ToolbarAction[] = [];
   @Input() optionActions: ActionColumn[] = [];
   @Input() searchFilterColumns: string[] = [];
-  @Input() currentRoute = "";
   @Input() currentId = "";
   @Input() defaultSortColumn = "";
   @Input() rowIsClickable = true;
@@ -129,14 +124,40 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
 
   @Output() actionColumnClick = new EventEmitter<{ action: string; id: string, entry: any }>()
 
+  @Input() set columns(cols: ColumnDefinition[]){
+    if(cols === null || cols === undefined || cols.length === 0) {
+      this._columns = [];
+      return;
+    }
+
+    this._columns = [];
+
+    for (const column of cols) {
+      if(typeof column === 'string'){
+        this._columns.push({dataKey: column});
+      }else{
+        this._columns.push(column);
+      }
+    }
+  }
+
+  get columns(): TableColumn[]{
+    return this._columns;
+  }
+  _columns: TableColumn[] = [];
+
+
   selectedRow: any = null;  // Track the selected row
 
   selectedPageSizeSubject: BehaviorSubject<number> = new BehaviorSubject<number>(this.selectedPageSize);
 
-
   @ViewChild(MatPaginator, { static: false }) paginator?: MatPaginator;
   @ViewChild(MatSort, { static: false }) sort?: MatSort;
   @ViewChild('input', { static: false }) input?: ElementRef<HTMLInputElement>;
+
+  get columnNames(): string[] {
+    return this._columns.map(c => getDisplayName(c));
+  }
 
   protected loading = false;
   protected isMobile: boolean;
@@ -148,10 +169,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
 
     this.selectedPageSizeSubject.next(this.selectedPageSize);
-    // at least add the currentId to the search filter columns
-    if(this.currentId && !this.searchFilterColumns.includes(this.currentId)) {
-      this.searchFilterColumns.push(this.currentId);
-    }
+
 
     if (!this.dataSource) {
       throw new Error('No dataSource provided');
@@ -160,7 +178,6 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
     this.checkSelectedRow();
   }
 
-  // noinspection JSUnusedGlobalSymbols
   ngAfterViewInit(): void {
     if (this.sort && this.input && this.paginator) {
 
@@ -226,26 +243,18 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
 
   protected readonly encodeURIComponent = encodeURIComponent;
 
-  accessElement(element:any, column: string, accessPaths: Record<string, string>): any {
-    // get keys of accessPaths
-    const keys = Object.keys(accessPaths);
-    // check if column is in keys
-    if(!keys.includes(column)) {
-      return element[column];
+  accessElement(element:any, column: TableColumn): any {
+    if(column.dataKey.indexOf('.') === -1) {
+      return element[column.dataKey];
     }
 
-    try {
-      // if column is in accessPaths, try split accessPaths[column] by '.' and access element
-      const path = accessPaths[column].split('.');
-      let result = element;
-      for (const p of path) {
-        result = result[p];
-      }
-      return result;
-    } catch  {
-      //console.log(`Error accessing element: ${e}`);
-      return "NONE";
+    // else we have a nested object
+    const keys = column.dataKey.split('.');
+    let value = element;
+    for(const key of keys) {
+      value = value[key];
     }
+    return value;
   }
 
   selectedPageSizeChanged($event: PageEvent) {
@@ -296,4 +305,5 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
   hasActionColumns = () => {
     return this.actionColumns.length > 0 || this.optionActions.length > 0;
   };
+  protected readonly getDisplayName = getDisplayName;
 }

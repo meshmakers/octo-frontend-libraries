@@ -14,34 +14,23 @@
 <!--simple example-->
 <mm-octo-table
   [dataSource]="mmOctoTableDataSource"
-  [dataColumns]="{
-  columnNames: ['id', 'name'],
-  accessPaths: {}
-  }"
-  [currentRoute]="'enums'"
+  [columns]="['id', 'name']"
   [currentId]="'ckEnumId'">
-  <!--[actionColumns]="[]"-->
-  <!--[pageSizeOptions]="[2,3,5]"-->
-  <!--[selectedPageSize]="2"-->
-></mm-octo-table>
+  >
+</mm-octo-table>
 
 <div class="divider"></div>
 <h1>Octo Table advanced</h1>
 
-<!--advanced example with special item access-->
+advanced example with special item access
 <mm-octo-table
   [dataSource]="mmOctoTableAdvancedDataSource"
   [actionColumns]="[
     {columnName: 'edit', iconName: 'edit'},
     {columnName: 'delete', iconName: 'delete'},
   ]"
-  [dataColumns]="{
-            columnNames: ['ckTypeId', 'baseType', 'isAbstract', 'isFinal'],
-            accessPaths: {'baseType': 'baseType.ckTypeId'}
-          }"
-  [currentRoute]="'types'"
+  [columns]="['ckTypeId', {dataKey: 'baseType.ckTypeId', displayName: 'FickiFacki'}, 'isAbstract', 'isFinal']"
   [currentId]="'id'"
 ></mm-octo-table>
 
-<!--[selectedPageSize]="this.ckTreeViewService.selectedMaxPageItems"-->
 

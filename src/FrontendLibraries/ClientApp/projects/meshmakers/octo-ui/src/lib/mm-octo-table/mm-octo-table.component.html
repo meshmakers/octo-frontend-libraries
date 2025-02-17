@@ -31,11 +31,11 @@
 <mat-table [class.isMobile]="isMobile" [dataSource]="dataSource" class="mat-elevation-z8 table-container" mat-table matSort
            matSortActive="{{defaultSortColumn}}" matSortDirection="asc" matSortDisableClear="true">
 
-  <ng-container *ngFor="let column of dataColumns?.columnNames" [matColumnDef]="column">
-    <mat-header-cell *matHeaderCellDef mat-sort-header> {{ column | pascalCase }}</mat-header-cell>
+  <ng-container *ngFor="let column of columns" [matColumnDef]="getDisplayName(column)">
+    <mat-header-cell *matHeaderCellDef mat-sort-header> {{ getDisplayName(column) | pascalCase }}</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <span *ngIf="isMobile">{{ column | pascalCase }}:</span>
-      {{ accessElement(element, column, dataColumns.accessPaths) }}
+      <span *ngIf="isMobile">{{ getDisplayName(column) | pascalCase }}:</span>
+      {{ accessElement(element, column) }}
     </mat-cell>
   </ng-container>
 
@@ -78,13 +78,12 @@
     </mat-cell>
   </ng-container>
 
-  <!-- Row when there are actions -->
   @if (hasActionColumns()) {
-    <mat-header-row *matHeaderRowDef="dataColumns?.columnNames?.concat(['actions'])"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: dataColumns?.columnNames?.concat(['actions'])"></mat-row>
+    <mat-header-row *matHeaderRowDef="columnNames.concat(['actions'])"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: columnNames.concat(['actions'])"></mat-row>
   } @else {
-    <mat-header-row *matHeaderRowDef="dataColumns?.columnNames"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: dataColumns?.columnNames"></mat-row>
+    <mat-header-row *matHeaderRowDef="columnNames"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: columnNames"></mat-row>
   }
 
 </mat-table>
