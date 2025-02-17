@@ -58,7 +58,7 @@
     "@graphql-codegen/typescript-operations": "^4.4.1",
     "@types/jasmine": "~5.1.5",
     "@types/node": "^22.13.1",
-    "angular-eslint": "19.0.2",
+    "angular-eslint": "19.1.0",
     "cross-env": "^7.0.3",
     "eslint": "^9.19.0",
     "eslint-plugin-unused-imports": "^4.1.4",
