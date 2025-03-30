@@ -32,9 +32,9 @@
            matSortActive="{{defaultSortColumn}}" matSortDirection="asc" matSortDisableClear="true">
 
   <ng-container *ngFor="let column of columns" [matColumnDef]="getDisplayName(column)">
-    <mat-header-cell *matHeaderCellDef mat-sort-header> {{ getDisplayName(column) | pascalCase }}</mat-header-cell>
+    <mat-header-cell *matHeaderCellDef mat-sort-header> {{ getDisplayName(column) }}</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <span *ngIf="isMobile">{{ getDisplayName(column) | pascalCase }}:</span>
+      <span *ngIf="isMobile">{{ getDisplayName(column)}:</span>
       {{ accessElement(element, column) }}
     </mat-cell>
   </ng-container>

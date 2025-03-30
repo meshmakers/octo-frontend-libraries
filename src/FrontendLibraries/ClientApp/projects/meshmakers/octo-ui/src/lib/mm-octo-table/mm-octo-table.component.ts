@@ -20,25 +20,12 @@ import { MatInput } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatToolbar } from '@angular/material/toolbar';
 
-
-// pascal-case.pipe.ts
-import { Pipe, PipeTransform } from '@angular/core';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from "@angular/material/menu";
 import { MatListItemIcon } from "@angular/material/list";
 import { RouterLink } from "@angular/router";
 import { AssetRepoGraphQlDataSource, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from "@meshmakers/octo-services";
 import { ColumnDefinition, getDisplayName, TableColumn } from "./mm-octo-table.model";
 
-@Pipe({
-  standalone: true,
-  name: "pascalCase"
-})
-export class PascalCasePipe implements PipeTransform {
-  transform(value: string): string {
-    if (!value) return value;
-    return value.charAt(0).toUpperCase() + value.slice(1);
-  }
-}
 
 export interface ActionColumn {
   columnName: string;
@@ -79,7 +66,6 @@ export interface ToolbarAction {
     NgIf,
     MatHeaderCellDef,
     NgForOf,
-    PascalCasePipe,
     MatIcon,
     MatIconButton,
     MatMenu,
