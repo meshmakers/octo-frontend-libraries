@@ -205,13 +205,13 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit {
     const field = this.sort.active;
     const direction = this.sort.direction;
 
-    let filter = null;
+    let filter:SearchFilterDto|null = null;
     if (filterString) {
       filter = {
         type: SearchFilterTypesDto.AttributeFilterDto,
-        attributeNames: this.searchFilterColumns,
+        attributePaths: this.searchFilterColumns,
         searchTerm: filterString
-      } as SearchFilterDto;
+      }
     }
 
     const sort = [];
