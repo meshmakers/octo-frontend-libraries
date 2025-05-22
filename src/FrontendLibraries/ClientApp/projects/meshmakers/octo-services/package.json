@@ -2,8 +2,8 @@
   "name": "@meshmakers/octo-services",
   "version": "0.0.0",
   "peerDependencies": {
-    "@angular/common": "^19.2.7",
-    "@angular/core": "^19.2.7",
+    "@angular/common": "^19.2.12",
+    "@angular/core": "^19.2.12",
     "apollo-angular": "10.0.3"
   },
   "dependencies": {
