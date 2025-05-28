@@ -4,15 +4,19 @@
 
 <mat-toolbar class="octo-toolbar octo-detail-toolbar">
   @for (toolbarAction of leftToolbarActions; track toolbarAction) {
-    <button mat-flat-button routerLink="{{toolbarAction.route}}" type="button" [disabled]="!toolbarAction.isDisabled ? false : (toolbarAction.isDisabled | async)">
-      @if (toolbarAction?.svgIconName) {
-        <mat-icon class="svg-icon" svgIcon="{{ toolbarAction.svgIconName }}" matListItemIcon></mat-icon>
-      }
-      @if (toolbarAction?.iconName) {
-        <mat-icon class="material-symbols-outlined">{{ toolbarAction.iconName }}</mat-icon>
-      }
-      {{ toolbarAction.actionText }}
-    </button>
+  <button
+    mat-flat-button
+    routerLink="{{ toolbarAction.route }}"
+    type="button"
+    [disabled]="!toolbarAction.isDisabled ? false : (toolbarAction.isDisabled | async)"
+  >
+    @if (toolbarAction?.svgIconName) {
+    <mat-icon class="svg-icon" svgIcon="{{ toolbarAction.svgIconName }}" matListItemIcon></mat-icon>
+    } @if (toolbarAction?.iconName) {
+    <mat-icon class="material-symbols-outlined">{{ toolbarAction.iconName }}</mat-icon>
+    }
+    {{ toolbarAction.actionText }}
+  </button>
   }
 
   <div class="octo-spacer"></div>
@@ -23,19 +27,30 @@
         <mat-icon class="material-symbols-outlined">search</mat-icon>
         Search
       </mat-label>
-      <input #input matInput [disabled]="loading">
+      <input #input matInput [disabled]="loading" />
     </mat-form-field>
   </div>
 </mat-toolbar>
 
-<mat-table [class.isMobile]="isMobile" [dataSource]="dataSource" class="mat-elevation-z8 table-container" mat-table matSort
-           matSortActive="{{defaultSortColumn}}" matSortDirection="asc" matSortDisableClear="true">
-
+<mat-table
+  [class.isMobile]="isMobile"
+  [dataSource]="dataSource"
+  class="mat-elevation-z8 table-container"
+  mat-table
+  matSort
+  matSortActive="{{ defaultSortColumn }}"
+  matSortDirection="asc"
+  matSortDisableClear="true"
+>
   <ng-container *ngFor="let column of columns" [matColumnDef]="getDisplayName(column)">
     <mat-header-cell *matHeaderCellDef mat-sort-header> {{ getDisplayName(column) }}</mat-header-cell>
     <mat-cell *matCellDef="let element">
       <span *ngIf="isMobile">{{ getDisplayName(column)}:</span>
+      @if (column.templateName) {
+      <ng-container *ngTemplateOutlet="getTemplate(column.templateName); context: { $implicit: element }"> </ng-container>
+      } @else {
       {{ accessElement(element, column) }}
+      }
     </mat-cell>
   </ng-container>
 
@@ -44,49 +59,53 @@
     <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
     <mat-cell *matCellDef="let element">
       @for (column of actionColumns; track column) {
-        <ng-container>
-          <button mat-button (click)="emitRowData({action: column.columnName, id: encodeURIComponent(element[currentId]), entry: element})">
-            <mat-icon *ngIf="column?.svgIconName" class="svg-icon" svgIcon="{{ column.svgIconName }}" matListItemIcon></mat-icon>
-            <mat-icon *ngIf="column?.iconName" class="material-symbols-outlined">{{ column.iconName }}</mat-icon>
-          </button>
-        </ng-container>
+      <ng-container>
+        <button mat-button (click)="emitRowData({ action: column.columnName, id: encodeURIComponent(element[currentId]), entry: element })">
+          <mat-icon *ngIf="column?.svgIconName" class="svg-icon" svgIcon="{{ column.svgIconName }}" matListItemIcon></mat-icon>
+          <mat-icon *ngIf="column?.iconName" class="material-symbols-outlined">{{ column.iconName }}</mat-icon>
+        </button>
+      </ng-container>
       }
 
       <!-- Options menu with additional actions -->
       @if (optionActions.length > 0) {
-        <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Options">
-          <mat-icon class="material-symbols-outlined">more_vert</mat-icon>
-        </button>
+      <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Options">
+        <mat-icon class="material-symbols-outlined">more_vert</mat-icon>
+      </button>
       }
 
       <mat-menu #menu="matMenu">
         @for (optionAction of optionActions; track optionAction) {
-          <ng-container>
-            <button mat-menu-item
-                    (click)="emitRowData({action: optionAction.columnName, id: encodeURIComponent(element[currentId]), entry: element})">
-              @if (optionAction?.svgIconName) {
-                <mat-icon class="svg-icon" svgIcon="{{ optionAction.svgIconName }}" matListItemIcon></mat-icon>
-              }
-              @if (optionAction?.iconName) {
-                <mat-icon class="material-symbols-outlined">{{ optionAction.iconName }}</mat-icon>
-              }
-              {{ optionAction.columnName  }}
-            </button>
-          </ng-container>
+        <ng-container>
+          <button
+            mat-menu-item
+            (click)="emitRowData({ action: optionAction.columnName, id: encodeURIComponent(element[currentId]), entry: element })"
+          >
+            @if (optionAction?.svgIconName) {
+            <mat-icon class="svg-icon" svgIcon="{{ optionAction.svgIconName }}" matListItemIcon></mat-icon>
+            } @if (optionAction?.iconName) {
+            <mat-icon class="material-symbols-outlined">{{ optionAction.iconName }}</mat-icon>
+            }
+            {{ optionAction.columnName }}
+          </button>
+        </ng-container>
         }
       </mat-menu>
     </mat-cell>
   </ng-container>
 
   @if (hasActionColumns()) {
-    <mat-header-row *matHeaderRowDef="columnNames.concat(['actions'])"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: columnNames.concat(['actions'])"></mat-row>
+  <mat-header-row *matHeaderRowDef="columnNames.concat(['actions'])"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: columnNames.concat(['actions'])"></mat-row>
   } @else {
-    <mat-header-row *matHeaderRowDef="columnNames"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: columnNames"></mat-row>
+  <mat-header-row *matHeaderRowDef="columnNames"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: columnNames"></mat-row>
   }
-
 </mat-table>
 
-<mat-paginator [length]="dataSource?.totalCount$ | async" (page)="selectedPageSizeChanged($event)" [pageSizeOptions]="pageSizeOptions"
-               [pageSize]="selectedPageSizeSubject.getValue()"></mat-paginator>
+<mat-paginator
+  [length]="dataSource?.totalCount$ | async"
+  (page)="selectedPageSizeChanged($event)"
+  [pageSizeOptions]="pageSizeOptions"
+  [pageSize]="selectedPageSizeSubject.getValue()"
+></mat-paginator>
