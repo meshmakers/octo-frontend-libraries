@@ -259,14 +259,12 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   protected readonly encodeURIComponent = encodeURIComponent;
 
   accessElement(element: any, column: TableColumn): any {
-    if (column.isVirtual) {
+    if (column.templateName) {
       return element;
     }
-
     if (column.dataKey.indexOf('.') === -1) {
       return element[column.dataKey];
     }
-
     const keys = column.dataKey.split('.');
     let value = element;
     for (const key of keys) {
