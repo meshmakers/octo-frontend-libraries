@@ -42,7 +42,7 @@
   matSortDirection="asc"
   matSortDisableClear="true"
 >
-  <ng-container *ngFor="let column of columns" [matColumnDef]="getDisplayName(column)">
+  <ng-container *ngFor="let column of columns" [matColumnDef]="getDataKey(column)">
     <mat-header-cell *matHeaderCellDef mat-sort-header> {{ getDisplayName(column) }}</mat-header-cell>
     <mat-cell *matCellDef="let element">
       <span *ngIf="isMobile">{{ getDisplayName(column)}:</span>
