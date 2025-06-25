@@ -41,7 +41,7 @@ import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatListItemIcon } from '@angular/material/list';
 import { RouterLink } from '@angular/router';
 import { AssetRepoGraphQlDataSource, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from '@meshmakers/octo-services';
-import { ColumnDefinition, getDisplayName, TableColumn } from './mm-octo-table.model';
+import { ColumnDefinition, getDisplayName, getDataKey, TableColumn } from './mm-octo-table.model';
 
 export interface ActionColumn {
   columnName: string;
@@ -160,6 +160,10 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   @ViewChild('input', { static: false }) input?: ElementRef<HTMLInputElement>;
 
   get columnNames(): string[] {
+    return this._columns.map((c) => getDataKey(c));
+  }
+
+  get columnDisplayNames(): string[] {
     return this._columns.map((c) => getDisplayName(c));
   }
 
@@ -318,6 +322,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
     return this.actionColumns.length > 0 || this.optionActions.length > 0;
   };
   protected readonly getDisplayName = getDisplayName;
+  protected readonly getDataKey = getDataKey;
 
   getTemplate(templateName: string): TemplateRef<any> | undefined {
     return this.templateMap.get(templateName);
