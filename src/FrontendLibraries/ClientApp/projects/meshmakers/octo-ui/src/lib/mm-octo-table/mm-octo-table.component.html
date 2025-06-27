@@ -43,7 +43,14 @@
   matSortDisableClear="true"
 >
   <ng-container *ngFor="let column of columns" [matColumnDef]="getDataKey(column)">
-    <mat-header-cell *matHeaderCellDef mat-sort-header> {{ getDisplayName(column) }}</mat-header-cell>
+    <mat-header-cell *matHeaderCellDef>
+      <span *ngIf="isSortable(column); else nonSortableHeader" mat-sort-header>
+        {{ getDisplayName(column) }}
+      </span>
+      <ng-template #nonSortableHeader>
+        {{ getDisplayName(column) }}
+      </ng-template>
+    </mat-header-cell>
     <mat-cell *matCellDef="let element">
       <span *ngIf="isMobile">{{ getDisplayName(column)}:</span>
       @if (column.templateName) {

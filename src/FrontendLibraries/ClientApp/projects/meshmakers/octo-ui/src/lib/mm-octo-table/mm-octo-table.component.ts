@@ -324,6 +324,16 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   protected readonly getDisplayName = getDisplayName;
   protected readonly getDataKey = getDataKey;
 
+  isSortable(column: TableColumn): boolean {
+    // If sortingDisabled is explicitly set, use that setting
+    if (column.sortingDisabled !== undefined) {
+      return !column.sortingDisabled;
+    }
+
+    // Default behavior: disable sorting for template columns, enable for regular columns
+    return !column.templateName;
+  }
+
   getTemplate(templateName: string): TemplateRef<any> | undefined {
     return this.templateMap.get(templateName);
   }
