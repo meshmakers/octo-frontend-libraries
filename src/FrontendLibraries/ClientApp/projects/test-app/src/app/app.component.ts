@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, NgZone } from '@angular/core';
 import { FileUploadService } from '@meshmakers/shared-ui';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { firstValueFrom, Observable } from 'rxjs';
@@ -14,7 +14,6 @@ class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any
   }
 
   override connect(_: CollectionViewer): Observable<any[]> {
-    // return dummy data
     return new Observable<any[]>((subscriber) => {
       subscriber.next(this.dataColumns);
     });
@@ -22,13 +21,14 @@ class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any
 }
 
 @Component({
-  selector: 'app-root',
+  selector: "app-root",
+  templateUrl: "./app.component.html",
   standalone: false,
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ["./app.component.scss"]
 })
 export class AppComponent {
   title = 'test-app';
+
   mmOctoTableDataSource: AssetRepoGraphQlDataSource<any, any, any> = new TestAssetRepoGraphQlDataSource(null, null, null, [
     { id: 1, name: 'test1' },
     { id: 2, name: 'test2' },
@@ -42,8 +42,6 @@ export class AppComponent {
     { id: 10, name: 'test10' }
   ]);
 
-  // based on this    columnNames: ['ckTypeId', 'baseType', 'isAbstract', 'isFinal'],
-  //             accessPaths: {'baseType': 'baseType.ckTypeId'}
   mmOctoTableAdvancedDataSource: AssetRepoGraphQlDataSource<any, any, any> = new TestAssetRepoGraphQlDataSource(null, null, null, [
     { ckTypeId: 'test1', baseType: { ckTypeId: 'test2' }, isAbstract: true, isFinal: false }
   ]);
@@ -72,7 +70,72 @@ export class AppComponent {
     }
   ]);
 
-  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient) {}
+  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient, private zone: NgZone) {}
+
+
+  nfcMessages: string[] = [];  // Holds the scanned NFC tag messages
+  nfcStatus: string = '';
+  nfcSerialNumber: string = '';
+
+  async startNfcScan(): Promise<void> {
+    // --- START: TEMPORARY TEST CODE ---
+    // If you uncomment this, it will bypass actual NFC scan and directly
+    // populate data, allowing you to test if the display works.
+    //
+    // console.log('Simulating NFC data for display test...');
+    // this.nfcStatus = 'Simulated NDEF message read.';
+    // this.nfcMessages = [
+    //   'Type: text, MIME: n/a, Text: Hello NFC Test!',
+    //   'Type: url, MIME: n/a, Text: https://angular.dev'
+    // ];
+    // You can comment out the rest of the original code in this method if you just want to test display
+    // return;
+
+    // --- END: TEMPORARY TEST CODE ---
+    if ('NDEFReader' in window) {
+      const ndef = new NDEFReader();
+
+      try {
+        await ndef.scan();
+        console.log('NFC scan started.');
+        this.nfcStatus = 'NFC scan started. Waiting for a tag...';
+
+        ndef.onreading = (event: NDEFReadingEvent) => {
+          this.zone.run(() => {
+            console.log('NFC tag read:', event);
+            this.nfcStatus = 'NDEF message read.';
+            const message = event.message;
+            this.nfcSerialNumber = event.serialNumber ?? 'Unknown Serial';
+
+            // Clear previous scans or comment out if you want to accumulate
+            this.nfcMessages = [];
+
+            for (const record of message.records) {
+              const text = new TextDecoder().decode(record.data);
+              const displayText = `Type: ${record.recordType}, MIME: ${record.mediaType ?? 'n/a'}, Text: ${text}`;
+              console.log(displayText);
+
+              // Add the scanned message to the array
+              this.nfcMessages.push(displayText);
+            }
+          });
+        }
+
+        ndef.onreadingerror = (event) => {
+          console.error('NFC read error:', event);
+          this.nfcStatus = 'Error reading NFC tag.';
+        };
+      } catch (error) {
+        console.error('Error starting NFC scan:', error);
+        this.nfcStatus = 'Error starting NFC scan.';
+        alert('Error starting NFC scan. Make sure your device supports it and the page is served over HTTPS.');
+      }
+    } else {
+      console.warn('Web NFC is not supported on this device.');
+      this.nfcStatus = 'Web NFC is not supported in this browser.';
+      alert('Web NFC is not supported in this browser.');
+    }
+  }
 
   async onFileUpload(): Promise<void> {
     const r = await this.fileUploadService.showUploadDialog(
@@ -85,11 +148,10 @@ export class AppComponent {
     if (r) {
       const formData: FormData = new FormData();
       formData.append('file', r);
-
       const params = new HttpParams().set('tenantId', 'demo');
 
       try {
-        await firstValueFrom(this.httpClient.post('/fileUpload/upload', formData, { params: params }));
+        await firstValueFrom(this.httpClient.post('/fileUpload/upload', formData, { params }));
         alert('upload done');
       } catch (e: unknown) {
         if (e instanceof HttpErrorResponse) {

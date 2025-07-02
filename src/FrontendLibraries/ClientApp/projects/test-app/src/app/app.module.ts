@@ -10,6 +10,7 @@ import { defaultAuthorizeOptions } from './config/defaultAuthorizeOptions';
 import { MmSharedUiModule } from "@meshmakers/shared-ui";
 import { MmOctoUiModule } from "@meshmakers/octo-ui";
 import { MatButton } from "@angular/material/button";
+import { CommonModule } from "@angular/common";
 
 export function initServices(configurationService: ConfigurationService, authorizeService: AuthorizeService) {
   return async () => {};
@@ -24,7 +25,8 @@ export function initServices(configurationService: ConfigurationService, authori
     MmSharedUiModule.forRoot(),
     SharedAuthModule.forRoot(defaultAuthorizeOptions),
     MmOctoUiModule,
-    MatButton
+    MatButton,
+    CommonModule
   ],
   providers: [
     ConfigurationService,
