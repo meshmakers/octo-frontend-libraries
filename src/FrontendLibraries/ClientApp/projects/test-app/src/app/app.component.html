@@ -1,5 +1,9 @@
 <div style="text-align:center; margin-top:50px;">
-  <button (click)="startNfcScan()">Scan NFC Tag</button>
+  <button (click)="onNfc()">Start Scanning NFC Tag</button>
+</div>
+
+<div style="text-align:center; margin-top:50px;">
+  <button (click)="stopNfc()">Stop NFC Scan</button>
 </div>
 
 <div style="margin-top: 20px; font-weight: bold;">
@@ -8,6 +12,10 @@
 
 <div *ngIf="nfcSerialNumber" style="margin-top: 10px;">
   <strong>Serial Number:</strong> {{ nfcSerialNumber }}
+</div>
+
+<div *ngIf="employeeNumber" style="margin-top: 10px;">
+  <strong>Employee Number:</strong> {{ employeeNumber }}
 </div>
 
 <div *ngIf="nfcMessages.length > 0" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">

@@ -1,9 +1,10 @@
 import { Component, NgZone } from '@angular/core';
 import { FileUploadService } from '@meshmakers/shared-ui';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, Observable, Subscription } from "rxjs";
 import { CollectionViewer } from '@angular/cdk/collections';
 import { AssetRepoGraphQlDataSource } from '@meshmakers/octo-services';
+import { NfcReaderService } from "@meshmakers/shared-services";
 
 class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any, any> {
   private dataColumns: any[] = [];
@@ -70,72 +71,124 @@ export class AppComponent {
     }
   ]);
 
-  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient, private zone: NgZone) {}
+  private convertSerialToEmployeeNumber(serial: string): string {
+    if (!serial) return '';
+
+    // Normalize serial string: remove colons if present
+    const cleanHex = serial.replace(/:/g, '');
+
+    // Split into byte pairs
+    const bytes: string[] = cleanHex.match(/.{1,2}/g) ?? [];
+
+    // Reverse byte order (little-endian)
+    const reversedHex = bytes.reverse().join('');
+
+    // Convert to BigInt (in case it's large)
+    const decimalValue = BigInt('0x' + reversedHex);
+
+    return decimalValue.toString();
+  }
+
+
+  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient, private zone: NgZone, private nfcReaderService: NfcReaderService){}
+
+
 
 
   nfcMessages: string[] = [];  // Holds the scanned NFC tag messages
-  nfcStatus: string = '';
   nfcSerialNumber: string = '';
+  nfcStatus: string = '';
+  employeeNumber: string = '';
+  private statusSubscription?: Subscription;
 
-  async startNfcScan(): Promise<void> {
-    // --- START: TEMPORARY TEST CODE ---
-    // If you uncomment this, it will bypass actual NFC scan and directly
-    // populate data, allowing you to test if the display works.
-    //
-    // console.log('Simulating NFC data for display test...');
-    // this.nfcStatus = 'Simulated NDEF message read.';
-    // this.nfcMessages = [
-    //   'Type: text, MIME: n/a, Text: Hello NFC Test!',
-    //   'Type: url, MIME: n/a, Text: https://angular.dev'
-    // ];
-    // You can comment out the rest of the original code in this method if you just want to test display
-    // return;
 
-    // --- END: TEMPORARY TEST CODE ---
-    if ('NDEFReader' in window) {
-      const ndef = new NDEFReader();
-
-      try {
-        await ndef.scan();
-        console.log('NFC scan started.');
-        this.nfcStatus = 'NFC scan started. Waiting for a tag...';
-
-        ndef.onreading = (event: NDEFReadingEvent) => {
-          this.zone.run(() => {
-            console.log('NFC tag read:', event);
-            this.nfcStatus = 'NDEF message read.';
-            const message = event.message;
-            this.nfcSerialNumber = event.serialNumber ?? 'Unknown Serial';
-
-            // Clear previous scans or comment out if you want to accumulate
-            this.nfcMessages = [];
-
-            for (const record of message.records) {
-              const text = new TextDecoder().decode(record.data);
-              const displayText = `Type: ${record.recordType}, MIME: ${record.mediaType ?? 'n/a'}, Text: ${text}`;
-              console.log(displayText);
-
-              // Add the scanned message to the array
-              this.nfcMessages.push(displayText);
-            }
-          });
-        }
-
-        ndef.onreadingerror = (event) => {
-          console.error('NFC read error:', event);
-          this.nfcStatus = 'Error reading NFC tag.';
-        };
-      } catch (error) {
-        console.error('Error starting NFC scan:', error);
-        this.nfcStatus = 'Error starting NFC scan.';
-        alert('Error starting NFC scan. Make sure your device supports it and the page is served over HTTPS.');
-      }
-    } else {
-      console.warn('Web NFC is not supported on this device.');
-      this.nfcStatus = 'Web NFC is not supported in this browser.';
-      alert('Web NFC is not supported in this browser.');
-    }
+  ngOnInit() {
+    this.statusSubscription = this.nfcReaderService.nfcStatus$.subscribe(status => {
+      this.nfcStatus = status;
+    });
   }
+
+  ngOnDestroy() {
+    this.statusSubscription?.unsubscribe();
+  }
+
+   onNfc(): void {
+     this.nfcReaderService.startScan(
+      (serial, employeeNumber, messages) => {
+        this.nfcSerialNumber = serial;
+        this.employeeNumber = employeeNumber;
+        this.nfcMessages = messages;
+      },
+      (error) => {
+      }
+    );
+    }
+
+    stopNfc(): void {
+     this.nfcReaderService.stopScan();
+    }
+
+
+  // async startNfcScan(): Promise<void> {
+  //   // --- START: TEMPORARY TEST CODE ---
+  //   // If you uncomment this, it will bypass actual NFC scan and directly
+  //   // populate data, allowing you to test if the display works.
+  //   //
+  //   // console.log('Simulating NFC data for display test...');
+  //   // this.nfcStatus = 'Simulated NDEF message read.';
+  //   // this.nfcMessages = [
+  //   //   'Type: text, MIME: n/a, Text: Hello NFC Test!',
+  //   //   'Type: url, MIME: n/a, Text: https://angular.dev'
+  //   // ];
+  //   // You can comment out the rest of the original code in this method if you just want to test display
+  //   // return;
+  //
+  //   // --- END: TEMPORARY TEST CODE ---
+  //   if ('NDEFReader' in window) {
+  //     const ndef = new NDEFReader();
+  //
+  //     try {
+  //       await ndef.scan();
+  //       console.log('NFC scan started.');
+  //       this.nfcStatus = 'NFC scan started. Waiting for a tag...';
+  //
+  //       ndef.onreading = (event: NDEFReadingEvent) => {
+  //         this.zone.run(() => {
+  //           console.log('NFC tag read:', event);
+  //           this.nfcStatus = 'NDEF message read.';
+  //           const message = event.message;
+  //           this.nfcSerialNumber = event.serialNumber ?? 'Unknown Serial';
+  //           this.employeeNumber = this.convertSerialToEmployeeNumber(this.nfcSerialNumber);
+  //
+  //           // Clear previous scans or comment out if you want to accumulate
+  //           this.nfcMessages = [];
+  //
+  //           for (const record of message.records) {
+  //             const text = new TextDecoder().decode(record.data);
+  //             const displayText = `Type: ${record.recordType}, MIME: ${record.mediaType ?? 'n/a'}, Text: ${text}`;
+  //             console.log(displayText);
+  //
+  //             // Add the scanned message to the array
+  //             this.nfcMessages.push(displayText);
+  //           }
+  //         });
+  //       }
+  //
+  //       ndef.onreadingerror = (event) => {
+  //         console.error('NFC read error:', event);
+  //         this.nfcStatus = 'Error reading NFC tag.';
+  //       };
+  //     } catch (error) {
+  //       console.error('Error starting NFC scan:', error);
+  //       this.nfcStatus = 'Error starting NFC scan.';
+  //       alert('Error starting NFC scan. Make sure your device supports it and the page is served over HTTPS.');
+  //     }
+  //   } else {
+  //     console.warn('Web NFC is not supported on this device.');
+  //     this.nfcStatus = 'Web NFC is not supported in this browser.';
+  //     alert('Web NFC is not supported in this browser.');
+  //   }
+  // }
 
   async onFileUpload(): Promise<void> {
     const r = await this.fileUploadService.showUploadDialog(
