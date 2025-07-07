@@ -1,5 +1,6 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
 import { MessageService } from './services/message.service';
+import { NfcReaderService } from "./services/nfcReader.service";
 
 @NgModule({
   declarations: [],
@@ -10,7 +11,7 @@ export class SharedServicesModule {
   static forRoot(): ModuleWithProviders<SharedServicesModule> {
     return {
       ngModule: SharedServicesModule,
-      providers: [MessageService]
+      providers: [MessageService, NfcReaderService]
     };
   }
 }

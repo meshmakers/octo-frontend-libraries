@@ -16,3 +16,4 @@ export * from './lib/dataSources/autoCompleteDataSource';
 export * from './lib/shared/isoDateTime';
 export * from './lib/shared/enumReader';
 export * from './lib/shared/objectCloner';
+export * from './lib/services/nfcReader.service';
