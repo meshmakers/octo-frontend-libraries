@@ -330,8 +330,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
       return !column.sortingDisabled;
     }
 
-    // Default behavior: disable sorting for template columns, enable for regular columns
-    return !column.templateName;
+    return true;
   }
 
   getTemplate(templateName: string): TemplateRef<any> | undefined {
