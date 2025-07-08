@@ -13,39 +13,51 @@ export class QrCodeScannerService {
       );
   }
 
-  async startScan(videoElement: HTMLVideoElement): Promise<string> {
+  async scan(video: HTMLVideoElement): Promise<string> {
     const BarcodeDetectorClass = (window as any).BarcodeDetector;
-    const detector = new BarcodeDetectorClass({ formats: ["qr_code"] });
+    const detector = new BarcodeDetectorClass({ formats: ['qr_code'] });
 
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" }
-    });
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
 
-    videoElement.srcObject = this.stream;
+      video.srcObject = this.stream;
 
-    return new Promise((resolve, reject) => {
-      const scan = async () => {
-        try {
-          const barcodes = await detector.detect(videoElement);
-          if (barcodes.length > 0) {
-            this.stopScan();
-            resolve(barcodes[0].rawValue);
+      // Ensure video is playing before scanning
+      await video.play();
+
+      return new Promise((resolve, reject) => {
+        const detectLoop = async () => {
+          try {
+            const barcodes = await detector.detect(video);
+            if (barcodes.length > 0) {
+              this.stop();
+              resolve(barcodes[0].rawValue);
+              return;
+            }
+          } catch (err) {
+            this.stop();
+            reject(err);
             return;
           }
-        } catch (err) {
-          console.error("Detection error", err);
-          this.stopScan();
-          reject(err);
-          return;
-        }
-        requestAnimationFrame(scan);
-      };
-      scan();
-    });
+
+          requestAnimationFrame(detectLoop);
+        };
+
+        detectLoop();
+      });
+    } catch (err) {
+      console.error("Camera access or scan error", err);
+      this.stop();
+      throw err;
+    }
   }
 
-  stopScan(): void {
-    this.stream?.getTracks().forEach(track => track.stop());
-    this.stream = null;
+  stop(): void {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
   }
 }

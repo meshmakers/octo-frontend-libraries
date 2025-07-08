@@ -26,6 +26,7 @@ import { MatListModule } from "@angular/material/list";
 import { RouterLink } from "@angular/router";
 import { MmTableSimpleComponent } from "./mm-table-simple/mm-table-simple.component";
 import { MatProgressBar } from "@angular/material/progress-bar";
+import { MmQrCodeScannerComponent } from "./mm-qr-scan-window/mm-qr-scan-window.component";
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { MatProgressBar } from "@angular/material/progress-bar";
     MmEntitySelectInputComponent,
     MmMultipleEntitySelectInputComponent,
     MmFileUploadComponent,
-    MmTableSimpleComponent
+    MmTableSimpleComponent,
+    MmQrCodeScannerComponent
   ],
   imports: [
     CommonModule,
@@ -65,7 +67,8 @@ import { MatProgressBar } from "@angular/material/progress-bar";
     MatListModule,
     RouterLink,
     MmTableSimpleComponent,
-    MatProgressBar
+    MatProgressBar,
+    MmQrCodeScannerComponent
   ]
 })
 export class MmSharedUiModule {
