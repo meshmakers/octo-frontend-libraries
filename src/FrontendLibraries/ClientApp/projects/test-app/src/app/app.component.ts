@@ -1,10 +1,12 @@
 import { Component, ElementRef, NgZone, ViewChild } from "@angular/core";
-import { FileUploadService } from '@meshmakers/shared-ui';
+import { FileUploadService, MmQrCodeScannerComponent } from "@meshmakers/shared-ui";
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { firstValueFrom, Observable, Subscription } from "rxjs";
 import { CollectionViewer } from '@angular/cdk/collections';
 import { AssetRepoGraphQlDataSource } from '@meshmakers/octo-services';
 import { NfcReaderService } from "@meshmakers/shared-services";
+import {QrCodeScannerService} from "@meshmakers/shared-services";
+import { MatDialog } from "@angular/material/dialog";
 
 class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any, any> {
   private dataColumns: any[] = [];
@@ -90,7 +92,7 @@ export class AppComponent {
   }
 
 
-  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient, private zone: NgZone, private nfcReaderService: NfcReaderService){}
+  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient, private zone: NgZone, private nfcReaderService: NfcReaderService, private dialog: MatDialog) { }
 
 
 
@@ -110,7 +112,7 @@ export class AppComponent {
 
   ngOnDestroy() {
     this.statusSubscription?.unsubscribe();
-    this.stopCamera();
+    //this.stopCamera();
   }
 
    onNfc(): void {
@@ -130,118 +132,23 @@ export class AppComponent {
     }
 
 
-  // async startNfcScan(): Promise<void> {
-  //   // --- START: TEMPORARY TEST CODE ---
-  //   // If you uncomment this, it will bypass actual NFC scan and directly
-  //   // populate data, allowing you to test if the display works.
-  //   //
-  //   // console.log('Simulating NFC data for display test...');
-  //   // this.nfcStatus = 'Simulated NDEF message read.';
-  //   // this.nfcMessages = [
-  //   //   'Type: text, MIME: n/a, Text: Hello NFC Test!',
-  //   //   'Type: url, MIME: n/a, Text: https://angular.dev'
-  //   // ];
-  //   // You can comment out the rest of the original code in this method if you just want to test display
-  //   // return;
-  //
-  //   // --- END: TEMPORARY TEST CODE ---
-  //   if ('NDEFReader' in window) {
-  //     const ndef = new NDEFReader();
-  //
-  //     try {
-  //       await ndef.scan();
-  //       console.log('NFC scan started.');
-  //       this.nfcStatus = 'NFC scan started. Waiting for a tag...';
-  //
-  //       ndef.onreading = (event: NDEFReadingEvent) => {
-  //         this.zone.run(() => {
-  //           console.log('NFC tag read:', event);
-  //           this.nfcStatus = 'NDEF message read.';
-  //           const message = event.message;
-  //           this.nfcSerialNumber = event.serialNumber ?? 'Unknown Serial';
-  //           this.employeeNumber = this.convertSerialToEmployeeNumber(this.nfcSerialNumber);
-  //
-  //           // Clear previous scans or comment out if you want to accumulate
-  //           this.nfcMessages = [];
-  //
-  //           for (const record of message.records) {
-  //             const text = new TextDecoder().decode(record.data);
-  //             const displayText = `Type: ${record.recordType}, MIME: ${record.mediaType ?? 'n/a'}, Text: ${text}`;
-  //             console.log(displayText);
-  //
-  //             // Add the scanned message to the array
-  //             this.nfcMessages.push(displayText);
-  //           }
-  //         });
-  //       }
-  //
-  //       ndef.onreadingerror = (event) => {
-  //         console.error('NFC read error:', event);
-  //         this.nfcStatus = 'Error reading NFC tag.';
-  //       };
-  //     } catch (error) {
-  //       console.error('Error starting NFC scan:', error);
-  //       this.nfcStatus = 'Error starting NFC scan.';
-  //       alert('Error starting NFC scan. Make sure your device supports it and the page is served over HTTPS.');
-  //     }
-  //   } else {
-  //     console.warn('Web NFC is not supported on this device.');
-  //     this.nfcStatus = 'Web NFC is not supported in this browser.';
-  //     alert('Web NFC is not supported in this browser.');
-  //   }
-  // }
+  //QR Implementation
+  //@ViewChild('video', { static: false }) videoRef!: ElementRef<HTMLVideoElement>;
+  output: string = 'Waiting for QR code...';
 
-  @ViewChild('video', { static: false }) videoRef!: ElementRef<HTMLVideoElement>;
-  result: string = 'Waiting for QR code...';
-  private stream: MediaStream | null = null;
-  private stop = false;
 
-  async ngAfterViewInit() {
-    if (!('BarcodeDetector' in window)) {
-      this.result = 'BarcodeDetector not supported.';
-      return;
-    }
-
-    const BarcodeDetectorClass = (window as any).BarcodeDetector;
-    const detector = new BarcodeDetectorClass({ formats: ['qr_code'] });
-
-    try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-
-      this.videoRef.nativeElement.srcObject = this.stream;
-
-      const scan = async () => {
-        if (this.stop) return;
-        try {
-          const barcodes = await detector.detect(this.videoRef.nativeElement);
-          if (barcodes.length > 0) {
-            this.result = 'QR Code: ' + barcodes[0].rawValue;
-            this.stopCamera();
-            return;
-          }
-        } catch (err) {
-          console.error('Scan error:', err);
-        }
-        requestAnimationFrame(scan);
-      };
-
-      scan();
-    } catch (err) {
-      console.error('Camera error:', err);
-      this.result = 'Error accessing camera.';
+  async openScanner() {
+    const result = await MmQrCodeScannerComponent.open(this.dialog);
+    if (result) {
+      console.log('Scanned:', result);
+      this.output = result;
     }
   }
 
-  stopCamera() {
-    this.stop = true;
-    this.stream?.getTracks().forEach(track => track.stop());
-  }
 
 
 
-async onFileUpload(): Promise<void> {
+  async onFileUpload(): Promise<void> {
     const r = await this.fileUploadService.showUploadDialog(
       'Upload model',
       'Please upload a model file',
