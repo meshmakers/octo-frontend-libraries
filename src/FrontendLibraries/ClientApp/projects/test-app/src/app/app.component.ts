@@ -1,4 +1,4 @@
-import { Component, NgZone } from '@angular/core';
+import { Component, ElementRef, NgZone, ViewChild } from "@angular/core";
 import { FileUploadService } from '@meshmakers/shared-ui';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { firstValueFrom, Observable, Subscription } from "rxjs";
@@ -110,6 +110,7 @@ export class AppComponent {
 
   ngOnDestroy() {
     this.statusSubscription?.unsubscribe();
+    this.stopCamera();
   }
 
    onNfc(): void {
@@ -190,7 +191,57 @@ export class AppComponent {
   //   }
   // }
 
-  async onFileUpload(): Promise<void> {
+  @ViewChild('video', { static: false }) videoRef!: ElementRef<HTMLVideoElement>;
+  result: string = 'Waiting for QR code...';
+  private stream: MediaStream | null = null;
+  private stop = false;
+
+  async ngAfterViewInit() {
+    if (!('BarcodeDetector' in window)) {
+      this.result = 'BarcodeDetector not supported.';
+      return;
+    }
+
+    const BarcodeDetectorClass = (window as any).BarcodeDetector;
+    const detector = new BarcodeDetectorClass({ formats: ['qr_code'] });
+
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+
+      this.videoRef.nativeElement.srcObject = this.stream;
+
+      const scan = async () => {
+        if (this.stop) return;
+        try {
+          const barcodes = await detector.detect(this.videoRef.nativeElement);
+          if (barcodes.length > 0) {
+            this.result = 'QR Code: ' + barcodes[0].rawValue;
+            this.stopCamera();
+            return;
+          }
+        } catch (err) {
+          console.error('Scan error:', err);
+        }
+        requestAnimationFrame(scan);
+      };
+
+      scan();
+    } catch (err) {
+      console.error('Camera error:', err);
+      this.result = 'Error accessing camera.';
+    }
+  }
+
+  stopCamera() {
+    this.stop = true;
+    this.stream?.getTracks().forEach(track => track.stop());
+  }
+
+
+
+async onFileUpload(): Promise<void> {
     const r = await this.fileUploadService.showUploadDialog(
       'Upload model',
       'Please upload a model file',
