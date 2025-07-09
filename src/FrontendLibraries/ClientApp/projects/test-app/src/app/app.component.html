@@ -1,3 +1,63 @@
+<h1>File upload</h1>
+
+<button mat-flat-button (click)="onFileUpload()">FileUpload</button>
+
+<div class="divider"></div>
+<h1>Generic Table simple</h1>
+<!-- when making changes to lib components, you need to rebuild the lib and the app to see the changes, using "Invoke-BuildFrontend" command -->
+
+<mm-table-simple [sortColumn]="'name'" [items]="[{ name: 'test' }]" [columns]="[{ key: 'name', header: 'Name' }]"></mm-table-simple>
+
+<div class="divider"></div>
+<h1>Octo Table simple</h1>
+
+<!--simple example-->
+<mm-octo-table [dataSource]="mmOctoTableDataSource" [columns]="['id', 'name']" [currentId]="'ckEnumId'"> > </mm-octo-table>
+
+<div class="divider"></div>
+<h1>Octo Table advanced</h1>
+
+advanced example with special item access
+<mm-octo-table
+  [dataSource]="mmOctoTableAdvancedDataSource"
+  [actionColumns]="[
+    { columnName: 'edit', iconName: 'edit' },
+    { columnName: 'delete', iconName: 'delete' }
+  ]"
+  [columns]="['ckTypeId', { dataKey: 'baseType.ckTypeId', displayName: 'FickiFacki' }, 'isAbstract', 'isFinal']"
+  [currentId]="'id'"
+></mm-octo-table>
+
+<div class="divider"></div>
+<h1>Octo Table with Virtual Columns</h1>
+
+<mm-octo-table
+  [dataSource]="mmOctoTableVirtualDataSource"
+  [columns]="[
+    { dataKey: 'customerDisplay', displayName: 'Customer', templateName: 'customerDisplay' },
+    { dataKey: 'status', displayName: 'Status', templateName: 'statusDisplay' }
+  ]"
+  [currentId]="'id'"
+>
+  <ng-template #customerDisplay let-element>
+    @if (element.companyName) {
+    {{ element.companyName }}
+    } @else {
+    {{ element.customerFirstName }} {{ element.customerLastName }}
+    }
+  </ng-template>
+  <ng-template #statusDisplay let-element>
+    @switch (element.status) { @case ('ACTIVE') {
+    <mat-icon class="material-symbols-outlined" style="color: green">check_circle</mat-icon>
+    } @case ('PENDING') {
+    <mat-icon class="material-symbols-outlined" style="color: orange">pending</mat-icon>
+    } @case ('INACTIVE') {
+    <mat-icon class="material-symbols-outlined" style="color: red">cancel</mat-icon>
+    } }
+  </ng-template>
+</mm-octo-table>
+
+<!-- Nfc Implementation -->
 <div style="text-align:center; margin-top:50px;">
   <button (click)="onNfc()">Start Scanning NFC Tag</button>
 </div>
@@ -26,6 +86,7 @@
 </div>
 
 
+<!-- QR Implementation -->
 <!-- Toggle Mode -->
 <label>
   <input type="checkbox" [(ngModel)]="useDialog" />

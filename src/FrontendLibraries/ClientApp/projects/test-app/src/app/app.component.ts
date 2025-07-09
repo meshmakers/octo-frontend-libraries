@@ -24,13 +24,12 @@ class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any
 
 @Component({
   selector: "app-root",
-  templateUrl: "./app.component.html",
   standalone: false,
+  templateUrl: "./app.component.html",
   styleUrls: ["./app.component.scss"]
 })
 export class AppComponent {
   title = 'test-app';
-
   mmOctoTableDataSource: AssetRepoGraphQlDataSource<any, any, any> = new TestAssetRepoGraphQlDataSource(null, null, null, [
     { id: 1, name: 'test1' },
     { id: 2, name: 'test2' },
@@ -44,6 +43,8 @@ export class AppComponent {
     { id: 10, name: 'test10' }
   ]);
 
+  // based on this    columnNames: ['ckTypeId', 'baseType', 'isAbstract', 'isFinal'],
+  //             accessPaths: {'baseType': 'baseType.ckTypeId'}
   mmOctoTableAdvancedDataSource: AssetRepoGraphQlDataSource<any, any, any> = new TestAssetRepoGraphQlDataSource(null, null, null, [
     { ckTypeId: 'test1', baseType: { ckTypeId: 'test2' }, isAbstract: true, isFinal: false }
   ]);
@@ -77,25 +78,38 @@ export class AppComponent {
               private nfcReaderService: NfcReaderService, private dialog: MatDialog,
               private macoSchemeDecoder: MacoSchemeDecoderService) { }
 
+  async onFileUpload(): Promise<void> {
+    const r = await this.fileUploadService.showUploadDialog(
+      'Upload model',
+      'Please upload a model file',
+      'application/zip,application/json,application/x-yaml'
+    );
+    alert(r?.name ?? 'no file selected');
 
+    if (r) {
+      const formData: FormData = new FormData();
+      formData.append('file', r);
 
+      const params = new HttpParams().set('tenantId', 'demo');
 
+      try {
+        await firstValueFrom(this.httpClient.post('/fileUpload/upload', formData, { params: params }));
+        alert('upload done');
+      } catch (e: unknown) {
+        if (e instanceof HttpErrorResponse) {
+          alert('upload failed: ' + e.error);
+        } else {
+          alert('upload failed');
+        }
+      }
+    }
+  }
+
+  //Nfc Implementation
   nfcMessages: string[] = [];  // Holds the scanned NFC tag messages
   nfcSerialNumber: string = '';
   nfcStatus: string = '';
   employeeNumber: string = '';
-  private statusSubscription?: Subscription;
-
-
-  ngOnInit() {
-    this.statusSubscription = this.nfcReaderService.nfcStatus$.subscribe(status => {
-      this.nfcStatus = status;
-    });
-  }
-
-  ngOnDestroy() {
-    this.statusSubscription?.unsubscribe();
-  }
 
    onNfc(): void {
      this.nfcReaderService.startScan(
@@ -134,8 +148,6 @@ export class AppComponent {
     this.handleScanResult(result);
   }
 
-
-
   handleScanResult(result: string | null) {
     if (result) {
       console.log('Scanned:', result);
@@ -161,35 +173,5 @@ export class AppComponent {
 
   onScanComplete(result: string | null) {
     this.handleScanResult(result);
-  }
-
-
-
-
-
-  async onFileUpload(): Promise<void> {
-    const r = await this.fileUploadService.showUploadDialog(
-      'Upload model',
-      'Please upload a model file',
-      'application/zip,application/json,application/x-yaml'
-    );
-    alert(r?.name ?? 'no file selected');
-
-    if (r) {
-      const formData: FormData = new FormData();
-      formData.append('file', r);
-      const params = new HttpParams().set('tenantId', 'demo');
-
-      try {
-        await firstValueFrom(this.httpClient.post('/fileUpload/upload', formData, { params }));
-        alert('upload done');
-      } catch (e: unknown) {
-        if (e instanceof HttpErrorResponse) {
-          alert('upload failed: ' + e.error);
-        } else {
-          alert('upload failed');
-        }
-      }
-    }
   }
 }
