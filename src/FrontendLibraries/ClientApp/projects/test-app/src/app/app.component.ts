@@ -1,11 +1,10 @@
-import { Component, ElementRef, NgZone, ViewChild } from "@angular/core";
+import { Component, NgZone } from "@angular/core";
 import { FileUploadService, MmQrCodeScannerComponent } from "@meshmakers/shared-ui";
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { firstValueFrom, Observable, Subscription } from "rxjs";
 import { CollectionViewer } from '@angular/cdk/collections';
 import { AssetRepoGraphQlDataSource } from '@meshmakers/octo-services';
 import { NfcReaderService } from "@meshmakers/shared-services";
-import {QrCodeScannerService} from "@meshmakers/shared-services";
 import { MatDialog } from "@angular/material/dialog";
 
 class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any, any> {
@@ -133,17 +132,38 @@ export class AppComponent {
 
 
   //QR Implementation
-  //@ViewChild('video', { static: false }) videoRef!: ElementRef<HTMLVideoElement>;
   output: string = 'Waiting for QR code...';
+  showScanner= false;
+  useDialog = true;
 
 
-  async openScanner() {
+  scanQRCode() {
+    if (this.useDialog) {
+      this.openScannerDialog();
+    } else {
+      this.showScanner = true;
+    }
+  }
+
+  async openScannerDialog() {
     const result = await MmQrCodeScannerComponent.open(this.dialog);
+    this.handleScanResult(result);
+  }
+
+  handleScanResult(result: string | null) {
     if (result) {
       console.log('Scanned:', result);
       this.output = result;
+    } else {
+      console.log('Scan was cancelled or failed.');
     }
+    this.showScanner = false;
   }
+
+  onScanComplete(result: string | null) {
+    this.handleScanResult(result);
+  }
+
 
 
 

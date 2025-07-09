@@ -1,4 +1,4 @@
-﻿import { Component, ElementRef, ViewChild, OnDestroy, OnInit } from "@angular/core";
+﻿import { Component, ElementRef, ViewChild, OnDestroy, OnInit, Optional, SkipSelf, Output, EventEmitter } from "@angular/core";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { QrCodeScannerService } from '@meshmakers/shared-services';
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -7,14 +7,17 @@ import { firstValueFrom } from "rxjs";
 @Component({
   selector: 'mm-qr-code-scanner',
   templateUrl: './mm-qr-scan-window.component.html',
-  styleUrl: './mm-qr-scan-window.component.css'
+  styleUrls: ['./mm-qr-scan-window.component.css']
 })
 export class MmQrCodeScannerComponent implements OnInit, OnDestroy {
   @ViewChild('video', { static: true }) videoRef!: ElementRef<HTMLVideoElement>;
 
+  @Output() scanComplete = new EventEmitter<string | null>();
+
   scanning = false;
   constructor(
-    private dialogRef: MatDialogRef<MmQrCodeScannerComponent>,
+    //Allows skipping MatDialog for inline usage in eg Telerik
+    @Optional() @SkipSelf() private dialogRef: MatDialogRef<MmQrCodeScannerComponent>,
     private snackBar: MatSnackBar,
     private scannerService: QrCodeScannerService
   ) {}
@@ -31,6 +34,13 @@ export class MmQrCodeScannerComponent implements OnInit, OnDestroy {
     }
   }
 
+  private close(result: string | null) {
+    this.scanComplete.emit(result);
+
+    if (this.dialogRef) {
+      this.dialogRef.close(result);
+    }
+  }
 
   static open(dialog: MatDialog): Promise<string | null> {
     const ref = dialog.open(MmQrCodeScannerComponent, {
@@ -57,7 +67,7 @@ export class MmQrCodeScannerComponent implements OnInit, OnDestroy {
           verticalPosition: 'top',
         }
       );
-      this.dialogRef.close(null);
+      this.close(null);
       return;
     }
 
@@ -72,24 +82,25 @@ export class MmQrCodeScannerComponent implements OnInit, OnDestroy {
           verticalPosition: 'top',
         }
         );
-      this.dialogRef.close(null);
+      this.close(null);
       return;
     }
 
     try {
       const result = await this.scannerService.scan(this.videoRef.nativeElement);
-      this.dialogRef.close(result); // Return result to parent
+      this.close(result); // Return result to parent
       this.scanning = false;
     } catch (err) {
       console.error("QR scan error:", err);
-      this.dialogRef.close(null);
+      this.close(null);
+    } finally {
       this.scanning = false;
     }
   }
 
   onCancel() {
     this.scannerService.stop();
-    this.dialogRef.close(null);
+    this.close(null);
   }
 
   ngOnDestroy() {

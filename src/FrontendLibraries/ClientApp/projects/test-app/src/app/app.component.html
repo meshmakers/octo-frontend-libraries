@@ -25,7 +25,24 @@
   </ul>
 </div>
 
-<button (click)="openScanner()">Scan QR Code</button>
+
+<!-- Toggle Mode -->
+<label>
+  <input type="checkbox" [(ngModel)]="useDialog" />
+  Use Dialog
+</label>
+
+<!-- Start Button -->
+<button (click)="scanQRCode()">Scan QR Code</button>
 
 
+<!-- Inline Scanner (shown only if not using dialog) -->
+<mat-card *ngIf="showScanner && !useDialog" class="scanner-card">
+  <mm-qr-code-scanner (scanComplete)="onScanComplete($event)"></mm-qr-code-scanner>
+</mat-card>
+
+
+<!-- Result Display -->
 <div style="margin-top: 1rem; font-weight: bold;">{{ output }}</div>
+
+
