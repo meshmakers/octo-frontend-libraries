@@ -16,6 +16,7 @@ class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any
   }
 
   override connect(_: CollectionViewer): Observable<any[]> {
+    // return dummy data
     return new Observable<any[]>((subscriber) => {
       subscriber.next(this.dataColumns);
     });
@@ -23,10 +24,10 @@ class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any
 }
 
 @Component({
-  selector: "app-root",
+  selector: 'app-root',
   standalone: false,
-  templateUrl: "./app.component.html",
-  styleUrls: ["./app.component.scss"]
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
   title = 'test-app';
@@ -72,7 +73,6 @@ export class AppComponent {
       status: 'INACTIVE'
     }
   ]);
-
 
   constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient,
               private nfcReaderService: NfcReaderService, private dialog: MatDialog,
