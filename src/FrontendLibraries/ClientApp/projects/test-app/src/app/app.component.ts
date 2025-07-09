@@ -72,24 +72,6 @@ export class AppComponent {
     }
   ]);
 
-  private convertSerialToEmployeeNumber(serial: string): string {
-    if (!serial) return '';
-
-    // Normalize serial string: remove colons if present
-    const cleanHex = serial.replace(/:/g, '');
-
-    // Split into byte pairs
-    const bytes: string[] = cleanHex.match(/.{1,2}/g) ?? [];
-
-    // Reverse byte order (little-endian)
-    const reversedHex = bytes.reverse().join('');
-
-    // Convert to BigInt (in case it's large)
-    const decimalValue = BigInt('0x' + reversedHex);
-
-    return decimalValue.toString();
-  }
-
 
   constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient,
               private nfcReaderService: NfcReaderService, private dialog: MatDialog,
@@ -113,7 +95,6 @@ export class AppComponent {
 
   ngOnDestroy() {
     this.statusSubscription?.unsubscribe();
-    //this.stopCamera();
   }
 
    onNfc(): void {
