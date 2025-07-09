@@ -18,3 +18,4 @@ export * from './lib/shared/enumReader';
 export * from './lib/shared/objectCloner';
 export * from './lib/services/nfcReader.service';
 export * from './lib/services/qrCodeScanner.service';
+export * from './lib/services/macoSchemeDecoder.service';

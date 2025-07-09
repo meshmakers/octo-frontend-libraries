@@ -4,7 +4,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { firstValueFrom, Observable, Subscription } from "rxjs";
 import { CollectionViewer } from '@angular/cdk/collections';
 import { AssetRepoGraphQlDataSource } from '@meshmakers/octo-services';
-import { NfcReaderService } from "@meshmakers/shared-services";
+import { MacoSchemeDecoderService, NfcReaderService, ParseResponse, ParseResult } from "@meshmakers/shared-services";
 import { MatDialog } from "@angular/material/dialog";
 
 class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any, any> {
@@ -91,7 +91,9 @@ export class AppComponent {
   }
 
 
-  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient, private zone: NgZone, private nfcReaderService: NfcReaderService, private dialog: MatDialog) { }
+  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient,
+              private nfcReaderService: NfcReaderService, private dialog: MatDialog,
+              private macoSchemeDecoder: MacoSchemeDecoderService) { }
 
 
 
@@ -135,6 +137,7 @@ export class AppComponent {
   output: string = 'Waiting for QR code...';
   showScanner= false;
   useDialog = true;
+  message = '';
 
 
   scanQRCode() {
@@ -150,14 +153,29 @@ export class AppComponent {
     this.handleScanResult(result);
   }
 
+
+
   handleScanResult(result: string | null) {
     if (result) {
       console.log('Scanned:', result);
       this.output = result;
+      this.parseMacoUrl(result);
     } else {
       console.log('Scan was cancelled or failed.');
     }
     this.showScanner = false;
+  }
+
+  decodedResult: ParseResult | null = null;
+  private parseMacoUrl(result: string) {
+    const response: ParseResponse = this.macoSchemeDecoder.parseUrl(result);
+    if (response.success && response.data) {
+      this.decodedResult = response.data;
+      this.message = response.message;
+    } else {
+      this.decodedResult = null;
+      this.message = response.message;
+    }
   }
 
   onScanComplete(result: string | null) {

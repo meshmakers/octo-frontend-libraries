@@ -43,6 +43,14 @@
 
 
 <!-- Result Display -->
-<div style="margin-top: 1rem; font-weight: bold;">{{ output }}</div>
+<div style="margin-top: 1rem; font-weight: bold;"><strong>Scanner: </strong>{{ output }}</div>
 
+<div *ngIf="decodedResult">
+<div><strong>Location:</strong> {{ decodedResult.location }}</div>
+<div><strong>Machine:</strong> {{ decodedResult.machineId }}</div>
+</div>
+
+<div *ngIf="message" [style.color]="decodedResult ? 'green' : 'red'">
+  {{ message }}
+</div>
 
