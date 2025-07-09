@@ -57,61 +57,67 @@ advanced example with special item access
   </ng-template>
 </mm-octo-table>
 
-<!-- Nfc Implementation -->
-<div style="text-align:center; margin-top:50px;">
-  <button (click)="onNfc()">Start Scanning NFC Tag</button>
-</div>
+<div style="background-color: rgb(2, 16, 34); color: white; padding: 20px; min-height: 100vh;">
+  <!-- Nfc Implementation -->
+  <div class="divider"></div>
+  <h1>Nfc Implementation with Id decode for MACO</h1>
+  <div style="text-align:center; margin-top:50px;">
+    <button (click)="onNfc()">Start Scanning NFC Tag</button>
+  </div>
 
-<div style="text-align:center; margin-top:50px;">
-  <button (click)="stopNfc()">Stop NFC Scan</button>
-</div>
+  <div style="text-align:center; margin-top:50px;">
+    <button (click)="stopNfc()">Stop NFC Scan</button>
+  </div>
 
-<div style="margin-top: 20px; font-weight: bold;">
-  {{ nfcStatus }}
-</div>
+  <div style="margin-top: 20px; font-weight: bold;">
+    {{ nfcStatus }}
+  </div>
 
-<div *ngIf="nfcSerialNumber" style="margin-top: 10px;">
-  <strong>Serial Number:</strong> {{ nfcSerialNumber }}
-</div>
+  <div *ngIf="nfcSerialNumber" style="margin-top: 10px;">
+    <strong>Serial Number:</strong> {{ nfcSerialNumber }}
+  </div>
 
-<div *ngIf="employeeNumber" style="margin-top: 10px;">
-  <strong>Employee Number:</strong> {{ employeeNumber }}
-</div>
+  <div *ngIf="employeeNumber" style="margin-top: 10px;">
+    <strong>Employee Number:</strong> {{ employeeNumber }}
+  </div>
 
-<div *ngIf="nfcMessages.length > 0" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
-  <h3>Scanned NFC Messages:</h3>
-  <ul>
-    <li *ngFor="let msg of nfcMessages">{{ msg }}</li>
-  </ul>
-</div>
-
-
-<!-- QR Implementation -->
-<!-- Toggle Mode -->
-<label>
-  <input type="checkbox" [(ngModel)]="useDialog" />
-  Use Dialog
-</label>
-
-<!-- Start Button -->
-<button (click)="scanQRCode()">Scan QR Code</button>
+  <div *ngIf="nfcMessages.length > 0" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
+    <h3>Scanned NFC Messages:</h3>
+    <ul>
+      <li *ngFor="let msg of nfcMessages">{{ msg }}</li>
+    </ul>
+  </div>
 
 
-<!-- Inline Scanner (shown only if not using dialog) -->
-<mat-card *ngIf="showScanner && !useDialog" class="scanner-card">
-  <mm-qr-code-scanner (scanComplete)="onScanComplete($event)"></mm-qr-code-scanner>
-</mat-card>
+  <!-- QR Implementation -->
+  <!-- Toggle Mode -->
+  <div class="divider"></div>
+  <h1>QR Implementation with URL decode for MACO</h1>
+  <label>
+    <input type="checkbox" [(ngModel)]="useDialog" />
+    Use Dialog
+  </label>
+
+  <!-- Start Button -->
+  <button (click)="scanQRCode()">Scan QR Code</button>
 
 
-<!-- Result Display -->
-<div style="margin-top: 1rem; font-weight: bold;"><strong>Scanner: </strong>{{ output }}</div>
+  <!-- Inline Scanner (shown only if not using dialog) -->
+  <mat-card *ngIf="showScanner && !useDialog" class="scanner-card">
+    <mm-qr-code-scanner (scanComplete)="onScanComplete($event)"></mm-qr-code-scanner>
+  </mat-card>
 
-<div *ngIf="decodedResult">
-<div><strong>Location:</strong> {{ decodedResult.location }}</div>
-<div><strong>Machine:</strong> {{ decodedResult.machineId }}</div>
-</div>
 
-<div *ngIf="message" [style.color]="decodedResult ? 'green' : 'red'">
-  {{ message }}
+  <!-- Result Display -->
+  <div style="margin-top: 1rem; font-weight: bold;"><strong>Scanner: </strong>{{ output }}</div>
+
+  <div *ngIf="decodedResult">
+  <div><strong>Location:</strong> {{ decodedResult.location }}</div>
+  <div><strong>Machine:</strong> {{ decodedResult.machineId }}</div>
+  </div>
+
+  <div *ngIf="message" [style.color]="decodedResult ? 'green' : 'red'">
+    {{ message }}
+  </div>
 </div>
 

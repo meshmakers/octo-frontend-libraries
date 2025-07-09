@@ -108,12 +108,13 @@ export class AppComponent {
   //Nfc Implementation
   nfcMessages: string[] = [];  // Holds the scanned NFC tag messages
   nfcSerialNumber: string = '';
-  nfcStatus: string = '';
+  nfcStatus: string = 'Idle';
   employeeNumber: string = '';
 
    onNfc(): void {
      this.nfcReaderService.startScan(
       (serial, employeeNumber, messages) => {
+        this.nfcStatus = 'Active';
         this.nfcSerialNumber = serial;
         this.employeeNumber = employeeNumber;
         this.nfcMessages = messages;
@@ -125,6 +126,7 @@ export class AppComponent {
 
     stopNfc(): void {
      this.nfcReaderService.stopScan();
+     this.nfcStatus = 'Stopped';
     }
 
 
