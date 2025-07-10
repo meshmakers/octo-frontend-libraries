@@ -70,7 +70,7 @@ advanced example with special item access
   </div>
 
   <div style="margin-top: 20px; font-weight: bold;">
-    {{ nfcStatus }}
+    <p>Status: {{ nfcReaderService.nfcStatus$ | async }}</p>
   </div>
 
   <div *ngIf="nfcSerialNumber" style="margin-top: 10px;">
