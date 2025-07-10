@@ -70,7 +70,7 @@ advanced example with special item access
   </div>
 
   <div style="margin-top: 20px; font-weight: bold;">
-    {{ nfcStatus }}
+    <p>Status: {{ nfcReaderService.nfcStatus$ | async }}</p>
   </div>
 
   <div *ngIf="nfcSerialNumber" style="margin-top: 10px;">
@@ -119,5 +119,10 @@ advanced example with special item access
   <div *ngIf="message" [style.color]="decodedResult ? 'green' : 'red'">
     {{ message }}
   </div>
+  <div *ngIf="nfcMessages.length > 0" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
+    <h3>Scanned NFC Messages:</h3>
+    <ul>
+      <li *ngFor="let msg of nfcMessages">{{ msg }}</li>
+    </ul>
+  </div>
 </div>
-

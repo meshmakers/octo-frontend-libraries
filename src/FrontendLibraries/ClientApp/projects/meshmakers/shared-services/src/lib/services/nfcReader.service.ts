@@ -6,7 +6,7 @@ export class NfcReaderService {
   private ndef: NDEFReader | null = null;
   private abortController: AbortController | null = null;
 
-  // Status BehaviorSubject to emit current status updates
+  // Emits NFC status updates to subscribers
   private nfcStatusSubject = new BehaviorSubject<string>('');
   nfcStatus$ = this.nfcStatusSubject.asObservable();
 
