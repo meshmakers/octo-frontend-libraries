@@ -76,6 +76,7 @@ export class NfcReaderService {
       };
     } catch (err) {
       this.zone.run(() => {
+        console.error('Error reading NFC tag: ', err);
         this.nfcStatusSubject.next('Error starting NFC scan.');
         onError('Error starting NFC scan.');
       });

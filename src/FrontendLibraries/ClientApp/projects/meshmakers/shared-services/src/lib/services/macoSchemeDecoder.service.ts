@@ -58,8 +58,6 @@ export class MacoSchemeDecoderService {
     const locationCode = lastSegment.substring(0, 4); // e.g. 'AT10'
     const machineCode = lastSegment.substring(4); // e.g. 'MAFEB2'
 
-    const mappedLocation = this.locationMap[locationCode];
-
     if (!this.locationMap[locationCode]) {
       return {
         success: false,
