@@ -2,7 +2,7 @@
 
 import { QrCodeScannerService } from './qrCodeScanner.service';
 
-describe('NfcReaderService', () => {
+describe('QrCodeScannerService', () => {
   let service: QrCodeScannerService;
 
   beforeEach(() => {

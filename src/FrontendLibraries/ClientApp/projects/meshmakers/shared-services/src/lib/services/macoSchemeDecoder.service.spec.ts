@@ -2,7 +2,7 @@
 
 import { MacoSchemeDecoderService } from "./macoSchemeDecoder.service";
 
-describe('NfcReaderService', () => {
+describe('MacoSchemeDecoderService', () => {
   let service: MacoSchemeDecoderService;
 
   beforeEach(() => {

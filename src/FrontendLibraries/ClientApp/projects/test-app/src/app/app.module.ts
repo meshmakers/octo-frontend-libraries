@@ -9,7 +9,7 @@ import { AuthorizeService, SharedAuthModule } from '@meshmakers/shared-auth';
 import { defaultAuthorizeOptions } from './config/defaultAuthorizeOptions';
 import { MmSharedUiModule } from "@meshmakers/shared-ui";
 import { MmOctoUiModule } from "@meshmakers/octo-ui";
-import { MatButton } from "@angular/material/button";
+import { MatButtonModule } from "@angular/material/button";
 import { CommonModule } from "@angular/common";
 import { SharedServicesModule } from "@meshmakers/shared-services";
 import { MatCard } from "@angular/material/card";
@@ -29,7 +29,7 @@ export function initServices(configurationService: ConfigurationService, authori
     MmSharedUiModule.forRoot(),
     SharedAuthModule.forRoot(defaultAuthorizeOptions),
     MmOctoUiModule,
-    MatButton,
+    MatButtonModule,
     CommonModule,
     SharedServicesModule.forRoot(),
     MatCard,
