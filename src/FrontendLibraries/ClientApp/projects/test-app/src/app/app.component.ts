@@ -1,7 +1,7 @@
-import { Component, NgZone } from "@angular/core";
+import { Component } from "@angular/core";
 import { FileUploadService, MmQrCodeScannerComponent } from "@meshmakers/shared-ui";
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { firstValueFrom, Observable, Subscription } from "rxjs";
+import { firstValueFrom, Observable } from "rxjs";
 import { CollectionViewer } from '@angular/cdk/collections';
 import { AssetRepoGraphQlDataSource } from '@meshmakers/octo-services';
 import { MacoSchemeDecoderService, NfcReaderService, ParseResponse, ParseResult } from "@meshmakers/shared-services";

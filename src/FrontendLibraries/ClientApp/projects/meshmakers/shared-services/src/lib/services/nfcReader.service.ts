@@ -1,4 +1,4 @@
-﻿import { Injectable, NgZone } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class NfcReaderService {
   private nfcStatusSubject = new BehaviorSubject<string>('');
   nfcStatus$ = this.nfcStatusSubject.asObservable();
 
-  constructor(private zone: NgZone) {}
+  constructor() {}
 
   private convertSerialToEmployeeNumber(serial: string): string {
     if (!serial) return '';
@@ -28,7 +28,7 @@ export class NfcReaderService {
     onError: (error: string) => void
   ): Promise<void> {
     if (!('NDEFReader' in window)) {
-      this.zone.run(() => this.nfcStatusSubject.next('Web NFC is not supported in this browser.'));
+      this.nfcStatusSubject.next('Web NFC is not supported in this browser.');
       onError('Web NFC is not supported in this browser.');
       return;
     }
@@ -39,47 +39,38 @@ export class NfcReaderService {
     try {
       await this.ndef.scan({ signal: this.abortController.signal });
 
-      this.zone.run(() => {
-        this.nfcStatusSubject.next('NFC scan started. Waiting for a tag...');
-      });
-
+      this.nfcStatusSubject.next('NFC scan started. Waiting for a tag...');
       onSuccess('', '', []); // Optional: Notify scan started
 
       this.ndef.onreading = (event: NDEFReadingEvent) => {
         console.log('Tag read event fired', event);
-        this.zone.run(() => {
-          const serial = event.serialNumber ?? 'Unknown Serial';
-          const employeeNumber = this.convertSerialToEmployeeNumber(serial);
 
-          const messages: string[] = [];
+        const serial = event.serialNumber ?? 'Unknown Serial';
+        const employeeNumber = this.convertSerialToEmployeeNumber(serial);
 
-          if (event.message.records && event.message.records.length > 0) {
-            for (const record of event.message.records) {
-              if (record.data) {
-                const text = new TextDecoder().decode(record.data.buffer);
-                messages.push(`Type: ${record.recordType}, MIME: ${record.mediaType ?? 'n/a'}, Text: ${text}`);
-              }
+        const messages: string[] = [];
+
+        if (event.message.records && event.message.records.length > 0) {
+          for (const record of event.message.records) {
+            if (record.data) {
+              const text = new TextDecoder().decode(record.data.buffer);
+              messages.push(`Type: ${record.recordType}, MIME: ${record.mediaType ?? 'n/a'}, Text: ${text}`);
             }
           }
+        }
 
-          this.nfcStatusSubject.next('NFC tag read successfully.');
-
-          onSuccess(serial, employeeNumber, messages);
-        });
+        this.nfcStatusSubject.next('NFC tag read successfully.');
+        onSuccess(serial, employeeNumber, messages);
       };
 
       this.ndef.onreadingerror = () => {
-        this.zone.run(() => {
-          this.nfcStatusSubject.next('Error reading NFC tag.');
-          onError('Error reading NFC tag.');
-        });
+        this.nfcStatusSubject.next('Error reading NFC tag.');
+        onError('Error reading NFC tag.');
       };
     } catch (err) {
-      this.zone.run(() => {
-        console.error('Error reading NFC tag: ', err);
-        this.nfcStatusSubject.next('Error starting NFC scan.');
-        onError('Error starting NFC scan.');
-      });
+      console.error('Error reading NFC tag: ', err);
+      this.nfcStatusSubject.next('Error starting NFC scan.');
+      onError('Error starting NFC scan.');
     }
   }
 
@@ -88,7 +79,7 @@ export class NfcReaderService {
       this.abortController.abort();
       this.abortController = null;
       this.ndef = null;
-      this.zone.run(() => this.nfcStatusSubject.next('NFC scan stopped.'));
+      this.nfcStatusSubject.next('NFC scan stopped.');
     }
   }
 }
