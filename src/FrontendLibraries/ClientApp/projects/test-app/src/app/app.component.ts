@@ -76,7 +76,7 @@ export class AppComponent {
   ]);
 
   constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient,
-              private nfcReaderService: NfcReaderService, private dialog: MatDialog,
+              protected nfcReaderService: NfcReaderService, private dialog: MatDialog,
               private macoSchemeDecoder: MacoSchemeDecoderService) { }
 
   async onFileUpload(): Promise<void> {
