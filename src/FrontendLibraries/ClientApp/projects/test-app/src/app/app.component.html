@@ -1,26 +1,90 @@
-<div style="text-align:center; margin-top:50px;">
-  <button (click)="onNfc()">Start Scanning NFC Tag</button>
-</div>
+<h1>File upload</h1>
 
-<div style="text-align:center; margin-top:50px;">
-  <button (click)="stopNfc()">Stop NFC Scan</button>
-</div>
+<button mat-flat-button (click)="onFileUpload()">FileUpload</button>
 
-<div style="margin-top: 20px; font-weight: bold;">
-  {{ nfcStatus }}
-</div>
+<div class="divider"></div>
+<h1>Generic Table simple</h1>
+<!-- when making changes to lib components, you need to rebuild the lib and the app to see the changes, using "Invoke-BuildFrontend" command -->
 
-<div *ngIf="nfcSerialNumber" style="margin-top: 10px;">
-  <strong>Serial Number:</strong> {{ nfcSerialNumber }}
-</div>
+<mm-table-simple [sortColumn]="'name'" [items]="[{ name: 'test' }]" [columns]="[{ key: 'name', header: 'Name' }]"></mm-table-simple>
 
-<div *ngIf="employeeNumber" style="margin-top: 10px;">
-  <strong>Employee Number:</strong> {{ employeeNumber }}
-</div>
+<div class="divider"></div>
+<h1>Octo Table simple</h1>
 
-<div *ngIf="nfcMessages.length > 0" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
-  <h3>Scanned NFC Messages:</h3>
-  <ul>
-    <li *ngFor="let msg of nfcMessages">{{ msg }}</li>
-  </ul>
+<!--simple example-->
+<mm-octo-table [dataSource]="mmOctoTableDataSource" [columns]="['id', 'name']" [currentId]="'ckEnumId'"> > </mm-octo-table>
+
+<div class="divider"></div>
+<h1>Octo Table advanced</h1>
+
+advanced example with special item access
+<mm-octo-table
+  [dataSource]="mmOctoTableAdvancedDataSource"
+  [actionColumns]="[
+    { columnName: 'edit', iconName: 'edit' },
+    { columnName: 'delete', iconName: 'delete' }
+  ]"
+  [columns]="['ckTypeId', { dataKey: 'baseType.ckTypeId', displayName: 'FickiFacki' }, 'isAbstract', 'isFinal']"
+  [currentId]="'id'"
+></mm-octo-table>
+
+<div class="divider"></div>
+<h1>Octo Table with Virtual Columns</h1>
+
+<mm-octo-table
+  [dataSource]="mmOctoTableVirtualDataSource"
+  [columns]="[
+    { dataKey: 'customerDisplay', displayName: 'Customer', templateName: 'customerDisplay' },
+    { dataKey: 'status', displayName: 'Status', templateName: 'statusDisplay' }
+  ]"
+  [currentId]="'id'"
+>
+  <ng-template #customerDisplay let-element>
+    @if (element.companyName) {
+    {{ element.companyName }}
+    } @else {
+    {{ element.customerFirstName }} {{ element.customerLastName }}
+    }
+  </ng-template>
+  <ng-template #statusDisplay let-element>
+    @switch (element.status) { @case ('ACTIVE') {
+    <mat-icon class="material-symbols-outlined" style="color: green">check_circle</mat-icon>
+    } @case ('PENDING') {
+    <mat-icon class="material-symbols-outlined" style="color: orange">pending</mat-icon>
+    } @case ('INACTIVE') {
+    <mat-icon class="material-symbols-outlined" style="color: red">cancel</mat-icon>
+    } }
+  </ng-template>
+</mm-octo-table>
+
+<div style="background-color: rgb(2, 16, 34); color: white; padding: 20px; min-height: 100vh;">
+  <!-- Nfc Implementation -->
+  <div class="divider"></div>
+  <h1>Nfc Implementation with Id decode for MACO</h1>
+  <div style="text-align:center; margin-top:50px;">
+    <button (click)="onNfc()">Start Scanning NFC Tag</button>
+  </div>
+
+  <div style="text-align:center; margin-top:50px;">
+    <button (click)="stopNfc()">Stop NFC Scan</button>
+  </div>
+
+  <div style="margin-top: 20px; font-weight: bold;">
+    {{ nfcStatus }}
+  </div>
+
+  <div *ngIf="nfcSerialNumber" style="margin-top: 10px;">
+    <strong>Serial Number:</strong> {{ nfcSerialNumber }}
+  </div>
+
+  <div *ngIf="employeeNumber" style="margin-top: 10px;">
+    <strong>Employee Number:</strong> {{ employeeNumber }}
+  </div>
+
+  <div *ngIf="nfcMessages.length > 0" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
+    <h3>Scanned NFC Messages:</h3>
+    <ul>
+      <li *ngFor="let msg of nfcMessages">{{ msg }}</li>
+    </ul>
+  </div>
 </div>

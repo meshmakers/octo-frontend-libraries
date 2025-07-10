@@ -12,6 +12,7 @@ import { MmOctoUiModule } from "@meshmakers/octo-ui";
 import { MatButton } from "@angular/material/button";
 import { CommonModule } from "@angular/common";
 import { SharedServicesModule } from "@meshmakers/shared-services";
+import { MatIcon } from "@angular/material/icon";
 
 export function initServices(configurationService: ConfigurationService, authorizeService: AuthorizeService) {
   return async () => {};
@@ -28,7 +29,8 @@ export function initServices(configurationService: ConfigurationService, authori
     MmOctoUiModule,
     MatButton,
     CommonModule,
-    SharedServicesModule.forRoot()
+    SharedServicesModule.forRoot(),
+    MatIcon
   ],
   providers: [
     ConfigurationService,
