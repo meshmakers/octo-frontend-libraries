@@ -22,9 +22,12 @@ export class MacoSchemeDecoderService {
   };
 
   /**
-   * Parses a URL, extracts the last segment, and splits into mapped location and machine.
-   * @param url The URL string to parse.
-   * @returns An ParseResponse object with success=true, message, location and machine or success=false, and message if invalid.
+   * Parses a MACO scheme URL and extracts a mapped location code and machine ID from the last URL segment.
+   *
+   * @param url - The URL to parse.
+   * @returns A `ParseResponse` containing:
+   *  - `success: true` with extracted location and machine ID if parsing is successful.
+   *  - `success: false` with an error message if the input is invalid or cannot be parsed.
    */
   parseUrl(url: string): ParseResponse {
     if (!url || url.trim() === '') {
@@ -45,8 +48,6 @@ export class MacoSchemeDecoderService {
       };
     }
 
-    // Example: lastSegment = "AT10MAFEB2"
-    //Maybe <5 if only location is ok
     if (lastSegment.length < 4) {
       return {
         success: false,
