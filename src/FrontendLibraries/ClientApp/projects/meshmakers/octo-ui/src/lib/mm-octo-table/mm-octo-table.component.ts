@@ -167,7 +167,6 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
     return this._columns.map((c) => getDisplayName(c));
   }
 
-  protected loading = false;
   protected isMobile: boolean;
 
   constructor() {
@@ -228,6 +227,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
         )
         .subscribe();
     }
+    this.loadData();
   }
 
   loadData(): void {

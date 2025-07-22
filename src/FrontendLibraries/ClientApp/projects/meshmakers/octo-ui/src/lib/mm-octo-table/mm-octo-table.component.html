@@ -1,5 +1,5 @@
 <div>
-  <mat-progress-bar *ngIf="loading || (dataSource?.loading$ | async)" mode="indeterminate"></mat-progress-bar>
+  <mat-progress-bar *ngIf="dataSource?.loading$ | async" mode="indeterminate"></mat-progress-bar>
 </div>
 
 <mat-toolbar class="octo-toolbar octo-detail-toolbar">
@@ -27,7 +27,7 @@
         <mat-icon class="material-symbols-outlined">search</mat-icon>
         Search
       </mat-label>
-      <input #input matInput [disabled]="loading" />
+      <input #input matInput [disabled]="dataSource?.loading$ | async" />
     </mat-form-field>
   </div>
 </mat-toolbar>
