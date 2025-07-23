@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ErrorMessage } from '@meshmakers/shared-services';
 
@@ -9,12 +9,14 @@ import { ErrorMessage } from '@meshmakers/shared-services';
   styleUrls: ['./mm-message-details.component.css']
 })
 export class MmMessageDetailsComponent implements OnInit {
+  dialogRef = inject<MatDialogRef<MmMessageDetailsComponent>>(MatDialogRef);
+  data = inject(MAT_DIALOG_DATA);
+
   errorMessage: ErrorMessage;
 
-  constructor(
-    public dialogRef: MatDialogRef<MmMessageDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.errorMessage = data.errorMessage;
   }
 

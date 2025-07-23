@@ -1,15 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ErrorMessage } from '../models/errorMessage';
 
 @Injectable()
 export class MessageService {
+  private readonly snackBar = inject(MatSnackBar);
+
   latestErrorMessage: BehaviorSubject<ErrorMessage | null>;
 
   errorMessages: ErrorMessage[];
 
-  constructor(private readonly snackBar: MatSnackBar) {
+  constructor() {
     this.latestErrorMessage = new BehaviorSubject<ErrorMessage | null>(null);
     this.errorMessages = new Array<ErrorMessage>();
   }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FileUploadService } from '@meshmakers/shared-ui';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { firstValueFrom, Observable, delay } from 'rxjs';
@@ -53,6 +53,9 @@ class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  private fileUploadService = inject(FileUploadService);
+  private readonly httpClient = inject(HttpClient);
+
   title = 'test-app';
   mmOctoTableDataSource: AssetRepoGraphQlDataSource<any, any, any> = new TestAssetRepoGraphQlDataSource(null, null, null, [
     { id: 1, name: 'test1' },
@@ -96,8 +99,6 @@ export class AppComponent {
       status: 'INACTIVE'
     }
   ], 3000);
-
-  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient) {}
 
   async onFileUpload(): Promise<void> {
     const r = await this.fileUploadService.showUploadDialog(

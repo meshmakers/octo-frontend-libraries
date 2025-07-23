@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { ProgressValue } from '../models/progressValue';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -6,10 +6,12 @@ import { MmProgressWindowComponent, ProgressWindowData, ProgressWindowResult } f
 
 @Injectable()
 export class ProgressNotifierService {
+  private readonly dialog = inject(MatDialog);
+
   private readonly _currentProgressValue: BehaviorSubject<ProgressValue | null>;
   private currentDialogRef: MatDialogRef<MmProgressWindowComponent, ProgressWindowResult> | null;
 
-  constructor(private readonly dialog: MatDialog) {
+  constructor() {
     this._currentProgressValue = new BehaviorSubject<ProgressValue | null>(null);
     this.currentDialogRef = null;
     this._isCanceled = false;

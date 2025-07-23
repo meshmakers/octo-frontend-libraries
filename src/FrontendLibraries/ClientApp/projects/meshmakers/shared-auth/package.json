@@ -2,9 +2,9 @@
   "name": "@meshmakers/shared-auth",
   "version": "0.0.0",
   "peerDependencies": {
-    "@angular/common": "^19.2.12",
-    "@angular/core": "^19.2.12",
-    "angular-oauth2-oidc": "^19.0.0"
+    "@angular/common": "^20.1.2",
+    "@angular/core": "^20.1.2",
+    "angular-oauth2-oidc": "^20.0.2"
   },
   "dependencies": {
     "tslib": "^2.8.1"
