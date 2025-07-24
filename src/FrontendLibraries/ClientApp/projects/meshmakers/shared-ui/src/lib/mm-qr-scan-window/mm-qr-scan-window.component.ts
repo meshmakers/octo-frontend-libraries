@@ -1,4 +1,4 @@
-﻿import { Component, ElementRef, ViewChild, OnDestroy, OnInit, Optional, SkipSelf, Output, EventEmitter } from "@angular/core";
+﻿import { Component, ElementRef, ViewChild, OnDestroy, OnInit, Output, EventEmitter, inject } from "@angular/core";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { QrCodeScannerService } from '@meshmakers/shared-services';
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -14,13 +14,12 @@ export class MmQrCodeScannerComponent implements OnInit, OnDestroy {
 
   @Output() scanComplete = new EventEmitter<string | null>();
 
+  //Allows skipping MatDialog for inline usage in eg Telerik
+  private dialogRef = inject(MatDialogRef<MmQrCodeScannerComponent>, { optional: true, skipSelf: true });
+  private snackBar = inject(MatSnackBar);
+  private scannerService = inject(QrCodeScannerService);
+
   scanning = false;
-  constructor(
-    //Allows skipping MatDialog for inline usage in eg Telerik
-    @Optional() @SkipSelf() private dialogRef: MatDialogRef<MmQrCodeScannerComponent>,
-    private snackBar: MatSnackBar,
-    private scannerService: QrCodeScannerService
-  ) {}
 
   private async checkCameraPermission(): Promise<boolean> {
     if (!navigator.permissions || !navigator.mediaDevices) return true;

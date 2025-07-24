@@ -1,9 +1,14 @@
 import { Component, inject } from "@angular/core";
-import { FileUploadService, MmQrCodeScannerComponent } from "@meshmakers/shared-ui";
+import { FileUploadService } from "@meshmakers/shared-ui";
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { firstValueFrom, Observable, delay } from "rxjs";
+import { firstValueFrom, Observable } from "rxjs";
 import { CollectionViewer } from '@angular/cdk/collections';
-import { AssetRepoGraphQlDataSource } from '@meshmakers/octo-services';
+import { AssetRepoGraphQlDataSource, FieldFilterDto, SearchFilterDto, SortDto } from "@meshmakers/octo-services";
+import { PagedResultDto } from "@meshmakers/shared-services";
+import { NfcReaderService } from "../../../meshmakers/shared-services/src/lib/services/nfcReader.service";
+import { MacoSchemeDecoderService, ParseResponse, ParseResult } from "../../../meshmakers/shared-services/src/lib/services/macoSchemeDecoder.service";
+import { MatDialog } from "@angular/material/dialog";
+import { MmQrCodeScannerComponent } from "../../../meshmakers/shared-ui/src/lib/mm-qr-scan-window/mm-qr-scan-window.component";
 
 class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any, any> {
   private dataColumns: any[] = [];
@@ -100,8 +105,7 @@ export class AppComponent {
     }
   ], 3000);
 
-  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient,
-              protected nfcReaderService: NfcReaderService, private dialog: MatDialog,
+  constructor(protected nfcReaderService: NfcReaderService, private dialog: MatDialog,
               private macoSchemeDecoder: MacoSchemeDecoderService) { }
 
   async onFileUpload(): Promise<void> {
