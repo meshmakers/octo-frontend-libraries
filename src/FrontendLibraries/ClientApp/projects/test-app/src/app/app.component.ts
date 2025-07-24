@@ -5,10 +5,9 @@ import { firstValueFrom, Observable } from "rxjs";
 import { CollectionViewer } from '@angular/cdk/collections';
 import { AssetRepoGraphQlDataSource, FieldFilterDto, SearchFilterDto, SortDto } from "@meshmakers/octo-services";
 import { PagedResultDto } from "@meshmakers/shared-services";
-import { NfcReaderService } from "../../../meshmakers/shared-services/src/lib/services/nfcReader.service";
-import { MacoSchemeDecoderService, ParseResponse, ParseResult } from "../../../meshmakers/shared-services/src/lib/services/macoSchemeDecoder.service";
+import { NfcReaderService, MacoSchemeDecoderService, ParseResponse, ParseResult } from "@meshmakers/shared-services";
 import { MatDialog } from "@angular/material/dialog";
-import { MmQrCodeScannerComponent } from "../../../meshmakers/shared-ui/src/lib/mm-qr-scan-window/mm-qr-scan-window.component";
+import { MmQrCodeScannerComponent } from "@meshmakers/shared-ui";
 
 class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any, any> {
   private dataColumns: any[] = [];
