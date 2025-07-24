@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from "rxjs";
 import {
   FileUploadData,
@@ -11,8 +11,8 @@ import { MmFileUploadComponent } from "../mm-file-upload/mm-file-upload.componen
   providedIn: 'root'
 })
 export class FileUploadService {
+  private readonly dialog = inject(MatDialog);
 
-  constructor(private readonly dialog: MatDialog) { }
 
 
   async showUploadDialog(title: string, message: string, mimeTypes: string, fileExtensions: string | null = null): Promise<File | null> {

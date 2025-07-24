@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 import { ProgressValue } from '../models/progressValue';
@@ -20,10 +20,14 @@ export type ProgressWindowResult = object
   styleUrls: ['./mm-progress-window.component.css']
 })
 export class MmProgressWindowComponent implements OnInit {
+  data = inject<ProgressWindowData>(MAT_DIALOG_DATA);
+
   public statusText: string | null;
   public progressValue: number;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: ProgressWindowData) {
+  constructor() {
+    const data = this.data;
+
     this.statusText = null;
     this.progressValue = 0;
 

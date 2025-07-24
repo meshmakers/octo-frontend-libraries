@@ -12,7 +12,7 @@ trigger:
   
 variables:
   - group: GitSSHGroup
-  - group: ApiKeys
+  - group: ApiKeys-mm-cloud
   - group: OctoDefault
   - name: artifactsFrameworkVersion
     value: 'net9.0'
@@ -27,7 +27,7 @@ variables:
     
 
 pool:
-  name: Gerald-Local-Linux
+  name: meshmakers-ci-agents
 
 steps:
 - template: update-build-number.yml

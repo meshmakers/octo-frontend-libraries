@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { map } from 'rxjs/operators';
@@ -9,7 +9,8 @@ import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogTyp
   providedIn: 'root'
 })
 export class ConfirmationService {
-  constructor(private readonly dialog: MatDialog) {}
+  private readonly dialog = inject(MatDialog);
+
 
   showYesNoConfirmationDialog(title: string, message: string): Observable<boolean> {
     const dialogRef = this.dialog.open<MmConfirmationWindowComponent, ConfirmationWindowData, ConfirmationWindowResult>(

@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType} from "../models/confirmation";
 
@@ -9,6 +9,9 @@ import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogTyp
   styleUrls: ['./mm-confirmation-window.component.css']
 })
 export class MmConfirmationWindowComponent implements OnInit {
+  private readonly dialogRef = inject<MatDialogRef<MmConfirmationWindowComponent>>(MatDialogRef);
+  data = inject<ConfirmationWindowData>(MAT_DIALOG_DATA);
+
   button1Text: string;
   button1Result: ButtonTypes;
   button2Text: string | null;
@@ -16,10 +19,9 @@ export class MmConfirmationWindowComponent implements OnInit {
   button3Text: string | null;
   button3Result: ButtonTypes | null;
 
-  constructor(
-    private readonly dialogRef: MatDialogRef<MmConfirmationWindowComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ConfirmationWindowData
-  ) {
+  constructor() {
+    const data = this.data;
+
     this.button2Text = null;
     this.button2Result = null;
     this.button3Text = null;

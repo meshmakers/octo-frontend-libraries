@@ -1,12 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { MessageService } from "@meshmakers/shared-services";
 import { ApolloError } from "@apollo/client/errors";
 
 @Injectable()
 export class OctoMessageService{
+  private readonly messageService = inject(MessageService);
 
-  constructor(private readonly messageService: MessageService) {
-  }
 
   showErrorWithDetails(error: any): void {
     if (error.constructor.name === ApolloError.prototype.constructor.name)

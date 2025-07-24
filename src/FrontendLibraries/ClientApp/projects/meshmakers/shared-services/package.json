@@ -2,8 +2,8 @@
   "name": "@meshmakers/shared-services",
   "version": "0.0.0",
   "peerDependencies": {
-    "@angular/common": "^19.2.12",
-    "@angular/core": "^19.2.12"
+    "@angular/common": "^20.1.2",
+    "@angular/core": "^20.1.2"
   },
   "dependencies": {
     "tslib": "^2.8.1"

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ErrorMessage, MessageService } from '@meshmakers/shared-services';
 import { MatDialog } from '@angular/material/dialog';
 import { MmMessageDetailsComponent } from '../mm-message-details/mm-message-details.component';
@@ -10,12 +10,12 @@ import { MmMessageDetailsComponent } from '../mm-message-details/mm-message-deta
   styleUrls: ['./mm-notification-bar.component.scss']
 })
 export class MmNotificationBarComponent implements OnInit {
+  private readonly messageService = inject(MessageService);
+  private readonly dialog = inject(MatDialog);
+
   public errorMessage: ErrorMessage | null;
 
-  constructor(
-    private readonly messageService: MessageService,
-    private readonly dialog: MatDialog
-  ) {
+  constructor() {
     this.errorMessage = null;
   }
 

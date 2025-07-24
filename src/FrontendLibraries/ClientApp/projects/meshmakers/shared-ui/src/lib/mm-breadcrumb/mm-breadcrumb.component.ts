@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, PRIMARY_OUTLET, Router } from '@angular/router';
 import { Breadcrumb, BreadcrumbService } from '@meshmakers/shared-services';
 import { filter, map } from 'rxjs/operators';
@@ -11,17 +11,17 @@ import { BreadcrumbData } from "../services/breadcrumbData";
   styleUrl: './mm-breadcrumb.component.css'
 })
 export class MmBreadcrumbComponent implements OnInit {
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly breadcrumbService = inject(BreadcrumbService);
+
   protected breadcrumbData: BreadcrumbData[] = [];
   @Input() fontSize = '18px';
   @Input() fontColor = '#0275d8';
   @Input() lastLinkColor = '#000';
   @Input() symbol = ' / ';
 
-  constructor(
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly router: Router,
-    private readonly breadcrumbService: BreadcrumbService
-  ) {
+  constructor() {
     this.breadCrumbData();
   }
 
