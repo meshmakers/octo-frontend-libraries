@@ -1,13 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthorizeService } from './authorize.service';
 
 @Injectable()
 export class AuthorizeInterceptor implements HttpInterceptor {
+  private readonly authorize = inject(AuthorizeService);
+
   accessToken: string | null;
 
-  constructor(private readonly authorize: AuthorizeService) {
+  constructor() {
+    const authorize = this.authorize;
+
     this.accessToken = null;
     authorize.getAccessToken().subscribe((value) => (this.accessToken = value));
   }

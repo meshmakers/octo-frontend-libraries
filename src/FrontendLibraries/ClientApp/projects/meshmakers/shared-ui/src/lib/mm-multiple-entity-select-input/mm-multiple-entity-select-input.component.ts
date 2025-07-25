@@ -1,16 +1,4 @@
-import {
-  Component,
-  DoCheck,
-  ElementRef,
-  EventEmitter,
-  forwardRef,
-  HostBinding,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from '@angular/core';
+import { Component, DoCheck, ElementRef, EventEmitter, forwardRef, HostBinding, Injector, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { EntitySelectDataSource } from '@meshmakers/shared-services';
 import {
   AbstractControl,
@@ -60,6 +48,10 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
 export class MmMultipleEntitySelectInputComponent
   implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any[]>, Validator
 {
+  elRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
+  private readonly fm = inject(FocusMonitor);
+
   private static nextId = 0;
   public readonly valuesFormControl: FormControl;
   public readonly searchFormControl: FormControl;
@@ -79,11 +71,10 @@ export class MmMultipleEntitySelectInputComponent
   private activatedValue: any;
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
 
-  constructor(
-    public elRef: ElementRef<HTMLElement>,
-    private readonly injector: Injector,
-    private readonly fm: FocusMonitor
-  ) {
+  constructor() {
+    const elRef = this.elRef;
+    const fm = this.fm;
+
     this.ngControl = null;
     this.errorState = false;
     this.inputField = null;

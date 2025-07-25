@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject, signal, ViewChild } from "@angular/core";
+import { Component, ElementRef, signal, ViewChild, inject } from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { FileUploadData, FileUploadResult } from "../models/confirmation";
 import { MatSnackBar } from "@angular/material/snack-bar";
@@ -10,6 +10,10 @@ import { MatSnackBar } from "@angular/material/snack-bar";
   styleUrl: './mm-file-upload.component.css'
 })
 export class MmFileUploadComponent  {
+  private readonly dialogRef = inject<MatDialogRef<MmFileUploadComponent>>(MatDialogRef);
+  protected data = inject<FileUploadData>(MAT_DIALOG_DATA);
+  private snackBar = inject(MatSnackBar);
+
   protected fileName = signal('');
   protected fileSize = signal(0);
   protected uploadProgress = signal(0);
@@ -19,11 +23,7 @@ export class MmFileUploadComponent  {
   protected uploadError: boolean;
 
 
-  constructor(
-    private readonly dialogRef: MatDialogRef<MmFileUploadComponent>,
-    @Inject(MAT_DIALOG_DATA) protected data: FileUploadData,
-    private snackBar: MatSnackBar
-  ) {
+  constructor() {
     this.uploadError = false;
     this.uploadSuccess = false;
   }

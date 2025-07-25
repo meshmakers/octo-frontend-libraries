@@ -1,10 +1,13 @@
-import { Component } from '@angular/core';
-import { FileUploadService } from '@meshmakers/shared-ui';
+import { Component, inject } from "@angular/core";
+import { FileUploadService } from "@meshmakers/shared-ui";
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { firstValueFrom, Observable, delay } from 'rxjs';
+import { firstValueFrom, Observable } from "rxjs";
 import { CollectionViewer } from '@angular/cdk/collections';
-import { AssetRepoGraphQlDataSource, SearchFilterDto, FieldFilterDto, SortDto } from '@meshmakers/octo-services';
-import {PagedResultDto} from "@meshmakers/shared-services";
+import { AssetRepoGraphQlDataSource, FieldFilterDto, SearchFilterDto, SortDto } from "@meshmakers/octo-services";
+import { PagedResultDto } from "@meshmakers/shared-services";
+import { NfcReaderService, MacoSchemeDecoderService, ParseResponse, ParseResult } from "@meshmakers/shared-services";
+import { MatDialog } from "@angular/material/dialog";
+import { MmQrCodeScannerComponent } from "@meshmakers/shared-ui";
 
 class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any, any> {
   private dataColumns: any[] = [];
@@ -53,7 +56,11 @@ class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  private fileUploadService = inject(FileUploadService);
+  private readonly httpClient = inject(HttpClient);
+
   title = 'test-app';
+
   mmOctoTableDataSource: AssetRepoGraphQlDataSource<any, any, any> = new TestAssetRepoGraphQlDataSource(null, null, null, [
     { id: 1, name: 'test1' },
     { id: 2, name: 'test2' },
@@ -97,7 +104,8 @@ export class AppComponent {
     }
   ], 3000);
 
-  constructor(private fileUploadService: FileUploadService, private readonly httpClient: HttpClient) {}
+  constructor(protected nfcReaderService: NfcReaderService, private dialog: MatDialog,
+              private macoSchemeDecoder: MacoSchemeDecoderService) { }
 
   async onFileUpload(): Promise<void> {
     const r = await this.fileUploadService.showUploadDialog(
@@ -124,5 +132,74 @@ export class AppComponent {
         }
       }
     }
+  }
+
+  //Nfc Implementation
+  nfcMessages: string[] = [];  // Holds the scanned NFC tag messages
+  nfcSerialNumber: string = '';
+  employeeNumber: string = '';
+
+   onNfc(): void {
+     this.nfcReaderService.startScan(
+      (serial, employeeNumber, messages) => {
+        this.nfcSerialNumber = serial;
+        this.employeeNumber = employeeNumber;
+        this.nfcMessages = messages;
+      },
+      (error) => {
+        console.error('NFC Error:', error);
+      }
+    );
+    }
+
+  stopNfc(): void {
+    this.nfcReaderService.stopScan();
+  }
+
+  //QR Implementation
+  output: string = 'Waiting for QR code...';
+  showScanner= false;
+  useDialog = true;
+  message = '';
+
+
+  scanQRCode() {
+    if (this.useDialog) {
+      this.openScannerDialog();
+    } else {
+      this.showScanner = true;
+    }
+  }
+
+  async openScannerDialog() {
+    const result = await MmQrCodeScannerComponent.open(this.dialog);
+    this.handleScanResult(result);
+  }
+
+  handleScanResult(result: string | null) {
+    if (result) {
+      console.log('Scanned:', result);
+      this.output = result;
+      this.parseMacoUrl(result);
+    } else {
+      console.log('Scan was cancelled or failed.');
+    }
+    this.showScanner = false;
+  }
+
+  decodedResult: ParseResult | null = null;
+  private parseMacoUrl(result: string) {
+    const response: ParseResponse = this.macoSchemeDecoder.parseUrl(result);
+    if (response.success && response.data) {
+      this.decodedResult = response.data;
+      this.message = response.message;
+    } else {
+      this.decodedResult = null;
+      this.message = response.message;
+    }
+  }
+
+  onScanComplete(result: string | null) {
+    this.handleScanResult(result);
   }
 }

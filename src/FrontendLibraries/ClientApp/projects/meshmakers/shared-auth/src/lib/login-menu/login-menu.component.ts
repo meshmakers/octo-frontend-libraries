@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { AuthorizeService } from '../authorize.service';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -10,10 +10,12 @@ import { map } from 'rxjs/operators';
   styleUrls: ['./login-menu.component.css']
 })
 export class LoginMenuComponent implements OnInit {
+  private readonly authorizeService = inject(AuthorizeService);
+
   public isAuthenticated: Observable<boolean>;
   public userName: Observable<string | null>;
 
-  constructor(private readonly authorizeService: AuthorizeService) {
+  constructor() {
     this.isAuthenticated = this.authorizeService.getIsAuthenticated();
     this.userName = this.authorizeService.getUser().pipe(map((u) => u?.name ?? null));
   }

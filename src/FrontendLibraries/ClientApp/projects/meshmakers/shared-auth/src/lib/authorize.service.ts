@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { BehaviorSubject, firstValueFrom, Observable } from "rxjs";
 import { filter, map } from "rxjs/operators";
 import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
@@ -30,6 +30,8 @@ export class AuthorizeOptions {
 
 @Injectable()
 export class AuthorizeService {
+  private readonly oauthService = inject(OAuthService);
+
   private readonly isAuthenticated = new BehaviorSubject<boolean>(false);
   private readonly authority: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
@@ -42,9 +44,7 @@ export class AuthorizeService {
 
   private authorizeOptions: AuthorizeOptions | null = null;
 
-  constructor(
-    private readonly oauthService: OAuthService
-  ) {
+  constructor() {
     console.debug("AuthorizeService::created");
 
     this.getUser().subscribe((s) => {

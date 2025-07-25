@@ -1,16 +1,4 @@
-import {
-  Component,
-  DoCheck,
-  ElementRef,
-  EventEmitter,
-  forwardRef,
-  HostBinding,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
+import { Component, DoCheck, ElementRef, EventEmitter, forwardRef, HostBinding, Injector, Input, OnDestroy, OnInit, ViewChild, inject } from "@angular/core";
 import { MatFormFieldControl } from "@angular/material/form-field";
 import {
   AbstractControl,
@@ -57,6 +45,10 @@ import { AutoCompleteDataSource } from "@meshmakers/shared-services";
   ]
 })
 export class MmAutocompleteInputComponent implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<any>, Validator {
+  elRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
+  private readonly fm = inject(FocusMonitor);
+
   private static nextId = 0;
   public readonly searchFormControl: FormControl;
   public isLoading: boolean;
@@ -74,11 +66,10 @@ export class MmAutocompleteInputComponent implements OnInit, OnDestroy, DoCheck,
   @HostBinding("attr.aria-describedby") private describedBy = "";
   private activatedValue: any;
 
-  constructor(
-    public elRef: ElementRef<HTMLElement>,
-    private readonly injector: Injector,
-    private readonly fm: FocusMonitor
-  ) {
+  constructor() {
+    const elRef = this.elRef;
+    const fm = this.fm;
+
     this.ngControl = null;
     this.errorState = false;
     this._selectedString = null;
