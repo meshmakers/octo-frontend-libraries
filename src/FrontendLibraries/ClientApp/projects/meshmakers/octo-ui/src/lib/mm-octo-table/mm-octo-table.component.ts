@@ -44,9 +44,10 @@ import { AssetRepoGraphQlDataSource, SearchFilterDto, SearchFilterTypesDto, Sort
 import { ColumnDefinition, getDisplayName, getDataKey, TableColumn } from './mm-octo-table.model';
 
 export interface ActionColumn {
-  columnName: string;
-  iconName?: string;
-  svgIconName?: string;
+  displayText: string; // Display text for the action button
+  actionId: string; // Unique identifier for the action
+  iconName?: string; // Name of the icon to display in the button
+  svgIconName?: string; // Name of the SVG icon to display in the button
 }
 
 export interface ToolbarAction {
@@ -159,7 +160,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   @ViewChild(MatSort, { static: false }) sort?: MatSort;
   @ViewChild('input', { static: false }) input?: ElementRef<HTMLInputElement>;
 
-  get columnNames(): string[] {
+  get columnDataKeys(): string[] {
     return this._columns.map((c) => getDataKey(c));
   }
 
@@ -282,8 +283,8 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
     this.selectedPageSizeSubject.next($event.pageSize);
   }
 
-  getActionColumnNames(): string[] {
-    return this.actionColumns.map((ac) => ac.columnName);
+  getActionDisplayTexts(): string[] {
+    return this.actionColumns.map((ac) => ac.displayText);
   }
 
   onRowClick(row: any) {
