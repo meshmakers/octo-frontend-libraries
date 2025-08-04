@@ -60,7 +60,7 @@
     "@types/node": "^24.1.0",
     "@types/w3c-web-nfc": "^1.0.4",
     "angular-eslint": "20.1.1",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.0.0",
     "eslint": "^9.31.0",
     "eslint-plugin-unused-imports": "^4.1.4",
     "jasmine-core": "~5.9.0",
