@@ -21,8 +21,8 @@ advanced example with special item access
 <mm-octo-table
   [dataSource]="mmOctoTableAdvancedDataSource"
   [actionColumns]="[
-    { columnName: 'edit', iconName: 'edit' },
-    { columnName: 'delete', iconName: 'delete' }
+    { actionId: 'edit', displayText: 'Edit', iconName: 'edit' },
+    { actionId: 'delete', displayText: 'Delete', iconName: 'delete' }
   ]"
   [columns]="['ckTypeId', { dataKey: 'baseType.ckTypeId', displayName: 'FickiFacki' }, 'isAbstract', 'isFinal']"
   [currentId]="'id'"
