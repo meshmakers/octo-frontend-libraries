@@ -168,12 +168,6 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
     return this._columns.map((c) => getDisplayName(c));
   }
 
-  protected isMobile: boolean;
-
-  constructor() {
-    this.isMobile = false;
-  }
-
   ngOnInit(): void {
     this.selectedPageSizeSubject.next(this.selectedPageSize);
 

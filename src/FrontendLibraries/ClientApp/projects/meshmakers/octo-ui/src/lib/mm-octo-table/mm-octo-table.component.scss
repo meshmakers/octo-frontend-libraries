@@ -5,3 +5,114 @@
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
 }
+
+.mat-mdc-header-cell {
+  white-space: unset !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+.octo-toolbar {
+
+  .mat-mdc-text-field-wrapper {
+    height: 40px;
+  }
+
+  // This element reserves space for hints and error messages.
+  // Hide it since we know that we won't need it.
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  // This code is to make search box smaller than normal
+  .mat-mdc-text-field-wrapper .mat-mdc-form-field-flex .mat-mdc-floating-label {
+    top: 18px;
+  }
+
+  .mat-mdc-text-field-wrapper.mdc-text-field--outlined .mdc-notched-outline--upgraded
+  .mdc-floating-label--float-above {
+    --mat-mdc-form-field-label-transform: translateY(
+        -29px) scale(var(--mat-mdc-form-field-floating-label-scale, 0.75));
+    transform: var(--mat-mdc-form-field-label-transform);
+  }
+
+  .mat-mdc-form-field-infix {
+    top: -8px;
+  }
+
+  .mat-mdc-form-field-flex {
+    top: -8px;
+  }
+}
+
+.octo-toolbar .octo-spacer {
+  flex: 1 1 auto;
+}
+
+.octo-toolbar button {
+  margin-right: 5px;
+}
+
+.mobile-label {
+  display: none;
+}
+
+.mobileCellHidden {
+  display: flex;
+}
+
+@media (max-width: 959px) {
+  .mat-mdc-table {
+    max-height: 800px;
+  }
+
+  .mat-mdc-table mat-row, .mat-table mat-header-row, .mat-table mat-footer-row {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .mat-mdc-table mat-cell:first-child {
+    padding-left: 16px;
+  }
+
+  .mat-mdc-table .mat-column-actions {
+    display: flex;
+    justify-content: flex-end;
+    border-bottom-width: 2px;
+  }
+
+  .mobile-label {
+    width: 140px;
+    display: inline-block;
+    font-weight: bold;
+  }
+
+  .mat-mdc-footer-row::after, .mat-mdc-header-row::after, .mat-mdc-row::after {
+    min-height: 0;
+  }
+
+  .mat-mdc-header-row {
+    display: none;
+  }
+
+  .mat-mdc-row {
+    flex-direction: column;
+    align-items: start;
+    padding: 8px 24px;
+  }
+
+  .mat-mdc-cell {
+    min-height: auto;
+    width: 100%;
+    display: inline-block;
+  }
+
+  .mobileCellHidden {
+    display: none;
+  }
+}

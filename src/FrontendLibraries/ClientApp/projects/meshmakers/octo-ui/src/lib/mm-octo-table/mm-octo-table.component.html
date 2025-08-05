@@ -6,19 +6,20 @@
 
 <mat-toolbar class="octo-toolbar octo-detail-toolbar">
   @for (toolbarAction of leftToolbarActions; track toolbarAction) {
-  <button
-    mat-flat-button
-    routerLink="{{ toolbarAction.route }}"
-    type="button"
-    [disabled]="!toolbarAction.isDisabled ? false : (toolbarAction.isDisabled | async)"
-  >
-    @if (toolbarAction?.svgIconName) {
-    <mat-icon class="svg-icon" svgIcon="{{ toolbarAction.svgIconName }}" matListItemIcon></mat-icon>
-    } @if (toolbarAction?.iconName) {
-    <mat-icon class="material-symbols-outlined">{{ toolbarAction.iconName }}</mat-icon>
-    }
-    {{ toolbarAction.actionText }}
-  </button>
+    <button
+      mat-flat-button
+      routerLink="{{ toolbarAction.route }}"
+      type="button"
+      [disabled]="!toolbarAction.isDisabled ? false : (toolbarAction.isDisabled | async)"
+    >
+      @if (toolbarAction?.svgIconName) {
+        <mat-icon class="svg-icon" svgIcon="{{ toolbarAction.svgIconName }}" matListItemIcon></mat-icon>
+      }
+      @if (toolbarAction?.iconName) {
+        <mat-icon class="material-symbols-outlined">{{ toolbarAction.iconName }}</mat-icon>
+      }
+      {{ toolbarAction.actionText }}
+    </button>
   }
 
   <div class="octo-spacer"></div>
@@ -29,13 +30,12 @@
         <mat-icon class="material-symbols-outlined">search</mat-icon>
         Search
       </mat-label>
-      <input #input matInput [disabled]="dataSource?.loading$ | async" />
+      <input #input matInput [disabled]="dataSource?.loading$ | async"/>
     </mat-form-field>
   </div>
 </mat-toolbar>
 
 <mat-table
-  [class.isMobile]="isMobile"
   [dataSource]="dataSource"
   class="mat-elevation-z8 table-container"
   mat-table
@@ -55,11 +55,12 @@
         </ng-template>
       </mat-header-cell>
       <mat-cell *matCellDef="let element">
-        <span *ngIf="isMobile">{{ getDisplayName(column)}:</span>
+        <span class="mobile-label">{{ getDisplayName(column)}}</span>
         @if (column.templateName) {
-        <ng-container *ngTemplateOutlet="getTemplate(column.templateName); context: { $implicit: element }"> </ng-container>
+          <ng-container
+            *ngTemplateOutlet="getTemplate(column.templateName); context: { $implicit: element }"></ng-container>
         } @else {
-        {{ accessElement(element, column) }}
+          {{ accessElement(element, column) }}
         }
       </mat-cell>
     </ng-container>
@@ -70,47 +71,50 @@
     <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
     <mat-cell *matCellDef="let element">
       @for (column of actionColumns; track column) {
-      <ng-container>
-        <button mat-button (click)="emitRowData({ action: column.actionId, id: encodeURIComponent(element[currentId]), entry: element })">
-          <mat-icon *ngIf="column?.svgIconName" class="svg-icon" svgIcon="{{ column.svgIconName }}" matListItemIcon></mat-icon>
-          <mat-icon *ngIf="column?.iconName" class="material-symbols-outlined">{{ column.iconName }}</mat-icon>
-        </button>
-      </ng-container>
+        <ng-container>
+          <button mat-button
+                  (click)="emitRowData({ action: column.actionId, id: encodeURIComponent(element[currentId]), entry: element })">
+            <mat-icon *ngIf="column?.svgIconName" class="svg-icon" svgIcon="{{ column.svgIconName }}"
+                      matListItemIcon></mat-icon>
+            <mat-icon *ngIf="column?.iconName" class="material-symbols-outlined">{{ column.iconName }}</mat-icon>
+          </button>
+        </ng-container>
       }
 
       <!-- Options menu with additional actions -->
       @if (optionActions.length > 0) {
-      <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Options">
-        <mat-icon class="material-symbols-outlined">more_vert</mat-icon>
-      </button>
+        <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Options">
+          <mat-icon class="material-symbols-outlined">more_vert</mat-icon>
+        </button>
       }
 
       <mat-menu #menu="matMenu">
         @for (optionAction of optionActions; track optionAction) {
-        <ng-container>
-          <button
-            mat-menu-item
-            (click)="emitRowData({ action: optionAction.actionId, id: encodeURIComponent(element[currentId]), entry: element })"
-          >
-            @if (optionAction?.svgIconName) {
-            <mat-icon class="svg-icon" svgIcon="{{ optionAction.svgIconName }}" matListItemIcon></mat-icon>
-            } @if (optionAction?.iconName) {
-            <mat-icon class="material-symbols-outlined">{{ optionAction.iconName }}</mat-icon>
-            }
-            {{ optionAction.displayText }}
-          </button>
-        </ng-container>
+          <ng-container>
+            <button
+              mat-menu-item
+              (click)="emitRowData({ action: optionAction.actionId, id: encodeURIComponent(element[currentId]), entry: element })"
+            >
+              @if (optionAction?.svgIconName) {
+                <mat-icon class="svg-icon" svgIcon="{{ optionAction.svgIconName }}" matListItemIcon></mat-icon>
+              }
+              @if (optionAction?.iconName) {
+                <mat-icon class="material-symbols-outlined">{{ optionAction.iconName }}</mat-icon>
+              }
+              {{ optionAction.displayText }}
+            </button>
+          </ng-container>
         }
       </mat-menu>
     </mat-cell>
   </ng-container>
 
   @if (hasActionColumns()) {
-  <mat-header-row *matHeaderRowDef="columnDataKeys.concat(['actions'])"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: columnDataKeys.concat(['actions'])"></mat-row>
+    <mat-header-row *matHeaderRowDef="columnDataKeys.concat(['actions'])"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: columnDataKeys.concat(['actions'])"></mat-row>
   } @else {
-  <mat-header-row *matHeaderRowDef="columnDataKeys"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: columnDataKeys"></mat-row>
+    <mat-header-row *matHeaderRowDef="columnDataKeys"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: columnDataKeys"></mat-row>
   }
 </mat-table>
 
