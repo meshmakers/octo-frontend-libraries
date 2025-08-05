@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ErrorMessage, MessageService } from '@meshmakers/shared-services';
-import { MatDialog } from '@angular/material/dialog';
-import { MmMessageDetailsComponent } from '../mm-message-details/mm-message-details.component';
+import {MatSnackBar} from "@angular/material/snack-bar";
+import {NotificationSnackBar} from "./notification-snack-bar/notification-snack-bar";
 
 @Component({
   selector: 'mm-notification-bar',
@@ -10,8 +10,8 @@ import { MmMessageDetailsComponent } from '../mm-message-details/mm-message-deta
   styleUrls: ['./mm-notification-bar.component.scss']
 })
 export class MmNotificationBarComponent implements OnInit {
+  private readonly snackBar = inject(MatSnackBar);
   private readonly messageService = inject(MessageService);
-  private readonly dialog = inject(MatDialog);
 
   public errorMessage: ErrorMessage | null;
 
@@ -22,17 +22,12 @@ export class MmNotificationBarComponent implements OnInit {
   ngOnInit(): void {
     this.messageService.getLatestErrorMessage().subscribe((value) => {
       this.errorMessage = value;
-    });
-  }
-
-  onHide(): void {
-    this.errorMessage = null;
-  }
-
-  onShowDetails(): void {
-    this.dialog.open(MmMessageDetailsComponent, {
-      data: {
-        errorMessage: this.errorMessage
+      if (this.errorMessage) {
+        this.snackBar.openFromComponent(NotificationSnackBar, {
+          data: this.errorMessage,
+          horizontalPosition: "center",
+          verticalPosition: "top"
+        });
       }
     });
   }
