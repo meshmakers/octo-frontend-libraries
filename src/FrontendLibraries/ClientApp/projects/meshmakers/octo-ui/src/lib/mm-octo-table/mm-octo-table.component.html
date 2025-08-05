@@ -1,5 +1,7 @@
 <div>
-  <mat-progress-bar *ngIf="dataSource?.loading$ | async" mode="indeterminate"></mat-progress-bar>
+  @if (dataSource?.loading$ | async) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
 </div>
 
 <mat-toolbar class="octo-toolbar octo-detail-toolbar">
@@ -42,24 +44,26 @@
   matSortDirection="asc"
   matSortDisableClear="true"
 >
-  <ng-container *ngFor="let column of columns" [matColumnDef]="getDataKey(column)">
-    <mat-header-cell *matHeaderCellDef>
-      <span *ngIf="isSortable(column); else nonSortableHeader" mat-sort-header>
-        {{ getDisplayName(column) }}
-      </span>
-      <ng-template #nonSortableHeader>
-        {{ getDisplayName(column) }}
-      </ng-template>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let element">
-      <span *ngIf="isMobile">{{ getDisplayName(column)}:</span>
-      @if (column.templateName) {
-      <ng-container *ngTemplateOutlet="getTemplate(column.templateName); context: { $implicit: element }"> </ng-container>
-      } @else {
-      {{ accessElement(element, column) }}
-      }
-    </mat-cell>
-  </ng-container>
+  @for (column of columns; track column) {
+    <ng-container [matColumnDef]="getDataKey(column)">
+      <mat-header-cell *matHeaderCellDef>
+        <span *ngIf="isSortable(column); else nonSortableHeader" mat-sort-header>
+          {{ getDisplayName(column) }}
+        </span>
+        <ng-template #nonSortableHeader>
+          {{ getDisplayName(column) }}
+        </ng-template>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let element">
+        <span *ngIf="isMobile">{{ getDisplayName(column)}:</span>
+        @if (column.templateName) {
+        <ng-container *ngTemplateOutlet="getTemplate(column.templateName); context: { $implicit: element }"> </ng-container>
+        } @else {
+        {{ accessElement(element, column) }}
+        }
+      </mat-cell>
+    </ng-container>
+  }
 
   <!-- Consolidated Action Column with multiple buttons -->
   <ng-container matColumnDef="actions">

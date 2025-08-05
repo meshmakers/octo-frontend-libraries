@@ -101,8 +101,8 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
     fieldFilter: FieldFilterDto[] | null = null,
     sort: SortDto[] | null = null
   ): void {
-    super.onBeginLoad();
     this.clear();
+    super.onBeginLoad();
 
     const variables = this.createVariables(skip, take, searchFilter, fieldFilter, sort);
     this.queryRef = this.query.watch(variables, { errorPolicy: 'all' });
