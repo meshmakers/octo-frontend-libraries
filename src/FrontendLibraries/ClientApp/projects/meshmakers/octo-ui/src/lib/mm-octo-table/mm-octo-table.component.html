@@ -6,20 +6,39 @@
 
 <mat-toolbar class="octo-toolbar octo-detail-toolbar">
   @for (toolbarAction of leftToolbarActions; track toolbarAction) {
-    <button
-      mat-flat-button
-      routerLink="{{ toolbarAction.route }}"
-      type="button"
-      [disabled]="!toolbarAction.isDisabled ? false : (toolbarAction.isDisabled | async)"
-    >
-      @if (toolbarAction?.svgIconName) {
-        <mat-icon class="svg-icon" svgIcon="{{ toolbarAction.svgIconName }}" matListItemIcon></mat-icon>
-      }
-      @if (toolbarAction?.iconName) {
-        <mat-icon class="material-symbols-outlined">{{ toolbarAction.iconName }}</mat-icon>
-      }
-      {{ toolbarAction.actionText }}
-    </button>
+    @if (toolbarAction.route) {
+      <button
+        mat-flat-button
+        [routerLink]="toolbarAction.route"
+        type="button"
+        [hidden]="!toolbarAction.isHidden ? false : (toolbarAction.isHidden | async)"
+        [disabled]="!toolbarAction.isDisabled ? false : (toolbarAction.isDisabled | async)"
+      >
+        @if (toolbarAction?.svgIconName) {
+          <mat-icon class="svg-icon" svgIcon="{{ toolbarAction.svgIconName }}" matListItemIcon></mat-icon>
+        }
+        @if (toolbarAction?.iconName) {
+          <mat-icon class="material-symbols-outlined">{{ toolbarAction.iconName }}</mat-icon>
+        }
+        {{ toolbarAction.actionText }}
+      </button>
+    } @else {
+      <button
+        mat-flat-button
+        type="button"
+        (click)="toolbarAction.clickHandler?.()"
+        [hidden]="!toolbarAction.isHidden ? false : (toolbarAction.isHidden | async)"
+        [disabled]="!toolbarAction.isDisabled ? false : (toolbarAction.isDisabled | async)"
+      >
+        @if (toolbarAction?.svgIconName) {
+          <mat-icon class="svg-icon" svgIcon="{{ toolbarAction.svgIconName }}" matListItemIcon></mat-icon>
+        }
+        @if (toolbarAction?.iconName) {
+          <mat-icon class="material-symbols-outlined">{{ toolbarAction.iconName }}</mat-icon>
+        }
+        {{ toolbarAction.actionText }}
+      </button>
+    }
   }
 
   <div class="octo-spacer"></div>

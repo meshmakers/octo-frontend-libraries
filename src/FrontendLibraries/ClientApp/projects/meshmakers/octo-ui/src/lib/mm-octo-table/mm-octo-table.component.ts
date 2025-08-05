@@ -54,8 +54,10 @@ export interface ToolbarAction {
   iconName?: string;
   svgIconName?: string;
   route?: string;
+  clickHandler?: () => void;
   actionText: string;
   isDisabled?: Observable<boolean>;
+  isHidden?: Observable<boolean>;
 }
 
 @Component({
