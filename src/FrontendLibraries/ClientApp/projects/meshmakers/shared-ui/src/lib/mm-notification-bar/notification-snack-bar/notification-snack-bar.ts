@@ -1,4 +1,4 @@
-import {Component, Inject, inject} from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   MAT_SNACK_BAR_DATA,
   MatSnackBarAction,
@@ -23,12 +23,10 @@ import {MatIcon} from "@angular/material/icon";
   styleUrl: './notification-snack-bar.scss'
 })
 export class NotificationSnackBar {
+  readonly errorMessage = inject<ErrorMessage>(MAT_SNACK_BAR_DATA);
+
   protected readonly snackBarRef = inject(MatSnackBarRef);
   private readonly dialog = inject(MatDialog);
-
-  constructor(@Inject(MAT_SNACK_BAR_DATA) public readonly errorMessage: ErrorMessage) {
-
-  }
 
   onShowDetails(): void {
     this.dialog.open(MmMessageDetailsComponent, {

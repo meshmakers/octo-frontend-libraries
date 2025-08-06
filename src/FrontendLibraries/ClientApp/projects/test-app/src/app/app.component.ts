@@ -56,6 +56,10 @@ class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+  protected nfcReaderService = inject(NfcReaderService);
+  private dialog = inject(MatDialog);
+  private macoSchemeDecoder = inject(MacoSchemeDecoderService);
+
   private fileUploadService = inject(FileUploadService);
   private readonly httpClient = inject(HttpClient);
 
@@ -103,9 +107,6 @@ export class AppComponent {
       status: 'INACTIVE'
     }
   ], 3000);
-
-  constructor(protected nfcReaderService: NfcReaderService, private dialog: MatDialog,
-              private macoSchemeDecoder: MacoSchemeDecoderService) { }
 
   async onFileUpload(): Promise<void> {
     const r = await this.fileUploadService.showUploadDialog(
