@@ -1,7 +1,9 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
-import { map } from 'rxjs/operators';
+// noinspection JSUnusedGlobalSymbols
+
+import {Injectable, inject} from '@angular/core';
+import {Observable} from 'rxjs';
+import {MatDialog} from '@angular/material/dialog';
+import {map} from 'rxjs/operators';
 import {MmConfirmationWindowComponent} from "../mm-confirmation-window/mm-confirmation-window.component";
 import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType} from "../models/confirmation";
 
@@ -11,8 +13,7 @@ import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogTyp
 export class ConfirmationService {
   private readonly dialog = inject(MatDialog);
 
-
-  showYesNoConfirmationDialog(title: string, message: string): Observable<boolean> {
+  showYesNoConfirmationDialog(title: string, message: string, yesButtonText?: string, noButtonText?: string): Observable<boolean> {
     const dialogRef = this.dialog.open<MmConfirmationWindowComponent, ConfirmationWindowData, ConfirmationWindowResult>(
       MmConfirmationWindowComponent,
       {
@@ -21,6 +22,8 @@ export class ConfirmationService {
         data: {
           title,
           message,
+          yesButtonText,
+          noButtonText,
           dialogType: DialogType.YesNo
         } as ConfirmationWindowData
       }
@@ -29,7 +32,7 @@ export class ConfirmationService {
     return dialogRef.afterClosed().pipe(map((value) => value?.result === ButtonTypes.Yes));
   }
 
-  showYesNoCancelConfirmationDialog(title: string, message: string): Observable<ConfirmationWindowResult | undefined> {
+  showYesNoCancelConfirmationDialog(title: string, message: string, yesButtonText?: string, noButtonText?: string, cancelButtonText?: string): Observable<ConfirmationWindowResult | undefined> {
     const dialogRef = this.dialog.open<MmConfirmationWindowComponent, ConfirmationWindowData, ConfirmationWindowResult>(
       MmConfirmationWindowComponent,
       {
@@ -38,6 +41,9 @@ export class ConfirmationService {
         data: {
           title,
           message,
+          yesButtonText,
+          noButtonText,
+          cancelButtonText,
           dialogType: DialogType.YesNoCancel
         } as ConfirmationWindowData
       }
@@ -46,7 +52,7 @@ export class ConfirmationService {
     return dialogRef.afterClosed();
   }
 
-  showOkCancelConfirmationDialog(title: string, message: string): Observable<boolean> {
+  showOkCancelConfirmationDialog(title: string, message: string, okButtonText?: string, cancelButtonText?: string): Observable<boolean> {
     const dialogRef = this.dialog.open<MmConfirmationWindowComponent, ConfirmationWindowData, ConfirmationWindowResult>(
       MmConfirmationWindowComponent,
       {
@@ -55,6 +61,8 @@ export class ConfirmationService {
         data: {
           title,
           message,
+          okButtonText,
+          cancelButtonText,
           dialogType: DialogType.OkCancel
         } as ConfirmationWindowData
       }
@@ -63,7 +71,7 @@ export class ConfirmationService {
     return dialogRef.afterClosed().pipe(map((value) => value?.result === ButtonTypes.Ok));
   }
 
-  showOkDialog(title: string, message: string): Observable<boolean> {
+  showOkDialog(title: string, message: string, okButtonText?: string): Observable<boolean> {
     const dialogRef = this.dialog.open<MmConfirmationWindowComponent, ConfirmationWindowData, ConfirmationWindowResult>(
       MmConfirmationWindowComponent,
       {
@@ -72,6 +80,7 @@ export class ConfirmationService {
         data: {
           title,
           message,
+          okButtonText,
           dialogType: DialogType.Ok
         } as ConfirmationWindowData
       }

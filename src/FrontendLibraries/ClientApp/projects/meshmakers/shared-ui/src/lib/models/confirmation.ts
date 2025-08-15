@@ -16,6 +16,10 @@ export interface ConfirmationWindowData {
   title: string;
   message: string;
   dialogType: DialogType;
+  okButtonText?: string
+  cancelButtonText?: string;
+  yesButtonText?: string;
+  noButtonText?: string;
 }
 
 export interface ConfirmationWindowResult {

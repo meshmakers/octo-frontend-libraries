@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import {Component, OnInit, inject} from '@angular/core';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType} from "../models/confirmation";
 
 @Component({
@@ -28,29 +28,30 @@ export class MmConfirmationWindowComponent implements OnInit {
     this.button3Result = null;
 
     if (data.dialogType === DialogType.OkCancel) {
-      this.button1Text = 'OK';
+      this.button1Text = data.okButtonText ?? 'OK';
       this.button1Result = ButtonTypes.Ok;
-      this.button2Text = 'Cancel';
+      this.button2Text = data.cancelButtonText ?? 'Cancel';
       this.button2Result = ButtonTypes.Cancel;
     } else if (data.dialogType === DialogType.YesNoCancel) {
-      this.button1Text = 'Yes';
+      this.button1Text = data.yesButtonText ?? 'Yes';
       this.button1Result = ButtonTypes.Yes;
-      this.button2Text = 'No';
+      this.button2Text = data.noButtonText ?? 'No';
       this.button2Result = ButtonTypes.No;
-      this.button3Text = 'Cancel';
+      this.button3Text = data.cancelButtonText ?? 'Cancel';
       this.button3Result = ButtonTypes.Cancel;
     } else if (data.dialogType === DialogType.Ok) {
-      this.button1Text = 'OK';
+      this.button1Text = data.okButtonText ?? 'OK';
       this.button1Result = ButtonTypes.Ok;
     } else {
-      this.button1Text = 'Yes';
+      this.button1Text = data.yesButtonText ?? 'Yes';
       this.button1Result = ButtonTypes.Yes;
-      this.button2Text = 'No';
+      this.button2Text = data.noButtonText ?? 'No';
       this.button2Result = ButtonTypes.No;
     }
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
   onButton1(): void {
     this.dialogRef.close(({
