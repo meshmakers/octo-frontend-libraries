@@ -48,7 +48,7 @@ export class ProgressNotifierService {
   }
 
   reportProgressDeterminate(progressCurrent: number, progressMax: number, statusText: string): void {
-    const progressPercentage = (progressMax / 100) * progressCurrent;
+    const progressPercentage = progressMax > 0 ? (progressCurrent / progressMax) * 100 : 0;
 
     this._currentProgressValue.next(({
       statusText,
