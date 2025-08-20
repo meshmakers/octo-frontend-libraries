@@ -4,10 +4,10 @@ parameters:
   - name: buildWorkingDirectory
     type: string
   - name: publishWorkingDirectory
-    type: string    
+    type: string
   - name: libName
     type: string
-    
+
 steps:
   - task: Npm@1
     displayName: npm build ${{ parameters.libName }}
@@ -25,10 +25,10 @@ steps:
       verbose: false
       publishEndpoint: $(NpmPublicConnection)
   - task: Npm@1
-    condition: or(eq(variables.isMain, true), eq(variables.isTest, true), eq(variables.isRelease, true))
+    condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
     displayName: npm publish to private registry ${{ parameters.libName }}
     inputs:
       command: publish
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
-      publishEndpoint: $(NpmPrivateConnection)      
+      publishEndpoint: $(NpmPrivateConnection)
