@@ -63,7 +63,7 @@
     "cross-env": "^10.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-unused-imports": "^4.1.4",
-    "jasmine-core": "~5.9.0",
+    "jasmine-core": "~5.10.0",
     "karma": "~6.4.4",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.1",
