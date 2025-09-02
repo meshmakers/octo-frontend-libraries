@@ -10,5 +10,4 @@ export * from './lib/models/pagedGraphResultDto';
 export * from './lib/shared/graphQL';
 export * from './lib/services/assetRepoGraphQlDataSource';
 export * from './lib/shared/globalTypes';
-export * from './lib/shared/octo-http-error-interceptor.service';
 export * from './lib/shared/octo-error-link';

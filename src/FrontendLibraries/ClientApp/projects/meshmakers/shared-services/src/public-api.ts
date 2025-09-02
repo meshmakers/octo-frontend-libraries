@@ -19,3 +19,4 @@ export * from './lib/shared/objectCloner';
 export * from './lib/services/nfcReader.service';
 export * from './lib/services/qrCodeScanner.service';
 export * from './lib/services/macoSchemeDecoder.service';
+export * from './lib/shared/mm-http-error-interceptor.service';
