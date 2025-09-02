@@ -56,7 +56,7 @@ export class MessageService {
     console.error(message);
 
     const errorMessage = {
-      title: 'Error',
+      title: message,
       message
     } as ErrorMessage;
     this.errorMessages.push(errorMessage);
