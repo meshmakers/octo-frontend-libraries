@@ -6,6 +6,7 @@ import {
   OnInit,
   AfterViewInit,
   AfterContentInit,
+  OnDestroy,
   Output,
   EventEmitter,
   ContentChildren,
@@ -14,10 +15,10 @@ import {
 } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
-import { BehaviorSubject, fromEvent, merge, Observable } from 'rxjs';
+import { BehaviorSubject, fromEvent, merge, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 
-import { AsyncPipe, NgForOf, NgIf, NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, NgIf, NgTemplateOutlet } from '@angular/common';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MatCell,
@@ -84,7 +85,6 @@ export interface ToolbarAction {
     MatToolbar,
     NgIf,
     MatHeaderCellDef,
-    NgForOf,
     MatIcon,
     MatIconButton,
     MatMenu,
@@ -110,7 +110,7 @@ export interface ToolbarAction {
   templateUrl: './mm-octo-table.component.html',
   styleUrl: './mm-octo-table.component.scss'
 })
-export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContentInit {
+export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContentInit, OnDestroy {
   @Input() dataSource!: AssetRepoGraphQlDataSource<any, any, any>;
   @ContentChildren(TemplateRef) cellTemplates!: QueryList<TemplateRef<any>>;
   templateMap = new Map<string, TemplateRef<any>>();
@@ -162,6 +162,10 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   @ViewChild(MatSort, { static: false }) sort?: MatSort;
   @ViewChild('input', { static: false }) input?: ElementRef<HTMLInputElement>;
 
+  private loadingSubscription?: Subscription;
+  private wasLoadingPreviously = false;
+  private hadFocusBeforeLoading = false;
+
   get columnDataKeys(): string[] {
     return this._columns.map((c) => getDataKey(c));
   }
@@ -195,6 +199,27 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   }
 
   ngAfterViewInit(): void {
+    // Subscribe to loading state changes to restore focus
+    if (this.dataSource?.loading$) {
+      this.loadingSubscription = this.dataSource.loading$.subscribe((isLoading) => {
+        // Check if we're transitioning from loading to not loading
+        if (this.wasLoadingPreviously && !isLoading && this.hadFocusBeforeLoading && this.input) {
+          // Use setTimeout to ensure focus happens after Angular's change detection
+          setTimeout(() => {
+            this.input?.nativeElement?.focus();
+            this.hadFocusBeforeLoading = false;
+          }, 0);
+        }
+
+        // Track if input has focus before it gets disabled
+        if (!this.wasLoadingPreviously && isLoading && this.input) {
+          this.hadFocusBeforeLoading = document.activeElement === this.input.nativeElement;
+        }
+
+        this.wasLoadingPreviously = isLoading;
+      });
+    }
+
     if (this.sort && this.input && this.paginator) {
       fromEvent(this.input.nativeElement, 'keyup')
         .pipe(
@@ -332,5 +357,12 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
 
   getTemplate(templateName: string): TemplateRef<any> | undefined {
     return this.templateMap.get(templateName);
+  }
+
+  ngOnDestroy(): void {
+    // Clean up the loading subscription to prevent memory leaks
+    if (this.loadingSubscription) {
+      this.loadingSubscription.unsubscribe();
+    }
   }
 }
