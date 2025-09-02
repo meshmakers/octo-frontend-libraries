@@ -12,16 +12,24 @@ import { MmOctoUiModule } from "@meshmakers/octo-ui";
 import { MatButtonModule } from "@angular/material/button";
 import { CommonModule } from "@angular/common";
 import { SharedServicesModule } from "@meshmakers/shared-services";
-import { MatCard } from "@angular/material/card";
+import { MatCard, MatCardModule } from "@angular/material/card";
 import { FormsModule } from "@angular/forms";
-import { MatIcon } from "@angular/material/icon";
+import { MatIcon, MatIconModule } from "@angular/material/icon";
+import { HomeComponent } from './home/home.component';
+import { ErrorDemoComponent } from './error-demo/error-demo.component';
+import { TableDemoComponent } from './table-demo/table-demo.component';
+import { FileUploadDemoComponent } from './file-upload-demo/file-upload-demo.component';
+import { NfcDemoComponent } from './nfc-demo/nfc-demo.component';
+import { QrDemoComponent } from './qr-demo/qr-demo.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 export function initServices(configurationService: ConfigurationService, authorizeService: AuthorizeService) {
   return async () => {};
 }
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, HomeComponent, ErrorDemoComponent, TableDemoComponent, FileUploadDemoComponent, NfcDemoComponent, QrDemoComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -33,8 +41,12 @@ export function initServices(configurationService: ConfigurationService, authori
     CommonModule,
     SharedServicesModule.forRoot(),
     MatCard,
+    MatCardModule,
     FormsModule,
-    MatIcon
+    MatIcon,
+    MatIconModule,
+    MatDialogModule,
+    MatCheckboxModule
   ],
   providers: [
     ConfigurationService,

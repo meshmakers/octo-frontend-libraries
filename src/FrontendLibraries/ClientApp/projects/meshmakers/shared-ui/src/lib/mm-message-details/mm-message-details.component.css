@@ -1,0 +1,37 @@
+.message-field {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.message-textarea {
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+  overflow-y: auto;
+}
+
+::ng-deep .message-field .mat-mdc-form-field-wrapper {
+  height: 100%;
+}
+
+::ng-deep .message-field .mat-mdc-text-field-wrapper {
+  height: 100%;
+}
+
+::ng-deep .message-field textarea {
+  height: 100%;
+  min-height: 200px;
+  max-height: 400px;
+}
+
+mat-dialog-actions button {
+  margin-left: 8px;
+}
+
+mat-dialog-actions mat-icon {
+  margin-right: 4px;
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}

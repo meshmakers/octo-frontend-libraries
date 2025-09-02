@@ -72,4 +72,13 @@ export class MessageService {
       verticalPosition: 'bottom'
     });
   }
+
+  clearCurrentError(): void {
+    this.latestErrorMessage.next(null);
+  }
+
+  clearAllErrors(): void {
+    this.errorMessages = [];
+    this.latestErrorMessage.next(null);
+  }
 }

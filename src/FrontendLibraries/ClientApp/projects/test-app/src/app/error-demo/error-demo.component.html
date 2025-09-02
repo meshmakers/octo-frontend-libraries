@@ -1,0 +1,47 @@
+<div class="error-demo-container">
+  <h1>Error Message Dialog Demo</h1>
+  <p class="subtitle">Click on any card below to see how the error dialog handles different message types and lengths</p>
+
+  <div class="error-cards">
+    <mat-card *ngFor="let example of errorExamples" class="error-card">
+      <mat-card-header>
+        <mat-card-title>{{ example.title }}</mat-card-title>
+        <mat-card-subtitle>{{ example.description }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="message-preview">
+          <pre>{{ example.message | slice:0:200 }}{{ example.message.length > 200 ? '...' : '' }}</pre>
+        </div>
+        <div class="message-stats">
+          <span class="stat">
+            <mat-icon class="material-symbols-outlined">text_snippet</mat-icon>
+            {{ example.message.length }} characters
+          </span>
+          <span class="stat">
+            <mat-icon class="material-symbols-outlined">format_list_numbered</mat-icon>
+            {{ example.message.split('\n').length }} lines
+          </span>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="showError(example)">
+          <mat-icon class="material-symbols-outlined">visibility</mat-icon>
+          Show Error Dialog
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <div class="instructions">
+    <h2>Features Demonstrated:</h2>
+    <ul>
+      <li>Multi-line text display with proper formatting</li>
+      <li>Vertical scrollbar for long messages</li>
+      <li>Copy to clipboard functionality</li>
+      <li>Responsive dialog sizing</li>
+      <li>Preservation of line breaks and formatting</li>
+    </ul>
+  </div>
+</div>

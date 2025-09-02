@@ -32,7 +32,10 @@ export class NotificationSnackBar {
     this.dialog.open(MmMessageDetailsComponent, {
       data: {
         errorMessage: this.errorMessage
-      }
+      },
+      width: '50vw',
+      maxWidth: '90vw',
+      maxHeight: '80vh'
     });
   }
 }

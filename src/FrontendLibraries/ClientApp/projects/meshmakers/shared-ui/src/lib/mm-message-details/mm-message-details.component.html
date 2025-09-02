@@ -1,10 +1,22 @@
 <mat-dialog-content>
 
   <h2>{{errorMessage.title}}</h2>
-  <p>{{errorMessage.message}}</p>
+  <mat-form-field appearance="outline" class="message-field">
+    <textarea
+      matInput
+      [value]="errorMessage.message"
+      readonly
+      rows="8"
+      class="message-textarea">
+    </textarea>
+  </mat-form-field>
 
 
 </mat-dialog-content>
 <mat-dialog-actions align="end">
+  <button mat-flat-button (click)="copyToClipboard()">
+    <mat-icon class="material-symbols-outlined">content_copy</mat-icon>
+    Copy
+  </button>
   <button class="primary-button" mat-dialog-close mat-flat-button>OK</button>
 </mat-dialog-actions>

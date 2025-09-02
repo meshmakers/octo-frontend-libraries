@@ -1,0 +1,22 @@
+<div class="file-upload-demo-container">
+  <h1>File Upload Demo</h1>
+  
+  <div class="upload-section">
+    <p>Click the button below to upload a model file. Supported formats include ZIP, JSON, and YAML.</p>
+    
+    <button mat-flat-button color="primary" (click)="onFileUpload()">
+      <mat-icon class="material-symbols-outlined">upload_file</mat-icon>
+      Upload File
+    </button>
+  </div>
+
+  <div class="info-section">
+    <h2>Upload Features:</h2>
+    <ul>
+      <li>File type filtering (ZIP, JSON, YAML)</li>
+      <li>Upload progress feedback</li>
+      <li>Error handling and display</li>
+      <li>Tenant-based file uploads</li>
+    </ul>
+  </div>
+</div>
