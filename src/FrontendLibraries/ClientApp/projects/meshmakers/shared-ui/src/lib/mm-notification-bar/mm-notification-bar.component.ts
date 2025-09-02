@@ -23,7 +23,7 @@ export class MmNotificationBarComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private autoCloseOnInteraction = true;
   private interactionDebounceTime = 500; // ms
-  private snackBarOpenTime: number = 0;
+  private snackBarOpenTime = 0;
   private gracePeriod = 1000; // ms - prevent immediate closure after opening
 
   constructor() {
@@ -44,7 +44,7 @@ export class MmNotificationBarComponent implements OnInit, OnDestroy {
           horizontalPosition: "center",
           verticalPosition: "top"
         });
-        
+
         // Record when the snack bar was opened
         this.snackBarOpenTime = Date.now();
       }
