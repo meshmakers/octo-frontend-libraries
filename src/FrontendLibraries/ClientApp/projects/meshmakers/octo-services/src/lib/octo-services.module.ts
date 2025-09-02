@@ -1,6 +1,8 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
 import { OctoServiceOptions } from './options/octo-service-options';
 import { OctoMessageService } from "./services/octo-message.service";
+import { OctoErrorLink } from "./shared/octo-error-link";
+import { OctoHttpErrorInterceptor } from "./shared/octo-http-error-interceptor.service";
 
 @NgModule({
   declarations: [],
@@ -16,7 +18,9 @@ export class OctoServicesModule {
           provide: OctoServiceOptions,
           useValue: octoServiceOptions
         },
-        OctoMessageService
+        OctoMessageService,
+        OctoHttpErrorInterceptor,
+        OctoErrorLink
       ]
     };
   }

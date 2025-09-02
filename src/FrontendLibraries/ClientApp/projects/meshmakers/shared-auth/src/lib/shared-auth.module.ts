@@ -6,6 +6,7 @@ import { AuthorizeOptions, AuthorizeService } from './authorize.service';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { AuthorizeGuard } from './authorize.guard';
 import { RouterLink } from '@angular/router';
+import { AuthorizeInterceptor } from "./authorize.interceptor";
 
 @NgModule({
   declarations: [LoginMenuComponent],
@@ -23,6 +24,7 @@ export class SharedAuthModule {
           useValue: authorizeOptions
         },
         AuthorizeService,
+        AuthorizeInterceptor,
         AuthorizeGuard
       ]
     };
