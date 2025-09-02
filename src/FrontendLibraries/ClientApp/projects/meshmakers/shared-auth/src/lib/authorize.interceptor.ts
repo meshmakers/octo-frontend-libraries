@@ -13,7 +13,7 @@ export class AuthorizeInterceptor implements HttpInterceptor {
     const authorize = this.authorize;
 
     this.accessToken = null;
-    authorize.getAccessToken().subscribe((value) => (this.accessToken = value));
+    authorize.accessToken.subscribe((value) => (this.accessToken = value));
   }
 
   private static isSameOriginUrl(req: HttpRequest<any>): boolean {

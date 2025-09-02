@@ -8,7 +8,6 @@ export class AuthorizeGuard {
   private readonly authorizeService = inject(AuthorizeService);
   private readonly router = inject(Router);
 
-
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
@@ -38,10 +37,10 @@ export class AuthorizeGuard {
   }
 
   private async handleAuthorization(route: ActivatedRouteSnapshot, _url: any): Promise<boolean> {
-    const isAuthenticated = await firstValueFrom(this.authorizeService.getIsAuthenticated());
+    const isAuthenticated = await firstValueFrom(this.authorizeService.isAuthenticated);
     if (isAuthenticated) {
       const userRoles = await firstValueFrom(this.authorizeService.getRoles());
-      if (route.data['roles'] && !route.data['roles'].filter((value: string) => userRoles.includes(value))) {
+      if (route.data['roles'] && !route.data['roles'].some((role: string) => userRoles.includes(role))) {
         await this.router.navigate(['']);
         return false;
       }

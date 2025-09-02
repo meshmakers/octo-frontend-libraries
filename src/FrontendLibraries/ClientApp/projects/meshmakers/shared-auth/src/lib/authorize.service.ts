@@ -5,8 +5,10 @@ import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
 import { Roles } from "./roles";
 
 export interface IUser {
+  family_name: string | null;
+  given_name: string | null;
   name: string;
-  role: string[];
+  role: string[] | null;
   sub: string;
   idp: string;
   email: string | null;
@@ -32,23 +34,27 @@ export class AuthorizeOptions {
 export class AuthorizeService {
   private readonly oauthService = inject(OAuthService);
 
-  private readonly isAuthenticated = new BehaviorSubject<boolean>(false);
-  private readonly authority: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+  private readonly _isAuthenticated = new BehaviorSubject<boolean>(false);
+  private readonly _issuer: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-  private readonly accessToken: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+  private readonly _accessToken: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-  private readonly user: BehaviorSubject<IUser | null> = new BehaviorSubject<IUser | null>(null);
+  private readonly _user: BehaviorSubject<IUser | null> = new BehaviorSubject<IUser | null>(null);
+  private readonly _userInitials: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-  private readonly isInitialized = new BehaviorSubject<boolean>(false);
-  private readonly isInitializing = new BehaviorSubject<boolean>(false);
+  private readonly _isInitialized = new BehaviorSubject<boolean>(false);
+  private readonly _isInitializing = new BehaviorSubject<boolean>(false);
+
+  private readonly _sessionLoading = new BehaviorSubject<boolean>(false);
 
   private authorizeOptions: AuthorizeOptions | null = null;
 
   constructor() {
     console.debug("AuthorizeService::created");
 
-    this.getUser().subscribe((s) => {
-      this.isAuthenticated.next(!(s == null));
+    this.oauthService.discoveryDocumentLoaded$.subscribe((_) => {
+      console.debug("discoveryDocumentLoaded$");
+
     });
 
     this.oauthService.events.subscribe((e) => {
@@ -57,50 +63,62 @@ export class AuthorizeService {
 
     this.oauthService.events.pipe(filter((e) => e.type === "session_terminated")).subscribe((_) => {
       console.debug("Your session has been terminated!");
+      this._accessToken.next(null);
+      this._user.next(null);
+      this._isAuthenticated.next(false);
     });
 
-    this.oauthService.events.pipe(filter((e) => e.type === "token_received")).subscribe((_) => {
-      this.loadUser();
+    this.oauthService.events.pipe(filter((e) => e.type === "token_received")).subscribe(async (_) => {
+      await this.loadUserAsync();
     });
 
-    this.oauthService.events.pipe(filter((e) => e.type === "session_unchanged")).subscribe((_) => {
-      if (this.user.value == null) {
-        this.loadUser();
+    this.oauthService.events.pipe(filter((e) => e.type === "session_unchanged")).subscribe(async (_) => {
+      if (this._user.value == null) {
+        await this.loadUserAsync();
       }
     });
 
     this.oauthService.events.pipe(filter((e) => e.type === "logout")).subscribe((_) => {
-      this.accessToken.next(null);
-      this.user.next(null);
+      this._accessToken.next(null);
+      this._user.next(null);
+      this._isAuthenticated.next(false);
     });
   }
 
   public isInRole(role: Roles): boolean {
-    return this.user?.value?.role.includes(role) ?? false;
+    return this._user?.value?.role?.includes(role) ?? false;
   }
 
   public getRoles(): Observable<string[]> {
-    return this.getUser().pipe(map((u) => (u != null ? u.role : new Array<string>())));
+    return this.user.pipe(map((u) => (u?.role != null ? u.role : new Array<string>())));
   }
 
   public getServiceUris(): string[] | null {
     return this.authorizeOptions?.wellKnownServiceUris ?? null;
   }
 
-  public getAuthority(): Observable<string | null> {
-    return this.authority;
+  public get issuer(): Observable<string | null> {
+    return this._issuer;
   }
 
-  public getIsAuthenticated(): Observable<boolean> {
-    return this.isAuthenticated;
+  public get isAuthenticated(): Observable<boolean> {
+    return this._isAuthenticated;
   }
 
-  public getAccessToken(): Observable<string | null> {
-    return this.accessToken;
+  public get sessionLoading(): Observable<boolean> {
+    return this._sessionLoading;
   }
 
-  public getUser(): Observable<IUser | null> {
-    return this.user;
+  public get accessToken(): Observable<string | null> {
+    return this._accessToken;
+  }
+
+  public get user(): Observable<IUser | null> {
+    return this._user;
+  }
+
+  public get userInitials(): Observable<string | null> {
+    return this._userInitials;
   }
 
   public login(): void {
@@ -116,14 +134,14 @@ export class AuthorizeService {
 
     await this.uninitialize();
 
-    if (await firstValueFrom(this.isInitializing)) {
+    if (await firstValueFrom(this._isInitializing)) {
       return;
     }
-    if (await firstValueFrom(this.isInitialized)) {
+    if (await firstValueFrom(this._isInitialized)) {
       console.debug("AuthorizeService::initialize::alreadyInitialized");
       return;
     }
-    this.isInitializing.next(true);
+    this._isInitializing.next(true);
 
     try {
       const config: AuthConfig = {
@@ -135,27 +153,33 @@ export class AuthorizeService {
         scope: authorizeOptions.scope,
         showDebugInformation: authorizeOptions.showDebugInformation,
         sessionChecksEnabled: authorizeOptions.sessionChecksEnabled,
+        sessionCheckIntervall: 60 * 1000,
         preserveRequestedRoute: true
       };
 
       this.authorizeOptions = authorizeOptions;
 
-      this.oauthService.configure(config);
       this.oauthService.setStorage(localStorage);
+      this.oauthService.configure(config);
       console.debug("AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin");
       await this.oauthService.loadDiscoveryDocumentAndTryLogin();
 
       console.debug("AuthorizeService::initialize::setupAutomaticSilentRefresh");
       this.oauthService.setupAutomaticSilentRefresh();
 
-      this.authority.next(authorizeOptions.issuer ?? null);
+      this._issuer.next(authorizeOptions.issuer ?? null);
 
+      if (this.oauthService.hasValidIdToken()) {
+        // if the idToken is still valid, we can use the session
+        console.debug("AuthorizeService::initialize::hasValidIdToken");
+        this._sessionLoading.next(true);
+        await this.oauthService.refreshToken();
+      }
 
-      this.isInitialized.next(true);
+      this._isInitialized.next(true);
       console.debug("AuthorizeService::initialize::done");
-    }
-    finally {
-      this.isInitializing.next(false);
+    } finally {
+      this._isInitializing.next(false);
     }
 
     console.debug("AuthorizeService::initialize::completed");
@@ -164,32 +188,31 @@ export class AuthorizeService {
   public async uninitialize(): Promise<void> {
     console.debug("AuthorizeService::uninitialize::started");
 
-    if (await firstValueFrom(this.isInitializing)) {
+    if (await firstValueFrom(this._isInitializing)) {
       return;
     }
-    if (!await firstValueFrom(this.isInitialized)) {
+    if (!await firstValueFrom(this._isInitialized)) {
       console.debug("AuthorizeService::uninitialize::alreadyUninitialized");
       return;
     }
 
     try {
-      this.isInitializing.next(true);
+      this._isInitializing.next(true);
 
       this.oauthService.stopAutomaticRefresh();
 
       this.authorizeOptions = null;
 
-      this.isInitialized.next(false);
+      this._isInitialized.next(false);
       console.debug("AuthorizeService::uninitialize::done");
-    }
-    finally {
-      this.isInitializing.next(false);
+    } finally {
+      this._isInitializing.next(false);
     }
 
     console.debug("AuthorizeService::uninitialize::completed");
   }
 
-  private loadUser(): void {
+  private async loadUserAsync(): Promise<void> {
     const claims = this.oauthService.getIdentityClaims();
     if (!claims) {
       console.error("claims where null when loading identity claims");
@@ -197,8 +220,19 @@ export class AuthorizeService {
     }
 
     const user = claims as IUser;
+    if (user.family_name && user.given_name){
+      const initials = user.given_name.charAt(0) + user.family_name.charAt(0);
+      this._userInitials.next(initials);
+    }
+    else {
+      this._userInitials.next(user.name.charAt(0) + user.name.charAt(1));
+    }
+
     const accessToken = this.oauthService.getAccessToken();
-    this.user.next(user);
-    this.accessToken.next(accessToken);
+    this._user.next(user);
+    this._accessToken.next(accessToken);
+    this._isAuthenticated.next(true);
+    this._sessionLoading.next(false);
+    console.debug("AuthorizeService::loadUserAsync::done");
   }
 }

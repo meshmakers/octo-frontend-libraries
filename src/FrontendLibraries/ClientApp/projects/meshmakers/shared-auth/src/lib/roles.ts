@@ -1,4 +1,6 @@
 export enum Roles {
+  ReportingManagement = 'ReportingManagement',
+  ReportingViewer = 'ReportingViewer',
   AdminPanelManagement = 'AdminPanelManagement',
   BotManagement = 'BotManagement',
   UserManagement = 'UserManagement',
