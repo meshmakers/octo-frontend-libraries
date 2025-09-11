@@ -132,18 +132,11 @@ export class AuthorizeService {
   }
 
   protected loginWithPopup(): void {
-    // Standard browser popup implementation
-    // Can be overridden in derived classes for Office Add-In specific implementation
-    const width = 500;
-    const height = 600;
-    const left = (screen.width - width) / 2;
-    const top = (screen.height - height) / 2;
-
     // Initiate login flow and get the authorization URL
     this.oauthService.initLoginFlow();
-    
+
     // For popup flow, we need to handle the callback differently
-    // The popup will redirect back and we need to process the code
+    // The popup will redirect back, and we need to process the code
     window.addEventListener('storage', (e) => {
       if (e.key === 'oauth_code_received') {
         // Process the authentication after popup closes
