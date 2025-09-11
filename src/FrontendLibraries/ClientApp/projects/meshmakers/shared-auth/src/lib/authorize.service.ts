@@ -28,6 +28,8 @@ export class AuthorizeOptions {
   scope?: string;
   showDebugInformation?: boolean;
   sessionChecksEnabled?: boolean;
+  // Use popup flow for Office Add-Ins to avoid iframe issues
+  usePopupFlow?: boolean;
 }
 
 @Injectable()
@@ -122,7 +124,34 @@ export class AuthorizeService {
   }
 
   public login(): void {
-    this.oauthService.initImplicitFlow();
+    if (this.authorizeOptions?.usePopupFlow) {
+      this.loginWithPopup();
+    } else {
+      this.oauthService.initImplicitFlow();
+    }
+  }
+
+  protected loginWithPopup(): void {
+    // Standard browser popup implementation
+    // Can be overridden in derived classes for Office Add-In specific implementation
+    const width = 500;
+    const height = 600;
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2;
+
+    // Initiate login flow and get the authorization URL
+    this.oauthService.initLoginFlow();
+    
+    // For popup flow, we need to handle the callback differently
+    // The popup will redirect back and we need to process the code
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'oauth_code_received') {
+        // Process the authentication after popup closes
+        this.oauthService.tryLoginCodeFlow().then(() => {
+          localStorage.removeItem('oauth_code_received');
+        });
+      }
+    });
   }
 
   public logout(): void {
