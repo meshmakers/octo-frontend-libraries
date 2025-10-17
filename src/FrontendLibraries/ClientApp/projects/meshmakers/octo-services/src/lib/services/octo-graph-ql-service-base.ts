@@ -5,9 +5,12 @@ import { OctoServiceOptions } from '../options/octo-service-options';
 import { PagedGraphResultDto } from '../models/pagedGraphResultDto';
 import { PagedResultDto } from '@meshmakers/shared-services';
 import { HttpLink } from 'apollo-angular/http';
-import { ApolloQueryResult, InMemoryCache } from '@apollo/client/core';
+import { InMemoryCache } from '@apollo/client/core';
 import { OperationVariables } from '@apollo/client/core/types';
 import { Observable } from 'rxjs';
+import { DeepPartial } from "@apollo/client/utilities";
+import QueryResult = Apollo.QueryResult;
+import type { ObservableQuery } from "@apollo/client";
 
 export class OctoGraphQLServiceBase {
   constructor(
@@ -21,24 +24,42 @@ export class OctoGraphQLServiceBase {
     variables: TVariable,
     queryNode: DocumentNode,
     watchQuery: boolean,
-    f: (resultSet: PagedResultDto<TEntity>, result: TResult) => void
+    f: (resultSet: PagedResultDto<TEntity>, result: NonNullable<TResult> | NonNullable<DeepPartial<TResult>>) => void
   ): Observable<PagedResultDto<TEntity>> {
-    const query = watchQuery
-      ? this.prepareWatchQuery<TResult, TVariable>(tenantId, variables, queryNode)
-      : this.prepareQuery<TResult, TVariable>(tenantId, variables, queryNode);
-    return query.pipe(
-      map((result) => {
-        const resultSet = new PagedResultDto<TEntity>();
 
-        if (result.errors != null) {
-          console.error(result.errors);
-          throw Error('Error in GraphQL statement.');
-        } else if (result.data) {
-          f(resultSet, result.data);
-        }
-        return resultSet;
-      })
-    );
+    if (watchQuery){
+      const prepareWatchQuery = this.prepareWatchQuery<TResult, TVariable>(tenantId, variables, queryNode);
+
+      return prepareWatchQuery.pipe(
+        map((result) => {
+          const resultSet = new PagedResultDto<TEntity>();
+
+          if (result.error != null) {
+            console.error(result.error);
+            throw Error('Error in GraphQL statement.');
+          } else if (result.data) {
+            f(resultSet, result.data);
+          }
+          return resultSet;
+        })
+      );
+    } else {
+      const prepareQuery = this.prepareQuery<TResult, TVariable>(tenantId, variables, queryNode);
+
+      return prepareQuery.pipe(
+        map((result) => {
+          const resultSet = new PagedResultDto<TEntity>();
+
+          if (result.error != null) {
+            console.error(result.error);
+            throw Error('Error in GraphQL statement.');
+          } else if (result.data) {
+            f(resultSet, result.data);
+          }
+          return resultSet;
+        })
+      );
+    }
   }
 
   protected getGraphEntities<TResult, TP, TC, TVariable extends OperationVariables>(
@@ -46,24 +67,42 @@ export class OctoGraphQLServiceBase {
     variables: TVariable,
     queryNode: DocumentNode,
     watchQuery: boolean,
-    f: (resultSet: PagedGraphResultDto<TP, TC>, result: TResult) => void
+    f: (resultSet: PagedGraphResultDto<TP, TC>, result: NonNullable<TResult> | NonNullable<DeepPartial<TResult>>) => void
   ): Observable<PagedGraphResultDto<TP, TC>> {
-    const query = watchQuery
-      ? this.prepareWatchQuery<TResult, TVariable>(tenantId, variables, queryNode)
-      : this.prepareQuery<TResult, TVariable>(tenantId, variables, queryNode);
-    return query.pipe(
-      map((result) => {
-        const resultSet = new PagedGraphResultDto<TP, TC>();
 
-        if (result.errors != null) {
-          console.error(result.errors);
-          throw Error('Error in GraphQL statement.');
-        } else if (result.data) {
-          f(resultSet, result.data);
-        }
-        return resultSet;
-      })
-    );
+    if (watchQuery){
+      const prepareWatchQuery = this.prepareWatchQuery<TResult, TVariable>(tenantId, variables, queryNode);
+
+      return prepareWatchQuery.pipe(
+        map((result) => {
+          const resultSet = new PagedGraphResultDto<TP, TC>();
+
+          if (result.error != null) {
+            console.error(result.error);
+            throw Error('Error in GraphQL statement.');
+          } else if (result.data) {
+            f(resultSet, result.data);
+          }
+          return resultSet;
+        })
+      );
+    } else{
+      const prepareQuery = this.prepareQuery<TResult, TVariable>(tenantId, variables, queryNode);
+
+      return prepareQuery.pipe(
+        map((result) => {
+          const resultSet = new PagedGraphResultDto<TP, TC>();
+
+          if (result.error != null) {
+            console.error(result.error);
+            throw Error('Error in GraphQL statement.');
+          } else if (result.data) {
+            f(resultSet, result.data);
+          }
+          return resultSet;
+        })
+      );
+    }
   }
 
   protected getEntityDetail<TResult, TEntity, TVariable extends OperationVariables>(
@@ -71,22 +110,37 @@ export class OctoGraphQLServiceBase {
     variables: TVariable,
     queryNode: DocumentNode,
     watchQuery: boolean,
-    f: (result: TResult) => TEntity
+    f: (result: NonNullable<TResult> | NonNullable<DeepPartial<TResult>>) => TEntity
   ): Observable<TEntity | null> {
-    const query = watchQuery
-      ? this.prepareWatchQuery<TResult, TVariable>(tenantId, variables, queryNode)
-      : this.prepareQuery<TResult, TVariable>(tenantId, variables, queryNode);
-    return query.pipe(
-      map((result) => {
-        if (result.errors != null) {
-          console.error(result.errors);
-          throw Error('Error in GraphQL statement.');
-        } else if (result.data) {
-          return f(result.data);
-        }
-        return null;
-      })
-    );
+
+
+    if (watchQuery){
+      const query = this.prepareWatchQuery<TResult, TVariable>(tenantId, variables, queryNode);
+      return query.pipe(
+        map((result) => {
+          if (result.error != null) {
+            console.error(result.error);
+            throw Error('Error in GraphQL statement.');
+          } else if (result.data) {
+            return f(result.data);
+          }
+          return null;
+        })
+      );
+    }else {
+      const query = this.prepareQuery<TResult, TVariable>(tenantId, variables, queryNode);
+      return query.pipe(
+        map((result) => {
+          if (result.error != null) {
+            console.error(result.error);
+            throw Error('Error in GraphQL statement.');
+          } else if (result.data) {
+            return f(result.data);
+          }
+          return null;
+        })
+      );
+    }
   }
 
   protected createUpdateEntity<TResult, TEntity, TVariable extends OperationVariables>(
@@ -164,7 +218,7 @@ export class OctoGraphQLServiceBase {
     tenantId: string,
     variables: TVariable,
     queryNode: DocumentNode
-  ): Observable<ApolloQueryResult<TResult>> {
+  ): Observable<ObservableQuery.Result<TResult>> {
     this.createApolloForTenant(tenantId);
 
     return this.apollo.use(tenantId).watchQuery<TResult>({
@@ -177,7 +231,7 @@ export class OctoGraphQLServiceBase {
     tenantId: string,
     variables: TVariable,
     queryNode: DocumentNode
-  ): Observable<ApolloQueryResult<TResult>> {
+  ): Observable<QueryResult<TResult>> {
     this.createApolloForTenant(tenantId);
 
     return this.apollo.use(tenantId).query<TResult>({

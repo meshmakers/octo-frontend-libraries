@@ -105,7 +105,7 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
     super.onBeginLoad();
 
     const variables = this.createVariables(skip, take, searchFilter, fieldFilter, sort);
-    this.queryRef = this.query.watch(variables, { errorPolicy: 'all' });
+    this.queryRef = this.query.watch({ variables, errorPolicy: 'all' } as Query.WatchOptions<TQueryDto, TVariablesDto>);
 
     this.subscription = this.queryRef.valueChanges
       .pipe(
