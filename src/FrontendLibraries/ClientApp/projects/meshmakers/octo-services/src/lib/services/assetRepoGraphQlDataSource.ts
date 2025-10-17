@@ -2,7 +2,7 @@ import { map, Subscription } from 'rxjs';
 import { DataSourceBase, MessageService, PagedResultDto } from '@meshmakers/shared-services';
 import { FieldFilterDto, InputMaybe, SearchFilterDto, SortDto } from '../shared/globalTypes';
 import { Query, QueryRef } from 'apollo-angular';
-import type { ApolloQueryResult, OperationVariables } from '@apollo/client/core';
+import type { OperationVariables } from '@apollo/client/core';
 import { GraphQL } from "../shared/graphQL";
 import type { ObservableQuery } from "@apollo/client";
 
