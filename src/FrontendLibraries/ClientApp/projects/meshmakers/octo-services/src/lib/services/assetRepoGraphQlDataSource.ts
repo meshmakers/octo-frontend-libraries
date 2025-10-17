@@ -4,6 +4,7 @@ import { FieldFilterDto, InputMaybe, SearchFilterDto, SortDto } from '../shared/
 import { Query, QueryRef } from 'apollo-angular';
 import type { ApolloQueryResult, OperationVariables } from '@apollo/client/core';
 import { GraphQL } from "../shared/graphQL";
+import type { ObservableQuery } from "@apollo/client";
 
 export interface IQueryVariablesDto extends OperationVariables {
   first?: number | null | undefined;
@@ -119,7 +120,7 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
       });
   }
 
-  protected executeLoad(_value: ApolloQueryResult<TQueryDto>, _index: number): PagedResultDto<TDto> {
+  protected executeLoad(_value: ObservableQuery.Result<TQueryDto>, _index: number): PagedResultDto<TDto> {
     return new PagedResultDto<TDto>();
   }
 }
