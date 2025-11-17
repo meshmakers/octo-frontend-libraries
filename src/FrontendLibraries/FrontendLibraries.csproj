@@ -10,7 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.10" />
+        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.0" />
     </ItemGroup>
     
     <ItemGroup>
@@ -39,6 +39,10 @@
       <_ContentIncludedByDefault Remove="ClientApp\dist\meshmakers\shared-auth\package.json" />
       <_ContentIncludedByDefault Remove="ClientApp\dist\meshmakers\shared-services\package.json" />
       <_ContentIncludedByDefault Remove="ClientApp\dist\meshmakers\shared-ui\package.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot\" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
