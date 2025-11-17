@@ -34,9 +34,15 @@ steps:
       verbose: false
       publishRegistry: useFeed
       publishEndpoint: $(NpmPrivateConnection)
+  - bash: |
+      echo "" > .npmrc
+    displayName: Create .npmrc for authentication ${{ parameters.libName }}
+    workingDirectory: ${{ parameters.publishWorkingDirectory }}
+    condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
   - task: npmAuthenticate@0
     condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
     inputs:
+      workingFile: ${{ parameters.publishWorkingDirectory }}/.npmrc
       customEndpoint: $(NpmPrivateConnection)
   - task: Npm@1
     condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
