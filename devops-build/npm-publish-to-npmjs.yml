@@ -40,4 +40,4 @@ steps:
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
       customEndpoint: $(NpmPrivateConnection)
-      customCommand: 'publish --no-tag'
+      customCommand: 'publish --registry $(NpmPrivateUri) --no-tag'
