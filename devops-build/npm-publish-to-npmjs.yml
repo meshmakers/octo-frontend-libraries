@@ -23,7 +23,6 @@ steps:
       command: publish
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
-      publishRegistry: useFeed
       publishEndpoint: $(NpmPublicConnection)
   - task: Npm@1
     condition: eq(variables.isRelease, true)
@@ -32,12 +31,7 @@ steps:
       command: publish
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
-      publishRegistry: useFeed
       publishEndpoint: $(NpmPrivateConnection)
-  - task: npmAuthenticate@0
-    condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
-    inputs:
-      customEndpoint: $(NpmPrivateConnection)
   - task: Npm@1
     condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
     displayName: npm publish to private registry ${{ parameters.libName }}
@@ -45,4 +39,5 @@ steps:
       command: 'custom'
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
+      customEndpoint: $(NpmPrivateConnection)
       customCommand: 'publish --no-tag'
