@@ -32,16 +32,12 @@ steps:
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
       publishEndpoint: $(NpmPrivateConnection)
-  - task: npmAuthenticate@0
-    condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
-    displayName: npm authenticate for registry ${{ parameters.libName }}
-    inputs:
-      workingFile: ${{ parameters.publishWorkingDirectory }}/.npmrc
-      customEndpoint: 'npm@local'
-  - task: Bash@3
+  - task: Npm@1
     condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
     displayName: npm publish to private registry ${{ parameters.libName }}
     inputs:
-      targetType: 'inline'
-      script: |
-        npm publish --registry $(NpmPrivateUri) --no-tag
+      command: 'custom'
+      workingDir: ${{ parameters.publishWorkingDirectory }}
+      verbose: false
+      customEndpoint: $(NpmPrivateConnection)
+      customCommand: 'publish --no-tag'
