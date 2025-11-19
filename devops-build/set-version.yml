@@ -19,5 +19,4 @@ steps:
   displayName: Set Version package.json
   inputs:
     VersionNumber: $(BuildNumberShort)
-    versionForJSONFileFormat: {1}.{2}.{3}
-    FilenamePattern: ^package.json       
+    FilenamePattern: ^package.json
