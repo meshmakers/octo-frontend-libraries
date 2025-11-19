@@ -20,10 +20,11 @@ steps:
     condition: eq(variables.isRelease, true)
     displayName: npm publish to public registry ${{ parameters.libName }}
     inputs:
-      command: publish
+      command: 'custom'
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
-      publishEndpoint: $(NpmPublicConnection)
+      customEndpoint: $(NpmPublicConnection)
+      customCommand: 'publish --tag 0'
   - task: Npm@1
     condition: eq(variables.isRelease, true)
     displayName: npm publish to private registry ${{ parameters.libName }}
