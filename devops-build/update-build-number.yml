@@ -21,6 +21,7 @@ steps:
       $buildNumberLong = "$major.$minor.$build.$revision"
       
       $octoVersion = "0.1.*";
+      $tagName = "beta"
       if ($branch.StartsWith("refs/heads/test/")) {
         Write-host "Branch is test branch"
         $branchName = '$(Build.SourceBranchName)'
@@ -37,6 +38,7 @@ steps:
         Write-Host "##vso[build.updatebuildnumber]$fullBuildNumber"
       
         $octoVersion = "$major.$minor.*"
+        $tagName = "test"
         Write-Host "Setting OctoVersion to $octoVersion"
       }
       
@@ -54,6 +56,7 @@ steps:
         Write-Host "##vso[build.updatebuildnumber]$buildNumberLong"
       
         Write-Host "Setting OctoVersion to $buildNumberShort"
+        $tagName = "latest"
         $octoVersion = $buildNumberShort
       }
       Write-Host "Setting build number short to '$buildNumberShort', build number long to '$buildNumberLong'"
@@ -61,5 +64,6 @@ steps:
       Write-Host "##vso[task.setvariable variable=MinorVersion;]$minor"
       Write-Host "##vso[task.setvariable variable=BuildNumberShort;]$buildNumberShort"
       Write-Host "##vso[task.setvariable variable=BuildNumberLong;]$buildNumberLong"
+      Write-Host "##vso[task.setvariable variable=BuildTagName;]$tagName"
       Write-Host "##vso[task.setvariable variable=OctoVersion;]$octoVersion"
   displayName: 'Set build number'

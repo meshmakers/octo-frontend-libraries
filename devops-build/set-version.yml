@@ -18,5 +18,6 @@ steps:
 - task: VersionJSONFile@3
   displayName: Set Version package.json
   inputs:
-    versionForJSONFileFormat: '{1}.{2}.{3}-{4}'
+    VersionNumber: $(BuildNumberShort)
+    versionForJSONFileFormat: '{1}.{2}.{3}
     FilenamePattern: ^package.json       
