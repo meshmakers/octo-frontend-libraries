@@ -18,6 +18,4 @@ steps:
 - task: VersionJSONFile@3
   displayName: Set Version package.json
   inputs:
-    VersionNumber: $(BuildNumberShort)
-    VersionRegex: "\\d+\\.\\d+\\.\\d+"
     FilenamePattern: ^package.json
