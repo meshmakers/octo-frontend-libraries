@@ -16,7 +16,13 @@ steps:
     Company: $(Company)
     Copyright: $(Copyright)
 - task: VersionJSONFile@3
-  displayName: Set Version package.json
+  condition: eq(variables.isRelease, true)
+  displayName: Set Version package.json (release)
+  inputs:
+    FilenamePattern: ^package.json
+- task: VersionJSONFile@3
+  condition: eq(variables.isRelease, false)
+  displayName: Set Version package.json (non-release)
   inputs:
     versionForJSONFileFormat: "{1}.{2}.{3}.{4}"
     FilenamePattern: ^package.json
