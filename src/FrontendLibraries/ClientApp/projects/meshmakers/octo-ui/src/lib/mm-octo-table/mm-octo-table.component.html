@@ -92,6 +92,7 @@
       @for (column of actionColumns; track column) {
         <ng-container>
           <button mat-button
+                  [matTooltip]="column.tooltip || column.displayText"
                   (click)="emitRowData({ action: column.actionId, id: encodeURIComponent(element[currentId]), entry: element })">
             <mat-icon *ngIf="column?.svgIconName" class="svg-icon" svgIcon="{{ column.svgIconName }}"
                       matListItemIcon></mat-icon>
@@ -102,7 +103,7 @@
 
       <!-- Options menu with additional actions -->
       @if (optionActions.length > 0) {
-        <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Options">
+        <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Options" matTooltip="Options">
           <mat-icon class="material-symbols-outlined">more_vert</mat-icon>
         </button>
       }

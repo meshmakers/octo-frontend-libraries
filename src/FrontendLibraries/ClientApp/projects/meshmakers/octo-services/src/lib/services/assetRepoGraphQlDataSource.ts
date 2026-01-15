@@ -110,9 +110,15 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
 
     this.subscription = this.queryRef.valueChanges
       .pipe(
-        map((v, i) => this.executeLoad(v, i)))
+        map((v, i) => ({ result: v, pagedResult: this.executeLoad(v, i) })))
      .subscribe({
-        next: (pagedResult) => super.onCompleteLoad(pagedResult),
+        next: ({ result, pagedResult }) => {
+          if (result.loading) {
+            super.onBeginLoad();
+          } else {
+            super.onCompleteLoad(pagedResult);
+          }
+        },
         error: (e) => {
           this.messageService.showErrorWithDetails(e);
           super.onCompleteLoad(new PagedResultDto<TDto>());

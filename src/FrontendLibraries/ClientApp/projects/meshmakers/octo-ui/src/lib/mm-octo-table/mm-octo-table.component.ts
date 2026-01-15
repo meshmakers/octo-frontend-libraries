@@ -40,6 +40,7 @@ import { MatToolbar } from '@angular/material/toolbar';
 
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatListItemIcon } from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { AssetRepoGraphQlDataSource, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from '@meshmakers/octo-services';
 import { ColumnDefinition, getDisplayName, getDataKey, TableColumn } from './mm-octo-table.model';
@@ -49,6 +50,7 @@ export interface ActionColumn {
   actionId: string; // Unique identifier for the action
   iconName?: string; // Name of the icon to display in the button
   svgIconName?: string; // Name of the SVG icon to display in the button
+  tooltip?: string; // Tooltip text for the action button
 }
 
 export interface ToolbarAction {
@@ -83,6 +85,7 @@ export interface ToolbarAction {
     MatSortHeader,
     MatTable,
     MatToolbar,
+    MatTooltipModule,
     NgIf,
     MatHeaderCellDef,
     MatIcon,
