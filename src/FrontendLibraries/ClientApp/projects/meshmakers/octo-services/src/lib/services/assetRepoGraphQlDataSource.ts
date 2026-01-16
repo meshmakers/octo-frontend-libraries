@@ -113,9 +113,7 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
         map((v, i) => ({ result: v, pagedResult: this.executeLoad(v, i) })))
      .subscribe({
         next: ({ result, pagedResult }) => {
-          if (result.loading) {
-            super.onBeginLoad();
-          } else {
+          if (!result.loading) {
             super.onCompleteLoad(pagedResult);
           }
         },
