@@ -68,6 +68,8 @@ export class AuthorizeService {
       this._accessToken.next(null);
       this._user.next(null);
       this._isAuthenticated.next(false);
+      // Reload the page to trigger the auth flow and redirect to login
+      window.location.reload();
     });
 
     this.oauthService.events.pipe(filter((e) => e.type === "token_received")).subscribe(async (_) => {
@@ -81,10 +83,48 @@ export class AuthorizeService {
     });
 
     this.oauthService.events.pipe(filter((e) => e.type === "logout")).subscribe((_) => {
+      console.debug("AuthorizeService: Logout event received");
       this._accessToken.next(null);
       this._user.next(null);
       this._isAuthenticated.next(false);
+      // Reload the page to trigger the auth flow and redirect to login
+      window.location.reload();
     });
+
+    // Listen for storage events from other tabs (e.g., SLO logout callback)
+    // This enables immediate cross-tab logout detection
+    window.addEventListener('storage', (event) => {
+      console.debug("AuthorizeService: Storage event received", event.key, event.newValue);
+      // Check if access_token was removed (logout in another tab)
+      // Note: OAuth library may set to empty string or null when clearing
+      if (event.key === 'access_token' && (event.newValue === null || event.newValue === '') && this._isAuthenticated.value) {
+        console.debug("AuthorizeService: Access token removed in another tab - logging out and reloading");
+        this._accessToken.next(null);
+        this._user.next(null);
+        this._isAuthenticated.next(false);
+        // Reload the page to trigger the auth flow and redirect to login
+        window.location.reload();
+      }
+    });
+
+    // Also listen for BroadcastChannel messages for cross-tab logout
+    // This is more reliable than storage events for iframe-based SLO
+    if (typeof BroadcastChannel !== 'undefined') {
+      console.debug("AuthorizeService: Setting up BroadcastChannel listener for 'octo-auth-logout'");
+      const logoutChannel = new BroadcastChannel('octo-auth-logout');
+      logoutChannel.onmessage = (event) => {
+        console.debug("AuthorizeService: BroadcastChannel message received", event.data);
+        if (event.data?.type === 'logout' && this._isAuthenticated.value) {
+          console.debug("AuthorizeService: Logout broadcast received - reloading");
+          this._accessToken.next(null);
+          this._user.next(null);
+          this._isAuthenticated.next(false);
+          window.location.reload();
+        }
+      };
+    } else {
+      console.warn("AuthorizeService: BroadcastChannel not supported in this browser");
+    }
   }
 
   public isInRole(role: Roles): boolean {
