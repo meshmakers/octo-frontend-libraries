@@ -5,12 +5,10 @@ import { OctoServiceOptions } from '../options/octo-service-options';
 import { PagedGraphResultDto } from '../models/pagedGraphResultDto';
 import { PagedResultDto } from '@meshmakers/shared-services';
 import { HttpLink } from 'apollo-angular/http';
-import { InMemoryCache } from '@apollo/client/core';
-import { OperationVariables } from '@apollo/client/core/types';
+import { InMemoryCache, type OperationVariables, type ObservableQuery } from '@apollo/client/core';
 import { Observable } from 'rxjs';
-import { DeepPartial } from "@apollo/client/utilities";
+import { type DeepPartial } from "@apollo/client/utilities";
 import QueryResult = Apollo.QueryResult;
-import type { ObservableQuery } from "@apollo/client";
 
 export class OctoGraphQLServiceBase {
   constructor(

@@ -63,7 +63,7 @@ export class MmAutocompleteInputComponent implements OnInit, OnDestroy, DoCheck,
   public valueChange: EventEmitter<any> = new EventEmitter<any>();
   private _selectedString: string | null;
   @ViewChild("input") private readonly inputField: MatInput | null;
-  @HostBinding("attr.aria-describedby") private describedBy = "";
+  protected describedBy = "";
   private activatedValue: any;
 
   constructor() {

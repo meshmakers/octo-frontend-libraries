@@ -63,7 +63,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
   public valueChange: EventEmitter<any> = new EventEmitter<any>();
   private _selectedEntity: any;
   @ViewChild("input") private readonly inputField: MatInput | null;
-  @HostBinding("attr.aria-describedby") private describedBy = "";
+  protected describedBy = "";
   private activatedValue: any;
 
   constructor() {

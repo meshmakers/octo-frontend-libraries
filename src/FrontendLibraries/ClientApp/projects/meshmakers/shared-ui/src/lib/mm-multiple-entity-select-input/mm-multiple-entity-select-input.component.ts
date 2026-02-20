@@ -67,7 +67,7 @@ export class MmMultipleEntitySelectInputComponent
   public valuesChange: EventEmitter<any[]> = new EventEmitter<any[]>();
   private _selectedEntities: any[] | null;
   @ViewChild('input') private readonly inputField: MatInput | null;
-  @HostBinding('attr.aria-describedby') private describedBy = '';
+  protected describedBy = '';
   private activatedValue: any;
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
 
