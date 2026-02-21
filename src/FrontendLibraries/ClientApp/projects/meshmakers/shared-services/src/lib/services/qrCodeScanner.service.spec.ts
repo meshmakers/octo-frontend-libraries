@@ -1,4 +1,4 @@
-﻿import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { QrCodeScannerService } from './qrCodeScanner.service';
 
@@ -6,7 +6,9 @@ describe('QrCodeScannerService', () => {
   let service: QrCodeScannerService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [QrCodeScannerService]
+    });
     service = TestBed.inject(QrCodeScannerService);
   });
 
