@@ -35,8 +35,9 @@ steps:
 - template: update-build-number.yml
 - template: set-version.yml
 - task: Npm@1
-  displayName: npm install
+  displayName: npm ci
   inputs:
+    command: ci
     workingDir: src/FrontendLibraries/ClientApp/
     verbose: false
 # Build Tier 1 libraries (dependencies for legacy UI libs, not published from this pipeline)
