@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, EMPTY } from 'rxjs';
+import { EMPTY } from 'rxjs';
 import { OAuthService } from 'angular-oauth2-oidc';
 
 import { AuthorizeService } from './authorize.service';
