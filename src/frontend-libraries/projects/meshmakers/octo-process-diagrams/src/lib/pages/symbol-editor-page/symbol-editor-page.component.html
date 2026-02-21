@@ -1,0 +1,54 @@
+<div class="symbol-editor-page-container">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <span>Loading symbol editor...</span>
+    </div>
+  } @else if (symbol()) {
+    <!-- Editor Header -->
+    <div class="editor-header">
+      <div class="header-left">
+        <button kendoButton [svgIcon]="backIcon" fillMode="flat" (click)="navigateBack()">
+          Back
+        </button>
+        <div class="symbol-title">
+          <span class="library-name">{{ library()?.name }}</span>
+          <span class="separator">/</span>
+          <span class="symbol-name">{{ symbol()?.name }}</span>
+          @if (hasUnsavedChanges()) {
+            <span class="unsaved-indicator">*</span>
+          }
+        </div>
+      </div>
+      <div class="header-right">
+        <button kendoButton
+                [svgIcon]="saveIcon"
+                themeColor="primary"
+                [disabled]="isSaving() || !hasUnsavedChanges()"
+                (click)="saveSymbol()">
+          {{ isSaving() ? 'Saving...' : 'Save' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Symbol Editor -->
+    <div class="editor-content">
+      <mm-symbol-editor
+        [symbol]="symbol()"
+        [canvasWidth]="symbol()?.canvasSize?.width ?? symbol()?.bounds?.width ?? 400"
+        [canvasHeight]="symbol()?.canvasSize?.height ?? symbol()?.bounds?.height ?? 300"
+        [gridSize]="symbol()?.gridSize ?? 10"
+        [useDockview]="true"
+        [symbolSettings]="symbolSettings()"
+        (symbolChange)="onSymbolChange($event)"
+        (saveRequest)="onSaveRequest($event)"
+        (symbolSettingsChange)="onSymbolSettingsChange($event)">
+      </mm-symbol-editor>
+    </div>
+  } @else {
+    <div class="error-container">
+      <p>Symbol not found</p>
+      <button kendoButton (click)="navigateBack()">Go Back</button>
+    </div>
+  }
+</div>

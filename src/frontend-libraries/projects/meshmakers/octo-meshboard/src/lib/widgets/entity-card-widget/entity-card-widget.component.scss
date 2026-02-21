@@ -1,0 +1,111 @@
+.entity-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--kendo-color-border, #dee2e6);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--kendo-color-surface, #fff);
+
+  &.no-data,
+  &.loading,
+  &.error {
+    justify-content: center;
+    align-items: center;
+  }
+
+  &.loading {
+    color: var(--kendo-color-primary, #0d6efd);
+  }
+
+  &.error {
+    color: var(--kendo-color-error, #dc3545);
+  }
+}
+
+.loading-indicator {
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.error-message {
+  font-size: 0.875rem;
+  padding: 12px;
+  text-align: center;
+}
+
+// Header - UML style
+.entity-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: var(--kendo-color-primary, #0d6efd);
+  color: var(--kendo-color-on-primary, #fff);
+  text-align: center;
+
+  .entity-stereotype {
+    font-size: 0.75rem;
+    font-style: italic;
+    opacity: 0.9;
+    margin-bottom: 2px;
+  }
+
+  .entity-name {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
+
+// Attributes Section
+.entity-attributes {
+  flex: 1;
+  padding: 8px 0;
+  overflow-y: auto;
+
+  .attribute-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--kendo-color-border-alt, #e9ecef);
+    font-size: 0.8125rem;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: var(--kendo-color-surface-alt, #f8f9fa);
+    }
+  }
+
+  .attribute-name {
+    color: var(--kendo-color-subtle, #6c757d);
+    flex-shrink: 0;
+    margin-right: 12px;
+  }
+
+  .attribute-value {
+    color: var(--kendo-color-on-surface, #212529);
+    font-weight: 500;
+    text-align: right;
+    word-break: break-word;
+  }
+}
+
+// Footer
+.entity-footer {
+  padding: 8px 12px;
+  background: var(--kendo-color-surface-alt, #f8f9fa);
+  border-top: 1px solid var(--kendo-color-border, #dee2e6);
+
+  .entity-id {
+    font-size: 0.6875rem;
+    font-family: monospace;
+    color: var(--kendo-color-subtle, #6c757d);
+  }
+}
+
+.no-data-message {
+  font-size: 0.875rem;
+}

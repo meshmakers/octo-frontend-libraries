@@ -1,0 +1,957 @@
+<div class="process-designer" tabindex="0" data-testid="process-designer">
+  <!-- Toolbar -->
+  <kendo-toolbar class="designer-toolbar">
+    @if (showSaveButtons) {
+      <kendo-toolbar-buttongroup>
+        <kendo-toolbar-button [svgIcon]="saveIcon" (click)="save()" title="Save (Ctrl+S)" [disabled]="!hasChanges()"></kendo-toolbar-button>
+        <kendo-toolbar-button [svgIcon]="fileTxtIcon" (click)="saveAs()" title="Save As..."></kendo-toolbar-button>
+        <kendo-toolbar-button [svgIcon]="pencilIcon" (click)="rename()" title="Rename..."></kendo-toolbar-button>
+      </kendo-toolbar-buttongroup>
+      <kendo-toolbar-separator></kendo-toolbar-separator>
+    }
+
+    <kendo-toolbar-buttongroup>
+      <kendo-toolbar-button [svgIcon]="undoIcon" (click)="undo()" title="Undo (Ctrl+Z)" [disabled]="!canUndo()"></kendo-toolbar-button>
+      <kendo-toolbar-button [svgIcon]="redoIcon" (click)="redo()" title="Redo (Ctrl+Shift+Z)" [disabled]="!canRedo()"></kendo-toolbar-button>
+    </kendo-toolbar-buttongroup>
+
+    <kendo-toolbar-separator></kendo-toolbar-separator>
+
+    <kendo-toolbar-buttongroup>
+      <kendo-toolbar-button [svgIcon]="arrowsNoRepeatIcon"
+              [toggleable]="true"
+              [selected]="mode() === 'select'"
+              (click)="setMode('select')"
+              title="Select tool (V)"></kendo-toolbar-button>
+      <kendo-toolbar-button [svgIcon]="handIcon"
+              [toggleable]="true"
+              [selected]="mode() === 'pan'"
+              (click)="setMode('pan')"
+              title="Pan tool (H)"></kendo-toolbar-button>
+      <kendo-toolbar-button [svgIcon]="linkIcon"
+              [toggleable]="true"
+              [selected]="mode() === 'connect'"
+              (click)="setMode('connect')"
+              title="Connect tool (C)"></kendo-toolbar-button>
+    </kendo-toolbar-buttongroup>
+
+    <kendo-toolbar-separator></kendo-toolbar-separator>
+
+    <kendo-toolbar-buttongroup>
+      <kendo-toolbar-button [svgIcon]="zoomInIcon" (click)="zoomIn()" title="Zoom in"></kendo-toolbar-button>
+      <span class="zoom-level">{{ zoomPercentage() }}%</span>
+      <kendo-toolbar-button [svgIcon]="zoomOutIcon" (click)="zoomOut()" title="Zoom out"></kendo-toolbar-button>
+      <kendo-toolbar-button [svgIcon]="zoomBestFitIcon" (click)="fitToView()" title="Fit content to view"></kendo-toolbar-button>
+    </kendo-toolbar-buttongroup>
+
+    <kendo-toolbar-separator></kendo-toolbar-separator>
+
+    <kendo-toolbar-buttongroup>
+      <kendo-toolbar-button [svgIcon]="gridIcon"
+              [toggleable]="true"
+              [selected]="showGrid()"
+              (selectedChange)="toggleGrid()"
+              title="Show/hide grid"></kendo-toolbar-button>
+      <kendo-toolbar-button text="⌖"
+              [toggleable]="true"
+              [selected]="snapToGrid()"
+              (selectedChange)="toggleSnapToGrid()"
+              title="Snap to grid"></kendo-toolbar-button>
+      <kendo-toolbar-button [svgIcon]="eyeIcon"
+              [toggleable]="true"
+              [selected]="showElementNames()"
+              (selectedChange)="toggleElementNames()"
+              title="Show element names"></kendo-toolbar-button>
+    </kendo-toolbar-buttongroup>
+
+    <kendo-toolbar-separator></kendo-toolbar-separator>
+
+    <kendo-toolbar-button [svgIcon]="uploadIcon" (click)="onImportSvgClick()" title="Import SVG file"></kendo-toolbar-button>
+    <input #svgFileInput
+           type="file"
+           accept=".svg,image/svg+xml"
+           style="display: none"
+           (change)="onSvgFileSelected($event)"/>
+
+    <kendo-toolbar-spacer></kendo-toolbar-spacer>
+
+    <kendo-toolbar-buttongroup>
+      <kendo-toolbar-button [svgIcon]="groupIcon" (click)="groupSelected()" title="Group (Ctrl+G)"
+              [disabled]="!canGroup()"></kendo-toolbar-button>
+      <kendo-toolbar-button [svgIcon]="ungroupIcon" (click)="ungroupSelected()" title="Ungroup (Ctrl+Shift+G)"
+              [disabled]="!canUngroup()"></kendo-toolbar-button>
+    </kendo-toolbar-buttongroup>
+
+    <kendo-toolbar-separator></kendo-toolbar-separator>
+
+    <kendo-toolbar-button [svgIcon]="trashIcon" (click)="deleteSelected()" title="Delete selected"
+            [disabled]="!hasSelection()"></kendo-toolbar-button>
+
+    <kendo-toolbar-separator></kendo-toolbar-separator>
+
+    @if (useDockview) {
+      <!-- View menu for dockview panel controls -->
+      <kendo-toolbar-dropdownbutton
+        [svgIcon]="eyeIcon"
+        [data]="viewMenuItems()"
+        title="View panels"
+        (itemClick)="onViewMenuItemClick($event)">
+      </kendo-toolbar-dropdownbutton>
+    } @else {
+      <!-- Legacy panel toggle buttons -->
+      <kendo-toolbar-buttongroup>
+        <kendo-toolbar-button [svgIcon]="menuIcon"
+                [toggleable]="true"
+                [selected]="showLeftPanel()"
+                (selectedChange)="toggleLeftPanel()"
+                title="Toggle element palette (Alt+1)"></kendo-toolbar-button>
+        <kendo-toolbar-button [svgIcon]="gearsIcon"
+                [toggleable]="true"
+                [selected]="showRightPanel()"
+                (selectedChange)="toggleRightPanel()"
+                title="Toggle property inspector (Alt+2)"></kendo-toolbar-button>
+      </kendo-toolbar-buttongroup>
+    }
+  </kendo-toolbar>
+
+  <!-- Main content area -->
+  <div class="designer-content" [class.dockview-enabled]="useDockview"
+       [style.display]="useDockview ? 'flex' : null"
+       [style.height]="useDockview ? '100%' : null"
+       [style.minHeight]="useDockview ? '0' : null">
+    <!-- Dockview panels container (when dockview enabled) -->
+    @if (useDockview) {
+      <div class="dockview-panels-container"
+           [style.width.px]="dockviewPanelWidth()"
+           [style.flex]="'0 0 ' + dockviewPanelWidth() + 'px'">
+        <mm-dockview
+          class="designer-dockview"
+          [components]="panelComponents"
+          (ready)="onDockviewReady($event)">
+        </mm-dockview>
+      </div>
+      <!-- Resize handle for dockview panels -->
+      <div class="dockview-resize-handle"
+           (mousedown)="onDockviewResizeStart($event)"
+           title="Drag to resize panels">
+      </div>
+    }
+
+    <!-- Legacy left sidebar (when dockview disabled) -->
+    @if (!useDockview) {
+      @if (showLeftPanel()) {
+        <div class="designer-sidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-tabs">
+              <button class="sidebar-tab"
+                      [class.active]="activeSidebarTab() === 'elements'"
+                      (click)="setActiveSidebarTab('elements')">
+                {{ editorMode === 'symbol' ? 'Primitives' : 'Elements' }}
+              </button>
+              <button class="sidebar-tab"
+                      [class.active]="activeSidebarTab() === 'symbols'"
+                      (click)="setActiveSidebarTab('symbols')">
+                Symbols
+              </button>
+            </div>
+            <button class="sidebar-close" (click)="toggleLeftPanel()" title="Close panel">×</button>
+          </div>
+          <div class="sidebar-content">
+            @if (activeSidebarTab() === 'elements') {
+              <mm-element-palette
+                (elementDragStart)="onPaletteDragStart($event)"
+                (elementDragEnd)="onPaletteDragEnd($event)">
+              </mm-element-palette>
+            } @else {
+              <mm-symbol-library-panel
+                (symbolDragStart)="onSymbolDragStart($event)"
+                (symbolDragEnd)="onSymbolDragEnd()">
+              </mm-symbol-library-panel>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="sidebar-collapsed left" (click)="toggleLeftPanel()" title="Show element palette">
+          <span class="collapsed-icon">☰</span>
+        </div>
+      }
+    } <!-- End of legacy left sidebar -->
+
+    <!-- Canvas area (always visible) -->
+      <div class="designer-canvas-container"
+           #canvasContainer
+           data-testid="designer-canvas-container"
+           (mousedown)="onCanvasMouseDown($event)"
+           (mousemove)="onCanvasMouseMove($event)"
+           (mouseup)="onCanvasMouseUp($event)"
+           (wheel)="onCanvasWheel($event)"
+           (dragover)="onCanvasDragOver($event)"
+           (drop)="onCanvasDrop($event)"
+           (contextmenu)="onCanvasContextMenu($event)">
+      <svg class="designer-canvas"
+           data-testid="designer-canvas"
+           [attr.width]="scaledCanvasWidth()"
+           [attr.height]="scaledCanvasHeight()"
+           [attr.viewBox]="viewBox()"
+           preserveAspectRatio="xMinYMin meet"
+           [style.cursor]="canvasCursor()"
+           (mousedown)="onSvgMouseDown($event)">
+
+        <!-- Background (rendered first, behind everything) -->
+        <!-- Canvas background color is set via CSS variable --designer-canvas-color for theme support -->
+        <rect x="0" y="0"
+              [attr.width]="canvasConfig().width"
+              [attr.height]="canvasConfig().height"
+              class="canvas-background"
+              pointer-events="none"/>
+
+        <!-- Grid (on top of background) -->
+        <!-- Grid color is set via CSS variable --designer-grid-color for theme support -->
+        @if (showGrid()) {
+          <defs>
+            <pattern id="designerGrid" [attr.width]="gridSize()" [attr.height]="gridSize()"
+                     patternUnits="userSpaceOnUse">
+              <path [attr.d]="'M ' + gridSize() + ' 0 L 0 0 0 ' + gridSize()"
+                    fill="none" class="designer-grid-line" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect x="0" y="0"
+                [attr.width]="canvasConfig().width"
+                [attr.height]="canvasConfig().height"
+                fill="url(#designerGrid)"
+                pointer-events="none"/>
+        }
+
+        <!-- Invisible click capture layer (for clicking on empty canvas) -->
+        <rect x="0" y="0"
+              [attr.width]="canvasConfig().width"
+              [attr.height]="canvasConfig().height"
+              fill="transparent"
+              class="canvas-click-layer"/>
+
+        <!-- Connections (only in diagram mode) -->
+        @if (editorMode === 'diagram') {
+          @for (connection of diagram().connections; track connection.id) {
+            <g class="connection"
+               [class.selected]="isConnectionSelected(connection.id)"
+               (mousedown)="onConnectionClick($event, connection)">
+              <path [attr.d]="getConnectionPath(connection)"
+                    [attr.stroke]="connection.style.strokeColor"
+                    [attr.stroke-width]="isConnectionSelected(connection.id) ? connection.style.strokeWidth + 2 : connection.style.strokeWidth"
+                    fill="none"
+                    stroke-linecap="round"/>
+            </g>
+          }
+
+          <!-- Elements in their actual z-order -->
+          @for (element of orderedElements(); track element.id) {
+          <g class="element"
+             [class.selected]="isElementSelected(element.id)"
+             [class.dragging]="dragState().isDragging && dragState().elementId === element.id"
+             [attr.transform]="getElementTransform(element)"
+             (mousedown)="onElementMouseDown($event, element)"
+             (contextmenu)="onElementContextMenu($event, element)">
+
+            <!-- Invisible hit area (larger than visual for easier clicking) -->
+            <rect x="-4" y="-4"
+                  [attr.width]="element.size.width + 8"
+                  [attr.height]="element.size.height + 8"
+                  fill="transparent"
+                  class="element-hit-area"/>
+
+            <!-- Element visual (simplified for designer) -->
+            <rect x="0" y="0"
+                  [attr.width]="element.size.width"
+                  [attr.height]="element.size.height"
+                  [attr.fill]="getElementFill(element)"
+                  [attr.stroke]="isElementSelected(element.id) ? '#1976d2' : getElementStroke(element)"
+                  [attr.stroke-width]="isElementSelected(element.id) ? 2 : (element.style?.strokeWidth ?? 1)"
+                  [attr.rx]="getElementRadius(element)"
+                  [attr.opacity]="element.style?.opacity ?? 1"
+                  pointer-events="none"/>
+
+            <!-- Element type icon/label -->
+            <text class="element-label"
+                  [attr.x]="element.size.width / 2"
+                  [attr.y]="element.size.height / 2"
+                  text-anchor="middle"
+                  dominant-baseline="middle"
+                  font-size="10"
+                  fill="#666">
+              {{ getElementTypeLabel(element) }}
+            </text>
+
+            <!-- Element name -->
+            @if (showElementNames()) {
+              <text class="element-label"
+                    [attr.x]="element.size.width / 2"
+                    [attr.y]="element.size.height + 10"
+                    text-anchor="middle">
+                {{ element.name }}
+              </text>
+            }
+
+            <!-- Selection handles (zoom-scaled) -->
+            @if (isElementSelected(element.id)) {
+              <!-- Corner resize handles -->
+              <rect class="resize-handle nw" [attr.x]="-handleOffset()" [attr.y]="-handleOffset()" [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                    (mousedown)="onResizeHandleMouseDown($event, element, 'nw')"/>
+              <rect class="resize-handle ne" [attr.x]="element.size.width - handleOffset()" [attr.y]="-handleOffset()" [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                    (mousedown)="onResizeHandleMouseDown($event, element, 'ne')"/>
+              <rect class="resize-handle sw" [attr.x]="-handleOffset()" [attr.y]="element.size.height - handleOffset()" [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                    (mousedown)="onResizeHandleMouseDown($event, element, 'sw')"/>
+              <rect class="resize-handle se" [attr.x]="element.size.width - handleOffset()" [attr.y]="element.size.height - handleOffset()" [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                    (mousedown)="onResizeHandleMouseDown($event, element, 'se')"/>
+
+              <!-- Connection ports -->
+              <circle class="connection-port" [attr.cx]="element.size.width / 2" cy="0" [attr.r]="portRadius()" fill="#4caf50"/>
+              <circle class="connection-port" [attr.cx]="element.size.width / 2" [attr.cy]="element.size.height" [attr.r]="portRadius()" fill="#4caf50"/>
+              <circle class="connection-port" cx="0" [attr.cy]="element.size.height / 2" [attr.r]="portRadius()" fill="#4caf50"/>
+              <circle class="connection-port" [attr.cx]="element.size.width" [attr.cy]="element.size.height / 2" [attr.r]="portRadius()" fill="#4caf50"/>
+            }
+          </g>
+          }
+        }
+
+        <!-- Primitives in their actual z-order -->
+        @for (primitive of orderedPrimitives(); track primitive.id) {
+          <g class="primitive"
+             [attr.data-testid]="'primitive-' + primitive.type + '-' + primitive.id"
+             [class.selected]="isPrimitiveSelected(primitive.id)"
+             [class.dragging]="dragState().isDragging && dragState().elementId === primitive.id"
+             [attr.transform]="getPrimitiveTransform(primitive)"
+             (mousedown)="onPrimitiveMouseDown($event, primitive)"
+             (dblclick)="onPrimitiveDoubleClick(primitive)"
+             (contextmenu)="onPrimitiveContextMenu($event, primitive)">
+
+            <!-- Render based on primitive type -->
+            <!-- Resolve style once for this primitive (class + inline merged) -->
+            @let rs = resolveStyle(primitive);
+
+            @switch (primitive.type) {
+              @case ('rectangle') {
+                @if (primitiveHasAnimations(primitive) || hasFillLevel(primitive)) {
+                  <!-- Rectangle with animations or fillLevel - use innerHTML for clip-path support -->
+                  <g [innerHTML]="getPrimitiveWithAnimationsSvg(primitive)"></g>
+                } @else {
+                  <rect [attr.x]="primitive.position.x"
+                        [attr.y]="primitive.position.y"
+                        [attr.width]="$any(primitive).config.width"
+                        [attr.height]="$any(primitive).config.height"
+                        [attr.fill]="rs.fill?.color ?? 'none'"
+                        [attr.fill-opacity]="rs.fill?.opacity ?? 1"
+                        [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
+                        [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
+                        [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? selectionHighlightWidth() : (rs.stroke?.width ?? 1)"
+                        [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"
+                        [attr.rx]="$any(primitive).config.cornerRadiusX ?? $any(primitive).config.cornerRadius ?? 0"
+                        [attr.ry]="$any(primitive).config.cornerRadiusY ?? $any(primitive).config.cornerRadius ?? 0"/>
+                }
+              }
+              @case ('ellipse') {
+                @if (primitiveHasAnimations(primitive)) {
+                  <!-- Ellipse with animations -->
+                  <g [innerHTML]="getPrimitiveWithAnimationsSvg(primitive)"></g>
+                } @else {
+                  <ellipse [attr.cx]="primitive.position.x"
+                           [attr.cy]="primitive.position.y"
+                           [attr.rx]="$any(primitive).config.radiusX"
+                           [attr.ry]="$any(primitive).config.radiusY"
+                           [attr.fill]="rs.fill?.color ?? 'none'"
+                           [attr.fill-opacity]="rs.fill?.opacity ?? 1"
+                           [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
+                           [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
+                           [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? selectionHighlightWidth() : (rs.stroke?.width ?? 1)"
+                           [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                }
+              }
+              @case ('line') {
+                @if (primitiveHasAnimations(primitive)) {
+                  <!-- Line with animations -->
+                  <g [innerHTML]="getPrimitiveWithAnimationsSvg(primitive)"></g>
+                } @else {
+                  <line [attr.x1]="$any(primitive).config.start.x + primitive.position.x"
+                        [attr.y1]="$any(primitive).config.start.y + primitive.position.y"
+                        [attr.x2]="$any(primitive).config.end.x + primitive.position.x"
+                        [attr.y2]="$any(primitive).config.end.y + primitive.position.y"
+                        [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
+                        [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
+                        [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? 3 : (rs.stroke?.width ?? 2)"
+                        [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                }
+              }
+              @case ('path') {
+                @if (primitiveHasAnimations(primitive)) {
+                  <!-- Path with animations -->
+                  <g [innerHTML]="getPrimitiveWithAnimationsSvg(primitive)"></g>
+                } @else {
+                  <path [attr.d]="$any(primitive).config.d"
+                        [attr.transform]="'translate(' + primitive.position.x + ',' + primitive.position.y + ')'"
+                        [attr.fill]="rs.fill?.color ?? 'none'"
+                        [attr.fill-opacity]="rs.fill?.opacity ?? 1"
+                        [attr.fill-rule]="$any(primitive).config.fillRule"
+                        [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
+                        [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
+                        [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? selectionHighlightWidth() : (rs.stroke?.width ?? 1)"
+                        [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                }
+              }
+              @case ('polygon') {
+                @if (primitiveHasAnimations(primitive)) {
+                  <!-- Polygon with animations -->
+                  <g [innerHTML]="getPrimitiveWithAnimationsSvg(primitive)"></g>
+                } @else {
+                  <polygon [attr.points]="getPolygonPoints($any(primitive))"
+                           [attr.fill]="rs.fill?.color ?? 'none'"
+                           [attr.fill-opacity]="rs.fill?.opacity ?? 1"
+                           [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
+                           [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
+                           [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? selectionHighlightWidth() : (rs.stroke?.width ?? 1)"
+                           [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                }
+              }
+              @case ('polyline') {
+                @if (primitiveHasAnimations(primitive)) {
+                  <!-- Polyline with animations -->
+                  <g [innerHTML]="getPrimitiveWithAnimationsSvg(primitive)"></g>
+                } @else {
+                  <polyline [attr.points]="getPolylinePoints($any(primitive))"
+                            fill="none"
+                            [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? '#333')"
+                            [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
+                            [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? 3 : (rs.stroke?.width ?? 2)"
+                            [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                }
+              }
+              @case ('text') {
+                <text [attr.x]="primitive.position.x"
+                      [attr.y]="primitive.position.y"
+                      [attr.fill]="$any(primitive).config.textStyle?.color ?? '#333'"
+                      [attr.font-size]="$any(primitive).config.textStyle?.fontSize ?? 14"
+                      [attr.font-family]="$any(primitive).config.textStyle?.fontFamily ?? 'Arial, sans-serif'">
+                  {{ $any(primitive).config.content }}
+                </text>
+              }
+              @case ('image') {
+                @if ($any(primitive).config.src) {
+                  <!-- Render actual image when src is available -->
+                  <image [attr.x]="primitive.position.x"
+                         [attr.y]="primitive.position.y"
+                         [attr.width]="$any(primitive).config.width"
+                         [attr.height]="$any(primitive).config.height"
+                         [attr.href]="$any(primitive).config.src"
+                         [attr.preserveAspectRatio]="$any(primitive).config.preserveAspectRatio !== false ? 'xMidYMid meet' : 'none'"/>
+                  <!-- Selection border overlay -->
+                  @if (isPrimitiveSelected(primitive.id)) {
+                    <rect [attr.x]="primitive.position.x"
+                          [attr.y]="primitive.position.y"
+                          [attr.width]="$any(primitive).config.width"
+                          [attr.height]="$any(primitive).config.height"
+                          fill="none"
+                          stroke="#1976d2"
+                          [attr.stroke-width]="selectionHighlightWidth()"
+                          stroke-dasharray="4 2"/>
+                  }
+                } @else {
+                  <!-- Placeholder when no src -->
+                  <rect [attr.x]="primitive.position.x"
+                        [attr.y]="primitive.position.y"
+                        [attr.width]="$any(primitive).config.width"
+                        [attr.height]="$any(primitive).config.height"
+                        fill="#f5f5f5"
+                        [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : '#ccc'"
+                        [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? selectionHighlightWidth() : 1"
+                        stroke-dasharray="4 2"/>
+                  <text class="primitive-label"
+                        [attr.x]="primitive.position.x + $any(primitive).config.width / 2"
+                        [attr.y]="primitive.position.y + $any(primitive).config.height / 2"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        font-size="10"
+                        fill="#999">Image</text>
+                }
+              }
+              @case ('group') {
+                <!-- Groups render their fill/stroke if defined, children render separately -->
+                @if (primitiveHasAnimations(primitive)) {
+                  <!-- Group with animations -->
+                  <g [innerHTML]="getPrimitiveWithAnimationsSvg(primitive)"></g>
+                } @else {
+                  @let groupBounds = getPrimitiveBoundingBox(primitive);
+                  <rect [attr.x]="groupBounds.x"
+                        [attr.y]="groupBounds.y"
+                        [attr.width]="groupBounds.width"
+                        [attr.height]="groupBounds.height"
+                        [attr.fill]="rs.fill?.color ?? 'none'"
+                        [attr.fill-opacity]="rs.fill?.opacity ?? 1"
+                        [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
+                        [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
+                        [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? 1.5 : (rs.stroke?.width ?? 0)"
+                        [attr.stroke-dasharray]="isPrimitiveSelected(primitive.id) ? '6 3' : (getStrokeDashArray(rs.stroke?.dashArray))"
+                        pointer-events="all"/>
+                }
+              }
+            }
+
+            <!-- Primitive name label -->
+            @if (showElementNames() && primitive.name) {
+              <text class="primitive-label"
+                    [attr.x]="getPrimitiveBoundingBox(primitive).x + getPrimitiveBoundingBox(primitive).width / 2"
+                    [attr.y]="getPrimitiveBoundingBox(primitive).y + getPrimitiveBoundingBox(primitive).height + 10"
+                    text-anchor="middle">
+                {{ primitive.name }}
+              </text>
+            }
+
+            <!-- Selection handles for primitives -->
+            @if (isPrimitiveSelected(primitive.id)) {
+              @let bbox = getPrimitiveBoundingBox(primitive);
+              @if (primitive.type === 'line') {
+                <!-- Line-specific endpoint handles -->
+                @let lineConfig = $any(primitive).config;
+                <!-- Start endpoint handle (zoom-scaled) -->
+                <circle class="endpoint-handle"
+                        [attr.cx]="lineConfig.start.x + primitive.position.x"
+                        [attr.cy]="lineConfig.start.y + primitive.position.y"
+                        [attr.r]="portRadius() + 1"
+                        fill="#1976d2"
+                        stroke="white"
+                        [attr.stroke-width]="selectionHighlightWidth()"
+                        (mousedown)="onLineEndpointMouseDown($event, primitive, 'start')"/>
+                <!-- End endpoint handle (zoom-scaled) -->
+                <circle class="endpoint-handle"
+                        [attr.cx]="lineConfig.end.x + primitive.position.x"
+                        [attr.cy]="lineConfig.end.y + primitive.position.y"
+                        [attr.r]="portRadius() + 1"
+                        fill="#1976d2"
+                        stroke="white"
+                        [attr.stroke-width]="selectionHighlightWidth()"
+                        (mousedown)="onLineEndpointMouseDown($event, primitive, 'end')"/>
+              } @else if (primitive.type === 'polyline' || primitive.type === 'polygon') {
+                <!-- Polyline/Polygon point handles (zoom-scaled) -->
+                @for (point of getPolyPoints(primitive); track point.index) {
+                  <circle class="endpoint-handle"
+                          [class.selected]="isPolyPointSelected(primitive.id, point.index)"
+                          [attr.cx]="point.x"
+                          [attr.cy]="point.y"
+                          [attr.r]="portRadius()"
+                          [attr.fill]="isPolyPointSelected(primitive.id, point.index) ? '#ff5722' : '#1976d2'"
+                          stroke="white"
+                          [attr.stroke-width]="selectionHighlightWidth()"
+                          (mousedown)="onPolyPointMouseDown($event, primitive, point.index)"/>
+                }
+              } @else {
+                <!-- Selection outline (zoom-scaled) -->
+                <rect [attr.x]="bbox.x - selectionPadding()"
+                      [attr.y]="bbox.y - selectionPadding()"
+                      [attr.width]="bbox.width + selectionPadding() * 2"
+                      [attr.height]="bbox.height + selectionPadding() * 2"
+                      fill="none"
+                      stroke="#1976d2"
+                      [attr.stroke-width]="selectionStrokeWidth()"
+                      [attr.stroke-dasharray]="selectionDashArray()"
+                      pointer-events="none"/>
+                <!-- Corner handles (zoom-scaled) -->
+                <rect class="resize-handle nw" [attr.x]="bbox.x - handleOffset()" [attr.y]="bbox.y - handleOffset()" [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                      (mousedown)="onPrimitiveResizeHandleMouseDown($event, primitive, 'nw')"/>
+                <rect class="resize-handle ne" [attr.x]="bbox.x + bbox.width - handleOffset()" [attr.y]="bbox.y - handleOffset()" [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                      (mousedown)="onPrimitiveResizeHandleMouseDown($event, primitive, 'ne')"/>
+                <rect class="resize-handle sw" [attr.x]="bbox.x - handleOffset()" [attr.y]="bbox.y + bbox.height - handleOffset()" [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                      (mousedown)="onPrimitiveResizeHandleMouseDown($event, primitive, 'sw')"/>
+                <rect class="resize-handle se" [attr.x]="bbox.x + bbox.width - handleOffset()" [attr.y]="bbox.y + bbox.height - handleOffset()" [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                      (mousedown)="onPrimitiveResizeHandleMouseDown($event, primitive, 'se')"/>
+
+                <!-- Animation origin indicator (crosshair, zoom-scaled) -->
+                @if (primitiveHasAnimations(primitive)) {
+                  @let origin = getAnimationOrigin(primitive);
+                  @if (origin) {
+                    <g class="animation-origin-indicator" pointer-events="none">
+                      <!-- Outer circle -->
+                      <circle [attr.cx]="origin.x" [attr.cy]="origin.y" [attr.r]="handleSize()"
+                              fill="none" stroke="#ff5722" [attr.stroke-width]="selectionHighlightWidth()" opacity="0.8"/>
+                      <!-- Inner dot -->
+                      <circle [attr.cx]="origin.x" [attr.cy]="origin.y" [attr.r]="selectionPadding()"
+                              fill="#ff5722" opacity="0.9"/>
+                      <!-- Crosshair lines -->
+                      <line [attr.x1]="origin.x - handleSize() * 1.5" [attr.y1]="origin.y"
+                            [attr.x2]="origin.x - portRadius()" [attr.y2]="origin.y"
+                            stroke="#ff5722" [attr.stroke-width]="selectionHighlightWidth()" opacity="0.8"/>
+                      <line [attr.x1]="origin.x + portRadius()" [attr.y1]="origin.y"
+                            [attr.x2]="origin.x + handleSize() * 1.5" [attr.y2]="origin.y"
+                            stroke="#ff5722" [attr.stroke-width]="selectionHighlightWidth()" opacity="0.8"/>
+                      <line [attr.x1]="origin.x" [attr.y1]="origin.y - handleSize() * 1.5"
+                            [attr.x2]="origin.x" [attr.y2]="origin.y - portRadius()"
+                            stroke="#ff5722" [attr.stroke-width]="selectionHighlightWidth()" opacity="0.8"/>
+                      <line [attr.x1]="origin.x" [attr.y1]="origin.y + portRadius()"
+                            [attr.x2]="origin.x" [attr.y2]="origin.y + handleSize() * 1.5"
+                            stroke="#ff5722" [attr.stroke-width]="selectionHighlightWidth()" opacity="0.8"/>
+                    </g>
+                  }
+                }
+              }
+            }
+          </g>
+        }
+
+        <!-- Symbol Instances -->
+        @for (symbolInstance of orderedSymbols(); track symbolInstance.id) {
+          @let symbolDef = getSymbolDefinition(symbolInstance);
+          @let instanceDirectEffects = symbolInstanceDirectEffects().get(symbolInstance.id);
+          @if (symbolDef) {
+            <g class="symbol-instance"
+               [class.selected]="isSymbolSelected(symbolInstance.id)"
+               [class.dragging]="dragState().isDragging && dragState().elementId === symbolInstance.id"
+               [attr.transform]="getSymbolTransform(symbolInstance, symbolDef)"
+               [attr.opacity]="instanceDirectEffects?.['style.opacity'] ?? 1"
+               (mousedown)="onSymbolMouseDown($event, symbolInstance)"
+               (contextmenu)="onSymbolContextMenu($event, symbolInstance)">
+
+              <!-- Invisible hit area for easier selection -->
+              <rect x="-4" y="-4"
+                    [attr.width]="symbolDef.bounds.width + 8"
+                    [attr.height]="symbolDef.bounds.height + 8"
+                    fill="transparent"
+                    class="symbol-hit-area"/>
+
+              <!-- Render symbol primitives (including nested symbol instances) with direct effects applied -->
+              @let symPropValues = symbolInstancePropertyValues().get(symbolInstance.id) ?? symbolInstance.propertyValues ?? {};
+              @let symPrimitives = getSymbolPrimitivesWithDirectEffects(symbolInstance, symbolDef, symPropValues);
+              @let animatedGroupChildIds = getAnimatedGroupChildIds(symbolDef);
+              @for (primitive of symPrimitives; track primitive.id) {
+                <!-- Skip invisible primitives and children of animated groups (rendered inside their group) -->
+                @if (primitive.visible !== false && !animatedGroupChildIds.has(primitive.id)) {
+                <!-- Check if primitive has animations - use innerHTML binding for animated primitives -->
+                @if (symbolPrimitiveHasAnimations(primitive) || (primitive.fillLevel !== undefined && primitive.fillLevel >= 0 && primitive.fillLevel <= 1)) {
+                  <!-- Primitive with animations or fillLevel - use innerHTML for SVG animation support -->
+                  <g [attr.transform]="getPrimitiveTransform(primitive)"
+                     [attr.opacity]="primitive.style?.opacity ?? 1"
+                     [innerHTML]="getSymbolPrimitiveWithAnimationsSvg(primitive, symbolDef, symPropValues, symbolDef.styleClasses, symPrimitives)"></g>
+                } @else {
+                <!-- Static primitive without animations -->
+                <!-- Resolve style using symbol's styleClasses -->
+                @let srs = resolveStyleWithClasses(primitive, symbolDef.styleClasses);
+                <!-- Wrapper group for transform effects and overall opacity -->
+                <g [attr.transform]="getPrimitiveTransform(primitive)"
+                   [attr.opacity]="primitive.style?.opacity ?? 1">
+                @switch (primitive.type) {
+                  @case ('rectangle') {
+                    <!-- Standard rectangle without fillLevel -->
+                    <rect [attr.x]="primitive.position.x"
+                          [attr.y]="primitive.position.y"
+                          [attr.width]="$any(primitive).config.width"
+                          [attr.height]="$any(primitive).config.height"
+                          [attr.fill]="srs.fill?.color ?? 'none'"
+                          [attr.fill-opacity]="srs.fill?.opacity ?? 1"
+                          [attr.stroke]="srs.stroke?.color ?? 'none'"
+                          [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
+                          [attr.stroke-width]="srs.stroke?.width ?? 1"
+                          [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"
+                          [attr.rx]="$any(primitive).config.cornerRadiusX ?? $any(primitive).config.cornerRadius ?? 0"
+                          [attr.ry]="$any(primitive).config.cornerRadiusY ?? $any(primitive).config.cornerRadius ?? 0"/>
+                  }
+                  @case ('ellipse') {
+                    <ellipse [attr.cx]="primitive.position.x"
+                             [attr.cy]="primitive.position.y"
+                             [attr.rx]="$any(primitive).config.radiusX"
+                             [attr.ry]="$any(primitive).config.radiusY"
+                             [attr.fill]="srs.fill?.color ?? 'none'"
+                             [attr.fill-opacity]="srs.fill?.opacity ?? 1"
+                             [attr.stroke]="srs.stroke?.color ?? 'none'"
+                             [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
+                             [attr.stroke-width]="srs.stroke?.width ?? 1"
+                             [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                  }
+                  @case ('line') {
+                    <line [attr.x1]="$any(primitive).config.start.x + primitive.position.x"
+                          [attr.y1]="$any(primitive).config.start.y + primitive.position.y"
+                          [attr.x2]="$any(primitive).config.end.x + primitive.position.x"
+                          [attr.y2]="$any(primitive).config.end.y + primitive.position.y"
+                          [attr.stroke]="srs.stroke?.color ?? 'none'"
+                          [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
+                          [attr.stroke-width]="srs.stroke?.width ?? 2"
+                          [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                  }
+                  @case ('path') {
+                    <path [attr.d]="$any(primitive).config.d"
+                          [attr.transform]="'translate(' + primitive.position.x + ',' + primitive.position.y + ')'"
+                          [attr.fill]="srs.fill?.color ?? 'none'"
+                          [attr.fill-opacity]="srs.fill?.opacity ?? 1"
+                          [attr.fill-rule]="$any(primitive).config.fillRule"
+                          [attr.stroke]="srs.stroke?.color ?? 'none'"
+                          [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
+                          [attr.stroke-width]="srs.stroke?.width ?? 1"
+                          [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                  }
+                  @case ('polygon') {
+                    <polygon [attr.points]="getPolygonPoints($any(primitive))"
+                             [attr.fill]="srs.fill?.color ?? 'none'"
+                             [attr.fill-opacity]="srs.fill?.opacity ?? 1"
+                             [attr.stroke]="srs.stroke?.color ?? 'none'"
+                             [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
+                             [attr.stroke-width]="srs.stroke?.width ?? 1"
+                             [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                  }
+                  @case ('polyline') {
+                    <polyline [attr.points]="getPolylinePoints($any(primitive))"
+                              fill="none"
+                              [attr.stroke]="srs.stroke?.color ?? 'none'"
+                              [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
+                              [attr.stroke-width]="srs.stroke?.width ?? 2"
+                              [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                  }
+                  @case ('text') {
+                    <text [attr.x]="primitive.position.x"
+                          [attr.y]="primitive.position.y"
+                          [attr.fill]="$any(primitive).config.textStyle?.color ?? '#333'"
+                          [attr.font-size]="$any(primitive).config.textStyle?.fontSize ?? 14"
+                          [attr.font-family]="$any(primitive).config.textStyle?.fontFamily ?? 'Arial, sans-serif'">
+                      {{ $any(primitive).config.content }}
+                    </text>
+                  }
+                  @case ('image') {
+                    @if ($any(primitive).config.src) {
+                      @if ($any(primitive).config.sourceType === 'svg') {
+                        <!-- SVG content embedded via foreignObject -->
+                        <foreignObject [attr.x]="primitive.position.x"
+                                       [attr.y]="primitive.position.y"
+                                       [attr.width]="$any(primitive).config.width"
+                                       [attr.height]="$any(primitive).config.height"
+                                       [innerHTML]="getSafeHtml($any(primitive).config.src)"></foreignObject>
+                      } @else {
+                        <!-- URL or data URL image -->
+                        <image [attr.x]="primitive.position.x"
+                               [attr.y]="primitive.position.y"
+                               [attr.width]="$any(primitive).config.width"
+                               [attr.height]="$any(primitive).config.height"
+                               [attr.href]="$any(primitive).config.src"
+                               [attr.preserveAspectRatio]="$any(primitive).config.preserveAspectRatio !== false ? 'xMidYMid meet' : 'none'"/>
+                      }
+                    } @else {
+                      <!-- Placeholder when no src -->
+                      <rect [attr.x]="primitive.position.x"
+                            [attr.y]="primitive.position.y"
+                            [attr.width]="$any(primitive).config.width"
+                            [attr.height]="$any(primitive).config.height"
+                            fill="#f5f5f5"
+                            stroke="#ccc"
+                            stroke-width="1"
+                            stroke-dasharray="4 2"/>
+                      <text [attr.x]="primitive.position.x + $any(primitive).config.width / 2"
+                            [attr.y]="primitive.position.y + $any(primitive).config.height / 2"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            font-size="10"
+                            fill="#999">Image</text>
+                    }
+                  }
+                }
+                </g>
+                }
+                }
+              }
+
+              <!-- Symbol name label -->
+              @if (showElementNames() && symbolInstance.name) {
+                <text class="symbol-label"
+                      [attr.x]="symbolDef.bounds.width / 2"
+                      [attr.y]="symbolDef.bounds.height + 10"
+                      text-anchor="middle">
+                  {{ symbolInstance.name }}
+                </text>
+              }
+
+              <!-- Selection handles for symbols (zoom-scaled) -->
+              @if (isSymbolSelected(symbolInstance.id)) {
+                <!-- Selection outline -->
+                <rect [attr.x]="-selectionPadding()" [attr.y]="-selectionPadding()"
+                      [attr.width]="symbolDef.bounds.width + selectionPadding() * 2"
+                      [attr.height]="symbolDef.bounds.height + selectionPadding() * 2"
+                      fill="none"
+                      stroke="#1976d2"
+                      [attr.stroke-width]="selectionHighlightWidth()"
+                      [attr.stroke-dasharray]="selectionDashArray()"
+                      pointer-events="none"/>
+                <!-- Corner handles -->
+                <rect class="resize-handle nw" [attr.x]="-handleOffset()" [attr.y]="-handleOffset()"
+                      [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                      (mousedown)="onSymbolResizeHandleMouseDown($event, symbolInstance, 'nw')"/>
+                <rect class="resize-handle ne" [attr.x]="symbolDef.bounds.width - handleOffset()" [attr.y]="-handleOffset()"
+                      [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                      (mousedown)="onSymbolResizeHandleMouseDown($event, symbolInstance, 'ne')"/>
+                <rect class="resize-handle sw" [attr.x]="-handleOffset()" [attr.y]="symbolDef.bounds.height - handleOffset()"
+                      [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                      (mousedown)="onSymbolResizeHandleMouseDown($event, symbolInstance, 'sw')"/>
+                <rect class="resize-handle se" [attr.x]="symbolDef.bounds.width - handleOffset()" [attr.y]="symbolDef.bounds.height - handleOffset()"
+                      [attr.width]="handleSize()" [attr.height]="handleSize()" fill="#1976d2"
+                      (mousedown)="onSymbolResizeHandleMouseDown($event, symbolInstance, 'se')"/>
+              }
+            </g>
+          }
+        }
+
+        <!-- Selection Overlay Layer (always on top for visual feedback, zoom-scaled) -->
+        <g class="selection-overlay" pointer-events="none">
+          <!-- Element selection indicators (only in diagram mode) -->
+          @if (editorMode === 'diagram') {
+            @for (element of selectedElements(); track element.id) {
+              <rect [attr.x]="element.position.x - selectionPadding()"
+                    [attr.y]="element.position.y - selectionPadding()"
+                    [attr.width]="element.size.width + selectionPadding() * 2"
+                    [attr.height]="element.size.height + selectionPadding() * 2"
+                    fill="none"
+                    stroke="#1976d2"
+                    [attr.stroke-width]="selectionStrokeWidth()"
+                    [attr.stroke-dasharray]="selectionDashArray()"
+                    class="selection-indicator"/>
+            }
+          }
+          <!-- Primitive selection indicators -->
+          @for (primitive of selectedPrimitives(); track primitive.id) {
+            @let bbox = getPrimitiveBoundingBox(primitive);
+            <rect [attr.x]="bbox.x - selectionPadding()"
+                  [attr.y]="bbox.y - selectionPadding()"
+                  [attr.width]="bbox.width + selectionPadding() * 2"
+                  [attr.height]="bbox.height + selectionPadding() * 2"
+                  fill="none"
+                  stroke="#1976d2"
+                  [attr.stroke-width]="selectionStrokeWidth()"
+                  [attr.stroke-dasharray]="selectionDashArray()"
+                  class="selection-indicator"/>
+          }
+          <!-- Symbol selection indicators -->
+          @for (symbolInstance of selectedSymbols(); track symbolInstance.id) {
+            @let symbolDef = getSymbolDefinition(symbolInstance);
+            @if (symbolDef) {
+              @let bbox = getSymbolBoundingBox(symbolInstance, symbolDef);
+              <rect [attr.x]="bbox.x - selectionPadding()"
+                    [attr.y]="bbox.y - selectionPadding()"
+                    [attr.width]="bbox.width + selectionPadding() * 2"
+                    [attr.height]="bbox.height + selectionPadding() * 2"
+                    fill="none"
+                    stroke="#1976d2"
+                    [attr.stroke-width]="selectionStrokeWidth()"
+                    [attr.stroke-dasharray]="selectionDashArray()"
+                    class="selection-indicator"/>
+            }
+          }
+        </g>
+
+        <!-- Selection rectangle (for marquee selection, zoom-scaled) -->
+        @if (selectionRect()) {
+          <rect [attr.x]="selectionRect()!.x"
+                [attr.y]="selectionRect()!.y"
+                [attr.width]="selectionRect()!.width"
+                [attr.height]="selectionRect()!.height"
+                fill="rgba(25, 118, 210, 0.1)"
+                stroke="#1976d2"
+                [attr.stroke-width]="selectionStrokeWidth()"
+                [attr.stroke-dasharray]="selectionDashArray()"/>
+        }
+
+        <!-- Alignment Guides (shown during drag) -->
+        @for (guide of alignmentGuides(); track $index) {
+          @if (guide.type === 'horizontal') {
+            <line [attr.x1]="guide.start"
+                  [attr.y1]="guide.position"
+                  [attr.x2]="guide.end"
+                  [attr.y2]="guide.position"
+                  stroke="#ff4081"
+                  [attr.stroke-width]="guideStrokeWidth()"
+                  pointer-events="none"/>
+          } @else {
+            <line [attr.x1]="guide.position"
+                  [attr.y1]="guide.start"
+                  [attr.x2]="guide.position"
+                  [attr.y2]="guide.end"
+                  stroke="#ff4081"
+                  [attr.stroke-width]="guideStrokeWidth()"
+                  pointer-events="none"/>
+          }
+        }
+      </svg>
+    </div>
+
+    <!-- Property Inspector (right sidebar - legacy mode only) -->
+    @if (!useDockview) {
+      @if (showRightPanel()) {
+        <div class="designer-inspector-container">
+          <div class="inspector-header">
+            <span class="inspector-title">Properties</span>
+            <button class="sidebar-close" (click)="toggleRightPanel()" title="Close panel">×</button>
+          </div>
+          <mm-property-inspector
+            class="designer-inspector"
+            [selectedElements]="selectedElements()"
+            [selectedConnections]="selectedConnections()"
+            [selectedPrimitives]="selectedPrimitives()"
+            [selectedSymbolInstances]="selectedSymbols()"
+            [symbolDefinitions]="symbolDefinitionsMap()"
+            [availableStyleClasses]="styleClasses"
+            (propertyChange)="onPropertyChange($event)">
+          </mm-property-inspector>
+        </div>
+      } @else {
+        <div class="sidebar-collapsed right" (click)="toggleRightPanel()" title="Show properties">
+          <span class="collapsed-icon">⚙</span>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Context Menu -->
+  @if (contextMenu().visible) {
+    <mm-context-menu
+      [position]="contextMenu().position"
+      [items]="contextMenuItems()"
+      (action)="onContextMenuAction($event)"
+      (closed)="closeContextMenu()">
+    </mm-context-menu>
+  }
+
+  <!-- Path Editor Dialog -->
+  @if (pathEditorVisible()) {
+    <kendo-dialog
+      title="Edit Path"
+      [width]="500"
+      [height]="500"
+      (close)="closePathEditor()">
+      <mm-path-editor
+        [pathData]="editingPathData()"
+        [width]="460"
+        [height]="280"
+        (pathChange)="onPathEditorChange($event)">
+      </mm-path-editor>
+      <kendo-dialog-actions>
+        <button kendoButton (click)="closePathEditor()">Done</button>
+      </kendo-dialog-actions>
+    </kendo-dialog>
+  }
+
+  <!-- Binding Editor Dialog -->
+  <mm-binding-editor-dialog
+    [show]="showBindingEditor()"
+    [property]="editingBindingProperty()"
+    [existingBindings]="effectivePropertyBindings()"
+    [primitives]="diagram().primitives ?? []"
+    [symbolInstances]="diagram().symbolInstances ?? []"
+    [symbolDefinitions]="symbolDefinitionsMap()"
+    (closed)="closeBindingEditor()"
+    (saved)="onBindingsSaved($event)">
+  </mm-binding-editor-dialog>
+
+  <!-- Status bar -->
+  <div class="designer-statusbar">
+    <span class="diagram-name" title="Diagram name">{{ diagram().name }}</span>
+    <span class="statusbar-divider">|</span>
+    <span>Primitives: {{ (diagram().primitives ?? []).length }}</span>
+    <span>Symbols: {{ (diagram().symbolInstances ?? []).length }}</span>
+    @if (editorMode === 'diagram') {
+      <span>Elements: {{ diagram().elements.length }}</span>
+      <span>Connections: {{ diagram().connections.length }}</span>
+    }
+    <span>Selected: {{ selection().elements.size + selection().connections.size }}</span>
+    @if (hasChanges()) {
+      <span class="unsaved-indicator">* Unsaved</span>
+    }
+  </div>
+</div>

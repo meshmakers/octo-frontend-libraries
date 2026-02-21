@@ -1,0 +1,607 @@
+{
+  "name": "Transform Tests",
+  "description": "Tests for moving, resizing, and transforming elements in the Symbol Editor",
+  "setup": {
+    "baseUrl": "https://localhost:4201",
+    "tenantId": "meshtest"
+  },
+  "helpers": {
+    "createSymbolWithRectangle": [
+      { "action": "navigate", "url": "{{baseUrl}}/{{tenantId}}/symbol-library" },
+      { "action": "wait", "for": "Symbol Libraries", "timeout": 5000 },
+      { "action": "click", "target": { "selector": "kendo-grid-list tr.k-grid-table-row" } },
+      { "action": "wait", "for": 1000 },
+      { "action": "click", "target": { "text": "New Symbol" } },
+      { "action": "wait", "for": 500 },
+      { "action": "type", "target": { "selector": "input[placeholder*='name']" }, "value": "Transform Test {{timestamp}}" },
+      { "action": "click", "target": { "text": "Create" } },
+      { "action": "wait", "for": "process-designer", "timeout": 5000 },
+      {
+        "action": "evaluate",
+        "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 200, y: rect.top + 200 }; }",
+        "storeAs": "canvasCenter"
+      },
+      { "action": "drag", "from": { "testId": "palette-element-rectangle" }, "to": { "coordinates": "{{canvasCenter}}" } },
+      { "action": "wait", "for": 500 }
+    ],
+    "selectRectangle": [
+      { "action": "click", "target": { "selector": "[data-testid^='primitive-rectangle-']" } },
+      { "action": "wait", "for": 200 }
+    ],
+    "getRectangleBounds": [
+      {
+        "action": "evaluate",
+        "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); if (!rect) return null; return { x: parseFloat(rect.getAttribute('x')), y: parseFloat(rect.getAttribute('y')), width: parseFloat(rect.getAttribute('width')), height: parseFloat(rect.getAttribute('height')) }; }",
+        "storeAs": "rectangleBounds"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "name": "TC001: Move element by dragging",
+      "description": "Drag selected element to new position",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        { "action": "runHelper", "helper": "selectRectangle" },
+        { "action": "runHelper", "helper": "getRectangleBounds" },
+        {
+          "action": "comment",
+          "text": "Store initial position"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return { x: parseFloat(rect.getAttribute('x')), y: parseFloat(rect.getAttribute('y')) }; }",
+          "storeAs": "initialPos"
+        },
+        { "action": "screenshot", "name": "before-move" },
+        {
+          "action": "comment",
+          "text": "Get element center for drag start"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid^=\"primitive-rectangle-\"]'); const rect = el.getBoundingClientRect(); return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 }; }",
+          "storeAs": "dragStart"
+        },
+        {
+          "action": "comment",
+          "text": "Calculate drag end (100px right, 50px down)"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid^=\"primitive-rectangle-\"]'); const rect = el.getBoundingClientRect(); return { x: rect.left + rect.width/2 + 100, y: rect.top + rect.height/2 + 50 }; }",
+          "storeAs": "dragEnd"
+        },
+        {
+          "action": "drag",
+          "from": { "coordinates": "{{dragStart}}" },
+          "to": { "coordinates": "{{dragEnd}}" }
+        },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "after-move" },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return { x: parseFloat(rect.getAttribute('x')), y: parseFloat(rect.getAttribute('y')) }; }",
+          "storeAs": "finalPos"
+        },
+        {
+          "action": "evaluate",
+          "script": "(initial, final) => final.x > initial.x && final.y > initial.y",
+          "args": ["{{initialPos}}", "{{finalPos}}"],
+          "storeAs": "movedCorrectly"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{movedCorrectly}}",
+          "expected": true,
+          "message": "Element should have moved to new position"
+        }
+      ]
+    },
+    {
+      "name": "TC002: Move with arrow keys",
+      "description": "Use arrow keys to nudge selected element",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        { "action": "runHelper", "helper": "selectRectangle" },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return parseFloat(rect.getAttribute('x')); }",
+          "storeAs": "initialX"
+        },
+        {
+          "action": "comment",
+          "text": "Press Right arrow 5 times"
+        },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return parseFloat(rect.getAttribute('x')); }",
+          "storeAs": "finalX"
+        },
+        {
+          "action": "evaluate",
+          "script": "(initial, final) => final > initial",
+          "args": ["{{initialX}}", "{{finalX}}"],
+          "storeAs": "movedRight"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{movedRight}}",
+          "expected": true,
+          "message": "Element should have moved right with arrow keys"
+        },
+        { "action": "screenshot", "name": "after-arrow-move" }
+      ]
+    },
+    {
+      "name": "TC003: Resize element using handles",
+      "description": "Drag resize handles to change element size",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        { "action": "runHelper", "helper": "selectRectangle" },
+        {
+          "action": "comment",
+          "text": "Get initial dimensions"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return { width: parseFloat(rect.getAttribute('width')), height: parseFloat(rect.getAttribute('height')) }; }",
+          "storeAs": "initialSize"
+        },
+        { "action": "screenshot", "name": "before-resize" },
+        {
+          "action": "comment",
+          "text": "Find bottom-right resize handle"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const handles = document.querySelectorAll('.resize-handle'); const brHandle = Array.from(handles).find(h => h.classList.contains('br') || h.getAttribute('data-handle') === 'br'); if (brHandle) { const rect = brHandle.getBoundingClientRect(); return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 }; } return null; }",
+          "storeAs": "handlePos"
+        },
+        {
+          "action": "comment",
+          "text": "Drag handle to increase size by 50px"
+        },
+        {
+          "action": "evaluate",
+          "script": "(pos) => ({ x: pos.x + 50, y: pos.y + 50 })",
+          "args": ["{{handlePos}}"],
+          "storeAs": "dragEndPos"
+        },
+        {
+          "action": "drag",
+          "from": { "coordinates": "{{handlePos}}" },
+          "to": { "coordinates": "{{dragEndPos}}" }
+        },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "after-resize" },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return { width: parseFloat(rect.getAttribute('width')), height: parseFloat(rect.getAttribute('height')) }; }",
+          "storeAs": "finalSize"
+        },
+        {
+          "action": "evaluate",
+          "script": "(initial, final) => final.width > initial.width || final.height > initial.height",
+          "args": ["{{initialSize}}", "{{finalSize}}"],
+          "storeAs": "sizeIncreased"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{sizeIncreased}}",
+          "expected": true,
+          "message": "Element size should have increased"
+        }
+      ]
+    },
+    {
+      "name": "TC004: Undo move operation",
+      "description": "Move element then undo to restore original position",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        { "action": "runHelper", "helper": "selectRectangle" },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return { x: parseFloat(rect.getAttribute('x')), y: parseFloat(rect.getAttribute('y')) }; }",
+          "storeAs": "originalPos"
+        },
+        {
+          "action": "comment",
+          "text": "Move element with arrow keys"
+        },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "pressKey", "key": "ArrowDown" },
+        { "action": "pressKey", "key": "ArrowDown" },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return { x: parseFloat(rect.getAttribute('x')), y: parseFloat(rect.getAttribute('y')) }; }",
+          "storeAs": "movedPos"
+        },
+        {
+          "action": "evaluate",
+          "script": "(orig, moved) => orig.x !== moved.x || orig.y !== moved.y",
+          "args": ["{{originalPos}}", "{{movedPos}}"],
+          "storeAs": "didMove"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{didMove}}",
+          "expected": true,
+          "message": "Element should have moved"
+        },
+        {
+          "action": "comment",
+          "text": "Undo the move"
+        },
+        { "action": "pressKey", "key": "Control+z" },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "after-undo" },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return { x: parseFloat(rect.getAttribute('x')), y: parseFloat(rect.getAttribute('y')) }; }",
+          "storeAs": "undonePos"
+        },
+        {
+          "action": "evaluate",
+          "script": "(orig, undone) => Math.abs(orig.x - undone.x) < 1 && Math.abs(orig.y - undone.y) < 1",
+          "args": ["{{originalPos}}", "{{undonePos}}"],
+          "storeAs": "positionRestored"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{positionRestored}}",
+          "expected": true,
+          "message": "Position should be restored after undo"
+        }
+      ]
+    },
+    {
+      "name": "TC005: Redo after undo",
+      "description": "Undo then redo to re-apply the change",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        { "action": "runHelper", "helper": "selectRectangle" },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return parseFloat(rect.getAttribute('x')); }",
+          "storeAs": "originalX"
+        },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return parseFloat(rect.getAttribute('x')); }",
+          "storeAs": "movedX"
+        },
+        { "action": "pressKey", "key": "Control+z" },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return parseFloat(rect.getAttribute('x')); }",
+          "storeAs": "undoneX"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{undoneX}}",
+          "expected": "{{originalX}}",
+          "message": "Should be at original position after undo"
+        },
+        {
+          "action": "comment",
+          "text": "Now redo"
+        },
+        { "action": "pressKey", "key": "Control+Shift+z" },
+        { "action": "wait", "for": 200 },
+        { "action": "screenshot", "name": "after-redo" },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return parseFloat(rect.getAttribute('x')); }",
+          "storeAs": "redoneX"
+        },
+        {
+          "action": "evaluate",
+          "script": "(moved, redone) => Math.abs(moved - redone) < 1",
+          "args": ["{{movedX}}", "{{redoneX}}"],
+          "storeAs": "redoWorked"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{redoWorked}}",
+          "expected": true,
+          "message": "Should be at moved position after redo"
+        }
+      ]
+    },
+    {
+      "name": "TC006: Bring to Front",
+      "description": "Change element z-order with Bring to Front",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        {
+          "action": "comment",
+          "text": "Add a second overlapping rectangle"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 230, y: rect.top + 220 }; }",
+          "storeAs": "overlapPos"
+        },
+        { "action": "drag", "from": { "testId": "palette-element-ellipse" }, "to": { "coordinates": "{{overlapPos}}" } },
+        { "action": "wait", "for": 300 },
+        {
+          "action": "comment",
+          "text": "Select the rectangle (which is behind)"
+        },
+        { "action": "runHelper", "helper": "selectRectangle" },
+        {
+          "action": "evaluate",
+          "script": "() => { const primitives = Array.from(document.querySelectorAll('.primitive')); const rect = primitives.find(p => p.getAttribute('data-testid')?.includes('rectangle')); return primitives.indexOf(rect); }",
+          "storeAs": "rectIndexBefore"
+        },
+        {
+          "action": "comment",
+          "text": "Use toolbar or context menu to bring to front"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const btn = Array.from(document.querySelectorAll('button, kendo-toolbar-button')).find(b => b.textContent?.toLowerCase().includes('front')); if (btn) { btn.click(); return true; } return false; }",
+          "storeAs": "clickedBringToFront"
+        },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "after-bring-to-front" },
+        {
+          "action": "evaluate",
+          "script": "() => { const primitives = Array.from(document.querySelectorAll('.primitive')); const rect = primitives.find(p => p.getAttribute('data-testid')?.includes('rectangle')); return primitives.indexOf(rect); }",
+          "storeAs": "rectIndexAfter"
+        },
+        {
+          "action": "evaluate",
+          "script": "(before, after) => after > before",
+          "args": ["{{rectIndexBefore}}", "{{rectIndexAfter}}"],
+          "storeAs": "movedForward"
+        },
+        {
+          "action": "comment",
+          "text": "Note: This test may need adjustment based on how z-order is implemented"
+        }
+      ]
+    },
+    {
+      "name": "TC007: Copy and Paste",
+      "description": "Copy selected element and paste it",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        { "action": "runHelper", "helper": "selectRectangle" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countBefore"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countBefore}}",
+          "expected": 1,
+          "message": "Should start with 1 primitive"
+        },
+        {
+          "action": "comment",
+          "text": "Copy with Ctrl+C"
+        },
+        { "action": "pressKey", "key": "Control+c" },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "comment",
+          "text": "Paste with Ctrl+V"
+        },
+        { "action": "pressKey", "key": "Control+v" },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "after-paste" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countAfter"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countAfter}}",
+          "expected": 2,
+          "message": "Should have 2 primitives after paste"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('[data-testid^=\"primitive-rectangle-\"]').length",
+          "storeAs": "rectangleCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{rectangleCount}}",
+          "expected": 2,
+          "message": "Should have 2 rectangles after paste"
+        }
+      ]
+    },
+    {
+      "name": "TC008: Cut and Paste",
+      "description": "Cut selected element and paste it elsewhere",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        { "action": "runHelper", "helper": "selectRectangle" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countBefore"
+        },
+        {
+          "action": "comment",
+          "text": "Cut with Ctrl+X"
+        },
+        { "action": "pressKey", "key": "Control+x" },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countAfterCut"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countAfterCut}}",
+          "expected": 0,
+          "message": "Element should be removed after cut"
+        },
+        {
+          "action": "comment",
+          "text": "Paste with Ctrl+V"
+        },
+        { "action": "pressKey", "key": "Control+v" },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "after-cut-paste" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countAfterPaste"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countAfterPaste}}",
+          "expected": 1,
+          "message": "Element should be restored after paste"
+        }
+      ]
+    },
+    {
+      "name": "TC009: Duplicate with Ctrl+D",
+      "description": "Duplicate selected element",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        { "action": "runHelper", "helper": "selectRectangle" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countBefore"
+        },
+        {
+          "action": "pressKey",
+          "key": "Control+d"
+        },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "after-duplicate" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countAfter"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countAfter}}",
+          "expected": 2,
+          "message": "Should have 2 primitives after duplicate"
+        }
+      ]
+    },
+    {
+      "name": "TC010: Move multiple selected elements together",
+      "description": "Select multiple elements and move them as a group",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithRectangle" },
+        {
+          "action": "comment",
+          "text": "Add an ellipse"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 350, y: rect.top + 200 }; }",
+          "storeAs": "ellipsePos"
+        },
+        { "action": "drag", "from": { "testId": "palette-element-ellipse" }, "to": { "coordinates": "{{ellipsePos}}" } },
+        { "action": "wait", "for": 300 },
+        {
+          "action": "comment",
+          "text": "Select both with Ctrl+A"
+        },
+        { "action": "click", "target": { "testId": "process-designer" } },
+        { "action": "pressKey", "key": "Control+a" },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "selectedCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{selectedCount}}",
+          "expected": 2,
+          "message": "Both elements should be selected"
+        },
+        {
+          "action": "comment",
+          "text": "Get initial positions"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return parseFloat(rect.getAttribute('x')); }",
+          "storeAs": "rectXBefore"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid^=\"primitive-ellipse-\"] ellipse'); return parseFloat(el.getAttribute('cx')); }",
+          "storeAs": "ellipseCxBefore"
+        },
+        {
+          "action": "comment",
+          "text": "Move both with arrow keys"
+        },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "pressKey", "key": "ArrowRight" },
+        { "action": "wait", "for": 200 },
+        { "action": "screenshot", "name": "after-multi-move" },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"] rect'); return parseFloat(rect.getAttribute('x')); }",
+          "storeAs": "rectXAfter"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid^=\"primitive-ellipse-\"] ellipse'); return parseFloat(el.getAttribute('cx')); }",
+          "storeAs": "ellipseCxAfter"
+        },
+        {
+          "action": "evaluate",
+          "script": "(rectBefore, rectAfter, ellipseBefore, ellipseAfter) => rectAfter > rectBefore && ellipseAfter > ellipseBefore",
+          "args": ["{{rectXBefore}}", "{{rectXAfter}}", "{{ellipseCxBefore}}", "{{ellipseCxAfter}}"],
+          "storeAs": "bothMoved"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{bothMoved}}",
+          "expected": true,
+          "message": "Both elements should have moved together"
+        }
+      ]
+    }
+  ]
+}

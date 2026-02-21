@@ -1,0 +1,37 @@
+query getCkTypeAssociationRoles($ckTypeId: String!) {
+  constructionKit {
+    types(rtCkId: $ckTypeId, first: 1) {
+      items {
+        rtCkTypeId
+        associations {
+          in {
+            all {
+              roleId {
+                fullName
+                semanticVersionedFullName
+              }
+              navigationPropertyName
+              multiplicity
+              targetCkTypeId {
+                fullName
+              }
+            }
+          }
+          out {
+            all {
+              roleId {
+                fullName
+                semanticVersionedFullName
+              }
+              navigationPropertyName
+              multiplicity
+              targetCkTypeId {
+                fullName
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

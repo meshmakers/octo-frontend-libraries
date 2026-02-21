@@ -1,0 +1,17 @@
+mutation createDashboard($entities: [SystemUIDashboardInput]!) {
+  runtime {
+    systemUIDashboards {
+      create(entities: $entities) {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        name
+        description
+        columns
+        rowHeight
+        gap
+        rtCreationDateTime
+      }
+    }
+  }
+}

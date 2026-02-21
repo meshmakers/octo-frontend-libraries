@@ -1,0 +1,18 @@
+query getTenantConfigurationByWellKnownName(
+  $wellKnownName: SimpleScalar
+) {
+  runtime {
+    systemTenantConfiguration(
+      fieldFilter: [{attributePath: "rtWellKnownName", operator: EQUALS, comparisonValue: $wellKnownName}]
+    )  {
+      totalCount
+
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        configurationValue
+      }
+    }
+  }
+}

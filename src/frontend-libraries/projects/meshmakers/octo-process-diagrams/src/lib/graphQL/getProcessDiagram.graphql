@@ -1,0 +1,27 @@
+query getProcessDiagram($rtId: OctoObjectId!) {
+  runtime {
+    systemUIProcessDiagram(rtIds: [$rtId]) {
+      items {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        canvasWidth
+        canvasHeight
+        canvasBackgroundColor
+        elements
+        primitives
+        symbolInstances
+        connections
+        variables
+        transformProperties
+        propertyBindings
+        animations
+        refreshInterval
+        rtCreationDateTime
+        rtChangedDateTime
+      }
+    }
+  }
+}

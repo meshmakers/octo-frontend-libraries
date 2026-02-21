@@ -1,0 +1,18 @@
+query getProcessDiagrams($first: Int, $searchFilter: SearchFilter) {
+  runtime {
+    systemUIProcessDiagram(first: $first, searchFilter: $searchFilter) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        canvasWidth
+        canvasHeight
+        rtCreationDateTime
+        rtChangedDateTime
+      }
+    }
+  }
+}

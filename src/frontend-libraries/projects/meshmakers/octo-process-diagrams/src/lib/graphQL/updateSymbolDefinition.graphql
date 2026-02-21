@@ -1,0 +1,21 @@
+mutation updateSymbolDefinition($entities: [SystemUISymbolDefinitionInputUpdate]!) {
+  runtime {
+    systemUISymbolDefinitions {
+      update(entities: $entities) {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        boundsWidth
+        boundsHeight
+        category
+        tags
+        gridSize
+        canvasSizeWidth
+        canvasSizeHeight
+        rtChangedDateTime
+      }
+    }
+  }
+}

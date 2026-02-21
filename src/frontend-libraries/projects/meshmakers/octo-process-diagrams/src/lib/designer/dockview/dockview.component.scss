@@ -1,0 +1,154 @@
+/* Import dockview-core base styles */
+@import 'dockview-core/dist/styles/dockview.css';
+
+/* Host element styling */
+mm-dockview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Container for dockview instance */
+.dv-dockview-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Ensure dockview elements are properly styled */
+.dv-dockview {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * CSS Variables for theming - use neutral defaults that can be overridden
+ * Host applications can override these via:
+ *   1. LCARS theme mixin: @include dockview.lcars-theme()
+ *   2. Direct CSS variable overrides on mm-process-designer or mm-symbol-editor
+ */
+.dv-dockview,
+.dv-grid-view {
+  /* Use CSS variables with neutral defaults */
+  background-color: var(--dv-background-color, #fafafa);
+
+  /* Default neutral CSS variables - can be overridden by host app */
+  --dv-background-color: #fafafa;
+  --dv-pane-background-color: #ffffff;
+  --dv-tabs-and-actions-container-background-color: #f5f5f5;
+  --dv-activegroup-visiblepanel-tab-background-color: #ffffff;
+  --dv-activegroup-hiddenpanel-tab-background-color: #e8e8e8;
+  --dv-inactivegroup-visiblepanel-tab-background-color: #f0f0f0;
+  --dv-inactivegroup-hiddenpanel-tab-background-color: #e0e0e0;
+  --dv-tab-divider-color: #e0e0e0;
+  --dv-activegroup-visiblepanel-tab-color: #333333;
+  --dv-activegroup-hiddenpanel-tab-color: #666666;
+  --dv-inactivegroup-visiblepanel-tab-color: #666666;
+  --dv-inactivegroup-hiddenpanel-tab-color: #999999;
+  --dv-separator-border: 1px solid #e0e0e0;
+  --dv-group-view-background-color: #ffffff;
+  --dv-tabs-overflow-dropdown-background-color: #f5f5f5;
+  --dv-icon-hover-background-color: #e0e0e0;
+}
+
+/* Tab container styling - use CSS variables */
+.dv-tabs-overflow-container {
+  background-color: var(--dv-tabs-overflow-dropdown-background-color, #f5f5f5);
+  border: 1px solid var(--dv-tab-divider-color, #e0e0e0);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dv-tabs-container {
+  background-color: var(--dv-tabs-and-actions-container-background-color, #f5f5f5);
+}
+
+/* Floating overflow dropdown parent - target by z-index style */
+div[style*="--dv-overlay-z-index"] {
+  background-color: var(--dv-tabs-overflow-dropdown-background-color, #f5f5f5);
+  border-radius: 4px;
+
+  .dv-tabs-overflow-container {
+    background-color: var(--dv-tabs-overflow-dropdown-background-color, #f5f5f5);
+  }
+
+  .dv-tab {
+    background-color: var(--dv-activegroup-hiddenpanel-tab-background-color, #e8e8e8);
+    color: var(--dv-activegroup-hiddenpanel-tab-color, #666666);
+
+    &:hover {
+      background-color: var(--dv-icon-hover-background-color, #d8d8d8);
+    }
+
+    &.dv-active-tab {
+      background-color: var(--dv-activegroup-visiblepanel-tab-background-color, #ffffff);
+      color: var(--dv-activegroup-visiblepanel-tab-color, #333333);
+    }
+  }
+
+  .dv-default-tab {
+    background-color: transparent;
+  }
+}
+
+/* Tab styling - use CSS variables */
+.dv-tab {
+  font-size: 12px;
+  font-weight: 500;
+  background-color: var(--dv-activegroup-hiddenpanel-tab-background-color, #e8e8e8);
+  color: var(--dv-activegroup-hiddenpanel-tab-color, #666666);
+
+  &.dv-active-tab {
+    background-color: var(--dv-activegroup-visiblepanel-tab-background-color, #ffffff);
+    color: var(--dv-activegroup-visiblepanel-tab-color, #333333);
+  }
+}
+
+/* Ensure close button is properly positioned */
+.dv-default-tab {
+  display: flex;
+  align-items: center;
+}
+
+.dv-default-tab-content {
+  flex: 1;
+}
+
+.dv-default-tab-action {
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+/* Sash (resize handle) styling - use CSS variables */
+.dv-sash {
+  background: var(--dv-sash-color, #e0e0e0);
+
+  &:hover,
+  &.dv-active {
+    background: var(--dv-sash-hover-color, #1976d2);
+  }
+}
+
+/* Drop target styling - use CSS variables */
+.dv-drop-target-dropzone {
+  background: var(--dv-drag-over-background-color, rgba(25, 118, 210, 0.15));
+  border: 2px dashed var(--dv-drag-over-border-color, #1976d2);
+  border-radius: 4px;
+}
+
+/* Floating group styling */
+.dv-floating-group {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}

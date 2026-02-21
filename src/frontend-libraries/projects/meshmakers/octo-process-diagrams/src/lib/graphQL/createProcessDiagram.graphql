@@ -1,0 +1,16 @@
+mutation createProcessDiagram($entities: [SystemUIProcessDiagramInput]!) {
+  runtime {
+    systemUIProcessDiagrams {
+      create(entities: $entities) {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        canvasWidth
+        canvasHeight
+        rtCreationDateTime
+      }
+    }
+  }
+}

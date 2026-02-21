@@ -1,0 +1,86 @@
+<div class="associations-widget" [class.no-data]="!data()" [class.loading]="isLoading()" [class.error]="error()">
+  @if (isNotConfigured()) {
+    <mm-widget-not-configured></mm-widget-not-configured>
+  } @else if (isLoading()) {
+    <div class="loading-indicator">
+      <span>Loading...</span>
+    </div>
+  } @else if (error()) {
+    <div class="error-message">
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (data()) {
+    <!-- Entity Info Header -->
+    <div class="entity-header">
+      <div class="entity-box">
+        <span class="entity-name">{{ entityName() }}</span>
+      </div>
+      <div class="entity-details">
+        <span class="entity-id" title="{{ entityCkTypeId() }}">{{ entityRtId() }}</span>
+      </div>
+    </div>
+
+    <!-- Associations List -->
+    <div class="associations-container">
+      @for (group of groupedAssociations(); track group.roleId + group.direction) {
+        <div class="association-group" [class.expanded]="isGroupExpanded(group)">
+          <!-- Group Header -->
+          <div class="group-header"
+               [class.clickable]="displayMode() === 'expandable'"
+               (click)="toggleGroup(group)">
+            <div class="direction-indicator">
+              @if (group.direction === 'out') {
+                <kendo-svg-icon [icon]="arrowRightIcon" size="small"></kendo-svg-icon>
+              } @else {
+                <kendo-svg-icon [icon]="arrowLeftIcon" size="small"></kendo-svg-icon>
+              }
+            </div>
+            <div class="group-info">
+              <span class="role-name">{{ group.roleName }}</span>
+              <span class="target-type">{{ group.targetType }}</span>
+              <span class="count-badge">{{ group.count }}</span>
+            </div>
+            @if (displayMode() === 'expandable') {
+              <div class="expand-icon">
+                @if (isGroupExpanded(group)) {
+                  <kendo-svg-icon [icon]="chevronDownIcon" size="small"></kendo-svg-icon>
+                } @else {
+                  <kendo-svg-icon [icon]="chevronRightIcon" size="small"></kendo-svg-icon>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Expanded Target List -->
+          @if (displayMode() === 'expandable' && isGroupExpanded(group)) {
+            <div class="target-list">
+              @for (target of getTargetEntities(group); track target.rtId) {
+                <div class="target-item" (click)="onTargetClick(target)">
+                  <span class="target-id">{{ target.displayName }}</span>
+                  <span class="target-type-hint">{{ target.ckTypeId | slice:-30 }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Summary Footer -->
+    <div class="associations-summary">
+      <kendo-svg-icon [icon]="linkIcon" size="small"></kendo-svg-icon>
+      <span>{{ totalAssociations() }} relationship(s)</span>
+    </div>
+  } @else {
+    <mm-widget-not-configured></mm-widget-not-configured>
+  }
+</div>
+
+<!-- Entity Detail Dialog -->
+@if (showDetailDialog) {
+  <mm-entity-detail-dialog
+    [rtId]="detailEntityRtId"
+    [ckTypeId]="detailEntityCkTypeId"
+    (closed)="onDetailDialogClosed()">
+  </mm-entity-detail-dialog>
+}

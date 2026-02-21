@@ -1,0 +1,16 @@
+query getCkModelsWithState {
+  constructionKit {
+    models {
+      totalCount
+      items {
+        id {
+          name
+          version
+          fullName
+          semanticVersionedFullName
+        }
+        modelState
+      }
+    }
+  }
+}

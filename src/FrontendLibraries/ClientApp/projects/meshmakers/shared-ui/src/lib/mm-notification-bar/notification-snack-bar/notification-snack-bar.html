@@ -1,9 +1,0 @@
-  <a (click)="onShowDetails()" class="notification-text">
-    <span>
-    {{ errorMessage?.title }}
-    </span>
-  </a>
-  <span matSnackBarActions>
-    <button matButton matSnackBarAction (click)="onShowDetails()"><mat-icon class="material-symbols-outlined">bug_report</mat-icon>Details</button>
-    <button matButton matSnackBarAction (click)="snackBarRef.dismissWithAction()"><mat-icon class="material-symbols-outlined">close</mat-icon>Close</button>
-  </span>

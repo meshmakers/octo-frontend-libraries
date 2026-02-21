@@ -1,0 +1,27 @@
+<div class="symbol-library-list-container">
+  <mm-list-view
+    mmSymbolLibraryDataSource
+    #dir="mmSymbolLibraryDataSource"
+    [sortable]="true"
+    [searchTextBoxEnabled]="true"
+    [selectable]="{mode: 'multiple', enabled: true}"
+    [pageable]="{buttonCount: 3, pageSizes: [10, 20, 50, 100]}"
+    [pageSize]="20"
+    [columns]="[
+      {field: 'name', displayName: 'Name', dataType: 'text'},
+      {field: 'description', displayName: 'Description', dataType: 'text'},
+      {field: 'symbolCount', displayName: 'Symbols', dataType: 'numeric'},
+      {field: 'isReadOnly', displayName: 'Read Only', dataType: 'boolean'}
+    ]"
+    [actionCommandItems]="[
+      {id: 'view', type:'link', text: 'View Symbols', svgIcon: viewIcon, onClick: onViewClick}
+    ]"
+    [leftToolbarActions]="[
+      {id: 'new', type:'link', text: 'New Library', svgIcon: plusIcon, onClick: onNewLibrary}
+    ]"
+    [contextMenuCommandItems]="[
+      {id: 'delete', type:'link', text: 'Delete', onClick: onDeleteClick, svgIcon: deleteIcon}
+    ]"
+    (rowClicked)="onRowClick($event)">
+  </mm-list-view>
+</div>

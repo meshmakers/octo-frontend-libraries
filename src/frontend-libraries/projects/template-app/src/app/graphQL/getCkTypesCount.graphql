@@ -1,0 +1,7 @@
+query getCkTypesCount {
+  constructionKit {
+    types {
+      totalCount
+    }
+  }
+}

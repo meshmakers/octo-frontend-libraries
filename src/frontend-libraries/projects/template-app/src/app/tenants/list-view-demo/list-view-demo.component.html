@@ -1,0 +1,291 @@
+@if (!showDocumentation) {
+  <button kendoButton (click)="showDocumentation = true" class="show-docs-btn">
+    Show Documentation
+  </button>
+}
+
+<!-- Top Section: Documentation and Options side by side -->
+<div class="top-section">
+  <!-- Documentation Card -->
+  @if (showDocumentation) {
+    <kendo-card class="demo-card" [style.width]="'100%'">
+      <kendo-card-header>
+        <h3>mm-list-view Documentation</h3>
+        <button kendoButton (click)="showDocumentation = false" fillMode="flat" size="small">Hide</button>
+      </kendo-card-header>
+      <kendo-card-body>
+        <p>A powerful data grid wrapper based on Kendo UI Grid with additional features.</p>
+
+        <h4>Features:</h4>
+        <ul>
+          <li><strong>Sortable:</strong> Click column headers to sort</li>
+          <li><strong>Row Filter:</strong> Per-column filtering via toolbar</li>
+          <li><strong>Search:</strong> Full-text search with debounce</li>
+          <li><strong>Selection:</strong> Single/multiple row selection</li>
+          <li><strong>Context Menu:</strong> Right-click or action button</li>
+          <li><strong>Row Actions:</strong> Per-row action buttons</li>
+          <li><strong>Toolbar:</strong> Custom left/right actions</li>
+          <li><strong>Export:</strong> Excel and PDF export</li>
+          <li><strong>Pagination:</strong> Configurable page sizes</li>
+          <li><strong>Column Types:</strong> text, numeric, boolean, date, iso8601, bytes, <strong>statusIcons</strong></li>
+        </ul>
+      </kendo-card-body>
+    </kendo-card>
+  }
+
+
+  <!-- API Reference - Full Width -->
+  @if (showDocumentation) {
+    <kendo-card class="demo-card api-section" [style.width]="'100%'">
+      <kendo-card-header>
+        <h4>API Reference</h4>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="api-table-wrapper">
+          <table class="api-table">
+            <thead>
+            <tr>
+              <th>Property</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td><code>[columns]</code></td>
+              <td>ColumnDefinition[]</td>
+              <td>[]</td>
+              <td>Column definitions with field, displayName, dataType, format</td>
+            </tr>
+            <tr>
+              <td><code>[sortable]</code></td>
+              <td>boolean</td>
+              <td>false</td>
+              <td>Enable column sorting</td>
+            </tr>
+            <tr>
+              <td><code>[rowFilterEnabled]</code></td>
+              <td>boolean</td>
+              <td>false</td>
+              <td>Enable row-level filtering</td>
+            </tr>
+            <tr>
+              <td><code>[searchTextBoxEnabled]</code></td>
+              <td>boolean</td>
+              <td>false</td>
+              <td>Show search text box in toolbar</td>
+            </tr>
+            <tr>
+              <td><code>[selectable]</code></td>
+              <td>SelectableSettings</td>
+              <td>{{ '{enabled: false}' }}</td>
+              <td>Configure selection mode and enabled state</td>
+            </tr>
+            <tr>
+              <td><code>[contextMenuType]</code></td>
+              <td>'contextMenu' | 'actionMenu'</td>
+              <td>'actionMenu'</td>
+              <td>How to trigger context menu</td>
+            </tr>
+            <tr>
+              <td><code>[actionCommandItems]</code></td>
+              <td>CommandItem[]</td>
+              <td>[]</td>
+              <td>Action buttons in each row</td>
+            </tr>
+            <tr>
+              <td><code>[contextMenuCommandItems]</code></td>
+              <td>CommandItem[]</td>
+              <td>[]</td>
+              <td>Context menu items</td>
+            </tr>
+            <tr>
+              <td><code>[leftToolbarActions]</code></td>
+              <td>CommandItem[]</td>
+              <td>[]</td>
+              <td>Left toolbar buttons</td>
+            </tr>
+            <tr>
+              <td><code>[rightToolbarActions]</code></td>
+              <td>CommandItem[]</td>
+              <td>[]</td>
+              <td>Right toolbar buttons</td>
+            </tr>
+            <tr>
+              <td><code>[pageSize]</code></td>
+              <td>number</td>
+              <td>10</td>
+              <td>Rows per page</td>
+            </tr>
+            <tr>
+              <td><code>[excelExportFileName]</code></td>
+              <td>string</td>
+              <td>'Export.xlsx'</td>
+              <td>Excel export filename</td>
+            </tr>
+            <tr>
+              <td><code>[pdfExportFileName]</code></td>
+              <td>string</td>
+              <td>'Export.pdf'</td>
+              <td>PDF export filename</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="info-sections">
+          <div class="info-box">
+            <h5>Column DataTypes</h5>
+            <ul>
+              <li><code>text</code> - Standard text</li>
+              <li><code>numeric</code> - Number formatting</li>
+              <li><code>boolean</code> - Checkbox display</li>
+              <li><code>date</code> - Native date</li>
+              <li><code>iso8601</code> - ISO date strings</li>
+              <li><code>bytes</code> - File sizes (human-readable)</li>
+              <li><code>statusIcons</code> - Enum values as colored icons with tooltips</li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <h5>CommandItem Structure</h5>
+            <pre><code>{{ commandItemStructure }}</code></pre>
+          </div>
+
+          <div class="info-box">
+            <h5>Status Icons Configuration</h5>
+            <pre><code>{{ statusIconsExample }}</code></pre>
+          </div>
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+  }
+
+  <!-- Options Card -->
+  <kendo-card class="demo-card" [style.width]="'100%'">
+    <kendo-card-header>
+      <h4>Demo Options</h4>
+    </kendo-card-header>
+    <kendo-card-body>
+      <div class="options-grid">
+        <!-- Sorting & Filtering -->
+        <div class="option-group">
+          <h5>Sorting & Filtering</h5>
+          <div class="option-row">
+            <kendo-checkbox [(ngModel)]="sortableEnabled" #sortableCheckbox></kendo-checkbox>
+            <kendo-label [for]="sortableCheckbox" text="Sortable Columns"></kendo-label>
+          </div>
+          <div class="option-row">
+            <kendo-checkbox [(ngModel)]="rowFilterEnabled" #rowFilterCheckbox></kendo-checkbox>
+            <kendo-label [for]="rowFilterCheckbox" text="Row Filter"></kendo-label>
+          </div>
+          <div class="option-row">
+            <kendo-checkbox [(ngModel)]="searchTextBoxEnabled" #searchCheckbox></kendo-checkbox>
+            <kendo-label [for]="searchCheckbox" text="Search Box"></kendo-label>
+          </div>
+        </div>
+
+        <!-- Selection -->
+        <div class="option-group">
+          <h5>Selection</h5>
+          <div class="option-row">
+            <kendo-checkbox [(ngModel)]="selectionEnabled" #selectionCheckbox></kendo-checkbox>
+            <kendo-label [for]="selectionCheckbox" text="Enable Selection"></kendo-label>
+          </div>
+          <div class="option-row">
+            <kendo-label text="Mode:"></kendo-label>
+            <kendo-dropdownlist
+              [(ngModel)]="selectionMode"
+              [data]="['single', 'multiple']"
+              [disabled]="!selectionEnabled"
+            ></kendo-dropdownlist>
+          </div>
+          <div class="option-row">
+            <kendo-checkbox [(ngModel)]="showRowCheckBoxes" [disabled]="!selectionEnabled" #checkboxesCheckbox></kendo-checkbox>
+            <kendo-label [for]="checkboxesCheckbox" text="Row Checkboxes"></kendo-label>
+          </div>
+          <div class="option-row">
+            <kendo-checkbox [(ngModel)]="showRowSelectAllCheckBox" [disabled]="!selectionEnabled || !showRowCheckBoxes" #selectAllCheckbox></kendo-checkbox>
+            <kendo-label [for]="selectAllCheckbox" text="Select All"></kendo-label>
+          </div>
+        </div>
+
+        <!-- Context Menu & Pagination -->
+        <div class="option-group">
+          <h5>Context Menu</h5>
+          <div class="option-row">
+            <kendo-label text="Type:"></kendo-label>
+            <kendo-dropdownlist
+              [(ngModel)]="contextMenuType"
+              [data]="contextMenuTypes"
+            ></kendo-dropdownlist>
+          </div>
+          <p class="hint">
+            <strong>contextMenu:</strong> Right-click<br>
+            <strong>actionMenu:</strong> "..." button
+          </p>
+        </div>
+
+        <div class="option-group">
+          <h5>Pagination</h5>
+          <div class="option-row">
+            <kendo-label text="Page Size:"></kendo-label>
+            <kendo-dropdownlist
+              [(ngModel)]="pageSize"
+              [data]="pageSizes"
+            ></kendo-dropdownlist>
+          </div>
+        </div>
+
+        <!-- Columns - full width -->
+        <div class="option-group columns-group">
+          <h5>Visible Columns</h5>
+          <div class="columns-checkboxes">
+            @for (col of availableColumns; track col.field) {
+              <div class="option-row">
+                <kendo-checkbox
+                  [checkedState]="isColumnSelected(col.field)"
+                  (checkedStateChange)="toggleColumn(col.field)"
+                ></kendo-checkbox>
+                <kendo-label text="{{col.displayName || col.field}}"></kendo-label>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </kendo-card-body>
+  </kendo-card>
+</div>
+
+
+<!-- Live Demo Section -->
+<div class="demo-section">
+  <h3>Live Demo</h3>
+
+  <mm-list-view
+    appCustomersDataSource
+    #dir="appCustomersDataSource"
+    [sortable]="sortableEnabled"
+    [rowFilterEnabled]="rowFilterEnabled"
+    [searchTextBoxEnabled]="searchTextBoxEnabled"
+    [contextMenuType]="contextMenuType"
+    [selectable]="selectable"
+    [showRowCheckBoxes]="showRowCheckBoxes"
+    [showRowSelectAllCheckBox]="showRowSelectAllCheckBox"
+    [pageSize]="pageSize"
+    [columns]="columns"
+    [actionCommandItems]="actionCommandItems"
+    [contextMenuCommandItems]="contextMenuCommandItems"
+    [leftToolbarActions]="leftToolbarActions"
+    [rightToolbarActions]="rightToolbarActions"
+    [excelExportFileName]="excelExportFileName"
+    [pdfExportFileName]="pdfExportFileName"
+    (rowClicked)="onRowClicked($event)"
+  >
+  </mm-list-view>
+
+  <div class="demo-actions">
+    <button kendoButton (click)="onTest()">Refresh Data</button>
+  </div>
+</div>

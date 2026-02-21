@@ -1,0 +1,366 @@
+// ============================================================================
+// DOCKVIEW LCARS THEME
+// Star Trek LCARS-inspired theme for dockview panels
+//
+// Usage in Refinery Studio (styles.scss):
+//   @use '@meshmakers/octo-process-diagrams/styles/dockview-lcars-theme' as dockview;
+//   @include dockview.lcars-theme();
+//
+// Or apply directly via CSS variables in your app's styles.
+// ============================================================================
+
+// LCARS Color Palette
+$octo-mint: #64ceb9 !default;
+$neo-cyan: #00a8dc !default;
+$royal-violet: #6c4da8 !default;
+$iron-navy: #394555 !default;
+$deep-sea: #07172b !default;
+$surface-elevated: #1f2e40 !default;
+$ash-blue: #9292a6 !default;
+
+// Mixin to apply LCARS theme to dockview
+@mixin lcars-theme() {
+  // Override CSS variables for dockview - target the actual dockview elements
+  mm-process-designer,
+  mm-symbol-editor {
+    // Panel backgrounds
+    --dv-background-color: #{$deep-sea};
+    --dv-pane-background-color: #{$surface-elevated};
+    --dv-group-view-background-color: #{$surface-elevated};
+    --dv-tabs-and-actions-container-background-color: #{$iron-navy};
+    --dv-tabs-overflow-dropdown-background-color: #{$iron-navy};
+    --dv-icon-hover-background-color: rgba($octo-mint, 0.2);
+    --dv-tab-divider-color: rgba($octo-mint, 0.2);
+
+    // Tab colors - active group
+    --dv-activegroup-visiblepanel-tab-background-color: #{$surface-elevated};
+    --dv-activegroup-hiddenpanel-tab-background-color: #{$iron-navy};
+    --dv-activegroup-visiblepanel-tab-color: #{$octo-mint};
+    --dv-activegroup-hiddenpanel-tab-color: #{$ash-blue};
+
+    // Tab colors - inactive group
+    --dv-inactivegroup-visiblepanel-tab-background-color: #{$iron-navy};
+    --dv-inactivegroup-hiddenpanel-tab-background-color: rgba($iron-navy, 0.7);
+    --dv-inactivegroup-visiblepanel-tab-color: #{$ash-blue};
+    --dv-inactivegroup-hiddenpanel-tab-color: rgba($ash-blue, 0.7);
+
+    // Borders and separators
+    --dv-separator-border: 1px solid rgba($octo-mint, 0.2);
+
+    // Tab active indicator
+    --dv-tab-active-border-bottom: 2px solid #{$octo-mint};
+
+    // Drag overlay
+    --dv-drag-over-background-color: rgba($octo-mint, 0.15);
+    --dv-drag-over-border-color: #{$octo-mint};
+
+    // Sash (resizer)
+    --dv-sash-color: rgba($octo-mint, 0.2);
+    --dv-sash-hover-color: #{$octo-mint};
+  }
+
+  // Direct style overrides for dockview elements (higher specificity)
+  mm-process-designer .dv-dockview,
+  mm-process-designer .dv-grid-view,
+  mm-symbol-editor .dv-dockview,
+  mm-symbol-editor .dv-grid-view {
+    background-color: $deep-sea !important;
+    --dv-background-color: #{$deep-sea};
+    --dv-pane-background-color: #{$surface-elevated};
+    --dv-group-view-background-color: #{$surface-elevated};
+    --dv-tabs-and-actions-container-background-color: #{$iron-navy};
+    --dv-tabs-overflow-dropdown-background-color: #{$iron-navy};
+    --dv-icon-hover-background-color: rgba($octo-mint, 0.2);
+    --dv-tab-divider-color: rgba($octo-mint, 0.2);
+    --dv-activegroup-visiblepanel-tab-background-color: #{$surface-elevated};
+    --dv-activegroup-hiddenpanel-tab-background-color: #{$iron-navy};
+    --dv-activegroup-visiblepanel-tab-color: #{$octo-mint};
+    --dv-activegroup-hiddenpanel-tab-color: #{$ash-blue};
+    --dv-inactivegroup-visiblepanel-tab-background-color: #{$iron-navy};
+    --dv-inactivegroup-hiddenpanel-tab-background-color: rgba($iron-navy, 0.7);
+    --dv-inactivegroup-visiblepanel-tab-color: #{$ash-blue};
+    --dv-inactivegroup-hiddenpanel-tab-color: rgba($ash-blue, 0.7);
+    --dv-separator-border: 1px solid rgba($octo-mint, 0.2);
+    --dv-sash-color: rgba($octo-mint, 0.2);
+    --dv-sash-hover-color: #{$octo-mint};
+    --dv-drag-over-background-color: rgba($octo-mint, 0.15);
+    --dv-drag-over-border-color: #{$octo-mint};
+  }
+
+  // Direct element overrides for tabs and containers
+  mm-process-designer,
+  mm-symbol-editor {
+    .dv-tabs-container {
+      background-color: $iron-navy !important;
+    }
+
+    .dv-tabs-and-actions-container {
+      background-color: $iron-navy !important;
+      border-bottom: 1px solid rgba($octo-mint, 0.2) !important;
+    }
+
+    .dv-tab {
+      background-color: $iron-navy !important;
+      color: $ash-blue !important;
+      font-family: 'Montserrat', 'Roboto', sans-serif;
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      transition: all 0.15s ease;
+
+      &.dv-active-tab {
+        background-color: $surface-elevated !important;
+        color: $octo-mint !important;
+        border-bottom: 2px solid $octo-mint !important;
+      }
+
+      &:hover:not(.dv-active-tab) {
+        background-color: rgba($octo-mint, 0.15) !important;
+        color: #ffffff !important;
+      }
+    }
+
+    .dv-default-tab-action {
+      color: $ash-blue !important;
+
+      &:hover {
+        color: $octo-mint !important;
+      }
+    }
+
+    .dv-groupview {
+      background-color: $surface-elevated !important;
+    }
+
+    .dv-content-container {
+      background-color: $surface-elevated !important;
+    }
+
+    .dv-sash {
+      background-color: rgba($octo-mint, 0.2) !important;
+
+      &:hover,
+      &.dv-active {
+        background-color: $octo-mint !important;
+        box-shadow: 0 0 8px rgba($octo-mint, 0.5);
+      }
+    }
+
+    .dv-drop-target-dropzone {
+      background-color: rgba($octo-mint, 0.15) !important;
+      border: 2px dashed $octo-mint !important;
+    }
+
+    // Floating overflow dropdown
+    .dv-tabs-overflow-container {
+      background-color: $iron-navy !important;
+      border: 1px solid rgba($octo-mint, 0.3) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba($octo-mint, 0.1) !important;
+    }
+  }
+
+  // Additional LCARS styling for dockview elements
+  mm-process-designer,
+  mm-symbol-editor {
+    // View menu dropdown styling
+    .view-menu-dropdown {
+      background: $surface-elevated;
+      border: 1px solid rgba($octo-mint, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba($octo-mint, 0.1);
+    }
+
+    .view-menu-item {
+      color: #ffffff;
+
+      &:hover {
+        background: rgba($octo-mint, 0.15);
+      }
+    }
+
+    .view-menu-check {
+      color: $octo-mint;
+    }
+
+    .view-menu-shortcut {
+      color: $ash-blue;
+    }
+
+    .view-menu-divider {
+      background: rgba($octo-mint, 0.2);
+    }
+  }
+
+  // Panel wrapper component backgrounds
+  mm-elements-panel,
+  mm-symbols-panel,
+  mm-properties-panel,
+  mm-transform-panel,
+  mm-animations-panel,
+  mm-simulation-panel-wrapper,
+  mm-settings-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: $surface-elevated !important;
+
+    .panel-container,
+    .elements-panel,
+    .symbols-panel,
+    .properties-panel,
+    .settings-panel,
+    .exposures-panel,
+    .animations-panel,
+    .simulation-panel {
+      background: $surface-elevated !important;
+      color: #ffffff;
+    }
+
+    .panel-content {
+      background: $surface-elevated !important;
+    }
+
+    .no-selection {
+      color: $ash-blue;
+      font-family: 'Montserrat', 'Roboto', sans-serif;
+
+      .hint {
+        color: rgba($ash-blue, 0.7);
+      }
+    }
+
+    // Section headers
+    .section-header,
+    .panel-section-header {
+      color: $octo-mint;
+      font-family: 'Montserrat', 'Roboto', sans-serif;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba($octo-mint, 0.2);
+    }
+
+    // Form inputs
+    input,
+    select,
+    textarea {
+      background: $deep-sea;
+      border: 1px solid rgba($octo-mint, 0.3);
+      color: #ffffff;
+      border-radius: 4px;
+
+      &:focus {
+        border-color: $octo-mint;
+        box-shadow: 0 0 8px rgba($octo-mint, 0.3);
+        outline: none;
+      }
+    }
+
+    label {
+      color: $ash-blue;
+      font-family: 'Montserrat', 'Roboto', sans-serif;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    // Buttons in panels
+    button {
+      background: linear-gradient(180deg, rgba($octo-mint, 0.15), rgba($octo-mint, 0.05));
+      border: 1px solid rgba($octo-mint, 0.3);
+      color: $octo-mint;
+      border-radius: 4px;
+      font-family: 'Montserrat', 'Roboto', sans-serif;
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      transition: all 0.15s ease;
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(180deg, rgba($octo-mint, 0.25), rgba($octo-mint, 0.15));
+        border-color: $octo-mint;
+        box-shadow: 0 0 10px rgba($octo-mint, 0.3);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  // Palette items (primitives, symbols)
+  mm-elements-panel,
+  mm-symbols-panel {
+    .palette-category {
+      background: transparent;
+      border-bottom: 1px solid rgba($octo-mint, 0.1);
+
+      .category-header {
+        color: $ash-blue;
+        font-family: 'Montserrat', 'Roboto', sans-serif;
+        font-size: 11px;
+        text-transform: uppercase;
+
+        &:hover {
+          background: rgba($octo-mint, 0.1);
+        }
+      }
+
+      .category-count {
+        color: rgba($ash-blue, 0.7);
+      }
+    }
+
+    .palette-item {
+      background: rgba($iron-navy, 0.5);
+      border: 1px solid rgba($octo-mint, 0.15);
+      border-radius: 4px;
+      color: #ffffff;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: rgba($octo-mint, 0.15);
+        border-color: rgba($octo-mint, 0.4);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .item-label {
+        color: $ash-blue;
+        font-size: 10px;
+      }
+
+      svg {
+        stroke: $octo-mint;
+        fill: none;
+      }
+    }
+  }
+}
+
+// CSS-only alternative (can be applied without SCSS)
+// Add these CSS variables to your :root or component host
+@mixin lcars-css-variables() {
+  --dv-background-color: #07172b;
+  --dv-pane-background-color: #1f2e40;
+  --dv-group-view-background-color: #1f2e40;
+  --dv-tabs-and-actions-container-background-color: #394555;
+  --dv-tabs-overflow-dropdown-background-color: #394555;
+  --dv-icon-hover-background-color: rgba(100, 206, 185, 0.2);
+  --dv-tab-divider-color: rgba(100, 206, 185, 0.2);
+  --dv-activegroup-visiblepanel-tab-background-color: #1f2e40;
+  --dv-activegroup-hiddenpanel-tab-background-color: #394555;
+  --dv-activegroup-visiblepanel-tab-color: #64ceb9;
+  --dv-activegroup-hiddenpanel-tab-color: #9292a6;
+  --dv-inactivegroup-visiblepanel-tab-background-color: #394555;
+  --dv-inactivegroup-hiddenpanel-tab-background-color: rgba(57, 69, 85, 0.7);
+  --dv-inactivegroup-visiblepanel-tab-color: #9292a6;
+  --dv-inactivegroup-hiddenpanel-tab-color: rgba(146, 146, 166, 0.7);
+  --dv-separator-border: 1px solid rgba(100, 206, 185, 0.2);
+  --dv-tab-active-border-bottom: 2px solid #64ceb9;
+  --dv-drag-over-background-color: rgba(100, 206, 185, 0.15);
+  --dv-drag-over-border-color: #64ceb9;
+  --dv-sash-color: rgba(100, 206, 185, 0.2);
+  --dv-sash-hover-color: #64ceb9;
+}

@@ -1,0 +1,76 @@
+.meshboard-settings-dialog {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(80vh - 60px); // Account for dialog title bar
+  overflow: hidden;
+
+  .settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0; // Important for flexbox scrolling
+
+    kendo-formfield {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      kendo-label {
+        font-weight: 500;
+        color: var(--kendo-color-on-app-surface, #424242);
+      }
+
+      kendo-textbox,
+      kendo-textarea,
+      kendo-numerictextbox {
+        width: 100%;
+      }
+
+      kendo-formhint {
+        font-size: 0.75rem;
+        color: var(--kendo-color-subtle, #757575);
+      }
+
+      kendo-formerror {
+        font-size: 0.75rem;
+        color: var(--kendo-color-error, #f44336);
+      }
+    }
+
+    .section-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--kendo-color-on-app-surface, #424242);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--kendo-color-border, #e0e0e0);
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .checkbox-label {
+        font-weight: normal;
+        cursor: pointer;
+      }
+    }
+  }
+
+  kendo-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--kendo-color-border, #e0e0e0);
+    flex-shrink: 0;
+    background-color: var(--kendo-color-surface-alt, white);
+  }
+}

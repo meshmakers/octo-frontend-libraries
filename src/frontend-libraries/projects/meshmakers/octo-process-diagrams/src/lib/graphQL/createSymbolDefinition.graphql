@@ -1,0 +1,21 @@
+mutation createSymbolDefinition($entities: [SystemUISymbolDefinitionInput]!) {
+  runtime {
+    systemUISymbolDefinitions {
+      create(entities: $entities) {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        boundsWidth
+        boundsHeight
+        category
+        tags
+        gridSize
+        canvasSizeWidth
+        canvasSizeHeight
+        rtCreationDateTime
+      }
+    }
+  }
+}

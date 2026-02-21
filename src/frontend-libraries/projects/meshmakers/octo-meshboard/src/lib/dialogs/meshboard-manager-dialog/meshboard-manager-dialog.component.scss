@@ -1,0 +1,267 @@
+.meshboard-manager-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  padding-bottom: 1.5rem;
+  overflow: hidden;
+
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    .dialog-description {
+      margin: 0;
+      color: var(--kendo-color-subtle, #757575);
+      font-size: 0.875rem;
+      flex: 1;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+  }
+
+  .create-form {
+    padding: 1rem;
+    background-color: var(--kendo-color-surface-alt, #fafafa);
+    border: 1px solid var(--kendo-color-border, #e0e0e0);
+    border-radius: 4px;
+
+    .form-title {
+      margin: 0 0 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--kendo-color-on-app-surface, #424242);
+    }
+
+    .form-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+
+      kendo-textbox,
+      kendo-textarea {
+        width: 100%;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+  }
+
+  .meshboards-list {
+    flex: 1;
+    min-height: 250px;
+    overflow-y: auto;
+    border: 1px solid var(--kendo-color-border, #e0e0e0);
+    border-radius: 4px;
+    background-color: var(--kendo-color-surface, #ffffff);
+
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      color: var(--kendo-color-subtle, #757575);
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      text-align: center;
+
+      kendo-svg-icon {
+        color: var(--kendo-color-subtle, #9e9e9e);
+        margin-bottom: 1rem;
+      }
+
+      h3 {
+        margin: 0.5rem 0;
+        color: var(--kendo-color-on-app-surface, #424242);
+        font-size: 1.125rem;
+        font-weight: 500;
+      }
+
+      p {
+        margin: 0;
+        color: var(--kendo-color-subtle, #757575);
+        font-size: 0.875rem;
+      }
+    }
+
+    .meshboard-item {
+      border-bottom: 1px solid var(--kendo-color-border, #e0e0e0);
+      transition: background-color 0.2s, box-shadow 0.2s;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:not(.active):not(.editing):hover {
+        background-color: var(--kendo-color-base-hover, #f5f5f5);
+      }
+
+      &.active {
+        background-color: var(--kendo-color-primary-subtle, #e8eaf6);
+        box-shadow: inset 4px 0 0 var(--kendo-color-primary, #3f51b5);
+      }
+
+      &.editing {
+        background-color: var(--kendo-color-surface-alt, #fafafa);
+      }
+
+      .item-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        cursor: pointer;
+
+        .item-icon {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+          border-radius: 8px;
+          background-color: var(--kendo-color-surface-alt, #f5f5f5);
+          color: var(--kendo-color-primary, #3f51b5);
+
+          kendo-svg-icon {
+            color: inherit;
+          }
+        }
+
+        .item-info {
+          flex: 1;
+          min-width: 0;
+
+          .item-name {
+            margin: 0 0 0.25rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--kendo-color-on-app-surface, #212121);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            .active-badge {
+              display: inline-block;
+              padding: 0.125rem 0.5rem;
+              font-size: 0.75rem;
+              font-weight: 600;
+              color: var(--kendo-color-on-primary, #ffffff);
+              background-color: var(--kendo-color-primary, #3f51b5);
+              border-radius: 12px;
+            }
+          }
+
+          .item-description {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--kendo-color-subtle, #757575);
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+
+        .item-actions {
+          flex-shrink: 0;
+          display: flex;
+          gap: 0.25rem;
+          opacity: 0.5;
+          transition: opacity 0.2s;
+        }
+
+        &:hover .item-actions {
+          opacity: 1;
+        }
+      }
+
+      &.active .item-content .item-icon {
+        background-color: var(--kendo-color-primary, #3f51b5);
+        color: var(--kendo-color-on-primary, #ffffff);
+      }
+
+      // Hint text for non-active items
+      &:not(.active) .item-content::after {
+        content: 'Click to switch';
+        font-size: 0.75rem;
+        color: var(--kendo-color-subtle, #9e9e9e);
+        opacity: 0;
+        transition: opacity 0.2s;
+        white-space: nowrap;
+      }
+
+      &:not(.active):hover .item-content::after {
+        opacity: 1;
+      }
+
+      .item-edit {
+        padding: 1rem;
+
+        .edit-fields {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-bottom: 0.75rem;
+
+          kendo-textbox,
+          kendo-textarea {
+            width: 100%;
+          }
+        }
+
+        .edit-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 0.5rem;
+        }
+      }
+    }
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--kendo-color-border, #e0e0e0);
+    flex-shrink: 0;
+    margin-bottom: 0.5rem;
+  }
+}
+
+// Scrollbar styling
+.meshboards-list {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--kendo-color-surface-alt, #f5f5f5);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--kendo-color-border, #e0e0e0);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--kendo-color-subtle, #9e9e9e);
+    }
+  }
+}

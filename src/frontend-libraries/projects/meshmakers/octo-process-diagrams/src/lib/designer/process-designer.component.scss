@@ -1,0 +1,532 @@
+/* Dockview CSS is imported in dockview.component.scss with ViewEncapsulation.None */
+
+/* CSS Variables for theming - neutral defaults, can be overridden by host app */
+:host {
+  /* Neutral theme colors (default) - can be overridden by host app */
+  --designer-bg: #f5f5f5;
+  --designer-surface: #ffffff;
+  --designer-surface-alt: #f5f5f5;
+  --designer-border: #e0e0e0;
+  --designer-text: #333333;
+  --designer-text-muted: #666666;
+  --designer-accent: #1976d2;
+  --designer-accent-secondary: #1565c0;
+  --designer-canvas-bg: #e8e8e8;
+  --designer-hover-bg: #eeeeee;
+
+  /* Canvas-specific colors - for SVG canvas fill and grid */
+  --designer-canvas-color: #fafafa;
+  --designer-grid-color: #e0e0e0;
+
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.process-designer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  background: var(--designer-bg);
+  outline: none;
+  overflow: hidden;
+}
+
+/* Toolbar - using Kendo Toolbar */
+.designer-toolbar {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--designer-border);
+}
+
+.zoom-level {
+  min-width: 40px;
+  text-align: center;
+  font-size: 12px;
+  padding: 0 0.25rem;
+  color: var(--designer-text);
+}
+
+/* View menu is now handled by Kendo Toolbar DropdownButton */
+.k-menu-separator {
+  height: 1px;
+  margin: 4px 0;
+  background-color: var(--designer-border);
+}
+
+/* Main content */
+.designer-content {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Left sidebar */
+.designer-sidebar {
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--designer-border);
+  background: var(--designer-surface);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--designer-border);
+}
+
+.sidebar-tabs {
+  display: flex;
+  flex: 1;
+}
+
+.sidebar-tab {
+  flex: 1;
+  padding: 0.5rem;
+  background: var(--designer-surface-alt);
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--designer-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--designer-hover-bg);
+    color: var(--designer-text);
+  }
+
+  &.active {
+    background: var(--designer-surface);
+    border-bottom-color: var(--designer-accent);
+    color: var(--designer-accent);
+  }
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-close {
+  width: 28px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--designer-border);
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--designer-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: var(--designer-hover-bg);
+    color: var(--designer-accent);
+  }
+}
+
+/* Collapsed sidebar */
+.sidebar-collapsed {
+  width: 28px;
+  background: var(--designer-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+
+  &.left {
+    border-right: 1px solid var(--designer-border);
+  }
+
+  &.right {
+    border-left: 1px solid var(--designer-border);
+  }
+
+  &:hover {
+    background: var(--designer-surface-alt);
+  }
+
+  .collapsed-icon {
+    font-size: 14px;
+    color: var(--designer-text-muted);
+  }
+}
+
+/* Right sidebar (Property Inspector) */
+.designer-inspector-container {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--designer-border);
+  background: var(--designer-surface);
+}
+
+.inspector-header {
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  height: 32px;
+  border-bottom: 1px solid var(--designer-border);
+  background: var(--designer-surface-alt);
+
+  .inspector-title {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--designer-text);
+  }
+}
+
+.designer-canvas-container {
+  /* Fill available space using flex */
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  /* Scrollbars when canvas is larger than container */
+  overflow: auto;
+  background: var(--designer-canvas-bg);
+  position: relative;
+  box-sizing: border-box;
+  /* Flexbox enables margin:auto centering on child */
+  display: flex;
+  /* Minimum padding around canvas */
+  padding: 20px;
+}
+
+.designer-canvas {
+  display: block;
+  /* SVG sizes based on viewBox, not container */
+  /* Width/height from canvasWidth/canvasHeight inputs */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Center canvas when smaller than container (flexbox enables this) */
+  margin: auto;
+  /* Prevent canvas from shrinking below its set size */
+  flex-shrink: 0;
+
+  /* Labels should not be selectable or receive pointer events */
+  .element-label,
+  .primitive-label,
+  .symbol-label {
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+    fill: #aaa;
+    font-size: 8px;
+  }
+}
+
+.canvas-background {
+  cursor: default;
+  fill: var(--designer-canvas-color);
+}
+
+.designer-grid-line {
+  stroke: var(--designer-grid-color);
+}
+
+.designer-inspector {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Elements */
+.element {
+  cursor: move;
+
+  &.selected {
+    cursor: move;
+  }
+
+  &.dragging {
+    opacity: 0.7;
+
+    .element-hit-area {
+      cursor: grabbing;
+    }
+  }
+}
+
+.element-hit-area {
+  cursor: move;
+}
+
+/* Primitives */
+.primitive {
+  cursor: move;
+
+  &.selected {
+    cursor: move;
+  }
+
+  &.dragging {
+    opacity: 0.7;
+  }
+}
+
+/* Symbol Instances */
+.symbol-instance {
+  cursor: move;
+
+  &.selected {
+    cursor: move;
+  }
+
+  &.dragging {
+    opacity: 0.7;
+
+    .symbol-hit-area {
+      cursor: grabbing;
+    }
+  }
+}
+
+.symbol-hit-area {
+  cursor: move;
+}
+
+.resize-handle {
+  cursor: pointer;
+
+  &.nw,
+  &.se {
+    cursor: nwse-resize;
+  }
+
+  &.ne,
+  &.sw {
+    cursor: nesw-resize;
+  }
+}
+
+.endpoint-handle {
+  cursor: move;
+  transition: r 0.15s ease, fill 0.15s ease;
+
+  &:hover {
+    r: 8;
+  }
+
+  &.selected {
+    r: 7;
+  }
+}
+
+.connection-port {
+  cursor: crosshair;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+/* Connections */
+.connection {
+  cursor: pointer;
+
+  &.selected path {
+    stroke: #1976d2 !important;
+  }
+}
+
+/* Selection overlay - marching ants animation */
+.selection-overlay .selection-indicator {
+  animation: marching-ants 0.5s linear infinite;
+}
+
+@keyframes marching-ants {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 6;
+  }
+}
+
+/* Status bar */
+.designer-statusbar {
+  flex-shrink: 0;
+  display: flex;
+  gap: 1rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--designer-surface);
+  border-top: 1px solid var(--designer-border);
+  font-size: 11px;
+  color: var(--designer-text-muted);
+}
+
+.diagram-name {
+  font-weight: 500;
+  color: var(--designer-text);
+}
+
+.statusbar-divider {
+  color: var(--designer-border);
+}
+
+.unsaved-indicator {
+  color: #f57c00;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   Dockview Integration Styles
+
+   CSS variables allow theme customization (e.g., LCARS in Refinery Studio).
+   Default values provide a neutral light theme suitable for template-app.
+   Host apps can override these using CSS custom properties.
+   ============================================================================ */
+
+/* Default CSS Variables - Neutral Light Theme (uses designer variables with fallbacks) */
+:host {
+  /* Panel backgrounds */
+  --dv-background-color: var(--designer-bg, #f5f5f5);
+  --dv-pane-background-color: var(--designer-surface, #ffffff);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--designer-surface, #ffffff);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--designer-surface-alt, #f0f0f0);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--designer-surface-alt, #f5f5f5);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: #e8e8e8;
+
+  /* Tab text colors */
+  --dv-activegroup-visiblepanel-tab-color: var(--designer-accent, #1976d2);
+  --dv-activegroup-hiddenpanel-tab-color: var(--designer-text-muted, #666666);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--designer-text, #333333);
+  --dv-inactivegroup-hiddenpanel-tab-color: #888888;
+
+  /* Borders and separators */
+  --dv-separator-border: 1px solid var(--designer-border, #e0e0e0);
+  --dv-tabs-and-actions-container-background-color: var(--designer-surface-alt, #f5f5f5);
+  --dv-group-view-background-color: var(--designer-surface, #ffffff);
+
+  /* Tab active indicator */
+  --dv-tab-active-border-bottom: 2px solid var(--designer-accent, #1976d2);
+
+  /* Drag overlay */
+  --dv-drag-over-background-color: rgba(25, 118, 210, 0.15);
+  --dv-drag-over-border-color: var(--designer-accent, #1976d2);
+
+  /* Sash (resizer) */
+  --dv-sash-color: var(--designer-border, #e0e0e0);
+  --dv-sash-hover-color: var(--designer-accent, #1976d2);
+}
+
+/* Dockview-enabled layout mode */
+.designer-content.dockview-enabled {
+  /* Flexbox layout: panels on left, canvas fills remaining space */
+  display: flex;
+  position: relative;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Dockview panels container (left side, resizable) */
+.dockview-panels-container {
+  width: 400px;
+  min-width: 280px;
+  max-width: 600px;
+  /* Fixed width, stretch to full height */
+  flex: 0 0 400px;
+  height: 100%;
+  border-right: 1px solid var(--designer-border);
+  /* Position relative for absolute children */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dockview container styling */
+.designer-dockview {
+  /* Absolute positioning to fill parent container */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Resize handle for dockview panels */
+.dockview-resize-handle {
+  width: 6px;
+  height: 100%;
+  cursor: ew-resize;
+  background: transparent;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+
+  /* Visual indicator line in the center */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: var(--designer-border, rgba(100, 206, 185, 0.3));
+    transition: background-color 0.2s ease, width 0.2s ease;
+  }
+
+  /* Hover state */
+  &:hover {
+    background: rgba(100, 206, 185, 0.1);
+
+    &::before {
+      width: 4px;
+      background: var(--octo-mint, #64ceb9);
+    }
+  }
+
+  /* Active/dragging state */
+  &:active {
+    background: rgba(100, 206, 185, 0.15);
+
+    &::before {
+      width: 4px;
+      background: var(--octo-mint, #64ceb9);
+    }
+  }
+}
+
+/* Dockview theme overrides are in dockview.component.scss */
+
+/* Panel-specific styles within dockview */
+::ng-deep mm-elements-panel,
+::ng-deep mm-symbols-panel,
+::ng-deep mm-properties-panel,
+::ng-deep mm-transform-panel,
+::ng-deep mm-animations-panel,
+::ng-deep mm-styles-panel,
+::ng-deep mm-settings-panel,
+::ng-deep mm-simulation-panel-wrapper {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+
+  .panel-container {
+    height: 100%;
+    overflow: auto;
+    background: var(--dv-pane-background-color, var(--designer-surface, #ffffff));
+    color: var(--designer-text, #333333);
+  }
+}

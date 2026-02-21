@@ -1,0 +1,185 @@
+<div class="meshboard-manager-dialog">
+  <!-- Header with Create/Import Buttons -->
+  <div class="dialog-header">
+    <p class="dialog-description">Manage your MeshBoards</p>
+    <div class="header-actions">
+      @if (canExport) {
+        <button
+          kendoButton
+          [svgIcon]="uploadIcon"
+          (click)="triggerImport()"
+          [disabled]="isCreating() || isLoading() || isImporting()"
+          fillMode="outline">
+          Import
+        </button>
+      }
+      <button
+        kendoButton
+        [svgIcon]="plusIcon"
+        (click)="startCreate()"
+        [disabled]="isCreating() || isLoading()"
+        themeColor="primary">
+        New MeshBoard
+      </button>
+    </div>
+  </div>
+
+  <!-- Create New MeshBoard Form -->
+  @if (isCreating()) {
+    <div class="create-form">
+      <h4 class="form-title">Create New MeshBoard</h4>
+      <div class="form-fields">
+        <kendo-textbox
+          [(ngModel)]="newName"
+          placeholder="MeshBoard name"
+          [disabled]="isLoading()">
+        </kendo-textbox>
+        <kendo-textarea
+          [(ngModel)]="newDescription"
+          placeholder="Description (optional)"
+          [rows]="2"
+          [disabled]="isLoading()">
+        </kendo-textarea>
+      </div>
+      <div class="form-actions">
+        <button
+          kendoButton
+          [svgIcon]="xIcon"
+          (click)="cancelCreate()"
+          [disabled]="isLoading()"
+          fillMode="flat"
+          size="small">
+          Cancel
+        </button>
+        <button
+          kendoButton
+          [svgIcon]="checkIcon"
+          (click)="create()"
+          [disabled]="newName().trim().length === 0 || isLoading()"
+          themeColor="primary"
+          size="small">
+          Create
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- MeshBoards List -->
+  <div class="meshboards-list">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <span class="k-loading-text">Loading...</span>
+      </div>
+    } @else if (hasMeshBoards()) {
+      @for (item of meshBoards(); track item.rtId) {
+        <div
+          class="meshboard-item"
+          [class.active]="isActive(item)"
+          [class.editing]="isEditing(item)">
+
+            @if (!isEditing(item)) {
+              <!-- Display Mode -->
+              <div class="item-content" (click)="switchTo(item)">
+                <div class="item-icon">
+                  <kendo-svg-icon [icon]="gridLayoutIcon" size="large"></kendo-svg-icon>
+                </div>
+                <div class="item-info">
+                  <h4 class="item-name">
+                    {{ item.name }}
+                    @if (isActive(item)) {
+                      <span class="active-badge">Active</span>
+                    }
+                  </h4>
+                  @if (getDisplayDescription(item)) {
+                    <p class="item-description">{{ getDisplayDescription(item) }}</p>
+                  }
+                </div>
+                <div class="item-actions">
+                  @if (canExport) {
+                    <button
+                      kendoButton
+                      [svgIcon]="downloadIcon"
+                      (click)="exportMeshBoard(item, $event)"
+                      [disabled]="isLoading() || isExporting()"
+                      fillMode="flat"
+                      size="small"
+                      title="Export">
+                    </button>
+                  }
+                  <button
+                    kendoButton
+                    [svgIcon]="pencilIcon"
+                    (click)="startEdit(item); $event.stopPropagation()"
+                    [disabled]="isLoading()"
+                    fillMode="flat"
+                    size="small"
+                    title="Edit">
+                  </button>
+                  <button
+                    kendoButton
+                    [svgIcon]="trashIcon"
+                    (click)="delete(item); $event.stopPropagation()"
+                    [disabled]="isLoading()"
+                    fillMode="flat"
+                    size="small"
+                    themeColor="error"
+                    title="Delete">
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <!-- Edit Mode -->
+              <div class="item-edit">
+                <div class="edit-fields">
+                  <kendo-textbox
+                    [(ngModel)]="editingName"
+                    placeholder="MeshBoard name"
+                    [disabled]="isLoading()">
+                  </kendo-textbox>
+                  <kendo-textarea
+                    [(ngModel)]="editingDescription"
+                    placeholder="Description (optional)"
+                    [rows]="2"
+                    [disabled]="isLoading()">
+                  </kendo-textarea>
+                </div>
+                <div class="edit-actions">
+                  <button
+                    kendoButton
+                    [svgIcon]="xIcon"
+                    (click)="cancelEdit()"
+                    [disabled]="isLoading()"
+                    fillMode="flat"
+                    size="small">
+                    Cancel
+                  </button>
+                  <button
+                    kendoButton
+                    [svgIcon]="checkIcon"
+                    (click)="saveEdit()"
+                    [disabled]="editingName().trim().length === 0 || isLoading()"
+                    themeColor="primary"
+                    size="small">
+                    Save
+                  </button>
+                </div>
+              </div>
+            }
+        </div>
+      }
+    } @else {
+      <div class="empty-state">
+        <kendo-svg-icon [icon]="gridLayoutIcon" size="xlarge"></kendo-svg-icon>
+        <h3>No MeshBoards</h3>
+        <p>Create your first MeshBoard to get started.</p>
+      </div>
+    }
+  </div>
+
+  <!-- Dialog Actions -->
+  <div class="dialog-actions">
+    <button kendoButton (click)="close()" fillMode="flat">
+      Close
+    </button>
+  </div>
+</div>

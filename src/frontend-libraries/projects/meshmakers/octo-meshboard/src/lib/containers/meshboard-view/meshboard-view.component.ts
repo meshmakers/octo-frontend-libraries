@@ -1,0 +1,759 @@
+import { Component, OnInit, inject, signal, computed, ViewContainerRef, Type, ComponentRef, OnDestroy, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { TileLayoutModule } from '@progress/kendo-angular-layout';
+import { ButtonModule } from '@progress/kendo-angular-buttons';
+import { DialogService, DialogModule } from '@progress/kendo-angular-dialog';
+import { firstValueFrom } from 'rxjs';
+import { SVGIconModule } from '@progress/kendo-angular-icons';
+import {
+  gearIcon,
+  plusIcon,
+  saveIcon,
+  arrowRotateCwIcon,
+  pencilIcon,
+  xIcon,
+  linkIcon,
+  trashIcon,
+  gridLayoutIcon
+} from '@progress/kendo-svg-icons';
+
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { EditModeStateService } from '../../services/edit-mode-state.service';
+import { WidgetFactoryService } from '../../services/widget-factory.service';
+import { WidgetRegistryService } from '../../services/widget-registry.service';
+import { MeshBoardDataService } from '../../services/meshboard-data.service';
+import { MeshBoardGridService } from '../../services/meshboard-grid.service';
+import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection } from '../../models/meshboard.models';
+import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
+import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-widget-dialog.component';
+import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
+import { EditWidgetDialogComponent, WidgetPositionUpdate } from '../../dialogs/edit-widget-dialog/edit-widget-dialog.component';
+import { TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
+import {
+  HasUnsavedChanges,
+  HAS_UNSAVED_CHANGES,
+  UnsavedChangesDirective,
+  TimeRangePickerComponent,
+  TimeRange,
+  TimeRangeUtils,
+  TimeRangeSelection as SharedTimeRangeSelection
+} from '@meshmakers/shared-ui';
+
+/**
+ * Main container component that displays a MeshBoard with widgets in a grid layout.
+ * Provides toolbar for settings, adding widgets, saving, and refreshing.
+ */
+@Component({
+  selector: 'mm-meshboard-view',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    TileLayoutModule,
+    ButtonModule,
+    DialogModule,
+    SVGIconModule,
+    EditWidgetDialogComponent,
+    TimeRangePickerComponent
+  ],
+  hostDirectives: [UnsavedChangesDirective],
+  providers: [{ provide: HAS_UNSAVED_CHANGES, useExisting: MeshBoardViewComponent }],
+  templateUrl: './meshboard-view.component.html',
+  styleUrl: './meshboard-view.component.scss'
+})
+export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChanges {
+  private readonly stateService = inject(MeshBoardStateService);
+  private readonly editModeService = inject(EditModeStateService);
+  private readonly widgetFactory = inject(WidgetFactoryService);
+  private readonly widgetRegistry = inject(WidgetRegistryService);
+  private readonly dataService = inject(MeshBoardDataService);
+  private readonly dialogService = inject(DialogService);
+  private readonly viewContainerRef = inject(ViewContainerRef);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  protected readonly gridService = inject(MeshBoardGridService);
+  private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
+
+  // Track the last known rtId to avoid unnecessary navigation
+  private lastNavigatedRtId: string | null = null;
+
+  // Icons
+  protected readonly gearIcon = gearIcon;
+  protected readonly plusIcon = plusIcon;
+  protected readonly saveIcon = saveIcon;
+  protected readonly arrowRotateCwIcon = arrowRotateCwIcon;
+  protected readonly pencilIcon = pencilIcon;
+  protected readonly xIcon = xIcon;
+  protected readonly linkIcon = linkIcon;
+  protected readonly trashIcon = trashIcon;
+  protected readonly gridLayoutIcon = gridLayoutIcon;
+
+  // Edit widget dialog state
+  protected showEditWidgetDialog = false;
+  protected editingWidget: AnyWidgetConfig | null = null;
+
+  // Config dialog state - using ComponentRef to create dialog dynamically
+  private configDialogRef: ComponentRef<any> | null = null;
+
+  // State signals
+  protected readonly config = this.stateService.meshBoardConfig;
+  protected readonly isEditMode = this.editModeService.isEditMode;
+  protected readonly isSaving = this.editModeService.isSaving;
+  protected readonly isLoading = this.stateService.isLoading;
+  protected readonly isModelAvailable = this.stateService.isModelAvailable;
+
+  // Local UI state
+  private readonly _isInitialized = signal(false);
+  protected readonly isInitialized = this._isInitialized.asReadonly();
+  private readonly _notFoundError = signal<string | null>(null);
+  protected readonly notFoundError = this._notFoundError.asReadonly();
+
+  // Computed link to MeshBoard page with tenant
+  protected readonly meshBoardPageLink = computed(() => {
+    // Get tenant from route parameters (synchronously from snapshot)
+    const tenantId = this.route.snapshot.paramMap.get('tenantId')
+      || this.route.parent?.snapshot.paramMap.get('tenantId')
+      || this.route.root.firstChild?.snapshot.paramMap.get('tenantId');
+    return tenantId ? `/${tenantId}/ui/meshboards` : '/ui/meshboards';
+  });
+
+  // Computed
+  protected readonly hasWidgets = computed(() => this.config().widgets.length > 0);
+  protected readonly canSave = computed(() => this.isEditMode() && !this.isSaving());
+
+  // Time Filter computed signals
+  protected readonly isTimeFilterEnabled = computed(() => this.stateService.isTimeFilterEnabled());
+  protected readonly timeFilterConfig = computed(() => this.stateService.getTimeFilterConfig());
+  protected readonly initialTimeSelection = computed(() => {
+    const selection = this.timeFilterConfig()?.selection;
+    if (!selection) return undefined;
+    // Convert our TimeRangeSelection to shared-ui TimeRangeSelection
+    // Handle customFrom/customTo as Date objects
+    return {
+      ...selection,
+      customFrom: selection.customFrom ? new Date(selection.customFrom) : undefined,
+      customTo: selection.customTo ? new Date(selection.customTo) : undefined
+    } as SharedTimeRangeSelection;
+  });
+
+  constructor() {
+    // Effect to sync URL when dashboard changes
+    effect(() => {
+      const currentRtId = this.stateService.persistedMeshBoardId();
+      if (currentRtId && currentRtId !== this.lastNavigatedRtId) {
+        this.lastNavigatedRtId = currentRtId;
+        this.updateUrlWithRtId(currentRtId);
+        // Initialize time filter variables when switching to a different MeshBoard
+        this.initializeTimeFilterVariables();
+      }
+    });
+  }
+
+  /**
+   * Updates the URL to include the current MeshBoard rtId.
+   */
+  private updateUrlWithRtId(rtId: string): void {
+    const currentUrl = this.router.url;
+
+    // Check if we're already on a meshboard/:rtId route or just /meshboard
+    if (currentUrl.includes('/meshboard/')) {
+      // Replace the rtId in the URL
+      const newUrl = currentUrl.replace(/\/meshboard\/[^/]+/, `/meshboard/${rtId}`);
+      this.router.navigateByUrl(newUrl, { replaceUrl: true });
+    } else if (currentUrl.endsWith('/meshboard')) {
+      // Append the rtId
+      this.router.navigateByUrl(`${currentUrl}/${rtId}`, { replaceUrl: true });
+    }
+  }
+
+  async ngOnInit(): Promise<void> {
+    // Reset edit mode state when entering the page to clear any lingering state from previous sessions
+    this.editModeService.reset();
+
+    try {
+      // Get rtId from route parameter
+      const rtIdFromRoute = this.route.snapshot.paramMap.get('rtId');
+      // Get meshBoardWellKnownName from route data (for pre-configured routes)
+      const wellKnownName = this.route.snapshot.data['meshBoardWellKnownName'] as string | undefined;
+
+      if (rtIdFromRoute) {
+        // Load specific MeshBoard from URL parameter
+        this.lastNavigatedRtId = rtIdFromRoute;
+        await this.loadMeshBoardById(rtIdFromRoute);
+      } else if (wellKnownName) {
+        // Load MeshBoard by well-known name from route data
+        const widgets = await this.stateService.switchToMeshBoardByWellKnownName(wellKnownName);
+        if (widgets) {
+          await this.preloadWidgetData(widgets);
+        } else {
+          // Show error if MeshBoard with well-known name not found
+          this._notFoundError.set(`MeshBoard '${wellKnownName}' not found. Please create a MeshBoard with this Well-Known Name.`);
+        }
+      } else {
+        // Load initial MeshBoard (first available)
+        const widgets = await this.stateService.loadInitialMeshBoard();
+        await this.preloadWidgetData(widgets);
+      }
+
+      // Initialize time filter variables if enabled with stored selection
+      this.initializeTimeFilterVariables();
+
+      this._isInitialized.set(true);
+    } catch (err) {
+      console.error('Error initializing MeshBoard view:', err);
+      this._isInitialized.set(true);
+    }
+  }
+
+  /**
+   * Loads a specific MeshBoard by its rtId.
+   */
+  private async loadMeshBoardById(rtId: string): Promise<void> {
+    // First ensure model is available and get list of meshboards
+    const widgets = await this.stateService.loadInitialMeshBoard();
+
+    // Check if the requested MeshBoard exists
+    const meshBoards = this.stateService.availableMeshBoards();
+    const exists = meshBoards.some(mb => mb.rtId === rtId);
+
+    if (exists) {
+      // Switch to the requested MeshBoard
+      const switchedWidgets = await this.stateService.switchToMeshBoard(rtId);
+      await this.preloadWidgetData(switchedWidgets);
+    } else {
+      // MeshBoard not found - use whatever was loaded initially
+      console.warn(`MeshBoard with rtId ${rtId} not found, using default`);
+      await this.preloadWidgetData(widgets);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.closeConfigDialog();
+  }
+
+  /**
+   * Preloads data for all widgets to improve initial rendering performance.
+   */
+  private async preloadWidgetData(widgets: AnyWidgetConfig[]): Promise<void> {
+    const promises = widgets.map(widget => {
+      if (widget.dataSource.type === 'runtimeEntity') {
+        return this.dataService.fetchData(widget.dataSource).toPromise();
+      }
+      if (widget.dataSource.type === 'aggregation') {
+        return this.dataService.fetchAggregations(widget.dataSource.queries);
+      }
+      if (widget.dataSource.type === 'constructionKitQuery') {
+        return this.dataService.fetchCkQueryData(widget.dataSource);
+      }
+      return Promise.resolve(null);
+    });
+
+    await Promise.all(promises);
+  }
+
+  /**
+   * Initializes time filter variables based on the stored selection.
+   * Called after loading a MeshBoard to ensure time filter variables are set.
+   */
+  private initializeTimeFilterVariables(): void {
+    const timeFilter = this.stateService.getTimeFilterConfig();
+    if (!timeFilter?.enabled || !timeFilter.selection) {
+      return;
+    }
+
+    // Convert stored selection to shared-ui format for TimeRangeUtils
+    const sharedSelection: SharedTimeRangeSelection = {
+      ...timeFilter.selection,
+      customFrom: timeFilter.selection.customFrom ? new Date(timeFilter.selection.customFrom) : undefined,
+      customTo: timeFilter.selection.customTo ? new Date(timeFilter.selection.customTo) : undefined
+    };
+
+    // Calculate the current time range from the selection
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection);
+    if (!range) {
+      return;
+    }
+
+    // Convert to ISO strings and set the variables
+    const rangeISO = TimeRangeUtils.toISO(range);
+    this.stateService.setTimeFilterVariables(rangeISO.from, rangeISO.to);
+  }
+
+  /**
+   * Gets the component type for a widget based on its type.
+   */
+  getWidgetComponentType(type: WidgetType): Type<unknown> | undefined {
+    return this.widgetRegistry.getWidgetComponent(type);
+  }
+
+  /**
+   * Toggles edit mode.
+   */
+  toggleEditMode(): void {
+    const currentConfig = this.stateService.getConfig();
+    this.editModeService.toggleEditMode(currentConfig);
+  }
+
+  /**
+   * Cancels edit mode and restores original state.
+   */
+  cancelEdit(): void {
+    const restored = this.editModeService.cancelEdit<MeshBoardConfig>();
+    if (restored) {
+      this.stateService.setConfig(restored);
+    }
+  }
+
+  /**
+   * Opens the settings dialog.
+   */
+  async openSettings(): Promise<void> {
+    const dialogRef = this.dialogService.open({
+      content: MeshBoardSettingsDialogComponent,
+      title: 'MeshBoard Settings',
+      width: 500,
+      height: 600,
+      maxHeight: '80vh'
+    });
+
+    const instance = dialogRef.content.instance as MeshBoardSettingsDialogComponent;
+    const currentSettings = this.stateService.getCurrentSettings();
+    instance.setInitialValues(currentSettings);
+
+    try {
+      // Use firstValueFrom to properly await the Observable
+      const result = await firstValueFrom(dialogRef.result);
+
+      if (result instanceof MeshBoardSettingsResult) {
+        this.stateService.updateSettings(result);
+
+        // Enter edit mode if not already in it
+        if (!this.isEditMode()) {
+          this.editModeService.enterEditMode(this.stateService.getConfig());
+        }
+      }
+    } catch {
+      // Dialog was closed without action
+    }
+  }
+
+  /**
+   * Opens the add widget dialog.
+   */
+  async openAddWidget(): Promise<void> {
+    const dialogRef = this.dialogService.open({
+      content: AddWidgetDialogComponent,
+      title: 'Add Widget',
+      width: 600
+    });
+
+    try {
+      // Use firstValueFrom to properly await the Observable
+      const result = await firstValueFrom(dialogRef.result);
+
+      if (result && typeof result === 'object' && 'widgetType' in result) {
+        const widgetType = result.widgetType as WidgetType;
+        this.addWidget(widgetType);
+      }
+    } catch {
+      // Dialog was closed without action
+    }
+  }
+
+  /**
+   * Opens the MeshBoard manager dialog.
+   */
+  async openManager(): Promise<void> {
+    const dialogRef = this.dialogService.open({
+      content: MeshBoardManagerDialogComponent,
+      title: 'Manage MeshBoards',
+      width: 700,
+      height: 500
+    });
+
+    // Pass the tenantIdProvider to the dialog component instance
+    const dialogInstance = dialogRef.content.instance as MeshBoardManagerDialogComponent;
+    if (this.tenantIdProvider && dialogInstance) {
+      dialogInstance.externalTenantIdProvider = this.tenantIdProvider;
+    }
+  }
+
+  /**
+   * Adds a widget to the MeshBoard.
+   */
+  private addWidget(type: WidgetType): void {
+    const config = this.stateService.getConfig();
+    const defaultSize = this.widgetRegistry.getDefaultSize(type);
+
+    // Find a free position in the grid
+    const position = this.findFreePosition(config.widgets, config.columns, defaultSize);
+
+    const widget = this.widgetFactory.createWidget({
+      type,
+      title: `New ${type} Widget`,
+      col: position.col,
+      row: position.row,
+      colSpan: defaultSize.colSpan,
+      rowSpan: defaultSize.rowSpan
+    });
+
+    this.stateService.addWidget(widget);
+
+    // Enter edit mode if not already in it
+    if (!this.isEditMode()) {
+      this.editModeService.enterEditMode(this.stateService.getConfig());
+    }
+  }
+
+  /**
+   * Finds a free position in the grid for a new widget.
+   */
+  private findFreePosition(
+    widgets: AnyWidgetConfig[],
+    columns: number,
+    size: { colSpan: number; rowSpan: number }
+  ): { col: number; row: number } {
+    // Simple algorithm: find the first free slot
+    let row = 1;
+    let col = 1;
+
+    while (this.isPositionOccupied(widgets, col, row, size.colSpan, size.rowSpan)) {
+      col++;
+      if (col + size.colSpan - 1 > columns) {
+        col = 1;
+        row++;
+      }
+    }
+
+    return { col, row };
+  }
+
+  /**
+   * Checks if a position is occupied by existing widgets.
+   */
+  private isPositionOccupied(
+    widgets: AnyWidgetConfig[],
+    col: number,
+    row: number,
+    colSpan: number,
+    rowSpan: number
+  ): boolean {
+    return widgets.some(widget => {
+      const widgetEndCol = widget.col + widget.colSpan - 1;
+      const widgetEndRow = widget.row + widget.rowSpan - 1;
+      const newEndCol = col + colSpan - 1;
+      const newEndRow = row + rowSpan - 1;
+
+      return (
+        col <= widgetEndCol &&
+        newEndCol >= widget.col &&
+        row <= widgetEndRow &&
+        newEndRow >= widget.row
+      );
+    });
+  }
+
+  /**
+   * Saves the MeshBoard.
+   */
+  async save(): Promise<void> {
+    this.editModeService.beginSave();
+
+    try {
+      await this.stateService.saveMeshBoard();
+      this.editModeService.completeSave();
+    } catch (err) {
+      console.error('Error saving MeshBoard:', err);
+      this.editModeService.failSave();
+    }
+  }
+
+  /**
+   * Refreshes all widget data.
+   */
+  refresh(): void {
+    this.stateService.triggerRefresh();
+  }
+
+  // ============================================================================
+  // Time Filter Event Handlers
+  // ============================================================================
+
+  /**
+   * Handles time range change from the time range picker.
+   * Triggers a refresh of all widgets to apply the new filter.
+   */
+  onTimeRangeChange(_range: TimeRange): void {
+    // Trigger widget refresh when time range changes
+    this.refresh();
+  }
+
+  /**
+   * Handles time selection change from the time range picker.
+   * Updates the time filter variables and persists the selection.
+   */
+  onTimeSelectionChange(sharedSelection: SharedTimeRangeSelection): void {
+    // Convert shared-ui selection to our model
+    const selection: TimeRangeSelection = {
+      type: sharedSelection.type,
+      year: sharedSelection.year,
+      quarter: sharedSelection.quarter,
+      month: sharedSelection.month,
+      relativeValue: sharedSelection.relativeValue,
+      relativeUnit: sharedSelection.relativeUnit,
+      customFrom: sharedSelection.customFrom?.toISOString(),
+      customTo: sharedSelection.customTo?.toISOString()
+    };
+
+    // Check if the selection has actually changed to prevent infinite loop
+    // (TimeRangePicker emits selectionChange on init and when initialSelection changes)
+    const currentSelection = this.stateService.getTimeFilterConfig()?.selection;
+    if (currentSelection && this.isSelectionEqual(currentSelection, selection)) {
+      return;
+    }
+
+    // Calculate the time range from the selection
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection);
+    if (!range) return;
+
+    // Convert to ISO strings
+    const rangeISO = TimeRangeUtils.toISO(range);
+
+    // Update state with new selection and time range values
+    this.stateService.updateTimeFilterSelection(selection, rangeISO.from, rangeISO.to);
+  }
+
+  /**
+   * Compares two TimeRangeSelection objects for equality.
+   */
+  private isSelectionEqual(a: TimeRangeSelection, b: TimeRangeSelection): boolean {
+    return (
+      a.type === b.type &&
+      a.year === b.year &&
+      a.quarter === b.quarter &&
+      a.month === b.month &&
+      a.relativeValue === b.relativeValue &&
+      a.relativeUnit === b.relativeUnit &&
+      a.customFrom === b.customFrom &&
+      a.customTo === b.customTo
+    );
+  }
+
+  /**
+   * Removes a widget from the MeshBoard.
+   */
+  removeWidget(widgetId: string): void {
+    this.stateService.removeWidget(widgetId);
+
+    // Enter edit mode if not already in it
+    if (!this.isEditMode()) {
+      this.editModeService.enterEditMode(this.stateService.getConfig());
+    }
+  }
+
+  /**
+   * Opens the configuration dialog for a widget.
+   * Creates the dialog component dynamically using ViewContainerRef to avoid
+   * double-wrapping with DialogService (config dialogs have their own kendo-dialog).
+   */
+  openWidgetConfig(widget: AnyWidgetConfig): void {
+    const registration = this.widgetRegistry.getRegistration(widget.type);
+    if (!registration?.configDialogComponent) {
+      console.warn(`No config dialog for widget type: ${widget.type}`);
+      return;
+    }
+
+    // Close any existing config dialog
+    this.closeConfigDialog();
+
+    const initialConfig = registration.getInitialConfig?.(widget) ?? {};
+
+    // Create the component dynamically - it will render its own kendo-dialog
+    this.configDialogRef = this.viewContainerRef.createComponent(registration.configDialogComponent);
+
+    // Set inputs using the new setInput API
+    Object.entries(initialConfig).forEach(([key, value]) => {
+      this.configDialogRef!.setInput(key, value);
+    });
+
+    // Subscribe to outputs
+    const instance = this.configDialogRef.instance;
+
+    if (instance.save) {
+      instance.save.subscribe((result: any) => {
+        if (registration.applyConfigResult) {
+          const updatedWidget = registration.applyConfigResult(widget, result);
+          this.stateService.updateWidget(widget.id, () => updatedWidget);
+
+          // Enter edit mode if not already in it
+          if (!this.isEditMode()) {
+            this.editModeService.enterEditMode(this.stateService.getConfig());
+          }
+        }
+        this.closeConfigDialog();
+      });
+    }
+
+    if (instance.cancelled) {
+      instance.cancelled.subscribe(() => {
+        this.closeConfigDialog();
+      });
+    }
+  }
+
+  /**
+   * Closes the configuration dialog if open.
+   */
+  private closeConfigDialog(): void {
+    if (this.configDialogRef) {
+      this.configDialogRef.destroy();
+      this.configDialogRef = null;
+    }
+  }
+
+  /**
+   * Handles TileLayout reorder events.
+   */
+  onReorder(event: { newIndex: number; oldIndex: number }): void {
+    // TileLayout handles the DOM reordering, we just need to update our state
+    const config = this.stateService.getConfig();
+    const widgets = [...config.widgets];
+    const [movedWidget] = widgets.splice(event.oldIndex, 1);
+    widgets.splice(event.newIndex, 0, movedWidget);
+
+    this.stateService.updateConfig(c => ({ ...c, widgets }));
+
+    // Enter edit mode if not already in it
+    if (!this.isEditMode()) {
+      this.editModeService.enterEditMode(this.stateService.getConfig());
+    }
+  }
+
+  /**
+   * Handles TileLayout resize events.
+   */
+  onResize(event: any): void {
+    // Extract the resized item from the event
+    const item = event.item || event;
+
+    // Find the widget in our config that matches this item
+    const config = this.stateService.getConfig();
+    const widgetIndex = config.widgets.findIndex(w =>
+      w.col === item.col && w.row === item.row
+    );
+
+    if (widgetIndex !== -1) {
+      const widget = config.widgets[widgetIndex];
+
+      // Update the widget configuration with new size
+      this.stateService.updateWidget(widget.id, w => ({
+        ...w,
+        col: item.col,
+        row: item.row,
+        colSpan: item.colSpan,
+        rowSpan: item.rowSpan
+      }));
+
+      // Enter edit mode if not already in it
+      if (!this.isEditMode()) {
+        this.editModeService.enterEditMode(this.stateService.getConfig());
+      }
+    }
+  }
+
+  /**
+   * Track by function for widget rendering.
+   */
+  trackByWidgetId(_index: number, widget: AnyWidgetConfig): string {
+    return widget.id;
+  }
+
+  /**
+   * Checks if a widget is unconfigured (needs data source setup).
+   */
+  isWidgetUnconfigured(widget: AnyWidgetConfig): boolean {
+    const dataSource = (widget as any).dataSource;
+    if (!dataSource) return true;
+
+    if (dataSource.type === 'runtimeEntity') {
+      return !dataSource.rtId && !dataSource.ckTypeId;
+    }
+    if (dataSource.type === 'persistentQuery') {
+      return !dataSource.queryRtId;
+    }
+    if (dataSource.type === 'repeaterQuery') {
+      // Widget Group needs either a query or a CK type
+      return !dataSource.queryRtId && !dataSource.ckTypeId;
+    }
+    return false;
+  }
+
+  /**
+   * Checks if a widget type supports configuration.
+   */
+  supportsConfiguration(widget: AnyWidgetConfig): boolean {
+    const registration = this.widgetRegistry.getRegistration(widget.type);
+    return !!registration?.configDialogComponent;
+  }
+
+  /**
+   * Opens the edit widget dialog for position/size editing.
+   */
+  openEditWidgetDialog(widget: AnyWidgetConfig): void {
+    this.editingWidget = widget;
+    this.showEditWidgetDialog = true;
+  }
+
+  /**
+   * Handles save from the edit widget dialog.
+   */
+  onEditWidgetSave(update: WidgetPositionUpdate): void {
+    this.stateService.updateWidget(update.id, w => ({
+      ...w,
+      title: update.title,
+      col: update.col,
+      row: update.row,
+      colSpan: update.colSpan,
+      rowSpan: update.rowSpan
+    }));
+
+    this.closeEditWidgetDialog();
+
+    // Enter edit mode if not already in it
+    if (!this.isEditMode()) {
+      this.editModeService.enterEditMode(this.stateService.getConfig());
+    }
+  }
+
+  /**
+   * Closes the edit widget dialog.
+   */
+  closeEditWidgetDialog(): void {
+    this.showEditWidgetDialog = false;
+    this.editingWidget = null;
+  }
+
+  // === HasUnsavedChanges interface implementation ===
+
+  /**
+   * Checks if there are unsaved changes in the MeshBoard.
+   * Returns true if in edit mode with a snapshot (indicating changes).
+   */
+  hasUnsavedChanges(): boolean {
+    return this.editModeService.hasUnsavedChanges();
+  }
+
+  /**
+   * Saves the MeshBoard and returns true if successful.
+   * This is called by the UnsavedChangesGuard when the user chooses to save.
+   */
+  async saveChanges(): Promise<boolean> {
+    try {
+      await this.save();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}

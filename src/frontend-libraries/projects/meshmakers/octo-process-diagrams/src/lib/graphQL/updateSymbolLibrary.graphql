@@ -1,0 +1,17 @@
+mutation updateSymbolLibrary($entities: [SystemUISymbolLibraryInputUpdate]!) {
+  runtime {
+    systemUISymbolLibrarys {
+      update(entities: $entities) {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        author
+        isBuiltIn
+        isReadOnly
+        rtChangedDateTime
+      }
+    }
+  }
+}

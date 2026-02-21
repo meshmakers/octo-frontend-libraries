@@ -1,0 +1,26 @@
+query getSystemPersistentQueries(
+  $after: String
+  $first: Int
+  $searchFilter: SearchFilter
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+) {
+  runtime {
+    systemPersistentQuery(
+      after: $after
+      first: $first
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+    ) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        name
+        description
+        queryCkTypeId
+      }
+    }
+  }
+}

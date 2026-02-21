@@ -1,0 +1,7 @@
+mutation deleteSymbolDefinition($rtEntityIds: [RtEntityId]!, $deleteStrategy: DeleteStrategies! = ARCHIVE) {
+  runtime {
+    runtimeEntities {
+      delete(entities: $rtEntityIds, options: $deleteStrategy)
+    }
+  }
+}

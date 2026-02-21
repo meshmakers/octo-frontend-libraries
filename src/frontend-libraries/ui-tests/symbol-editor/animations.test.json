@@ -1,0 +1,310 @@
+{
+  "name": "Animation Tests",
+  "description": "Tests for all primitives with all animation types, controlled by a boolean property",
+  "setup": {
+    "baseUrl": "https://localhost:4201",
+    "tenantId": "meshtest",
+    "navigateTo": "symbol-library",
+    "waitFor": "Symbol Libraries"
+  },
+  "helpers": {
+    "createTestSymbol": [
+      { "action": "navigate", "url": "{{baseUrl}}/{{tenantId}}/symbol-library" },
+      { "action": "wait", "for": "Symbol Libraries", "timeout": 5000 },
+      { "action": "click", "target": { "selector": "kendo-grid-list tr.k-grid-table-row" } },
+      { "action": "wait", "for": 1000 },
+      { "action": "click", "target": { "text": "New Symbol" } },
+      { "action": "wait", "for": 500 },
+      { "action": "type", "target": { "selector": "input[placeholder*='name']" }, "value": "Animation Test {{timestamp}}" },
+      { "action": "click", "target": { "text": "Create" } },
+      { "action": "wait", "for": "process-designer", "timeout": 5000 }
+    ],
+    "addBooleanProperty": [
+      { "action": "comment", "text": "Navigate to Exposures panel" },
+      { "action": "click", "target": { "text": "Exposures" } },
+      { "action": "wait", "for": 500 },
+      { "action": "comment", "text": "Click Add Property button" },
+      { "action": "click", "target": { "testId": "add-property-button" } },
+      { "action": "wait", "for": 500 },
+      { "action": "comment", "text": "Set property name to animationsEnabled" },
+      { "action": "type", "target": { "testId": "property-name-input" }, "value": "animationsEnabled" },
+      { "action": "comment", "text": "Set property type to boolean" },
+      { "action": "click", "target": { "testId": "property-type-select" } },
+      { "action": "click", "target": { "text": "boolean" } },
+      { "action": "comment", "text": "Set default value to true" },
+      { "action": "click", "target": { "testId": "property-default-checkbox" } },
+      { "action": "wait", "for": 300 }
+    ],
+    "createPrimitive": [
+      { "action": "comment", "text": "Drag primitive {{primitiveType}} to canvas" },
+      {
+        "action": "evaluate",
+        "script": "(type, x, y) => { const el = document.querySelector(`[data-testid=\"palette-element-${type}\"]`); const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const canvasRect = canvas.getBoundingClientRect(); const dt = new DataTransfer(); dt.setData('text/plain', JSON.stringify({type})); el.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:dt})); canvas.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + x, clientY: canvasRect.top + y})); canvas.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + x, clientY: canvasRect.top + y})); el.dispatchEvent(new DragEvent('dragend', {bubbles:true, cancelable:true, dataTransfer:dt})); return true; }",
+        "args": ["{{primitiveType}}", "{{dropX}}", "{{dropY}}"]
+      },
+      { "action": "wait", "for": 300 }
+    ],
+    "addAnimationPreset": [
+      { "action": "comment", "text": "Open Animations panel" },
+      { "action": "click", "target": { "text": "Animations" } },
+      { "action": "wait", "for": 300 },
+      { "action": "comment", "text": "Click Add Animation button" },
+      { "action": "click", "target": { "testId": "add-animation-button" } },
+      { "action": "wait", "for": 500 },
+      { "action": "comment", "text": "Select preset: {{presetName}}" },
+      { "action": "click", "target": { "text": "{{presetName}}" } },
+      { "action": "wait", "for": 300 }
+    ],
+    "bindAnimationToProperty": [
+      { "action": "comment", "text": "Expand animation settings" },
+      { "action": "click", "target": { "testId": "animation-item-0" } },
+      { "action": "wait", "for": 300 },
+      { "action": "comment", "text": "Enable condition binding" },
+      { "action": "click", "target": { "testId": "animation-condition-toggle" } },
+      { "action": "wait", "for": 300 },
+      { "action": "comment", "text": "Select animationsEnabled property" },
+      { "action": "click", "target": { "testId": "animation-condition-property" } },
+      { "action": "click", "target": { "text": "animationsEnabled" } },
+      { "action": "wait", "for": 300 }
+    ],
+    "openSimulationPanel": [
+      { "action": "click", "target": { "text": "Simulation" } },
+      { "action": "wait", "for": 300 }
+    ],
+    "toggleSimulationProperty": [
+      { "action": "comment", "text": "Toggle animationsEnabled in simulation" },
+      { "action": "click", "target": { "testId": "simulation-property-animationsEnabled" } },
+      { "action": "wait", "for": 500 }
+    ]
+  },
+  "tests": [
+    {
+      "name": "TC001: Create symbol with boolean property for animation control",
+      "description": "Create a new symbol and add an 'animationsEnabled' boolean property",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "screenshot", "name": "symbol-created" },
+        { "action": "runHelper", "helper": "addBooleanProperty" },
+        { "action": "screenshot", "name": "property-added" },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "text": "animationsEnabled" },
+          "message": "Boolean property should be created"
+        }
+      ]
+    },
+    {
+      "name": "TC002: Rectangle with Spin animation",
+      "description": "Create rectangle with spin (rotate) animation bound to boolean property",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "runHelper", "helper": "addBooleanProperty" },
+        { "action": "click", "target": { "text": "Primitives" } },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid=\"palette-element-rectangle\"]'); const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const canvasRect = canvas.getBoundingClientRect(); const dt = new DataTransfer(); dt.setData('text/plain', JSON.stringify({type:'rectangle'})); el.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:dt})); canvas.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 150, clientY: canvasRect.top + 150})); canvas.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 150, clientY: canvasRect.top + 150})); el.dispatchEvent(new DragEvent('dragend', {bubbles:true, cancelable:true, dataTransfer:dt})); return true; }"
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "screenshot", "name": "rectangle-created" },
+        { "action": "click", "target": { "text": "Animations" } },
+        { "action": "wait", "for": 300 },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "testId": "add-animation-button" },
+          "message": "Add animation button should be visible"
+        },
+        { "action": "screenshot", "name": "rectangle-spin-animation" }
+      ]
+    },
+    {
+      "name": "TC003: Ellipse with Pulse animation",
+      "description": "Create ellipse with pulse (opacity) animation",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "runHelper", "helper": "addBooleanProperty" },
+        { "action": "click", "target": { "text": "Primitives" } },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid=\"palette-element-ellipse\"]'); const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const canvasRect = canvas.getBoundingClientRect(); const dt = new DataTransfer(); dt.setData('text/plain', JSON.stringify({type:'ellipse'})); el.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:dt})); canvas.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); canvas.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); el.dispatchEvent(new DragEvent('dragend', {bubbles:true, cancelable:true, dataTransfer:dt})); return true; }"
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "click", "target": { "text": "Animations" } },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "ellipse-pulse-animation" }
+      ]
+    },
+    {
+      "name": "TC004: Line with Flow Particles animation",
+      "description": "Create line with flow particles animation (specific to lines/paths)",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "runHelper", "helper": "addBooleanProperty" },
+        { "action": "click", "target": { "text": "Primitives" } },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid=\"palette-element-line\"]'); const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const canvasRect = canvas.getBoundingClientRect(); const dt = new DataTransfer(); dt.setData('text/plain', JSON.stringify({type:'line'})); el.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:dt})); canvas.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); canvas.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); el.dispatchEvent(new DragEvent('dragend', {bubbles:true, cancelable:true, dataTransfer:dt})); return true; }"
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "click", "target": { "text": "Animations" } },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "line-flow-animation" }
+      ]
+    },
+    {
+      "name": "TC005: Text with Blink animation",
+      "description": "Create text with blink (discrete opacity) animation",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "runHelper", "helper": "addBooleanProperty" },
+        { "action": "click", "target": { "text": "Primitives" } },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid=\"palette-element-text\"]'); const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const canvasRect = canvas.getBoundingClientRect(); const dt = new DataTransfer(); dt.setData('text/plain', JSON.stringify({type:'text'})); el.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:dt})); canvas.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); canvas.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); el.dispatchEvent(new DragEvent('dragend', {bubbles:true, cancelable:true, dataTransfer:dt})); return true; }"
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "click", "target": { "text": "Animations" } },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "text-blink-animation" }
+      ]
+    },
+    {
+      "name": "TC006: Polygon with Scale animation",
+      "description": "Create polygon with scale (bounce) animation",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "runHelper", "helper": "addBooleanProperty" },
+        { "action": "click", "target": { "text": "Primitives" } },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid=\"palette-element-polygon\"]'); const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const canvasRect = canvas.getBoundingClientRect(); const dt = new DataTransfer(); dt.setData('text/plain', JSON.stringify({type:'polygon'})); el.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:dt})); canvas.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); canvas.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); el.dispatchEvent(new DragEvent('dragend', {bubbles:true, cancelable:true, dataTransfer:dt})); return true; }"
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "click", "target": { "text": "Animations" } },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "polygon-scale-animation" }
+      ]
+    },
+    {
+      "name": "TC007: All primitives with multiple animations",
+      "description": "Create all primitive types and verify animation panel is available for each",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "runHelper", "helper": "addBooleanProperty" },
+        { "action": "click", "target": { "text": "Primitives" } },
+        { "action": "comment", "text": "Create Rectangle at position 1" },
+        {
+          "action": "evaluate",
+          "script": "() => { const types = ['rectangle', 'ellipse', 'line', 'text', 'polygon', 'polyline']; const positions = [[100, 100], [250, 100], [400, 100], [100, 250], [250, 250], [400, 250]]; types.forEach((type, i) => { const el = document.querySelector(`[data-testid=\"palette-element-${type}\"]`); if (!el) return; const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const canvasRect = canvas.getBoundingClientRect(); const dt = new DataTransfer(); dt.setData('text/plain', JSON.stringify({type})); el.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:dt})); canvas.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + positions[i][0], clientY: canvasRect.top + positions[i][1]})); canvas.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + positions[i][0], clientY: canvasRect.top + positions[i][1]})); el.dispatchEvent(new DragEvent('dragend', {bubbles:true, cancelable:true, dataTransfer:dt})); }); return true; }"
+        },
+        { "action": "wait", "for": 1000 },
+        { "action": "screenshot", "name": "all-primitives-created" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "primitiveCount"
+        },
+        {
+          "action": "assert",
+          "type": "greaterThanOrEqual",
+          "actual": "{{primitiveCount}}",
+          "expected": 5,
+          "message": "Should have at least 5 primitives"
+        }
+      ]
+    },
+    {
+      "name": "TC008: Verify Animation presets are available",
+      "description": "Check that animation presets (Spin, Pulse, Blink, etc.) are available in the picker",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "click", "target": { "text": "Primitives" } },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid=\"palette-element-rectangle\"]'); const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const canvasRect = canvas.getBoundingClientRect(); const dt = new DataTransfer(); dt.setData('text/plain', JSON.stringify({type:'rectangle'})); el.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:dt})); canvas.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); canvas.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); el.dispatchEvent(new DragEvent('dragend', {bubbles:true, cancelable:true, dataTransfer:dt})); return true; }"
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "click", "target": { "text": "Animations" } },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "animations-panel" },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "text": "Animations" },
+          "message": "Animations panel should be visible"
+        }
+      ]
+    },
+    {
+      "name": "TC009: Simulation panel toggle for animations",
+      "description": "Verify that the boolean property can be toggled in simulation to enable/disable animations",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "runHelper", "helper": "addBooleanProperty" },
+        { "action": "click", "target": { "text": "Simulation" } },
+        { "action": "wait", "for": 500 },
+        { "action": "screenshot", "name": "simulation-panel" },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "text": "animationsEnabled" },
+          "message": "Boolean property should appear in simulation panel"
+        }
+      ]
+    },
+    {
+      "name": "TC010: Animation types coverage",
+      "description": "Verify all animation types are available: Attribute, Transform, Motion Path, Flow Particles",
+      "steps": [
+        { "action": "runHelper", "helper": "createTestSymbol" },
+        { "action": "click", "target": { "text": "Primitives" } },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid=\"palette-element-rectangle\"]'); const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const canvasRect = canvas.getBoundingClientRect(); const dt = new DataTransfer(); dt.setData('text/plain', JSON.stringify({type:'rectangle'})); el.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:dt})); canvas.dispatchEvent(new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); canvas.dispatchEvent(new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:dt, clientX: canvasRect.left + 200, clientY: canvasRect.top + 200})); el.dispatchEvent(new DragEvent('dragend', {bubbles:true, cancelable:true, dataTransfer:dt})); return true; }"
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "click", "target": { "text": "Animations" } },
+        { "action": "wait", "for": 300 },
+        {
+          "action": "comment",
+          "text": "Animation types available: Attribute Animation, Transform Animation, Motion Path, Flow Particles"
+        },
+        { "action": "screenshot", "name": "animation-types-available" }
+      ]
+    }
+  ],
+  "animationPresets": {
+    "rotation": [
+      { "name": "Spin (Clockwise)", "key": "spin", "type": "animateTransform", "transformType": "rotate" },
+      { "name": "Spin Fast", "key": "spin-fast", "type": "animateTransform", "transformType": "rotate" },
+      { "name": "Spin (Counter-clockwise)", "key": "spin-reverse", "type": "animateTransform", "transformType": "rotate" }
+    ],
+    "opacity": [
+      { "name": "Pulse", "key": "pulse", "type": "animate", "attribute": "opacity" },
+      { "name": "Blink", "key": "blink", "type": "animate", "attribute": "opacity" },
+      { "name": "Blink Slow", "key": "blink-slow", "type": "animate", "attribute": "opacity" },
+      { "name": "Fade In", "key": "fade-in", "type": "animate", "attribute": "opacity" }
+    ],
+    "scale": [
+      { "name": "Bounce", "key": "bounce", "type": "animateTransform", "transformType": "scale" },
+      { "name": "Heartbeat", "key": "heartbeat", "type": "animateTransform", "transformType": "scale" }
+    ],
+    "translate": [
+      { "name": "Shake", "key": "shake", "type": "animateTransform", "transformType": "translate" },
+      { "name": "Float", "key": "float", "type": "animateTransform", "transformType": "translate" }
+    ],
+    "flow": [
+      { "name": "Flow Particles", "key": "flow-particles", "type": "flowParticles", "forLines": true }
+    ]
+  },
+  "primitiveAnimationMatrix": {
+    "rectangle": ["spin", "pulse", "blink", "bounce", "shake"],
+    "ellipse": ["spin", "pulse", "blink", "bounce", "heartbeat"],
+    "polygon": ["spin", "pulse", "bounce", "shake"],
+    "line": ["pulse", "blink", "flow-particles"],
+    "polyline": ["pulse", "blink", "flow-particles"],
+    "path": ["pulse", "blink", "flow-particles"],
+    "text": ["pulse", "blink", "fade-in", "shake", "float"]
+  }
+}

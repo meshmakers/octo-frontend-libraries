@@ -1,0 +1,268 @@
+app-list-view-demo {
+  display: block;
+  padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
+
+  // Top section with documentation and options side by side
+  .top-section {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    width: 100%;
+    align-items: flex-start;
+
+    // Override Kendo's default width on cards
+    > kendo-card,
+    > .k-card {
+      flex: 1 1 50%;
+      min-width: 0;
+      width: auto !important;
+      max-width: none !important;
+    }
+
+    @media (max-width: 1200px) {
+      flex-direction: column;
+
+      > kendo-card,
+      > .k-card {
+        flex: none;
+        width: 100% !important;
+      }
+    }
+  }
+
+  // Kendo Card overrides - force width override
+  kendo-card.demo-card,
+  .demo-card.k-card {
+    width: 100% !important;
+    max-width: none !important;
+    overflow: visible;
+
+    .k-card-body {
+      overflow: visible;
+    }
+  }
+
+  // API section specific
+  kendo-card.api-section,
+  .api-section.k-card {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .k-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    h3, h4 {
+      margin: 0;
+    }
+  }
+
+  .k-card-body {
+    p {
+      margin: 0 0 12px 0;
+    }
+
+    h4 {
+      margin: 16px 0 8px 0;
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+
+      li {
+        margin-bottom: 4px;
+      }
+    }
+  }
+
+  // Options grid inside the options card
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 100%;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .option-group {
+    h5 {
+      margin: 0 0 12px 0;
+      color: #424242;
+      font-size: 14px;
+      font-weight: 600;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 8px;
+    }
+  }
+
+  .option-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+
+    kendo-label,
+    .k-label {
+      white-space: nowrap;
+    }
+
+    kendo-dropdownlist,
+    .k-dropdownlist {
+      min-width: 120px;
+    }
+  }
+
+  // Columns section spans full width
+  .columns-group {
+    grid-column: 1 / -1;
+  }
+
+  .columns-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .option-row {
+      margin-bottom: 0;
+      min-width: 140px;
+    }
+  }
+
+  .hint {
+    font-size: 12px;
+    color: #757575;
+    margin: 8px 0 0 0;
+    line-height: 1.4;
+  }
+
+  .api-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .api-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e0e0e0;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    td:first-child {
+      white-space: nowrap;
+    }
+
+    code {
+      background-color: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+  }
+
+  // Additional info sections
+  .info-sections {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+    width: 100%;
+    flex-wrap: wrap;
+
+    @media (max-width: 800px) {
+      flex-direction: column;
+    }
+  }
+
+  .info-box {
+    flex: 1;
+    min-width: 280px;
+
+    h5 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 13px;
+
+      li {
+        margin-bottom: 4px;
+      }
+
+      code {
+        background-color: #f0f0f0;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 12px;
+      }
+    }
+  }
+
+  pre {
+    background-color: #f5f5f5;
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+
+    code {
+      background: none;
+      padding: 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+  }
+
+  // Demo section
+  .demo-section {
+    width: 100%;
+
+    h3 {
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+  }
+
+  .demo-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+  }
+
+  // Toggle button when documentation is hidden
+  .show-docs-btn {
+    margin-bottom: 16px;
+  }
+}

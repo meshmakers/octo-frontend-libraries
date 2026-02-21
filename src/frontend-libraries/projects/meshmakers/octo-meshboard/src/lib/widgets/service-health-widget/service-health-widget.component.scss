@@ -1,0 +1,163 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.service-health {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  height: 100%;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.06);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  &.healthy {
+    .health-dot {
+      background: #10b981;
+    }
+
+    .pulse-ring.pulse-active {
+      border-color: #10b981;
+    }
+  }
+
+  &.unhealthy {
+    .health-dot {
+      background: #ef4444;
+    }
+
+    .pulse-ring {
+      border-color: #ef4444;
+    }
+  }
+
+  &.loading {
+    .health-dot {
+      background: #6b7280;
+      animation: pulse-loading 1.5s ease-in-out infinite;
+    }
+  }
+}
+
+.health-indicator {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.health-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #6b7280;
+  z-index: 1;
+  transition: background 0.3s ease;
+
+  &.pulse-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  opacity: 0;
+
+  &.pulse-active {
+    animation: pulse-ring 2s ease-out infinite;
+  }
+}
+
+.health-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.service-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--kendo-color-on-app-surface, #1f2937);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.health-status {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--kendo-color-subtle, #6b7280);
+
+  .healthy & {
+    color: #10b981;
+  }
+
+  .unhealthy & {
+    color: #ef4444;
+  }
+}
+
+.last-checked {
+  font-size: 0.7rem;
+  color: var(--kendo-color-subtle, #9ca3af);
+  margin-top: 4px;
+}
+
+.health-error {
+  font-size: 0.75rem;
+  color: var(--kendo-color-error, #dc3545);
+  margin-top: 8px;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulse-loading {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}

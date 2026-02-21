@@ -1,0 +1,434 @@
+/**
+ * Cron Builder Component Styles
+ * Theme-neutral using CSS custom properties for easy theming
+ */
+
+:host {
+  // CSS Custom Properties with light/neutral defaults (can be overridden by consumer)
+  --cron-bg: var(--mm-cron-bg, #ffffff);
+  --cron-border: var(--mm-cron-border, #e0e0e0);
+  --cron-border-radius: var(--mm-cron-border-radius, 8px);
+  --cron-text: var(--mm-cron-text, #333333);
+  --cron-text-secondary: var(--mm-cron-text-secondary, #666666);
+  --cron-accent: var(--mm-cron-accent, #616161);
+  --cron-accent-hover: var(--mm-cron-accent-hover, #424242);
+  --cron-preview-bg: var(--mm-cron-preview-bg, #f5f5f5);
+  --cron-tab-active-bg: var(--mm-cron-tab-active-bg, #eeeeee);
+  --cron-tab-active-border: var(--mm-cron-tab-active-border, #616161);
+  --cron-error: var(--mm-cron-error, #d32f2f);
+  --cron-success: var(--mm-cron-success, #388e3c);
+  // Code block: light neutral theme (dark theme overrides in consumer app)
+  --cron-code-bg: var(--mm-cron-code-bg, #eeeeee);
+  --cron-code-text: var(--mm-cron-code-text, #333333);
+  --cron-shadow: var(--mm-cron-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+  --cron-font-family: var(--mm-cron-font-family, inherit);
+  --cron-font-mono: var(--mm-cron-font-mono, 'Roboto Mono', 'Consolas', monospace);
+
+  display: block;
+  font-family: var(--cron-font-family);
+}
+
+.cron-builder {
+  background: var(--cron-bg);
+  border: 1px solid var(--cron-border);
+  border-radius: var(--cron-border-radius);
+  padding: 16px;
+  box-shadow: var(--cron-shadow);
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+// Expression Section
+.expression-section {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--cron-border);
+}
+
+.expression-display {
+  .expression-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--cron-text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .expression-value-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .expression-value {
+    flex: 1;
+    font-family: var(--cron-font-mono);
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 8px 12px;
+    background: var(--cron-code-bg);
+    color: var(--cron-code-text);
+    border-radius: 4px;
+    letter-spacing: 1px;
+
+    &.invalid {
+      color: var(--cron-error);
+      border: 1px solid var(--cron-error);
+    }
+  }
+
+  .copy-button {
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+
+    &.copied {
+      color: var(--cron-success) !important;
+    }
+  }
+
+  .validation-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--cron-error);
+
+    kendo-svg-icon {
+      flex-shrink: 0;
+    }
+  }
+}
+
+.human-readable {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--cron-preview-bg);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--cron-text);
+
+  kendo-svg-icon {
+    color: var(--cron-accent);
+    flex-shrink: 0;
+  }
+}
+
+// Presets Section
+.presets-section {
+  margin-bottom: 16px;
+
+  .presets-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--cron-text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .presets-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .preset-button {
+    font-size: 0.8rem;
+    padding: 4px 12px;
+    border-color: var(--cron-border);
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      border-color: var(--cron-accent);
+      color: var(--cron-accent);
+    }
+  }
+}
+
+// TabStrip Overrides
+::ng-deep {
+  .k-tabstrip {
+    background: transparent;
+    border: none;
+
+    .k-tabstrip-items-wrapper {
+      border-bottom: 1px solid var(--cron-border);
+    }
+
+    .k-tabstrip-items {
+      .k-item {
+        color: var(--cron-text-secondary);
+        background: transparent;
+        border: none;
+
+        &.k-active {
+          color: var(--cron-accent);
+          background: var(--cron-tab-active-bg);
+          border-bottom: 2px solid var(--cron-tab-active-border);
+        }
+
+        &:hover:not(.k-active) {
+          color: var(--cron-text);
+          background: var(--cron-preview-bg);
+        }
+      }
+    }
+
+    .k-tabstrip-content {
+      background: transparent;
+      border: none;
+      padding: 16px 0;
+    }
+  }
+}
+
+// Tab Content
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  kendo-label {
+    min-width: 80px;
+    font-weight: 500;
+    color: var(--cron-text);
+  }
+
+  kendo-dropdownlist {
+    min-width: 140px;
+  }
+
+  .separator {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--cron-text-secondary);
+  }
+
+  .time-label,
+  .suffix-text {
+    font-size: 0.85rem;
+    color: var(--cron-text-secondary);
+  }
+}
+
+.mode-row {
+  .mode-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    button {
+      transition: all 0.2s ease;
+
+      &.k-selected,
+      &[ng-reflect-selected="true"] {
+        background: var(--cron-accent) !important;
+        border-color: var(--cron-accent) !important;
+        color: white !important;
+      }
+    }
+  }
+}
+
+.days-row {
+  padding-left: 92px; // Align with form label width
+}
+
+.day-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  .day-button {
+    min-width: 48px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+
+    &.k-selected,
+    &[ng-reflect-selected="true"] {
+      background: var(--cron-accent) !important;
+      border-color: var(--cron-accent) !important;
+      color: white !important;
+    }
+  }
+}
+
+.preview-text {
+  font-size: 0.85rem;
+  color: var(--cron-text-secondary);
+
+  code {
+    font-family: var(--cron-font-mono);
+    background: var(--cron-preview-bg);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+}
+
+// Custom Tab
+.custom-tab {
+  .custom-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
+  }
+
+  .custom-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    kendo-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--cron-text-secondary);
+    }
+
+    kendo-textbox {
+      font-family: var(--cron-font-mono);
+    }
+
+    .field-hint {
+      font-size: 0.7rem;
+      color: var(--cron-text-secondary);
+    }
+  }
+
+  .syntax-reference {
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--cron-preview-bg);
+    border-radius: 4px;
+
+    .reference-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--cron-text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .reference-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--cron-text);
+
+      code {
+        font-family: var(--cron-font-mono);
+        background: var(--cron-code-bg);
+        color: var(--cron-code-text);
+        padding: 2px 6px;
+        border-radius: 3px;
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+// Next Executions Section
+.next-executions-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cron-border);
+
+  .next-executions-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--cron-text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .next-executions-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 0.9rem;
+      color: var(--cron-text);
+      font-family: var(--cron-font-mono);
+
+      &::before {
+        content: '▸';
+        color: var(--cron-accent);
+        font-size: 0.75rem;
+      }
+
+      &:not(:last-child) {
+        border-bottom: 1px dashed var(--cron-border);
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 600px) {
+  .cron-builder {
+    padding: 12px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+
+    kendo-label {
+      min-width: auto;
+    }
+  }
+
+  .days-row {
+    padding-left: 0;
+  }
+
+  .time-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    kendo-label {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+  }
+
+  .custom-tab .custom-fields {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 400px) {
+  .custom-tab .custom-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .presets-grid {
+    flex-direction: column;
+
+    .preset-button {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,136 @@
+<div class="time-range-picker">
+  <!-- Range Type Selection -->
+  <div class="picker-field type-field">
+    <kendo-label [text]="mergedLabels().rangeType || 'Range Type'">
+      <kendo-dropdownlist
+        [data]="typeOptions()"
+        [value]="selectedType()"
+        textField="label"
+        valueField="value"
+        [valuePrimitive]="true"
+        (valueChange)="onTypeChange($event)">
+      </kendo-dropdownlist>
+    </kendo-label>
+  </div>
+
+  <!-- Year Selection (for year, quarter, month types) -->
+  @if (isType('year') || isType('quarter') || isType('month')) {
+    <div class="picker-field year-field">
+      <kendo-label [text]="mergedLabels().year || 'Year'">
+        <kendo-dropdownlist
+          [data]="yearOptions()"
+          [value]="selectedYear()"
+          textField="label"
+          valueField="value"
+          [valuePrimitive]="true"
+          (valueChange)="onYearChange($event)">
+        </kendo-dropdownlist>
+      </kendo-label>
+    </div>
+  }
+
+  <!-- Quarter Selection -->
+  @if (isType('quarter')) {
+    <div class="picker-field quarter-field">
+      <kendo-label [text]="mergedLabels().quarter || 'Quarter'">
+        <kendo-dropdownlist
+          [data]="quarterOptions()"
+          [value]="selectedQuarter()"
+          textField="label"
+          valueField="value"
+          [valuePrimitive]="true"
+          (valueChange)="onQuarterChange($event)">
+        </kendo-dropdownlist>
+      </kendo-label>
+    </div>
+  }
+
+  <!-- Month Selection -->
+  @if (isType('month')) {
+    <div class="picker-field month-field">
+      <kendo-label [text]="mergedLabels().month || 'Month'">
+        <kendo-dropdownlist
+          [data]="monthOptions()"
+          [value]="selectedMonth()"
+          textField="label"
+          valueField="value"
+          [valuePrimitive]="true"
+          (valueChange)="onMonthChange($event)">
+        </kendo-dropdownlist>
+      </kendo-label>
+    </div>
+  }
+
+  <!-- Relative Time Selection -->
+  @if (isType('relative')) {
+    <div class="picker-field relative-value-field">
+      <kendo-label [text]="mergedLabels().relativeValue || 'Last'">
+        <kendo-numerictextbox
+          [value]="relativeValue()"
+          [min]="1"
+          [max]="9999"
+          [decimals]="0"
+          [format]="'n0'"
+          [spinners]="true"
+          (valueChange)="onRelativeValueChange($event)">
+        </kendo-numerictextbox>
+      </kendo-label>
+    </div>
+
+    <div class="picker-field relative-unit-field">
+      <kendo-label [text]="mergedLabels().relativeUnit || 'Unit'">
+        <kendo-dropdownlist
+          [data]="relativeUnitOptions()"
+          [value]="relativeUnit()"
+          textField="label"
+          valueField="value"
+          [valuePrimitive]="true"
+          (valueChange)="onRelativeUnitChange($event)">
+        </kendo-dropdownlist>
+      </kendo-label>
+    </div>
+  }
+
+  <!-- Custom Date Range -->
+  @if (isType('custom')) {
+    <div class="picker-field custom-from-field">
+      <kendo-label [text]="mergedLabels().customFrom || 'From'">
+        @if (showTime()) {
+          <kendo-datetimepicker
+            [value]="customFrom()"
+            [min]="minDate()"
+            [max]="customTo()"
+            (valueChange)="onCustomFromChange($event)">
+          </kendo-datetimepicker>
+        } @else {
+          <kendo-datepicker
+            [value]="customFrom()"
+            [min]="minDate()"
+            [max]="customTo()"
+            (valueChange)="onCustomFromChange($event)">
+          </kendo-datepicker>
+        }
+      </kendo-label>
+    </div>
+
+    <div class="picker-field custom-to-field">
+      <kendo-label [text]="mergedLabels().customTo || 'To'">
+        @if (showTime()) {
+          <kendo-datetimepicker
+            [value]="customTo()"
+            [min]="customFrom()"
+            [max]="maxDate()"
+            (valueChange)="onCustomToChange($event)">
+          </kendo-datetimepicker>
+        } @else {
+          <kendo-datepicker
+            [value]="customTo()"
+            [min]="customFrom()"
+            [max]="maxDate()"
+            (valueChange)="onCustomToChange($event)">
+          </kendo-datepicker>
+        }
+      </kendo-label>
+    </div>
+  }
+</div>

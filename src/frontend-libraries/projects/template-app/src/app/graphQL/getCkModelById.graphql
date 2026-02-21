@@ -1,0 +1,16 @@
+query getCkModelById($model: SimpleScalar!) {
+  constructionKit {
+    models(fieldFilter:[{attributePath:"modelState", operator:EQUALS, comparisonValue:"AVAILABLE"}, {attributePath:"modelId", operator:EQUALS, comparisonValue:$model}]) {
+      totalCount
+      items {
+        id {
+          name
+          version
+          fullName
+          semanticVersionedFullName
+        }
+        modelState
+      }
+    }
+  }
+}

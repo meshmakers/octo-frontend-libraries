@@ -1,0 +1,80 @@
+.time-range-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+
+  .picker-field {
+    display: flex;
+    flex-direction: column;
+
+    kendo-label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
+
+  // Field sizing
+  .type-field {
+    min-width: 120px;
+  }
+
+  .year-field {
+    min-width: 100px;
+  }
+
+  .quarter-field {
+    min-width: 140px;
+  }
+
+  .month-field {
+    min-width: 130px;
+  }
+
+  .relative-value-field {
+    min-width: 80px;
+
+    kendo-numerictextbox {
+      width: 100%;
+    }
+  }
+
+  .relative-unit-field {
+    min-width: 100px;
+  }
+
+  .custom-from-field,
+  .custom-to-field {
+    min-width: 150px;
+
+    kendo-datepicker,
+    kendo-datetimepicker {
+      width: 100%;
+    }
+  }
+
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    gap: 0.75rem;
+
+    .picker-field {
+      flex: 1 1 calc(50% - 0.5rem);
+      min-width: 0;
+    }
+
+    .type-field {
+      flex: 1 1 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .picker-field {
+      flex: 1 1 100%;
+      width: 100%;
+    }
+  }
+}

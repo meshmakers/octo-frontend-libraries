@@ -1,0 +1,45 @@
+.mm-copyable-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--kendo-color-subtle, #6c757d);
+  }
+
+  .value-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--theme-bg-elevated, rgba(31, 46, 64, 0.4));
+    border: 1px solid var(--theme-border-subtle, rgba(100, 206, 185, 0.15));
+    border-radius: 4px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      border-color: var(--theme-border-hover, rgba(100, 206, 185, 0.3));
+    }
+
+    .value {
+      flex: 1;
+      font-family: 'Roboto Mono', 'Consolas', 'Monaco', monospace;
+      font-size: 0.875rem;
+      color: var(--theme-text-primary, rgba(255, 255, 255, 0.9));
+      word-break: break-all;
+      user-select: text;
+    }
+
+    .copy-button {
+      flex-shrink: 0;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+}

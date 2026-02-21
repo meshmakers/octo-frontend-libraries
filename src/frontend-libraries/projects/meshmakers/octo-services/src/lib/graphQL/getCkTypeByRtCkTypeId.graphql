@@ -1,0 +1,12 @@
+query getCkTypeByRtCkTypeId($rtCkTypeId: String!){
+  constructionKit{
+    types(rtCkId:$rtCkTypeId){
+      items{
+        ckTypeId{
+          fullName
+        }
+        rtCkTypeId
+      }
+    }
+  }
+}

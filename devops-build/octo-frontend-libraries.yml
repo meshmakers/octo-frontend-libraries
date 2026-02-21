@@ -10,17 +10,11 @@ trigger:
   tags:
     exclude:
       - '*'
-  
+
 variables:
   - group: GitSSHGroup
   - group: ApiKeys-mm-cloud
   - group: OctoDefault
-  - name: artifactsFrameworkVersion
-    value: 'net10.0'
-  - name: buildConfiguration
-    value: 'Release'
-  - name: buildPlatform
-    value: 'Any CPU'
   - name: isRelease
     value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/r') }}
   - name: isMain
@@ -28,45 +22,60 @@ variables:
   - name: isTest
     value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/test') }}
 
-pool:
-  name: meshmakers-ci-agents
+stages:
+  - stage: Build
+    jobs:
+      - job: linux
+        displayName: npm build
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - template: update-build-number.yml
+          - template: set-version.yml
+          - template: setup-telerik-license.yml
+          - template: run-tests.yml
 
-steps:
-- template: update-build-number.yml
-- template: set-version.yml
-- task: Npm@1
-  displayName: npm ci
-  inputs:
-    command: ci
-    workingDir: src/FrontendLibraries/ClientApp/
-    verbose: false
-# Build Tier 1 libraries (dependencies for legacy UI libs, not published from this pipeline)
-- task: Npm@1
-  displayName: npm build shared-services (build only, no publish)
-  inputs:
-    command: custom
-    workingDir: src/FrontendLibraries/ClientApp/
-    verbose: false
-    customCommand: run build:shared-services -- --configuration production
-
-- task: Npm@1
-  displayName: npm build octo-services (build only, no publish)
-  inputs:
-    command: custom
-    workingDir: src/FrontendLibraries/ClientApp/
-    verbose: false
-    customCommand: run build:octo-services -- --configuration production
-# Build and publish legacy UI libraries
-- template: npm-publish-to-npmjs.yml
-  parameters:
-    npmCommand: 'build:shared-ui-legacy'
-    buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
-    publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/shared-ui-legacy'
-    libName: 'shared-ui-legacy'
-- template: npm-publish-to-npmjs.yml
-  parameters:
-    npmCommand: 'build:octo-ui-legacy'
-    buildWorkingDirectory: 'src/FrontendLibraries/ClientApp/'
-    publishWorkingDirectory: 'src/FrontendLibraries/ClientApp/dist/meshmakers/octo-ui-legacy'
-    libName: 'octo-ui-legacy'
-- template: handle-artifacts.yml
+          # Publish @meshmakers/* npm packages (in dependency order)
+          - template: npm-publish-to-npmjs.yml
+            parameters:
+              npmCommand: 'build:shared-services'
+              buildWorkingDirectory: 'src/frontend-libraries'
+              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-services'
+              libName: 'shared-services'
+          - template: npm-publish-to-npmjs.yml
+            parameters:
+              npmCommand: 'build:shared-auth'
+              buildWorkingDirectory: 'src/frontend-libraries'
+              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-auth'
+              libName: 'shared-auth'
+          - template: npm-publish-to-npmjs.yml
+            parameters:
+              npmCommand: 'build:octo-services'
+              buildWorkingDirectory: 'src/frontend-libraries'
+              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-services'
+              libName: 'octo-services'
+          - template: npm-publish-to-npmjs.yml
+            parameters:
+              npmCommand: 'build:shared-ui'
+              buildWorkingDirectory: 'src/frontend-libraries'
+              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-ui'
+              libName: 'shared-ui'
+          - template: npm-publish-to-npmjs.yml
+            parameters:
+              npmCommand: 'build:octo-ui'
+              buildWorkingDirectory: 'src/frontend-libraries'
+              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-ui'
+              libName: 'octo-ui'
+          - template: npm-publish-to-npmjs.yml
+            parameters:
+              npmCommand: 'build:octo-process-diagrams'
+              buildWorkingDirectory: 'src/frontend-libraries'
+              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-process-diagrams'
+              libName: 'octo-process-diagrams'
+          - template: npm-publish-to-npmjs.yml
+            parameters:
+              npmCommand: 'build:octo-meshboard'
+              buildWorkingDirectory: 'src/frontend-libraries'
+              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-meshboard'
+              libName: 'octo-meshboard'
+          - template: handle-artifacts.yml

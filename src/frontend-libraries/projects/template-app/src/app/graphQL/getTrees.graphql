@@ -1,0 +1,25 @@
+query getTrees($ckTypeId: String!) {
+  runtime {
+    runtimeEntities(ckId: $ckTypeId) {
+      items {
+        rtId
+        ckTypeId
+        attributes(attributeNames: ["name", "description"]) {
+          items {
+            attributeName
+            value
+          }
+        }
+        associations {
+          targets(
+            roleId: "System/ParentChild"
+            ckId: "Basic/TreeNode"
+            direction: INBOUND
+          ) {
+            totalCount
+          }
+        }
+      }
+    }
+  }
+}

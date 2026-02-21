@@ -1,0 +1,26 @@
+/* On small screens, the nav menu spans the full width of the screen. Leave a space for it. */
+@media (max-width: 767px) {
+  .body-content {
+    padding-top: 50px;
+  }
+}
+
+mat-sidenav-container {
+  height: 100%;
+}
+
+mat-sidenav-content {
+  height: 100%;
+}
+
+mat-sidenav {
+  height: 100%;
+  width: 320px;
+}
+
+main {
+  padding: 10px;
+  height: 100%;
+}
+
+

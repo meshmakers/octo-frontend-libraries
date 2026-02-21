@@ -1,0 +1,35 @@
+<div class="kpi-widget" [class.loading]="isLoading()" [class.error]="error()">
+  @if (isNotConfigured()) {
+    <mm-widget-not-configured></mm-widget-not-configured>
+  } @else if (isLoading()) {
+    <div class="loading-indicator">
+      <span>...</span>
+    </div>
+  } @else if (error()) {
+    <div class="error-message">
+      <span>{{ error() }}</span>
+    </div>
+  } @else {
+    <div class="kpi-content">
+      <div class="kpi-value-container">
+        @if (config.prefix) {
+          <span class="kpi-prefix">{{ config.prefix }}</span>
+        }
+        <span class="kpi-value">{{ value() }}</span>
+        @if (config.suffix) {
+          <span class="kpi-suffix">{{ config.suffix }}</span>
+        }
+      </div>
+
+      @if (label()) {
+        <div class="kpi-label">{{ label() }}</div>
+      }
+    </div>
+
+    @if (config.trend) {
+      <div class="kpi-trend" [ngClass]="trendClass()">
+        <kendo-svg-icon [icon]="trendIcon()" size="medium"></kendo-svg-icon>
+      </div>
+    }
+  }
+</div>

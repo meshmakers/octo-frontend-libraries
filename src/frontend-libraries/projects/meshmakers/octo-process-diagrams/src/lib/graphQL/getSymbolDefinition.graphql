@@ -1,0 +1,27 @@
+query getSymbolDefinition($rtId: OctoObjectId!) {
+  runtime {
+    systemUISymbolDefinition(rtIds: [$rtId]) {
+      items {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        primitives
+        symbolInstances
+        boundsWidth
+        boundsHeight
+        connectionPoints
+        parameters
+        category
+        tags
+        previewImage
+        gridSize
+        canvasSizeWidth
+        canvasSizeHeight
+        rtCreationDateTime
+        rtChangedDateTime
+      }
+    }
+  }
+}

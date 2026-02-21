@@ -1,0 +1,36 @@
+query getDashboardWithWidgets($rtId: OctoObjectId!) {
+  runtime {
+    systemUIDashboard(rtId: $rtId, first: 1) {
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        name
+        description
+        columns
+        rowHeight
+        gap
+        rtCreationDateTime
+        rtChangedDateTime
+        children(first: 100, ckTypeIds: ["System.UI/DashboardWidget"]) {
+          items {
+            ... on SystemUIDashboardWidget {
+              rtId
+              ckTypeId
+              name
+              type
+              col
+              row
+              colSpan
+              rowSpan
+              dataSourceType
+              dataSourceCkTypeId
+              dataSourceRtId
+              config
+            }
+          }
+        }
+      }
+    }
+  }
+}

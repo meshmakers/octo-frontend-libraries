@@ -1,0 +1,310 @@
+{
+  "name": "Primitive Creation Tests",
+  "description": "Tests for creating primitives in the Symbol Editor",
+  "setup": {
+    "baseUrl": "https://localhost:4201",
+    "tenantId": "meshtest",
+    "navigateTo": "symbol-library",
+    "waitFor": "Symbol Libraries"
+  },
+  "helpers": {
+    "navigateToSymbolEditor": [
+      { "action": "comment", "text": "Navigate to symbol library list" },
+      { "action": "navigate", "url": "{{baseUrl}}/{{tenantId}}/symbol-library" },
+      { "action": "wait", "for": "Symbol Libraries", "timeout": 5000 },
+      { "action": "comment", "text": "Click on first library to open it" },
+      { "action": "click", "target": { "selector": "kendo-grid-list tr.k-grid-table-row" } },
+      { "action": "wait", "for": 1000 },
+      { "action": "comment", "text": "Click on first symbol to edit" },
+      { "action": "click", "target": { "text": "Edit" } },
+      { "action": "wait", "for": "process-designer", "timeout": 5000 }
+    ],
+    "createNewSymbol": [
+      { "action": "navigate", "url": "{{baseUrl}}/{{tenantId}}/symbol-library" },
+      { "action": "wait", "for": "Symbol Libraries", "timeout": 5000 },
+      { "action": "click", "target": { "selector": "kendo-grid-list tr.k-grid-table-row" } },
+      { "action": "wait", "for": 1000 },
+      { "action": "click", "target": { "text": "New Symbol" } },
+      { "action": "wait", "for": 500 },
+      { "action": "type", "target": { "selector": "input[placeholder*='name']" }, "value": "Test Symbol {{timestamp}}" },
+      { "action": "click", "target": { "text": "Create" } },
+      { "action": "wait", "for": "process-designer", "timeout": 5000 }
+    ]
+  },
+  "tests": [
+    {
+      "name": "TC001: Verify element palette is visible",
+      "description": "Check that the element palette with all primitive types is displayed",
+      "steps": [
+        { "action": "runHelper", "helper": "navigateToSymbolEditor" },
+        { "action": "screenshot", "name": "symbol-editor-loaded" },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "testId": "element-palette" },
+          "message": "Element palette should be visible"
+        },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "testId": "palette-element-rectangle" },
+          "message": "Rectangle tool should be available"
+        },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "testId": "palette-element-ellipse" },
+          "message": "Ellipse tool should be available"
+        },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "testId": "palette-element-line" },
+          "message": "Line tool should be available"
+        },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "testId": "palette-element-text" },
+          "message": "Text tool should be available"
+        }
+      ]
+    },
+    {
+      "name": "TC002: Create Rectangle by drag and drop",
+      "description": "Drag a rectangle from palette onto canvas and verify it's created",
+      "steps": [
+        { "action": "runHelper", "helper": "createNewSymbol" },
+        { "action": "screenshot", "name": "before-rectangle-drop" },
+        {
+          "action": "comment",
+          "text": "Get canvas position for drop target"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 200, y: rect.top + 200 }; }",
+          "storeAs": "canvasCenter"
+        },
+        {
+          "action": "drag",
+          "from": { "testId": "palette-element-rectangle" },
+          "to": { "coordinates": "{{canvasCenter}}" }
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "screenshot", "name": "after-rectangle-drop" },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" },
+          "message": "Rectangle primitive should be created on canvas"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('[data-testid^=\"primitive-rectangle-\"]').length",
+          "storeAs": "rectangleCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{rectangleCount}}",
+          "expected": 1,
+          "message": "Should have exactly 1 rectangle"
+        }
+      ]
+    },
+    {
+      "name": "TC003: Create Ellipse by drag and drop",
+      "description": "Drag an ellipse from palette onto canvas and verify it's created",
+      "steps": [
+        { "action": "runHelper", "helper": "createNewSymbol" },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 200, y: rect.top + 200 }; }",
+          "storeAs": "canvasCenter"
+        },
+        {
+          "action": "drag",
+          "from": { "testId": "palette-element-ellipse" },
+          "to": { "coordinates": "{{canvasCenter}}" }
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "screenshot", "name": "after-ellipse-drop" },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "selector": "[data-testid^='primitive-ellipse-']" },
+          "message": "Ellipse primitive should be created on canvas"
+        }
+      ]
+    },
+    {
+      "name": "TC004: Create Line by drag and drop",
+      "description": "Drag a line from palette onto canvas and verify it's created",
+      "steps": [
+        { "action": "runHelper", "helper": "createNewSymbol" },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 200, y: rect.top + 200 }; }",
+          "storeAs": "canvasCenter"
+        },
+        {
+          "action": "drag",
+          "from": { "testId": "palette-element-line" },
+          "to": { "coordinates": "{{canvasCenter}}" }
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "screenshot", "name": "after-line-drop" },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "selector": "[data-testid^='primitive-line-']" },
+          "message": "Line primitive should be created on canvas"
+        }
+      ]
+    },
+    {
+      "name": "TC005: Create Text by drag and drop",
+      "description": "Drag a text element from palette onto canvas and verify it's created",
+      "steps": [
+        { "action": "runHelper", "helper": "createNewSymbol" },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 200, y: rect.top + 200 }; }",
+          "storeAs": "canvasCenter"
+        },
+        {
+          "action": "drag",
+          "from": { "testId": "palette-element-text" },
+          "to": { "coordinates": "{{canvasCenter}}" }
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "screenshot", "name": "after-text-drop" },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "selector": "[data-testid^='primitive-text-']" },
+          "message": "Text primitive should be created on canvas"
+        }
+      ]
+    },
+    {
+      "name": "TC006: Create multiple primitives",
+      "description": "Create multiple primitives and verify they all exist",
+      "steps": [
+        { "action": "runHelper", "helper": "createNewSymbol" },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 100, y: rect.top + 100 }; }",
+          "storeAs": "pos1"
+        },
+        {
+          "action": "drag",
+          "from": { "testId": "palette-element-rectangle" },
+          "to": { "coordinates": "{{pos1}}" }
+        },
+        { "action": "wait", "for": 300 },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 250, y: rect.top + 100 }; }",
+          "storeAs": "pos2"
+        },
+        {
+          "action": "drag",
+          "from": { "testId": "palette-element-ellipse" },
+          "to": { "coordinates": "{{pos2}}" }
+        },
+        { "action": "wait", "for": 300 },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 175, y: rect.top + 250 }; }",
+          "storeAs": "pos3"
+        },
+        {
+          "action": "drag",
+          "from": { "testId": "palette-element-text" },
+          "to": { "coordinates": "{{pos3}}" }
+        },
+        { "action": "wait", "for": 500 },
+        { "action": "screenshot", "name": "multiple-primitives" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "primitiveCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{primitiveCount}}",
+          "expected": 3,
+          "message": "Should have 3 primitives on canvas"
+        }
+      ]
+    },
+    {
+      "name": "TC007: Verify no console errors after primitive creation",
+      "description": "Ensure no JavaScript errors occur when creating primitives",
+      "steps": [
+        { "action": "runHelper", "helper": "createNewSymbol" },
+        {
+          "action": "evaluate",
+          "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 200, y: rect.top + 200 }; }",
+          "storeAs": "canvasCenter"
+        },
+        {
+          "action": "drag",
+          "from": { "testId": "palette-element-rectangle" },
+          "to": { "coordinates": "{{canvasCenter}}" }
+        },
+        { "action": "wait", "for": 500 },
+        {
+          "action": "assert",
+          "type": "noConsoleErrors",
+          "message": "No console errors should occur"
+        }
+      ]
+    },
+    {
+      "name": "TC008: Search for elements in palette",
+      "description": "Test the palette search functionality",
+      "steps": [
+        { "action": "runHelper", "helper": "navigateToSymbolEditor" },
+        {
+          "action": "type",
+          "target": { "testId": "palette-search-input" },
+          "value": "rect"
+        },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "search-rect" },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "testId": "palette-element-rectangle" },
+          "message": "Rectangle should be visible in filtered results"
+        },
+        {
+          "action": "assert",
+          "type": "notExists",
+          "target": { "testId": "palette-element-ellipse" },
+          "message": "Ellipse should be hidden when searching for 'rect'"
+        },
+        {
+          "action": "comment",
+          "text": "Clear search"
+        },
+        {
+          "action": "type",
+          "target": { "testId": "palette-search-input" },
+          "value": "",
+          "clear": true
+        },
+        { "action": "wait", "for": 300 },
+        {
+          "action": "assert",
+          "type": "exists",
+          "target": { "testId": "palette-element-ellipse" },
+          "message": "Ellipse should be visible again after clearing search"
+        }
+      ]
+    }
+  ]
+}

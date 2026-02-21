@@ -1,0 +1,6 @@
+{
+  "adminUri": "${ADMIN_PANEL_URI}",
+  "clientId": "${CLIENT_ID}",
+  "redirectUri": "${APP_URI}",
+  "postLogoutRedirectUri": "${APP_URI}"
+}

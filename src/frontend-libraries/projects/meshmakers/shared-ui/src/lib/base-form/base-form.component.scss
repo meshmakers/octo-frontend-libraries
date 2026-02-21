@@ -1,0 +1,335 @@
+// ============================================================================
+// BASE FORM COMPONENT - Theme-agnostic styling
+// Uses CSS custom properties that can be overridden by any theme
+// ============================================================================
+
+// Define semantic form variables with Kendo fallbacks
+// Themes can override these in :root or .mm-base-form-container
+:host {
+  // Surface colors
+  --mm-form-bg: var(--kendo-color-surface);
+  --mm-form-bg-alt: var(--kendo-color-surface-alt);
+  --mm-form-bg-elevated: var(--kendo-color-surface-alt);
+
+  // Border colors
+  --mm-form-border: var(--kendo-color-border);
+  --mm-form-border-subtle: var(--kendo-color-border-alt, var(--mm-form-border));
+
+  // Text colors
+  --mm-form-text: var(--kendo-color-on-app-surface);
+  --mm-form-text-subtle: var(--kendo-color-subtle);
+  --mm-form-text-label: var(--kendo-color-on-app-surface);
+
+  // Accent colors
+  --mm-form-accent: var(--kendo-color-primary);
+  --mm-form-error: var(--kendo-color-error);
+
+  // Status colors (LCARS-inspired)
+  --mm-form-status-ready: #37b400;
+  --mm-form-status-modified: #da9162;
+
+  // Spacing
+  --mm-form-padding: 1.5rem;
+  --mm-form-padding-sm: 1rem;
+  --mm-form-gap: 0.5rem;
+
+  // Border radius
+  --mm-form-radius: 4px;
+
+  // Shadows
+  --mm-form-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+
+  // Loading overlay
+  --mm-form-overlay-bg: var(--kendo-color-surface);
+}
+
+.mm-base-form-container {
+  padding: var(--mm-form-padding);
+  height: 100%;
+  overflow: auto;
+
+  .mm-form-wrapper {
+    margin: 0 auto;
+  }
+
+  // ========================================
+  // Card mode styling
+  // ========================================
+  &.with-card {
+    .mm-form-wrapper {
+      background: var(--mm-form-bg);
+      border: 1px solid var(--mm-form-border);
+      border-radius: var(--mm-form-radius);
+      box-shadow: var(--mm-form-shadow);
+    }
+
+    .mm-form-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: var(--mm-form-padding-sm) var(--mm-form-padding);
+      border-bottom: 1px solid var(--mm-form-border);
+      background: var(--mm-form-bg-alt);
+    }
+
+    .mm-form-body {
+      padding: var(--mm-form-padding);
+    }
+
+    .mm-form-actions {
+      padding: var(--mm-form-padding-sm) var(--mm-form-padding);
+      border-top: 1px solid var(--mm-form-border);
+      background: var(--mm-form-bg-alt);
+    }
+  }
+
+  // ========================================
+  // No card mode styling
+  // ========================================
+  &.without-card {
+    .mm-form-wrapper {
+      max-width: 1200px;
+    }
+
+    .mm-form-title-standalone {
+      margin-bottom: var(--mm-form-padding);
+    }
+
+    .mm-form-actions {
+      margin-top: var(--mm-form-padding);
+      padding-top: var(--mm-form-padding);
+      border-top: 1px solid var(--mm-form-border);
+    }
+  }
+
+  // ========================================
+  // Common elements
+  // ========================================
+  .mm-form-title-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .mm-form-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0;
+    color: var(--mm-form-text);
+  }
+
+  .mm-modified-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--mm-form-status-modified);
+    background: rgba(218, 145, 98, 0.15);
+    border: 1px solid rgba(218, 145, 98, 0.4);
+    border-radius: var(--mm-form-radius);
+    animation: pulse-badge 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-badge {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .mm-form-body {
+    position: relative;
+    min-height: 100px;
+  }
+
+  .mm-form-actions {
+    display: flex;
+    gap: var(--mm-form-gap);
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mm-form-status {
+    display: flex;
+    align-items: center;
+  }
+
+  .mm-status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(55, 180, 0, 0.1);
+    border: 1px solid rgba(55, 180, 0, 0.3);
+    border-radius: var(--mm-form-radius);
+
+    .mm-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--mm-form-status-ready);
+      box-shadow: 0 0 8px rgba(55, 180, 0, 0.6);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    .mm-status-text {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--mm-form-status-ready);
+      text-transform: uppercase;
+    }
+
+    &.modified {
+      background: rgba(218, 145, 98, 0.1);
+      border-color: rgba(218, 145, 98, 0.3);
+
+      .mm-status-dot {
+        background: var(--mm-form-status-modified);
+        box-shadow: 0 0 8px rgba(218, 145, 98, 0.6);
+      }
+
+      .mm-status-text {
+        color: var(--mm-form-status-modified);
+      }
+    }
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .mm-form-buttons {
+    display: flex;
+    gap: var(--mm-form-gap);
+
+    button {
+      min-width: 100px;
+    }
+  }
+
+  // ========================================
+  // Loading overlay
+  // ========================================
+  .mm-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--mm-form-overlay-bg);
+    opacity: 0.95;
+    z-index: 10;
+
+    p {
+      margin-top: 1rem;
+      color: var(--mm-form-text-subtle);
+      font-size: 1rem;
+    }
+  }
+}
+
+// ============================================================================
+// Global styles for form elements inside mm-base-form
+// Using ::ng-deep for child component styling
+// ============================================================================
+::ng-deep {
+  .mm-base-form-container {
+    // Fieldset styling
+    fieldset[kendoformfieldset],
+    .k-form-fieldset {
+      border: 1px solid var(--mm-form-border);
+      border-radius: var(--mm-form-radius);
+      padding: var(--mm-form-padding);
+      margin: 0;
+      background: var(--mm-form-bg-alt);
+
+      legend,
+      .k-form-legend {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: var(--mm-form-accent);
+        padding: 0 0.5rem;
+      }
+    }
+
+    // Form field styling
+    kendo-formfield,
+    .k-form-field {
+      kendo-label,
+      .k-label {
+        font-weight: 500;
+        color: var(--mm-form-text-label);
+        margin-bottom: 0.25rem;
+
+        .k-required {
+          color: var(--mm-form-error);
+        }
+      }
+
+      // All input elements full width
+      kendo-textbox,
+      kendo-numerictextbox,
+      kendo-textarea,
+      kendo-datepicker,
+      kendo-datetimepicker,
+      kendo-timepicker,
+      kendo-dropdownlist,
+      kendo-combobox,
+      kendo-multiselect,
+      kendo-autocomplete {
+        width: 100%;
+      }
+
+      // Hint styling
+      kendo-formhint,
+      .k-form-hint {
+        color: var(--mm-form-text-subtle);
+        font-size: 0.875rem;
+      }
+
+      // Error styling
+      kendo-formerror,
+      .k-form-error {
+        color: var(--mm-form-error);
+        font-size: 0.875rem;
+      }
+    }
+
+    // Status indicators
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--mm-form-radius);
+      font-size: 0.875rem;
+
+      &.success {
+        background-color: var(--kendo-color-success-subtle);
+        color: var(--kendo-color-success-on-subtle);
+      }
+
+      &.warning {
+        background-color: var(--kendo-color-warning-subtle);
+        color: var(--kendo-color-warning-on-subtle);
+      }
+
+      &.error {
+        background-color: var(--kendo-color-error-subtle);
+        color: var(--kendo-color-error-on-subtle);
+      }
+
+      &.info {
+        background-color: var(--kendo-color-info-subtle);
+        color: var(--kendo-color-info-on-subtle);
+      }
+    }
+  }
+}

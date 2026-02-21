@@ -1,0 +1,229 @@
+<div class="meshboard-view">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="k-loading-mask">
+        <span class="k-loading-text">Loading MeshBoard...</span>
+        <div class="k-loading-image"></div>
+        <div class="k-loading-color"></div>
+      </div>
+    </div>
+  } @else if (isModelAvailable() === false) {
+    <div class="model-unavailable">
+      <div class="message-card">
+        <kendo-svg-icon [icon]="xIcon" size="xlarge"></kendo-svg-icon>
+        <h2>MeshBoard Not Available</h2>
+        <p>The MeshBoard feature requires the CK model 'System.UI' version 1.0.1 or higher.</p>
+        <p>Please install the required model in your tenant to use this feature.</p>
+      </div>
+    </div>
+  } @else if (notFoundError()) {
+    <div class="model-unavailable">
+      <div class="message-card">
+        <kendo-svg-icon [icon]="xIcon" size="xlarge"></kendo-svg-icon>
+        <h2>MeshBoard Not Found</h2>
+        <p>{{ notFoundError() }}</p>
+        <p>To create a MeshBoard with a Well-Known Name:</p>
+        <ol>
+          <li>Go to the <a [routerLink]="meshBoardPageLink()">MeshBoard</a> page</li>
+          <li>Open Settings</li>
+          <li>Set the "Well-Known Name" field</li>
+          <li>Save the MeshBoard</li>
+        </ol>
+      </div>
+    </div>
+  } @else if (isInitialized()) {
+    <!-- Toolbar -->
+    <div class="meshboard-toolbar">
+      <div class="toolbar-left">
+        <h2 class="meshboard-title">{{ config().name }}</h2>
+        @if (config().description) {
+          <span class="meshboard-description">{{ config().description }}</span>
+        }
+      </div>
+
+      <!-- Time Filter (center) -->
+      @if (isTimeFilterEnabled()) {
+        <div class="toolbar-center">
+          <mm-time-range-picker
+            [config]="timeFilterConfig()?.pickerConfig ?? {}"
+            [initialSelection]="initialTimeSelection()"
+            (rangeChange)="onTimeRangeChange($event)"
+            (selectionChange)="onTimeSelectionChange($event)">
+          </mm-time-range-picker>
+        </div>
+      }
+
+      <div class="toolbar-right">
+        <!-- Manager Button (icon only) -->
+        <button
+          kendoButton
+          [svgIcon]="gridLayoutIcon"
+          (click)="openManager()"
+          title="Manage MeshBoards"
+          fillMode="flat">
+        </button>
+
+        <!-- Settings Button (icon only) -->
+        <button
+          kendoButton
+          [svgIcon]="gearIcon"
+          (click)="openSettings()"
+          title="MeshBoard Settings"
+          fillMode="flat">
+        </button>
+
+        <!-- Refresh Button (icon only) -->
+        <button
+          kendoButton
+          [svgIcon]="arrowRotateCwIcon"
+          (click)="refresh()"
+          title="Refresh All Widgets"
+          fillMode="flat">
+        </button>
+
+        <!-- Edit Mode Toggle (icon only) -->
+        @if (!isEditMode()) {
+          <button
+            kendoButton
+            [svgIcon]="pencilIcon"
+            (click)="toggleEditMode()"
+            title="Enter Edit Mode"
+            fillMode="flat">
+          </button>
+        } @else {
+          <button
+            kendoButton
+            [svgIcon]="xIcon"
+            (click)="cancelEdit()"
+            title="Cancel Edit Mode"
+            fillMode="flat">
+          </button>
+        }
+
+        <!-- Add Widget Button (with text) -->
+        <button
+          kendoButton
+          [svgIcon]="plusIcon"
+          (click)="openAddWidget()"
+          title="Add Widget"
+          fillMode="flat"
+          themeColor="primary">
+          Add Widget
+        </button>
+
+        <!-- Save Button (with text) -->
+        @if (canSave()) {
+          <button
+            kendoButton
+            [svgIcon]="saveIcon"
+            (click)="save()"
+            [disabled]="isSaving()"
+            title="Save MeshBoard"
+            fillMode="solid"
+            themeColor="primary">
+            {{ isSaving() ? 'Saving...' : 'Save' }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- MeshBoard Grid -->
+    @if (hasWidgets()) {
+      <kendo-tilelayout
+        [columns]="config().columns"
+        [rowHeight]="config().rowHeight"
+        [gap]="config().gap"
+        [resizable]="isEditMode()"
+        [reorderable]="isEditMode()"
+        (reorder)="onReorder($event)"
+        (resize)="onResize($event)">
+        @for (widget of config().widgets; track trackByWidgetId($index, widget)) {
+          <kendo-tilelayout-item
+            [col]="widget.col"
+            [row]="widget.row"
+            [colSpan]="widget.colSpan"
+            [rowSpan]="widget.rowSpan">
+            <kendo-tilelayout-item-header>
+              <div class="widget-header" [class.unconfigured]="isWidgetUnconfigured(widget)">
+                <span class="widget-title">{{ widget.title }}</span>
+                @if (isWidgetUnconfigured(widget) && !isEditMode()) {
+                  <span class="unconfigured-badge" title="Widget needs configuration">!</span>
+                }
+                @if (isEditMode()) {
+                  <div class="widget-actions">
+                    @if (supportsConfiguration(widget)) {
+                      <button
+                        kendoButton
+                        [svgIcon]="linkIcon"
+                        (click)="openWidgetConfig(widget)"
+                        fillMode="flat"
+                        size="small"
+                        class="config-widget-btn"
+                        [class.needs-config]="isWidgetUnconfigured(widget)"
+                        [title]="isWidgetUnconfigured(widget) ? 'Configure data source (required)' : 'Configure data source'">
+                      </button>
+                    }
+                    <button
+                      kendoButton
+                      [svgIcon]="gearIcon"
+                      (click)="openEditWidgetDialog(widget)"
+                      fillMode="flat"
+                      size="small"
+                      class="edit-widget-btn"
+                      title="Edit position">
+                    </button>
+                    <button
+                      kendoButton
+                      [svgIcon]="trashIcon"
+                      (click)="removeWidget(widget.id)"
+                      fillMode="flat"
+                      size="small"
+                      class="remove-widget-btn"
+                      title="Delete widget">
+                    </button>
+                  </div>
+                }
+              </div>
+            </kendo-tilelayout-item-header>
+            <kendo-tilelayout-item-body>
+              @if (getWidgetComponentType(widget.type); as componentType) {
+                <ng-container *ngComponentOutlet="componentType; inputs: { config: widget }"></ng-container>
+              } @else {
+                <div class="widget-error">
+                  <p>Unknown widget type: {{ widget.type }}</p>
+                </div>
+              }
+            </kendo-tilelayout-item-body>
+          </kendo-tilelayout-item>
+        }
+      </kendo-tilelayout>
+    } @else {
+      <div class="empty-state">
+        <div class="empty-state-content">
+          <kendo-svg-icon [icon]="plusIcon" size="xlarge"></kendo-svg-icon>
+          <h3>No Widgets</h3>
+          <p>Get started by adding widgets to your MeshBoard.</p>
+          <button
+            kendoButton
+            [svgIcon]="plusIcon"
+            (click)="openAddWidget()"
+            themeColor="primary">
+            Add Your First Widget
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Edit Widget Dialog -->
+    @if (showEditWidgetDialog && editingWidget) {
+      <mm-edit-widget-dialog
+        [widget]="editingWidget"
+        [widgets]="config().widgets"
+        [maxColumns]="config().columns"
+        [gridService]="gridService"
+        (save)="onEditWidgetSave($event)"
+        (cancelled)="closeEditWidgetDialog()">
+      </mm-edit-widget-dialog>
+    }
+  }
+</div>

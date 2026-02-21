@@ -1,0 +1,196 @@
+.associations-widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  &.no-data {
+    justify-content: center;
+    align-items: center;
+    color: var(--kendo-color-subtle, #6c757d);
+  }
+}
+
+// Entity Header
+.entity-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--kendo-color-surface-alt, #f8f9fa);
+  border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
+
+  .entity-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    background: var(--kendo-color-primary, #0d6efd);
+    color: var(--kendo-color-on-primary, #fff);
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .entity-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .entity-id {
+    font-size: 0.75rem;
+    color: var(--kendo-color-subtle, #6c757d);
+    font-family: monospace;
+  }
+}
+
+// Associations Container
+.associations-container {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// Association Group
+.association-group {
+  border: 1px solid var(--kendo-color-border, #dee2e6);
+  border-radius: 4px;
+  overflow: hidden;
+
+  &.expanded {
+    .group-header {
+      border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
+    }
+  }
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--kendo-color-surface-alt, #f8f9fa);
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover {
+      background: var(--kendo-color-surface, #ffffff);
+    }
+  }
+}
+
+.direction-indicator {
+  color: var(--kendo-color-subtle, #6c757d);
+  display: flex;
+  align-items: center;
+  width: 20px;
+}
+
+.group-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  font-size: 0.8125rem;
+
+  .role-name {
+    color: var(--kendo-color-subtle, #6c757d);
+    font-style: italic;
+  }
+
+  .target-type {
+    font-weight: 500;
+    color: var(--kendo-color-on-surface, #212529);
+  }
+
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--kendo-color-primary, #0d6efd);
+    color: var(--kendo-color-on-primary, #fff);
+    border-radius: 10px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+}
+
+.expand-icon {
+  color: var(--kendo-color-subtle, #6c757d);
+  display: flex;
+  align-items: center;
+}
+
+// Target List (expanded)
+.target-list {
+  padding: 4px 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.target-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 6px 40px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--kendo-color-surface-alt, #f8f9fa);
+  }
+
+  .target-id {
+    font-family: monospace;
+    color: var(--kendo-color-on-surface, #212529);
+  }
+
+  .target-type-hint {
+    font-size: 0.6875rem;
+    color: var(--kendo-color-subtle, #6c757d);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
+  }
+}
+
+// Summary Footer
+.associations-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--kendo-color-surface-alt, #f8f9fa);
+  border-top: 1px solid var(--kendo-color-border, #dee2e6);
+  font-size: 0.75rem;
+  color: var(--kendo-color-subtle, #6c757d);
+}
+
+.no-data-message {
+  font-size: 0.875rem;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--kendo-color-subtle, #6c757d);
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--kendo-color-error, #dc3545);
+}

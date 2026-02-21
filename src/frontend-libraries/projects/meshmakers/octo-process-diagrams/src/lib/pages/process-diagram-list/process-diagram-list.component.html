@@ -1,0 +1,28 @@
+<div class="process-diagram-list-container">
+  <mm-list-view
+    mmProcessDiagramDataSource
+    #dir="mmProcessDiagramDataSource"
+    [sortable]="true"
+    [searchTextBoxEnabled]="true"
+    [selectable]="{mode: 'multiple', enabled: true}"
+    [pageable]="{buttonCount: 3, pageSizes: [10, 20, 50, 100]}"
+    [pageSize]="20"
+    [columns]="[
+      {field: 'name', displayName: 'Name', dataType: 'text'},
+      {field: 'description', displayName: 'Description', dataType: 'text'},
+      {field: 'version', displayName: 'Version', dataType: 'text'},
+      {field: 'canvasWidth', displayName: 'Width', dataType: 'numeric'},
+      {field: 'canvasHeight', displayName: 'Height', dataType: 'numeric'}
+    ]"
+    [actionCommandItems]="[
+      {id: 'edit', type:'link', text: 'Edit', svgIcon: editIcon, onClick: onEditClick}
+    ]"
+    [leftToolbarActions]="[
+      {id: 'new', type:'link', text: 'New Diagram', svgIcon: plusIcon, onClick: onNewDiagram}
+    ]"
+    [contextMenuCommandItems]="[
+      {id: 'delete', type:'link', text: 'Delete', onClick: onDeleteClick, svgIcon: deleteIcon}
+    ]"
+    (rowClicked)="onRowClick($event)">
+  </mm-list-view>
+</div>

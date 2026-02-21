@@ -1,0 +1,30 @@
+<div
+  class="file-upload-wrapper"
+  [class.success]="uploadSuccess"
+  [class.error]="uploadError"
+  (drop)="onFileDrop($event)"
+  (dragover)="onDragOver($event)"
+>
+  <input type="file" accept="{{fileExtensions}}" (change)="onFileChange($event)" hidden #fileInput/>
+  <div class="file-dropper" (click)="fileInput.click()">
+    <kendo-svgicon [icon]="upload" size="xxxlarge"></kendo-svgicon>
+    <p>{{ message }}</p>
+    <div *ngIf="fileName()">
+      <div *ngIf="selectedFile">
+        <p>
+          <span class="image-name">{{ fileName() }}</span> ({{
+            fileSize()
+          }} KB)
+        </p>
+        <kendo-svgicon class="delete-icon" [icon]="deleteIcon" size="xlarge"></kendo-svgicon>
+      </div>
+    </div>
+  </div>
+</div>
+<kendo-dialog-actions>
+  <button kendoButton (click)="onOk()" [disabled]="!selectedFile" themeColor="primary">Upload</button>
+  <button kendoButton (click)="onCancel()">Cancel</button>
+</kendo-dialog-actions>
+
+
+

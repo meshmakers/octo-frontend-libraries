@@ -1,0 +1,26 @@
+# Template: Setup Telerik/Kendo UI License
+#
+# This template downloads the Telerik license from Azure DevOps Secure Files
+# and sets the TELERIK_LICENSE environment variable for subsequent steps.
+#
+# Prerequisites:
+#   - Upload 'telerik-license.txt' to Azure DevOps Secure Files
+#     (Project Settings -> Pipelines -> Library -> Secure Files)
+#
+# Usage in pipeline:
+#   - template: setup-telerik-license.yml
+
+steps:
+  - task: DownloadSecureFile@1
+    name: TelerikLicenseFile
+    displayName: 'Download Telerik License'
+    inputs:
+      secureFile: 'telerik-license.txt'
+
+  - task: CmdLine@2
+    displayName: 'Set TELERIK_LICENSE environment variable'
+    inputs:
+      script: |
+        LICENSE_CONTENT=$(cat "$(TelerikLicenseFile.secureFilePath)")
+        echo "##vso[task.setvariable variable=TELERIK_LICENSE;issecret=true]$LICENSE_CONTENT"
+        echo "Telerik license loaded from secure file"

@@ -1,0 +1,18 @@
+query getCkTypeAttributes($ckTypeId: String!, $first: Int) {
+  constructionKit {
+    types(ckId: $ckTypeId) {
+      items {
+        ckTypeId {
+          fullName
+        }
+        rtCkTypeId
+        attributes(first: $first) {
+          items {
+            attributeName
+            attributeValueType
+          }
+        }
+      }
+    }
+  }
+}

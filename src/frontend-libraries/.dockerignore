@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+dist/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Angular cache
+.angular/
+
+# Test & Coverage
+coverage/
+*.spec.ts
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation (not needed for build)
+*.md
+!README.md
+
+# Local environment
+.env
+.env.local

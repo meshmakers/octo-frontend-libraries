@@ -1,0 +1,64 @@
+.progress-content {
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  .progress-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      box-sizing: border-box;
+      max-width: 100%;
+    }
+
+    .status-text {
+      margin: 0;
+      font-size: 14px;
+      color: var(--kendo-color-on-app-surface);
+      text-align: center;
+      min-height: 20px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  
+  .k-dialog-titlebar {
+    background-color: var(--kendo-color-primary);
+    color: var(--kendo-color-on-primary);
+  }
+  
+  // Ensure kendo dialog actions don't overflow
+  kendo-dialog-actions {
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+}
+
+// Global CSS class to hide close button for progress windows
+::ng-deep .mm-progress-window-no-close .k-window-titlebar-action {
+  display: none !important;
+}
+
+::ng-deep .mm-progress-window-no-close .k-dialog-titlebar-action {
+  display: none !important;
+}
+
+::ng-deep .mm-progress-window-no-close .k-window-titlebar-actions {
+  display: none !important;
+}

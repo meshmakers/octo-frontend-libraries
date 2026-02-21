@@ -1,0 +1,66 @@
+<div class="dialog-demos">
+  <h3>File & Confirmation Dialogs</h3>
+  <div class="button-group">
+    <button kendoButton (click)="onUploadClick()">Upload</button>
+    <button kendoButton (click)="onOkClick()">Ok</button>
+    <button kendoButton (click)="onOkCancelClick()">Ok Cancel</button>
+    <button kendoButton (click)="onYesNoClick()">Yes No</button>
+    <button kendoButton (click)="onYesNoCancelClick()">Yes No Cancel</button>
+  </div>
+
+  <h3>Progress Windows</h3>
+  <div class="button-group">
+    <button kendoButton (click)="onDeterminateProgressClick()" themeColor="primary">
+      Determinate Progress
+    </button>
+    <button kendoButton (click)="onIndeterminateProgressClick()" themeColor="secondary">
+      Indeterminate Progress
+    </button>
+    <button kendoButton (click)="onLongRunningProgressClick()" themeColor="info">
+      Long Running Task
+    </button>
+  </div>
+
+  <h3>Save As Dialog</h3>
+  <div class="button-group">
+    <button kendoButton (click)="onSaveAsSimpleClick()">
+      Save As (Simple)
+    </button>
+    <button kendoButton (click)="onSaveAsWithValidationClick()" themeColor="primary">
+      Save As (With Validation)
+    </button>
+  </div>
+  <div class="result-display" *ngIf="lastSaveAsResult">
+    <strong>Last Save As Result:</strong>
+    <span *ngIf="lastSaveAsResult.confirmed">
+      Saved as "{{ lastSaveAsResult.name }}"
+    </span>
+    <span *ngIf="!lastSaveAsResult.confirmed">
+      Cancelled
+    </span>
+  </div>
+  <div class="info-box">
+    <strong>Note:</strong> The "With Validation" dialog uses a demo data source that checks for existing names.
+    Try entering: "document", "report", "backup", "config", or "settings" to see the validation error.
+  </div>
+
+  <h3>Save As Dialog with GraphQL</h3>
+  <div class="button-group">
+    <button kendoButton (click)="onSaveAsWithGraphQLClick()" themeColor="info">
+      Save As (GraphQL - Customer Last Name)
+    </button>
+  </div>
+  <div class="result-display" *ngIf="lastGraphQLSaveAsResult">
+    <strong>Last GraphQL Save As Result:</strong>
+    <span *ngIf="lastGraphQLSaveAsResult.confirmed">
+      Saved as "{{ lastGraphQLSaveAsResult.name }}"
+    </span>
+    <span *ngIf="!lastGraphQLSaveAsResult.confirmed">
+      Cancelled
+    </span>
+  </div>
+  <div class="info-box">
+    <strong>Note:</strong> This dialog uses a GraphQL query to check if a customer with the entered last name already exists in OctoMesh.
+    Try entering an existing customer's last name to see the validation error.
+  </div>
+</div>

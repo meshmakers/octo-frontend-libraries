@@ -1,0 +1,7 @@
+query getCkAttributesCount {
+  constructionKit {
+    attributes {
+      totalCount
+    }
+  }
+}

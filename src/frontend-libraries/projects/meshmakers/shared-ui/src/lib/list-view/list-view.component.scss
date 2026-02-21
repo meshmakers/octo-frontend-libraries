@@ -1,0 +1,120 @@
+.status-icons-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  .status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+
+    kendo-svg-icon {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.cron-expression-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .cron-expression {
+    font-family: 'Roboto Mono', 'Consolas', monospace;
+    font-size: 0.85em;
+    background: var(--mm-cron-code-bg, #eeeeee);
+    color: var(--mm-cron-code-text, #333333);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .cron-description {
+    font-size: 0.8em;
+    color: var(--mm-cron-text-secondary, #666666);
+  }
+}
+
+// =============================================================================
+// PDF EXPORT STYLES - Simple black and white grid with 1px borders
+// Kendo adds .k-pdf-export class during PDF generation
+// =============================================================================
+:host-context(.k-pdf-export) {
+  // Reset all backgrounds and colors to simple black and white
+  .k-grid,
+  .k-grid-header,
+  .k-grid-content,
+  .k-grid-header-wrap,
+  .k-grid-content-locked,
+  .k-grid-header-locked {
+    background: #fff !important;
+    background-color: #fff !important;
+    background-image: none !important;
+    color: #000 !important;
+    border-color: #000 !important;
+  }
+
+  .k-grid {
+    border: 1px solid #000 !important;
+    font-family: Arial, sans-serif !important;
+    font-size: 10px !important;
+  }
+
+  // Header cells
+  .k-grid-header th,
+  .k-header,
+  .k-grid th {
+    background: #f0f0f0 !important;
+    background-color: #f0f0f0 !important;
+    background-image: none !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    font-weight: bold !important;
+    padding: 6px 8px !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+  }
+
+  // Data cells
+  .k-grid td,
+  .k-grid-content td,
+  .k-master-row td {
+    background: #fff !important;
+    background-color: #fff !important;
+    background-image: none !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    padding: 4px 8px !important;
+  }
+
+  // Rows
+  .k-grid tr,
+  .k-master-row,
+  .k-alt {
+    background: #fff !important;
+    background-color: #fff !important;
+    background-image: none !important;
+  }
+
+  // Remove any hover/selection styles
+  .k-grid tr:hover,
+  .k-grid tr.k-selected,
+  .k-grid td:hover {
+    background: #fff !important;
+    background-color: #fff !important;
+  }
+
+  // Hide elements that shouldn't be in PDF
+  .k-grid-toolbar,
+  .k-pager,
+  .k-grid-pager,
+  .k-command-cell,
+  .k-checkbox-column,
+  kendo-grid-checkbox-column,
+  .status-icons-cell,
+  .status-icon,
+  kendo-svg-icon {
+    display: none !important;
+  }
+}

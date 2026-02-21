@@ -1,0 +1,19 @@
+<div class="mm-copyable-text">
+  @if (label) {
+    <label class="label">{{ label }}</label>
+  }
+  <div class="value-container">
+    <span class="value">{{ hasValue ? value : '—' }}</span>
+    @if (hasValue) {
+      <button
+        kendoButton
+        type="button"
+        fillMode="flat"
+        [svgIcon]="copyIcon"
+        [title]="buttonTitle"
+        class="copy-button"
+        (click)="copyToClipboard()">
+      </button>
+    }
+  </div>
+</div>

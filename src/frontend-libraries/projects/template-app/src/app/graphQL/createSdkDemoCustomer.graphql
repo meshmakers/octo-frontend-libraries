@@ -1,0 +1,25 @@
+mutation createSdkDemoCustomer($entities: [OctoSdkDemoCustomerInput]!) {
+  runtime {
+    octoSdkDemoCustomers {
+      create(entities: $entities) {
+        rtId
+        ckTypeId
+        rtCreationDateTime
+        rtChangedDateTime
+        customerStatus
+        contact{
+          legalEntityType
+          firstName
+          lastName
+          companyName
+          address{
+            street
+            zipcode
+            cityTown
+            nationalCode
+          }
+        }
+      }
+    }
+  }
+}

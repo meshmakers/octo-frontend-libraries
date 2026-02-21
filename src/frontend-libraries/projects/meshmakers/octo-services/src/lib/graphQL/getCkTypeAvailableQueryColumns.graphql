@@ -1,0 +1,29 @@
+query getCkTypeAvailableQueryColumns($after: String, $first: Int, $rtCkId: String!, $filter: String) {
+  constructionKit {
+    types(rtCkId: $rtCkId) {
+      items {
+        ckTypeId {
+          fullName
+        }
+        rtCkTypeId
+        availableQueryColumns(
+          after: $after
+          first: $first
+          attributePathContains: $filter
+        ) {
+          totalCount
+          pageInfo {
+            hasNextPage
+            hasPreviousPage
+            startCursor
+            endCursor
+          }
+          items {
+            attributePath
+            attributeValueType
+          }
+        }
+      }
+    }
+  }
+}

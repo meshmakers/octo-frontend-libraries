@@ -1,0 +1,31 @@
+query getDashboardEntity($rtId: OctoObjectId!, $ckTypeId: String!) {
+  runtime {
+    runtimeEntities(rtId: $rtId, ckId: $ckTypeId, first: 1) {
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        rtCreationDateTime
+        rtChangedDateTime
+        attributes(resolveEnumValuesToNames: true) {
+          items {
+            attributeName
+            value
+          }
+        }
+        associations {
+          definitions(direction: ANY) {
+            totalCount
+            items {
+              targetRtId
+              targetCkTypeId
+              originRtId
+              originCkTypeId
+              ckAssociationRoleId
+            }
+          }
+        }
+      }
+    }
+  }
+}

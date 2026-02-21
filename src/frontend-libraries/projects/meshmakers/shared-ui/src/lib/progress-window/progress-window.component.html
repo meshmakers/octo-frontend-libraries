@@ -1,0 +1,35 @@
+<div class="progress-content">
+  <div class="progress-section">
+    <!-- Determinate progress bar -->
+    @if (isDeterminate) {
+      <kendo-progressbar
+        [value]="progressValue"
+        [max]="100" [label]="false"
+        class="progress-bar">
+      </kendo-progressbar>
+    }
+
+    <!-- Indeterminate progress bar -->
+    @if (!isDeterminate) {
+      <kendo-progressbar
+        [indeterminate]="true"
+        class="progress-bar">
+      </kendo-progressbar>
+    }
+
+    <!-- Status text -->
+    @if (statusText) {
+      <p class="status-text">{{ statusText }}</p>
+    }
+  </div>
+</div>
+
+<kendo-dialog-actions>
+  @if (isCancelOperationAvailable) {
+    <button
+      kendoButton
+      (click)="onCancelClick()">
+      Cancel
+    </button>
+  }
+</kendo-dialog-actions>

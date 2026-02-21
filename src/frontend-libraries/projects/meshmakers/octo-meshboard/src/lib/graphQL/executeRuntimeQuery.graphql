@@ -1,0 +1,34 @@
+query executeRuntimeQuery($rtId: OctoObjectId!, $after: String, $first: Int $fieldFilter: [FieldFilter]) {
+  runtime {
+    runtimeQuery(rtId: $rtId) {
+      items {
+        queryRtId
+        associatedCkTypeId
+        columns {
+          attributePath
+          attributeValueType
+        }
+        rows(after: $after, first: $first, fieldFilter: $fieldFilter) {
+          totalCount
+          items {
+            ... on RtSimpleQueryRow {
+              rtId
+            }
+            ckTypeId
+            cells {
+              totalCount
+              items {
+                attributePath
+                value
+              }
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }
+  }
+}

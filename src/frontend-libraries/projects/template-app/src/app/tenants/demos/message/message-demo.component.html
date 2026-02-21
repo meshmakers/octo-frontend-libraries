@@ -1,0 +1,183 @@
+<div class="message-demo">
+  <h2>Message Demo</h2>
+  <p>This page demonstrates different types of messages and notifications using the MessageService.</p>
+
+  <div class="demo-sections">
+    <!-- Basic Error Messages -->
+    <kendo-card width="100%">
+      <kendo-card-header>
+        <h3>Basic Error Messages</h3>
+        <p class="card-subtitle">Simple error messages and errors with details dialog</p>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="button-group">
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showSimpleError()">
+            Simple Error
+          </button>
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showErrorWithTitle()">
+            Error with Details Dialog
+          </button>
+          <button kendoButton [svgIcon]="infoIcon" themeColor="info" (click)="showInformationMessage()">
+            Information Message
+          </button>
+          <button kendoButton [svgIcon]="warningIcon" themeColor="warning" (click)="showWarningMessage()">
+            Warning with Details Dialog
+          </button>
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+
+    <!-- Success Messages -->
+    <kendo-card width="100%">
+      <kendo-card-header>
+        <h3>Success Messages</h3>
+        <p class="card-subtitle">Success notifications that auto-close after 3 seconds</p>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="button-group">
+          <button kendoButton [svgIcon]="checkCircleIcon" themeColor="success" (click)="showSimpleSuccess()">
+            Simple Success
+          </button>
+          <button kendoButton [svgIcon]="checkCircleIcon" themeColor="success" (click)="showDataSavedSuccess()">
+            Data Saved
+          </button>
+          <button kendoButton [svgIcon]="checkCircleIcon" themeColor="success" (click)="showOperationCompleteSuccess()">
+            Operation Complete
+          </button>
+          <button kendoButton [svgIcon]="checkCircleIcon" themeColor="success" (click)="showFileUploadSuccess()">
+            File Upload Success
+          </button>
+          <button kendoButton [svgIcon]="checkCircleIcon" themeColor="success" (click)="showUserCreatedSuccess()">
+            User Created
+          </button>
+          <button kendoButton [svgIcon]="checkCircleIcon" themeColor="success" (click)="showSettingsSavedSuccess()">
+            Settings Saved
+          </button>
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+
+    <!-- Validation & Form Errors -->
+    <kendo-card width="100%">
+      <kendo-card-header>
+        <h3>Validation & Form Errors</h3>
+        <p class="card-subtitle">Validation errors with detailed information dialog</p>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="button-group">
+          <button kendoButton [svgIcon]="warningIcon" themeColor="error" (click)="showValidationError()">
+            Validation Error with Details
+          </button>
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showFileError()">
+            File Upload Error
+          </button>
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+
+    <!-- Network & System Errors -->
+    <kendo-card width="100%">
+      <kendo-card-header>
+        <h3>Network & System Errors</h3>
+        <p class="card-subtitle">System errors with comprehensive details and troubleshooting info</p>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="button-group">
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showNetworkError()">
+            Network Error with Details
+          </button>
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showTimeoutError()">
+            Timeout Error
+          </button>
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showDataError()">
+            Database Error with Stack Trace
+          </button>
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showConfigurationError()">
+            Configuration Error with JSON
+          </button>
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+
+    <!-- Security Errors -->
+    <kendo-card width="100%">
+      <kendo-card-header>
+        <h3>Security Errors</h3>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="button-group">
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showAuthenticationError()">
+            Authentication Error
+          </button>
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showPermissionError()">
+            Permission Error
+          </button>
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+
+    <!-- Complex Error Formats -->
+    <kendo-card width="100%">
+      <kendo-card-header>
+        <h3>Complex Error Formats</h3>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="button-group">
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showErrorFromObject()">
+            Error from Object
+          </button>
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showErrorFromError()">
+            Error from Error Instance
+          </button>
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showMultilineError()">
+            Multi-line Error
+          </button>
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+
+    <!-- Batch Operations -->
+    <kendo-card width="100%">
+      <kendo-card-header>
+        <h3>Batch Operations</h3>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="button-group">
+          <button kendoButton [svgIcon]="errorIcon" themeColor="error" (click)="showMultipleErrors()">
+            Show Multiple Errors
+          </button>
+          <button kendoButton [svgIcon]="infoIcon" themeColor="info" (click)="clearErrors()">
+            Show Error Count
+          </button>
+        </div>
+        <div class="error-count">
+          Total Errors Logged: {{ getErrorCount() }}
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+  </div>
+
+  <div class="notes">
+    <kendo-card width="100%">
+      <kendo-card-header>
+        <h3>Notes</h3>
+      </kendo-card-header>
+      <kendo-card-body>
+        <ul>
+          <li><strong>MessageService</strong> (shared-services): The single source of truth for all messages (info, warning, error, success)</li>
+          <li><strong>MessageListenerService</strong> (shared-ui): Listens to MessageService and displays notifications in the UI</li>
+          <li><strong>NotificationDisplayService</strong> (shared-ui): Internal service that handles the actual UI rendering</li>
+          <li>All messages go through MessageService - it's the only service that should be used to show messages</li>
+          <li><strong>Details Dialog</strong>: Error and warning messages with details show "(click for details)" and open a modal dialog when clicked</li>
+          <li><strong>Copy to Clipboard</strong>: The details dialog includes a button to copy detailed information to clipboard</li>
+          <li>Methods: <code>showSuccess(message)</code>, <code>showInfo(message)</code>, <code>showErrorWithDetails(title, details)</code> and <code>showWarningWithDetails(title, details)</code></li>
+          <li>Messages are automatically logged to console based on their level</li>
+          <li>Error messages are stored for history/debugging and can be retrieved</li>
+          <li><strong>Auto-hide behavior</strong>: Success and Info messages auto-close after 3 seconds. Error and Warning messages persist until user interaction or navigation.</li>
+          <li><strong>User interaction</strong>: Error/Warning notifications close when clicking anywhere (except navigation) or navigating to another page</li>
+          <li>Clean architecture: MessageService handles business logic, UI services handle presentation only</li>
+        </ul>
+      </kendo-card-body>
+    </kendo-card>
+  </div>
+</div>

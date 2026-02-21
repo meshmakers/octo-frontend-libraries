@@ -1,0 +1,523 @@
+{
+  "name": "Selection Tests",
+  "description": "Tests for element selection behavior in the Symbol Editor",
+  "setup": {
+    "baseUrl": "https://localhost:4201",
+    "tenantId": "meshtest",
+    "navigateTo": "symbol-library"
+  },
+  "helpers": {
+    "createSymbolWithPrimitives": [
+      { "action": "navigate", "url": "{{baseUrl}}/{{tenantId}}/symbol-library" },
+      { "action": "wait", "for": "Symbol Libraries", "timeout": 5000 },
+      { "action": "click", "target": { "selector": "kendo-grid-list tr.k-grid-table-row" } },
+      { "action": "wait", "for": 1000 },
+      { "action": "click", "target": { "text": "New Symbol" } },
+      { "action": "wait", "for": 500 },
+      { "action": "type", "target": { "selector": "input[placeholder*='name']" }, "value": "Selection Test {{timestamp}}" },
+      { "action": "click", "target": { "text": "Create" } },
+      { "action": "wait", "for": "process-designer", "timeout": 5000 },
+      { "action": "comment", "text": "Add 3 primitives for selection testing" },
+      {
+        "action": "evaluate",
+        "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 100, y: rect.top + 100 }; }",
+        "storeAs": "pos1"
+      },
+      { "action": "drag", "from": { "testId": "palette-element-rectangle" }, "to": { "coordinates": "{{pos1}}" } },
+      { "action": "wait", "for": 300 },
+      {
+        "action": "evaluate",
+        "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 250, y: rect.top + 100 }; }",
+        "storeAs": "pos2"
+      },
+      { "action": "drag", "from": { "testId": "palette-element-ellipse" }, "to": { "coordinates": "{{pos2}}" } },
+      { "action": "wait", "for": 300 },
+      {
+        "action": "evaluate",
+        "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 175, y: rect.top + 250 }; }",
+        "storeAs": "pos3"
+      },
+      { "action": "drag", "from": { "testId": "palette-element-text" }, "to": { "coordinates": "{{pos3}}" } },
+      { "action": "wait", "for": 500 }
+    ],
+    "clickOnCanvas": [
+      {
+        "action": "evaluate",
+        "script": "() => { const canvas = document.querySelector('[data-testid=\"designer-canvas-container\"]'); const rect = canvas.getBoundingClientRect(); return { x: rect.left + 400, y: rect.top + 400 }; }",
+        "storeAs": "emptyCanvasPos"
+      },
+      { "action": "click", "target": { "coordinates": "{{emptyCanvasPos}}" } }
+    ]
+  },
+  "tests": [
+    {
+      "name": "TC001: Select single element by click",
+      "description": "Click on a primitive to select it",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        { "action": "screenshot", "name": "before-selection" },
+        {
+          "action": "comment",
+          "text": "Click on the rectangle to select it"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const rect = document.querySelector('[data-testid^=\"primitive-rectangle-\"]'); return rect ? rect.getAttribute('data-testid') : null; }",
+          "storeAs": "rectangleTestId"
+        },
+        {
+          "action": "click",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" }
+        },
+        { "action": "wait", "for": 200 },
+        { "action": "screenshot", "name": "after-rectangle-selected" },
+        {
+          "action": "assert",
+          "type": "hasClass",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" },
+          "expected": "selected",
+          "message": "Rectangle should have 'selected' class"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "selectedCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{selectedCount}}",
+          "expected": 1,
+          "message": "Only one element should be selected"
+        }
+      ]
+    },
+    {
+      "name": "TC002: Deselect by clicking on empty canvas",
+      "description": "Click on empty canvas area to deselect all",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        {
+          "action": "comment",
+          "text": "Select the rectangle first"
+        },
+        {
+          "action": "click",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" }
+        },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "selectedBefore"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{selectedBefore}}",
+          "expected": 1,
+          "message": "Should have 1 selected element"
+        },
+        {
+          "action": "comment",
+          "text": "Click on empty canvas area"
+        },
+        { "action": "runHelper", "helper": "clickOnCanvas" },
+        { "action": "wait", "for": 200 },
+        { "action": "screenshot", "name": "after-deselect" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "selectedAfter"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{selectedAfter}}",
+          "expected": 0,
+          "message": "No elements should be selected after clicking empty canvas"
+        }
+      ]
+    },
+    {
+      "name": "TC003: Multi-select with Ctrl+Click",
+      "description": "Select multiple elements by holding Ctrl and clicking",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        {
+          "action": "comment",
+          "text": "Click on rectangle to select it"
+        },
+        {
+          "action": "click",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" }
+        },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "comment",
+          "text": "Ctrl+Click on ellipse to add to selection"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid^=\"primitive-ellipse-\"]'); const rect = el.getBoundingClientRect(); return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 }; }",
+          "storeAs": "ellipseCenter"
+        },
+        {
+          "action": "click",
+          "target": { "coordinates": "{{ellipseCenter}}" },
+          "modifiers": ["Control"]
+        },
+        { "action": "wait", "for": 200 },
+        { "action": "screenshot", "name": "multi-select-ctrl" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "selectedCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{selectedCount}}",
+          "expected": 2,
+          "message": "Both rectangle and ellipse should be selected"
+        }
+      ]
+    },
+    {
+      "name": "TC004: Multi-select with Shift+Click",
+      "description": "Select multiple elements by holding Shift and clicking",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        {
+          "action": "click",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" }
+        },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid^=\"primitive-text-\"]'); const rect = el.getBoundingClientRect(); return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 }; }",
+          "storeAs": "textCenter"
+        },
+        {
+          "action": "click",
+          "target": { "coordinates": "{{textCenter}}" },
+          "modifiers": ["Shift"]
+        },
+        { "action": "wait", "for": 200 },
+        { "action": "screenshot", "name": "multi-select-shift" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "selectedCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{selectedCount}}",
+          "expected": 2,
+          "message": "Both rectangle and text should be selected with Shift+Click"
+        }
+      ]
+    },
+    {
+      "name": "TC005: Toggle selection with Ctrl+Click",
+      "description": "Ctrl+Click on selected element should deselect it",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        {
+          "action": "comment",
+          "text": "Select both rectangle and ellipse"
+        },
+        {
+          "action": "click",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" }
+        },
+        { "action": "wait", "for": 100 },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid^=\"primitive-ellipse-\"]'); const rect = el.getBoundingClientRect(); return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 }; }",
+          "storeAs": "ellipseCenter"
+        },
+        {
+          "action": "click",
+          "target": { "coordinates": "{{ellipseCenter}}" },
+          "modifiers": ["Control"]
+        },
+        { "action": "wait", "for": 100 },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "countBefore"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countBefore}}",
+          "expected": 2,
+          "message": "Should have 2 selected"
+        },
+        {
+          "action": "comment",
+          "text": "Ctrl+Click on rectangle again to deselect it"
+        },
+        {
+          "action": "evaluate",
+          "script": "() => { const el = document.querySelector('[data-testid^=\"primitive-rectangle-\"]'); const rect = el.getBoundingClientRect(); return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 }; }",
+          "storeAs": "rectangleCenter"
+        },
+        {
+          "action": "click",
+          "target": { "coordinates": "{{rectangleCenter}}" },
+          "modifiers": ["Control"]
+        },
+        { "action": "wait", "for": 200 },
+        { "action": "screenshot", "name": "toggle-deselect" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "countAfter"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countAfter}}",
+          "expected": 1,
+          "message": "Only ellipse should remain selected after Ctrl+Click on rectangle"
+        }
+      ]
+    },
+    {
+      "name": "TC006: Select replaces previous selection",
+      "description": "Clicking on new element without modifier replaces selection",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        {
+          "action": "click",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" }
+        },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "assert",
+          "type": "hasClass",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" },
+          "expected": "selected",
+          "message": "Rectangle should be selected"
+        },
+        {
+          "action": "comment",
+          "text": "Click on ellipse without modifier"
+        },
+        {
+          "action": "click",
+          "target": { "selector": "[data-testid^='primitive-ellipse-']" }
+        },
+        { "action": "wait", "for": 200 },
+        { "action": "screenshot", "name": "selection-replaced" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "selectedCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{selectedCount}}",
+          "expected": 1,
+          "message": "Only one element should be selected"
+        },
+        {
+          "action": "assert",
+          "type": "hasClass",
+          "target": { "selector": "[data-testid^='primitive-ellipse-']" },
+          "expected": "selected",
+          "message": "Ellipse should now be selected"
+        },
+        {
+          "action": "assert",
+          "type": "notHasClass",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" },
+          "expected": "selected",
+          "message": "Rectangle should no longer be selected"
+        }
+      ]
+    },
+    {
+      "name": "TC007: Select All with Ctrl+A",
+      "description": "Pressing Ctrl+A should select all elements",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        {
+          "action": "comment",
+          "text": "Focus the designer and press Ctrl+A"
+        },
+        {
+          "action": "click",
+          "target": { "testId": "process-designer" }
+        },
+        { "action": "wait", "for": 100 },
+        {
+          "action": "pressKey",
+          "key": "Control+a"
+        },
+        { "action": "wait", "for": 200 },
+        { "action": "screenshot", "name": "select-all" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "selectedCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{selectedCount}}",
+          "expected": 3,
+          "message": "All 3 primitives should be selected"
+        }
+      ]
+    },
+    {
+      "name": "TC008: Delete button disabled when nothing selected",
+      "description": "Verify Delete toolbar button is disabled with no selection",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        {
+          "action": "comment",
+          "text": "Ensure nothing is selected"
+        },
+        { "action": "runHelper", "helper": "clickOnCanvas" },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => { const btn = Array.from(document.querySelectorAll('kendo-toolbar-button')).find(b => b.textContent.includes('Delete')); return btn ? btn.hasAttribute('disabled') || btn.classList.contains('k-disabled') : null; }",
+          "storeAs": "deleteDisabled"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{deleteDisabled}}",
+          "expected": true,
+          "message": "Delete button should be disabled when nothing is selected"
+        },
+        {
+          "action": "comment",
+          "text": "Select an element"
+        },
+        {
+          "action": "click",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" }
+        },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => { const btn = Array.from(document.querySelectorAll('kendo-toolbar-button')).find(b => b.textContent.includes('Delete')); return btn ? btn.hasAttribute('disabled') || btn.classList.contains('k-disabled') : null; }",
+          "storeAs": "deleteDisabledAfter"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{deleteDisabledAfter}}",
+          "expected": false,
+          "message": "Delete button should be enabled when element is selected"
+        }
+      ]
+    },
+    {
+      "name": "TC009: Delete selected element",
+      "description": "Select element and delete it using Delete key",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countBefore"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countBefore}}",
+          "expected": 3,
+          "message": "Should start with 3 primitives"
+        },
+        {
+          "action": "click",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" }
+        },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "pressKey",
+          "key": "Delete"
+        },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "after-delete" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countAfter"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countAfter}}",
+          "expected": 2,
+          "message": "Should have 2 primitives after deleting rectangle"
+        },
+        {
+          "action": "assert",
+          "type": "notExists",
+          "target": { "selector": "[data-testid^='primitive-rectangle-']" },
+          "message": "Rectangle should be deleted"
+        }
+      ]
+    },
+    {
+      "name": "TC010: Delete multiple selected elements",
+      "description": "Multi-select and delete multiple elements at once",
+      "steps": [
+        { "action": "runHelper", "helper": "createSymbolWithPrimitives" },
+        {
+          "action": "comment",
+          "text": "Select all with Ctrl+A"
+        },
+        {
+          "action": "click",
+          "target": { "testId": "process-designer" }
+        },
+        {
+          "action": "pressKey",
+          "key": "Control+a"
+        },
+        { "action": "wait", "for": 200 },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive.selected').length",
+          "storeAs": "selectedCount"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{selectedCount}}",
+          "expected": 3,
+          "message": "All 3 should be selected"
+        },
+        {
+          "action": "pressKey",
+          "key": "Delete"
+        },
+        { "action": "wait", "for": 300 },
+        { "action": "screenshot", "name": "after-delete-all" },
+        {
+          "action": "evaluate",
+          "script": "() => document.querySelectorAll('.primitive').length",
+          "storeAs": "countAfter"
+        },
+        {
+          "action": "assert",
+          "type": "equals",
+          "actual": "{{countAfter}}",
+          "expected": 0,
+          "message": "All primitives should be deleted"
+        }
+      ]
+    }
+  ]
+}

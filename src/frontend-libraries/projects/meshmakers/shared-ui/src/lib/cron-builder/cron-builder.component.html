@@ -1,0 +1,490 @@
+<div class="cron-builder" [class.disabled]="disabled()">
+  <!-- Expression Preview Section -->
+  <div class="expression-section">
+    <div class="expression-display">
+      <div class="expression-label">Cron Expression</div>
+      <div class="expression-value-row">
+        <code class="expression-value" [class.invalid]="!validationResult().isValid">
+          {{ expression() }}
+        </code>
+        @if (mergedConfig().showCopyButton) {
+          <button
+            kendoButton
+            [svgIcon]="copiedRecently() ? checkIcon : copyIcon"
+            [title]="copiedRecently() ? 'Copied!' : 'Copy to clipboard'"
+            fillMode="flat"
+            class="copy-button"
+            [class.copied]="copiedRecently()"
+            (click)="onCopyExpression()"
+            [disabled]="disabled()">
+          </button>
+        }
+      </div>
+      @if (!validationResult().isValid) {
+        <div class="validation-error">
+          <kendo-svg-icon [icon]="xIcon" size="small"></kendo-svg-icon>
+          {{ validationResult().error }}
+        </div>
+      }
+    </div>
+
+    @if (mergedConfig().showHumanReadable && validationResult().isValid) {
+      <div class="human-readable">
+        <kendo-svg-icon [icon]="clockIcon" size="small"></kendo-svg-icon>
+        <span>{{ humanReadable() }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Preset Buttons -->
+  @if (mergedConfig().showPresets) {
+    <div class="presets-section">
+      <div class="presets-label">Quick Select</div>
+      <div class="presets-grid">
+        @for (preset of presetsByCategory().frequent; track preset.id) {
+          <button
+            kendoButton
+            size="small"
+            fillMode="outline"
+            class="preset-button"
+            [title]="preset.description"
+            [disabled]="disabled()"
+            (click)="onPresetSelect(preset)">
+            {{ preset.label }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Schedule Type Tabs -->
+  <kendo-tabstrip
+    [animate]="false"
+    [tabAlignment]="'start'"
+    (tabSelect)="onTabSelect($event.index)">
+
+    <!-- Seconds Tab -->
+    <kendo-tabstrip-tab [title]="'Seconds'" [selected]="selectedTabIndex() === 0">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <div class="form-row">
+            <kendo-label text="Run every"></kendo-label>
+            <kendo-dropdownlist
+              [data]="secondIntervalOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="secondInterval()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onSecondIntervalChange($event)">
+            </kendo-dropdownlist>
+          </div>
+          <div class="preview-text">
+            Generates: <code>*/{{ secondInterval() }} * * * * *</code>
+          </div>
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
+
+    <!-- Minutes Tab -->
+    <kendo-tabstrip-tab [title]="'Minutes'" [selected]="selectedTabIndex() === 1">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <div class="form-row">
+            <kendo-label text="Run every"></kendo-label>
+            <kendo-dropdownlist
+              [data]="minuteIntervalOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="minuteInterval()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onMinuteIntervalChange($event)">
+            </kendo-dropdownlist>
+          </div>
+          <div class="preview-text">
+            Generates: <code>0 */{{ minuteInterval() }} * * * *</code>
+          </div>
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
+
+    <!-- Hourly Tab -->
+    <kendo-tabstrip-tab [title]="'Hourly'" [selected]="selectedTabIndex() === 2">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <div class="form-row">
+            <kendo-label text="Run every"></kendo-label>
+            <kendo-dropdownlist
+              [data]="hourIntervalOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="hourInterval()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onHourIntervalChange($event)">
+            </kendo-dropdownlist>
+          </div>
+          <div class="form-row">
+            <kendo-label text="At minute"></kendo-label>
+            <kendo-dropdownlist
+              [data]="minuteOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="hourMinute()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onHourMinuteChange($event)">
+            </kendo-dropdownlist>
+            <span class="separator">:</span>
+            <kendo-dropdownlist
+              [data]="minuteOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="hourSecond()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onHourSecondChange($event)">
+            </kendo-dropdownlist>
+            <span class="time-label">(mm:ss)</span>
+          </div>
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
+
+    <!-- Daily Tab -->
+    <kendo-tabstrip-tab [title]="'Daily'" [selected]="selectedTabIndex() === 3">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <div class="form-row time-row">
+            <kendo-label text="At"></kendo-label>
+            <kendo-dropdownlist
+              [data]="hourOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="timeHour()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onTimeHourChange($event)">
+            </kendo-dropdownlist>
+            <span class="separator">:</span>
+            <kendo-dropdownlist
+              [data]="minuteOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="timeMinute()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onTimeMinuteChange($event)">
+            </kendo-dropdownlist>
+            <span class="separator">:</span>
+            <kendo-dropdownlist
+              [data]="minuteOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="timeSecond()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onTimeSecondChange($event)">
+            </kendo-dropdownlist>
+          </div>
+
+          <div class="form-row mode-row">
+            <kendo-label text="On"></kendo-label>
+            <div class="mode-buttons">
+              <button
+                kendoButton
+                [selected]="dailyMode() === 'every'"
+                [disabled]="disabled()"
+                (click)="onDailyModeChange('every')">
+                Every day
+              </button>
+              <button
+                kendoButton
+                [selected]="dailyMode() === 'weekdays'"
+                [disabled]="disabled()"
+                (click)="onDailyModeChange('weekdays')">
+                Weekdays
+              </button>
+              <button
+                kendoButton
+                [selected]="dailyMode() === 'weekends'"
+                [disabled]="disabled()"
+                (click)="onDailyModeChange('weekends')">
+                Weekends
+              </button>
+              <button
+                kendoButton
+                [selected]="dailyMode() === 'specific'"
+                [disabled]="disabled()"
+                (click)="onDailyModeChange('specific')">
+                Specific days
+              </button>
+            </div>
+          </div>
+
+          @if (dailyMode() === 'specific') {
+            <div class="form-row days-row">
+              <div class="day-buttons">
+                @for (day of weekdayAbbreviations; track day.value) {
+                  <button
+                    kendoButton
+                    [selected]="isDaySelected(day.value)"
+                    [disabled]="disabled()"
+                    class="day-button"
+                    (click)="onDayToggle(day.value)">
+                    {{ day.label }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
+
+    <!-- Weekly Tab -->
+    <kendo-tabstrip-tab [title]="'Weekly'" [selected]="selectedTabIndex() === 4">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <div class="form-row time-row">
+            <kendo-label text="At"></kendo-label>
+            <kendo-dropdownlist
+              [data]="hourOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="timeHour()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onTimeHourChange($event)">
+            </kendo-dropdownlist>
+            <span class="separator">:</span>
+            <kendo-dropdownlist
+              [data]="minuteOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="timeMinute()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onTimeMinuteChange($event)">
+            </kendo-dropdownlist>
+            <span class="separator">:</span>
+            <kendo-dropdownlist
+              [data]="minuteOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="timeSecond()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onTimeSecondChange($event)">
+            </kendo-dropdownlist>
+          </div>
+
+          <div class="form-row">
+            <kendo-label text="On days"></kendo-label>
+            <div class="day-buttons">
+              @for (day of weekdayAbbreviations; track day.value) {
+                <button
+                  kendoButton
+                  [selected]="isDaySelected(day.value)"
+                  [disabled]="disabled()"
+                  class="day-button"
+                  (click)="onDayToggle(day.value)">
+                  {{ day.label }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
+
+    <!-- Monthly Tab -->
+    <kendo-tabstrip-tab [title]="'Monthly'" [selected]="selectedTabIndex() === 5">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <div class="form-row time-row">
+            <kendo-label text="At"></kendo-label>
+            <kendo-dropdownlist
+              [data]="hourOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="timeHour()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onTimeHourChange($event)">
+            </kendo-dropdownlist>
+            <span class="separator">:</span>
+            <kendo-dropdownlist
+              [data]="minuteOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="timeMinute()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onTimeMinuteChange($event)">
+            </kendo-dropdownlist>
+            <span class="separator">:</span>
+            <kendo-dropdownlist
+              [data]="minuteOptions"
+              [textField]="'label'"
+              [valueField]="'value'"
+              [value]="timeSecond()"
+              [valuePrimitive]="true"
+              [disabled]="disabled()"
+              (valueChange)="onTimeSecondChange($event)">
+            </kendo-dropdownlist>
+          </div>
+
+          <div class="form-row mode-row">
+            <div class="mode-buttons">
+              <button
+                kendoButton
+                [selected]="monthlyMode() === 'specific'"
+                [disabled]="disabled()"
+                (click)="onMonthlyModeChange('specific')">
+                Specific day
+              </button>
+              <button
+                kendoButton
+                [selected]="monthlyMode() === 'relative'"
+                [disabled]="disabled()"
+                (click)="onMonthlyModeChange('relative')">
+                Relative day
+              </button>
+            </div>
+          </div>
+
+          @if (monthlyMode() === 'specific') {
+            <div class="form-row">
+              <kendo-label text="On day"></kendo-label>
+              <kendo-dropdownlist
+                [data]="dayOfMonthOptions"
+                [textField]="'label'"
+                [valueField]="'value'"
+                [value]="dayOfMonth()"
+                [valuePrimitive]="true"
+                [disabled]="disabled()"
+                (valueChange)="onDayOfMonthChange($event)">
+              </kendo-dropdownlist>
+              <span class="suffix-text">of every month</span>
+            </div>
+          }
+
+          @if (monthlyMode() === 'relative') {
+            <div class="form-row">
+              <kendo-label text="On the"></kendo-label>
+              <kendo-dropdownlist
+                [data]="relativeWeekOptions"
+                [textField]="'label'"
+                [valueField]="'value'"
+                [value]="relativeWeek()"
+                [valuePrimitive]="true"
+                [disabled]="disabled()"
+                (valueChange)="onRelativeWeekChange($event)">
+              </kendo-dropdownlist>
+              <kendo-dropdownlist
+                [data]="weekdayOptions"
+                [textField]="'label'"
+                [valueField]="'value'"
+                [value]="relativeDay()"
+                [valuePrimitive]="true"
+                [disabled]="disabled()"
+                (valueChange)="onRelativeDayChange($event)">
+              </kendo-dropdownlist>
+              <span class="suffix-text">of every month</span>
+            </div>
+          }
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
+
+    <!-- Custom/Advanced Tab -->
+    @if (mergedConfig().allowCustom) {
+      <kendo-tabstrip-tab [title]="'Custom'" [selected]="selectedTabIndex() === 6">
+        <ng-template kendoTabContent>
+          <div class="tab-content custom-tab">
+            <div class="custom-fields">
+              <div class="custom-field">
+                <kendo-label text="Second"></kendo-label>
+                <kendo-textbox
+                  [value]="customSecond()"
+                  [disabled]="disabled()"
+                  (valueChange)="onCustomFieldChange('second', $event || '*')">
+                </kendo-textbox>
+                <span class="field-hint">0-59, *, /</span>
+              </div>
+              <div class="custom-field">
+                <kendo-label text="Minute"></kendo-label>
+                <kendo-textbox
+                  [value]="customMinute()"
+                  [disabled]="disabled()"
+                  (valueChange)="onCustomFieldChange('minute', $event || '*')">
+                </kendo-textbox>
+                <span class="field-hint">0-59, *, /</span>
+              </div>
+              <div class="custom-field">
+                <kendo-label text="Hour"></kendo-label>
+                <kendo-textbox
+                  [value]="customHour()"
+                  [disabled]="disabled()"
+                  (valueChange)="onCustomFieldChange('hour', $event || '*')">
+                </kendo-textbox>
+                <span class="field-hint">0-23, *, /</span>
+              </div>
+              <div class="custom-field">
+                <kendo-label text="Day"></kendo-label>
+                <kendo-textbox
+                  [value]="customDayOfMonth()"
+                  [disabled]="disabled()"
+                  (valueChange)="onCustomFieldChange('dayOfMonth', $event || '*')">
+                </kendo-textbox>
+                <span class="field-hint">1-31, *, /</span>
+              </div>
+              <div class="custom-field">
+                <kendo-label text="Month"></kendo-label>
+                <kendo-textbox
+                  [value]="customMonth()"
+                  [disabled]="disabled()"
+                  (valueChange)="onCustomFieldChange('month', $event || '*')">
+                </kendo-textbox>
+                <span class="field-hint">1-12, *, /</span>
+              </div>
+              <div class="custom-field">
+                <kendo-label text="Weekday"></kendo-label>
+                <kendo-textbox
+                  [value]="customDayOfWeek()"
+                  [disabled]="disabled()"
+                  (valueChange)="onCustomFieldChange('dayOfWeek', $event || '*')">
+                </kendo-textbox>
+                <span class="field-hint">0-6 (Sun-Sat)</span>
+              </div>
+            </div>
+
+            <div class="syntax-reference">
+              <div class="reference-title">Syntax Reference</div>
+              <div class="reference-items">
+                <span><code>*</code> any</span>
+                <span><code>*/N</code> every N</span>
+                <span><code>N-M</code> range</span>
+                <span><code>N,M</code> list</span>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </kendo-tabstrip-tab>
+    }
+  </kendo-tabstrip>
+
+  <!-- Next Executions Section -->
+  @if (mergedConfig().showNextExecutions && validationResult().isValid && nextExecutions().length > 0) {
+    <div class="next-executions-section">
+      <div class="next-executions-label">Next Executions</div>
+      <ul class="next-executions-list">
+        @for (execution of nextExecutions(); track $index) {
+          <li>{{ formatNextExecution(execution) }}</li>
+        }
+      </ul>
+    </div>
+  }
+</div>

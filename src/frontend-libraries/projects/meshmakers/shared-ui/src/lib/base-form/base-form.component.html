@@ -1,0 +1,59 @@
+<div class="mm-base-form-container" [class.with-card]="config.showCard" [class.without-card]="!config.showCard">
+  <!-- Title (no card mode) -->
+  <div *ngIf="!config.showCard && title" class="mm-form-title-row mm-form-title-standalone">
+    <h2 class="mm-form-title">{{ title }}</h2>
+    <span *ngIf="config.hasChanges" class="mm-modified-badge">Unsaved Changes</span>
+  </div>
+
+  <!-- Main form wrapper - styled as card or plain based on CSS class -->
+  <div class="mm-form-wrapper" [style.maxWidth]="config.showCard ? (config.cardWidth || '800px') : null">
+    <!-- Card header (only in card mode) -->
+    <div *ngIf="config.showCard && title" class="mm-form-header">
+      <h2 class="mm-form-title">{{ title }}</h2>
+      <span *ngIf="config.hasChanges" class="mm-modified-badge">Unsaved Changes</span>
+    </div>
+
+    <!-- Form body with content projection -->
+    <div class="mm-form-body">
+      <div *ngIf="config.isLoading && config.showLoadingOverlay" class="mm-loading-overlay">
+        <div class="k-loader k-loader-lg"></div>
+        <p>Loading...</p>
+      </div>
+      <ng-content></ng-content>
+    </div>
+
+    <!-- Form actions -->
+    <div class="mm-form-actions">
+      <!-- Status indicator (left side) -->
+      <div class="mm-form-status">
+        <span class="mm-status-indicator" [class.modified]="config.hasChanges">
+          <span class="mm-status-dot"></span>
+          <span class="mm-status-text">{{ config.hasChanges ? 'MODIFIED' : 'READY' }}</span>
+        </span>
+      </div>
+
+      <!-- Action buttons (right side) -->
+      <div class="mm-form-buttons">
+        <button
+          *ngIf="showSaveButton"
+          kendoButton
+          type="submit"
+          [svgIcon]="saveIcon"
+          themeColor="primary"
+          [disabled]="saveButtonDisabled"
+          (click)="onSave()">
+          {{ saveButtonText }}
+        </button>
+        <button
+          kendoButton
+          type="button"
+          [svgIcon]="cancelIcon"
+          [disabled]="!!config.isSaving"
+          (click)="onCancel()">
+          {{ cancelButtonText }}
+        </button>
+        <ng-content select="[additionalActions]"></ng-content>
+      </div>
+    </div>
+  </div>
+</div>

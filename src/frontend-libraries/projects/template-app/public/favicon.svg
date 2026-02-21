@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background: Deep Sea -->
+  <rect width="32" height="32" rx="4" fill="#07172b"/>
+
+  <!-- Template Grid Pattern: stacked layers representing templates -->
+
+  <!-- Back layer: Royal Violet -->
+  <rect x="8" y="6" width="18" height="14" rx="2" fill="none" stroke="#6c4da8" stroke-width="1.5"/>
+
+  <!-- Middle layer: Neo Cyan -->
+  <rect x="6" y="10" width="18" height="14" rx="2" fill="none" stroke="#00a8dc" stroke-width="1.5"/>
+
+  <!-- Front layer: Octo Mint (main template) -->
+  <rect x="4" y="14" width="18" height="14" rx="2" fill="none" stroke="#64ceb9" stroke-width="1.5"/>
+
+  <!-- Content lines on front template -->
+  <line x1="7" y1="18" x2="15" y2="18" stroke="#64ceb9" stroke-width="1" stroke-linecap="round"/>
+  <line x1="7" y1="21" x2="19" y2="21" stroke="#00a8dc" stroke-width="1" stroke-linecap="round"/>
+  <line x1="7" y1="24" x2="12" y2="24" stroke="#6c4da8" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Small grid dots: representing template placeholders -->
+  <circle cx="25" cy="8" r="1" fill="#64ceb9"/>
+  <circle cx="28" cy="11" r="0.8" fill="#00a8dc"/>
+  <circle cx="25" cy="14" r="0.8" fill="#6c4da8"/>
+</svg>

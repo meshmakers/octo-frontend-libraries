@@ -1,0 +1,45 @@
+<div class="add-widget-dialog">
+  <div class="dialog-content">
+    <p class="dialog-description">
+      Select a widget type to add to your MeshBoard:
+    </p>
+
+    <div class="widget-types-list">
+      <div class="list-header">Available Widgets</div>
+
+      @for (item of widgetTypes(); track item.type) {
+        <div
+          class="widget-type-item"
+          [class.selected]="isSelected(item.type)"
+          (click)="selectType(item.type)">
+          <div class="widget-icon">
+            <kendo-svg-icon [icon]="item.icon" size="large"></kendo-svg-icon>
+          </div>
+          <div class="widget-info">
+            <h4 class="widget-label">{{ item.label }}</h4>
+            <p class="widget-description">{{ item.description }}</p>
+          </div>
+          @if (isSelected(item.type)) {
+            <div class="selected-indicator">
+              <kendo-svg-icon [icon]="checkCircleIcon" size="medium"></kendo-svg-icon>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Dialog Actions -->
+  <div class="dialog-actions">
+    <button kendoButton (click)="cancel()" fillMode="flat">
+      Cancel
+    </button>
+    <button
+      kendoButton
+      (click)="add()"
+      [disabled]="!selectedType()"
+      themeColor="primary">
+      Add Widget
+    </button>
+  </div>
+</div>

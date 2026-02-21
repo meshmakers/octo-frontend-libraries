@@ -1,0 +1,40 @@
+<div class="entity-card" [class.no-data]="!data()" [class.loading]="isLoading()" [class.error]="error()">
+  @if (isNotConfigured()) {
+    <mm-widget-not-configured></mm-widget-not-configured>
+  } @else if (isLoading()) {
+    <div class="loading-indicator">
+      <span>Loading...</span>
+    </div>
+  } @else if (error()) {
+    <div class="error-message">
+      <span>{{ error() }}</span>
+    </div>
+  } @else if (data()) {
+    <!-- Header (like UML class name) -->
+    @if (config.showHeader !== false) {
+      <div class="entity-header">
+        <span class="entity-stereotype">&laquo;{{ entityTypeName() }}&raquo;</span>
+        <span class="entity-name">{{ displayName() }}</span>
+      </div>
+    }
+
+    <!-- Attributes Section (like UML attributes) -->
+    @if (config.showAttributes !== false && filteredAttributes().length > 0) {
+      <div class="entity-attributes">
+        @for (attr of filteredAttributes(); track attr.attributeName) {
+          <div class="attribute-row">
+            <span class="attribute-name">{{ formatAttributeName(attr.attributeName) }}</span>
+            <span class="attribute-value">{{ formatValue(attr.value) }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Metadata Footer -->
+    <div class="entity-footer">
+      <span class="entity-id" title="Runtime ID">{{ data()!.rtId }}</span>
+    </div>
+  } @else {
+    <mm-widget-not-configured></mm-widget-not-configured>
+  }
+</div>

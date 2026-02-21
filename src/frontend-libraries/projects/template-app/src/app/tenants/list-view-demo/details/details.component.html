@@ -1,0 +1,84 @@
+<mm-base-form
+  [form]="customerForm"
+  [config]="formConfig"
+  (saveForm)="onSave()"
+  (cancelForm)="onCancel()">
+
+  <form kendoForm [formGroup]="customerForm" [cols]="2">
+    <!-- Status Information -->
+    <fieldset kendoFormFieldSet legend="Status" [colSpan]="2">
+      <kendo-formfield [colSpan]="responsiveColSpan">
+        <kendo-label text="Customer Status"></kendo-label>
+        <kendo-dropdownlist
+          formControlName="customerStatus"
+          [data]="customerStatuses"
+          textField="text"
+          valueField="value"
+          [valuePrimitive]="true">
+        </kendo-dropdownlist>
+        <kendo-formerror>Customer status is required</kendo-formerror>
+      </kendo-formfield>
+
+      <kendo-formfield [colSpan]="responsiveColSpan">
+        <kendo-label text="Legal Entity Type"></kendo-label>
+        <kendo-dropdownlist
+          formControlName="legalEntityType"
+          [data]="legalEntityTypes"
+          textField="text"
+          valueField="value"
+          [valuePrimitive]="true">
+        </kendo-dropdownlist>
+        <kendo-formerror>Legal entity type is required</kendo-formerror>
+      </kendo-formfield>
+    </fieldset>
+
+    <!-- Personal Information -->
+    <fieldset kendoFormFieldSet legend="Personal Information" [colSpan]="2">
+      <kendo-formfield [colSpan]="responsiveColSpan">
+        <kendo-label text="First Name"></kendo-label>
+        <kendo-textbox formControlName="firstName" placeholder="Enter first name"></kendo-textbox>
+        <kendo-formerror>First name is required</kendo-formerror>
+      </kendo-formfield>
+
+      <kendo-formfield [colSpan]="responsiveColSpan">
+        <kendo-label text="Last Name"></kendo-label>
+        <kendo-textbox formControlName="lastName" placeholder="Enter last name"></kendo-textbox>
+        <kendo-formerror>Last name is required</kendo-formerror>
+      </kendo-formfield>
+
+      <kendo-formfield [colSpan]="2">
+        <kendo-label text="Company Name" [optional]="true"></kendo-label>
+        <kendo-textbox formControlName="companyName" placeholder="Enter company name"></kendo-textbox>
+        <kendo-formhint>Optional company or organization name</kendo-formhint>
+      </kendo-formfield>
+    </fieldset>
+
+    <!-- Address Information -->
+    <fieldset kendoFormFieldSet legend="Address" [colSpan]="2">
+      <kendo-formfield [colSpan]="2">
+        <kendo-label text="Street"></kendo-label>
+        <kendo-textbox formControlName="street" placeholder="Street address"></kendo-textbox>
+      </kendo-formfield>
+
+      <kendo-formfield [colSpan]="responsiveColSpan">
+        <kendo-label text="Postal Code"></kendo-label>
+        <kendo-textbox formControlName="postalCode" placeholder="Postal code"></kendo-textbox>
+      </kendo-formfield>
+
+      <kendo-formfield [colSpan]="responsiveColSpan">
+        <kendo-label text="City"></kendo-label>
+        <kendo-textbox formControlName="city" placeholder="City"></kendo-textbox>
+      </kendo-formfield>
+
+      <kendo-formfield [colSpan]="2">
+        <kendo-label text="Country"></kendo-label>
+        <kendo-dropdownlist
+          formControlName="country"
+          [data]="countries"
+          [defaultItem]="'Select country...'">
+        </kendo-dropdownlist>
+      </kendo-formfield>
+    </fieldset>
+  </form>
+
+</mm-base-form>

@@ -1,0 +1,41 @@
+query getSymbolLibrary($rtId: OctoObjectId!) {
+  runtime {
+    systemUISymbolLibrary(rtIds: [$rtId]) {
+      items {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        author
+        isBuiltIn
+        isReadOnly
+        rtCreationDateTime
+        rtChangedDateTime
+        children(ckTypeIds: ["System.UI/SymbolDefinition"]) {
+          items {
+            ... on SystemUISymbolDefinition {
+              rtId
+              ckTypeId
+              name
+              description
+              version
+              primitives
+              symbolInstances
+              boundsWidth
+              boundsHeight
+              connectionPoints
+              parameters
+              category
+              tags
+              previewImage
+              gridSize
+              canvasSizeWidth
+              canvasSizeHeight
+            }
+          }
+        }
+      }
+    }
+  }
+}

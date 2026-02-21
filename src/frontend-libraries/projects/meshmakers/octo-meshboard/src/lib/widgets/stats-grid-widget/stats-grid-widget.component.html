@@ -1,0 +1,21 @@
+<div class="stats-grid" [style.--grid-columns]="gridColumns">
+  @if (isNotConfigured()) {
+    <mm-widget-not-configured></mm-widget-not-configured>
+  }
+  @for (stat of statValues(); track stat.label) {
+    <div class="stat-card" [class]="stat.color">
+      @if (stat.isLoading) {
+        <div class="stat-value loading">...</div>
+      } @else {
+        <div class="stat-value">{{ formatValue(stat) }}</div>
+      }
+      <div class="stat-label">{{ stat.label }}</div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="stats-error">
+      {{ error() }}
+    </div>
+  }
+</div>

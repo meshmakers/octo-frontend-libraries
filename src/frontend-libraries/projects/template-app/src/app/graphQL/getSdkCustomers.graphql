@@ -1,0 +1,41 @@
+query getSdkCustomers(
+  $after: String
+  $first: Int
+  $rtIds: [OctoObjectId]
+  $searchFilter: SearchFilter
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+){
+  runtime{
+    octoSdkDemoCustomer(
+      after: $after
+      first: $first
+      rtIds: $rtIds
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+    ){
+      totalCount
+
+      items {
+        rtId
+        ckTypeId
+        rtCreationDateTime
+        rtChangedDateTime
+        customerStatus
+        contact{
+          legalEntityType
+          firstName
+          lastName
+          companyName
+          address{
+            street
+            zipcode
+            cityTown
+            nationalCode
+          }
+        }
+      }
+    }
+  }
+}

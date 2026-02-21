@@ -1,0 +1,76 @@
+overwrite: true
+schema:
+  - schema.graphql
+generates:
+  # template-app (uses types from @meshmakers/octo-services)
+  projects/template-app/src/app/graphQL/:
+    documents: "projects/template-app/src/app/graphQL/*.graphql"
+    preset: near-operation-file
+    presetConfig:
+      extension: .ts
+      baseTypesPath: globalTypes.ts
+    plugins:
+      - "typescript-operations"
+      - "typescript-apollo-angular"
+    config:
+      typesSuffix: Dto
+
+  # octo-meshboard (uses types from @meshmakers/octo-services)
+  projects/meshmakers/octo-meshboard/src/lib/graphQL/:
+    documents: "projects/meshmakers/octo-meshboard/src/lib/graphQL/*.graphql"
+    preset: near-operation-file
+    presetConfig:
+      extension: .ts
+      baseTypesPath: globalTypes.ts
+    plugins:
+      - "typescript-operations"
+      - "typescript-apollo-angular"
+    config:
+      typesSuffix: Dto
+
+  # octo-process-diagrams (uses types from @meshmakers/octo-services)
+  projects/meshmakers/octo-process-diagrams/src/lib/graphQL/:
+    documents: "projects/meshmakers/octo-process-diagrams/src/lib/graphQL/*.graphql"
+    preset: near-operation-file
+    presetConfig:
+      extension: .ts
+      baseTypesPath: globalTypes.ts
+    plugins:
+      - "typescript-operations"
+      - "typescript-apollo-angular"
+    config:
+      typesSuffix: Dto
+
+  # octo-services
+  projects/meshmakers/octo-services/src/lib/graphQL/globalTypes.ts:
+    documents: "projects/meshmakers/octo-services/src/lib/graphQL/*.graphql"
+    plugins:
+      - typescript
+    config:
+      typesSuffix: Dto
+      enumPrefix: false
+      scalars:
+        DateTime: Date
+        Decimal: number
+        OctoObjectId: string
+        CkAttributeId: string
+        CkEnumId: string
+        CkRecordId: string
+        CkTypeId: string
+  projects/meshmakers/octo-services/src/lib/graphQL/possibleTypes.ts:
+    plugins:
+      - fragment-matcher
+    config:
+      apolloClientVersion: 3
+      useExplicitTyping: true
+  projects/meshmakers/octo-services/src/lib/graphQL/:
+    documents: "projects/meshmakers/octo-services/src/lib/graphQL/*.graphql"
+    preset: near-operation-file
+    presetConfig:
+      extension: .ts
+      baseTypesPath: globalTypes.ts
+    plugins:
+      - "typescript-operations"
+      - "typescript-apollo-angular"
+    config:
+      typesSuffix: Dto

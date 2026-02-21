@@ -1,0 +1,15 @@
+<div class="status-indicator" [class.loading]="isLoading()" [class.error]="error()">
+  @if (isNotConfigured()) {
+    <mm-widget-not-configured></mm-widget-not-configured>
+  } @else {
+    <div class="status-badge" [style.background-color]="statusColor">
+      <span class="status-text">{{ statusLabel }}</span>
+    </div>
+
+    @if (error()) {
+      <div class="status-error">
+        {{ error() }}
+      </div>
+    }
+  }
+</div>

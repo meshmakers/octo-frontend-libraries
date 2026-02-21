@@ -26,7 +26,7 @@ steps:
       customEndpoint: $(NpmPublicConnection)
       customCommand: 'publish --tag $(BuildTagName)'
   - task: Npm@1
-    condition: eq(variables.isRelease, false)
+    condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
     displayName: npm publish to private registry ${{ parameters.libName }}
     inputs:
       command: 'custom'

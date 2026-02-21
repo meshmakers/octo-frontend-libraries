@@ -1,0 +1,275 @@
+<div class="symbol-library-detail-container">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <span>Loading library...</span>
+    </div>
+  } @else if (library()) {
+    <!-- Header -->
+    <div class="detail-header">
+      <div class="header-left">
+        <button kendoButton
+                [svgIcon]="backIcon"
+                fillMode="flat"
+                title="Back to library list"
+                (click)="navigateBack()">
+        </button>
+        <h2 class="library-title">{{ libraryName() }}</h2>
+        @if (library()?.isReadOnly) {
+          <span class="readonly-badge">Read Only</span>
+        }
+      </div>
+      <div class="header-right">
+        <button kendoButton
+                [svgIcon]="uploadIcon"
+                fillMode="outline"
+                title="Import SVG"
+                (click)="showSvgImportDialogFn()"
+                [disabled]="!!library()?.isReadOnly">
+        </button>
+        <button kendoButton
+                [svgIcon]="plusIcon"
+                themeColor="primary"
+                title="New Symbol"
+                (click)="showCreateSymbolDialog()"
+                [disabled]="!!library()?.isReadOnly">
+        </button>
+      </div>
+    </div>
+
+    <!-- Symbols Grid -->
+    <div class="symbols-grid">
+      @for (symbol of symbols(); track symbol.rtId) {
+        <div class="symbol-card"
+             [class.selected]="selectedSymbol()?.rtId === symbol.rtId"
+             (click)="selectSymbol(symbol)">
+          <div class="symbol-preview">
+            <svg [attr.viewBox]="'0 0 ' + symbol.bounds.width + ' ' + symbol.bounds.height" preserveAspectRatio="xMidYMid meet">
+              @for (primitive of symbol.primitives; track primitive.id) {
+                @switch (primitive.type) {
+                  @case ('rectangle') {
+                    <rect
+                      [attr.x]="primitive.position.x"
+                      [attr.y]="primitive.position.y"
+                      [attr.width]="$any(primitive).config?.width"
+                      [attr.height]="$any(primitive).config?.height"
+                      [attr.fill]="getFillColor(primitive, symbol.styleClasses)"
+                      [attr.stroke]="getStrokeColor(primitive, symbol.styleClasses)"
+                      [attr.stroke-width]="getStrokeWidth(primitive, symbol.styleClasses)"
+                      [attr.fill-opacity]="getFillOpacity(primitive, symbol.styleClasses)"
+                      [attr.stroke-opacity]="getStrokeOpacity(primitive, symbol.styleClasses)"
+                      [attr.rx]="$any(primitive).config?.cornerRadius || 0"
+                      [attr.ry]="$any(primitive).config?.cornerRadius || 0"
+                    />
+                  }
+                  @case ('ellipse') {
+                    <ellipse
+                      [attr.cx]="primitive.position.x + ($any(primitive).config?.radiusX || 0)"
+                      [attr.cy]="primitive.position.y + ($any(primitive).config?.radiusY || 0)"
+                      [attr.rx]="$any(primitive).config?.radiusX"
+                      [attr.ry]="$any(primitive).config?.radiusY"
+                      [attr.fill]="getFillColor(primitive, symbol.styleClasses)"
+                      [attr.stroke]="getStrokeColor(primitive, symbol.styleClasses)"
+                      [attr.stroke-width]="getStrokeWidth(primitive, symbol.styleClasses)"
+                      [attr.fill-opacity]="getFillOpacity(primitive, symbol.styleClasses)"
+                      [attr.stroke-opacity]="getStrokeOpacity(primitive, symbol.styleClasses)"
+                    />
+                  }
+                  @case ('line') {
+                    <line
+                      [attr.x1]="$any(primitive).config?.start?.x"
+                      [attr.y1]="$any(primitive).config?.start?.y"
+                      [attr.x2]="$any(primitive).config?.end?.x"
+                      [attr.y2]="$any(primitive).config?.end?.y"
+                      [attr.stroke]="getStrokeColor(primitive, symbol.styleClasses)"
+                      [attr.stroke-width]="getStrokeWidth(primitive, symbol.styleClasses)"
+                      [attr.stroke-opacity]="getStrokeOpacity(primitive, symbol.styleClasses)"
+                    />
+                  }
+                  @case ('path') {
+                    <path
+                      [attr.d]="$any(primitive).config?.d"
+                      [attr.transform]="'translate(' + primitive.position.x + ',' + primitive.position.y + ')'"
+                      [attr.fill]="getFillColor(primitive, symbol.styleClasses, 'none')"
+                      [attr.stroke]="getStrokeColor(primitive, symbol.styleClasses)"
+                      [attr.stroke-width]="getStrokeWidth(primitive, symbol.styleClasses)"
+                      [attr.fill-opacity]="getFillOpacity(primitive, symbol.styleClasses)"
+                      [attr.stroke-opacity]="getStrokeOpacity(primitive, symbol.styleClasses)"
+                    />
+                  }
+                  @case ('text') {
+                    <text
+                      [attr.x]="primitive.position.x"
+                      [attr.y]="primitive.position.y"
+                      [attr.fill]="getFillColor(primitive, symbol.styleClasses, '#333333')"
+                      [attr.fill-opacity]="getFillOpacity(primitive, symbol.styleClasses)"
+                      [attr.font-size]="$any(primitive).config?.fontSize || 12"
+                      [attr.font-family]="$any(primitive).config?.fontFamily || 'sans-serif'"
+                    >{{ $any(primitive).config?.text }}</text>
+                  }
+                  @case ('polyline') {
+                    <polyline
+                      [attr.points]="getPointsWithOffset(primitive)"
+                      [attr.fill]="getFillColor(primitive, symbol.styleClasses, 'none')"
+                      [attr.stroke]="getStrokeColor(primitive, symbol.styleClasses)"
+                      [attr.stroke-width]="getStrokeWidth(primitive, symbol.styleClasses)"
+                      [attr.fill-opacity]="getFillOpacity(primitive, symbol.styleClasses)"
+                      [attr.stroke-opacity]="getStrokeOpacity(primitive, symbol.styleClasses)"
+                    />
+                  }
+                  @case ('polygon') {
+                    <polygon
+                      [attr.points]="getPointsWithOffset(primitive)"
+                      [attr.fill]="getFillColor(primitive, symbol.styleClasses)"
+                      [attr.stroke]="getStrokeColor(primitive, symbol.styleClasses)"
+                      [attr.stroke-width]="getStrokeWidth(primitive, symbol.styleClasses)"
+                      [attr.fill-opacity]="getFillOpacity(primitive, symbol.styleClasses)"
+                      [attr.stroke-opacity]="getStrokeOpacity(primitive, symbol.styleClasses)"
+                    />
+                  }
+                }
+              }
+            </svg>
+          </div>
+          <div class="symbol-info">
+            <span class="symbol-name">{{ symbol.name }}</span>
+            <div class="symbol-actions">
+              <button kendoButton [svgIcon]="editIcon" fillMode="flat" size="small" (click)="editSymbol(symbol); $event.stopPropagation()">
+              </button>
+              <button kendoButton [svgIcon]="deleteIcon" fillMode="flat" size="small"
+                      [disabled]="!!library()?.isReadOnly"
+                      (click)="deleteSymbol(symbol); $event.stopPropagation()">
+              </button>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="no-symbols">
+          <p>No symbols in this library</p>
+          <button kendoButton [svgIcon]="plusIcon" themeColor="primary" (click)="showCreateSymbolDialog()" [disabled]="!!library()?.isReadOnly">
+            Create First Symbol
+          </button>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="error-container">
+      <p>Library not found</p>
+      <button kendoButton (click)="navigateBack()">Go Back</button>
+    </div>
+  }
+</div>
+
+<!-- Create Symbol Dialog -->
+@if (showSymbolDialog()) {
+  <kendo-dialog title="Create Symbol" (close)="closeSymbolDialog()" [width]="450">
+    <div class="dialog-content">
+      <div class="form-group">
+        <label>Name *</label>
+        <input kendoTextBox [(ngModel)]="newSymbol.name" placeholder="Symbol name"/>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea kendoTextArea [(ngModel)]="newSymbol.description" placeholder="Optional description" rows="2"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Width</label>
+          <kendo-numerictextbox [(ngModel)]="newSymbol.width" [min]="10" [max]="2000" [step]="10" [format]="'n0'"></kendo-numerictextbox>
+        </div>
+        <div class="form-group">
+          <label>Height</label>
+          <kendo-numerictextbox [(ngModel)]="newSymbol.height" [min]="10" [max]="2000" [step]="10" [format]="'n0'"></kendo-numerictextbox>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <input kendoTextBox [(ngModel)]="newSymbol.category" placeholder="e.g., Basic, Flow, Equipment"/>
+      </div>
+    </div>
+    <kendo-dialog-actions>
+      <button kendoButton (click)="closeSymbolDialog()">Cancel</button>
+      <button kendoButton themeColor="primary" (click)="createSymbol()" [disabled]="!newSymbol.name">
+        Create
+      </button>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}
+
+<!-- Import SVG Dialog -->
+@if (showSvgImportDialog()) {
+  <kendo-dialog title="Import Symbol from SVG" (close)="closeSvgImportDialog()" [width]="500">
+    <div class="dialog-content">
+      <!-- Hidden file input -->
+      <input #svgFileInput
+             type="file"
+             accept=".svg,image/svg+xml"
+             style="display: none"
+             (change)="onSvgFileSelected($event)"/>
+
+      <!-- File Selection -->
+      <div class="form-group svg-file-group">
+        <button kendoButton (click)="svgFileInputRef.nativeElement.click()">
+          {{ svgImport.svgFileName ? 'Change SVG file...' : 'Select SVG file...' }}
+        </button>
+        @if (svgImport.svgFileName) {
+          <div class="svg-file-info">
+            <span class="svg-filename">{{ svgImport.svgFileName }}</span>
+            <span class="svg-stats">
+              {{ svgImport.svgPrimitives?.length || 0 }} elements
+              @if (svgImport.styleClasses && svgImport.styleClasses.length > 0) {
+                , {{ svgImport.styleClasses.length }} style(s)
+              }
+            </span>
+          </div>
+        }
+      </div>
+
+      @if (svgImport.svgPrimitives) {
+        <!-- Scale Control -->
+        <div class="form-group svg-scale-group">
+          <label>Scale:</label>
+          <kendo-numerictextbox
+            [(ngModel)]="svgImport.svgScale"
+            [min]="0.1"
+            [max]="10"
+            [step]="0.1"
+            [decimals]="1"
+            [format]="'n1'"
+            (valueChange)="onSvgScaleChange($event)"
+            style="width: 100px">
+          </kendo-numerictextbox>
+          <span class="scale-info">
+            Original: {{ svgImport.svgOriginalWidth }}×{{ svgImport.svgOriginalHeight }}px
+            → {{ svgImport.width }}×{{ svgImport.height }}px
+          </span>
+          <button kendoButton look="flat" (click)="resetSvgScale()" title="Reset to 1x">
+            Reset
+          </button>
+        </div>
+
+        <!-- Symbol Properties -->
+        <div class="form-group">
+          <label>Name *</label>
+          <input kendoTextBox [(ngModel)]="svgImport.name" placeholder="Symbol name"/>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea kendoTextArea [(ngModel)]="svgImport.description" placeholder="Optional description" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <input kendoTextBox [(ngModel)]="svgImport.category" placeholder="e.g., Basic, Flow, Equipment"/>
+        </div>
+      }
+    </div>
+    <kendo-dialog-actions>
+      <button kendoButton (click)="closeSvgImportDialog()">Cancel</button>
+      <button kendoButton themeColor="primary"
+              (click)="createSymbolFromSvg()"
+              [disabled]="!svgImport.name || !svgImport.svgPrimitives?.length">
+        Import
+      </button>
+    </kendo-dialog-actions>
+  </kendo-dialog>
+}

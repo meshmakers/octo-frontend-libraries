@@ -1,0 +1,18 @@
+query getCkRecordAttributes($ckRecordId: String!, $first: Int) {
+  constructionKit {
+    records(ckId: $ckRecordId) {
+      items {
+        ckRecordId {
+          fullName
+        }
+        rtCkRecordId
+        attributes(first: $first) {
+          items {
+            attributeName
+            attributeValueType
+          }
+        }
+      }
+    }
+  }
+}

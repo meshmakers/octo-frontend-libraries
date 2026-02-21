@@ -1,0 +1,22 @@
+query getSymbolLibraries($first: Int, $searchFilter: SearchFilter) {
+  runtime {
+    systemUISymbolLibrary(first: $first, searchFilter: $searchFilter) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        author
+        isBuiltIn
+        isReadOnly
+        rtCreationDateTime
+        rtChangedDateTime
+        children(ckTypeIds: ["System.UI/SymbolDefinition"]) {
+          totalCount
+        }
+      }
+    }
+  }
+}

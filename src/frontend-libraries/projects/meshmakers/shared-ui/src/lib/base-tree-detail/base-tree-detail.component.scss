@@ -1,0 +1,86 @@
+/* Container with toolbar support */
+.base-tree-detail-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+/* Toolbar styling */
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  min-height: 44px;
+  gap: 8px;
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toolbar-spacer {
+    flex: 1;
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  button {
+    font-size: 12px;
+    padding: 4px 8px;
+    min-width: auto;
+  }
+}
+
+.octo-full {
+  flex: 1; /* Take remaining space after toolbar */
+  height: auto;
+  width: 100%;
+  min-height: 0; /* Allow flex to shrink */
+
+  &.disabled {
+
+    pointer-events: none;
+    user-select: none;
+    opacity: .25;
+  }
+}
+
+/* Ensure splitter panes take full height */
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+/* Ensure tree view and detail panel fill their containers */
+:deep(.k-splitter) {
+  height: 100%;
+
+  .k-pane {
+    overflow: auto; /* Allow scrolling within panes if needed */
+  }
+}
+
+.tree-pane {
+  :deep(.k-pane-content) {
+    height: 100%;
+    overflow-y: auto; /* Tree view scrollable */
+    overflow-x: hidden;
+    padding: 0; /* Remove default padding */
+  }
+}
+
+.detail-pane {
+  :deep(.k-pane-content) {
+    height: 100%;
+    overflow-y: auto; /* Details panel scrollable */
+    padding: 0; /* Remove default padding */
+  }
+}

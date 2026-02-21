@@ -1,28 +1,6 @@
 steps:
-- task: Assembly-Info-NetCore@3
-  displayName: "Setting version number to $(Build.BuildNumber)"
-  inputs:
-    FileNames: |
-      **/*.csproj
-    InsertAttributes: true
-    FileEncoding: 'auto'
-    Product: $(Build.SourceBranchName) - $(Build.SourceVersion) (release)
-    VersionNumber: $(MajorVersion).$(MinorVersion).0.0
-    FileVersionNumber: $(BuildNumberLong)
-    InformationalVersion: $(Build.BuildNumber)
-    PackageVersion: $(BuildNumberLong)
-    DisableTelemetry: true
-    Authors: $(Authors)
-    Company: $(Company)
-    Copyright: $(Copyright)
 - task: VersionJSONFile@3
-  condition: eq(variables.isRelease, true)
-  displayName: Set Version package.json (release)
+  displayName: Set Version package.json
   inputs:
-    FilenamePattern: ^package.json
-- task: VersionJSONFile@3
-  condition: eq(variables.isRelease, false)
-  displayName: Set Version package.json (non-release)
-  inputs:
-    versionForJSONFileFormat: "{1}.{2}.{3}.{4}"
+    versionForJSONFileFormat: '{1}.{2}.{3}-{4}'
     FilenamePattern: ^package.json

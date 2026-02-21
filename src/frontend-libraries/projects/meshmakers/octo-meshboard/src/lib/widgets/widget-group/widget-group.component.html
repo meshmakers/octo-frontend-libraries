@@ -1,0 +1,45 @@
+<div class="widget-group" [class]="layoutClass()">
+  @if (isNotConfigured()) {
+    <mm-widget-not-configured></mm-widget-not-configured>
+  } @else if (isLoading()) {
+    <div class="loading-state">
+      <span class="loading-spinner"></span>
+      <span class="loading-text">Loading...</span>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <span class="error-icon">!</span>
+      <span class="error-message">{{ error() }}</span>
+    </div>
+  } @else if (childConfigs().length === 0) {
+    <div class="empty-state">
+      <span class="empty-message">{{ config.emptyMessage || 'No data available' }}</span>
+    </div>
+  } @else {
+    <div
+      class="widget-group-grid"
+      [style.grid-template-columns]="gridTemplateColumns()"
+      [style.gap]="gapStyle()">
+      @for (childConfig of childConfigs(); track childConfig.id) {
+        <div class="widget-group-item">
+          <div class="widget-group-item-header">
+            <span class="widget-group-item-title">{{ childConfig.title }}</span>
+          </div>
+          <div class="widget-group-item-content">
+            @switch (config.childTemplate.widgetType) {
+              @case ('kpi') {
+                <mm-kpi-widget [config]="$any(childConfig)"></mm-kpi-widget>
+              }
+              @case ('gauge') {
+                <mm-gauge-widget [config]="$any(childConfig)"></mm-gauge-widget>
+              }
+              @case ('entityCard') {
+                <mm-entity-card-widget [config]="$any(childConfig)"></mm-entity-card-widget>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

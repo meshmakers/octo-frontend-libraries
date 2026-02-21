@@ -1,0 +1,142 @@
+.add-widget-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  max-height: 60vh;
+  overflow: hidden;
+
+  .dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+
+    .dialog-description {
+      margin: 0;
+      color: var(--kendo-color-subtle, #757575);
+      font-size: 0.875rem;
+    }
+
+    .widget-types-list {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid var(--kendo-color-border, #e0e0e0);
+      border-radius: 4px;
+
+      .list-header {
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--kendo-color-on-app-surface, #424242);
+        padding: 0.5rem 0.75rem;
+        background-color: var(--kendo-color-surface-alt, #fafafa);
+        border-bottom: 1px solid var(--kendo-color-border, #e0e0e0);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .widget-type-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.5rem;
+        cursor: pointer;
+        border-bottom: 1px solid var(--kendo-color-border, #e0e0e0);
+        transition: background-color 0.2s, box-shadow 0.2s;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &:hover {
+          background-color: var(--kendo-color-base-hover, #f5f5f5);
+        }
+
+        &.selected {
+          background-color: var(--kendo-color-primary-subtle, #e8eaf6);
+          box-shadow: inset 3px 0 0 var(--kendo-color-primary, #3f51b5);
+        }
+
+        .widget-icon {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
+          border-radius: 4px;
+          background-color: var(--kendo-color-surface-alt, #f5f5f5);
+          color: var(--kendo-color-primary, #3f51b5);
+
+          kendo-svg-icon {
+            color: inherit;
+          }
+        }
+
+        .widget-info {
+          flex: 1;
+          min-width: 0;
+
+          .widget-label {
+            margin: 0 0 0.125rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--kendo-color-on-app-surface, #212121);
+          }
+
+          .widget-description {
+            margin: 0;
+            font-size: 0.75rem;
+            color: var(--kendo-color-subtle, #757575);
+            line-height: 1.3;
+          }
+        }
+
+        .selected-indicator {
+          flex-shrink: 0;
+          color: var(--kendo-color-primary, #3f51b5);
+
+          kendo-svg-icon {
+            color: inherit;
+          }
+        }
+
+        &.selected .widget-icon {
+          background-color: var(--kendo-color-primary, #3f51b5);
+          color: var(--kendo-color-on-primary, #ffffff);
+        }
+      }
+    }
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--kendo-color-border, #e0e0e0);
+    flex-shrink: 0;
+  }
+}
+
+// Scrollbar styling
+.widget-types-list {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--kendo-color-surface-alt, #f5f5f5);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--kendo-color-border, #e0e0e0);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--kendo-color-subtle, #9e9e9e);
+    }
+  }
+}

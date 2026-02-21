@@ -1,0 +1,17 @@
+mutation createSymbolLibrary($entities: [SystemUISymbolLibraryInput]!) {
+  runtime {
+    systemUISymbolLibrarys {
+      create(entities: $entities) {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        author
+        isBuiltIn
+        isReadOnly
+        rtCreationDateTime
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+@if (isNotConfigured()) {
+  <mm-widget-not-configured></mm-widget-not-configured>
+} @else {
+  <div
+    class="service-health"
+    [class.clickable]="isClickable"
+    [class.healthy]="healthStatus() === 'healthy'"
+    [class.unhealthy]="healthStatus() === 'unhealthy'"
+    [class.loading]="healthStatus() === 'loading'"
+    (click)="onClick()">
+
+    <div class="health-indicator">
+      <div class="pulse-ring" [class.pulse-active]="showPulse"></div>
+      <div class="health-dot" [class.pulse-dot]="showPulse"></div>
+    </div>
+
+    <div class="health-info">
+      <div class="service-name">{{ serviceName }}</div>
+      <div class="health-status">{{ statusLabel }}</div>
+      @if (lastChecked()) {
+        <div class="last-checked">
+          Last checked: {{ lastChecked() | date:'HH:mm:ss' }}
+        </div>
+      }
+    </div>
+
+    @if (error()) {
+      <div class="health-error">
+        {{ error() }}
+      </div>
+    }
+  </div>
+}

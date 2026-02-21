@@ -1,0 +1,161 @@
+steps:
+  - task: NodeTool@0
+    displayName: 'Install Node.js'
+    inputs:
+      versionSpec: '20.x'
+
+  - task: CmdLine@2
+    displayName: 'Install Google Chrome for tests'
+    inputs:
+      script: |
+        apt-get update
+        apt-get install -y wget gnupg
+        wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+        apt-get update
+        apt-get install -y google-chrome-stable
+        echo "##vso[task.setvariable variable=CHROME_BIN]/usr/bin/google-chrome-stable"
+
+  - task: CmdLine@2
+    displayName: 'Install dependencies (frontend-libraries)'
+    inputs:
+      script: npm ci
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+  - task: CmdLine@2
+    displayName: 'Build shared libraries'
+    inputs:
+      script: |
+        npm run build:shared-services &&
+        npm run build:shared-auth &&
+        npm run build:shared-ui &&
+        npm run build:octo-services &&
+        npm run build:octo-ui &&
+        npm run build:octo-process-diagrams &&
+        npm run build:octo-meshboard
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+  - task: CmdLine@2
+    displayName: 'Run unit tests (shared-auth)'
+    inputs:
+      script: NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=@meshmakers/shared-auth --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+    continueOnError: false
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results (shared-auth)'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TESTS-*.xml'
+      searchFolder: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+      mergeTestResults: true
+      testRunTitle: 'Unit Tests - Frontend Libraries (shared-auth)'
+
+  - task: CmdLine@2
+    displayName: 'Run unit tests (shared-services)'
+    inputs:
+      script: NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=@meshmakers/shared-services --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+    continueOnError: false
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results (shared-services)'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TESTS-*.xml'
+      searchFolder: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+      mergeTestResults: true
+      testRunTitle: 'Unit Tests - Frontend Libraries (shared-services)'
+
+  - task: CmdLine@2
+    displayName: 'Run unit tests (octo-services)'
+    inputs:
+      script: NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=@meshmakers/octo-services --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+    continueOnError: false
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results (octo-services)'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TESTS-*.xml'
+      searchFolder: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+      mergeTestResults: true
+      testRunTitle: 'Unit Tests - Frontend Libraries (octo-services)'
+
+  - task: CmdLine@2
+    displayName: 'Run unit tests (octo-process-diagrams)'
+    inputs:
+      script: NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=@meshmakers/octo-process-diagrams --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+    continueOnError: false
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results (octo-process-diagrams)'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TESTS-*.xml'
+      searchFolder: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+      mergeTestResults: true
+      testRunTitle: 'Unit Tests - Frontend Libraries (octo-process-diagrams)'
+
+  - task: CmdLine@2
+    displayName: 'Run unit tests (shared-ui)'
+    inputs:
+      script: NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=@meshmakers/shared-ui --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+    continueOnError: false
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results (shared-ui)'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TESTS-*.xml'
+      searchFolder: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+      mergeTestResults: true
+      testRunTitle: 'Unit Tests - Frontend Libraries (shared-ui)'
+
+  - task: CmdLine@2
+    displayName: 'Run unit tests (octo-meshboard)'
+    inputs:
+      script: NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=@meshmakers/octo-meshboard --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+    continueOnError: false
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results (octo-meshboard)'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TESTS-*.xml'
+      searchFolder: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+      mergeTestResults: true
+      testRunTitle: 'Unit Tests - Frontend Libraries (octo-meshboard)'
+
+  - task: CmdLine@2
+    displayName: 'Build template-app'
+    inputs:
+      script: npm run build:template-app
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+  - task: CmdLine@2
+    displayName: 'Run unit tests (template-app)'
+    inputs:
+      script: NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=template-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+    continueOnError: false
+
+  - task: PublishTestResults@2
+    displayName: 'Publish test results (template-app)'
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/TESTS-*.xml'
+      searchFolder: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+      mergeTestResults: true
+      testRunTitle: 'Unit Tests - Frontend Libraries (template-app)'

@@ -1,0 +1,29 @@
+<div class="import-strategy-content">
+  <p class="strategy-message">{{ message }}</p>
+  <div class="strategy-options">
+    <div class="strategy-option">
+      <label class="strategy-label">
+        <input type="radio"
+               name="importStrategy"
+               [value]="ImportStrategyDto.InsertOnly"
+               [(ngModel)]="selectedStrategy"/>
+        Insert Only
+      </label>
+      <p class="strategy-description">Only insert new entities. Fails if entities already exist.</p>
+    </div>
+    <div class="strategy-option">
+      <label class="strategy-label">
+        <input type="radio"
+               name="importStrategy"
+               [value]="ImportStrategyDto.Upsert"
+               [(ngModel)]="selectedStrategy"/>
+        Upsert (Recommended)
+      </label>
+      <p class="strategy-description">Update existing entities and insert new ones.</p>
+    </div>
+  </div>
+</div>
+<kendo-dialog-actions>
+  <button kendoButton (click)="onImport()" themeColor="primary">Import</button>
+  <button kendoButton (click)="onCancel()">Cancel</button>
+</kendo-dialog-actions>

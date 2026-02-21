@@ -1,0 +1,19 @@
+query getDashboards($first: Int) {
+  runtime {
+    systemUIDashboard(first: $first) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        name
+        description
+        columns
+        rowHeight
+        gap
+        rtCreationDateTime
+        rtChangedDateTime
+      }
+    }
+  }
+}

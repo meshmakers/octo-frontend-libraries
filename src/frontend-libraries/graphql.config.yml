@@ -1,0 +1,9 @@
+schema: schema.graphql
+extensions:
+  endpoints:
+    dev:
+      url: https://localhost:5001/tenants/meshTest/graphQL
+      headers:
+        user-agent: JS GraphQL
+        Authorization: Bearer ${OCTO-ACCESS-TOKEN}
+      introspect: true

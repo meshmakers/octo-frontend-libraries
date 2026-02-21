@@ -1,0 +1,7 @@
+query getCkModelsCount {
+  constructionKit {
+    models {
+      totalCount
+    }
+  }
+}

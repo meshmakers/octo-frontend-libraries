@@ -1,0 +1,16 @@
+mutation updateProcessDiagram($entities: [SystemUIProcessDiagramInputUpdate]!) {
+  runtime {
+    systemUIProcessDiagrams {
+      update(entities: $entities) {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        canvasWidth
+        canvasHeight
+        rtChangedDateTime
+      }
+    }
+  }
+}

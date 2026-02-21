@@ -1,0 +1,7 @@
+<div>{{data?.message}}</div>
+<kendo-dialog-actions>
+  <button kendoButton (click)="onButton1()" themeColor="primary">{{button1Text}}</button>
+  <button kendoButton (click)="onButton2()" *ngIf="button2Text">{{button2Text}}</button>
+  <button kendoButton (click)="onButton3()" *ngIf="button3Text">{{button3Text}}</button>
+</kendo-dialog-actions>
+

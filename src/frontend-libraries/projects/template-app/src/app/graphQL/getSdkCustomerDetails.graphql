@@ -1,0 +1,29 @@
+query getSdkCustomerDetails(
+  $rtId: OctoObjectId!
+){
+  runtime{
+    octoSdkDemoCustomer(
+      rtId: $rtId
+    ){
+      items {
+        rtId
+        ckTypeId
+        rtCreationDateTime
+        rtChangedDateTime
+        customerStatus
+        contact{
+          legalEntityType
+          firstName
+          lastName
+          companyName
+          address{
+            street
+            zipcode
+            cityTown
+            nationalCode
+          }
+        }
+      }
+    }
+  }
+}

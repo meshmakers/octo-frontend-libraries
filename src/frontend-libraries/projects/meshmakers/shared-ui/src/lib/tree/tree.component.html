@@ -1,0 +1,24 @@
+<kendo-treeview
+  #kendoTreeViewComponent
+  kendoTreeViewExpandable
+  kendoTreeViewDragAndDrop
+  [loadOnDemand]="true"
+  [(expandedKeys)]="expandedKeys"
+  [expandBy]="'_id'"
+  [nodes]="(rootNodes | async) || []"
+  textField="text"
+  [children]="fetchChildren"
+  [hasChildren]="hasChildren"
+  [isExpanded]="isExpanded"
+  (selectionChange)="onNodeSelect($event)"
+  (nodeClick)="onNodeClick($event)"
+  (nodeDblClick)="onNodeDoubleClick($event)"
+  (nodeDrop)="onNodeDrop($event)"
+  (expand)="onExpand($event)"
+  (collapse)="onCollapse($event)"
+>
+  <ng-template kendoTreeViewNodeTemplate let-node>
+    <kendo-svgicon [icon]="node.svgIcon" size="medium"></kendo-svgicon>
+    {{ node.text }}
+  </ng-template>
+</kendo-treeview>

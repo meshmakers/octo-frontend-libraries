@@ -1,0 +1,144 @@
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { EntityCardWidgetConfig, RuntimeEntityData } from '../../models/meshboard.models';
+import { DashboardDataService } from '../../services/meshboard-data.service';
+import { DashboardWidget } from '../widget.interface';
+import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { catchError, of } from 'rxjs';
+
+@Component({
+  selector: 'mm-entity-card-widget',
+  standalone: true,
+  imports: [CommonModule, WidgetNotConfiguredComponent],
+  templateUrl: './entity-card-widget.component.html',
+  styleUrl: './entity-card-widget.component.scss'
+})
+export class EntityCardWidgetComponent implements DashboardWidget<EntityCardWidgetConfig, RuntimeEntityData>, OnInit, OnChanges {
+  private readonly dataService = inject(DashboardDataService);
+
+  @Input() config!: EntityCardWidgetConfig;
+
+  // Widget state signals
+  private readonly _isLoading = signal(false);
+  private readonly _data = signal<RuntimeEntityData | null>(null);
+  private readonly _error = signal<string | null>(null);
+
+  readonly isLoading = this._isLoading.asReadonly();
+  readonly data = this._data.asReadonly();
+  readonly error = this._error.asReadonly();
+
+  /**
+   * Check if widget is not configured (needs data source setup).
+   * This is a method (not computed) to ensure it re-evaluates when config changes via @Input.
+   */
+  isNotConfigured(): boolean {
+    const dataSource = this.config?.dataSource;
+    if (!dataSource) return true;
+    if (dataSource.type === 'runtimeEntity') {
+      return !dataSource.rtId && !dataSource.ckTypeId;
+    }
+    if (dataSource.type === 'static') {
+      return false; // Static data is always "configured"
+    }
+    return false;
+  }
+
+  // Computed properties for template
+  readonly entityTypeName = computed(() => {
+    const data = this._data();
+    if (!data?.ckTypeId) return 'Unknown';
+    const parts = data.ckTypeId.split('/');
+    return parts[parts.length - 1];
+  });
+
+  readonly displayName = computed(() => {
+    const data = this._data();
+    return data?.rtWellKnownName || data?.rtId || 'No Name';
+  });
+
+  readonly filteredAttributes = computed(() => {
+    const data = this._data();
+    if (!data?.attributes) return [];
+
+    if (this.config?.attributeFilter?.length) {
+      return data.attributes.filter(attr =>
+        this.config.attributeFilter!.includes(attr.attributeName)
+      );
+    }
+
+    return data.attributes;
+  });
+
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Reload data when config changes (e.g., after configuration dialog)
+    if (changes['config'] && !changes['config'].firstChange) {
+      this.loadData();
+    }
+  }
+
+  refresh(): void {
+    this.loadData();
+  }
+
+  private loadData(): void {
+    // Skip loading if widget is not configured - isNotConfigured() handles the display
+    if (this.isNotConfigured()) {
+      return;
+    }
+
+    const dataSource = this.config.dataSource;
+
+    // Handle static data
+    if (dataSource.type === 'static') {
+      const staticData = dataSource.data as RuntimeEntityData;
+      this._data.set(staticData);
+      this._error.set(null);
+      return;
+    }
+
+    // Handle runtime entity data source
+    // Note: isNotConfigured() check ensures rtId and ckTypeId are set
+    if (dataSource.type === 'runtimeEntity') {
+      this._isLoading.set(true);
+      this._error.set(null);
+
+      this.dataService.fetchEntityWithAssociations(dataSource.rtId!, dataSource.ckTypeId!)
+        .pipe(
+          catchError(err => {
+            console.error('Error loading entity card data:', err);
+            this._error.set('Failed to load data');
+            return of(null);
+          })
+        )
+        .subscribe(entityData => {
+          this._data.set(entityData);
+          this._isLoading.set(false);
+        });
+    }
+  }
+
+  formatValue(value: unknown): string {
+    if (value === null || value === undefined) return '-';
+    if (typeof value === 'number') {
+      return value.toLocaleString();
+    }
+    if (typeof value === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+    if (value instanceof Date) {
+      return value.toLocaleDateString();
+    }
+    return String(value);
+  }
+
+  formatAttributeName(name: string): string {
+    return name
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase())
+      .trim();
+  }
+}

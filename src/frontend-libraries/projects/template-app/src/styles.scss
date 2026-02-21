@@ -1,0 +1,117 @@
+/* Kendo UI Theme */
+@use "@progress/kendo-theme-default/dist/all.scss";
+
+/* Global styles */
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* App root - full viewport height with flex layout */
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Kendo AppBar - fixed height at top */
+kendo-appbar {
+  flex-shrink: 0;
+}
+
+/* Kendo Drawer Container - fills remaining space */
+kendo-drawer-container {
+  flex: 1 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  overflow: hidden !important;
+}
+
+/* Kendo Drawer Container internal wrapper - target any direct child div */
+kendo-drawer-container > div,
+kendo-drawer-container > .k-drawer-container {
+  flex: 1 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  overflow: hidden !important;
+}
+
+/* Kendo Drawer Content - fills space next to drawer */
+kendo-drawer-content {
+  flex: 1 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+}
+
+/* Header div in drawer content (breadcrumb, appbar) - fixed height only */
+kendo-drawer-content > div:first-child {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  display: block !important;
+}
+
+/* Main content area - fills remaining space */
+.octo-body {
+  flex: 1 1 0 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding-left: 8px;
+  padding-right: 16px;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  scrollbar-gutter: stable;
+
+  /* Always show scrollbar for better UX */
+  &::-webkit-scrollbar {
+    width: 12px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #e0e0e0;
+    border-left: 1px solid #ccc;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #757575;
+    border-radius: 6px;
+    border: 2px solid #e0e0e0;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #424242;
+  }
+}
+
+/* Router outlet - no space */
+router-outlet {
+  display: none !important;
+}
+
+/* Kendo dialog container - should not take flex space */
+[kendodialogcontainer] {
+  flex: 0 0 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+}
+
+/* All components inside octo-body should fill space (except utility containers) */
+.octo-body > *:not(router-outlet):not([kendodialogcontainer]),
+.octo-body app-tenant,
+.octo-body app-tenant > *:not(router-outlet):not([kendodialogcontainer]),
+app-tenant {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+

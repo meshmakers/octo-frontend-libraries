@@ -1,0 +1,21 @@
+mutation updateDashboardWidget($entities: [SystemUIDashboardWidgetInputUpdate]!) {
+  runtime {
+    systemUIDashboardWidgets {
+      update(entities: $entities) {
+        rtId
+        ckTypeId
+        name
+        type
+        col
+        row
+        colSpan
+        rowSpan
+        dataSourceType
+        dataSourceCkTypeId
+        dataSourceRtId
+        config
+        rtChangedDateTime
+      }
+    }
+  }
+}

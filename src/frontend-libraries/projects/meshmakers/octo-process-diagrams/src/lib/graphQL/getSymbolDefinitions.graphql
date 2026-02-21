@@ -1,0 +1,21 @@
+query getSymbolDefinitions($first: Int, $searchFilter: SearchFilter) {
+  runtime {
+    systemUISymbolDefinition(first: $first, searchFilter: $searchFilter) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        name
+        description
+        version
+        boundsWidth
+        boundsHeight
+        category
+        tags
+        previewImage
+        rtCreationDateTime
+        rtChangedDateTime
+      }
+    }
+  }
+}

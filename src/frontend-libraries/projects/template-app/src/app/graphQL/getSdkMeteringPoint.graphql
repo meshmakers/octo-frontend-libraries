@@ -1,0 +1,29 @@
+query getSdkMeteringPoint(
+  $after: String
+  $first: Int
+  $rtIds: [OctoObjectId]
+  $searchFilter: SearchFilter
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+) {
+  runtime {
+    octoSdkDemoMeteringPoint(
+      after: $after
+      first: $first
+      rtIds: $rtIds
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+    ) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        name
+        meteringPointNumber
+        networkOperator
+        operatingStatus
+      }
+    }
+  }
+}
