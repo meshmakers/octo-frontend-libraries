@@ -78,4 +78,10 @@ stages:
               buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-meshboard'
               libName: 'octo-meshboard'
+          - template: build-and-push-docker-image.yml
+            parameters:
+              PublicRegistryServiceConnection: $(DockerRegistryPublicConnection)
+              PrivateRegistryName: $(DockerRegistryPrivateUri)
+              Repository: meshmakers/octo-mesh-template-app
+              Dockerfile: src/frontend-libraries/Dockerfile
           - template: handle-artifacts.yml
