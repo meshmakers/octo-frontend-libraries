@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { MacoSchemeDecoderService, ParseResponse, ParseResult } from '@meshmakers/shared-services';
 import { MatDialog } from '@angular/material/dialog';
-import { MmQrCodeScannerComponent } from '@meshmakers/shared-ui';
+import { MmQrCodeScannerComponent } from '@meshmakers/shared-ui-legacy';
 
 @Component({
   selector: 'app-qr-demo',

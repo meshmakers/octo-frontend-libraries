@@ -149,7 +149,7 @@
         }
       }
     },
-    "@meshmakers/octo-ui": {
+    "@meshmakers/octo-ui-legacy": {
       "projectType": "library",
       "root": "projects/meshmakers/octo-ui",
       "sourceRoot": "projects/meshmakers/octo-ui/src",
@@ -192,7 +192,7 @@
         }
       }
     },
-    "@meshmakers/shared-ui": {
+    "@meshmakers/shared-ui-legacy": {
       "projectType": "library",
       "root": "projects/meshmakers/shared-ui",
       "sourceRoot": "projects/meshmakers/shared-ui/src",

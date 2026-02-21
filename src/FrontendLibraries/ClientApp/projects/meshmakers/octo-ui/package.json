@@ -1,5 +1,5 @@
 {
-  "name": "@meshmakers/octo-ui",
+  "name": "@meshmakers/octo-ui-legacy",
   "version": "0.0.0",
   "peerDependencies": {
     "@angular/common": "^21.1.5",

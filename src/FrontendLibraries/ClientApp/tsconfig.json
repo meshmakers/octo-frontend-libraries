@@ -25,8 +25,8 @@
       "dom"
     ],
     "paths": {
-      "@meshmakers/shared-ui": [
-        "dist/meshmakers/shared-ui"
+      "@meshmakers/shared-ui-legacy": [
+        "dist/meshmakers/shared-ui-legacy"
       ],
       "@meshmakers/shared-auth": [
         "dist/meshmakers/shared-auth"
@@ -34,8 +34,8 @@
       "@meshmakers/shared-services": [
         "dist/meshmakers/shared-services"
       ],
-      "@meshmakers/octo-ui": [
-        "dist/meshmakers/octo-ui"
+      "@meshmakers/octo-ui-legacy": [
+        "dist/meshmakers/octo-ui-legacy"
       ],
       "@meshmakers/octo-services": [
         "dist/meshmakers/octo-services"
