@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CollectionViewer } from '@angular/cdk/collections';
-import { AssetRepoGraphQlDataSource, FieldFilterDto, SearchFilterDto, SortDto } from "@meshmakers/octo-services";
+import { FieldFilterDto, SearchFilterDto, SortDto } from "@meshmakers/octo-services";
+import { AssetRepoGraphQlDataSource } from "@meshmakers/octo-ui-legacy";
 import { PagedResultDto } from "@meshmakers/shared-services";
 import { Observable } from "rxjs";
 
