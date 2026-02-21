@@ -6,7 +6,9 @@ describe('MacoSchemeDecoderService', () => {
   let service: MacoSchemeDecoderService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [MacoSchemeDecoderService]
+    });
     service = TestBed.inject(MacoSchemeDecoderService);
   });
 

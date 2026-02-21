@@ -42,7 +42,8 @@ import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { MatListItemIcon } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { AssetRepoGraphQlDataSource, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from '@meshmakers/octo-services';
+import { SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from '@meshmakers/octo-services';
+import { AssetRepoGraphQlDataSource } from '../services/assetRepoGraphQlDataSource';
 import { ColumnDefinition, getDisplayName, getDataKey, TableColumn } from './mm-octo-table.model';
 
 export interface ActionColumn {

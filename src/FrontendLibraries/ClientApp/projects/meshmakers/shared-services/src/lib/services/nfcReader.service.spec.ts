@@ -1,4 +1,4 @@
-﻿import { TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { NfcReaderService } from './nfcReader.service';
 
@@ -6,7 +6,9 @@ describe('NfcReaderService', () => {
   let service: NfcReaderService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [NfcReaderService]
+    });
     service = TestBed.inject(NfcReaderService);
   });
 

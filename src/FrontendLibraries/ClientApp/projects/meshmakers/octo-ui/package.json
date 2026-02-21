@@ -1,9 +1,14 @@
 {
-  "name": "@meshmakers/octo-ui",
+  "name": "@meshmakers/octo-ui-legacy",
   "version": "0.0.0",
   "peerDependencies": {
     "@angular/common": "^21.1.5",
-    "@angular/core": "^21.1.5"
+    "@angular/core": "^21.1.5",
+    "@apollo/client": "^3.0.0",
+    "@meshmakers/octo-services": "*",
+    "@meshmakers/shared-services": "*",
+    "apollo-angular": "^8.0.0",
+    "graphql": "^16.0.0"
   },
   "dependencies": {
     "tslib": "^2.8.1"

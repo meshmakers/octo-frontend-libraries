@@ -1,20 +1,27 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {NO_ERRORS_SCHEMA} from '@angular/core';
+import {FocusMonitor} from '@angular/cdk/a11y';
+import {of} from 'rxjs';
 
-import { IaMultipleEntitySelectInputComponent } from './mm-multiple-entity-select-input.component';
+import {MmMultipleEntitySelectInputComponent} from './mm-multiple-entity-select-input.component';
 
-describe('IaMultipleEntitySelectInputComponent', () => {
-  let component: IaMultipleEntitySelectInputComponent;
-  let fixture: ComponentFixture<IaMultipleEntitySelectInputComponent>;
+describe('MmMultipleEntitySelectInputComponent', () => {
+  let component: MmMultipleEntitySelectInputComponent;
+  let fixture: ComponentFixture<MmMultipleEntitySelectInputComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ IaMultipleEntitySelectInputComponent ]
+      declarations: [MmMultipleEntitySelectInputComponent],
+      providers: [
+        {provide: FocusMonitor, useValue: {monitor: () => of(null), stopMonitoring: () => {}}}
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
+    .overrideComponent(MmMultipleEntitySelectInputComponent, {set: {template: ''}})
     .compileComponents();
 
-    fixture = TestBed.createComponent(IaMultipleEntitySelectInputComponent);
+    fixture = TestBed.createComponent(MmMultipleEntitySelectInputComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
