@@ -47,13 +47,7 @@ steps:
     workingDir: src/FrontendLibraries/ClientApp/
     verbose: false
     customCommand: run build:shared-services -- --configuration production
-- task: Npm@1
-  displayName: npm build shared-auth (build only, no publish)
-  inputs:
-    command: custom
-    workingDir: src/FrontendLibraries/ClientApp/
-    verbose: false
-    customCommand: run build:shared-auth -- --configuration production
+
 - task: Npm@1
   displayName: npm build octo-services (build only, no publish)
   inputs:

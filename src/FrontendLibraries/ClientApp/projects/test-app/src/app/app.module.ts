@@ -5,8 +5,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ConfigurationService } from './services/configuration.service';
-import { AuthorizeService, SharedAuthModule } from '@meshmakers/shared-auth';
-import { defaultAuthorizeOptions } from './config/defaultAuthorizeOptions';
 import { MmSharedUiModule } from "@meshmakers/shared-ui-legacy";
 import { MmOctoUiModule } from "@meshmakers/octo-ui-legacy";
 import { MatButtonModule } from "@angular/material/button";
@@ -24,7 +22,7 @@ import { QrDemoComponent } from './qr-demo/qr-demo.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
-export function initServices(configurationService: ConfigurationService, authorizeService: AuthorizeService) {
+export function initServices(configurationService: ConfigurationService) {
   return async () => {};
 }
 
@@ -35,7 +33,6 @@ export function initServices(configurationService: ConfigurationService, authori
     AppRoutingModule,
     BrowserAnimationsModule,
     MmSharedUiModule.forRoot(),
-    SharedAuthModule.forRoot(defaultAuthorizeOptions),
     MmOctoUiModule,
     MatButtonModule,
     CommonModule,
@@ -53,7 +50,7 @@ export function initServices(configurationService: ConfigurationService, authori
     {
       provide: APP_INITIALIZER,
       useFactory: initServices,
-      deps: [ConfigurationService, AuthorizeService],
+      deps: [ConfigurationService],
       multi: true
     }
   ],

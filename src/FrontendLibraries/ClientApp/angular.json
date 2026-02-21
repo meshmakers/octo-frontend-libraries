@@ -260,49 +260,6 @@
         }
       }
     },
-    "@meshmakers/shared-auth": {
-      "projectType": "library",
-      "root": "projects/meshmakers/shared-auth",
-      "sourceRoot": "projects/meshmakers/shared-auth/src",
-      "prefix": "mm",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "project": "projects/meshmakers/shared-auth/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/meshmakers/shared-auth/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "projects/meshmakers/shared-auth/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "tsConfig": "projects/meshmakers/shared-auth/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
-          }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "projects/meshmakers/shared-auth/**/*.ts",
-              "projects/meshmakers/shared-auth/**/*.html"
-            ],
-            "eslintConfig": "projects/meshmakers/shared-auth/eslint.config.js"
-          }
-        }
-      }
-    }
   },
   "cli": {
     "analytics": "71db929c-bfc5-40c4-89e0-2cb03629ac8f"

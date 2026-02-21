@@ -1,5 +1,5 @@
 import {waitForAsync, ComponentFixture, TestBed} from '@angular/core/testing';
-import {NO_ERRORS_SCHEMA, NgZone} from '@angular/core';
+import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {provideRouter} from '@angular/router';
 

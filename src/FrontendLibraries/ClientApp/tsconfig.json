@@ -28,9 +28,6 @@
       "@meshmakers/shared-ui-legacy": [
         "dist/meshmakers/shared-ui-legacy"
       ],
-      "@meshmakers/shared-auth": [
-        "dist/meshmakers/shared-auth"
-      ],
       "@meshmakers/shared-services": [
         "dist/meshmakers/shared-services"
       ],
