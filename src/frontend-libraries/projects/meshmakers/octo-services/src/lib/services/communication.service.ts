@@ -265,6 +265,38 @@ export class CommunicationService {
   }
 
   // ============================================================================
+  // Pipeline Schema
+  // ============================================================================
+
+  /**
+   * Gets the JSON Schema for a pipeline adapter.
+   * Returns null if no schema is available (404).
+   */
+  async getPipelineSchema(
+    tenantId: string,
+    adapterRtId: string,
+    adapterCkTypeId: string
+  ): Promise<Record<string, unknown> | null> {
+    if (this.communicationServicesUrl) {
+      const params = new HttpParams()
+        .set('adapterRtEntityId', `${adapterCkTypeId}@${adapterRtId}`);
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/adapter/pipeline-schema`;
+
+      return await firstValueFrom(
+        this.httpClient.get<Record<string, unknown>>(uri, {params}).pipe(
+          catchError((error: HttpErrorResponse) => {
+            if (error.status === 404) {
+              return of(null);
+            }
+            return throwError(() => error);
+          })
+        )
+      );
+    }
+    return null;
+  }
+
+  // ============================================================================
   // Pipeline Debugging
   // ============================================================================
 
