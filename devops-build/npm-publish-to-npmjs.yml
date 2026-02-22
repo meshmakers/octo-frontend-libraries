@@ -13,7 +13,7 @@ steps:
       workingDir: ${{ parameters.publishWorkingDirectory }}
       verbose: false
       customEndpoint: $(NpmPublicConnection)
-      customCommand: 'publish --tag $(BuildTagName)'
+      customCommand: 'publish --tag $(BuildTagName) --access public'
   - task: Npm@1
     condition: or(eq(variables.isTest, true), and(eq(variables.isMain, true), eq(variables.isRelease, false)))
     displayName: npm publish to private registry ${{ parameters.libName }}
