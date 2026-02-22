@@ -11,18 +11,60 @@ steps:
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
   - task: CmdLine@2
-    displayName: 'Build shared libraries (production)'
+    displayName: 'Build shared libraries (production, parallel tiers)'
     inputs:
       script: |
-        npm run build:shared-services -- --configuration production &&
-        npm run build:shared-auth -- --configuration production &&
-        npm run build:shared-ui -- --configuration production &&
-        npm run build:shared-ui-legacy -- --configuration production &&
-        npm run build:octo-services -- --configuration production &&
-        npm run build:octo-ui -- --configuration production &&
-        npm run build:octo-ui-legacy -- --configuration production &&
-        npm run build:octo-process-diagrams -- --configuration production &&
-        npm run build:octo-meshboard -- --configuration production
+        set -e
+
+        build_prod() {
+          echo "Building $1..."
+          npm run "build:$1" -- --configuration production
+        }
+
+        wait_all() {
+          local fail=0
+          for pid in "$@"; do
+            wait "$pid" || fail=1
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "ERROR: One or more parallel builds failed"
+            exit 1
+          fi
+        }
+
+        # Tier 0: No dependencies
+        echo "=== Tier 0: shared-services ==="
+        build_prod shared-services
+
+        # Tier 1: Depends on shared-services (parallel)
+        echo "=== Tier 1: shared-auth, shared-ui, shared-ui-legacy (parallel) ==="
+        build_prod shared-auth &
+        pid1=$!
+        build_prod shared-ui &
+        pid2=$!
+        build_prod shared-ui-legacy &
+        pid3=$!
+        wait_all $pid1 $pid2 $pid3
+
+        # Tier 2: Depends on shared-auth, shared-services
+        echo "=== Tier 2: octo-services ==="
+        build_prod octo-services
+
+        # Tier 3: Depends on octo-services, shared-ui (parallel)
+        echo "=== Tier 3: octo-ui, octo-ui-legacy, octo-process-diagrams (parallel) ==="
+        build_prod octo-ui &
+        pid4=$!
+        build_prod octo-ui-legacy &
+        pid5=$!
+        build_prod octo-process-diagrams &
+        pid6=$!
+        wait_all $pid4 $pid5 $pid6
+
+        # Tier 4: Depends on octo-ui, octo-process-diagrams
+        echo "=== Tier 4: octo-meshboard ==="
+        build_prod octo-meshboard
+
+        echo "=== All libraries built successfully ==="
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
   - task: CmdLine@2
