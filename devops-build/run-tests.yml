@@ -11,18 +11,18 @@ steps:
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
   - task: CmdLine@2
-    displayName: 'Build shared libraries'
+    displayName: 'Build shared libraries (production)'
     inputs:
       script: |
-        npm run build:shared-services &&
-        npm run build:shared-auth &&
-        npm run build:shared-ui &&
-        npm run build:shared-ui-legacy &&
-        npm run build:octo-services &&
-        npm run build:octo-ui &&
-        npm run build:octo-ui-legacy &&
-        npm run build:octo-process-diagrams &&
-        npm run build:octo-meshboard
+        npm run build:shared-services -- --configuration production &&
+        npm run build:shared-auth -- --configuration production &&
+        npm run build:shared-ui -- --configuration production &&
+        npm run build:shared-ui-legacy -- --configuration production &&
+        npm run build:octo-services -- --configuration production &&
+        npm run build:octo-ui -- --configuration production &&
+        npm run build:octo-ui-legacy -- --configuration production &&
+        npm run build:octo-process-diagrams -- --configuration production &&
+        npm run build:octo-meshboard -- --configuration production
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
   - task: CmdLine@2

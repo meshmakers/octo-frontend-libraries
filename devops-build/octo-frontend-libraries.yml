@@ -7,6 +7,13 @@ trigger:
       - dev/*
       - test/*
       - main
+  paths:
+    include:
+      - src/
+      - devops-build/
+    exclude:
+      - '**/*.md'
+      - '.claude/'
   tags:
     exclude:
       - '*'
@@ -35,59 +42,41 @@ stages:
           - template: setup-telerik-license.yml
           - template: run-tests.yml
 
-          # Publish @meshmakers/* npm packages (in dependency order)
+          # Publish @meshmakers/* npm packages (already built by run-tests.yml)
           - template: npm-publish-to-npmjs.yml
             parameters:
-              npmCommand: 'build:shared-services'
-              buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-services'
               libName: 'shared-services'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              npmCommand: 'build:shared-auth'
-              buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-auth'
               libName: 'shared-auth'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              npmCommand: 'build:octo-services'
-              buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-services'
               libName: 'octo-services'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              npmCommand: 'build:shared-ui'
-              buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-ui'
               libName: 'shared-ui'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              npmCommand: 'build:shared-ui-legacy'
-              buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-ui-legacy'
               libName: 'shared-ui-legacy'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              npmCommand: 'build:octo-ui'
-              buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-ui'
               libName: 'octo-ui'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              npmCommand: 'build:octo-ui-legacy'
-              buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-ui-legacy'
               libName: 'octo-ui-legacy'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              npmCommand: 'build:octo-process-diagrams'
-              buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-process-diagrams'
               libName: 'octo-process-diagrams'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              npmCommand: 'build:octo-meshboard'
-              buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-meshboard'
               libName: 'octo-meshboard'
           - template: build-and-push-docker-image.yml

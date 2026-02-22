@@ -1,21 +1,10 @@
 parameters:
-  - name: npmCommand
-    type: string
-  - name: buildWorkingDirectory
-    type: string
   - name: publishWorkingDirectory
     type: string
   - name: libName
     type: string
 
 steps:
-  - task: Npm@1
-    displayName: npm build ${{ parameters.libName }}
-    inputs:
-      command: custom
-      workingDir: ${{ parameters.buildWorkingDirectory }}
-      verbose: false
-      customCommand: run ${{ parameters.npmCommand }} -- --configuration production
   - task: Npm@1
     condition: eq(variables.isRelease, true)
     displayName: npm publish to public registry ${{ parameters.libName }}
