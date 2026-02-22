@@ -6,7 +6,7 @@ import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TenantDto } from '../shared/tenantDto';
 import { AddInConfiguration } from '../shared/addInConfiguration';
 import { PagedResultDto } from '@meshmakers/shared-services';
-import { ImportStrategyDto } from '@meshmakers/shared-ui';
+import { ImportStrategyDto } from '../shared/importStrategyDto';
 
 describe('AssetRepoService', () => {
   let service: AssetRepoService;

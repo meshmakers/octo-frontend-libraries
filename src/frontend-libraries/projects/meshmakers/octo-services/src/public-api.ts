@@ -21,6 +21,8 @@ export * from './lib/shared/jobResponseDto';
 export * from './lib/shared/health';
 export * from './lib/shared/importModelResponseDto';
 export * from './lib/shared/importStrategyDto';
+export * from './lib/shared/progress-value';
+export * from './lib/shared/progress-window.service';
 export * from './lib/shared/grantTypes';
 export * from './lib/shared/generatedPasswordDto';
 export * from './lib/shared/exportModelResponseDto';

@@ -4,6 +4,8 @@
   "peerDependencies": {
     "@angular/common": "^21.0.6",
     "@angular/core": "^21.0.6",
+    "@meshmakers/shared-auth": "*",
+    "@meshmakers/shared-services": "*",
     "apollo-angular": "^13.0.0",
     "tus-js-client": "^4.2.3"
   },

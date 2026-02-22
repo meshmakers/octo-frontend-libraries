@@ -2,7 +2,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { JobManagementService } from './job-management.service';
 import { BotService } from './bot-service';
 import { MessageService } from '@meshmakers/shared-services';
-import { ProgressWindowService } from '@meshmakers/shared-ui';
+import { ProgressWindowService } from '../shared/progress-window.service';
 import { JobDto } from '../shared/jobDto';
 
 describe('JobManagementService', () => {

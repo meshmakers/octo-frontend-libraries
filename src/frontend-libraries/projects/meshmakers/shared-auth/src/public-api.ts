@@ -21,8 +21,8 @@ export {
   authorizeDeactivateGuard
 } from './lib/authorize.guard';
 
-// UI Components
-export * from './lib/mm-login-app-bar-section/login-app-bar-section.component';
+// UI Components (Kendo) - available via '@meshmakers/shared-auth/login-ui'
+// import { LoginAppBarSectionComponent } from '@meshmakers/shared-auth/login-ui';
 
 /**
  * Provides all shared-auth dependencies.

@@ -19,7 +19,7 @@ import {
   BreadCrumbComponent, BreadCrumbItem
 } from '@progress/kendo-angular-navigation';
 import {SVGIconComponent} from '@progress/kendo-angular-icons';
-import {LoginAppBarSectionComponent} from '@meshmakers/shared-auth';
+import {LoginAppBarSectionComponent} from '@meshmakers/shared-auth/login-ui';
 import {AppTitleService, BreadCrumbData, BreadCrumbService, CommandService, ComponentMenuService} from '@meshmakers/shared-services';
 import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
 import {MenuComponent, MenuSelectEvent} from '@progress/kendo-angular-menu';

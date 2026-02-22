@@ -1,6 +1,7 @@
 import {Injectable, inject} from '@angular/core';
 import {MessageService} from "@meshmakers/shared-services";
-import {ProgressValue, ProgressWindowService} from "@meshmakers/shared-ui";
+import {ProgressValue} from "../shared/progress-value";
+import {ProgressWindowService} from "../shared/progress-window.service";
 import {Subject} from 'rxjs';
 import {BotService} from './bot-service';
 

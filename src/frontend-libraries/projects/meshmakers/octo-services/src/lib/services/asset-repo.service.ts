@@ -6,7 +6,7 @@ import {firstValueFrom} from 'rxjs';
 import {ImportModelResponseDto} from '../shared/importModelResponseDto';
 import {ExportModelResponseDto} from '../shared/exportModelResponseDto';
 import {PagedResultDto} from '@meshmakers/shared-services';
-import {ImportStrategyDto} from '@meshmakers/shared-ui';
+import {ImportStrategyDto} from '../shared/importStrategyDto';
 
 @Injectable({
   providedIn: 'root'
