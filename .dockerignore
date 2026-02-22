@@ -1,0 +1,47 @@
+# Node modules (biggest offender!)
+**/node_modules/
+**/dist/
+**/.angular/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.vscode/
+**/*.swp
+**/*.swo
+
+# Build artifacts & caches
+**/.cache/
+**/coverage/
+
+# Logs
+**/*.log
+**/npm-debug.log*
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# DevOps build scripts (not needed in Docker)
+devops-build/
+
+# GitHub config
+.github/
+
+# Claude config
+.claude/
+
+# Documentation
+**/*.md
+!**/README.md
+
+# Local environment
+**/.env
+**/.env.local
+
+# Test files
+**/*.spec.ts
