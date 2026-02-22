@@ -11,6 +11,49 @@ steps:
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
   - task: CmdLine@2
+    displayName: 'Lint all projects (parallel)'
+    inputs:
+      script: |
+        set -e
+
+        wait_all() {
+          local fail=0
+          for pid in "$@"; do
+            wait "$pid" || fail=1
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "ERROR: One or more lint checks failed"
+            exit 1
+          fi
+        }
+
+        echo "=== Linting all projects in parallel ==="
+        npx ng lint @meshmakers/shared-services &
+        pid1=$!
+        npx ng lint @meshmakers/shared-auth &
+        pid2=$!
+        npx ng lint @meshmakers/shared-ui &
+        pid3=$!
+        npx ng lint @meshmakers/shared-ui-legacy &
+        pid4=$!
+        npx ng lint @meshmakers/octo-services &
+        pid5=$!
+        npx ng lint @meshmakers/octo-ui &
+        pid6=$!
+        npx ng lint @meshmakers/octo-ui-legacy &
+        pid7=$!
+        npx ng lint @meshmakers/octo-process-diagrams &
+        pid8=$!
+        npx ng lint @meshmakers/octo-meshboard &
+        pid9=$!
+        npx ng lint template-app &
+        pid10=$!
+        wait_all $pid1 $pid2 $pid3 $pid4 $pid5 $pid6 $pid7 $pid8 $pid9 $pid10
+
+        echo "=== All lint checks passed ==="
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+  - task: CmdLine@2
     displayName: 'Build shared libraries (production, parallel tiers)'
     inputs:
       script: |
@@ -18,7 +61,7 @@ steps:
 
         build_prod() {
           echo "Building $1..."
-          npm run "build:$1" -- --configuration production
+          npx ng build "@meshmakers/$1" --configuration production
         }
 
         wait_all() {
@@ -118,7 +161,7 @@ steps:
     displayName: 'Build and test template-app'
     inputs:
       script: |
-        npm run build:template-app
+        npx ng build --project template-app
         NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=template-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
     continueOnError: false
