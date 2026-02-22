@@ -57,11 +57,6 @@ import { EntitySelectDialogService } from './lib/entity-select-dialog/entity-sel
 import { SaveAsDialogService } from './lib/save-as-dialog';
 import { ImportStrategyDialogService } from './lib/import-strategy-dialog/import-strategy-dialog.service';
 
-// Backward-compatible re-exports for legacy apps (energy-community, office-integration)
-export * from './lib/compat/mm-shared-ui-module';
-export * from './lib/compat/abstract-details-component';
-export * from './lib/compat/common-validators';
-
 export function provideMmSharedUi(): EnvironmentProviders {
   return makeEnvironmentProviders([
     provideMmSharedServices(),

@@ -51,8 +51,7 @@ export abstract class AbstractDetailsComponent<TEntity> {
     this.ownerForm?.get(controlName)?.setValue(IsoDateTime.utcToLocalDateTimeIso(IsoDateTime.currentUtcDateTimeIso()));
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public copyInputMessage(inputElement: any): void {
+  public copyInputMessage(inputElement: HTMLInputElement): void {
     inputElement.select();
     document.execCommand('copy');
     inputElement.setSelectionRange(0, 0);

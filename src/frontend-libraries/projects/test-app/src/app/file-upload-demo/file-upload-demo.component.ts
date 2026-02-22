@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { FileUploadService } from '@meshmakers/shared-ui-legacy';
+import { FileUploadService } from '@meshmakers/shared-ui';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 

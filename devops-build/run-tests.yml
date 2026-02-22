@@ -29,8 +29,10 @@ steps:
         npm run build:shared-services &&
         npm run build:shared-auth &&
         npm run build:shared-ui &&
+        npm run build:shared-ui-legacy &&
         npm run build:octo-services &&
         npm run build:octo-ui &&
+        npm run build:octo-ui-legacy &&
         npm run build:octo-process-diagrams &&
         npm run build:octo-meshboard
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries

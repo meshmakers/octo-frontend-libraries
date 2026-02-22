@@ -62,10 +62,22 @@ stages:
               libName: 'shared-ui'
           - template: npm-publish-to-npmjs.yml
             parameters:
+              npmCommand: 'build:shared-ui-legacy'
+              buildWorkingDirectory: 'src/frontend-libraries'
+              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-ui-legacy'
+              libName: 'shared-ui-legacy'
+          - template: npm-publish-to-npmjs.yml
+            parameters:
               npmCommand: 'build:octo-ui'
               buildWorkingDirectory: 'src/frontend-libraries'
               publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-ui'
               libName: 'octo-ui'
+          - template: npm-publish-to-npmjs.yml
+            parameters:
+              npmCommand: 'build:octo-ui-legacy'
+              buildWorkingDirectory: 'src/frontend-libraries'
+              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-ui-legacy'
+              libName: 'octo-ui-legacy'
           - template: npm-publish-to-npmjs.yml
             parameters:
               npmCommand: 'build:octo-process-diagrams'

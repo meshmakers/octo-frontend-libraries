@@ -207,6 +207,50 @@
         }
       }
     },
+    "@meshmakers/shared-ui-legacy": {
+      "projectType": "library",
+      "root": "projects/meshmakers/shared-ui-legacy",
+      "sourceRoot": "projects/meshmakers/shared-ui-legacy/src",
+      "prefix": "mm",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/meshmakers/shared-ui-legacy/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/meshmakers/shared-ui-legacy/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/meshmakers/shared-ui-legacy/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "karmaConfig": "karma.conf.js",
+            "tsConfig": "projects/meshmakers/shared-ui-legacy/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/meshmakers/shared-ui-legacy/**/*.ts",
+              "projects/meshmakers/shared-ui-legacy/**/*.html"
+            ],
+            "eslintConfig": "projects/meshmakers/shared-ui-legacy/eslint.config.js"
+          }
+        }
+      }
+    },
     "@meshmakers/shared-auth": {
       "projectType": "library",
       "root": "projects/meshmakers/shared-auth",
@@ -336,6 +380,50 @@
               "projects/meshmakers/octo-ui/**/*.html"
             ],
             "eslintConfig": "projects/meshmakers/octo-ui/eslint.config.js"
+          }
+        }
+      }
+    },
+    "@meshmakers/octo-ui-legacy": {
+      "projectType": "library",
+      "root": "projects/meshmakers/octo-ui-legacy",
+      "sourceRoot": "projects/meshmakers/octo-ui-legacy/src",
+      "prefix": "mm",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/meshmakers/octo-ui-legacy/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/meshmakers/octo-ui-legacy/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/meshmakers/octo-ui-legacy/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "karmaConfig": "karma.conf.js",
+            "tsConfig": "projects/meshmakers/octo-ui-legacy/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/meshmakers/octo-ui-legacy/**/*.ts",
+              "projects/meshmakers/octo-ui-legacy/**/*.html"
+            ],
+            "eslintConfig": "projects/meshmakers/octo-ui-legacy/eslint.config.js"
           }
         }
       }

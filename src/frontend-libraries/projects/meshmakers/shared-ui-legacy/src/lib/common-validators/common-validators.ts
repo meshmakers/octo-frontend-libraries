@@ -29,8 +29,7 @@ export class CommonValidators {
   ): ValidatorFn {
     return (control: AbstractControl) => {
       if (control.parent != null && sourceValueCompareExpression((control.parent.get(sourceControlName)?.value as TCompareValue))) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const val = control.value as any;
+        const val = control.value;
         const isEmpty = val == null || (typeof val === 'string' && val.length === 0) || (Array.isArray(val) && val.length === 0);
         return isEmpty ? { required: true } : null;
       }

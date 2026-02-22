@@ -26,10 +26,10 @@
         "./dist/meshmakers/shared-ui"
       ],
       "@meshmakers/shared-ui-legacy": [
-        "./dist/meshmakers/shared-ui"
+        "./dist/meshmakers/shared-ui-legacy"
       ],
       "@meshmakers/octo-ui-legacy": [
-        "./dist/meshmakers/octo-ui"
+        "./dist/meshmakers/octo-ui-legacy"
       ]
     },
     "outDir": "./dist/out-tsc",

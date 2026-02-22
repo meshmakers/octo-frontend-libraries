@@ -1,0 +1,18 @@
+{
+  "name": "@meshmakers/octo-ui-legacy",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@angular/common": "^21.0.6",
+    "@angular/core": "^21.0.6",
+    "@angular/forms": "^21.0.6",
+    "@angular/material": "^21.0.6",
+    "@angular/cdk": "^21.0.6",
+    "@angular/router": "^21.0.6",
+    "@meshmakers/octo-services": "*",
+    "@meshmakers/shared-services": "*"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  },
+  "sideEffects": false
+}

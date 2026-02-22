@@ -9,12 +9,14 @@
  * provided locally by each consumer app as standalone components.
  */
 import { ModuleWithProviders, NgModule } from '@angular/core';
-import { ConfirmationService } from '../services/confirmation.service';
-import { FileUploadService } from '../services/file-upload.service';
-import { ProgressWindowService } from '../progress-window/progress-window.service';
-import { NotificationDisplayService } from '../services/notification-display.service';
-import { MessageListenerService } from '../services/message-listener.service';
-import { InputService } from '../services/input.service';
+import {
+  ConfirmationService,
+  FileUploadService,
+  ProgressWindowService,
+  NotificationDisplayService,
+  MessageListenerService,
+  InputService,
+} from '@meshmakers/shared-ui';
 
 @NgModule({
   declarations: [],
