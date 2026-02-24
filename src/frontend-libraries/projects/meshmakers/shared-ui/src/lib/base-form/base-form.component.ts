@@ -22,6 +22,7 @@ export interface BaseFormConfig {
   isViewMode?: boolean;
   isLoading?: boolean;
   isSaving?: boolean;
+  showCancelButton?: boolean;
   showLoadingOverlay?: boolean;
   /**
    * Indicates whether the form has unsaved changes.
@@ -82,6 +83,10 @@ export class BaseFormComponent implements HasUnsavedChanges {
 
   protected get showSaveButton(): boolean {
     return !this.config.isViewMode && !this.config.isLoading;
+  }
+
+  protected get showCancelButton(): boolean {
+    return this.config.showCancelButton !== false;
   }
 
   protected get saveButtonDisabled(): boolean {

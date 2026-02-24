@@ -10,7 +10,7 @@ import { BreadCrumbService } from '@meshmakers/shared-services';
 import { SymbolLibraryService } from '../../services/symbol-library.service';
 import { SymbolLibrary, SymbolDefinition } from '../../primitives/models/symbol.model';
 import { SymbolEditorComponent } from '../../admin/symbol-editor.component';
-import { SymbolSettings } from '../../designer/process-designer.component';
+import { SymbolSettings } from '../../designer';
 
 /**
  * Symbol Editor Page Component.

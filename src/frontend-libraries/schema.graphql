@@ -673,7 +673,7 @@ interface SystemCommunicationPipelineInterface {
   ): SystemCommunicationTag_TaggedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System-2.0.2/Configuration-1'"
+"Interface for runtime entities of construction kit type 'System-2.0.3/Configuration-1'"
 interface SystemConfigurationInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -786,7 +786,7 @@ interface SystemConfigurationInterface {
   ): SystemCommunicationPipeline_UsedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System-2.0.2/Entity-1'"
+"Interface for runtime entities of construction kit type 'System-2.0.3/Entity-1'"
 interface SystemEntityInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -1075,7 +1075,7 @@ interface SystemIdentityResourceInterface {
   ): SystemCommunicationTag_TaggedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System-2.0.2/PersistentQuery-1'"
+"Interface for runtime entities of construction kit type 'System-2.0.3/PersistentQuery-1'"
 interface SystemPersistentQueryInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -1100,6 +1100,7 @@ interface SystemPersistentQueryInterface {
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
   description: String
   name: String!
+  navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String!
   relatesFrom(
     "Returns the elements in the list that come after the specified cursor."
@@ -7505,7 +7506,7 @@ type SystemAggregationQueryColumn {
   constructionKitType: CkType
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/AggregationRtQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.3/AggregationRtQuery-1'"
 type SystemAggregationRtQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -7556,6 +7557,7 @@ type SystemAggregationRtQuery implements SystemEntityInterface & SystemPersisten
   description: String
   fieldFilter: [SystemFieldFilter!]
   name: String!
+  navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String!
   relatesFrom(
     "Only return edges after the specified cursor."
@@ -7677,7 +7679,7 @@ type SystemAttributeSearchFilter {
   searchValue: String!
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/AutoIncrement-1'"
+"Runtime entities of construction kit type 'System-2.0.3/AutoIncrement-1'"
 type SystemAutoIncrement implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -12103,7 +12105,7 @@ type SystemCommunicationUiThemeColors {
   tertiaryColor: String!
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/Configuration-1'"
+"Runtime entities of construction kit type 'System-2.0.3/Configuration-1'"
 type SystemConfiguration implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -12298,7 +12300,7 @@ type SystemConfiguration_IsUsingUnionEdge {
   node: SystemConfiguration_IsUsingUnion
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/Entity-1'"
+"Runtime entities of construction kit type 'System-2.0.3/Entity-1'"
 type SystemEntity {
   associations(
     "Only return edges after the specified cursor."
@@ -12553,7 +12555,7 @@ type SystemFieldFilter {
   operator: SystemFieldFilterOperator!
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/GroupingAggregationRtQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.3/GroupingAggregationRtQuery-1'"
 type SystemGroupingAggregationRtQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -12605,6 +12607,7 @@ type SystemGroupingAggregationRtQuery implements SystemEntityInterface & SystemP
   fieldFilter: [SystemFieldFilter!]
   groupingColumns: [String!]!
   name: String!
+  navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String!
   relatesFrom(
     "Only return edges after the specified cursor."
@@ -15794,7 +15797,7 @@ type SystemIdentityUserUpdateMessage {
   items: [SystemIdentityUserUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/MigrationHistory-1'"
+"Runtime entities of construction kit type 'System-2.0.3/MigrationHistory-1'"
 type SystemMigrationHistory implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -16629,7 +16632,7 @@ type SystemNotificationStatefulEventUpdateMessage {
   items: [SystemNotificationStatefulEventUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/PersistentQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.3/PersistentQuery-1'"
 type SystemPersistentQuery implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -16677,6 +16680,7 @@ type SystemPersistentQuery implements SystemEntityInterface {
   constructionKitType: CkType
   description: String
   name: String!
+  navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String!
   relatesFrom(
     "Only return edges after the specified cursor."
@@ -16783,7 +16787,7 @@ type SystemPersistentQueryUpdateMessage {
   items: [SystemPersistentQueryUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/Query-1'"
+"Runtime entities of construction kit type 'System-2.0.3/Query-1'"
 type SystemQuery implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -18059,7 +18063,7 @@ type SystemReportingFolder_ParentUnionEdge {
   node: SystemReportingFolder_ParentUnion
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/SimpleRtQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.3/SimpleRtQuery-1'"
 type SystemSimpleRtQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -18110,6 +18114,7 @@ type SystemSimpleRtQuery implements SystemEntityInterface & SystemPersistentQuer
   description: String
   fieldFilter: [SystemFieldFilter!]
   name: String!
+  navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String!
   relatesFrom(
     "Only return edges after the specified cursor."
@@ -18232,7 +18237,7 @@ type SystemSortOrderItem {
   sortOrder: SystemSortOrders!
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/Tenant-1'"
+"Runtime entities of construction kit type 'System-2.0.3/Tenant-1'"
 type SystemTenant implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -18351,7 +18356,7 @@ type SystemTenant implements SystemEntityInterface {
   tenantId: String!
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/TenantConfiguration-1'"
+"Runtime entities of construction kit type 'System-2.0.3/TenantConfiguration-1'"
 type SystemTenantConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -18554,7 +18559,7 @@ type SystemTenantEdge {
   node: SystemTenant
 }
 
-"Runtime entities of construction kit type 'System-2.0.2/TenantModeConfiguration-1'"
+"Runtime entities of construction kit type 'System-2.0.3/TenantModeConfiguration-1'"
 type SystemTenantModeConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -20834,6 +20839,12 @@ enum SystemFieldFilterOperator {
   NOT_IN
 }
 
+"Runtime entities of construction kit enum 'System/NavigationFilterModes'"
+enum SystemNavigationFilterModes {
+  FILTER
+  INCLUDE
+}
+
 "Runtime entities of construction kit enum 'System.Identity/TokenExpiration'"
 enum SystemIdentityTokenExpiration {
   ABSOLUTE
@@ -21470,6 +21481,7 @@ input SystemAggregationRtQueryInput {
   description: String
   fieldFilter: [SystemFieldFilterInput]
   name: String
+  navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String
   relatesFrom: [RtAssociationInput]
   relatesTo: [RtAssociationInput]
@@ -21957,6 +21969,7 @@ input SystemGroupingAggregationRtQueryInput {
   fieldFilter: [SystemFieldFilterInput]
   groupingColumns: [String!]
   name: String
+  navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String
   relatesFrom: [RtAssociationInput]
   relatesTo: [RtAssociationInput]
@@ -22672,6 +22685,7 @@ input SystemSimpleRtQueryInput {
   description: String
   fieldFilter: [SystemFieldFilterInput]
   name: String
+  navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String
   relatesFrom: [RtAssociationInput]
   relatesTo: [RtAssociationInput]

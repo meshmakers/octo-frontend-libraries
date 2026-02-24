@@ -45,6 +45,7 @@
           {{ saveButtonText }}
         </button>
         <button
+          *ngIf="showCancelButton"
           kendoButton
           type="button"
           [svgIcon]="cancelIcon"
