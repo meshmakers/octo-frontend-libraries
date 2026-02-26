@@ -1,0 +1,7 @@
+mutation deleteEntities($rtEntityIds: [RtEntityId]!) {
+  runtime {
+    runtimeEntities {
+      delete(entities: $rtEntityIds)
+    }
+  }
+}

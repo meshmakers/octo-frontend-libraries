@@ -1,0 +1,34 @@
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.geospatial-point-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.k-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-input-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+
+  > *:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.k-form-error {
+  font-size: 0.875rem;
+  color: var(--kendo-color-error, #f31700);
+}

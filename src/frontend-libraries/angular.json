@@ -619,6 +619,50 @@
           }
         }
       }
+    },
+    "@meshmakers/octo-runtime-browser": {
+      "projectType": "library",
+      "root": "projects/meshmakers/octo-runtime-browser",
+      "sourceRoot": "projects/meshmakers/octo-runtime-browser/src",
+      "prefix": "mm",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/meshmakers/octo-runtime-browser/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/meshmakers/octo-runtime-browser/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/meshmakers/octo-runtime-browser/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "karmaConfig": "karma.conf.js",
+            "tsConfig": "projects/meshmakers/octo-runtime-browser/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/meshmakers/octo-runtime-browser/**/*.ts",
+              "projects/meshmakers/octo-runtime-browser/**/*.html"
+            ],
+            "eslintConfig": "projects/meshmakers/octo-runtime-browser/eslint.config.js"
+          }
+        }
+      }
     }
   },
   "cli": {

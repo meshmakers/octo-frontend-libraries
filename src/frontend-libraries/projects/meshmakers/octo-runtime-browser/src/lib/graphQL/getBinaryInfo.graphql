@@ -1,0 +1,18 @@
+query getBinaryInfo($rtId: OctoObjectId!) {
+  runtime {
+    systemReportingFileSystemItem(rtId: $rtId) {
+      items {
+        rtId
+        ckTypeId
+        name
+        content {
+          binaryId
+          size
+          contentType
+          filename
+          downloadUri
+        }
+      }
+    }
+  }
+}

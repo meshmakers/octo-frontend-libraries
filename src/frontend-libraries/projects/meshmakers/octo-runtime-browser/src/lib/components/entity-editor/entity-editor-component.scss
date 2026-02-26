@@ -1,0 +1,83 @@
+// ============================================================================
+// NODE CREATE/EDIT VIEW - SEPARATED GRIDS REPAIR
+// ============================================================================
+
+@use "sass:color";
+
+$octo-cyan: #00a8dc;
+$octo-mint: #64ceb9;
+$bg-deep: #07172b;
+$bg-surface: #1f2e40;
+$border-color: rgba($octo-mint, 0.2);
+
+.entity-editor-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+
+  ::ng-deep {
+    kendo-card {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100% !important;
+
+      kendo-card-header {
+        grid-column: span 2;
+        grid-row: 1;
+      }
+
+      kendo-card-body {
+        grid-row: 2;
+        grid-column: span 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+
+        .info-item {
+          display: flex;
+          flex-direction: column;
+
+          :first-child {
+            grid-column: 1;
+          }
+
+          :nth-child(2) {
+            grid-column: 2;
+          }
+
+          label {
+            color: $octo-mint;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+          }
+        }
+      }
+    }
+  }
+
+  .select-type-prompt {
+    grid-column: span 2;
+    text-transform: uppercase;
+    color: $octo-mint;
+    background-color: rgba($octo-mint, 0.2);
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px dashed $border-color;
+  }
+
+  .entity-editor-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+
+    button {
+      &:disabled {
+        background-color: rgba(gray, 0.5);
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+query getTreeNodes(
+  $rtId: OctoObjectId!
+  $ckTypeId: String!
+  $directRoleId: String!
+  $directTargetCkTypeId: String!,
+  $indirectRoleId: String!
+  $indirectTargetCkTypeId: String!
+) {
+  runtime {
+    runtimeEntities(rtId: $rtId, ckId: $ckTypeId) {
+      items {
+        rtId
+        ckTypeId
+        attributes(attributeNames: ["name", "description"]) {
+          items {
+            attributeName
+            value
+          }
+        }
+        associations {
+          targets(
+            roleId: $directRoleId
+            ckId: $directTargetCkTypeId
+            direction: INBOUND
+          ) {
+            items {
+              rtId
+              ckTypeId
+              attributes(attributeNames: ["name", "description"]) {
+                items {
+                  attributeName
+                  value
+                }
+              }
+              associations {
+                targets(
+                  roleId: $indirectRoleId
+                  ckId: $indirectTargetCkTypeId
+                  direction: INBOUND
+                ) {
+                  totalCount
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

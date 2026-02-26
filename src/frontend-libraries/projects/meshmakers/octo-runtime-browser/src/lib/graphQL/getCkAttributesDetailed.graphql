@@ -1,0 +1,39 @@
+query getCkAttributesDetailed($ckId: String!) {
+  constructionKit {
+    types(ckId: $ckId) {
+      items {
+        ckTypeId {
+          fullName
+        }
+        attributes {
+          items  {
+            attributeName
+            attributeValueType
+            isOptional
+            autoCompleteValues
+            ckAttributeId  {
+              fullName
+            }
+            attribute {
+              ckRecord {
+                ckRecordId {
+                  fullName
+                  }
+                }
+              ckEnum {
+                ckEnumId {
+                  fullName
+                }
+                values {
+                  key
+                  name
+                }
+              }
+              defaultValues
+            }
+          }
+        }
+      }
+    }
+  }
+}
