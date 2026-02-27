@@ -9,13 +9,6 @@ import {
   SimpleChanges,
   ViewChild,
 } from "@angular/core";
-import {
-  BinaryDownloadEvent,
-  PropertyConverterService,
-  PropertyGridComponent,
-  PropertyGridConfig,
-  PropertyGridItem,
-} from "@meshmakers/octo-ui";
 import { CommandItemExecuteEventArgs } from "@meshmakers/shared-services";
 import { ListViewComponent } from "@meshmakers/shared-ui";
 import { ButtonModule } from "@progress/kendo-angular-buttons";
@@ -35,6 +28,13 @@ import {
   infoCircleIcon,
 } from "@progress/kendo-svg-icons";
 import { firstValueFrom } from "rxjs";
+import {
+  BinaryDownloadEvent,
+  PropertyConverterService,
+  PropertyGridComponent,
+  PropertyGridConfig,
+  PropertyGridItem,
+} from "../../property-grid";
 import {
   AssociationDisplayItem,
   EntityAssociationsDataSourceDirective,

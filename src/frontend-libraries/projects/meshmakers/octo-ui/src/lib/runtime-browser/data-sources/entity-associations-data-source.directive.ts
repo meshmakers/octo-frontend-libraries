@@ -1,6 +1,5 @@
 import { Directive, forwardRef, inject } from '@angular/core';
 import { GraphDirectionDto, GraphQL } from '@meshmakers/octo-services';
-import { OctoGraphQlDataSource } from '@meshmakers/octo-ui';
 import {
   DataSourceBase,
   FetchDataOptions,
@@ -9,6 +8,7 @@ import {
 } from '@meshmakers/shared-ui';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { OctoGraphQlDataSource } from '../../data-sources/octo-graph-ql-data-source';
 import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../graphQL/getRuntimeEntityAssociationsById';
 
 export interface AssociationDisplayItem {

@@ -3,5 +3,12 @@
   "dest": "../../../dist/meshmakers/octo-ui",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "assets": [
+    {
+      "input": "src/lib/runtime-browser/styles",
+      "glob": "**/*.scss",
+      "output": "styles"
+    }
+  ]
 }

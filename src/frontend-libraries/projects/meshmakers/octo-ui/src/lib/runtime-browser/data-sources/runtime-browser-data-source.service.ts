@@ -13,7 +13,6 @@ import {
   RtAssociationMetaData,
   RtEntityDto,
 } from '@meshmakers/octo-services';
-import { OctoGraphQlHierarchyDataSource } from '@meshmakers/octo-ui';
 import { TreeItemDataTyped } from '@meshmakers/shared-services';
 import {
   fileIcon,
@@ -24,6 +23,7 @@ import {
 import { Apollo } from 'apollo-angular';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { OctoGraphQlHierarchyDataSource } from '../../data-sources/octo-graph-ql-hierarchy-data-source';
 import { DeleteEntitiesDtoGQL } from '../graphQL/deleteEntities';
 import { GetCkModelsDtoGQL } from '../graphQL/getCkModels';
 import {

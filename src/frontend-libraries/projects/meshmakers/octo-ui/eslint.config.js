@@ -6,6 +6,9 @@ module.exports = tseslint.config(
   ...rootConfig,
   {
     files: ["**/*.ts"],
+    ignores: [
+      "**/src/lib/runtime-browser/graphQL/**.*"
+    ],
     rules: {
       "@angular-eslint/directive-selector": [
         "error",
@@ -23,6 +26,16 @@ module.exports = tseslint.config(
           style: "kebab-case",
         },
       ],
+    },
+  },
+  {
+    // Ignore unsupported lint rules for generated GraphQL files
+    files: ["**/src/lib/runtime-browser/graphQL/**/*.ts"],
+    rules: {
+      "@typescript-eslint/consistent-type-definitions": "off",
+      "@typescript-eslint/array-type": "off",
+      "@typescript-eslint/consistent-indexed-object-style": "off",
+      "@angular-eslint/prefer-inject": "off",
     },
   }
 );
