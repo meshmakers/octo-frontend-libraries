@@ -3,7 +3,7 @@
  *
  * New code in Refinery Studio should use OctoGraphQlDataSource from @meshmakers/octo-ui.
  */
-import { map, Observable, Subscription } from 'rxjs';
+import { filter, map, Observable, Subscription } from 'rxjs';
 import { DataSourceBase, MessageService, PagedResultDto } from '@meshmakers/shared-services';
 import { FieldFilterDto, InputMaybe, SearchFilterDto, SortDto } from '../graphQL/globalTypes';
 import type { OperationVariables } from '@apollo/client/core';
@@ -133,13 +133,11 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
 
     this.subscription = this.queryRef.valueChanges
       .pipe(
-        map((v, i) => ({ result: v, pagedResult: this.executeLoad(v, i) })))
+        filter((v) => !v.loading),
+        map((v, i) => this.executeLoad(v, i))
+      )
       .subscribe({
-        next: ({ result, pagedResult }) => {
-          if (!result.loading) {
-            super.onCompleteLoad(pagedResult);
-          }
-        },
+        next: (pagedResult) => super.onCompleteLoad(pagedResult),
         error: (e) => {
           const errorMessage = e instanceof Error ? e.message : String(e);
           this.messageService.showErrorWithDetails(errorMessage, '');
