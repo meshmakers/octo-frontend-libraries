@@ -8,6 +8,7 @@ import {RoleDto} from '../shared/roleDto';
 import {PagedResultDto} from '@meshmakers/shared-services';
 import {ClientDto} from '../shared/clientDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
+import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 
 @Injectable({
   providedIn: 'root'
@@ -123,6 +124,19 @@ export class IdentityService {
         this.httpClient.delete<any>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles/${roleName}`, {
           observe: 'response'
         })
+      );
+    }
+  }
+
+  async mergeUsers(targetUserName: string, sourceUserName: string): Promise<void> {
+    if (this.configurationService.config?.issuer) {
+      const request: MergeUsersRequestDto = { sourceUserName };
+      await firstValueFrom(
+        this.httpClient.post<void>(
+          this.configurationService.config.issuer + `system/v1/users/${encodeURIComponent(targetUserName)}/merge`,
+          request,
+          { observe: 'response' }
+        )
       );
     }
   }
