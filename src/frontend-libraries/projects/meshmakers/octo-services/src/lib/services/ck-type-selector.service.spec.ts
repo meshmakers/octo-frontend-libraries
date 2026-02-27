@@ -3,11 +3,13 @@ import { of } from 'rxjs';
 import { CkTypeSelectorService } from './ck-type-selector.service';
 import { GetCkTypesDtoGQL } from '../graphQL/getCkTypes';
 import { GetCkTypeByRtCkTypeIdDtoGQL } from '../graphQL/getCkTypeByRtCkTypeId';
+import { GetDerivedCkTypesDtoGQL } from '../graphQL/getDerivedCkTypes';
 
 describe('CkTypeSelectorService', () => {
   let service: CkTypeSelectorService;
   let getCkTypesGQLMock: jasmine.SpyObj<GetCkTypesDtoGQL>;
   let getCkTypeByRtCkTypeIdGQLMock: jasmine.SpyObj<GetCkTypeByRtCkTypeIdDtoGQL>;
+  let getDerivedCkTypesGQLMock: jasmine.SpyObj<GetDerivedCkTypesDtoGQL>;
 
   const mockCkTypeItem = {
     __typename: 'CkType' as const,
@@ -63,12 +65,14 @@ describe('CkTypeSelectorService', () => {
   beforeEach(() => {
     getCkTypesGQLMock = jasmine.createSpyObj('GetCkTypesDtoGQL', ['fetch']);
     getCkTypeByRtCkTypeIdGQLMock = jasmine.createSpyObj('GetCkTypeByRtCkTypeIdDtoGQL', ['fetch']);
+    getDerivedCkTypesGQLMock = jasmine.createSpyObj('GetDerivedCkTypesDtoGQL', ['fetch']);
 
     TestBed.configureTestingModule({
       providers: [
         CkTypeSelectorService,
         { provide: GetCkTypesDtoGQL, useValue: getCkTypesGQLMock },
-        { provide: GetCkTypeByRtCkTypeIdDtoGQL, useValue: getCkTypeByRtCkTypeIdGQLMock }
+        { provide: GetCkTypeByRtCkTypeIdDtoGQL, useValue: getCkTypeByRtCkTypeIdGQLMock },
+        { provide: GetDerivedCkTypesDtoGQL, useValue: getDerivedCkTypesGQLMock }
       ]
     });
 
