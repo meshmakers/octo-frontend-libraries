@@ -185,6 +185,7 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
   @Input() allowAbstract = false;
   @Input() dialogTitle = 'Select Construction Kit Type';
   @Input() advancedSearchLabel = 'Advanced Search...';
+  @Input() derivedFromRtCkTypeId?: string;
 
   private _disabled = false;
   @Input()
@@ -344,18 +345,23 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
           this.isLoading = true;
           this.filteredTypes = [];
         }),
-        switchMap(filter =>
-          this.ckTypeSelectorService.getCkTypes({
-            ckModelIds: this.ckModelIds,
-            searchText: filter,
-            first: this.maxResults
-          }).pipe(
+        switchMap(filter => {
+          const source$ = this.derivedFromRtCkTypeId
+            ? this.ckTypeSelectorService.getDerivedCkTypes(this.derivedFromRtCkTypeId, {
+                searchText: filter
+              })
+            : this.ckTypeSelectorService.getCkTypes({
+                ckModelIds: this.ckModelIds,
+                searchText: filter,
+                first: this.maxResults
+              });
+          return source$.pipe(
             catchError(error => {
               console.error('CK type search error:', error);
               return of({ items: [], totalCount: 0 });
             })
-          )
-        )
+          );
+        })
       ).subscribe(result => {
         this.isLoading = false;
 
@@ -398,7 +404,8 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
       selectedCkTypeId: this.selectedCkType?.fullName,
       ckModelIds: this.ckModelIds,
       dialogTitle: this.dialogTitle,
-      allowAbstract: this.allowAbstract
+      allowAbstract: this.allowAbstract,
+      derivedFromRtCkTypeId: this.derivedFromRtCkTypeId
     });
 
     if (result.confirmed && result.selectedCkType) {

@@ -1,0 +1,28 @@
+query getDerivedCkTypes($rtCkTypeId: String!, $ignoreAbstractTypes: Boolean, $includeSelf: Boolean) {
+  constructionKit {
+    types(rtCkId: $rtCkTypeId) {
+      items {
+        directAndIndirectDerivedTypes(ignoreAbstractTypes: $ignoreAbstractTypes, includeSelf: $includeSelf) {
+          totalCount
+          items {
+            baseType {
+              ckTypeId {
+                fullName
+              }
+              rtCkTypeId
+              isAbstract
+              isFinal
+            }
+            ckTypeId {
+              fullName
+            }
+            rtCkTypeId
+            isAbstract
+            isFinal
+            description
+          }
+        }
+      }
+    }
+  }
+}

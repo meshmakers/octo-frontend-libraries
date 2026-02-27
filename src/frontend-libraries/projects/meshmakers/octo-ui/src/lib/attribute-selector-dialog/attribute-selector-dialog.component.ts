@@ -15,6 +15,7 @@ export interface AttributeSelectorDialogData {
   rtCkTypeId: string;
   selectedAttributes?: string[];
   dialogTitle?: string;
+  singleSelect?: boolean;
 }
 
 export interface AttributeSelectorDialogResult {
@@ -47,7 +48,7 @@ export interface AttributeSelectorDialogResult {
         </kendo-textbox>
       </div>
 
-      <div class="lists-container">
+      <div class="lists-container" *ngIf="!singleSelect">
         <div class="list-section">
           <h4>Available Attributes</h4>
           <kendo-grid
@@ -134,11 +135,26 @@ export interface AttributeSelectorDialogResult {
           </button>
         </div>
       </div>
+
+      <div class="single-select-container" *ngIf="singleSelect">
+        <kendo-grid
+          [data]="availableGridData"
+          [height]="400"
+          [scrollable]="'scrollable'"
+          [selectable]="{ mode: 'single', enabled: true }"
+          [kendoGridSelectBy]="'attributePath'"
+          [(selectedKeys)]="selectedSingleKey"
+          (cellClick)="onSingleSelectCellClick($event)"
+          class="attribute-grid">
+          <kendo-grid-column field="attributePath" title="Attribute Path" [width]="250"></kendo-grid-column>
+          <kendo-grid-column field="attributeValueType" title="Type" [width]="100"></kendo-grid-column>
+        </kendo-grid>
+      </div>
     </div>
 
     <kendo-dialog-actions>
       <button kendoButton (click)="onCancel()">Cancel</button>
-      <button kendoButton themeColor="primary" (click)="onConfirm()">OK</button>
+      <button kendoButton themeColor="primary" [disabled]="singleSelect && selectedSingleKey.length === 0" (click)="onConfirm()">OK</button>
     </kendo-dialog-actions>
   `,
   styles: [`
@@ -220,6 +236,11 @@ export interface AttributeSelectorDialogResult {
       min-width: 24px;
       display: inline-block;
     }
+
+    .single-select-container {
+      flex: 1;
+      min-height: 0;
+    }
   `]
 })
 export class AttributeSelectorDialogComponent extends DialogContentBase implements OnInit {
@@ -240,7 +261,9 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
 
   public dialogTitle = 'Select Attributes';
   public rtCkTypeId!: string;
+  public singleSelect = false;
   public searchText = '';
+  public selectedSingleKey: string[] = [];
 
   public availableAttributes: AttributeItem[] = [];
   public selectedAttributes: AttributeItem[] = [];
@@ -262,10 +285,15 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
     if (data) {
       this.rtCkTypeId = data.rtCkTypeId;
       this.dialogTitle = data.dialogTitle || 'Select Attributes';
+      this.singleSelect = data.singleSelect ?? false;
 
       if (data.selectedAttributes && data.selectedAttributes.length > 0) {
-        // Pre-populate selected attributes if provided
-        this.loadInitialSelectedAttributes(data.selectedAttributes);
+        if (this.singleSelect) {
+          this.selectedSingleKey = [data.selectedAttributes[0]];
+        } else {
+          // Pre-populate selected attributes if provided
+          this.loadInitialSelectedAttributes(data.selectedAttributes);
+        }
       }
     }
 
@@ -424,10 +452,20 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
   }
 
   public onConfirm(): void {
-    const result: AttributeSelectorDialogResult = {
-      selectedAttributes: this.selectedAttributes
-    };
-    this.dialog.close(result);
+    if (this.singleSelect) {
+      const selected = this.availableAttributes.find(
+        a => a.attributePath === this.selectedSingleKey[0]
+      );
+      const result: AttributeSelectorDialogResult = {
+        selectedAttributes: selected ? [selected] : []
+      };
+      this.dialog.close(result);
+    } else {
+      const result: AttributeSelectorDialogResult = {
+        selectedAttributes: this.selectedAttributes
+      };
+      this.dialog.close(result);
+    }
   }
 
   /**
@@ -477,6 +515,31 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
       this.lastClickedItem = null;
     } else {
       // Single click - just update tracking
+      this.lastClickTime = currentTime;
+      this.lastClickedItem = attributePath;
+    }
+  }
+
+  /**
+   * Handle cell click on single-select grid to detect double-click (confirm immediately)
+   */
+  public onSingleSelectCellClick(event: CellClickEvent): void {
+    const dataItem = event.dataItem as AttributeItem;
+    if (!dataItem) return;
+
+    const currentTime = Date.now();
+    const attributePath = dataItem.attributePath;
+
+    if (
+      this.lastClickedItem === attributePath &&
+      currentTime - this.lastClickTime <= this.doubleClickDelay
+    ) {
+      // Double-click detected - confirm immediately
+      this.selectedSingleKey = [attributePath];
+      this.onConfirm();
+      this.lastClickTime = 0;
+      this.lastClickedItem = null;
+    } else {
       this.lastClickTime = currentTime;
       this.lastClickedItem = attributePath;
     }

@@ -27,20 +27,22 @@ export class AttributeSelectorDialogService {
   public async openAttributeSelector(
     rtCkTypeId: string,
     selectedAttributes?: string[],
-    dialogTitle?: string
+    dialogTitle?: string,
+    singleSelect?: boolean
   ): Promise<AttributeSelectorResult> {
     const data: AttributeSelectorDialogData = {
       rtCkTypeId,
       selectedAttributes,
-      dialogTitle
+      dialogTitle,
+      singleSelect
     };
 
     const dialogRef: DialogRef = this.dialogService.open({
       content: AttributeSelectorDialogComponent,
-      width: 900,
-      height: 700,
-      minWidth: 800,
-      minHeight: 650,
+      width: singleSelect ? 500 : 900,
+      height: singleSelect ? 600 : 700,
+      minWidth: singleSelect ? 400 : 800,
+      minHeight: singleSelect ? 500 : 650,
       title: dialogTitle || 'Select Attributes'
     });
 

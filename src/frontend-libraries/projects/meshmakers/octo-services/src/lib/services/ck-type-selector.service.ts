@@ -3,10 +3,18 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GetCkTypesDtoGQL, GetCkTypesQueryDto } from '../graphQL/getCkTypes';
 import { GetCkTypeByRtCkTypeIdDtoGQL } from '../graphQL/getCkTypeByRtCkTypeId';
+import { GetDerivedCkTypesDtoGQL, GetDerivedCkTypesQueryDto } from '../graphQL/getDerivedCkTypes';
 import { SearchFilterTypesDto } from '../graphQL/globalTypes';
 import { GraphQL } from '../shared/graphQL';
 
 type CkTypeItemDto = NonNullable<NonNullable<NonNullable<NonNullable<GetCkTypesQueryDto['constructionKit']>['types']>['items']>[number]>;
+
+type DerivedCkTypeParentDto = NonNullable<
+  NonNullable<NonNullable<NonNullable<GetDerivedCkTypesQueryDto['constructionKit']>['types']>['items']>[number]
+>;
+type DerivedCkTypeItemDto = NonNullable<
+  NonNullable<NonNullable<DerivedCkTypeParentDto['directAndIndirectDerivedTypes']>['items']>[number]
+>;
 
 export interface CkTypeSelectorItem {
   /* The full name CK type ID, e.g., "OctoSdkDemo-1.0.0/Customer-1" */
@@ -36,6 +44,7 @@ export interface CkTypeSelectorResult {
 export class CkTypeSelectorService {
   private readonly getCkTypesGQL = inject(GetCkTypesDtoGQL);
   private readonly getCkTypeByRtCkTypeIdGQL = inject(GetCkTypeByRtCkTypeIdDtoGQL);
+  private readonly getDerivedCkTypesGQL = inject(GetDerivedCkTypesDtoGQL);
 
   /**
    * Get a CkType by its rtCkTypeId
@@ -113,7 +122,67 @@ export class CkTypeSelectorService {
     );
   }
 
+  /**
+   * Get derived CkTypes for a given base type rtCkTypeId, with optional client-side text filter
+   * @param rtCkTypeId The runtime CK type ID of the base type, e.g., "Basic/TreeNode"
+   * @param options Search options
+   * @returns Observable of CkTypeSelectorResult
+   */
+  public getDerivedCkTypes(rtCkTypeId: string, options: {
+    searchText?: string;
+    ignoreAbstractTypes?: boolean;
+    includeSelf?: boolean;
+  } = {}): Observable<CkTypeSelectorResult> {
+    const { searchText, ignoreAbstractTypes = true, includeSelf = true } = options;
+
+    return this.getDerivedCkTypesGQL.fetch({
+      variables: {
+        rtCkTypeId,
+        ignoreAbstractTypes,
+        includeSelf
+      },
+      fetchPolicy: 'network-only'
+    }).pipe(
+      map(result => {
+        const derivedTypes = result.data?.constructionKit?.types?.items?.[0]?.directAndIndirectDerivedTypes;
+        if (!derivedTypes) {
+          return { items: [], totalCount: 0 };
+        }
+
+        let items = (derivedTypes.items || [])
+          .filter((item): item is DerivedCkTypeItemDto => item !== null)
+          .map(item => this.mapDerivedToSelectorItem(item));
+
+        // Client-side text filter
+        if (searchText) {
+          const lowerFilter = searchText.toLowerCase();
+          items = items.filter(item =>
+            item.rtCkTypeId.toLowerCase().includes(lowerFilter) ||
+            item.fullName.toLowerCase().includes(lowerFilter)
+          );
+        }
+
+        return {
+          items,
+          totalCount: items.length
+        };
+      })
+    );
+  }
+
   private mapToSelectorItem(item: CkTypeItemDto): CkTypeSelectorItem {
+    return {
+      fullName: item.ckTypeId.fullName,
+      rtCkTypeId: item.rtCkTypeId,
+      baseTypeFullName: item.baseType?.ckTypeId.fullName,
+      baseTypeRtCkTypeId: item.baseType?.rtCkTypeId,
+      isAbstract: item.isAbstract,
+      isFinal: item.isFinal,
+      description: item.description ?? undefined
+    };
+  }
+
+  private mapDerivedToSelectorItem(item: DerivedCkTypeItemDto): CkTypeSelectorItem {
     return {
       fullName: item.ckTypeId.fullName,
       rtCkTypeId: item.rtCkTypeId,

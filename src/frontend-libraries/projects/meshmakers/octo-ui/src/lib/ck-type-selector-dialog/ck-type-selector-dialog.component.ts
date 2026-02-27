@@ -18,6 +18,7 @@ export interface CkTypeSelectorDialogData {
   ckModelIds?: string[];
   dialogTitle?: string;
   allowAbstract?: boolean;
+  derivedFromRtCkTypeId?: string;
 }
 
 export interface CkTypeSelectorDialogResult {
@@ -42,7 +43,7 @@ export interface CkTypeSelectorDialogResult {
     <div class="ck-type-selector-container">
       <div class="filter-container">
         <div class="filter-row">
-          <div class="filter-item">
+          <div class="filter-item" *ngIf="!derivedFromRtCkTypeId">
             <label>Model Filter</label>
             <kendo-combobox
               [data]="availableModels"
@@ -244,6 +245,7 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
   public selectItemBy = (context: RowArgs): string => (context.dataItem as CkTypeSelectorItem).fullName;
 
   private initialCkModelIds?: string[];
+  public derivedFromRtCkTypeId?: string;
 
   constructor() {
     super(inject(DialogRef));
@@ -256,6 +258,7 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
       this.dialogTitle = data.dialogTitle || 'Select Construction Kit Type';
       this.allowAbstract = data.allowAbstract ?? false;
       this.initialCkModelIds = data.ckModelIds;
+      this.derivedFromRtCkTypeId = data.derivedFromRtCkTypeId;
 
       if (data.selectedCkTypeId) {
         this.selectedKeys = [data.selectedCkTypeId];
@@ -275,7 +278,9 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
 
     // Load initial types and extract available models
     this.loadTypes();
-    this.loadAvailableModels();
+    if (!this.derivedFromRtCkTypeId) {
+      this.loadAvailableModels();
+    }
   }
 
   ngOnDestroy(): void {
@@ -285,17 +290,19 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
   private loadTypes(): void {
     this.isLoading = true;
 
-    const ckModelIds = this.selectedModel
-      ? [this.selectedModel]
-      : this.initialCkModelIds;
+    const source$ = this.derivedFromRtCkTypeId
+      ? this.ckTypeSelectorService.getDerivedCkTypes(this.derivedFromRtCkTypeId, {
+          searchText: this.searchText || undefined
+        })
+      : this.ckTypeSelectorService.getCkTypes({
+          ckModelIds: this.selectedModel ? [this.selectedModel] : this.initialCkModelIds,
+          searchText: this.searchText || undefined,
+          first: this.pageSize,
+          skip: this.skip
+        });
 
     this.subscriptions.add(
-      this.ckTypeSelectorService.getCkTypes({
-        ckModelIds,
-        searchText: this.searchText || undefined,
-        first: this.pageSize,
-        skip: this.skip
-      }).subscribe({
+      source$.subscribe({
         next: result => {
           this.gridData = {
             data: result.items,

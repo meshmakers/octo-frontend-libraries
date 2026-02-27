@@ -27,12 +27,14 @@ export class CkTypeSelectorDialogService {
     ckModelIds?: string[];
     dialogTitle?: string;
     allowAbstract?: boolean;
+    derivedFromRtCkTypeId?: string;
   } = {}): Promise<CkTypeSelectorResult> {
     const data: CkTypeSelectorDialogData = {
       selectedCkTypeId: options.selectedCkTypeId,
       ckModelIds: options.ckModelIds,
       dialogTitle: options.dialogTitle,
-      allowAbstract: options.allowAbstract
+      allowAbstract: options.allowAbstract,
+      derivedFromRtCkTypeId: options.derivedFromRtCkTypeId
     };
 
     const dialogRef: DialogRef = this.dialogService.open({

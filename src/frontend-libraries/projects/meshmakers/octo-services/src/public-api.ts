@@ -47,6 +47,7 @@ export * from './lib/graphQL/getCkTypeAttributes';
 export * from './lib/graphQL/getCkRecordAttributes';
 export * from './lib/graphQL/getCkTypeAvailableQueryColumns';
 export * from './lib/graphQL/getCkTypes';
+export * from './lib/graphQL/getDerivedCkTypes';
 export * from './lib/graphQL/getCkModelById';
 
 // Configuration (Interface and Token for app-specific implementations)
