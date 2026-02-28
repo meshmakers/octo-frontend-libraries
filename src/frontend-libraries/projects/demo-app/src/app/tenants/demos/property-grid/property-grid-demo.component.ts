@@ -389,7 +389,7 @@ export class PropertyGridDemoComponent implements OnInit {
       if (entities && entities.length > 0) {
         const entity = entities[0];
         if (!entity) return;
-        this.propertyConverter.convertRtEntityToProperties(entity as never).pipe(
+        this.propertyConverter.convertRtEntityToProperties(entity as Parameters<PropertyConverterService['convertRtEntityToProperties']>[0]).pipe(
           take(1)
         ).subscribe({
           next: (data) => {
