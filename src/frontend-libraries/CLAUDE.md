@@ -14,6 +14,8 @@
   - `meshmakers/shared-auth` - Authentication library
   - `meshmakers/shared-services` - Shared services
   - `meshmakers/shared-ui` - Shared UI utilities
+  - `meshmakers/shared-ui-legacy` - Legacy Material UI (backward compatibility)
+  - `meshmakers/octo-ui-legacy` - Legacy Material UI components (backward compatibility)
 
 ## Build Commands
 

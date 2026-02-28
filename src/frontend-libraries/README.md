@@ -11,8 +11,10 @@ projects/
 │   ├── shared-auth/                   # Authentication library
 │   ├── shared-services/               # Common services library
 │   ├── shared-ui/                     # Shared UI utilities
+│   ├── shared-ui-legacy/             # Legacy Material UI (backward compat)
 │   ├── octo-services/                 # GraphQL services library
 │   ├── octo-ui/                       # OctoMesh UI components
+│   ├── octo-ui-legacy/               # Legacy Material UI (backward compat)
 │   ├── octo-process-diagrams/         # Process diagram library
 │   └── octo-meshboard/                # MeshBoard widget library
 ```
@@ -28,6 +30,8 @@ projects/
 | **@meshmakers/octo-ui** | OctoMesh-specific UI components | [Documentation](projects/meshmakers/octo-ui/README.md) |
 | **@meshmakers/octo-process-diagrams** | Process diagram editor components | [Documentation](projects/meshmakers/octo-process-diagrams/README.md) |
 | **@meshmakers/octo-meshboard** | Dashboard and widget components | [Documentation](projects/meshmakers/octo-meshboard/README.md) |
+| **@meshmakers/shared-ui-legacy** | Legacy Material UI (backward compatibility) | [Documentation](projects/meshmakers/shared-ui-legacy/README.md) |
+| **@meshmakers/octo-ui-legacy** | Legacy Material UI components (backward compatibility) | [Documentation](projects/meshmakers/octo-ui-legacy/README.md) |
 
 ## Quick Start
 
@@ -65,6 +69,8 @@ npm run build:octo-services
 npm run build:octo-ui
 npm run build:octo-process-diagrams
 npm run build:octo-meshboard
+npm run build:shared-ui-legacy
+npm run build:octo-ui-legacy
 npm run build:template-app
 
 # Production build
@@ -98,6 +104,8 @@ npm run lint:octo-services
 npm run lint:octo-ui
 npm run lint:octo-meshboard
 npm run lint:octo-process-diagrams
+npm run lint:shared-ui-legacy
+npm run lint:octo-ui-legacy
 ```
 
 ### GraphQL Code Generation
