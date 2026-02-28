@@ -13,9 +13,9 @@ import {
 export class ConfirmationService {
   private readonly dialogService = inject(DialogService);
 
-  public async showYesNoConfirmationDialog(title: string, message: string): Promise<boolean> {
+  public async showYesNoConfirmationDialog(title: string, message: string, cssClass?: string): Promise<boolean> {
 
-    const dialogRef = this.openDialog(title, message, DialogType.YesNo);
+    const dialogRef = this.openDialog(title, message, DialogType.YesNo, cssClass);
 
     const result = await firstValueFrom(dialogRef.result);
     if (result instanceof ConfirmationWindowResult) {
@@ -66,10 +66,11 @@ export class ConfirmationService {
     }
   }
 
-  private openDialog(title: string, message: string, dialogType: DialogType) {
+  private openDialog(title: string, message: string, dialogType: DialogType, cssClass?: string) {
     const dialogRef: DialogRef = this.dialogService.open({
       title,
-      content: ConfirmationWindowComponent
+      content: ConfirmationWindowComponent,
+      cssClass
     });
 
     const component = dialogRef.content.instance as ConfirmationWindowComponent;

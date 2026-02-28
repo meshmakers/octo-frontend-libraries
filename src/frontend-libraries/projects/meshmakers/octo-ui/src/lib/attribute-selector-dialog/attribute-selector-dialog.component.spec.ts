@@ -12,11 +12,18 @@ import {
 } from './attribute-selector-dialog.component';
 import { AttributeSelectorService, AttributeItem } from '@meshmakers/octo-services';
 
+interface MockDialogContent {
+  instance: {
+    data: AttributeSelectorDialogData | null;
+  };
+}
+
 describe('AttributeSelectorDialogComponent', () => {
   let component: AttributeSelectorDialogComponent;
   let fixture: ComponentFixture<AttributeSelectorDialogComponent>;
   let attributeServiceMock: jasmine.SpyObj<AttributeSelectorService>;
   let dialogRefMock: jasmine.SpyObj<DialogRef>;
+  let dialogContent: MockDialogContent;
 
   const mockAttributes: AttributeItem[] = [
     { attributePath: 'name', attributeValueType: 'STRING' },
@@ -31,7 +38,8 @@ describe('AttributeSelectorDialogComponent', () => {
     attributeServiceMock.getAvailableAttributes.and.returnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
 
     dialogRefMock = jasmine.createSpyObj('DialogRef', ['close']);
-    (dialogRefMock as any).content = { instance: { data: null } };
+    dialogContent = { instance: { data: null } };
+    (dialogRefMock as unknown as Record<string, unknown>)['content'] = dialogContent;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -85,7 +93,7 @@ describe('AttributeSelectorDialogComponent', () => {
         dialogTitle: 'Custom Title',
         selectedAttributes: ['name']
       };
-      (dialogRefMock as any).content = { instance: { data } };
+      dialogContent.instance.data = data;
 
       component.ngOnInit();
       tick(300);
@@ -99,7 +107,7 @@ describe('AttributeSelectorDialogComponent', () => {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: ['name', 'age']
       };
-      (dialogRefMock as any).content = { instance: { data } };
+      dialogContent.instance.data = data;
 
       component.ngOnInit();
       tick(300);
@@ -496,7 +504,7 @@ describe('AttributeSelectorDialogComponent', () => {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: ['name', 'age']
       };
-      (dialogRefMock as any).content = { instance: { data } };
+      dialogContent.instance.data = data;
 
       component.ngOnInit();
       tick(300);
@@ -517,7 +525,7 @@ describe('AttributeSelectorDialogComponent', () => {
     }));
 
     it('should handle missing data in dialog content', fakeAsync(() => {
-      (dialogRefMock as any).content = null;
+      (dialogRefMock as unknown as Record<string, unknown>)['content'] = null;
 
       expect(() => {
         component.ngOnInit();

@@ -4,6 +4,28 @@ import { map, switchMap } from 'rxjs/operators';
 import { PropertyGridItem, DefaultPropertyCategory, AttributeValueTypeDto } from '../models/property-grid.models';
 import { CkTypeAttributeService, CkTypeAttributeInfo } from '@meshmakers/octo-services';
 
+/** Represents an attribute from an RtEntity */
+interface RtAttribute {
+  attributeName?: string | null;
+  value?: unknown;
+}
+
+/** Represents an RtRecord with a ckRecordId and attributes */
+interface RtRecord {
+  ckRecordId?: string;
+  attributes?: RtAttribute[];
+}
+
+/** Represents an RtEntity with system properties and attributes */
+interface RtEntity {
+  rtId?: string;
+  ckTypeId?: string;
+  rtCreationDateTime?: string;
+  rtChangedDateTime?: string;
+  rtWellKnownName?: string;
+  attributes?: { items?: RtAttribute[] };
+}
+
 /**
  * Service for converting various data structures to PropertyGridItem format.
  * Uses Construction Kit (CK) type definitions for accurate attribute type resolution.
@@ -20,7 +42,7 @@ export class PropertyConverterService {
    * @param ckTypeId The fullName of the CK type to look up attribute types
    * @returns Observable of PropertyGridItem array
    */
-  convertRtEntityAttributes(attributes: any[], ckTypeId: string): Observable<PropertyGridItem[]> {
+  convertRtEntityAttributes(attributes: RtAttribute[] | null | undefined, ckTypeId: string): Observable<PropertyGridItem[]> {
     if (!attributes || attributes.length === 0) {
       return of([]);
     }
@@ -37,7 +59,7 @@ export class PropertyConverterService {
    * Convert any JavaScript object to property grid items using reflection.
    * This method remains synchronous as there is no CK type for generic JS objects.
    */
-  convertObjectToProperties(obj: any, category?: string): PropertyGridItem[] {
+  convertObjectToProperties(obj: Record<string, unknown> | null | undefined, category?: string): PropertyGridItem[] {
     if (!obj || typeof obj !== 'object') {
       return [];
     }
@@ -59,7 +81,7 @@ export class PropertyConverterService {
    * @param record The record object containing ckRecordId and attributes
    * @returns Observable of PropertyGridItem array
    */
-  convertRtRecordToProperties(record: any): Observable<PropertyGridItem[]> {
+  convertRtRecordToProperties(record: RtRecord | null | undefined): Observable<PropertyGridItem[]> {
     if (!record || typeof record !== 'object' || !record.attributes) {
       return of([]);
     }
@@ -86,8 +108,8 @@ export class PropertyConverterService {
           description: 'Construction kit record identifier'
         });
 
-        // Convert attributes with CK types
-        return this.convertAttributesWithCkTypes(record.attributes, ckAttributeMap).pipe(
+        // Convert attributes with CK types (record.attributes is guaranteed non-null by the guard above)
+        return this.convertAttributesWithCkTypes(record.attributes!, ckAttributeMap).pipe(
           map(attributeProperties => {
             properties.push(...attributeProperties);
             return properties;
@@ -102,7 +124,7 @@ export class PropertyConverterService {
    * @param entity The RtEntity object
    * @returns Observable of PropertyGridItem array
    */
-  convertRtEntityToProperties(entity: any): Observable<PropertyGridItem[]> {
+  convertRtEntityToProperties(entity: RtEntity): Observable<PropertyGridItem[]> {
     const properties: PropertyGridItem[] = [];
 
     // System properties
@@ -200,7 +222,7 @@ export class PropertyConverterService {
    * Convert attributes using CK type map for type resolution
    */
   private convertAttributesWithCkTypes(
-    attributes: any[],
+    attributes: RtAttribute[],
     ckAttributeMap: Map<string, string>
   ): Observable<PropertyGridItem[]> {
     if (!attributes || attributes.length === 0) {
@@ -209,7 +231,7 @@ export class PropertyConverterService {
 
     // Check if any attributes have nested records that need async conversion
     const hasNestedRecords = attributes.some(attr =>
-      attr?.value && typeof attr.value === 'object' && attr.value.attributes !== undefined
+      attr?.value && typeof attr.value === 'object' && attr.value !== null && 'attributes' in attr.value
     );
 
     if (!hasNestedRecords) {
@@ -220,9 +242,9 @@ export class PropertyConverterService {
 
     // Has nested records - need to handle async conversion
     const conversionObservables = attributes.map((attr, index) => {
-      if (attr?.value && typeof attr.value === 'object' && attr.value.attributes !== undefined) {
+      if (attr?.value && typeof attr.value === 'object' && attr.value !== null && 'attributes' in attr.value) {
         // Nested record - convert async
-        return this.convertRtRecordToProperties(attr.value).pipe(
+        return this.convertRtRecordToProperties(attr.value as RtRecord).pipe(
           map(nestedProperties => ({
             id: `attr_${index}_${attr?.attributeName || 'unknown'}`,
             name: attr?.attributeName || `attribute_${index}`,
@@ -247,7 +269,7 @@ export class PropertyConverterService {
    * Convert a single attribute to PropertyGridItem
    */
   private convertSingleAttribute(
-    attr: any,
+    attr: RtAttribute,
     index: number,
     ckAttributeMap: Map<string, string>
   ): PropertyGridItem {
@@ -268,7 +290,7 @@ export class PropertyConverterService {
   /**
    * Get attribute type from CK map
    */
-  private getAttributeType(attributeName: string | undefined, ckAttributeMap: Map<string, string>): AttributeValueTypeDto {
+  private getAttributeType(attributeName: string | null | undefined, ckAttributeMap: Map<string, string>): AttributeValueTypeDto {
     if (!attributeName) {
       return AttributeValueTypeDto.StringDto;
     }
@@ -315,7 +337,7 @@ export class PropertyConverterService {
   /**
    * Convert attribute value synchronously (for non-record values)
    */
-  private convertRtEntityAttributeValueSync(value: any): any {
+  private convertRtEntityAttributeValueSync(value: unknown): unknown {
     if (value === null || value === undefined) {
       return null;
     }
@@ -325,7 +347,7 @@ export class PropertyConverterService {
     }
 
     // For nested records, return as-is (will be handled by async conversion if needed)
-    if (typeof value === 'object' && value.attributes !== undefined) {
+    if (typeof value === 'object' && 'attributes' in value) {
       return value;
     }
 
@@ -336,7 +358,7 @@ export class PropertyConverterService {
    * Infer attribute type from JavaScript value.
    * Used only for convertObjectToProperties where no CK type is available.
    */
-  private inferAttributeType(value: any): AttributeValueTypeDto {
+  private inferAttributeType(value: unknown): AttributeValueTypeDto {
     if (value === null || value === undefined) {
       return AttributeValueTypeDto.StringDto;
     }

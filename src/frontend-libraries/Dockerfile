@@ -27,7 +27,7 @@ FROM base AS final
 WORKDIR /usr/share/nginx/html
 COPY --from=publish /src/src/frontend-libraries/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=publish /src/src/frontend-libraries/entrypoint.sh .
-COPY --from=publish /src/src/frontend-libraries/dist/template-app/ .
+COPY --from=publish /src/src/frontend-libraries/dist/demo-app/ .
 RUN chmod +x ./entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]

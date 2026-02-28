@@ -80,9 +80,14 @@ import { GroupPrimitive, isGroupPrimitive } from '../primitives';
 import { TransformProperty, PropertyBinding } from '../primitives/models/transform-property.models';
 import { BindingEditorDialogComponent } from './binding-editor-dialog.component';
 import { BoundingBox } from '../primitives/models/primitive.models';
+import { RectanglePrimitive } from '../primitives/models/rectangle.model';
+import { EllipsePrimitive } from '../primitives/models/ellipse.model';
 import { LinePrimitive } from '../primitives/models/line.model';
+import { TextPrimitive } from '../primitives/models/text.model';
 import { PathPrimitive, offsetPathData } from '../primitives/models/path.model';
-import { PolylinePrimitive } from '../primitives/models/polygon.model';
+import { PolygonPrimitive, PolylinePrimitive } from '../primitives/models/polygon.model';
+import { ImagePrimitive } from '../primitives/models/image.model';
+import { AttributeAnimation, TransformAnimation } from '../primitives/models/animation.models';
 import { renderAnimations, AnimationRenderContext, renderFlowParticles, getFlowParticlesAnimation } from '../primitives/renderers/animation.renderer';
 import { SymbolLibraryService } from '../services/symbol-library.service';
 import { SvgImportService } from '../services/svg-import.service';
@@ -539,7 +544,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
   /**
    * Emitted when symbol settings change in the settings panel
    */
-  @Output() symbolSettingsChange = new EventEmitter<{ key: string; value: any }>();
+  @Output() symbolSettingsChange = new EventEmitter<{ key: string; value: string | number }>();
 
   /**
    * Style classes for the symbol (only used in symbol mode with dockview)
@@ -1162,7 +1167,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
     const childIds = new Set<string>();
     for (const p of primitives) {
       if (p.type === 'group' && p.animations && p.animations.length > 0) {
-        const groupConfig = (p as any).config as { childIds: string[] };
+        const groupConfig = (p as GroupPrimitive).config;
         for (const childId of groupConfig.childIds) {
           childIds.add(childId);
         }
@@ -1531,7 +1536,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
           position: { referencePanel: 'elements' },
           params: {
             settings: () => this.symbolSettings,
-            onSettingsChange: (key: string, value: any) => {
+            onSettingsChange: (key: string, value: string | number) => {
               this.symbolSettingsChange.emit({ key, value });
             }
           }
@@ -1571,6 +1576,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
   /**
    * Get the component map for dockview panel registration
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dockview panels use structural typing at runtime
   readonly panelComponents: Record<string, Type<any>> = {
     elements: ElementsPanelComponent,
     symbols: SymbolsPanelComponent,
@@ -1721,7 +1727,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         component: 'settings',
         params: {
           settings: () => this.symbolSettings,
-          onSettingsChange: (key: string, value: unknown) => {
+          onSettingsChange: (key: string, value: string | number) => {
             this.symbolSettingsChange.emit({ key, value });
           }
         }
@@ -1865,7 +1871,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
           const width = Math.abs(coords.x - startX);
           const height = Math.abs(coords.y - startY);
           // Directly set the rect with proper bounds
-          (this.selectionService as any)._selectionRect.set({ x, y, width, height });
+          this.selectionService.setSelectionRect({ x, y, width, height });
         }
         return;
       }
@@ -3389,7 +3395,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
             ...p,
             position: { x: newBounds.x, y: newBounds.y },
             config: {
-              ...(p as any).config,
+              ...(p as GroupPrimitive).config,
               originalBounds: { ...newBounds }
             }
           } as PrimitiveBase;
@@ -4429,12 +4435,12 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
   getPrimitiveBoundingBox(primitive: PrimitiveBase): { x: number; y: number; width: number; height: number } {
     // Handle groups specially - use stored bounds
     if (primitive.type === 'group') {
-      const config = (primitive as any).config as { originalBounds: { width: number; height: number } };
+      const groupConfig = (primitive as GroupPrimitive).config;
       return {
         x: primitive.position.x,
         y: primitive.position.y,
-        width: config.originalBounds?.width ?? 100,
-        height: config.originalBounds?.height ?? 100
+        width: groupConfig.originalBounds?.width ?? 100,
+        height: groupConfig.originalBounds?.height ?? 100
       };
     }
 
@@ -4764,7 +4770,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
 
     switch (primitive.type) {
       case 'rectangle': {
-        const config = (primitive as any).config;
+        const config = (primitive as RectanglePrimitive).config;
         const rx = config.cornerRadiusX ?? config.cornerRadius ?? 0;
         const ry = config.cornerRadiusY ?? config.cornerRadius ?? 0;
         const fillLevel = primitive.fillLevel;
@@ -4781,11 +4787,11 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         return `<rect x="${localX}" y="${localY}" width="${config.width}" height="${config.height}" fill="${fill}" fill-opacity="${fillOpacity}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}${rx ? ` rx="${rx}"` : ''}${ry ? ` ry="${ry}"` : ''}/>`;
       }
       case 'ellipse': {
-        const config = (primitive as any).config;
+        const config = (primitive as EllipsePrimitive).config;
         return `<ellipse cx="${localX}" cy="${localY}" rx="${config.radiusX}" ry="${config.radiusY}" fill="${fill}" fill-opacity="${fillOpacity}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}/>`;
       }
       case 'line': {
-        const config = (primitive as any).config;
+        const config = (primitive as LinePrimitive).config;
         const x1 = config.start.x + localX;
         const y1 = config.start.y + localY;
         const x2 = config.end.x + localX;
@@ -4793,21 +4799,21 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}/>`;
       }
       case 'text': {
-        const config = (primitive as any).config;
-        const textStyle = config.style ?? {};
+        const config = (primitive as TextPrimitive).config;
+        const textStyle = config.textStyle ?? {};
         const fontSize = textStyle.fontSize ?? 14;
         const fontFamily = textStyle.fontFamily ?? 'sans-serif';
         const fontWeight = textStyle.fontWeight ?? 'normal';
         const textAnchor = textStyle.textAnchor ?? 'start';
-        const fillColor = textStyle.fill ?? resolvedStyle?.fill?.color ?? '#000000';
-        return `<text x="${localX}" y="${localY}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="${textAnchor}" fill="${fillColor}">${this.escapeXml(config.text ?? '')}</text>`;
+        const fillColor = textStyle.color ?? resolvedStyle?.fill?.color ?? '#000000';
+        return `<text x="${localX}" y="${localY}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="${textAnchor}" fill="${fillColor}">${this.escapeXml(config.content ?? '')}</text>`;
       }
       case 'path': {
-        const config = (primitive as any).config;
+        const config = (primitive as PathPrimitive).config;
         return `<path d="${config.d}" transform="translate(${localX},${localY})" fill="${fill}" fill-opacity="${fillOpacity}"${config.fillRule ? ` fill-rule="${config.fillRule}"` : ''} stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}/>`;
       }
       case 'polygon': {
-        const config = (primitive as any).config;
+        const config = (primitive as PolygonPrimitive).config;
         if (config.points && Array.isArray(config.points)) {
           const points = config.points.map((pt: Position) =>
             `${pt.x + localX},${pt.y + localY}`
@@ -4817,7 +4823,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         return '';
       }
       case 'polyline': {
-        const config = (primitive as any).config;
+        const config = (primitive as PolylinePrimitive).config;
         if (config.points && Array.isArray(config.points)) {
           const points = config.points.map((pt: Position) =>
             `${pt.x + localX},${pt.y + localY}`
@@ -4827,7 +4833,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         return '';
       }
       case 'image': {
-        const config = (primitive as any).config;
+        const config = (primitive as ImagePrimitive).config;
         const width = config.width ?? 100;
         const height = config.height ?? 100;
         const src = config.src;
@@ -4850,7 +4856,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
       }
       case 'group': {
         // Handle nested groups - recursively render children
-        const groupConfig = (primitive as any).config as { childIds: string[] };
+        const groupConfig = (primitive as GroupPrimitive).config;
         const childBounds = this.getPrimitiveBoundingBox(primitive);
         const nestedCx = childBounds.x + childBounds.width / 2;
         const nestedCy = childBounds.y + childBounds.height / 2;
@@ -4978,7 +4984,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
     const rotationAnim = primitive.animations.find(anim => {
       const animation = anim.animation;
       return animation.type === 'animateTransform' &&
-             (animation as any).transformType === 'rotate';
+             (animation as TransformAnimation).transformType === 'rotate';
     });
 
     if (rotationAnim?.anchor && rotationAnim.anchor !== 'center') {
@@ -5018,7 +5024,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
     return primitive.animations.some(anim => {
       const animation = anim.animation;
       return animation.type === 'animateTransform' &&
-             (animation as any).transformType === 'scale';
+             (animation as TransformAnimation).transformType === 'scale';
     });
   }
 
@@ -5096,7 +5102,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
 
     switch (primitive.type) {
       case 'rectangle': {
-        const config = (primitive as any).config;
+        const config = (primitive as RectanglePrimitive).config;
         const rx = config.cornerRadiusX ?? config.cornerRadius ?? 0;
         const ry = config.cornerRadiusY ?? config.cornerRadius ?? 0;
         const fillLevel = primitive.fillLevel;
@@ -5140,7 +5146,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'ellipse': {
-        const config = (primitive as any).config;
+        const config = (primitive as EllipsePrimitive).config;
         if (hasScale) {
           // For scale animations: wrap in group at ellipse center, draw ellipse at origin
           // Ellipse position is already the center (cx, cy), so translate there and draw at (0,0)
@@ -5151,7 +5157,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'path': {
-        const pathConfig = (primitive as any).config;
+        const pathConfig = (primitive as PathPrimitive).config;
         const pathShape = `<path d="${pathConfig.d}" transform="translate(${primitive.position.x},${primitive.position.y})" fill="${fill}" fill-opacity="${fillOpacity}"${pathConfig.fillRule ? ` fill-rule="${pathConfig.fillRule}"` : ''} stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}>${animationContent}</path>`;
 
         // Check for flow particles animation
@@ -5176,12 +5182,12 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'polygon': {
-        const points = this.getPolygonPoints(primitive as any);
+        const points = this.getPolygonPoints(primitive as PolygonPrimitive);
         shapeSvg = `<polygon points="${points}" fill="${fill}" fill-opacity="${fillOpacity}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}>${animationContent}</polygon>`;
         break;
       }
       case 'line': {
-        const config = (primitive as any).config;
+        const config = (primitive as LinePrimitive).config;
         const x1 = config.start.x + primitive.position.x;
         const y1 = config.start.y + primitive.position.y;
         const x2 = config.end.x + primitive.position.x;
@@ -5189,7 +5195,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         // For flow animations (stroke-dashoffset), we need a stroke-dasharray
         // If none is defined, use a default dash pattern
         const hasFlowAnimation = primitive.animations?.some(a =>
-          a.animation.type === 'animate' && (a.animation as any).attributeName === 'stroke-dashoffset'
+          a.animation.type === 'animate' && (a.animation as AttributeAnimation).attributeName === 'stroke-dashoffset'
         );
         const effectiveDashArray = strokeDashArray || (hasFlowAnimation ? '10 5' : '');
         const lineShape = `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${effectiveDashArray ? ` stroke-dasharray="${effectiveDashArray}"` : ''}>${animationContent}</line>`;
@@ -5210,10 +5216,10 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'polyline': {
-        const polylinePoints = this.getPolylinePoints(primitive as any);
+        const polylinePoints = this.getPolylinePoints(primitive as PolylinePrimitive);
         // For flow animations (stroke-dashoffset), we need a stroke-dasharray
         const hasFlowAnimationPolyline = primitive.animations?.some(a =>
-          a.animation.type === 'animate' && (a.animation as any).attributeName === 'stroke-dashoffset'
+          a.animation.type === 'animate' && (a.animation as AttributeAnimation).attributeName === 'stroke-dashoffset'
         );
         const effectiveDashArrayPolyline = strokeDashArray || (hasFlowAnimationPolyline ? '10 5' : '');
         const polylineShape = `<polyline points="${polylinePoints}" fill="none" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${effectiveDashArrayPolyline ? ` stroke-dasharray="${effectiveDashArrayPolyline}"` : ''}>${animationContent}</polyline>`;
@@ -5226,7 +5232,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         );
         if (flowParticlesPolylineEnabled && flowParticlesPolyline) {
           // Convert polyline points to path data
-          const polyConfig = (primitive as any).config;
+          const polyConfig = (primitive as PolylinePrimitive).config;
           const polyPoints = polyConfig.points as Position[];
           const pathDataPolyline = 'M ' + polyPoints.map((p: Position) =>
             `${p.x + primitive.position.x},${p.y + primitive.position.y}`
@@ -5266,7 +5272,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         }
 
         // Render children inside the group so they rotate with it
-        const groupConfig = (primitive as any).config as { childIds: string[] };
+        const groupConfig = (primitive as GroupPrimitive).config;
         const childrenSvg = this.renderGroupChildrenSvg(groupConfig.childIds, cx, cy);
 
         // Draw group boundary rect centered at origin, with children inside
@@ -5340,7 +5346,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
 
     // If resizing a group, capture all child bounds
     if (isGroup) {
-      const groupConfig = (primitive as any).config as { childIds: string[] };
+      const groupConfig = (primitive as GroupPrimitive).config;
       const diagram = this._diagram();
       groupChildData = [];
 
@@ -5931,7 +5937,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
 
           for (const prim of nestedPrimitives) {
             // Create a transformed copy
-            const transformedPrim: any = {
+            const transformedPrim: PrimitiveBase & { _instanceScale?: number } = {
               ...prim,
               id: `${nestedInst.id}_${prim.id}`,
               position: {
@@ -5942,10 +5948,10 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
             };
 
             // Transform polygon/polyline points if needed
-            if ((prim.type === 'polygon' || prim.type === 'polyline') && (prim as any).config?.points) {
-              transformedPrim.config = {
-                ...(prim as any).config,
-                points: ((prim as any).config.points as { x: number; y: number }[]).map(p => ({
+            if ((prim.type === 'polygon' || prim.type === 'polyline') && (prim as PolygonPrimitive).config?.points) {
+              (transformedPrim as PolygonPrimitive).config = {
+                ...(prim as PolygonPrimitive).config,
+                points: (prim as PolygonPrimitive).config.points.map(p => ({
                   x: p.x * scale,
                   y: p.y * scale
                 }))
@@ -5953,50 +5959,50 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
             }
 
             // Transform line start/end if needed
-            if (prim.type === 'line' && (prim as any).config) {
-              transformedPrim.config = {
-                ...(prim as any).config,
+            if (prim.type === 'line' && (prim as LinePrimitive).config) {
+              (transformedPrim as LinePrimitive).config = {
+                ...(prim as LinePrimitive).config,
                 start: {
-                  x: ((prim as any).config.start?.x ?? 0) * scale,
-                  y: ((prim as any).config.start?.y ?? 0) * scale
+                  x: ((prim as LinePrimitive).config.start?.x ?? 0) * scale,
+                  y: ((prim as LinePrimitive).config.start?.y ?? 0) * scale
                 },
                 end: {
-                  x: ((prim as any).config.end?.x ?? 0) * scale,
-                  y: ((prim as any).config.end?.y ?? 0) * scale
+                  x: ((prim as LinePrimitive).config.end?.x ?? 0) * scale,
+                  y: ((prim as LinePrimitive).config.end?.y ?? 0) * scale
                 }
               };
             }
 
             // Scale rectangle/ellipse dimensions if needed
-            if (prim.type === 'rectangle' && (prim as any).config) {
-              transformedPrim.config = {
-                ...(prim as any).config,
-                width: ((prim as any).config.width ?? 100) * scale,
-                height: ((prim as any).config.height ?? 80) * scale,
-                cornerRadius: ((prim as any).config.cornerRadius ?? 0) * scale
+            if (prim.type === 'rectangle' && (prim as RectanglePrimitive).config) {
+              (transformedPrim as RectanglePrimitive).config = {
+                ...(prim as RectanglePrimitive).config,
+                width: ((prim as RectanglePrimitive).config.width ?? 100) * scale,
+                height: ((prim as RectanglePrimitive).config.height ?? 80) * scale,
+                cornerRadius: ((prim as RectanglePrimitive).config.cornerRadius ?? 0) * scale
               };
             }
 
-            if (prim.type === 'ellipse' && (prim as any).config) {
-              transformedPrim.config = {
-                ...(prim as any).config,
-                radiusX: ((prim as any).config.radiusX ?? 50) * scale,
-                radiusY: ((prim as any).config.radiusY ?? 40) * scale
+            if (prim.type === 'ellipse' && (prim as EllipsePrimitive).config) {
+              (transformedPrim as EllipsePrimitive).config = {
+                ...(prim as EllipsePrimitive).config,
+                radiusX: ((prim as EllipsePrimitive).config.radiusX ?? 50) * scale,
+                radiusY: ((prim as EllipsePrimitive).config.radiusY ?? 40) * scale
               };
             }
 
             // Scale text font size if needed
-            if (prim.type === 'text' && (prim as any).config?.textStyle) {
-              transformedPrim.config = {
-                ...(prim as any).config,
+            if (prim.type === 'text' && (prim as TextPrimitive).config?.textStyle) {
+              (transformedPrim as TextPrimitive).config = {
+                ...(prim as TextPrimitive).config,
                 textStyle: {
-                  ...(prim as any).config.textStyle,
-                  fontSize: ((prim as any).config.textStyle.fontSize ?? 14) * scale
+                  ...(prim as TextPrimitive).config.textStyle,
+                  fontSize: ((prim as TextPrimitive).config.textStyle!.fontSize ?? 14) * scale
                 }
               };
             }
 
-            result.push(transformedPrim as PrimitiveBase);
+            result.push(transformedPrim);
           }
         }
       }
@@ -6156,7 +6162,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
 
     switch (primitive.type) {
       case 'rectangle': {
-        const config = (primitive as any).config;
+        const config = (primitive as RectanglePrimitive).config;
         const rx = config.cornerRadiusX ?? config.cornerRadius ?? 0;
         const ry = config.cornerRadiusY ?? config.cornerRadius ?? 0;
         const fillLevel = primitive.fillLevel;
@@ -6188,7 +6194,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'ellipse': {
-        const config = (primitive as any).config;
+        const config = (primitive as EllipsePrimitive).config;
         if (hasScale) {
           shapeSvg = `<g transform="translate(${primitive.position.x}, ${primitive.position.y})"><ellipse cx="0" cy="0" rx="${config.radiusX}" ry="${config.radiusY}" fill="${fill}" fill-opacity="${fillOpacity}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}>${animationContent}</ellipse></g>`;
         } else {
@@ -6197,7 +6203,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'path': {
-        const pathConfig = (primitive as any).config;
+        const pathConfig = (primitive as PathPrimitive).config;
         const pathShape = `<path d="${pathConfig.d}" transform="translate(${primitive.position.x},${primitive.position.y})" fill="${fill}" fill-opacity="${fillOpacity}"${pathConfig.fillRule ? ` fill-rule="${pathConfig.fillRule}"` : ''} stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}>${animationContent}</path>`;
 
         // Check for flow particles animation
@@ -6214,18 +6220,18 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'polygon': {
-        const points = this.getPolygonPoints(primitive as any);
+        const points = this.getPolygonPoints(primitive as PolygonPrimitive);
         shapeSvg = `<polygon points="${points}" fill="${fill}" fill-opacity="${fillOpacity}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}>${animationContent}</polygon>`;
         break;
       }
       case 'line': {
-        const config = (primitive as any).config;
+        const config = (primitive as LinePrimitive).config;
         const x1 = config.start.x + primitive.position.x;
         const y1 = config.start.y + primitive.position.y;
         const x2 = config.end.x + primitive.position.x;
         const y2 = config.end.y + primitive.position.y;
         const hasFlowAnimation = primitive.animations?.some(a =>
-          a.animation.type === 'animate' && (a.animation as any).attributeName === 'stroke-dashoffset'
+          a.animation.type === 'animate' && (a.animation as AttributeAnimation).attributeName === 'stroke-dashoffset'
         );
         const effectiveDashArray = strokeDashArray || (hasFlowAnimation ? '10 5' : '');
         const lineShape = `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${effectiveDashArray ? ` stroke-dasharray="${effectiveDashArray}"` : ''}>${animationContent}</line>`;
@@ -6244,9 +6250,9 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'polyline': {
-        const polylinePoints = this.getPolylinePoints(primitive as any);
+        const polylinePoints = this.getPolylinePoints(primitive as PolylinePrimitive);
         const hasFlowAnimationPolyline = primitive.animations?.some(a =>
-          a.animation.type === 'animate' && (a.animation as any).attributeName === 'stroke-dashoffset'
+          a.animation.type === 'animate' && (a.animation as AttributeAnimation).attributeName === 'stroke-dashoffset'
         );
         const effectiveDashArrayPolyline = strokeDashArray || (hasFlowAnimationPolyline ? '10 5' : '');
         const polylineShape = `<polyline points="${polylinePoints}" fill="none" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${effectiveDashArrayPolyline ? ` stroke-dasharray="${effectiveDashArrayPolyline}"` : ''}>${animationContent}</polyline>`;
@@ -6256,7 +6262,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
           primitive.id, flowParticlesPolyline.definition.id, animationStates, hasAnimationBindings
         );
         if (flowParticlesPolylineEnabled && flowParticlesPolyline) {
-          const polyConfig = (primitive as any).config;
+          const polyConfig = (primitive as PolylinePrimitive).config;
           const polyPoints = polyConfig.points as Position[];
           const pathDataPolyline = 'M ' + polyPoints.map((p: Position) =>
             `${p.x + primitive.position.x},${p.y + primitive.position.y}`
@@ -6269,7 +6275,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'text': {
-        const textConfig = (primitive as any).config;
+        const textConfig = (primitive as TextPrimitive).config;
         const textColor = textConfig.textStyle?.color ?? '#333';
         const fontSize = textConfig.textStyle?.fontSize ?? 14;
         const fontFamily = textConfig.textStyle?.fontFamily ?? 'Arial, sans-serif';
@@ -6305,7 +6311,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         }
 
         // Get children from the group and render them inside the animated container
-        const groupConfig = (primitive as any).config;
+        const groupConfig = (primitive as GroupPrimitive).config;
         const childIds = new Set<string>(groupConfig?.childIds ?? []);
         let childrenSvg = '';
 
@@ -6362,7 +6368,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
 
     for (const primitive of symbolDef.primitives) {
       if (primitive.type === 'group' && primitive.animations && primitive.animations.length > 0) {
-        const groupConfig = (primitive as any).config;
+        const groupConfig = (primitive as GroupPrimitive).config;
         if (groupConfig?.childIds) {
           for (const childId of groupConfig.childIds) {
             childIds.add(childId);
@@ -6420,7 +6426,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
     let shapeSvg = '';
     switch (primitive.type) {
       case 'rectangle': {
-        const config = (primitive as any).config;
+        const config = (primitive as RectanglePrimitive).config;
         const rx = config.cornerRadiusX ?? config.cornerRadius ?? 0;
         const ry = config.cornerRadiusY ?? config.cornerRadius ?? 0;
         const fillLevel = primitive.fillLevel;
@@ -6452,7 +6458,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'ellipse': {
-        const config = (primitive as any).config;
+        const config = (primitive as EllipsePrimitive).config;
         if (hasScale) {
           shapeSvg = `<g transform="translate(${primitive.position.x}, ${primitive.position.y})"><ellipse cx="0" cy="0" rx="${config.radiusX}" ry="${config.radiusY}" fill="${fill}" fill-opacity="${fillOpacity}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}>${animationContent}</ellipse></g>`;
         } else {
@@ -6461,17 +6467,17 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'path': {
-        const pathConfig = (primitive as any).config;
+        const pathConfig = (primitive as PathPrimitive).config;
         shapeSvg = `<path d="${pathConfig.d}" transform="translate(${primitive.position.x},${primitive.position.y})" fill="${fill}" fill-opacity="${fillOpacity}"${pathConfig.fillRule ? ` fill-rule="${pathConfig.fillRule}"` : ''} stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}>${animationContent}</path>`;
         break;
       }
       case 'line': {
-        const lineConfig = (primitive as any).config;
+        const lineConfig = (primitive as LinePrimitive).config;
         shapeSvg = `<line x1="${lineConfig.start.x + primitive.position.x}" y1="${lineConfig.start.y + primitive.position.y}" x2="${lineConfig.end.x + primitive.position.x}" y2="${lineConfig.end.y + primitive.position.y}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}"${strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : ''}>${animationContent}</line>`;
         break;
       }
       case 'polygon': {
-        const polyConfig = (primitive as any).config;
+        const polyConfig = (primitive as PolygonPrimitive).config;
         const points = polyConfig.points.map((p: Position) =>
           `${p.x + primitive.position.x},${p.y + primitive.position.y}`
         ).join(' ');
@@ -6479,7 +6485,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'polyline': {
-        const polyConfig = (primitive as any).config;
+        const polyConfig = (primitive as PolylinePrimitive).config;
         const points = polyConfig.points.map((p: Position) =>
           `${p.x + primitive.position.x},${p.y + primitive.position.y}`
         ).join(' ');
@@ -6487,7 +6493,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'text': {
-        const textConfig = (primitive as any).config;
+        const textConfig = (primitive as TextPrimitive).config;
         const textColor = textConfig.textStyle?.color ?? '#333';
         const fontSize = textConfig.textStyle?.fontSize ?? 14;
         const fontFamily = textConfig.textStyle?.fontFamily ?? 'Arial, sans-serif';
@@ -6496,7 +6502,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         break;
       }
       case 'image': {
-        const imgConfig = (primitive as any).config;
+        const imgConfig = (primitive as ImagePrimitive).config;
         const width = imgConfig.width ?? 100;
         const height = imgConfig.height ?? 100;
         const src = imgConfig.src;

@@ -205,6 +205,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   @ViewChild('autocomplete', {static: true}) autocomplete!: AutoCompleteComponent;
 
   // Inputs
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component accepts any entity type
   @Input() dataSource!: EntitySelectDataSource<any>;
   @Input() placeholder = 'Select an entity...';
   @Input() minSearchLength = 3;
@@ -213,6 +214,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   @Input() prefix = '';
 
   // Dialog inputs
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component accepts any entity type
   @Input() dialogDataSource?: EntitySelectDialogDataSource<any>;
   @Input() dialogTitle = 'Select Entity';
   @Input() multiSelect = false;
@@ -244,21 +246,23 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   }
 
   // Outputs
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component emits any entity type
   @Output() entitySelected = new EventEmitter<any>();
   @Output() entityCleared = new EventEmitter<void>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component emits any entity type
   @Output() entitiesSelected = new EventEmitter<any[]>(); // For multi-select from dialog
 
   // Form control and state
   public searchFormControl = new FormControl();
   public filteredEntities: string[] = [];
-  public selectedEntity: any = null;
+  public selectedEntity: unknown = null;
   public isLoading = false;
-  private entityMap = new Map<string, any>();
+  private entityMap = new Map<string, unknown>();
 
   // Private members
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
-  private onChange: (value: any) => void = () => { /* noop */ };
+  private onChange: (value: unknown) => void = () => { /* noop */ };
   private onTouched: () => void = () => { /* noop */ };
 
   // Icons
@@ -279,7 +283,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   }
 
   // ControlValueAccessor implementation
-  writeValue(value: any): void {
+  writeValue(value: unknown): void {
     if (value !== this.selectedEntity) {
       this.selectedEntity = value;
       if (value && this.dataSource) {
@@ -292,11 +296,11 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
     }
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (value: unknown) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 
@@ -320,7 +324,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   }
 
   // Event handlers
-  onFilterChange(event: any): void {
+  onFilterChange(event: string): void {
     const filter = event;
     if (!filter || filter.length < this.minSearchLength) {
       this.filteredEntities = [];
@@ -330,7 +334,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
     this.searchSubject.next(filter);
   }
 
-  onSelectionChange(value: any): void {
+  onSelectionChange(value: string): void {
     if (value && typeof value === 'string') {
       // Find the entity that matches the selected display text
       const entity = this.entityMap.get(value);
@@ -431,7 +435,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
     });
   }
 
-  private selectEntity(entity: any): void {
+  private selectEntity(entity: unknown): void {
     this.selectedEntity = entity;
     const displayText = this.dataSource.onDisplayEntity(entity);
     this.searchFormControl.setValue(displayText, {emitEvent: false});

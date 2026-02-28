@@ -26,6 +26,11 @@ import {
   createPolygon
 } from '../primitives';
 import { estimatePathBounds, PathPrimitive, offsetPathData } from '../primitives/models/path.model';
+import { RectanglePrimitive } from '../primitives/models/rectangle.model';
+import { EllipsePrimitive } from '../primitives/models/ellipse.model';
+import { LinePrimitive } from '../primitives/models/line.model';
+import { TextPrimitive } from '../primitives/models/text.model';
+import { PolygonPrimitive, PolylinePrimitive } from '../primitives/models/polygon.model';
 import { SymbolEditorComponent } from './symbol-editor.component';
 
 /**
@@ -1054,8 +1059,11 @@ export class SymbolLibraryAdminComponent implements OnInit {
   /**
    * Handle settings changes from the dockview settings panel
    */
-  onSymbolSettingsChange(event: { key: string; value: any }): void {
-    (this.editSettings as any)[event.key] = event.value;
+  onSymbolSettingsChange(event: { key: string; value: string | number }): void {
+    const key = event.key as keyof typeof this.editSettings;
+    if (key in this.editSettings) {
+      (this.editSettings[key] as string | number) = event.value;
+    }
   }
 
   ngOnInit(): void {
@@ -1741,7 +1749,7 @@ export class SymbolLibraryAdminComponent implements OnInit {
    * Calculate bounding box for a group primitive based on its children
    */
   getGroupBounds(prim: PrimitiveBase): { x: number; y: number; width: number; height: number } {
-    const children = (prim as any).config?.children as PrimitiveBase[] | undefined;
+    const children = (prim as unknown as { config?: { children?: PrimitiveBase[] } }).config?.children;
     if (!children || children.length === 0) {
       return { x: prim.position.x, y: prim.position.y, width: 100, height: 100 };
     }
@@ -1868,7 +1876,7 @@ export class SymbolLibraryAdminComponent implements OnInit {
           const scale = inst.scale ?? 1;
           for (const prim of symbolDef.primitives) {
             // Create a transformed copy
-            const transformedPrim: any = {
+            const transformedPrim: PrimitiveBase & { _instanceScale?: number } = {
               ...prim,
               id: `${inst.id}_${prim.id}`,
               position: {
@@ -1880,17 +1888,17 @@ export class SymbolLibraryAdminComponent implements OnInit {
             };
 
             // Transform polygon points if needed
-            if (prim.type === 'polygon' && (prim as any).config?.points) {
-              transformedPrim.config = {
-                ...(prim as any).config,
-                points: ((prim as any).config.points as { x: number; y: number }[]).map(p => ({
+            if (prim.type === 'polygon' && (prim as PolygonPrimitive).config?.points) {
+              (transformedPrim as PolygonPrimitive).config = {
+                ...(prim as PolygonPrimitive).config,
+                points: (prim as PolygonPrimitive).config.points.map(p => ({
                   x: p.x * scale,
                   y: p.y * scale
                 }))
               };
             }
 
-            result.push(transformedPrim as PrimitiveBase);
+            result.push(transformedPrim);
           }
         }
       }
@@ -1914,11 +1922,11 @@ export class SymbolLibraryAdminComponent implements OnInit {
 
     switch (prim.type) {
       case 'rectangle': {
-        const config = (prim as any).config;
+        const config = (prim as RectanglePrimitive).config;
         return { x: pos.x, y: pos.y, width: config.width, height: config.height };
       }
       case 'ellipse': {
-        const config = (prim as any).config;
+        const config = (prim as EllipsePrimitive).config;
         return {
           x: pos.x - config.radiusX,
           y: pos.y - config.radiusY,
@@ -1927,8 +1935,8 @@ export class SymbolLibraryAdminComponent implements OnInit {
         };
       }
       case 'polygon': {
-        const config = (prim as any).config;
-        const points = config.points as { x: number; y: number }[];
+        const config = (prim as PolygonPrimitive).config;
+        const points = config.points;
         let pMinX = Infinity, pMinY = Infinity, pMaxX = -Infinity, pMaxY = -Infinity;
         for (const p of points) {
           pMinX = Math.min(pMinX, p.x + pos.x);
@@ -1939,7 +1947,7 @@ export class SymbolLibraryAdminComponent implements OnInit {
         return { x: pMinX, y: pMinY, width: pMaxX - pMinX, height: pMaxY - pMinY };
       }
       case 'line': {
-        const config = (prim as any).config;
+        const config = (prim as LinePrimitive).config;
         const x1 = config.start.x + pos.x;
         const y1 = config.start.y + pos.y;
         const x2 = config.end.x + pos.x;
@@ -1953,7 +1961,7 @@ export class SymbolLibraryAdminComponent implements OnInit {
       }
       case 'text': {
         // Approximate text bounds
-        const config = (prim as any).config;
+        const config = (prim as TextPrimitive).config;
         const fontSize = config.textStyle?.fontSize ?? 14;
         const text = config.content ?? '';
         return {
@@ -1973,8 +1981,8 @@ export class SymbolLibraryAdminComponent implements OnInit {
         };
       }
       case 'polyline': {
-        const config = (prim as any).config;
-        const points = config.points as { x: number; y: number }[];
+        const config = (prim as PolylinePrimitive).config;
+        const points = config.points;
         if (!points || points.length === 0) {
           return { x: pos.x, y: pos.y, width: 1, height: 1 };
         }

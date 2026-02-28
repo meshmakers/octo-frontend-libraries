@@ -1,7 +1,7 @@
 /**
  * Backward-compatible AssetRepoGraphQlDataSource for legacy apps.
  *
- * New code in Refinery Studio should use OctoGraphQlDataSource from @meshmakers/octo-ui.
+ * New code should use OctoGraphQlDataSource from @meshmakers/octo-ui.
  */
 import { filter, map, Observable, Subscription } from 'rxjs';
 import { DataSourceBase, MessageService, PagedResultDto } from '@meshmakers/shared-services';
@@ -21,10 +21,8 @@ export interface IQueryVariablesDto extends OperationVariables {
  * Structural interface for QueryRef to avoid private/protected member type incompatibilities
  * between different apollo-angular npm installations.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface QueryRefLike<_TQueryDto = any, TVariablesDto = any> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  valueChanges: Observable<any>;
+interface QueryRefLike<_TQueryDto = unknown, TVariablesDto = unknown> {
+  valueChanges: Observable<unknown>;
   refetch(variables?: TVariablesDto): Promise<unknown>;
   stopPolling(): void;
 }
@@ -32,10 +30,8 @@ interface QueryRefLike<_TQueryDto = any, TVariablesDto = any> {
 /**
  * Structural interface for apollo-angular Query.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface QueryLike<_TQueryDto = any, _TVariablesDto extends OperationVariables = any> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  watch(options?: Record<string, unknown>): QueryRefLike<any, any>;
+interface QueryLike<_TQueryDto = unknown, _TVariablesDto extends OperationVariables = OperationVariables> {
+  watch(options?: Record<string, unknown>): QueryRefLike<unknown, unknown>;
 }
 
 export abstract class GraphQlDataSource<TDto> extends DataSourceBase<TDto> {
@@ -146,8 +142,7 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
       });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected executeLoad(_value: any, _index: number): PagedResultDto<TDto> {
+  protected executeLoad(_value: unknown, _index: number): PagedResultDto<TDto> {
     return new PagedResultDto<TDto>();
   }
 }

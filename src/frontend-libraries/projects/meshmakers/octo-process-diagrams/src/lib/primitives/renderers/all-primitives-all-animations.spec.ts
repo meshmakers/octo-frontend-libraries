@@ -23,6 +23,7 @@ import {
   ANIMATION_PRESETS,
   createFromPreset,
   AnimationDefinition,
+  FlowParticlesAnimation,
   getPresetKeys,
   getPresetsGrouped
 } from '../models/animation.models';
@@ -404,8 +405,8 @@ describe('All Primitives with All Animations', () => {
 
           expect(animDef).not.toBeNull();
           expect(animDef!.animation.type).toBe('flowParticles');
-          expect((animDef!.animation as any).particleCount).toBeGreaterThan(0);
-          expect((animDef!.animation as any).particleRadius).toBeGreaterThan(0);
+          expect((animDef!.animation as FlowParticlesAnimation).particleCount).toBeGreaterThan(0);
+          expect((animDef!.animation as FlowParticlesAnimation).particleRadius).toBeGreaterThan(0);
         });
       }
     });

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
-import { DialogService, DialogRef } from '@progress/kendo-angular-dialog';
+import { Observable, Subject } from 'rxjs';
+import { DialogService, DialogRef, DialogResult } from '@progress/kendo-angular-dialog';
 import { AttributeSortSelectorDialogService } from './attribute-sort-selector-dialog.service';
 import {
   AttributeSortSelectorDialogComponent,
@@ -8,12 +8,20 @@ import {
   AttributeSortItem
 } from './attribute-sort-selector-dialog.component';
 
+interface MockComponentInstance {
+  data?: {
+    ckTypeId: string;
+    selectedAttributes?: AttributeSortItem[];
+    dialogTitle?: string;
+  };
+}
+
 describe('AttributeSortSelectorDialogService', () => {
   let service: AttributeSortSelectorDialogService;
   let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogResultSubject: Subject<any>;
+  let dialogResultSubject: Subject<AttributeSortSelectorDialogResult | Record<string, unknown> | string | undefined>;
   let mockDialogRef: Partial<DialogRef>;
-  let mockComponentInstance: any;
+  let mockComponentInstance: MockComponentInstance;
 
   const mockSortAttributes: AttributeSortItem[] = [
     { attributePath: 'name', attributeValueType: 'STRING', sortOrder: 'ascending' },
@@ -21,14 +29,14 @@ describe('AttributeSortSelectorDialogService', () => {
   ];
 
   beforeEach(() => {
-    dialogResultSubject = new Subject<any>();
+    dialogResultSubject = new Subject<AttributeSortSelectorDialogResult | Record<string, unknown> | string | undefined>();
     mockComponentInstance = {};
 
     mockDialogRef = {
-      result: dialogResultSubject.asObservable(),
+      result: dialogResultSubject.asObservable() as unknown as Observable<DialogResult>,
       content: {
         instance: mockComponentInstance
-      } as any
+      } as unknown as DialogRef['content']
     };
 
     dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
@@ -161,7 +169,7 @@ describe('AttributeSortSelectorDialogService', () => {
     });
 
     it('should handle dialog without content instance', async () => {
-      mockDialogRef.content = null as any;
+      mockDialogRef.content = null as unknown as DialogRef['content'];
 
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 

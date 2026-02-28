@@ -47,8 +47,8 @@ describe('MeshBoardVariableService', () => {
 
     it('should return original value when value is null/undefined', () => {
       const variables = [createMockVariable('name', 'World')];
-      expect(service.resolveVariables(null as any, variables)).toBeNull();
-      expect(service.resolveVariables(undefined as any, variables)).toBeUndefined();
+      expect(service.resolveVariables(null as unknown as string, variables)).toBeNull();
+      expect(service.resolveVariables(undefined as unknown as string, variables)).toBeUndefined();
     });
 
     describe('$variableName syntax', () => {
@@ -141,7 +141,7 @@ describe('MeshBoardVariableService', () => {
           name: 'test',
           type: 'string',
           source: 'static',
-          value: undefined as any,
+          value: undefined as unknown as string,
           defaultValue: 'default'
         };
         const result = service.resolveVariables('Value: $test', [variable]);
@@ -153,7 +153,7 @@ describe('MeshBoardVariableService', () => {
           name: 'test',
           type: 'string',
           source: 'static',
-          value: null as any,
+          value: null as unknown as string,
           defaultValue: 'default'
         };
         const result = service.resolveVariables('Value: $test', [variable]);

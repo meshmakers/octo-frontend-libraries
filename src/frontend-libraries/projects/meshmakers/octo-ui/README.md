@@ -134,6 +134,8 @@ export class CustomerDataSourceDirective extends OctoGraphQlDataSource<CustomerD
 | `PropertyValueDisplayComponent` | Read-only value display with type formatting |
 | `CkTypeSelectorInputComponent` | Autocomplete input for CK type selection |
 | `FieldFilterEditorComponent` | Visual filter editor for queries |
+| `EntityIdInfoComponent` | Entity ID display with copy-to-clipboard dropdown |
+| `OctoLoaderComponent` | Animated OctoMesh logo loading indicator |
 
 ## Available Services
 

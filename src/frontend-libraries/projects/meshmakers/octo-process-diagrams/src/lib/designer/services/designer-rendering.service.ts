@@ -312,19 +312,19 @@ export class DesignerRenderingService {
   private calculatePrimitiveBounds(primitive: PrimitiveBase): BoundingBox {
     switch (primitive.type) {
       case 'rectangle': {
-        const rect = primitive as any;
+        const rect = primitive as unknown as { config?: { width?: number; height?: number }; width?: number; height?: number };
         return {
           x: primitive.position.x,
           y: primitive.position.y,
-          width: rect.width ?? 100,
-          height: rect.height ?? 80
+          width: rect.config?.width ?? rect.width ?? 100,
+          height: rect.config?.height ?? rect.height ?? 80
         };
       }
 
       case 'ellipse': {
-        const ellipse = primitive as any;
-        const rx = ellipse.rx ?? 50;
-        const ry = ellipse.ry ?? 40;
+        const ellipse = primitive as unknown as { config?: { radiusX?: number; radiusY?: number }; rx?: number; ry?: number };
+        const rx = ellipse.config?.radiusX ?? ellipse.rx ?? 50;
+        const ry = ellipse.config?.radiusY ?? ellipse.ry ?? 40;
         return {
           x: primitive.position.x - rx,
           y: primitive.position.y - ry,
@@ -334,11 +334,11 @@ export class DesignerRenderingService {
       }
 
       case 'line': {
-        const line = primitive as any;
-        const x1 = line.x1 ?? primitive.position.x;
-        const y1 = line.y1 ?? primitive.position.y;
-        const x2 = line.x2 ?? x1 + 100;
-        const y2 = line.y2 ?? y1;
+        const line = primitive as unknown as { config?: { start?: Position; end?: Position }; x1?: number; y1?: number; x2?: number; y2?: number };
+        const x1 = line.config?.start?.x ?? line.x1 ?? primitive.position.x;
+        const y1 = line.config?.start?.y ?? line.y1 ?? primitive.position.y;
+        const x2 = line.config?.end?.x ?? line.x2 ?? x1 + 100;
+        const y2 = line.config?.end?.y ?? line.y2 ?? y1;
         return {
           x: Math.min(x1, x2),
           y: Math.min(y1, y2),
@@ -349,9 +349,10 @@ export class DesignerRenderingService {
 
       case 'polygon':
       case 'polyline': {
-        const poly = primitive as any;
-        if (poly.points && poly.points.length > 0) {
-          return this.calculatePointsBounds(poly.points);
+        const poly = primitive as unknown as { config?: { points?: Position[] }; points?: Position[] };
+        const points = poly.config?.points ?? poly.points;
+        if (points && points.length > 0) {
+          return this.calculatePointsBounds(points);
         }
         return {
           x: primitive.position.x,
@@ -362,20 +363,20 @@ export class DesignerRenderingService {
       }
 
       case 'image': {
-        const img = primitive as any;
+        const img = primitive as unknown as { config?: { width?: number; height?: number }; width?: number; height?: number };
         return {
           x: primitive.position.x,
           y: primitive.position.y,
-          width: img.width ?? 100,
-          height: img.height ?? 100
+          width: img.config?.width ?? img.width ?? 100,
+          height: img.config?.height ?? img.height ?? 100
         };
       }
 
       case 'text': {
-        const text = primitive as any;
+        const text = primitive as unknown as { config?: { content?: string; textStyle?: { fontSize?: number } }; text?: string; fontSize?: number };
         // Approximate text bounds
-        const textLength = (text.text ?? '').length;
-        const fontSize = text.fontSize ?? 16;
+        const textLength = (text.config?.content ?? text.text ?? '').length;
+        const fontSize = text.config?.textStyle?.fontSize ?? text.fontSize ?? 16;
         return {
           x: primitive.position.x,
           y: primitive.position.y - fontSize,

@@ -425,7 +425,7 @@ export class DataViewComponent {
 
 ## Demo
 
-A live demo is available in the template-app:
+A live demo is available in the demo-app:
 
 **Route:** `/demos/time-range-picker`
 

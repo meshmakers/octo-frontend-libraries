@@ -406,7 +406,7 @@ describe('DesignerGroupingService', () => {
     it('should use defaults for unknown type', () => {
       const unknown: PrimitiveBase = {
         id: 'unknown',
-        type: 'custom' as any,
+        type: 'custom' as unknown as PrimitiveBase['type'],
         position: { x: 10, y: 20 },
         config: {}
       } as PrimitiveBase;

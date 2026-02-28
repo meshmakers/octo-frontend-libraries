@@ -146,7 +146,7 @@ export class SaveAsDialogComponent extends DialogContentBase implements OnInit, 
   }
 
   ngOnInit(): void {
-    const options = (this.dialog.content as any)?.instance?.options as SaveAsDialogOptions;
+    const options = (this.dialog.content as { instance?: { options?: SaveAsDialogOptions } })?.instance?.options;
 
     if (options) {
       this.nameLabel = options.nameLabel || 'Name';

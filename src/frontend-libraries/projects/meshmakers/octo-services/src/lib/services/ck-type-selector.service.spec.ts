@@ -1,9 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { Apollo } from 'apollo-angular';
 import { CkTypeSelectorService } from './ck-type-selector.service';
-import { GetCkTypesDtoGQL } from '../graphQL/getCkTypes';
-import { GetCkTypeByRtCkTypeIdDtoGQL } from '../graphQL/getCkTypeByRtCkTypeId';
+import { GetCkTypesDtoGQL, GetCkTypesQueryDto } from '../graphQL/getCkTypes';
+import { GetCkTypeByRtCkTypeIdDtoGQL, GetCkTypeByRtCkTypeIdQueryDto } from '../graphQL/getCkTypeByRtCkTypeId';
 import { GetDerivedCkTypesDtoGQL } from '../graphQL/getDerivedCkTypes';
+
+type MockCkTypesResult = Apollo.QueryResult<GetCkTypesQueryDto>;
+type MockCkTypeByIdResult = Apollo.QueryResult<GetCkTypeByRtCkTypeIdQueryDto>;
 
 describe('CkTypeSelectorService', () => {
   let service: CkTypeSelectorService;
@@ -41,7 +45,7 @@ describe('CkTypeSelectorService', () => {
     },
     loading: false,
     networkStatus: 7
-  } as any;
+  } as unknown as MockCkTypesResult;
 
   const mockCkTypeByIdResponse = {
     data: {
@@ -60,7 +64,7 @@ describe('CkTypeSelectorService', () => {
     },
     loading: false,
     networkStatus: 7
-  } as any;
+  } as unknown as MockCkTypeByIdResult;
 
   beforeEach(() => {
     getCkTypesGQLMock = jasmine.createSpyObj('GetCkTypesDtoGQL', ['fetch']);
@@ -116,7 +120,7 @@ describe('CkTypeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockCkTypeByIdResult;
       getCkTypeByRtCkTypeIdGQLMock.fetch.and.returnValue(of(emptyResponse));
 
       service.getCkTypeByRtCkTypeId('NonExistent/Type').subscribe(result => {
@@ -139,7 +143,7 @@ describe('CkTypeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockCkTypeByIdResult;
       getCkTypeByRtCkTypeIdGQLMock.fetch.and.returnValue(of(nullItemsResponse));
 
       service.getCkTypeByRtCkTypeId('TestModel/Customer').subscribe(result => {
@@ -156,7 +160,7 @@ describe('CkTypeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockCkTypeByIdResult;
       getCkTypeByRtCkTypeIdGQLMock.fetch.and.returnValue(of(nullCkResponse));
 
       service.getCkTypeByRtCkTypeId('TestModel/Customer').subscribe(result => {
@@ -189,10 +193,10 @@ describe('CkTypeSelectorService', () => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes().subscribe(() => {
-        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0] as any;
-        expect(callArgs.variables.ckModelIds).toBeNull();
-        expect(callArgs.variables.first).toBe(50);
-        expect(callArgs.variables.searchFilter).toBeNull();
+        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0]!;
+        expect(callArgs.variables!.ckModelIds).toBeNull();
+        expect(callArgs.variables!.first).toBe(50);
+        expect(callArgs.variables!.searchFilter).toBeNull();
         expect(callArgs.fetchPolicy).toBe('network-only');
         done();
       });
@@ -219,10 +223,10 @@ describe('CkTypeSelectorService', () => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ ckModelIds: ['model-1', 'model-2'] }).subscribe(() => {
-        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0] as any;
-        expect(callArgs.variables.ckModelIds).toEqual(['model-1', 'model-2']);
-        expect(callArgs.variables.first).toBe(50);
-        expect(callArgs.variables.searchFilter).toBeNull();
+        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0]!;
+        expect(callArgs.variables!.ckModelIds).toEqual(['model-1', 'model-2']);
+        expect(callArgs.variables!.first).toBe(50);
+        expect(callArgs.variables!.searchFilter).toBeNull();
         expect(callArgs.fetchPolicy).toBe('network-only');
         done();
       });
@@ -232,12 +236,12 @@ describe('CkTypeSelectorService', () => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ searchText: 'Customer' }).subscribe(() => {
-        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0] as any;
-        expect(callArgs.variables.searchFilter).toEqual({
+        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0]!;
+        expect(callArgs.variables!.searchFilter).toEqual(jasmine.objectContaining({
           type: 'ATTRIBUTE_FILTER',
           attributePaths: ['ckTypeId'],
           searchTerm: 'Customer'
-        });
+        }));
         done();
       });
     });
@@ -253,7 +257,7 @@ describe('CkTypeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockCkTypesResult;
       getCkTypesGQLMock.fetch.and.returnValue(of(nullTypesResponse));
 
       service.getCkTypes().subscribe(result => {
@@ -271,7 +275,7 @@ describe('CkTypeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockCkTypesResult;
       getCkTypesGQLMock.fetch.and.returnValue(of(nullCkResponse));
 
       service.getCkTypes().subscribe(result => {
@@ -296,7 +300,7 @@ describe('CkTypeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockCkTypesResult;
       getCkTypesGQLMock.fetch.and.returnValue(of(responseWithNulls));
 
       service.getCkTypes().subscribe(result => {
@@ -310,8 +314,8 @@ describe('CkTypeSelectorService', () => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ ckModelIds: [] }).subscribe(() => {
-        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0] as any;
-        expect(callArgs.variables.ckModelIds).toBeNull();
+        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0]!;
+        expect(callArgs.variables!.ckModelIds).toBeNull();
         done();
       });
     });
@@ -335,7 +339,7 @@ describe('CkTypeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockCkTypesResult;
       getCkTypesGQLMock.fetch.and.returnValue(of(response));
 
       service.getCkTypes().subscribe(result => {
@@ -365,7 +369,7 @@ describe('CkTypeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockCkTypesResult;
       getCkTypesGQLMock.fetch.and.returnValue(of(response));
 
       service.getCkTypes().subscribe(result => {

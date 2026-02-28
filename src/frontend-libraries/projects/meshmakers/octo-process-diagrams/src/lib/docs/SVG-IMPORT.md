@@ -1,54 +1,54 @@
-# SVG Import - Entwicklerdokumentation
+# SVG Import - Developer Documentation
 
-## Übersicht
+## Overview
 
-Das SVG-Import Feature ermöglicht das Importieren von SVG-Grafiken in den Process Designer. SVG-Elemente werden dabei in editierbare Primitives konvertiert, die anschließend wie alle anderen Diagram-Elemente bearbeitet werden können.
+The SVG Import feature allows importing SVG graphics into the Process Designer. SVG elements are converted to editable primitives that can then be manipulated like all other diagram elements.
 
-## Architektur
+## Architecture
 
-### Komponenten
+### Components
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    ProcessDesignerComponent                      │
+│                    ProcessDesignerComponent                     │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
 │  │ Toolbar     │  │ Canvas      │  │ Keyboard Handler        │  │
 │  │ Import Btn  │  │ Drop Zone   │  │ Ctrl+V Paste            │  │
 │  └──────┬──────┘  └──────┬──────┘  └───────────┬─────────────┘  │
-│         │                │                     │                 │
-│         └────────────────┼─────────────────────┘                 │
-│                          │                                       │
-│                          ▼                                       │
-│               ┌─────────────────────┐                            │
-│               │  importSvgContent() │                            │
-│               └──────────┬──────────┘                            │
+│         │                │                     │                │
+│         └────────────────┼─────────────────────┘                │
+│                          │                                      │
+│                          ▼                                      │
+│               ┌─────────────────────┐                           │
+│               │  importSvgContent() │                           │
+│               └──────────┬──────────┘                           │
 └──────────────────────────┼──────────────────────────────────────┘
                            │
                            ▼
               ┌────────────────────────┐
               │    SvgImportService    │
               │                        │
-              │  • importSvg()         │
-              │  • Element Converters  │
-              │  • Style Extraction    │
-              │  • Transform Handling  │
+              │  - importSvg()         │
+              │  - Element Converters  │
+              │  - Style Extraction    │
+              │  - Transform Handling  │
               └────────────────────────┘
                            │
                            ▼
               ┌────────────────────────┐
               │   PrimitiveBase[]      │
-              │   (editierbare         │
-              │    Diagram-Elemente)   │
+              │   (editable            │
+              │    diagram elements)   │
               └────────────────────────┘
 ```
 
-### Dateien
+### Files
 
-| Datei | Beschreibung |
-|-------|--------------|
-| `services/svg-import.service.ts` | Kern-Service für SVG-Parsing und Konvertierung |
-| `designer/process-designer.component.ts` | UI-Integration (Button, Drop, Paste) |
-| `designer/process-designer.component.html` | Import-Button und File-Input |
+| File | Description |
+|------|-------------|
+| `services/svg-import.service.ts` | Core service for SVG parsing and conversion |
+| `designer/process-designer.component.ts` | UI integration (button, drop, paste) |
+| `designer/process-designer.component.html` | Import button and file input |
 
 ## SvgImportService
 
@@ -58,7 +58,7 @@ Das SVG-Import Feature ermöglicht das Importieren von SVG-Grafiken in den Proce
 @Injectable({ providedIn: 'root' })
 export class SvgImportService {
   /**
-   * Importiert SVG-Content und konvertiert zu Primitives
+   * Imports SVG content and converts it to primitives
    */
   importSvg(svgContent: string, options?: SvgImportOptions): SvgImportResult;
 }
@@ -68,46 +68,46 @@ export class SvgImportService {
 
 ```typescript
 interface SvgImportOptions {
-  /** Zielposition für importierte Elemente (default: 0,0) */
+  /** Target position for imported elements (default: 0,0) */
   targetPosition?: Position;
 
-  /** ID-Generator Funktion für neue Primitives */
+  /** ID generator function for new primitives */
   idGenerator?: () => string;
 
-  /** Prefix für generierte Namen (default: 'svg') */
+  /** Prefix for generated names (default: 'svg') */
   namePrefix?: string;
 }
 
 interface SvgImportResult {
-  /** Konvertierte Primitives */
+  /** Converted primitives */
   primitives: PrimitiveBase[];
 
-  /** Bounding Box der importierten Grafik */
+  /** Bounding box of the imported graphic */
   bounds: { width: number; height: number };
 
-  /** Warnungen für nicht unterstützte Elemente */
+  /** Warnings for unsupported elements */
   warnings: string[];
 }
 ```
 
-### Element-Mapping
+### Element Mapping
 
-| SVG Element | Primitive Type | Bemerkungen |
-|-------------|----------------|-------------|
-| `<rect>` | `RectanglePrimitive` | `rx`/`ry` → `cornerRadius` |
-| `<circle>` | `EllipsePrimitive` | `r` → `radiusX = radiusY` |
+| SVG Element | Primitive Type | Notes |
+|-------------|----------------|-------|
+| `<rect>` | `RectanglePrimitive` | `rx`/`ry` mapped to `cornerRadius` |
+| `<circle>` | `EllipsePrimitive` | `r` mapped to `radiusX = radiusY` |
 | `<ellipse>` | `EllipsePrimitive` | `rx`, `ry` |
 | `<line>` | `LinePrimitive` | `x1`, `y1`, `x2`, `y2` |
-| `<polyline>` | `PolylinePrimitive` | `points` Attribut |
-| `<polygon>` | `PolygonPrimitive` | `points` Attribut, automatisch geschlossen |
-| `<path>` | `PathPrimitive` | `d` Attribut mit Transform-Anwendung |
-| `<text>` | `TextPrimitive` | `textContent`, Font-Attribute |
+| `<polyline>` | `PolylinePrimitive` | `points` attribute |
+| `<polygon>` | `PolygonPrimitive` | `points` attribute, automatically closed |
+| `<path>` | `PathPrimitive` | `d` attribute with transform application |
+| `<text>` | `TextPrimitive` | `textContent`, font attributes |
 | `<image>` | `ImagePrimitive` | `href`/`xlink:href` |
-| `<g>` | - | Rekursiv verarbeitet, Transform vererbt |
+| `<g>` | - | Processed recursively, transforms inherited |
 
-## Import-Methoden
+## Import Methods
 
-### 1. Toolbar-Button
+### 1. Toolbar Button
 
 ```html
 <button kendoButton (click)="onImportSvgClick()" title="Import SVG file">
@@ -121,10 +121,10 @@ interface SvgImportResult {
 ```
 
 **Flow:**
-1. User klickt "Import SVG"
-2. `onImportSvgClick()` triggert File-Input
-3. `onSvgFileSelected()` liest Datei via FileReader
-4. `importSvgContent()` ruft Service auf
+1. User clicks "Import SVG"
+2. `onImportSvgClick()` triggers file input
+3. `onSvgFileSelected()` reads file via FileReader
+4. `importSvgContent()` calls the service
 
 ### 2. Drag & Drop
 
@@ -142,15 +142,15 @@ onCanvasDrop(event: DragEvent): void {
       return;
     }
   }
-  // ... andere Drop-Handler
+  // ... other drop handlers
 }
 ```
 
 **Flow:**
-1. User zieht SVG-Datei auf Canvas
-2. `onCanvasDrop()` erkennt SVG-Datei
-3. FileReader liest Content
-4. `importSvgContent()` importiert an Drop-Position
+1. User drags SVG file onto canvas
+2. `onCanvasDrop()` detects SVG file
+3. FileReader reads content
+4. `importSvgContent()` imports at drop position
 
 ### 3. Clipboard Paste
 
@@ -163,7 +163,7 @@ private async handlePaste(): Promise<void> {
       return;
     }
   } catch {
-    // Fallback zu internem Clipboard
+    // Fallback to internal clipboard
   }
   this.paste();
 }
@@ -176,14 +176,14 @@ private isSvgContent(text: string): boolean {
 ```
 
 **Flow:**
-1. User drückt Ctrl+V
-2. `handlePaste()` liest System-Clipboard
-3. Bei SVG-Content → `importSvgContent()`
-4. Sonst → reguläres Paste (interner Clipboard)
+1. User presses Ctrl+V
+2. `handlePaste()` reads system clipboard
+3. If SVG content is detected, calls `importSvgContent()`
+4. Otherwise falls through to regular paste (internal clipboard)
 
-## Style-Extraktion
+## Style Extraction
 
-### Unterstützte Attribute
+### Supported Attributes
 
 ```typescript
 interface PrimitiveStyle {
@@ -196,48 +196,48 @@ interface PrimitiveStyle {
 }
 ```
 
-### Priorität
+### Priority
 
-1. Inline `style` Attribut (höchste Priorität)
-2. Presentation-Attribute (`fill="red"`)
-3. Default-Werte
+1. Inline `style` attribute (highest priority)
+2. Presentation attributes (`fill="red"`)
+3. Default values
 
-### Farb-Konvertierung
+### Color Conversion
 
 ```typescript
 private parseColor(colorStr: string): string {
-  // Named Colors → Hex
+  // Named Colors -> Hex
   const namedColors: Record<string, string> = {
     'black': '#000000',
     'white': '#ffffff',
     'red': '#ff0000',
-    // ... weitere
+    // ... more
   };
 
-  // rgb(r, g, b) → Hex
+  // rgb(r, g, b) -> Hex
   const rgbMatch = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/i);
   if (rgbMatch) {
     return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
   }
 
-  return colorStr; // Bereits Hex oder transparent
+  return colorStr; // Already hex or transparent
 }
 ```
 
-## Transform-Handling
+## Transform Handling
 
-### Unterstützte Transforms
+### Supported Transforms
 
-| Transform | Syntax | Beschreibung |
-|-----------|--------|--------------|
-| `translate` | `translate(tx, ty)` | Verschiebung |
-| `scale` | `scale(sx, sy)` | Skalierung |
-| `rotate` | `rotate(angle, cx, cy)` | Rotation (optional um Punkt) |
-| `matrix` | `matrix(a,b,c,d,e,f)` | Vollständige Matrix |
-| `skewX` | `skewX(angle)` | X-Scherung |
-| `skewY` | `skewY(angle)` | Y-Scherung |
+| Transform | Syntax | Description |
+|-----------|--------|-------------|
+| `translate` | `translate(tx, ty)` | Translation |
+| `scale` | `scale(sx, sy)` | Scaling |
+| `rotate` | `rotate(angle, cx, cy)` | Rotation (optionally around a point) |
+| `matrix` | `matrix(a,b,c,d,e,f)` | Full matrix |
+| `skewX` | `skewX(angle)` | X-axis skew |
+| `skewY` | `skewY(angle)` | Y-axis skew |
 
-### Matrix-Komposition
+### Matrix Composition
 
 ```typescript
 private composeMatrices(m1: Matrix, m2: Matrix): Matrix {
@@ -252,63 +252,63 @@ private composeMatrices(m1: Matrix, m2: Matrix): Matrix {
 }
 ```
 
-### Transform-Vererbung
+### Transform Inheritance
 
-Bei verschachtelten `<g>`-Elementen werden Transforms akkumuliert:
+For nested `<g>` elements, transforms are accumulated:
 
 ```xml
 <g transform="translate(100, 50)">
   <g transform="rotate(45)">
     <rect x="0" y="0" width="50" height="50"/>
-    <!-- Rect erhält kombinierte Matrix: translate + rotate -->
+    <!-- Rect receives combined matrix: translate + rotate -->
   </g>
 </g>
 ```
 
-### Path-Transform
+### Path Transform
 
-Für `<path>`-Elemente werden Transforms direkt auf das `d`-Attribut angewendet:
+For `<path>` elements, transforms are applied directly to the `d` attribute:
 
 ```typescript
 private applyTransformToPath(d: string, matrix: Matrix): string {
-  // Parst Path-Commands und transformiert alle Koordinaten
-  // M, L, H, V, C, S, Q, T, A, Z werden unterstützt
+  // Parses path commands and transforms all coordinates
+  // M, L, H, V, C, S, Q, T, A, Z are supported
 }
 ```
 
-## ViewBox-Handling
+## ViewBox Handling
 
 ```typescript
-// ViewBox parsen
+// Parse ViewBox
 const viewBox = svg.getAttribute('viewBox');
 if (viewBox) {
   const [minX, minY, vbWidth, vbHeight] = viewBox.split(/[\s,]+/).map(Number);
-  // Offset für importierte Elemente berechnen
+  // Calculate offset for imported elements
   offsetX = targetPosition.x - minX;
   offsetY = targetPosition.y - minY;
 }
 ```
 
-## Einschränkungen (v1)
+## Limitations (v1)
 
-Folgende SVG-Features werden **nicht** unterstützt:
+The following SVG features are **not** supported:
 
-| Feature | Verhalten |
-|---------|-----------|
-| `<use>` / `<defs>` | Übersprungen + Warning |
-| `<style>` (CSS) | Übersprungen |
-| `<linearGradient>` | Übersprungen |
-| `<radialGradient>` | Übersprungen |
-| `<filter>` | Übersprungen |
-| `<clipPath>` | Übersprungen |
-| `<mask>` | Übersprungen |
-| `<marker>` | Übersprungen |
-| `<pattern>` | Übersprungen |
+| Feature | Behavior |
+|---------|----------|
+| `<use>` / `<defs>` | Skipped + warning |
+| `<style>` (CSS) | Skipped |
+| `<linearGradient>` | Skipped |
+| `<radialGradient>` | Skipped |
+| `<filter>` | Skipped |
+| `<clipPath>` | Skipped |
+| `<mask>` | Skipped |
+| `<marker>` | Skipped |
+| `<pattern>` | Skipped |
 
-## Verwendungsbeispiel
+## Usage Example
 
 ```typescript
-// Im Component
+// In component
 private readonly svgImportService = inject(SvgImportService);
 
 importSvgContent(svgContent: string, targetPosition?: Position): void {
@@ -320,22 +320,22 @@ importSvgContent(svgContent: string, targetPosition?: Position): void {
     namePrefix: 'imported'
   });
 
-  // Warnungen loggen
+  // Log warnings
   if (result.warnings.length > 0) {
     console.warn('SVG Import Warnings:', result.warnings);
   }
 
-  // Primitives zum Diagram hinzufügen
+  // Add primitives to diagram
   this._diagram.update(d => ({
     ...d,
     primitives: [...(d.primitives ?? []), ...result.primitives]
   }));
 
-  // Importierte Elemente selektieren
+  // Select imported elements
   this.selectionService.clearSelection();
   this.selectionService.selectElements(result.primitives.map(p => p.id));
 
-  // History aktualisieren
+  // Update history
   this.pushToHistory();
   this._hasChanges.set(true);
 }
@@ -345,31 +345,31 @@ importSvgContent(svgContent: string, targetPosition?: Position): void {
 
 ```typescript
 // public-api.ts
-export { SvgImportService } from './lib/widgets/process-widget/services/svg-import.service';
-export type { SvgImportOptions, SvgImportResult } from './lib/widgets/process-widget/services/svg-import.service';
+export { SvgImportService } from './lib/services/svg-import.service';
+export type { SvgImportOptions, SvgImportResult } from './lib/services/svg-import.service';
 ```
 
-## Erweiterungsmöglichkeiten
+## Extension Possibilities
 
-### Zukünftige Features
+### Future Features
 
-1. **Gradient-Support**: LinearGradient und RadialGradient zu Primitive-Fills konvertieren
-2. **Symbol-Erkennung**: Wiederholte Elemente als Symbols erkennen
-3. **CSS-Style-Support**: Embedded `<style>` Tags parsen
-4. **Import-Dialog**: Vorschau, Skalierung, Position wählen
-5. **Batch-Import**: Mehrere SVG-Dateien gleichzeitig importieren
+1. **Gradient Support**: Convert LinearGradient and RadialGradient to primitive fills
+2. **Symbol Detection**: Detect repeated elements as symbols
+3. **CSS Style Support**: Parse embedded `<style>` tags
+4. **Import Dialog**: Preview, scaling, position selection
+5. **Batch Import**: Import multiple SVG files simultaneously
 
-### Neuen Element-Converter hinzufügen
+### Adding a New Element Converter
 
 ```typescript
 // In svg-import.service.ts
 private convertNewElement(element: SVGElement, transform: Matrix): NewPrimitive | null {
   const style = this.extractStyle(element);
 
-  // Element-spezifische Attribute extrahieren
+  // Extract element-specific attributes
   const customAttr = this.getNumericAttr(element, 'custom-attr', 0);
 
-  // Position transformieren
+  // Transform position
   const position = this.applyMatrix({ x, y }, transform);
 
   return {
@@ -377,12 +377,12 @@ private convertNewElement(element: SVGElement, transform: Matrix): NewPrimitive 
     id: this.currentIdGenerator(),
     name: `${this.currentNamePrefix}_newtype_${this.elementCounter++}`,
     position,
-    // ... weitere Properties
+    // ... additional properties
     style
   };
 }
 
-// In processElement() Switch-Case hinzufügen
+// Add to processElement() switch case
 case 'newelement':
   return this.convertNewElement(element as SVGElement, transform);
 ```

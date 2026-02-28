@@ -115,6 +115,7 @@ export class ProcessDataService {
       const result = await firstValueFrom(this.getProcessDiagramsGQL.fetch({
         first: 100,
         searchFilter: searchText ? { searchTerm: searchText, language: 'de' } : undefined
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Apollo fetch requires flexible variable typing
       } as any));
 
       const items = result.data?.runtime?.systemUIProcessDiagram?.items || [];

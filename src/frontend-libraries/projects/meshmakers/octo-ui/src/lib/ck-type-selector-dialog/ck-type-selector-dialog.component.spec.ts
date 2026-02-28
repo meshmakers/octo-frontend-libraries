@@ -17,11 +17,18 @@ import {
   CkTypeSelectorDialogResult
 } from './ck-type-selector-dialog.component';
 
+interface MockDialogContent {
+  instance: {
+    data: CkTypeSelectorDialogData | Record<string, unknown> | null;
+  };
+}
+
 describe('CkTypeSelectorDialogComponent', () => {
   let component: CkTypeSelectorDialogComponent;
   let fixture: ComponentFixture<CkTypeSelectorDialogComponent>;
   let ckTypeSelectorServiceMock: jasmine.SpyObj<CkTypeSelectorService>;
   let dialogRefMock: jasmine.SpyObj<DialogRef>;
+  let dialogContent: MockDialogContent;
 
   const mockCkTypes: CkTypeSelectorItem[] = [
     {
@@ -78,11 +85,12 @@ describe('CkTypeSelectorDialogComponent', () => {
     }));
 
     dialogRefMock = jasmine.createSpyObj('DialogRef', ['close']);
-    (dialogRefMock as any).content = {
+    dialogContent = {
       instance: {
         data: { ...mockDialogData }
       }
     };
+    (dialogRefMock as unknown as Record<string, unknown>)['content'] = dialogContent;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -139,19 +147,19 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should use default dialog title when not provided', () => {
-      (dialogRefMock as any).content.instance.data = {};
+      dialogContent.instance.data = {};
       fixture.detectChanges();
       expect(component.dialogTitle).toBe('Select Construction Kit Type');
     });
 
     it('should set allowAbstract from dialog data', () => {
-      (dialogRefMock as any).content.instance.data = { allowAbstract: true };
+      dialogContent.instance.data = { allowAbstract: true };
       fixture.detectChanges();
       expect(component.allowAbstract).toBeTrue();
     });
 
     it('should set selectedKeys from dialog data', () => {
-      (dialogRefMock as any).content.instance.data = {
+      dialogContent.instance.data = {
         selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
       };
       fixture.detectChanges();
@@ -190,12 +198,12 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should handle null dialog data', () => {
-      (dialogRefMock as any).content = { instance: { data: null } };
+      dialogContent.instance.data = null;
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
     it('should restore selection if item exists in loaded data', () => {
-      (dialogRefMock as any).content.instance.data = {
+      dialogContent.instance.data = {
         selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
       };
       fixture.detectChanges();
@@ -272,7 +280,7 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should use initial ckModelIds when no model selected', () => {
-      (dialogRefMock as any).content.instance.data = {
+      dialogContent.instance.data = {
         ckModelIds: ['OctoSdkDemo-1.0.0']
       };
       fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
@@ -598,7 +606,7 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should handle pre-selected type that exists in initial load', () => {
-      (dialogRefMock as any).content.instance.data = {
+      dialogContent.instance.data = {
         selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
       };
 

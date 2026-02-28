@@ -252,7 +252,7 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
   }
 
   ngOnInit(): void {
-    const data = (this.dialog.content as any)?.instance?.data as CkTypeSelectorDialogData;
+    const data = this.dialog.content?.instance?.data as CkTypeSelectorDialogData;
 
     if (data) {
       this.dialogTitle = data.dialogTitle || 'Select Construction Kit Type';

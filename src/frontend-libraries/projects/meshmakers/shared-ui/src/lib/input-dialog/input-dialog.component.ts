@@ -25,7 +25,7 @@ export class InputDialogComponent extends DialogContentBase {
   @Input() public message = "";
   @Input() public placeholder = "Enter value";
 
-  @Input() protected inputValue: any | null = "";
+  @Input() protected inputValue: string | null = "";
 
   constructor() {
     const dialogRef = inject(DialogRef);

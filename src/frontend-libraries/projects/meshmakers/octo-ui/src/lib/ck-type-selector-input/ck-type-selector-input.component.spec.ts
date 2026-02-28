@@ -169,13 +169,13 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should coerce truthy values to true', () => {
-      (component as any).disabled = 'yes';
+      (component as unknown as Record<string, unknown>)['disabled'] = 'yes';
       expect(component.disabled).toBeTrue();
     });
 
     it('should coerce falsy values to false', () => {
       component.disabled = true;
-      (component as any).disabled = '';
+      (component as unknown as Record<string, unknown>)['disabled'] = '';
       expect(component.disabled).toBeFalse();
     });
   });
@@ -187,7 +187,7 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should coerce truthy values to true', () => {
-      (component as any).required = 'yes';
+      (component as unknown as Record<string, unknown>)['required'] = 'yes';
       expect(component.required).toBeTrue();
     });
   });
@@ -237,7 +237,7 @@ describe('CkTypeSelectorInputComponent', () => {
         component.registerOnChange(callback);
 
         // Trigger internal onChange
-        (component as any).onChange(mockCkTypes[0]);
+        (component as unknown as Record<string, (v: CkTypeSelectorItem) => void>)['onChange'](mockCkTypes[0]);
         expect(callback).toHaveBeenCalledWith(mockCkTypes[0]);
       });
     });
@@ -248,7 +248,7 @@ describe('CkTypeSelectorInputComponent', () => {
         component.registerOnTouched(callback);
 
         // Trigger internal onTouched
-        (component as any).onTouched();
+        (component as unknown as Record<string, () => void>)['onTouched']();
         expect(callback).toHaveBeenCalled();
       });
     });
@@ -576,7 +576,8 @@ describe('CkTypeSelectorInputComponent', () => {
         selectedCkTypeId: mockCkTypes[0].fullName,
         ckModelIds: ['TestModel'],
         dialogTitle: 'Custom Title',
-        allowAbstract: true
+        allowAbstract: true,
+        derivedFromRtCkTypeId: undefined
       });
     });
 
@@ -623,7 +624,7 @@ describe('CkTypeSelectorInputComponent', () => {
         stopPropagation: jasmine.createSpy('stopPropagation')
       };
 
-      await component.openDialog(mockEvent as any);
+      await component.openDialog(mockEvent as unknown as Event);
 
       expect(mockEvent.preventDefault).toHaveBeenCalled();
       expect(mockEvent.stopPropagation).toHaveBeenCalled();

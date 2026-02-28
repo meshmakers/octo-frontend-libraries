@@ -28,11 +28,11 @@ describe('PascalCasePipe', () => {
   });
 
   it('should return null as is', () => {
-    expect(pipe.transform(null as any)).toBeNull();
+    expect(pipe.transform(null as unknown as string)).toBeNull();
   });
 
   it('should return undefined as is', () => {
-    expect(pipe.transform(undefined as any)).toBeUndefined();
+    expect(pipe.transform(undefined as unknown as string)).toBeUndefined();
   });
 
   it('should only capitalize first letter, not entire string', () => {

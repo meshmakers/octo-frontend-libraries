@@ -1,9 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
+import { Apollo } from 'apollo-angular';
 import { CkTypeAttributeService } from './ck-type-attribute.service';
-import { GetCkTypeAttributesDtoGQL } from '../graphQL/getCkTypeAttributes';
-import { GetCkRecordAttributesDtoGQL } from '../graphQL/getCkRecordAttributes';
+import { GetCkTypeAttributesDtoGQL, GetCkTypeAttributesQueryDto } from '../graphQL/getCkTypeAttributes';
+import { GetCkRecordAttributesDtoGQL, GetCkRecordAttributesQueryDto } from '../graphQL/getCkRecordAttributes';
 import { AttributeValueTypeDto } from '../graphQL/globalTypes';
+
+type MockTypeQueryResult = Apollo.QueryResult<GetCkTypeAttributesQueryDto>;
+type MockRecordQueryResult = Apollo.QueryResult<GetCkRecordAttributesQueryDto>;
 
 describe('CkTypeAttributeService', () => {
   let service: CkTypeAttributeService;
@@ -34,7 +38,7 @@ describe('CkTypeAttributeService', () => {
     },
     loading: false,
     networkStatus: 7
-  } as any;
+  } as unknown as MockTypeQueryResult;
 
   const mockRecordAttributesResponse = {
     data: {
@@ -60,7 +64,7 @@ describe('CkTypeAttributeService', () => {
     },
     loading: false,
     networkStatus: 7
-  } as any;
+  } as unknown as MockRecordQueryResult;
 
   beforeEach(() => {
     getCkTypeAttributesGQLMock = jasmine.createSpyObj('GetCkTypeAttributesDtoGQL', ['fetch']);
@@ -114,7 +118,7 @@ describe('CkTypeAttributeService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockTypeQueryResult;
       getCkTypeAttributesGQLMock.fetch.and.returnValue(of(emptyResponse));
       spyOn(console, 'warn');
 
@@ -144,7 +148,7 @@ describe('CkTypeAttributeService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockTypeQueryResult;
       getCkTypeAttributesGQLMock.fetch.and.returnValue(of(noAttrsResponse));
       spyOn(console, 'warn');
 
@@ -190,7 +194,7 @@ describe('CkTypeAttributeService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockTypeQueryResult;
       getCkTypeAttributesGQLMock.fetch.and.returnValue(of(responseWithNulls));
 
       service.getCkTypeAttributes('TestModel-1.0.0/Customer-1').subscribe(result => {
@@ -234,7 +238,7 @@ describe('CkTypeAttributeService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockRecordQueryResult;
       getCkRecordAttributesGQLMock.fetch.and.returnValue(of(emptyResponse));
       spyOn(console, 'warn');
 
@@ -281,7 +285,7 @@ describe('CkTypeAttributeService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockRecordQueryResult;
       getCkRecordAttributesGQLMock.fetch.and.returnValue(of(responseWithNulls));
 
       service.getCkRecordAttributes('TestModel-1.0.0/StatusRecord-1').subscribe(result => {

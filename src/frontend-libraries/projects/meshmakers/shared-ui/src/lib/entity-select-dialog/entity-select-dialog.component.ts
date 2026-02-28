@@ -121,7 +121,7 @@ export class EntitySelectDialogComponent<T> extends DialogContentBase implements
   columns: TableColumn[] = [];
   gridData: { data: T[]; total: number } = { data: [], total: 0 };
   selectedEntities: T[] = [];
-  selectedKeys: any[] = [];
+  selectedKeys: string[] = [];
   isLoading = false;
   searchValue = '';
   pageSize = 10;

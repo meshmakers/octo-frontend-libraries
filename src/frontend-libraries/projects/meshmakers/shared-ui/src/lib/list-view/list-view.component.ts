@@ -67,12 +67,12 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   private searchSubject = new Subject<string | null>();
   private destroy$ = new Subject<void>();
   protected searchValue = '';
-  private _selectedRows: any[] = [];
+  private _selectedRows: unknown[] = [];
   // action menu (button)
-  private _actionMenuSelectedRow: any | null = null;
+  private _actionMenuSelectedRow: unknown | null = null;
 
   // context menu (right click)
-  private _contextMenuSelectedRow: any | null = null;
+  private _contextMenuSelectedRow: unknown | null = null;
 
   protected _actionMenuItems: MenuItem[] = [];
   protected _contextMenuItems: MenuItem[] = [];
@@ -85,7 +85,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;
   @ViewChild("gridmenu") public gridContextMenu?: ContextMenuComponent;
 
-  @Output() rowClicked = new EventEmitter<any[]>();
+  @Output() rowClicked = new EventEmitter<unknown[]>();
 
   @Input() public pageSize = 10;
   @Input() public skip = 0;
@@ -202,7 +202,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return CommandBaseService.getIsDisabled(commandItem);
   }
 
-  protected getValue(element:any, column: TableColumn): any {
+  protected getValue(element: Record<string, unknown>, column: TableColumn): unknown {
     if(column.field.indexOf('.') === -1) {
       return element[column.field];
     }
@@ -214,12 +214,12 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
     // Otherwise try nested object traversal (e.g., element.contact.firstName)
     const keys = column.field.split('.');
-    let value = element;
+    let value: unknown = element;
     for(const key of keys) {
       if (value === null || value === undefined) {
         return undefined;
       }
-      value = value[key];
+      value = (value as Record<string, unknown>)[key];
     }
     return value;
   }
@@ -255,28 +255,28 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   /**
    * Gets the status icon mapping for a specific field value in a data item.
    */
-  protected getStatusIconMapping(dataItem: any, fieldConfig: StatusFieldConfig): StatusIconMapping | null {
+  protected getStatusIconMapping(dataItem: Record<string, unknown>, fieldConfig: StatusFieldConfig): StatusIconMapping | null {
     const value = this.getFieldValue(dataItem, fieldConfig.field);
     if (value === null || value === undefined) {
       return null;
     }
-    return fieldConfig.statusMapping[value] ?? null;
+    return fieldConfig.statusMapping[String(value)] ?? null;
   }
 
   /**
    * Helper to get a field value from a data item, supporting nested fields.
    */
-  private getFieldValue(element: any, field: string): any {
+  private getFieldValue(element: Record<string, unknown>, field: string): unknown {
     if (field.indexOf('.') === -1) {
       return element[field];
     }
     const keys = field.split('.');
-    let value = element;
+    let value: unknown = element;
     for (const key of keys) {
       if (value === null || value === undefined) {
         return null;
       }
-      value = value[key];
+      value = (value as Record<string, unknown>)[key];
     }
     return value;
   }
@@ -284,8 +284,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   /**
    * Gets the human-readable description of a cron expression.
    */
-  protected getCronHumanReadable(expression: string): string {
-    if (!expression) return '';
+  protected getCronHumanReadable(expression: unknown): string {
+    if (!expression || typeof expression !== 'string') return '';
     return this.cronHumanizer.toHumanReadable(expression, 'en');
   }
 
@@ -299,7 +299,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this.onRefreshData.emit();
   }
 
-  public onExecuteFilter = new EventEmitter<any>();
+  public onExecuteFilter = new EventEmitter<string | null>();
   public onRefreshData = new EventEmitter<void>();
 
   protected async onFilter(value: string | null): Promise<void> {
@@ -362,7 +362,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     }
   }
 
-  protected async onSelectOptionActionItem(event: Event, dataItem: any, menuItem: MenuItem): Promise<void> {
+  protected async onSelectOptionActionItem(event: Event, dataItem: unknown, menuItem: MenuItem): Promise<void> {
     // Stop propagation to prevent grid from handling the click (e.g., for selection)
     event.stopPropagation();
     event.preventDefault();
@@ -378,7 +378,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     await this.navigateAsync(commandItem, dataItem);
   }
 
-  protected onContextMenu(dataItem: any, e: PointerEvent) {
+  protected onContextMenu(dataItem: unknown, e: PointerEvent) {
 
     this._actionMenuSelectedRow = dataItem;
     this.gridContextMenu?.show({

@@ -3,12 +3,29 @@
  */
 import {Injectable} from '@angular/core';
 
+interface BarcodeDetectorResult {
+  rawValue: string;
+}
+
+interface BarcodeDetectorInstance {
+  detect(source: HTMLVideoElement): Promise<BarcodeDetectorResult[]>;
+}
+
+interface BarcodeDetectorConstructor {
+  new (options: { formats: string[] }): BarcodeDetectorInstance;
+  getSupportedFormats(): Promise<string[]>;
+}
+
+interface WindowWithBarcodeDetector {
+  BarcodeDetector?: BarcodeDetectorConstructor;
+}
+
 @Injectable()
 export class QrCodeScannerService {
   private stream: MediaStream | null = null;
 
   async isSupported(): Promise<boolean> {
-    const BarcodeDetectorClass = (window as any).BarcodeDetector;
+    const BarcodeDetectorClass = (window as unknown as WindowWithBarcodeDetector).BarcodeDetector;
     return !!BarcodeDetectorClass &&
       await BarcodeDetectorClass.getSupportedFormats().then(
         (formats: string[]) => formats.includes('qr_code')
@@ -16,7 +33,10 @@ export class QrCodeScannerService {
   }
 
   async scan(video: HTMLVideoElement): Promise<string> {
-    const BarcodeDetectorClass = (window as any).BarcodeDetector;
+    const BarcodeDetectorClass = (window as unknown as WindowWithBarcodeDetector).BarcodeDetector;
+    if (!BarcodeDetectorClass) {
+      throw new Error('BarcodeDetector is not supported');
+    }
     const detector = new BarcodeDetectorClass({formats: ['qr_code']});
 
     try {

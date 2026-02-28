@@ -1,6 +1,20 @@
 // ============================================================================
-// LOGIN APP BAR SECTION - LCARS STYLE
+// LOGIN APP BAR SECTION
+// Theme-agnostic styling with CSS custom properties
+// Host applications override these variables to apply their theme
 // ============================================================================
+
+:host {
+  --mm-login-bg-start: #f5f5f5;
+  --mm-login-bg-end: #e8e8e8;
+  --mm-login-accent: #1976d2;
+  --mm-login-accent-rgb: 25, 118, 210;
+  --mm-login-text: #333333;
+  --mm-login-btn-primary-start: #1976d2;
+  --mm-login-btn-primary-end: #1565c0;
+  --mm-login-btn-primary-text: #ffffff;
+  --mm-login-font: 'Roboto', sans-serif;
+}
 
 .content {
   width: 280px;
@@ -10,24 +24,24 @@
   justify-content: center;
   align-items: center;
   gap: 16px;
-  background: linear-gradient(180deg, #394555, #1f2e40);
+  background: linear-gradient(180deg, var(--mm-login-bg-start), var(--mm-login-bg-end));
 }
 
 .user-avatar {
-  border: 2px solid rgba(100, 206, 185, 0.4);
-  box-shadow: 0 0 15px rgba(100, 206, 185, 0.3);
+  border: 2px solid rgba(var(--mm-login-accent-rgb), 0.4);
+  box-shadow: 0 0 15px rgba(var(--mm-login-accent-rgb), 0.3);
 
   ::ng-deep .k-avatar-text {
-    font-family: 'Montserrat', 'Roboto', sans-serif;
+    font-family: var(--mm-login-font);
     font-weight: 600;
     text-transform: uppercase;
   }
 }
 
 .user-name {
-  font-family: 'Montserrat', 'Roboto', sans-serif;
+  font-family: var(--mm-login-font);
   font-size: 0.85rem;
-  color: #ffffff;
+  color: var(--mm-login-text);
   margin: 0;
   text-align: center;
   word-break: break-all;
@@ -46,7 +60,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Montserrat', 'Roboto', sans-serif;
+    font-family: var(--mm-login-font);
     font-weight: 500;
     text-transform: uppercase;
     font-size: 0.75rem;
@@ -61,24 +75,23 @@
   }
 
   button.k-button-solid-primary {
-    background: linear-gradient(180deg, #64ceb9, #4db8a4);
+    background: linear-gradient(180deg, var(--mm-login-btn-primary-start), var(--mm-login-btn-primary-end));
     border: none;
-    color: #07172b;
+    color: var(--mm-login-btn-primary-text);
 
     &:hover {
-      background: linear-gradient(180deg, #7ad9c7, #64ceb9);
-      box-shadow: 0 0 15px rgba(100, 206, 185, 0.5);
+      box-shadow: 0 0 15px rgba(var(--mm-login-accent-rgb), 0.5);
     }
   }
 
   a.k-button-solid {
-    background: rgba(100, 206, 185, 0.1);
-    border: 1px solid rgba(100, 206, 185, 0.3);
-    color: #64ceb9;
+    background: rgba(var(--mm-login-accent-rgb), 0.1);
+    border: 1px solid rgba(var(--mm-login-accent-rgb), 0.3);
+    color: var(--mm-login-accent);
 
     &:hover {
-      background: rgba(100, 206, 185, 0.2);
-      box-shadow: 0 0 10px rgba(100, 206, 185, 0.3);
+      background: rgba(var(--mm-login-accent-rgb), 0.2);
+      box-shadow: 0 0 10px rgba(var(--mm-login-accent-rgb), 0.3);
     }
   }
 }

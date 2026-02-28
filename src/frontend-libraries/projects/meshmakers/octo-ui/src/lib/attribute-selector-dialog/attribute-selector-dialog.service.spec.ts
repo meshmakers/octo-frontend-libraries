@@ -1,16 +1,25 @@
 import { TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
-import { DialogService, DialogRef } from '@progress/kendo-angular-dialog';
+import { Observable, Subject } from 'rxjs';
+import { DialogService, DialogRef, DialogResult } from '@progress/kendo-angular-dialog';
 import { AttributeSelectorDialogService } from './attribute-selector-dialog.service';
 import { AttributeSelectorDialogComponent, AttributeSelectorDialogResult } from './attribute-selector-dialog.component';
 import { AttributeItem } from '@meshmakers/octo-services';
 
+interface MockComponentInstance {
+  data?: {
+    rtCkTypeId: string;
+    selectedAttributes?: string[];
+    dialogTitle?: string;
+    singleSelect?: boolean;
+  };
+}
+
 describe('AttributeSelectorDialogService', () => {
   let service: AttributeSelectorDialogService;
   let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogResultSubject: Subject<any>;
+  let dialogResultSubject: Subject<AttributeSelectorDialogResult | Record<string, unknown> | string | undefined>;
   let mockDialogRef: Partial<DialogRef>;
-  let mockComponentInstance: any;
+  let mockComponentInstance: MockComponentInstance;
 
   const mockAttributes: AttributeItem[] = [
     { attributePath: 'name', attributeValueType: 'STRING' },
@@ -18,14 +27,14 @@ describe('AttributeSelectorDialogService', () => {
   ];
 
   beforeEach(() => {
-    dialogResultSubject = new Subject<any>();
+    dialogResultSubject = new Subject<AttributeSelectorDialogResult | Record<string, unknown> | string | undefined>();
     mockComponentInstance = {};
 
     mockDialogRef = {
-      result: dialogResultSubject.asObservable(),
+      result: dialogResultSubject.asObservable() as unknown as Observable<DialogResult>,
       content: {
         instance: mockComponentInstance
-      } as any
+      } as unknown as DialogRef['content']
     };
 
     dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
@@ -92,7 +101,8 @@ describe('AttributeSelectorDialogService', () => {
       expect(mockComponentInstance.data).toEqual({
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: selectedAttrs,
-        dialogTitle: 'My Title'
+        dialogTitle: 'My Title',
+        singleSelect: undefined
       });
     });
 
@@ -162,7 +172,7 @@ describe('AttributeSelectorDialogService', () => {
     });
 
     it('should handle dialog without content instance', async () => {
-      mockDialogRef.content = null as any;
+      mockDialogRef.content = null as unknown as DialogRef['content'];
 
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
@@ -197,7 +207,8 @@ describe('AttributeSelectorDialogService', () => {
       expect(mockComponentInstance.data).toEqual({
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: undefined,
-        dialogTitle: undefined
+        dialogTitle: undefined,
+        singleSelect: undefined
       });
     });
   });

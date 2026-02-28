@@ -56,7 +56,7 @@ export interface EntitySelectDialogDataSource<T> {
    * @param entity The entity to get ID from
    * @returns Unique identifier for the entity
    */
-  getIdEntity(entity: T): any;
+  getIdEntity(entity: T): string;
 }
 
 /**

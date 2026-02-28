@@ -1,8 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { Apollo } from 'apollo-angular';
 import { CkModelService } from './ck-model.service';
-import { GetCkModelByIdDtoGQL } from '../graphQL/getCkModelById';
+import { GetCkModelByIdDtoGQL, GetCkModelByIdQueryDto } from '../graphQL/getCkModelById';
 import { ModelStateDto } from '../graphQL/globalTypes';
+
+type MockQueryResult = Apollo.QueryResult<GetCkModelByIdQueryDto>;
 
 describe('CkModelService', () => {
   let service: CkModelService;
@@ -32,7 +35,7 @@ describe('CkModelService', () => {
     },
     loading: false,
     networkStatus: 7
-  } as any);
+  } as unknown as MockQueryResult);
 
   const emptyResponse = {
     data: {
@@ -48,7 +51,7 @@ describe('CkModelService', () => {
     },
     loading: false,
     networkStatus: 7
-  } as any;
+  } as unknown as MockQueryResult;
 
   beforeEach(() => {
     getCkModelByIdGQLMock = jasmine.createSpyObj('GetCkModelByIdDtoGQL', ['fetch']);
@@ -95,7 +98,7 @@ describe('CkModelService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockQueryResult;
       getCkModelByIdGQLMock.fetch.and.returnValue(of(nullCkResponse));
 
       const result = await service.isModelAvailable('System.UI');
@@ -114,7 +117,7 @@ describe('CkModelService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockQueryResult;
       getCkModelByIdGQLMock.fetch.and.returnValue(of(nullModelsResponse));
 
       const result = await service.isModelAvailable('System.UI');
@@ -170,7 +173,7 @@ describe('CkModelService', () => {
                 id: {
                   __typename: 'CkModelId',
                   name: 'System.UI',
-                  version: null as any,
+                  version: null,
                   fullName: 'System.UI',
                   semanticVersionedFullName: 'System.UI'
                 },
@@ -181,7 +184,7 @@ describe('CkModelService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockQueryResult;
       getCkModelByIdGQLMock.fetch.and.returnValue(of(noVersionResponse));
 
       const result = await service.isModelAvailableWithMinVersion('System.UI', '1.0.0');
@@ -255,7 +258,7 @@ describe('CkModelService', () => {
                 id: {
                   __typename: 'CkModelId',
                   name: 'System.UI',
-                  version: null as any,
+                  version: null,
                   fullName: 'System.UI',
                   semanticVersionedFullName: 'System.UI'
                 },
@@ -266,7 +269,7 @@ describe('CkModelService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockQueryResult;
       getCkModelByIdGQLMock.fetch.and.returnValue(of(noVersionResponse));
 
       const result = await service.getModelVersion('System.UI');

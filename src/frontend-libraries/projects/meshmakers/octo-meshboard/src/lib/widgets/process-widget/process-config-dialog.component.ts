@@ -25,7 +25,9 @@ import { EntitySelectDataSource, EntitySelectResult } from '@meshmakers/shared-s
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
-import { GetSystemPersistentQueriesDtoGQL } from '../../graphQL/getSystemPersistentQueries';
+import {
+  GetSystemPersistentQueriesDtoGQL
+} from '../../graphQL/getSystemPersistentQueries';
 import type { ProcessDiagramConfig, TransformProperty } from '@meshmakers/octo-process-diagrams';
 import { ProcessDataService, ProcessDiagramSummary } from './services/process-data.service';
 import { ProcessDataBindingMode, DiagramPropertyMapping } from './process-widget-config.model';
@@ -1209,6 +1211,7 @@ export class ProcessConfigDialogComponent implements OnInit {
         this.getSystemPersistentQueriesGQL.fetch({
           first: 100,
           searchFilter: searchText ? { searchTerm: searchText, language: 'de' } : undefined
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Apollo fetch requires flexible variable typing
         } as any)
       );
 

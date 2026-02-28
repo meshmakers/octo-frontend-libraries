@@ -80,7 +80,7 @@ export class BreadCrumbService {
     * This method updates the breadcrumb labels with the data passed in the parameter. Parameters are passed in the label as {{paramName}}
    */
   // noinspection JSUnusedGlobalSymbols
-  public async updateBreadcrumbLabels(data: any): Promise<void> {
+  public async updateBreadcrumbLabels(data: Record<string, string>): Promise<void> {
 
     const list = await firstValueFrom(this._breadCrumbItems);
     for (const breadCrumbDataItem of list) {

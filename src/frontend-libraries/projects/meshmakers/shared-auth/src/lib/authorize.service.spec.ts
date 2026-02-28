@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
-import { OAuthService, OAuthEvent } from 'angular-oauth2-oidc';
+import { OAuthService, OAuthEvent, TokenResponse } from 'angular-oauth2-oidc';
 import { AuthorizeService, AuthorizeOptions, IUser } from './authorize.service';
 import { Roles } from './roles';
 
@@ -55,7 +55,7 @@ describe('AuthorizeService', () => {
 
     oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.returnValue(Promise.resolve(true));
     oauthServiceMock.hasValidIdToken.and.returnValue(false);
-    oauthServiceMock.refreshToken.and.returnValue(Promise.resolve({} as any));
+    oauthServiceMock.refreshToken.and.returnValue(Promise.resolve({} as TokenResponse));
     oauthServiceMock.getIdentityClaims.and.returnValue(mockUser);
     oauthServiceMock.getAccessToken.and.returnValue('mock-access-token');
 
@@ -69,7 +69,7 @@ describe('AuthorizeService', () => {
     service = TestBed.inject(AuthorizeService);
 
     // Spy on the protected reloadPage method to prevent actual page reloads during tests
-    _reloadPageSpy = spyOn(service as any, 'reloadPage');
+    _reloadPageSpy = spyOn(service as unknown as { reloadPage: () => void }, 'reloadPage');
   });
 
   // =============================================================================
@@ -475,7 +475,7 @@ describe('AuthorizeService', () => {
         let capturedSessionLoading = false;
         oauthServiceMock.refreshToken.and.callFake(async () => {
           capturedSessionLoading = service.sessionLoading();
-          return {} as any;
+          return {} as TokenResponse;
         });
 
         await service.initialize(mockOptions);
@@ -496,7 +496,7 @@ describe('AuthorizeService', () => {
 
     describe('edge cases', () => {
       it('should handle null claims gracefully', async () => {
-        oauthServiceMock.getIdentityClaims.and.returnValue(null as unknown as Record<string, any>);
+        oauthServiceMock.getIdentityClaims.and.returnValue(null as unknown as ReturnType<OAuthService['getIdentityClaims']>);
 
         await service.initialize(mockOptions);
         oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
