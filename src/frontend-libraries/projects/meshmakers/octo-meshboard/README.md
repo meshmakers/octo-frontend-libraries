@@ -79,15 +79,18 @@ octo-meshboard/
 ├── containers/
 │   └── meshboard-view/          # Main view component
 ├── widgets/                      # Widget implementations
-│   ├── bar-chart-widget/
-│   ├── entity-card-widget/
-│   ├── gauge-widget/
-│   ├── kpi-widget/
-│   ├── pie-chart-widget/
-│   ├── service-health-widget/
-│   ├── stats-grid-widget/
-│   ├── status-indicator-widget/
-│   └── table-widget/
+│   ├── bar-chart-widget/         # Bar/Column/Stacked charts
+│   ├── entity-associations-widget/ # Entity with relationships
+│   ├── entity-card-widget/       # Single entity display (UML-style)
+│   ├── gauge-widget/             # Arc, Circular, Linear, Radial gauges
+│   ├── kpi-widget/               # Single numeric value with trend
+│   ├── markdown-widget/          # Static markdown content with themed prose
+│   ├── pie-chart-widget/         # Pie/Donut charts
+│   ├── process-widget/           # Process diagram / HMI editor
+│   ├── service-health-widget/    # Backend service health monitoring
+│   ├── stats-grid-widget/        # Multiple KPIs in grid layout
+│   ├── status-indicator-widget/  # Traffic light status
+│   └── table-widget/             # Data grid with pagination
 ├── services/
 │   ├── meshboard-state.service.ts      # State management
 │   ├── meshboard-data.service.ts       # Data fetching
@@ -221,6 +224,48 @@ interface StatusIndicatorWidgetConfig {
   falseColor?: string;
 }
 ```
+
+### Markdown Widget
+Displays static markdown content with themed prose styling. Supports variable interpolation.
+
+```typescript
+interface MarkdownWidgetConfig {
+  type: 'markdown';
+  content: string;
+  resolveVariables?: boolean;
+  padding?: string;
+  textAlign?: 'left' | 'center' | 'right';
+}
+```
+
+Requires `provideMarkdown()` from `ngx-markdown` in the application providers.
+
+### Entity Card Widget
+Displays a single runtime entity in a UML-style card.
+
+```typescript
+interface EntityCardWidgetConfig {
+  type: 'entityCard';
+  attributePaths?: string[];
+  showCkType?: boolean;
+}
+```
+
+### Entity With Associations Widget
+Displays a runtime entity together with its associated entities.
+
+```typescript
+interface EntityWithAssociationsWidgetConfig {
+  type: 'entityWithAssociations';
+  attributePaths?: string[];
+  includeAssociations?: boolean;
+}
+```
+
+### Process Widget
+Provides HMI-style (Human-Machine Interface) process visualization with tanks, pipes, valves, pumps, and other process elements. Includes a visual drag-and-drop designer.
+
+See [Process Widget Documentation](docs/process-widget.md) for detailed documentation.
 
 ## Data Sources
 
@@ -472,6 +517,18 @@ The MeshBoard feature requires the `System.UI` CK model version >= 1.0.1.
 - **Dashboard**: Contains grid configuration (columns, rowHeight, gap) and metadata
 - **DashboardWidget**: Contains widget type, position, and serialized config
 
+## Styling
+
+All widget components use **CSS custom properties with neutral defaults**. Host applications override these to apply their theme.
+
+| Widget | CSS Variable Prefix | Example |
+|--------|-------------------|---------|
+| Markdown Widget | `--mm-prose-*` | `--mm-prose-text`, `--mm-prose-heading` |
+| Stats Grid Widget | `--mm-stat-{variant}-*` | `--mm-stat-mint-bg`, `--mm-stat-cyan-text` |
+| Process Designer | `--designer-*` | `--designer-canvas-color`, `--designer-grid-color` |
+
+See the main [README Styling Guidelines](../../README.md#styling-guidelines) for details on the CSS variable pattern.
+
 ## Build
 
 ```bash
@@ -480,11 +537,15 @@ npm run build:octo-meshboard
 
 ## Dependencies
 
-- `@angular/core` >= 17
-- `@progress/kendo-angular-layout` (TileLayout)
+- `@angular/core` ^21
 - `@progress/kendo-angular-charts` (Charts)
 - `@progress/kendo-angular-gauges` (Gauges)
 - `@progress/kendo-angular-grid` (Table)
+- `@progress/kendo-angular-dialog` (Dialogs)
+- `@progress/kendo-angular-buttons` (Buttons)
+- `@progress/kendo-angular-inputs` (Inputs)
+- `ngx-markdown` (Markdown rendering)
 - `@meshmakers/octo-services` (GraphQL services)
 - `@meshmakers/octo-ui` (UI components)
+- `@meshmakers/octo-process-diagrams` (Process diagram library)
 - `@meshmakers/shared-ui` (Shared components)

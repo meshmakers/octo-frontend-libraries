@@ -1,6 +1,6 @@
 # mm-login-app-bar-section Component
 
-This component provides the login/logout UI in the AppBar with LCARS styling.
+This component provides the login/logout UI in the AppBar.
 
 ## Build Command
 
@@ -9,30 +9,37 @@ This component provides the login/logout UI in the AppBar with LCARS styling.
 npm run build:shared-auth
 ```
 
-## LCARS Theme Applied
+## Styling Requirements
 
-The component uses LCARS-inspired styling matching the main application theme:
+**Important:** This component must use **neutral, theme-agnostic styling** with CSS custom properties. Host applications apply their own theme via CSS variable overrides.
 
 ### Styling (login-app-bar-section.component.scss)
 
-- **Content Container**: Gradient background (Iron Navy → Surface), centered layout
-- **Avatar**: Mint border with glow effect
+- **Content Container**: Uses CSS variables for background colors, centered layout
+- **Avatar**: Styled via CSS variables for border and accent colors
 - **Buttons**: Vertical stack layout (not horizontal!)
-  - Logout: Mint gradient background
-  - Manage Profile: Outline with mint border
-- **Typography**: Montserrat font, uppercase, letter-spacing
+- **Typography**: Standard sans-serif font family
 
-### Color Variables Used
+### CSS Variables (to be overridden by host app)
 
 ```scss
-#64ceb9  // Octo Mint - primary accent
-#394555  // Iron Navy - surface
-#1f2e40  // Surface Elevated
-#07172b  // Deep Sea - dark background
+--mm-login-bg: <background color>;
+--mm-login-accent: <accent color>;
+--mm-login-text: <text color>;
 ```
+
+### Documentation and Testing Standards
+
+- **All developer documentation must be written in English**
+- **Every code change must include updated documentation** — update README.md, CLAUDE.md, or inline docs when adding, modifying, or removing features
+- **Unit tests and integration tests must be executed** after every code change
+- **Existing tests must be updated** when the behavior of tested code changes
+- **New tests must be added** when new features or behavior is implemented
+- Never commit code with failing tests
 
 ### Important Notes
 
 1. **Button Layout**: `.buttons` uses `flex-direction: column` - do NOT change to row
 2. **Encapsulation**: Component uses Angular View Encapsulation, so styles are scoped
-3. **After Changes**: Always rebuild library with `npm run build:shared-auth`, then rebuild main project
+3. **No hardcoded theme colors**: Use CSS custom properties with neutral defaults
+4. **After Changes**: Always rebuild library with `npm run build:shared-auth`, then rebuild main project

@@ -2,7 +2,7 @@
  * Legacy DataSourceBase class for backward compatibility with libraries
  * that import DataSourceBase from @meshmakers/shared-services.
  *
- * In the Refinery Studio version, DataSourceBase moved to @meshmakers/shared-ui.
+ * In the current version, DataSourceBase moved to @meshmakers/shared-ui.
  * This re-export ensures old compiled libraries (octo-services, etc.) continue to work.
  */
 import {BehaviorSubject, Observable} from 'rxjs';

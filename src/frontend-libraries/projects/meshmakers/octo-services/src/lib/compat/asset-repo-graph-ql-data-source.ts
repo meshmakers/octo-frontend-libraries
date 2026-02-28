@@ -1,7 +1,7 @@
 /**
  * Backward-compatible AssetRepoGraphQlDataSource for legacy apps.
  *
- * New code in Refinery Studio should use OctoGraphQlDataSource from @meshmakers/octo-ui.
+ * New code should use OctoGraphQlDataSource from @meshmakers/octo-ui.
  */
 import { map, Observable, Subscription } from 'rxjs';
 import { DataSourceBase, MessageService, PagedResultDto } from '@meshmakers/shared-services';

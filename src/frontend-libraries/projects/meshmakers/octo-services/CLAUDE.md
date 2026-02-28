@@ -25,6 +25,15 @@ After modifying any `.graphql` file, run the code generator:
 npm run codegen
 ```
 
+## Documentation and Testing Standards
+
+- **All developer documentation must be written in English**
+- **Every code change must include updated documentation** — update README.md, CLAUDE.md, or inline docs when adding, modifying, or removing features
+- **Unit tests and integration tests must be executed** after every code change
+- **Existing tests must be updated** when the behavior of tested code changes
+- **New tests must be added** when new features, components, or services are implemented
+- Never commit code with failing tests
+
 ## Project Structure
 
 ```

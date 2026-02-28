@@ -39,11 +39,30 @@ npm test -- --project=@meshmakers/octo-meshboard --watch=false
 ## Documentation Standards
 
 - **All concept documents and technical documentation must be written in English**
+- **Every code change must include updated developer documentation** — when adding, modifying, or removing features, update the relevant README.md, CLAUDE.md, or inline documentation accordingly
 - New shared components should have:
   - Developer documentation in the component folder
   - Demo page in template-app with usage examples
-- Components in shared-ui must be **theme-neutral** (no LCARS-specific styling)
-- LCARS styling is applied in the consuming application (e.g., Refinery Studio's `styles.scss`)
+- **All library components must use neutral/theme-agnostic styling** — no LCARS-specific colors, fonts, or design language. Use CSS custom properties (variables) with neutral defaults so host applications can apply their own theme.
+- Theme-specific styling (e.g., LCARS) is the responsibility of the consuming host application (via `styles.scss` or CSS variable overrides)
+
+## Testing (REQUIRED)
+
+**IMPORTANT: Always run tests after every code change!**
+
+- **Unit tests and integration tests must be executed** after every code change to ensure nothing is broken
+- **Existing tests must be updated** when the behavior of tested code changes
+- **New tests must be added** when new features, components, or services are implemented
+- If tests fail, fix them before committing — never commit code with failing tests
+
+```bash
+# Run all tests
+npm test -- --watch=false --browsers=ChromeHeadless
+
+# Run tests for specific library
+npm test -- --project=@meshmakers/octo-meshboard --watch=false
+npm test -- --project=@meshmakers/shared-auth --watch=false
+```
 
 ## Linting (REQUIRED)
 
@@ -884,7 +903,7 @@ mm-symbol-editor {
 }
 ```
 
-**Important:** The library uses neutral default colors. Host applications (like Refinery Studio) should override these variables to match their theme. Do NOT hardcode theme-specific colors in the library.
+**Important:** The library uses neutral default colors. Host applications should override these variables to match their theme. Do NOT hardcode theme-specific colors in the library.
 
 ### Build Command
 

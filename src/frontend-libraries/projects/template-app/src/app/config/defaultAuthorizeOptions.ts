@@ -9,7 +9,7 @@ export const defaultAuthorizeOptions: AuthorizeOptions = {
   postLogoutRedirectUri: window.location.origin + "/",
 
   // The SPA's id. The SPA is registered with this id at the auth-server
-  clientId: 'octo-data-refinery-studio', // defined by config.json during startup
+  clientId: 'octo-template-app', // defined by config.json during startup
 
   // set the scope for the permissions the client should request
   // The first three are defined by OIDC. The 4th is a use case-specific one

@@ -1,7 +1,7 @@
 /**
  * Backward-compatible OctoGraphQLServiceBase for legacy apps.
  *
- * New code in Refinery Studio should use generated Apollo services directly.
+ * New code should use generated Apollo services directly.
  */
 import { DocumentNode } from 'graphql';
 import { finalize, map } from 'rxjs/operators';

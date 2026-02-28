@@ -1,10 +1,46 @@
 // Stats Grid Widget Styles
-// Color palette inspired by LCARS design
+// Theme-agnostic with CSS custom properties - host apps override these
 
 :host {
   display: block;
   width: 100%;
   height: 100%;
+
+  // Color variants - neutral pastel defaults
+  --mm-stat-mint-bg: rgba(152, 217, 194, 0.15);
+  --mm-stat-mint-border: #98d9c2;
+  --mm-stat-mint-text: #5ba88c;
+  --mm-stat-mint-glow: none;
+
+  --mm-stat-cyan-bg: rgba(91, 192, 190, 0.15);
+  --mm-stat-cyan-border: #5bc0be;
+  --mm-stat-cyan-text: #3a8a88;
+  --mm-stat-cyan-glow: none;
+
+  --mm-stat-violet-bg: rgba(155, 93, 229, 0.15);
+  --mm-stat-violet-border: #9b5de5;
+  --mm-stat-violet-text: #6b3baf;
+  --mm-stat-violet-glow: none;
+
+  --mm-stat-toffee-bg: rgba(244, 162, 97, 0.15);
+  --mm-stat-toffee-border: #f4a261;
+  --mm-stat-toffee-text: #c4723b;
+  --mm-stat-toffee-glow: none;
+
+  --mm-stat-lilac-bg: rgba(201, 177, 255, 0.15);
+  --mm-stat-lilac-border: #c9b1ff;
+  --mm-stat-lilac-text: #9981cf;
+  --mm-stat-lilac-glow: none;
+
+  --mm-stat-bubblegum-bg: rgba(255, 153, 200, 0.15);
+  --mm-stat-bubblegum-border: #ff99c8;
+  --mm-stat-bubblegum-text: #cf699a;
+  --mm-stat-bubblegum-glow: none;
+
+  --mm-stat-default-bg: rgba(108, 117, 125, 0.15);
+  --mm-stat-default-border: #6c757d;
+  --mm-stat-default-text: #4a5258;
+  --mm-stat-default-glow: none;
 }
 
 .stats-grid {
@@ -31,53 +67,47 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
-  // Color variants - mint
+  // Color variants
   &.stat-mint {
-    background: rgba(152, 217, 194, 0.15);
-    border-left: 4px solid #98d9c2;
-    .stat-value { color: #5ba88c; }
+    background: var(--mm-stat-mint-bg);
+    border-left: 4px solid var(--mm-stat-mint-border);
+    .stat-value { color: var(--mm-stat-mint-text); text-shadow: var(--mm-stat-mint-glow); }
   }
 
-  // Color variants - cyan
   &.stat-cyan {
-    background: rgba(91, 192, 190, 0.15);
-    border-left: 4px solid #5bc0be;
-    .stat-value { color: #3a8a88; }
+    background: var(--mm-stat-cyan-bg);
+    border-left: 4px solid var(--mm-stat-cyan-border);
+    .stat-value { color: var(--mm-stat-cyan-text); text-shadow: var(--mm-stat-cyan-glow); }
   }
 
-  // Color variants - violet
   &.stat-violet {
-    background: rgba(155, 93, 229, 0.15);
-    border-left: 4px solid #9b5de5;
-    .stat-value { color: #6b3baf; }
+    background: var(--mm-stat-violet-bg);
+    border-left: 4px solid var(--mm-stat-violet-border);
+    .stat-value { color: var(--mm-stat-violet-text); text-shadow: var(--mm-stat-violet-glow); }
   }
 
-  // Color variants - toffee
   &.stat-toffee {
-    background: rgba(244, 162, 97, 0.15);
-    border-left: 4px solid #f4a261;
-    .stat-value { color: #c4723b; }
+    background: var(--mm-stat-toffee-bg);
+    border-left: 4px solid var(--mm-stat-toffee-border);
+    .stat-value { color: var(--mm-stat-toffee-text); text-shadow: var(--mm-stat-toffee-glow); }
   }
 
-  // Color variants - lilac
   &.stat-lilac {
-    background: rgba(201, 177, 255, 0.15);
-    border-left: 4px solid #c9b1ff;
-    .stat-value { color: #9981cf; }
+    background: var(--mm-stat-lilac-bg);
+    border-left: 4px solid var(--mm-stat-lilac-border);
+    .stat-value { color: var(--mm-stat-lilac-text); text-shadow: var(--mm-stat-lilac-glow); }
   }
 
-  // Color variants - bubblegum
   &.stat-bubblegum {
-    background: rgba(255, 153, 200, 0.15);
-    border-left: 4px solid #ff99c8;
-    .stat-value { color: #cf699a; }
+    background: var(--mm-stat-bubblegum-bg);
+    border-left: 4px solid var(--mm-stat-bubblegum-border);
+    .stat-value { color: var(--mm-stat-bubblegum-text); text-shadow: var(--mm-stat-bubblegum-glow); }
   }
 
-  // Color variants - default
   &.stat-default {
-    background: rgba(108, 117, 125, 0.15);
-    border-left: 4px solid #6c757d;
-    .stat-value { color: #4a5258; }
+    background: var(--mm-stat-default-bg);
+    border-left: 4px solid var(--mm-stat-default-border);
+    .stat-value { color: var(--mm-stat-default-text); text-shadow: var(--mm-stat-default-glow); }
   }
 }
 
