@@ -25,7 +25,7 @@ projects/
 | **@meshmakers/shared-services** | Common services for messaging, navigation, breadcrumbs | [Documentation](projects/meshmakers/shared-services/docs/README.md) |
 | **@meshmakers/shared-ui** | Shared UI utilities and components | [Documentation](projects/meshmakers/shared-ui/README.md) |
 | **@meshmakers/octo-services** | REST/GraphQL services for OctoMesh backend APIs | [Documentation](projects/meshmakers/octo-services/docs/README.md) |
-| **@meshmakers/octo-ui** | OctoMesh-specific UI components | - |
+| **@meshmakers/octo-ui** | OctoMesh-specific UI components | [Documentation](projects/meshmakers/octo-ui/README.md) |
 | **@meshmakers/octo-process-diagrams** | Process diagram editor components | [Documentation](projects/meshmakers/octo-process-diagrams/README.md) |
 | **@meshmakers/octo-meshboard** | Dashboard and widget components | [Documentation](projects/meshmakers/octo-meshboard/README.md) |
 

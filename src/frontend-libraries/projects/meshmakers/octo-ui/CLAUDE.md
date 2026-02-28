@@ -26,7 +26,9 @@ src/lib/
 ├── ck-type-selector-dialog/      # CK type selection dialog
 ├── ck-type-selector-input/       # CK type autocomplete input
 ├── data-sources/                 # GraphQL data source abstractions
+├── entity-id-info/               # Entity ID display with copy dropdown
 ├── field-filter-editor/          # Filter editor component
+├── octo-loader/                  # Animated loading indicator
 └── property-grid/                # Property grid component
     ├── components/               # Grid and value display components
     ├── models/                   # TypeScript interfaces and enums
