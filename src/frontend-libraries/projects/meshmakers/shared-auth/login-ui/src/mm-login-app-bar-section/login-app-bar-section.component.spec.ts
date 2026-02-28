@@ -255,7 +255,7 @@ describe('LoginAppBarSectionComponent', () => {
     it('should call authorizeService.login', () => {
       fixture.detectChanges();
 
-      (component as any).onLogin();
+      (component as unknown as { onLogin(): void }).onLogin();
 
       expect(authServiceMock.login).toHaveBeenCalled();
     });
@@ -265,7 +265,7 @@ describe('LoginAppBarSectionComponent', () => {
     it('should call authorizeService.logout', () => {
       fixture.detectChanges();
 
-      (component as any).onLogout();
+      (component as unknown as { onLogout(): void }).onLogout();
 
       expect(authServiceMock.logout).toHaveBeenCalled();
     });
@@ -278,7 +278,7 @@ describe('LoginAppBarSectionComponent', () => {
       const registerSpy = jasmine.createSpy('register');
       component.register.subscribe(registerSpy);
 
-      (component as any).onRegister();
+      (component as unknown as { onRegister(): void }).onRegister();
 
       expect(registerSpy).toHaveBeenCalled();
     });

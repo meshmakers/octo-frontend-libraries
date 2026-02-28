@@ -16,6 +16,7 @@ module.exports = tseslint.config(
       "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-empty-function": "warn",
       "@typescript-eslint/consistent-type-assertions": "off",
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 );

@@ -109,7 +109,7 @@ describe('MarkdownWidgetComponent', () => {
     });
 
     it('should detect when widget is not configured (undefined content)', () => {
-      component.config = createMockConfig({ content: undefined as any });
+      component.config = createMockConfig({ content: undefined as unknown as string });
       expect(component.isNotConfigured()).toBeTrue();
     });
 
@@ -237,7 +237,7 @@ describe('MarkdownWidgetComponent', () => {
 
     it('should handle undefined content gracefully', () => {
       component.config = createMockConfig({
-        content: undefined as any,
+        content: undefined as unknown as string,
         resolveVariables: true
       });
 

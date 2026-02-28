@@ -650,7 +650,7 @@ describe('MeshBoardDataService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any));
+      } as unknown));
 
       const result = await service.fetchCkQueryData(dataSource);
 
@@ -687,7 +687,7 @@ describe('MeshBoardDataService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any));
+      } as unknown));
 
       const result = await service.fetchCkQueryData(dataSource);
       expect(result.items.length).toBe(2);
@@ -713,7 +713,7 @@ describe('MeshBoardDataService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any));
+      } as unknown));
 
       const result = await service.fetchCkQueryData(dataSource);
 
@@ -741,7 +741,7 @@ describe('MeshBoardDataService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any));
+      } as unknown));
 
       const result = await service.fetchCkQueryData(dataSource);
       expect(result.items.length).toBe(1);
@@ -800,7 +800,7 @@ describe('MeshBoardDataService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any));
+      } as unknown));
 
       const result = await service.fetchCkQueryData(dataSource);
 
@@ -879,7 +879,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -925,7 +925,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -953,7 +953,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         await service.fetchRepeaterData(dataSource);
 
@@ -981,7 +981,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
         expect(result).toEqual([]);
@@ -1003,7 +1003,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
         expect(result).toEqual([]);
@@ -1058,7 +1058,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -1093,7 +1093,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
         expect(result.length).toBe(2);
@@ -1144,7 +1144,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -1192,7 +1192,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -1237,7 +1237,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -1275,7 +1275,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -1303,7 +1303,7 @@ describe('MeshBoardDataService', () => {
           },
           loading: false,
           networkStatus: 7
-        } as any));
+        } as unknown));
 
         await service.fetchRepeaterData(dataSource);
 
