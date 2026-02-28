@@ -178,6 +178,7 @@ Manages users, roles, and OAuth clients.
 | Method | Description |
 |--------|-------------|
 | `generatePassword()` | Generate secure password |
+| `mergeUsers(targetUserName, sourceUserName)` | Merge source user into target user |
 | `userDiagnostics()` | Get user diagnostics info |
 
 ### BotService
@@ -200,6 +201,37 @@ High-level job management with progress UI.
 |--------|-------------|
 | `downloadJobResult(tenantId, jobId, fileName)` | Download and save job result |
 | `waitForJob(jobId, title, operation)` | Wait for job with progress dialog |
+
+### CommunicationService
+
+Manages adapter deployment, pipeline execution, and pipeline debugging.
+
+| Method | Description |
+|--------|-------------|
+| `deployTrigger(tenantId)` | Deploy all data pipeline triggers |
+| `deployAdapterConfigurationUpdate(tenantId, adapterRtId, adapterCkTypeId)` | Deploy adapter config update |
+| `deployAllAdaptersOfPool(tenantId, poolRtId)` | Deploy all adapters of a pool |
+| `undeployAllAdaptersOfPool(tenantId, poolRtId)` | Undeploy all adapters of a pool |
+| `deployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Deploy single adapter |
+| `undeployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Undeploy single adapter |
+| `executePipeline(tenantId, dataPipelineRtId)` | Execute pipeline manually |
+| `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, definition)` | Deploy pipeline definition |
+| `deployDataPipeline(tenantId, dataPipelineRtId)` | Deploy data pipeline |
+| `undeployDataPipeline(tenantId, dataPipelineRtId)` | Undeploy data pipeline |
+| `getPipelineStatus(tenantId, pipelineRtId, pipelineCkTypeId)` | Get deployment status |
+| `getPipelineSchema(tenantId, adapterRtId, adapterCkTypeId)` | Get JSON Schema for adapter |
+| `getPipelineExecutions(tenantId, pipelineRtId, pipelineCkTypeId, skip, take)` | Get execution history |
+| `getLatestPipelineExecution(tenantId, pipelineRtId, pipelineCkTypeId)` | Get latest execution |
+| `getPipelineExecutionDebugPointNodes(tenantId, pipelineRtId, pipelineCkTypeId, executionId)` | Get debug point tree |
+| `getDebugPoint(tenantId, pipelineRtId, pipelineCkTypeId, executionId, nodeId)` | Get data at debug point |
+
+### TusUploadService
+
+Resumable file uploads using the TUS protocol for large database restore operations.
+
+| Method | Description |
+|--------|-------------|
+| `startUpload(options: TusUploadOptions)` | Upload file and start restore job, returns `{ jobId }` |
 
 ---
 
@@ -224,6 +256,12 @@ service.getCkTypes({
 // Get single type by rtCkTypeId
 service.getCkTypeByRtCkTypeId('OctoSdkDemo/Customer')
   .subscribe(item => console.log(item));
+
+// Get derived types of a base type
+service.getDerivedCkTypes('OctoSdkDemo/BaseEntity', {
+  searchText: '',
+  ignoreAbstractTypes: true
+}).subscribe(result => console.log(result.items));
 ```
 
 ### CkTypeAttributeService
@@ -430,24 +468,34 @@ interface ClientDto {
 
 ```typescript
 interface JobDto {
-  id?: string;
-  tenantId?: string;
-  status?: string;        // 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Deleted'
-  progress?: number;
-  message?: string;
-  fileName?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  id: string;
+  createdAt: Date | null;
+  stateChangedAt: Date | null;
+  status: string | null;       // 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Deleted'
+  reason: string | null;
+  errorMessage: string | null;
 }
 ```
 
 ### HealthCheck
 
 ```typescript
+enum HealthStatus {
+  Unhealthy = 'Unhealthy',
+  Degraded = 'Degraded',
+  Healthy = 'Healthy'
+}
+
+interface HealthCheckResult {
+  title: string;
+  data: Map<string, any> | null;
+  description: string | null;
+  status: HealthStatus;
+}
+
 interface HealthCheck {
-  status: string;       // 'Healthy' | 'Unhealthy' | 'Degraded'
-  totalDuration: string;
-  entries?: Record<string, HealthCheckEntry>;
+  status: HealthStatus;
+  results: HealthCheckResult[];
 }
 ```
 
