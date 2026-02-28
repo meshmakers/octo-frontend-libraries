@@ -146,10 +146,10 @@ The interceptor adds the `Authorization: Bearer <token>` header to:
 
 #### LoginAppBarSectionComponent
 
-A pre-built login/logout component for the app bar.
+A pre-built login/logout component for the app bar. Available via the secondary entry point `@meshmakers/shared-auth/login-ui` (requires Kendo UI).
 
 ```typescript
-import { LoginAppBarSectionComponent } from '@meshmakers/shared-auth';
+import { LoginAppBarSectionComponent } from '@meshmakers/shared-auth/login-ui';
 
 @Component({
   imports: [LoginAppBarSectionComponent],
@@ -203,14 +203,60 @@ if (authorizeService.isInRole(Roles.AdminPanelManagement)) {
 }
 ```
 
-## Build
+## Detailed Documentation
 
-```bash
-npm run build:shared-auth
+See [docs/README.md](docs/README.md) for complete API reference with usage examples.
+
+## Architecture
+
+```
+shared-auth/
+├── src/                              # Main entry point (@meshmakers/shared-auth)
+│   ├── public-api.ts
+│   └── lib/
+│       ├── authorize.service.ts      # Core OAuth2/OIDC service
+│       ├── authorize.guard.ts        # Functional route guards
+│       ├── authorize.interceptor.ts  # Functional HTTP interceptor
+│       ├── roles.ts                  # Role enum
+│       └── mm-login-app-bar-section/ # Component (internal, not exported)
+│
+└── login-ui/                         # Secondary entry point (@meshmakers/shared-auth/login-ui)
+    └── src/
+        ├── public-api.ts
+        └── mm-login-app-bar-section/ # LoginAppBarSectionComponent (Kendo-dependent)
 ```
 
-## Test
+### Entry Points
+
+| Entry Point | Import Path | Description |
+|-------------|-------------|-------------|
+| Main | `@meshmakers/shared-auth` | Core auth service, guards, interceptor (no Kendo dependency) |
+| Login UI | `@meshmakers/shared-auth/login-ui` | LoginAppBarSectionComponent (requires Kendo UI) |
+
+## Dependencies
+
+- **Angular 21** (core, common/http, router)
+- **angular-oauth2-oidc** v20 (OAuth2/OIDC client)
+- **@progress/kendo-angular-*** (optional, only for login-ui entry point)
+
+## Build & Test
 
 ```bash
+# Build
+npm run build:shared-auth
+
+# Lint
+npm run lint:shared-auth
+
+# Run tests
 npm test -- --project=@meshmakers/shared-auth --watch=false
 ```
+
+## Documentation and Testing Standards
+
+- **All developer documentation must be written in English**
+- **Every code change must include updated documentation** — update README.md, CLAUDE.md, docs/README.md, or inline docs when adding, modifying, or removing features
+- **Unit tests and integration tests must be executed** after every code change
+- **Existing tests must be updated** when the behavior of tested code changes
+- **New tests must be added** when new features, components, or services are implemented
+- Never commit code with failing tests
