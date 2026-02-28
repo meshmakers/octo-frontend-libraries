@@ -573,6 +573,16 @@
             ],
             "scripts": []
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/legacy-demo-app/**/*.ts",
+              "projects/legacy-demo-app/**/*.html"
+            ],
+            "eslintConfig": "projects/legacy-demo-app/eslint.config.js"
+          }
         }
       }
     },
