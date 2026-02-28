@@ -4,8 +4,9 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { TreeDemoComponent } from './tree-demo.component';
 import { TreeDemoDataSource } from '../data-sources/tree-demo-data-source.service';
-import { GetTreesDtoGQL } from '../../../graphQL/getTrees';
-import { GetTreeNodesDtoGQL } from '../../../graphQL/getTreeNodes';
+import { GetTreesDtoGQL, GetTreesQueryDto } from '../../../graphQL/getTrees';
+import { GetTreeNodesDtoGQL, GetTreeNodesQueryDto } from '../../../graphQL/getTreeNodes';
+import { ApolloQueryResult } from '@apollo/client/core';
 
 describe('TreeDemoComponent', () => {
   let component: TreeDemoComponent;
@@ -13,10 +14,10 @@ describe('TreeDemoComponent', () => {
 
   beforeEach(async () => {
     const mockGetTreesGQL = jasmine.createSpyObj('GetTreesDtoGQL', ['fetch']);
-    mockGetTreesGQL.fetch.and.returnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as any));
+    mockGetTreesGQL.fetch.and.returnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreesQueryDto>));
 
     const mockGetTreeNodesGQL = jasmine.createSpyObj('GetTreeNodesDtoGQL', ['fetch']);
-    mockGetTreeNodesGQL.fetch.and.returnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as any));
+    mockGetTreeNodesGQL.fetch.and.returnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreeNodesQueryDto>));
 
     const mockTreeDemoDataSource = jasmine.createSpyObj('TreeDemoDataSource', ['fetchRootNodes', 'fetchChildren']);
     mockTreeDemoDataSource.fetchRootNodes.and.returnValue(Promise.resolve([]));

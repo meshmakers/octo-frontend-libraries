@@ -45,8 +45,8 @@ export class AttributeSortSelectorDialogService {
     });
 
     // Pass data to the component
-    if ((dialogRef.content as any)?.instance) {
-      ((dialogRef.content as any).instance as any).data = data;
+    if (dialogRef.content?.instance) {
+      dialogRef.content.instance.data = data;
     }
 
     try {

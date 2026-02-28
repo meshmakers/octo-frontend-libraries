@@ -21,8 +21,8 @@ export interface IQueryVariablesDto extends OperationVariables {
  * Structural interface for QueryRef to avoid private/protected member type incompatibilities
  * between different apollo-angular npm installations.
  */
-interface QueryRefLike<_TQueryDto = any, TVariablesDto = any> {
-  valueChanges: Observable<any>;
+interface QueryRefLike<_TQueryDto = unknown, TVariablesDto = unknown> {
+  valueChanges: Observable<unknown>;
   refetch(variables?: TVariablesDto): Promise<unknown>;
   stopPolling(): void;
 }
@@ -30,8 +30,8 @@ interface QueryRefLike<_TQueryDto = any, TVariablesDto = any> {
 /**
  * Structural interface for apollo-angular Query.
  */
-interface QueryLike<_TQueryDto = any, _TVariablesDto extends OperationVariables = any> {
-  watch(options?: Record<string, unknown>): QueryRefLike<any, any>;
+interface QueryLike<_TQueryDto = unknown, _TVariablesDto extends OperationVariables = OperationVariables> {
+  watch(options?: Record<string, unknown>): QueryRefLike<unknown, unknown>;
 }
 
 export abstract class GraphQlDataSource<TDto> extends DataSourceBase<TDto> {
@@ -140,7 +140,7 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
       });
   }
 
-  protected executeLoad(_value: any, _index: number): PagedResultDto<TDto> {
+  protected executeLoad(_value: unknown, _index: number): PagedResultDto<TDto> {
     return new PagedResultDto<TDto>();
   }
 }

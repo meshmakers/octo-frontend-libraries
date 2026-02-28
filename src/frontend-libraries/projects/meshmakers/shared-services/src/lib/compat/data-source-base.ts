@@ -57,11 +57,11 @@ export class DataSourceBase<TDto> {
     return this.removedDtoList;
   }
 
-  connect(_collectionViewer: any): Observable<readonly TDto[]> {
+  connect(_collectionViewer: unknown): Observable<readonly TDto[]> {
     return this.dataSubject.asObservable();
   }
 
-  disconnect(_collectionViewer: any): void {
+  disconnect(_collectionViewer: unknown): void {
     this.clear();
   }
 

@@ -1,5 +1,6 @@
 import {Component, inject, ViewChild} from '@angular/core';
 import {TreeComponent} from '@meshmakers/shared-ui';
+import {TreeItemData} from '@meshmakers/shared-services';
 import {TreeDemoDataSource} from '../data-sources/tree-demo-data-source.service';
 
 @Component({
@@ -14,9 +15,9 @@ export class TreeDemoComponent {
   @ViewChild('treeComponent', { static: false })
   treeComponent!: TreeComponent;
 
-  private expandedKeys: any[] | null = null;
+  private expandedKeys: string[] | null = null;
 
-  protected onNodeSelected(event: any) {
+  protected onNodeSelected(event: TreeItemData) {
 
     console.info('Node selected', event);
   }

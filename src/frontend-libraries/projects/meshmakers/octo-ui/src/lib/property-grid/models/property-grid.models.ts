@@ -33,7 +33,7 @@ export interface PropertyGridItem {
   /** Display name for the property (optional, falls back to name) */
   displayName?: string;
   /** Current value of the property */
-  value: any;
+  value: unknown;
   /** Data type of the property */
   type: AttributeValueTypeDto;
   /** Description/tooltip for the property */
@@ -45,9 +45,9 @@ export interface PropertyGridItem {
   /** Whether the property is required */
   required?: boolean;
   /** Custom validation rules */
-  validators?: any[];
+  validators?: Record<string, unknown>[];
   /** Custom editor configuration */
-  editorConfig?: any;
+  editorConfig?: Record<string, unknown>;
 }
 
 /**
@@ -57,7 +57,7 @@ export interface PropertyGridConfig {
   /** Whether the grid is in read-only mode */
   readOnlyMode?: boolean;
   /** Custom editors for specific types */
-  customEditors?: Record<string, any>;
+  customEditors?: Record<string, unknown>;
   /** Whether to show type icons */
   showTypeIcons?: boolean;
   /** Height of the grid */
@@ -73,9 +73,9 @@ export interface PropertyChangeEvent {
   /** The property that changed */
   property: PropertyGridItem;
   /** The old value */
-  oldValue: any;
+  oldValue: unknown;
   /** The new value */
-  newValue: any;
+  newValue: unknown;
 }
 
 /**

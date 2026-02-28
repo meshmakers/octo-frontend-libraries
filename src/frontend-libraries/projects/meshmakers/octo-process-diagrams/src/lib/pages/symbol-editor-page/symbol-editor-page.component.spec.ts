@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { WritableSignal } from '@angular/core';
 import { SymbolEditorPageComponent } from './symbol-editor-page.component';
 import { SymbolLibraryService } from '../../services/symbol-library.service';
 import { BreadCrumbService } from '@meshmakers/shared-services';
@@ -7,6 +8,17 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SymbolDefinition } from '../../primitives/models/symbol.model';
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { SymbolSettings } from '../../designer/process-designer.component';
+
+/**
+ * Test helper interface to access protected/private members of SymbolEditorPageComponent
+ */
+interface SymbolEditorPageTestAccess {
+  onSymbolChange(symbol: SymbolDefinition): void;
+  saveSymbol(): Promise<void>;
+  isSaving: WritableSignal<boolean>;
+  _currentSymbol: SymbolDefinition | null;
+  onSymbolSettingsChange(event: { key: string; value: unknown }): void;
+}
 
 // Mock SymbolEditorComponent to avoid complex dependencies
 @Component({
@@ -138,7 +150,7 @@ describe('SymbolEditorPageComponent', () => {
 
       // Simulate a symbol change
       const updatedSymbol = { ...mockSymbol, name: 'Updated Name' };
-      (component as any).onSymbolChange(updatedSymbol);
+      (component as unknown as SymbolEditorPageTestAccess).onSymbolChange(updatedSymbol);
 
       expect(component.hasUnsavedChanges()).toBeTrue();
     }));
@@ -149,7 +161,7 @@ describe('SymbolEditorPageComponent', () => {
 
       // Simulate a symbol change BEFORE initialization completes
       const updatedSymbol = { ...mockSymbol, name: 'Updated Name' };
-      (component as any).onSymbolChange(updatedSymbol);
+      (component as unknown as SymbolEditorPageTestAccess).onSymbolChange(updatedSymbol);
 
       // Should still be false because we're in initialization phase
       expect(component.hasUnsavedChanges()).toBeFalse();
@@ -166,13 +178,13 @@ describe('SymbolEditorPageComponent', () => {
 
       // Mark as changed
       const updatedSymbol = { ...mockSymbol, name: 'Updated Name' };
-      (component as any).onSymbolChange(updatedSymbol);
+      (component as unknown as SymbolEditorPageTestAccess).onSymbolChange(updatedSymbol);
       expect(component.hasUnsavedChanges()).toBeTrue();
     }));
 
     it('should clear unsaved changes after successful save', fakeAsync(() => {
       // Perform save
-      (component as any).saveSymbol();
+      (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick(); // Process the async save
 
       expect(component.hasUnsavedChanges()).toBeFalse();
@@ -190,21 +202,21 @@ describe('SymbolEditorPageComponent', () => {
       // Intercept updateSymbol to trigger symbolChange at the right moment
       mockSymbolLibraryService.updateSymbol.and.callFake(async (symbol: SymbolDefinition) => {
         // Verify isSaving is true during the save
-        expect((component as any).isSaving()).toBeTrue();
+        expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeTrue();
 
         // Simulate what happens in saveSymbol AFTER updateSymbol returns:
         // 1. symbol.set() is called which triggers symbolChange
         // We simulate this by calling onSymbolChange directly
         // At this point isSaving is still true
         const updatedSymbol = { ...mockSymbol, name: 'Triggered During Save' };
-        (component as any).onSymbolChange(updatedSymbol);
+        (component as unknown as SymbolEditorPageTestAccess).onSymbolChange(updatedSymbol);
         symbolChangeTriggeredDuringSave = true;
 
         return symbol;
       });
 
       // Perform save
-      (component as any).saveSymbol();
+      (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick(); // Complete the save
 
       // Verify our simulation ran
@@ -220,23 +232,23 @@ describe('SymbolEditorPageComponent', () => {
       // This tests that our fix doesn't break normal editing
 
       // Perform save
-      (component as any).saveSymbol();
+      (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick(); // Complete the save
 
       // At this point isSaving() is false and hasUnsavedChanges is false
-      expect((component as any).isSaving()).toBeFalse();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeFalse();
       expect(component.hasUnsavedChanges()).toBeFalse();
 
       // Now simulate a real user edit (after save completes)
       const updatedSymbol = { ...mockSymbol, name: 'New Edit After Save' };
-      (component as any).onSymbolChange(updatedSymbol);
+      (component as unknown as SymbolEditorPageTestAccess).onSymbolChange(updatedSymbol);
 
       // This SHOULD mark as changed because it's a real user edit
       expect(component.hasUnsavedChanges()).toBeTrue();
     }));
 
     it('should show success notification after save', fakeAsync(() => {
-      (component as any).saveSymbol();
+      (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick();
 
       expect(mockNotificationService.show).toHaveBeenCalledWith(
@@ -250,7 +262,7 @@ describe('SymbolEditorPageComponent', () => {
     it('should show error notification on save failure', fakeAsync(() => {
       mockSymbolLibraryService.updateSymbol.and.returnValue(Promise.reject(new Error('Save failed')));
 
-      (component as any).saveSymbol();
+      (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick();
 
       expect(mockNotificationService.show).toHaveBeenCalledWith(
@@ -265,22 +277,22 @@ describe('SymbolEditorPageComponent', () => {
     }));
 
     it('should set isSaving to false after save completes', fakeAsync(() => {
-      expect((component as any).isSaving()).toBeFalse();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeFalse();
 
-      (component as any).saveSymbol();
-      expect((component as any).isSaving()).toBeTrue();
+      (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeTrue();
 
       tick();
-      expect((component as any).isSaving()).toBeFalse();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeFalse();
     }));
 
     it('should set isSaving to false even after save failure', fakeAsync(() => {
       mockSymbolLibraryService.updateSymbol.and.returnValue(Promise.reject(new Error('Save failed')));
 
-      (component as any).saveSymbol();
+      (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick();
 
-      expect((component as any).isSaving()).toBeFalse();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeFalse();
     }));
   });
 
@@ -290,22 +302,22 @@ describe('SymbolEditorPageComponent', () => {
       tick(200);
 
       // Set initial symbol
-      (component as any)._currentSymbol = { ...mockSymbol };
+      (component as unknown as SymbolEditorPageTestAccess)._currentSymbol = { ...mockSymbol };
     }));
 
     it('should mark as changed when settings change', () => {
-      (component as any).onSymbolSettingsChange({ key: 'name', value: 'New Name' });
+      (component as unknown as SymbolEditorPageTestAccess).onSymbolSettingsChange({ key: 'name', value: 'New Name' });
       expect(component.hasUnsavedChanges()).toBeTrue();
     });
 
     it('should update canvas size when canvasWidth changes', () => {
-      (component as any).onSymbolSettingsChange({ key: 'canvasWidth', value: 500 });
-      expect((component as any)._currentSymbol.canvasSize?.width).toBe(500);
+      (component as unknown as SymbolEditorPageTestAccess).onSymbolSettingsChange({ key: 'canvasWidth', value: 500 });
+      expect((component as unknown as SymbolEditorPageTestAccess)._currentSymbol.canvasSize?.width).toBe(500);
     });
 
     it('should update grid size', () => {
-      (component as any).onSymbolSettingsChange({ key: 'gridSize', value: 20 });
-      expect((component as any)._currentSymbol.gridSize).toBe(20);
+      (component as unknown as SymbolEditorPageTestAccess).onSymbolSettingsChange({ key: 'gridSize', value: 20 });
+      expect((component as unknown as SymbolEditorPageTestAccess)._currentSymbol.gridSize).toBe(20);
     });
   });
 });

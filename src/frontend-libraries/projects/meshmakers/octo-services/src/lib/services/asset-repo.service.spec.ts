@@ -97,7 +97,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should return null when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
 
       const result = await service.getTenants(0, 10);
       expect(result).toBeNull();
@@ -124,7 +124,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should return null when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
 
       const result = await service.getTenantDetails('tenant-1');
       expect(result).toBeNull();
@@ -155,7 +155,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should not make request when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
 
       await service.createTenant(mockTenant);
       // No HTTP request should be made
@@ -177,7 +177,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should not make request when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
 
       await service.attachTenant(mockTenant);
       // No HTTP request should be made
@@ -197,7 +197,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should not make request when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
 
       await service.detachTenant('tenant-1');
       // No HTTP request should be made
@@ -216,7 +216,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should not make request when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
 
       await service.deleteTenant('tenant-1');
       // No HTTP request should be made
@@ -267,7 +267,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should return null when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
       const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
 
       const result = await service.importRtModel('tenant-1', mockFile);
@@ -292,7 +292,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should return null when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
       const mockFile = new File(['test content'], 'ck-model.json', { type: 'application/json' });
 
       const result = await service.importCkModel('tenant-1', mockFile);
@@ -326,7 +326,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should return null when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
 
       const result = await service.exportRtModelByQuery('tenant-1', 'query-123');
       expect(result).toBeNull();
@@ -361,7 +361,7 @@ describe('AssetRepoService', () => {
     });
 
     it('should return null when config is not available', async () => {
-      mockConfigService.config = null as any;
+      mockConfigService.config = null;
 
       const result = await service.exportRtModelDeepGraph('tenant-1', ['rt-1'], 'ck-type-1');
       expect(result).toBeNull();

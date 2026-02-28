@@ -1,16 +1,26 @@
 import { TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
-import { DialogService, DialogRef } from '@progress/kendo-angular-dialog';
+import { Observable, Subject } from 'rxjs';
+import { DialogService, DialogRef, DialogResult } from '@progress/kendo-angular-dialog';
 import { CkTypeSelectorDialogService } from './ck-type-selector-dialog.service';
 import { CkTypeSelectorDialogComponent, CkTypeSelectorDialogResult } from './ck-type-selector-dialog.component';
 import { CkTypeSelectorItem } from '@meshmakers/octo-services';
 
+interface MockComponentInstance {
+  data?: {
+    selectedCkTypeId?: string;
+    ckModelIds?: string[];
+    dialogTitle?: string;
+    allowAbstract?: boolean;
+    derivedFromRtCkTypeId?: string;
+  };
+}
+
 describe('CkTypeSelectorDialogService', () => {
   let service: CkTypeSelectorDialogService;
   let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogResultSubject: Subject<any>;
+  let dialogResultSubject: Subject<CkTypeSelectorDialogResult | Record<string, unknown> | string | undefined>;
   let mockDialogRef: Partial<DialogRef>;
-  let mockComponentInstance: any;
+  let mockComponentInstance: MockComponentInstance;
 
   const mockCkType: CkTypeSelectorItem = {
     fullName: 'TestModel-1.0.0/Customer-1',
@@ -21,14 +31,14 @@ describe('CkTypeSelectorDialogService', () => {
   };
 
   beforeEach(() => {
-    dialogResultSubject = new Subject<any>();
+    dialogResultSubject = new Subject<CkTypeSelectorDialogResult | Record<string, unknown> | string | undefined>();
     mockComponentInstance = {};
 
     mockDialogRef = {
-      result: dialogResultSubject.asObservable(),
+      result: dialogResultSubject.asObservable() as unknown as Observable<DialogResult>,
       content: {
         instance: mockComponentInstance
-      } as any
+      } as unknown as DialogRef['content']
     };
 
     dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
@@ -101,7 +111,8 @@ describe('CkTypeSelectorDialogService', () => {
         selectedCkTypeId: 'TestModel/Existing',
         ckModelIds: ['Model1', 'Model2'],
         dialogTitle: 'Select Type',
-        allowAbstract: true
+        allowAbstract: true,
+        derivedFromRtCkTypeId: undefined
       });
     });
 
@@ -169,7 +180,7 @@ describe('CkTypeSelectorDialogService', () => {
     });
 
     it('should handle dialog without content instance', async () => {
-      mockDialogRef.content = null as any;
+      mockDialogRef.content = null as unknown as DialogRef['content'];
 
       const resultPromise = service.openCkTypeSelector();
 
@@ -205,7 +216,8 @@ describe('CkTypeSelectorDialogService', () => {
         selectedCkTypeId: undefined,
         ckModelIds: undefined,
         dialogTitle: undefined,
-        allowAbstract: undefined
+        allowAbstract: undefined,
+        derivedFromRtCkTypeId: undefined
       });
     });
 
@@ -285,7 +297,7 @@ describe('CkTypeSelectorDialogService', () => {
 
       await resultPromise;
 
-      expect(mockComponentInstance.data.ckModelIds).toEqual(['SpecificModel']);
+      expect(mockComponentInstance.data?.ckModelIds).toEqual(['SpecificModel']);
     });
   });
 });

@@ -23,7 +23,7 @@ export class HealthService {
         return r.body;
       }
     }
-    catch (error: any){
+    catch (error: unknown){
       if (error instanceof HttpErrorResponse) {
         if (error.status == 503){
           return error.error;

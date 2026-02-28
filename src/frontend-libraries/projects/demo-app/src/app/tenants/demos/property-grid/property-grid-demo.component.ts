@@ -259,8 +259,8 @@ export class PropertyGridDemoComponent implements OnInit {
   changeLog: {
     timestamp: Date;
     property: string;
-    oldValue: any;
-    newValue: any;
+    oldValue: string;
+    newValue: string;
   }[] = [];
 
   // Icons
@@ -451,7 +451,7 @@ export class PropertyGridDemoComponent implements OnInit {
   /**
    * Add entry to change log
    */
-  private addLogEntry(property: string, oldValue: any, newValue: any) {
+  private addLogEntry(property: string, oldValue: string, newValue: string) {
     this.changeLog.unshift({
       timestamp: new Date(),
       property,

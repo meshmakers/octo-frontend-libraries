@@ -66,7 +66,7 @@ export class LoginAppBarSectionComponent implements OnInit {
     }
   }
 
-  @Output() get register(): EventEmitter<any> {
+  @Output() get register(): EventEmitter<void> {
     return this._register;
   }
 

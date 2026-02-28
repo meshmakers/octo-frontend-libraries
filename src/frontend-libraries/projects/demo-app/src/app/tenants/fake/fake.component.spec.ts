@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, Event as RouterEvent } from '@angular/router';
 import { Subject } from 'rxjs';
 
 import { FakeComponent } from './fake.component';
@@ -9,14 +9,14 @@ describe('FakeComponent', () => {
   let component: FakeComponent;
   let fixture: ComponentFixture<FakeComponent>;
   let mockBreadCrumbService: jasmine.SpyObj<BreadCrumbService>;
-  let mockRouter: { events: Subject<any>; navigate: jasmine.Spy };
+  let mockRouter: { events: Subject<RouterEvent>; navigate: jasmine.Spy };
 
   beforeEach(async () => {
     mockBreadCrumbService = jasmine.createSpyObj('BreadCrumbService', ['updateBreadcrumbLabels']);
     mockBreadCrumbService.updateBreadcrumbLabels.and.returnValue(Promise.resolve());
 
     mockRouter = {
-      events: new Subject<any>(),
+      events: new Subject<RouterEvent>(),
       navigate: jasmine.createSpy('navigate')
     };
 

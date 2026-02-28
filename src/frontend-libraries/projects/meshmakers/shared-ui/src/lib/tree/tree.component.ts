@@ -12,6 +12,7 @@ import {
   TreeViewComponent
 } from '@progress/kendo-angular-treeview';
 import { BehaviorSubject, from, Observable } from 'rxjs';
+import { TreeItemData } from '@meshmakers/shared-services';
 import { HierarchyDataSource } from '../data-sources/hierarchy-data-source';
 import { NodeDroppedEvent } from '../models/node-dropped-event';
 
@@ -33,9 +34,9 @@ export class TreeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _timeoutCache: ReturnType<typeof setTimeout> | undefined;
 
-  private readonly _rootNodes: BehaviorSubject<any[]> = new BehaviorSubject<any[]>([]);
+  private readonly _rootNodes: BehaviorSubject<TreeItemData[]> = new BehaviorSubject<TreeItemData[]>([]);
   private _isViewInitialized = false;
-  protected expandedKeys: any[] = [];
+  protected expandedKeys: string[] = [];
 
   @ViewChild(TreeViewComponent, { static: false })
   protected treeView!: TreeViewComponent;
@@ -61,20 +62,20 @@ export class TreeComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input()
   public dataSource: HierarchyDataSource | null = null;
 
-  @Output()nodeSelected  =  new EventEmitter<any>()
-  @Output()nodeClick  =  new EventEmitter<any>()
-  @Output()nodeDoubleClick  =  new EventEmitter<any>()
-  @Output()nodeDrop  =  new EventEmitter<NodeDroppedEvent<any>>()
-  @Output()expand  =  new EventEmitter<any>()
-  @Output()collapse  =  new EventEmitter<any>()
+  @Output()nodeSelected  =  new EventEmitter<TreeItemData>()
+  @Output()nodeClick  =  new EventEmitter<TreeItemData>()
+  @Output()nodeDoubleClick  =  new EventEmitter<TreeItemData>()
+  @Output()nodeDrop  =  new EventEmitter<NodeDroppedEvent<unknown>>()
+  @Output()expand  =  new EventEmitter<TreeItemData>()
+  @Output()collapse  =  new EventEmitter<TreeItemData>()
 
-  protected get rootNodes(): Observable<any[]> {
+  protected get rootNodes(): Observable<TreeItemData[]> {
     return this._rootNodes;
   }
 
-  protected hasChildren = (item: any) => this.dataSource?.hasChildren(item) ?? false;
-  protected isExpanded = (item: any, _index: string) => this.expandedKeys.includes(item.id);
-  protected fetchChildren = (item: any) : Observable<any[]> => from(this.dataSource?.fetchChildren(item) ?? []);
+  protected hasChildren = (item: object) => this.dataSource?.hasChildren(item as TreeItemData) ?? false;
+  protected isExpanded = (item: object, _index: string) => this.expandedKeys.includes((item as TreeItemData).id);
+  protected fetchChildren = (item: object) : Observable<object[]> => from(this.dataSource?.fetchChildren(item as TreeItemData) ?? []);
 
   protected onNodeSelect(treeItem: TreeItem) {
 
@@ -91,13 +92,13 @@ export class TreeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.nodeDoubleClick.emit(event.item?.dataItem);
   }
 
-  protected onExpand(event: any) {
-    console.debug('🌳 Node expanded:', event.dataItem?.text || event.dataItem);
+  protected onExpand(event: TreeItem) {
+    console.debug('Node expanded:', event.dataItem?.text || event.dataItem);
     this.expand.emit(event.dataItem);
   }
 
-  protected onCollapse(event: any) {
-    console.debug('🌳 Node collapsed:', event.dataItem?.text || event.dataItem);
+  protected onCollapse(event: TreeItem) {
+    console.debug('Node collapsed:', event.dataItem?.text || event.dataItem);
     this.collapse.emit(event.dataItem);
   }
 
@@ -223,7 +224,7 @@ export class TreeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  public getExpandedKeys(): any[] {
+  public getExpandedKeys(): string[] {
     return this.expandedKeys;
   }
 
@@ -231,7 +232,7 @@ export class TreeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.expandedKeys = [];
   }
 
-  public setExpandedKeys(keys: any[]): void {
+  public setExpandedKeys(keys: string[]): void {
     this.expandedKeys = keys;
   }
 

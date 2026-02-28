@@ -1578,7 +1578,7 @@ export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProvide
  * import { provideMeshBoard, provideWidgetRegistrations } from '@meshmakers/octo-meshboard';
  * import { MyCustomWidget, MyCustomConfigDialog } from './widgets/my-custom-widget';
  *
- * const customWidgets: WidgetRegistration<any, any>[] = [
+ * const customWidgets: WidgetRegistration<AnyWidgetConfig, WidgetConfigResult>[] = [
  *   {
  *     type: 'myCustom',
  *     label: 'My Custom Widget',
@@ -1599,7 +1599,7 @@ export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProvide
  * ```
  */
 export function provideWidgetRegistrations(
-  registrations: WidgetRegistration<any, any>[]
+  registrations: WidgetRegistration<AnyWidgetConfig, WidgetConfigResult>[]
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
     provideAppInitializer(() => {

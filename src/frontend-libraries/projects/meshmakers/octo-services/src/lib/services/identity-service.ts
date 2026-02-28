@@ -57,7 +57,7 @@ export class IdentityService {
   async createUser(userDto: UserDto): Promise<void> {
     if (this.configurationService.config?.issuer) {
       await firstValueFrom(
-        this.httpClient.post<any>(this.configurationService.config.issuer + 'system/v1/users', userDto, {
+        this.httpClient.post<void>(this.configurationService.config.issuer + 'system/v1/users', userDto, {
           observe: 'response'
         })
       );
@@ -67,7 +67,7 @@ export class IdentityService {
   async updateUser(userName: string, userDto: UserDto): Promise<void> {
     if (this.configurationService.config?.issuer) {
       await firstValueFrom(
-        this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/users/${userName}`, userDto, {
+        this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/users/${userName}`, userDto, {
           observe: 'response'
         })
       );
@@ -77,7 +77,7 @@ export class IdentityService {
   async deleteUser(userName: string): Promise<void> {
     if (this.configurationService.config?.issuer) {
       await firstValueFrom(
-        this.httpClient.delete<any>(this.configurationService.config.issuer + `system/v1/users/${userName}`, {
+        this.httpClient.delete<void>(this.configurationService.config.issuer + `system/v1/users/${userName}`, {
           observe: 'response'
         })
       );
@@ -101,7 +101,7 @@ export class IdentityService {
       const roleIds = roles.map((role) => role.id);
 
       await firstValueFrom(
-        this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles`, roleIds, {
+        this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles`, roleIds, {
           observe: 'response'
         })
       );
@@ -111,7 +111,7 @@ export class IdentityService {
   async addUserToRole(userName: string, roleName: string): Promise<void> {
     if (this.configurationService.config?.issuer) {
       await firstValueFrom(
-        this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles/${roleName}`, null, {
+        this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles/${roleName}`, null, {
           observe: 'response'
         })
       );
@@ -121,7 +121,7 @@ export class IdentityService {
   async removeRoleFromUser(userName: string, roleName: string): Promise<void> {
     if (this.configurationService.config?.issuer) {
       await firstValueFrom(
-        this.httpClient.delete<any>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles/${roleName}`, {
+        this.httpClient.delete<void>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles/${roleName}`, {
           observe: 'response'
         })
       );
@@ -141,12 +141,12 @@ export class IdentityService {
     }
   }
 
-  async resetPassword(userName: string, password: string): Promise<any> {
+  async resetPassword(userName: string, password: string): Promise<unknown> {
     const params = new HttpParams().set('userName', userName).set('password', password);
 
     if (this.configurationService.config?.issuer) {
       const response = await firstValueFrom(
-        this.httpClient.post<any>(this.configurationService.config.issuer + 'system/v1/users/ResetPassword', null, {
+        this.httpClient.post<unknown>(this.configurationService.config.issuer + 'system/v1/users/ResetPassword', null, {
           params,
           observe: 'response'
         })
@@ -186,7 +186,7 @@ export class IdentityService {
   async createClient(clientDto: ClientDto): Promise<void> {
     if (this.configurationService.config?.issuer) {
       await firstValueFrom(
-        this.httpClient.post<any>(this.configurationService.config.issuer + 'system/v1/clients', clientDto, {
+        this.httpClient.post<void>(this.configurationService.config.issuer + 'system/v1/clients', clientDto, {
           observe: 'response'
         })
       );
@@ -195,7 +195,7 @@ export class IdentityService {
 
   async updateClient(clientId: string, clientDto: ClientDto): Promise<void> {
     if (this.configurationService.config?.issuer) {
-      await firstValueFrom(this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, clientDto, {
+      await firstValueFrom(this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, clientDto, {
         observe: 'response'
       }));
     }
@@ -203,7 +203,7 @@ export class IdentityService {
 
  async deleteClient(clientId: string): Promise<void> {
     if (this.configurationService.config?.issuer) {
-      await firstValueFrom(this.httpClient.delete<any>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, {
+      await firstValueFrom(this.httpClient.delete<void>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, {
         observe: 'response'
       }));
     }
@@ -258,7 +258,7 @@ export class IdentityService {
   async createRole(roleDto: RoleDto): Promise<void> {
     if (this.configurationService.config?.issuer) {
       await firstValueFrom(
-        this.httpClient.post<any>(this.configurationService.config.issuer + 'system/v1/roles', roleDto, {
+        this.httpClient.post<void>(this.configurationService.config.issuer + 'system/v1/roles', roleDto, {
           observe: 'response'
         })
       );
@@ -268,7 +268,7 @@ export class IdentityService {
   async updateRole(roleName: string, roleDto: RoleDto): Promise<void> {
     if (this.configurationService.config?.issuer) {
       await firstValueFrom(
-        this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/roles/${roleName}`, roleDto, {
+        this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/roles/${roleName}`, roleDto, {
           observe: 'response'
         })
       );
@@ -278,7 +278,7 @@ export class IdentityService {
   async deleteRole(roleName: string): Promise<void> {
     if (this.configurationService.config?.issuer) {
       await firstValueFrom(
-        this.httpClient.delete<any>(this.configurationService.config.issuer + `system/v1/roles/${roleName}`, {
+        this.httpClient.delete<void>(this.configurationService.config.issuer + `system/v1/roles/${roleName}`, {
           observe: 'response'
         })
       );

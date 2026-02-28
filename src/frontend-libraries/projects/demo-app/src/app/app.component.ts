@@ -42,7 +42,7 @@ export class AppComponent {
 
   private readonly defaultTitle : string = 'OctoMesh Template App';
   protected title : string = this.defaultTitle;
-  protected expandedIndices: any[] = [];
+  protected expandedIndices: number[] = [];
   protected readonly menuIcon = menuIcon;
   protected readonly version = VERSION.version;
 

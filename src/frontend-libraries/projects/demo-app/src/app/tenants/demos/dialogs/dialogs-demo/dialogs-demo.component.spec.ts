@@ -8,7 +8,8 @@ import {
   ProgressWindowService,
   SaveAsDialogService
 } from '@meshmakers/shared-ui';
-import { GetSdkCustomersDtoGQL } from '../../../../graphQL/getSdkCustomers';
+import { GetSdkCustomersDtoGQL, GetSdkCustomersQueryDto } from '../../../../graphQL/getSdkCustomers';
+import { ApolloQueryResult } from '@apollo/client/core';
 
 describe('DialogsDemoComponent', () => {
   let component: DialogsDemoComponent;
@@ -41,7 +42,7 @@ describe('DialogsDemoComponent', () => {
     mockSaveAsDialogService.showSaveAsDialog.and.returnValue(Promise.resolve({ confirmed: false }));
 
     const mockGetSdkCustomersGQL = jasmine.createSpyObj('GetSdkCustomersDtoGQL', ['fetch']);
-    mockGetSdkCustomersGQL.fetch.and.returnValue(of({ data: { runtime: { octoSdkDemoCustomer: { items: [], totalCount: 0 } } } } as any));
+    mockGetSdkCustomersGQL.fetch.and.returnValue(of({ data: { runtime: { octoSdkDemoCustomer: { items: [], totalCount: 0 } } } } as unknown as ApolloQueryResult<GetSdkCustomersQueryDto>));
 
     await TestBed.configureTestingModule({
       imports: [DialogsDemoComponent],

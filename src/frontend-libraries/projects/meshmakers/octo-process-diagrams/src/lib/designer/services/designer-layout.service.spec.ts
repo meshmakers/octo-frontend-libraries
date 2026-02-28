@@ -94,7 +94,7 @@ describe('DesignerLayoutService', () => {
     it('should overwrite existing layout', () => {
       const updatedLayout: SerializedDockview = {
         ...mockLayout,
-        panels: { panel1: {} as any }
+        panels: { panel1: { id: 'panel1' } as SerializedDockview['panels'][string] }
       };
 
       service.saveLayout(mockLayout, testUserId);

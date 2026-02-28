@@ -221,7 +221,7 @@ export class ListViewDemoComponent {
     console.debug('onDeleteClicked', eventArgs);
 
     if (eventArgs.data instanceof Array) {
-      const l = eventArgs.data.map((item: any) => item?.rtId).join(', ');
+      const l = eventArgs.data.map((item: unknown) => (item as Record<string, unknown>)?.rtId).join(', ');
       alert('Delete clicked for items:\n' + l);
     } else {
       alert('Delete clicked for item:\n' + eventArgs.data?.rtId);
@@ -252,7 +252,7 @@ export class ListViewDemoComponent {
     alert('Custom export clicked');
   }
 
-  public onRowClicked(rows: any[]): void {
+  public onRowClicked(rows: unknown[]): void {
     console.debug('Rows selected:', rows);
   }
 

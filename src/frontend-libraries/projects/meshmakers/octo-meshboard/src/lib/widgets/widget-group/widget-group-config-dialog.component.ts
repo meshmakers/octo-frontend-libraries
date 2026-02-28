@@ -863,7 +863,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
     this.save.emit(result);
   }
 
-  private buildStaticConfig(): Partial<any> {
+  private buildStaticConfig(): Record<string, unknown> {
     switch (this.form.childWidgetType) {
       case 'kpi':
         return {

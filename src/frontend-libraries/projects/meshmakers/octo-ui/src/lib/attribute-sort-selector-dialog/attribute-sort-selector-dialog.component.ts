@@ -301,7 +301,7 @@ export class AttributeSortSelectorDialogComponent extends DialogContentBase impl
 
   ngOnInit(): void {
     // Get dialog data
-    const data = (this.dialog.content as any)?.instance?.data as AttributeSortSelectorDialogData;
+    const data = this.dialog.content?.instance?.data as AttributeSortSelectorDialogData;
     console.log('ngOnInit - received data:', data);
 
     if (data) {

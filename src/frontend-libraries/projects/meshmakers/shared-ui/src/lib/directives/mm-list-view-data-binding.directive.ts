@@ -86,7 +86,7 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
           this.grid.loading = false;
           this.dataSource.setLoading(false);
           this.grid.data = {
-            data: value?.data || [],
+            data: (value?.data ?? []) as unknown[],
             total: value?.totalCount || 0
           }
           this.notifyDataChange();

@@ -1,7 +1,7 @@
 export class InputDialogResult {
-  newValue: any;
+  newValue: unknown;
 
-  constructor(newValue: any) {
+  constructor(newValue: unknown) {
     this.newValue = newValue;
   }
 }

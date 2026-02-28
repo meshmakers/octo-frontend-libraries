@@ -19,7 +19,7 @@ export enum HealthStatus{
 
 export interface HealthCheckResult{
   title: string;
-  data: Map<string, any> | null;
+  data: Map<string, unknown> | null;
   description: string | null;
   status: HealthStatus;
 }

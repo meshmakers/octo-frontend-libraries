@@ -280,7 +280,7 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
   private readonly doubleClickDelay = 300; // milliseconds
 
   ngOnInit(): void {
-    const data = (this.dialog.content as any)?.instance?.data as AttributeSelectorDialogData;
+    const data = this.dialog.content?.instance?.data as AttributeSelectorDialogData;
 
     if (data) {
       this.rtCkTypeId = data.rtCkTypeId;

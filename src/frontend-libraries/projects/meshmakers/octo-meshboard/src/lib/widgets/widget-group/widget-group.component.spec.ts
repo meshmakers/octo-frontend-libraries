@@ -3,7 +3,7 @@ import { WidgetGroupComponent } from './widget-group.component';
 import { MeshBoardDataService, RepeaterDataItem } from '../../services/meshboard-data.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
-import { WidgetGroupConfig } from '../../models/meshboard.models';
+import { WidgetGroupConfig, KpiWidgetConfig, GaugeWidgetConfig, EntityCardWidgetConfig, RepeaterQueryDataSource } from '../../models/meshboard.models';
 import { Component } from '@angular/core';
 
 // Mock child widget components to avoid importing their dependencies
@@ -13,7 +13,7 @@ import { Component } from '@angular/core';
   standalone: true
 })
 class MockKpiWidgetComponent {
-  config: any;
+  config: unknown;
 }
 
 @Component({
@@ -22,7 +22,7 @@ class MockKpiWidgetComponent {
   standalone: true
 })
 class MockGaugeWidgetComponent {
-  config: any;
+  config: unknown;
 }
 
 @Component({
@@ -31,7 +31,7 @@ class MockGaugeWidgetComponent {
   standalone: true
 })
 class MockEntityCardWidgetComponent {
-  config: any;
+  config: unknown;
 }
 
 describe('WidgetGroupComponent', () => {
@@ -154,7 +154,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should set error when no data source configured', fakeAsync(() => {
       component.config = createMockConfig({
-        dataSource: undefined as any
+        dataSource: undefined as unknown as RepeaterQueryDataSource
       });
       fixture.detectChanges();
       tick();
@@ -164,7 +164,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should set error when invalid data source type', fakeAsync(() => {
       component.config = createMockConfig({
-        dataSource: { type: 'runtimeEntity' } as any
+        dataSource: { type: 'runtimeEntity' } as unknown as RepeaterQueryDataSource
       });
       fixture.detectChanges();
       tick();
@@ -352,9 +352,9 @@ describe('WidgetGroupComponent', () => {
 
       const childConfigs = component.childConfigs();
       expect(childConfigs[0].type).toBe('kpi');
-      expect((childConfigs[0] as any).valueAttribute).toBe('status');
-      expect((childConfigs[0] as any).prefix).toBe('$');
-      expect((childConfigs[0] as any).suffix).toBe('%');
+      expect((childConfigs[0] as KpiWidgetConfig).valueAttribute).toBe('status');
+      expect((childConfigs[0] as KpiWidgetConfig).prefix).toBe('$');
+      expect((childConfigs[0] as KpiWidgetConfig).suffix).toBe('%');
     }));
 
     it('should create Gauge child config correctly', fakeAsync(() => {
@@ -373,9 +373,9 @@ describe('WidgetGroupComponent', () => {
 
       const childConfigs = component.childConfigs();
       expect(childConfigs[0].type).toBe('gauge');
-      expect((childConfigs[0] as any).gaugeType).toBe('arc');
-      expect((childConfigs[0] as any).min).toBe(0);
-      expect((childConfigs[0] as any).max).toBe(100);
+      expect((childConfigs[0] as GaugeWidgetConfig).gaugeType).toBe('arc');
+      expect((childConfigs[0] as GaugeWidgetConfig).min).toBe(0);
+      expect((childConfigs[0] as GaugeWidgetConfig).max).toBe(100);
     }));
 
     it('should create EntityCard child config correctly', fakeAsync(() => {
@@ -394,8 +394,8 @@ describe('WidgetGroupComponent', () => {
 
       const childConfigs = component.childConfigs();
       expect(childConfigs[0].type).toBe('entityCard');
-      expect((childConfigs[0] as any).showHeader).toBe(true);
-      expect((childConfigs[0] as any).showAttributes).toBe(true);
+      expect((childConfigs[0] as EntityCardWidgetConfig).showHeader).toBe(true);
+      expect((childConfigs[0] as EntityCardWidgetConfig).showAttributes).toBe(true);
     }));
 
     it('should return empty array when no data', fakeAsync(() => {
@@ -493,7 +493,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should use default values when not specified', fakeAsync(() => {
       component.config = createMockConfig({
-        layout: undefined as any,
+        layout: undefined as unknown as WidgetGroupConfig['layout'],
         gridColumns: undefined,
         minChildWidth: undefined,
         gap: undefined
@@ -530,14 +530,16 @@ describe('WidgetGroupComponent', () => {
       tick();
 
       const childConfigs = component.childConfigs();
-      const dataSource = (childConfigs[0] as any).dataSource;
+      const dataSource = childConfigs[0].dataSource;
 
       expect(dataSource.type).toBe('static');
-      expect(dataSource.data.rtId).toBe('entity-1');
-      expect(dataSource.data.ckTypeId).toBe('TestType');
-      expect(dataSource.data.rtWellKnownName).toBe('Test Entity');
-      expect(dataSource.data.attributes.length).toBe(2);
-      expect(dataSource.data.associations).toEqual([]);
+      if (dataSource.type === 'static') {
+        expect(dataSource.data.rtId).toBe('entity-1');
+        expect(dataSource.data.ckTypeId).toBe('TestType');
+        expect(dataSource.data.rtWellKnownName).toBe('Test Entity');
+        expect(dataSource.data.attributes.length).toBe(2);
+        expect(dataSource.data.associations).toEqual([]);
+      }
     }));
   });
 });

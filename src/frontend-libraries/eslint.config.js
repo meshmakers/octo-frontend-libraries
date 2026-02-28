@@ -69,8 +69,7 @@ module.exports = tseslint.config(
       "no-empty": "error",
       "@typescript-eslint/no-empty-function": "error",
       "@angular-eslint/no-empty-lifecycle-method": "error",
-      // To be fixed (many violations):
-      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-explicit-any": "error",
     },
   }
 );

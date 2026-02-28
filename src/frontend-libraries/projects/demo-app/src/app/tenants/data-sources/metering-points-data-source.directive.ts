@@ -10,8 +10,8 @@ import {GraphQL} from '@meshmakers/octo-services';
 import {map} from 'rxjs/operators';
 
 export interface MeteringPointDto {
-  rtId: any;
-  ckTypeId: any;
+  rtId: string;
+  ckTypeId: string;
   name: string;
   meteringPointNumber: string;
   networkOperator?: string | null;

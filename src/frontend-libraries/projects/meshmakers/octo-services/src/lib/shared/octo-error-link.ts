@@ -82,7 +82,7 @@ export class OctoErrorLink extends ApolloLink {
 
   }
 
-  override request(operation: any, forward: any) {
+  override request(operation: ApolloLink.Operation, forward: ApolloLink.ForwardFunction) {
     return this.errorLink.request(operation, forward);
   }
 }

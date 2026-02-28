@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ApolloLink } from '@apollo/client/core';
 import { OctoErrorLink } from './octo-error-link';
 import { MessageService } from '@meshmakers/shared-services';
 
@@ -29,8 +30,8 @@ describe('OctoErrorLink', () => {
 
   describe('request method', () => {
     it('should forward the operation', () => {
-      const mockOperation = { operationName: 'TestQuery' };
-      const mockForward = jasmine.createSpy('forward').and.returnValue(null);
+      const mockOperation = { operationName: 'TestQuery' } as unknown as ApolloLink.Operation;
+      const mockForward = jasmine.createSpy('forward').and.returnValue(null) as unknown as ApolloLink.ForwardFunction;
 
       // The request method delegates to errorLink which handles errors
       // When there are no errors, it should forward the operation

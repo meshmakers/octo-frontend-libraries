@@ -4,7 +4,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { of } from 'rxjs';
 import { DialogRef, DialogModule } from '@progress/kendo-angular-dialog';
-import { GridModule, CellClickEvent } from '@progress/kendo-angular-grid';
+import { GridModule, GridComponent, CellClickEvent } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
@@ -17,11 +17,18 @@ import {
   AttributeSortSelectorDialogResult
 } from './attribute-sort-selector-dialog.component';
 
+interface MockDialogContent {
+  instance: {
+    data: AttributeSortSelectorDialogData | null;
+  };
+}
+
 describe('AttributeSortSelectorDialogComponent', () => {
   let component: AttributeSortSelectorDialogComponent;
   let fixture: ComponentFixture<AttributeSortSelectorDialogComponent>;
   let attributeServiceMock: jasmine.SpyObj<AttributeSelectorService>;
   let dialogRefMock: jasmine.SpyObj<DialogRef>;
+  let dialogContent: MockDialogContent;
 
   const mockAttributes: AttributeItem[] = [
     { attributePath: 'name', attributeValueType: 'String' },
@@ -41,11 +48,12 @@ describe('AttributeSortSelectorDialogComponent', () => {
     attributeServiceMock.getAvailableAttributes.and.returnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
 
     dialogRefMock = jasmine.createSpyObj('DialogRef', ['close']);
-    (dialogRefMock as any).content = {
+    dialogContent = {
       instance: {
         data: { ...mockDialogData }
       }
     };
+    (dialogRefMock as unknown as Record<string, unknown>)['content'] = dialogContent;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -109,7 +117,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
     });
 
     it('should use default dialogTitle when not provided', () => {
-      (dialogRefMock as any).content.instance.data = { ckTypeId: 'TestCkType' };
+      dialogContent.instance.data = { ckTypeId: 'TestCkType' };
       fixture.detectChanges();
       expect(component.dialogTitle).toBe('Select Attributes with Sort Order');
     });
@@ -124,7 +132,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       const preSelected: AttributeSortItem[] = [
         { attributePath: 'name', attributeValueType: 'String', sortOrder: 'ascending' }
       ];
-      (dialogRefMock as any).content.instance.data = {
+      dialogContent.instance.data = {
         ckTypeId: 'TestCkType',
         selectedAttributes: preSelected
       };
@@ -140,7 +148,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
         { attributePath: 'name', attributeValueType: 'String', sortOrder: 'ascending' },
         { attributePath: 'email', attributeValueType: 'String', sortOrder: 'descending' }
       ];
-      (dialogRefMock as any).content.instance.data = {
+      dialogContent.instance.data = {
         ckTypeId: 'TestCkType',
         selectedAttributes: preSelected
       };
@@ -152,7 +160,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
     });
 
     it('should handle empty dialog data gracefully', () => {
-      (dialogRefMock as any).content = { instance: { data: null } };
+      dialogContent.instance.data = null;
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
@@ -166,7 +174,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       const preSelected: AttributeSortItem[] = [
         { attributePath: 'name', attributeValueType: 'String', sortOrder: 'ascending' }
       ];
-      (dialogRefMock as any).content.instance.data = {
+      dialogContent.instance.data = {
         ckTypeId: 'TestCkType',
         selectedAttributes: preSelected
       };
@@ -699,15 +707,15 @@ describe('AttributeSortSelectorDialogComponent', () => {
   });
 
   // Helper function to create mock CellClickEvent
-  function createCellClickEvent(dataItem: any): CellClickEvent {
+  function createCellClickEvent(dataItem: AttributeItem | AttributeSortItem | null): CellClickEvent {
     return {
       dataItem,
-      column: {} as any,
+      column: {},
       columnIndex: 0,
       rowIndex: 0,
       type: 'click',
-      sender: {} as any,
-      originalEvent: {} as any,
+      sender: {} as unknown as GridComponent,
+      originalEvent: new Event('click'),
       isEdited: false,
       isEditedColumn: () => false
     } as CellClickEvent;

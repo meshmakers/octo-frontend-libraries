@@ -88,13 +88,13 @@
       <ng-template kendoGridCellTemplate let-dataItem>
         @switch (column.dataType) {
           @case ('boolean') {
-            <kendo-checkbox type="checkbox" [checkedState]="getValue(dataItem, column)" [disabled]="true" />
+            <kendo-checkbox type="checkbox" [checkedState]="$any(getValue(dataItem, column))" [disabled]="true" />
           }
           @case ('iso8601') {
-            {{ getValue(dataItem, column) | date:column.format }}
+            {{ $any(getValue(dataItem, column)) | date:column.format }}
           }
           @case ('bytes') {
-            {{ getValue(dataItem, column) | bytesToSize }}
+            {{ $any(getValue(dataItem, column)) | bytesToSize }}
           }
           @case ('statusIcons') {
             <span class="status-icons-cell">

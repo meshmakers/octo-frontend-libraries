@@ -31,5 +31,5 @@ export interface CommandItem {
 
 export interface CommandItemExecuteEventArgs {
   commandItem: CommandItem;
-  data?: any;
+  data?: unknown;
 }

@@ -32,7 +32,7 @@ export interface TableColumn {
   displayName?: string | null;
   field: string;
   dataType?: 'text' | 'numeric' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression';
-  format?: any;
+  format?: string;
   /**
    * Column width in pixels. If not set, the column will auto-size.
    */
