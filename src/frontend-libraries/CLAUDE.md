@@ -96,9 +96,9 @@ Common lint issues:
 npm run build:octo-ui      # or whichever library was modified
 ```
 
-## Pre-Commit Checklist (REQUIRED)
+## Pre-Commit Checklist (MANDATORY)
 
-**CRITICAL: Before every commit, ensure the following steps are completed to prevent CI failures:**
+**CRITICAL: Before every commit and push, ALL of the following steps MUST be completed locally to prevent CI failures. NEVER push code without running lint and build locally first — this has caused multiple failed CI builds in the past.**
 
 ### 1. Regenerate package-lock.json (if dependencies changed)
 

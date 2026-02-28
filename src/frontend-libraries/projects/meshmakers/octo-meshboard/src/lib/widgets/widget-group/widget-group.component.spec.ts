@@ -534,11 +534,12 @@ describe('WidgetGroupComponent', () => {
 
       expect(dataSource.type).toBe('static');
       if (dataSource.type === 'static') {
-        expect(dataSource.data.rtId).toBe('entity-1');
-        expect(dataSource.data.ckTypeId).toBe('TestType');
-        expect(dataSource.data.rtWellKnownName).toBe('Test Entity');
-        expect(dataSource.data.attributes.length).toBe(2);
-        expect(dataSource.data.associations).toEqual([]);
+        const data = dataSource.data as Record<string, unknown>;
+        expect(data['rtId']).toBe('entity-1');
+        expect(data['ckTypeId']).toBe('TestType');
+        expect(data['rtWellKnownName']).toBe('Test Entity');
+        expect((data['attributes'] as unknown[]).length).toBe(2);
+        expect(data['associations']).toEqual([]);
       }
     }));
   });

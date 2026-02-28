@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { Type } from '@angular/core';
 import { Subject } from 'rxjs';
 import {
   WidgetRegistryService,
@@ -76,8 +75,10 @@ describe('WidgetRegistryService', () => {
     return {
       type: 'kpi',
       label: 'KPI Widget',
-      component: MockConfigDialog as unknown as Type<unknown>,
-      configDialogComponent: MockConfigDialog as unknown as Type<unknown>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
+      component: MockConfigDialog as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
+      configDialogComponent: MockConfigDialog as any,
       defaultSize: { colSpan: 2, rowSpan: 1 },
       supportedDataSources: ['runtimeEntity', 'persistentQuery', 'static'],
       createDefaultConfig: (baseConfig: BaseWidgetConfig): KpiWidgetConfig => ({
@@ -129,7 +130,8 @@ describe('WidgetRegistryService', () => {
     return {
       type: 'gauge',
       label: 'Gauge Widget',
-      component: MockConfigDialog as unknown as Type<unknown>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
+      component: MockConfigDialog as any,
       // No configDialogComponent - intentionally
       defaultSize: { colSpan: 2, rowSpan: 2 },
       createDefaultConfig: (baseConfig: BaseWidgetConfig): GaugeWidgetConfig => ({
