@@ -87,6 +87,30 @@ describe('ConfirmationService', () => {
       resultSubject.complete();
       await resultPromise;
     });
+
+    it('should pass cssClass to dialog service when provided', async () => {
+      const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message', 'mm-dialog-danger');
+
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(jasmine.objectContaining({
+        cssClass: 'mm-dialog-danger'
+      }));
+
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
+      resultSubject.complete();
+      await resultPromise;
+    });
+
+    it('should not pass cssClass when not provided', async () => {
+      const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
+
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(jasmine.objectContaining({
+        cssClass: undefined
+      }));
+
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
+      resultSubject.complete();
+      await resultPromise;
+    });
   });
 
   describe('showYesNoCancelConfirmationDialog', () => {
