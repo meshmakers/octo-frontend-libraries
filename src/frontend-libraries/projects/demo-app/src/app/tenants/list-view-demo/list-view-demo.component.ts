@@ -221,21 +221,24 @@ export class ListViewDemoComponent {
     console.debug('onDeleteClicked', eventArgs);
 
     if (eventArgs.data instanceof Array) {
-      const l = eventArgs.data.map((item: unknown) => (item as Record<string, unknown>)?.rtId).join(', ');
+      const l = eventArgs.data.map((item: unknown) => (item as Record<string, unknown>)?.['rtId']).join(', ');
       alert('Delete clicked for items:\n' + l);
     } else {
-      alert('Delete clicked for item:\n' + eventArgs.data?.rtId);
+      const data = eventArgs.data as Record<string, unknown> | undefined;
+      alert('Delete clicked for item:\n' + data?.['rtId']);
     }
   }
 
   public async onCopyClicked(eventArgs: CommandItemExecuteEventArgs): Promise<void> {
     console.debug('onCopyClicked', eventArgs);
-    alert('Copy clicked for: ' + (eventArgs.data?.rtId ?? 'selected items'));
+    const data = eventArgs.data as Record<string, unknown> | undefined;
+    alert('Copy clicked for: ' + (data?.['rtId'] ?? 'selected items'));
   }
 
   public async onDownloadClicked(eventArgs: CommandItemExecuteEventArgs): Promise<void> {
     console.debug('onDownloadClicked', eventArgs);
-    alert('Download clicked for: ' + (eventArgs.data?.rtId ?? 'selected items'));
+    const data = eventArgs.data as Record<string, unknown> | undefined;
+    alert('Download clicked for: ' + (data?.['rtId'] ?? 'selected items'));
   }
 
   public async onBulkDeleteClicked(eventArgs: CommandItemExecuteEventArgs): Promise<void> {

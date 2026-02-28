@@ -47,7 +47,7 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { DockviewApi } from 'dockview-core';
-import { DockviewComponent, DockviewReadyEvent, IDockviewPanelProps } from './dockview/dockview.component';
+import { DockviewComponent, DockviewReadyEvent } from './dockview/dockview.component';
 
 import {
   ProcessDiagramConfig,
@@ -4805,7 +4805,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         const fontFamily = textStyle.fontFamily ?? 'sans-serif';
         const fontWeight = textStyle.fontWeight ?? 'normal';
         const textAnchor = textStyle.textAnchor ?? 'start';
-        const fillColor = textStyle.fill ?? resolvedStyle?.fill?.color ?? '#000000';
+        const fillColor = textStyle.color ?? resolvedStyle?.fill?.color ?? '#000000';
         return `<text x="${localX}" y="${localY}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="${textAnchor}" fill="${fillColor}">${this.escapeXml(config.content ?? '')}</text>`;
       }
       case 'path': {

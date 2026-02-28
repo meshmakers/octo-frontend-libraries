@@ -292,7 +292,7 @@ export class PropertyGridDemoComponent implements OnInit {
     };
 
     // Convert object to properties using the converter service
-    const objectProperties = this.propertyConverter.convertObjectToProperties(sampleEntity, 'Demo Entity');
+    const objectProperties = this.propertyConverter.convertObjectToProperties(sampleEntity as unknown as Record<string, unknown>, 'Demo Entity');
 
     // Add some custom properties to demonstrate different types including complex records
     const customProperties: PropertyGridItem[] = [
@@ -388,7 +388,8 @@ export class PropertyGridDemoComponent implements OnInit {
 
       if (entities && entities.length > 0) {
         const entity = entities[0];
-        this.propertyConverter.convertRtEntityToProperties(entity).pipe(
+        if (!entity) return;
+        this.propertyConverter.convertRtEntityToProperties(entity as never).pipe(
           take(1)
         ).subscribe({
           next: (data) => {

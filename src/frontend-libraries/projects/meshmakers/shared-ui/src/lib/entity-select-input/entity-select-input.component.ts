@@ -205,7 +205,8 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   @ViewChild('autocomplete', {static: true}) autocomplete!: AutoCompleteComponent;
 
   // Inputs
-  @Input() dataSource!: EntitySelectDataSource<unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component accepts any entity type
+  @Input() dataSource!: EntitySelectDataSource<any>;
   @Input() placeholder = 'Select an entity...';
   @Input() minSearchLength = 3;
   @Input() maxResults = 50;
@@ -213,7 +214,8 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   @Input() prefix = '';
 
   // Dialog inputs
-  @Input() dialogDataSource?: EntitySelectDialogDataSource<unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component accepts any entity type
+  @Input() dialogDataSource?: EntitySelectDialogDataSource<any>;
   @Input() dialogTitle = 'Select Entity';
   @Input() multiSelect = false;
   @Input() advancedSearchLabel = 'Advanced Search...';
@@ -244,9 +246,11 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   }
 
   // Outputs
-  @Output() entitySelected = new EventEmitter<unknown>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component emits any entity type
+  @Output() entitySelected = new EventEmitter<any>();
   @Output() entityCleared = new EventEmitter<void>();
-  @Output() entitiesSelected = new EventEmitter<unknown[]>(); // For multi-select from dialog
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component emits any entity type
+  @Output() entitiesSelected = new EventEmitter<any[]>(); // For multi-select from dialog
 
   // Form control and state
   public searchFormControl = new FormControl();
