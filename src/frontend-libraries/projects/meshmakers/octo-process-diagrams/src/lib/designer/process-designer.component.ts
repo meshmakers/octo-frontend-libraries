@@ -1576,7 +1576,8 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
   /**
    * Get the component map for dockview panel registration
    */
-  readonly panelComponents: Record<string, Type<IDockviewPanelProps>> = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dockview panels use structural typing at runtime
+  readonly panelComponents: Record<string, Type<any>> = {
     elements: ElementsPanelComponent,
     symbols: SymbolsPanelComponent,
     properties: PropertiesPanelComponent,
@@ -1726,7 +1727,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
         component: 'settings',
         params: {
           settings: () => this.symbolSettings,
-          onSettingsChange: (key: string, value: unknown) => {
+          onSettingsChange: (key: string, value: string | number) => {
             this.symbolSettingsChange.emit({ key, value });
           }
         }
@@ -4799,13 +4800,13 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
       }
       case 'text': {
         const config = (primitive as TextPrimitive).config;
-        const textStyle = config.style ?? {};
+        const textStyle = config.textStyle ?? {};
         const fontSize = textStyle.fontSize ?? 14;
         const fontFamily = textStyle.fontFamily ?? 'sans-serif';
         const fontWeight = textStyle.fontWeight ?? 'normal';
         const textAnchor = textStyle.textAnchor ?? 'start';
         const fillColor = textStyle.fill ?? resolvedStyle?.fill?.color ?? '#000000';
-        return `<text x="${localX}" y="${localY}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="${textAnchor}" fill="${fillColor}">${this.escapeXml(config.text ?? '')}</text>`;
+        return `<text x="${localX}" y="${localY}" font-size="${fontSize}" font-family="${fontFamily}" font-weight="${fontWeight}" text-anchor="${textAnchor}" fill="${fillColor}">${this.escapeXml(config.content ?? '')}</text>`;
       }
       case 'path': {
         const config = (primitive as PathPrimitive).config;

@@ -495,7 +495,7 @@ export class StylesPanelComponent implements IDockviewPanelProps {
     if (typeof param === 'function') {
       return param() ?? [];
     }
-    return param ?? [];
+    return (param as StyleClass[]) ?? [];
   }
 
   /**
