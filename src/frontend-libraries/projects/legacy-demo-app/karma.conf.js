@@ -1,6 +1,15 @@
 // Karma configuration file, see link for more information
 // https://karma-runner.github.io/1.0/config/configuration-file.html
 
+// Set CHROME_BIN based on platform (macOS vs Linux/CI)
+if (!process.env.CHROME_BIN) {
+  if (process.platform === 'darwin') {
+    process.env.CHROME_BIN = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+  } else {
+    process.env.CHROME_BIN = '/usr/bin/google-chrome-stable';
+  }
+}
+
 module.exports = function (config) {
   config.set({
     basePath: '',
@@ -33,13 +42,37 @@ module.exports = function (config) {
         { type: 'text-summary' }
       ]
     },
+    junitReporter: {
+      outputDir: './',
+      outputFile: 'TESTS-junit.xml',
+      useBrowserName: false
+    },
     reporters: ['progress', 'kjhtml'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
     browsers: ['Chrome'],
+    // Custom launcher for CI/Docker environments (headless with no-sandbox)
+    customLaunchers: {
+      ChromeHeadlessCI: {
+        base: 'ChromeHeadless',
+        flags: [
+          '--no-sandbox',
+          '--disable-gpu',
+          '--disable-translate',
+          '--disable-extensions',
+          '--disable-dev-shm-usage'
+        ]
+      }
+    },
     singleRun: false,
-    restartOnFileChange: true
+    restartOnFileChange: true,
+
+    // Timeout settings for CI environments under load
+    browserNoActivityTimeout: 120000,    // 2 min (default: 30s) - wait for test activity
+    browserDisconnectTimeout: 30000,     // 30s (default: 2s) - wait for reconnect
+    browserDisconnectTolerance: 3,       // Allow 3 disconnects before failing
+    captureTimeout: 120000               // 2 min - wait for browser to connect
   });
 };
