@@ -312,12 +312,12 @@ describe('SymbolEditorPageComponent', () => {
 
     it('should update canvas size when canvasWidth changes', () => {
       (component as unknown as SymbolEditorPageTestAccess).onSymbolSettingsChange({ key: 'canvasWidth', value: 500 });
-      expect((component as unknown as SymbolEditorPageTestAccess)._currentSymbol.canvasSize?.width).toBe(500);
+      expect((component as unknown as SymbolEditorPageTestAccess)._currentSymbol!.canvasSize?.width).toBe(500);
     });
 
     it('should update grid size', () => {
       (component as unknown as SymbolEditorPageTestAccess).onSymbolSettingsChange({ key: 'gridSize', value: 20 });
-      expect((component as unknown as SymbolEditorPageTestAccess)._currentSymbol.gridSize).toBe(20);
+      expect((component as unknown as SymbolEditorPageTestAccess)._currentSymbol!.gridSize).toBe(20);
     });
   });
 });
