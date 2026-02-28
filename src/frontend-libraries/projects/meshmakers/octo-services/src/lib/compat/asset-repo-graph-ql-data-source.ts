@@ -21,9 +21,7 @@ export interface IQueryVariablesDto extends OperationVariables {
  * Structural interface for QueryRef to avoid private/protected member type incompatibilities
  * between different apollo-angular npm installations.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface QueryRefLike<_TQueryDto = any, TVariablesDto = any> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   valueChanges: Observable<any>;
   refetch(variables?: TVariablesDto): Promise<unknown>;
   stopPolling(): void;
@@ -32,9 +30,7 @@ interface QueryRefLike<_TQueryDto = any, TVariablesDto = any> {
 /**
  * Structural interface for apollo-angular Query.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface QueryLike<_TQueryDto = any, _TVariablesDto extends OperationVariables = any> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   watch(options?: Record<string, unknown>): QueryRefLike<any, any>;
 }
 
@@ -144,7 +140,6 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
       });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected executeLoad(_value: any, _index: number): PagedResultDto<TDto> {
     return new PagedResultDto<TDto>();
   }

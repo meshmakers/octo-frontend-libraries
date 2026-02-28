@@ -24,8 +24,8 @@ class TestAssetRepoGraphQlDataSource extends AssetRepoGraphQlDataSource<any, any
     });
   }
 
-  override loadData(skip = 0, take = 10, searchFilter: SearchFilterDto | null = null,
-                   fieldFilter: FieldFilterDto[] | null = null, sort: SortDto[] | null = null): void {
+  override loadData(skip = 0, take = 10, _searchFilter: SearchFilterDto | null = null,
+                   _fieldFilter: FieldFilterDto[] | null = null, _sort: SortDto[] | null = null): void {
     // Start loading state
     this.onBeginLoad();
 

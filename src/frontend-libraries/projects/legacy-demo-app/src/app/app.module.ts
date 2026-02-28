@@ -20,8 +20,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { provideHttpClient } from '@angular/common/http';
 import { provideOctoServices } from '@meshmakers/octo-services';
 
-export function initServices(configurationService: ConfigurationService) {
-  return async () => {};
+export function initServices(_configurationService: ConfigurationService) {
+  return () => Promise.resolve();
 }
 
 @NgModule({
