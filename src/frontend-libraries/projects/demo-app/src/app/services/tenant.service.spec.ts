@@ -2,8 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
 import { TenantService } from './tenant.service';
-import { GetCkModelByIdDtoGQL, GetCkModelByIdQueryDto } from '../graphQL/getCkModelById';
-import { ApolloQueryResult } from '@apollo/client/core';
+import { GetCkModelByIdDtoGQL } from '../graphQL/getCkModelById';
 
 describe('TenantService', () => {
   let service: TenantService;
@@ -11,7 +10,8 @@ describe('TenantService', () => {
 
   beforeEach(() => {
     mockGetCkModelByIdGQL = jasmine.createSpyObj('GetCkModelByIdDtoGQL', ['fetch']);
-    mockGetCkModelByIdGQL.fetch.and.returnValue(of({ data: { constructionKit: { models: { items: [] } } } } as unknown as ApolloQueryResult<GetCkModelByIdQueryDto>));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
+    mockGetCkModelByIdGQL.fetch.and.returnValue(of({ data: { constructionKit: { models: { items: [] } } } } as any));
 
     TestBed.configureTestingModule({
       providers: [
