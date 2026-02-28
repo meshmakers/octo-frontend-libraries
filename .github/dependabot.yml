@@ -11,7 +11,7 @@ updates:
       interval: "weekly"
   - package-ecosystem: "npm" # See documentation for possible values
     directories:
-      - "/src/FrontendLibraries/ClientApp/**/*"
+      - "/src/frontend-libraries"
     schedule:
       interval: "monthly"
     versioning-strategy: increase
