@@ -82,7 +82,11 @@ describe('AttributeSelectorService', () => {
           rtCkId: 'TestModel/Customer',
           filter: undefined,
           first: 1000,
-          after: undefined
+          after: undefined,
+          attributeValueType: undefined,
+          searchTerm: undefined,
+          includeNavigationProperties: undefined,
+          maxDepth: undefined
         },
         fetchPolicy: 'network-only'
       });
