@@ -129,7 +129,7 @@ export class AssetRepoGraphQlDataSource<TDto, TQueryDto, TVariablesDto extends I
 
     this.subscription = this.queryRef.valueChanges
       .pipe(
-        filter((v) => !v.loading),
+        filter((v) => !(v as Record<string, unknown>)['loading']),
         map((v, i) => this.executeLoad(v, i))
       )
       .subscribe({
