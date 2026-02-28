@@ -2,9 +2,9 @@ overwrite: true
 schema:
   - schema.graphql
 generates:
-  # template-app (uses types from @meshmakers/octo-services)
-  projects/template-app/src/app/graphQL/:
-    documents: "projects/template-app/src/app/graphQL/*.graphql"
+  # demo-app (uses types from @meshmakers/octo-services)
+  projects/demo-app/src/app/graphQL/:
+    documents: "projects/demo-app/src/app/graphQL/*.graphql"
     preset: near-operation-file
     presetConfig:
       extension: .ts

@@ -18,10 +18,10 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'test-app'`, () => {
+  it(`should have as title 'legacy-demo-app'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('test-app');
+    expect(app.title).toEqual('legacy-demo-app');
   });
 
   it('should render template', () => {

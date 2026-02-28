@@ -6,7 +6,7 @@ Angular monorepo containing shared libraries and the template application for Oc
 
 ```
 projects/
-├── template-app/                      # Demo/Template application
+├── demo-app/                      # Demo application
 ├── meshmakers/
 │   ├── shared-auth/                   # Authentication library
 │   ├── shared-services/               # Common services library
@@ -71,7 +71,7 @@ npm run build:octo-process-diagrams
 npm run build:octo-meshboard
 npm run build:shared-ui-legacy
 npm run build:octo-ui-legacy
-npm run build:template-app
+npm run build:demo-app
 
 # Production build
 npm run build:prod
@@ -295,9 +295,9 @@ export const appConfig: ApplicationConfig = {
 
 See [octo-services documentation](projects/meshmakers/octo-services/docs/README.md) for details.
 
-## Template Application
+## Demo Application
 
-The `template-app` project demonstrates usage of all libraries. Key files:
+The `demo-app` project demonstrates usage of all libraries. Key files:
 
 | File | Description |
 |------|-------------|

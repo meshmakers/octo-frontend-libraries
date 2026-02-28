@@ -406,9 +406,9 @@ interface IUser {
 
 ## Examples
 
-### Complete Setup (from template-app)
+### Complete Setup (from demo-app)
 
-See `projects/template-app/src/app/app.config.ts` for a complete configuration example including:
+See `projects/demo-app/src/app/app.config.ts` for a complete configuration example including:
 
 - OAuth configuration with identity server
 - HTTP interceptor setup
@@ -416,8 +416,8 @@ See `projects/template-app/src/app/app.config.ts` for a complete configuration e
 
 ### Route Protection
 
-See `projects/template-app/src/app/app.routes.ts` for route guard examples.
+See `projects/demo-app/src/app/app.routes.ts` for route guard examples.
 
 ### App Bar Integration
 
-See `projects/template-app/src/app/app.component.ts` for login component integration.
+See `projects/demo-app/src/app/app.component.ts` for login component integration.

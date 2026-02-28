@@ -83,6 +83,6 @@ stages:
             parameters:
               PublicRegistryServiceConnection: $(DockerRegistryPublicConnection)
               PrivateRegistryName: $(DockerRegistryPrivateUri)
-              Repository: meshmakers/octo-mesh-template-app
+              Repository: meshmakers/octo-mesh-demo-app
               Dockerfile: src/frontend-libraries/Dockerfile
           - template: handle-artifacts.yml

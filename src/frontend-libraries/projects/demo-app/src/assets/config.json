@@ -1,6 +1,6 @@
 {
   "adminUri": "https://localhost:5005",
-  "clientId": "octo-template-app",
+  "clientId": "octo-demo-app",
   "redirectUri": "https://localhost:4201/",
   "postLogoutRedirectUri": "https://localhost:4201/"
 }

@@ -6,7 +6,7 @@
 - **Kendo UI Angular 21** for UI components (Charts, Gauges, Grid, etc.)
 - **Apollo Client** for GraphQL
 - **Monorepo** with multiple projects under `projects/`:
-  - `template-app` - Demo/Template application
+  - `demo-app` - Demo application
   - `meshmakers/octo-ui` - Shared UI components library
   - `meshmakers/octo-services` - GraphQL services library
   - `meshmakers/octo-meshboard` - MeshBoard dashboard widget system
@@ -20,8 +20,8 @@
 ## Build Commands
 
 ```bash
-# Build template-app (with lint)
-npm run build:template-app
+# Build demo-app (with lint)
+npm run build:demo-app
 
 # Build library projects
 npm run build:octo-services
@@ -32,7 +32,7 @@ npm run build:shared-ui
 
 # Generate GraphQL types
 npm run codegen
-npm run codegen:template-app
+npm run codegen:demo-app
 
 # Run tests for specific project
 npm test -- --project=@meshmakers/octo-meshboard --watch=false
@@ -44,7 +44,7 @@ npm test -- --project=@meshmakers/octo-meshboard --watch=false
 - **Every code change must include updated developer documentation** — when adding, modifying, or removing features, update the relevant README.md, CLAUDE.md, or inline documentation accordingly
 - New shared components should have:
   - Developer documentation in the component folder
-  - Demo page in template-app with usage examples
+  - Demo page in demo-app with usage examples
 - **All library components must use neutral/theme-agnostic styling** — no LCARS-specific colors, fonts, or design language. Use CSS custom properties (variables) with neutral defaults so host applications can apply their own theme.
 - Theme-specific styling (e.g., LCARS) is the responsibility of the consuming host application (via `styles.scss` or CSS variable overrides)
 
@@ -289,7 +289,7 @@ Use `<kendo-lineargauge-pointers>` wrapper:
 ```bash
 # Regenerate all GraphQL types after schema changes
 npm run codegen
-npm run codegen:template-app
+npm run codegen:demo-app
 ```
 
 **Workflow for GraphQL changes:**
