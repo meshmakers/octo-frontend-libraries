@@ -33,7 +33,7 @@ stages:
   - stage: Build
     jobs:
       - job: build_and_test
-        displayName: Build, Lint & Test
+        displayName: Build, Lint & Test Libraries
         pool:
           name: meshmakers-ci-agents
         steps:
@@ -43,33 +43,41 @@ stages:
           - template: run-tests.yml
           - template: handle-artifacts.yml
 
-          # Publish dist/ and Docker context files as pipeline artifact for Publish stage
+          # Build demo-app for Docker image (build only, no tests)
+          - task: CmdLine@2
+            displayName: 'Build demo-app (production)'
+            inputs:
+              script: npx ng build --project demo-app
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+          # Publish dist/ as pipeline artifact (libraries + demo-app)
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish dist + Docker context'
+            displayName: 'Publish dist artifact'
             inputs:
               targetPath: $(System.DefaultWorkingDirectory)/src/frontend-libraries/dist
               artifact: dist
               publishLocation: pipeline
 
-          - task: PublishPipelineArtifact@1
-            displayName: 'Publish Docker context files'
+          # Assemble Docker context files into single artifact
+          - task: CmdLine@2
+            displayName: 'Assemble Docker context files'
             inputs:
-              targetPath: $(System.DefaultWorkingDirectory)/src/frontend-libraries/Dockerfile.prebuilt
-              artifact: Dockerfile.prebuilt
-              publishLocation: pipeline
+              script: |
+                set -e
+                CONTEXT="$(Build.ArtifactStagingDirectory)/docker-context"
+                mkdir -p "$CONTEXT"
+                cp Dockerfile.prebuilt "$CONTEXT/"
+                cp nginx.conf "$CONTEXT/"
+                cp entrypoint.sh "$CONTEXT/"
+                echo "=== Docker context files ==="
+                ls -la "$CONTEXT"
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish nginx.conf'
+            displayName: 'Publish Docker context'
             inputs:
-              targetPath: $(System.DefaultWorkingDirectory)/src/frontend-libraries/nginx.conf
-              artifact: nginx.conf
-              publishLocation: pipeline
-
-          - task: PublishPipelineArtifact@1
-            displayName: 'Publish entrypoint.sh'
-            inputs:
-              targetPath: $(System.DefaultWorkingDirectory)/src/frontend-libraries/entrypoint.sh
-              artifact: entrypoint.sh
+              targetPath: $(Build.ArtifactStagingDirectory)/docker-context
+              artifact: docker-context
               publishLocation: pipeline
 
   - stage: Publish
@@ -78,7 +86,7 @@ stages:
       BuildTagName: $[ stageDependencies.Build.build_and_test.outputs['SetBuildVars.BuildTagName'] ]
       OctoVersion: $[ stageDependencies.Build.build_and_test.outputs['SetBuildVars.OctoVersion'] ]
     jobs:
-      # Job 1: npm publish (parallel with Docker)
+      # Job 1: npm publish (parallel)
       - job: npm_publish
         displayName: Publish npm packages
         pool:
@@ -129,7 +137,7 @@ stages:
               publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/octo-meshboard'
               libName: 'octo-meshboard'
 
-      # Job 2: Docker build (parallel with npm publish)
+      # Job 2: Docker build (parallel)
       - job: docker_build
         displayName: Build & Push Docker image
         pool:
@@ -144,24 +152,12 @@ stages:
               path: $(Pipeline.Workspace)/dist
 
           - task: DownloadPipelineArtifact@2
-            displayName: 'Download Dockerfile.prebuilt'
+            displayName: 'Download Docker context'
             inputs:
-              artifact: Dockerfile.prebuilt
+              artifact: docker-context
               path: $(Pipeline.Workspace)/docker-context
 
-          - task: DownloadPipelineArtifact@2
-            displayName: 'Download nginx.conf'
-            inputs:
-              artifact: nginx.conf
-              path: $(Pipeline.Workspace)/docker-context
-
-          - task: DownloadPipelineArtifact@2
-            displayName: 'Download entrypoint.sh'
-            inputs:
-              artifact: entrypoint.sh
-              path: $(Pipeline.Workspace)/docker-context
-
-          # Assemble Docker context: Dockerfile + nginx.conf + entrypoint.sh + demo-app/
+          # Add demo-app build output to Docker context
           - task: CmdLine@2
             displayName: 'Assemble Docker context'
             inputs:
@@ -181,3 +177,55 @@ stages:
               Repository: meshmakers/octo-mesh-demo-app
               Dockerfile: $(Pipeline.Workspace)/docker-context/Dockerfile.prebuilt
               DockerContext: $(Pipeline.Workspace)/docker-context
+
+      # Job 3: Verify demo apps (parallel)
+      - job: verify_apps
+        displayName: Test demo & legacy-demo apps
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - template: setup-telerik-license.yml
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: '20.x'
+
+          - task: CmdLine@2
+            displayName: 'Install dependencies'
+            inputs:
+              script: npm ci
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+          # Download pre-built libraries so ng test can resolve @meshmakers/* imports
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download dist (pre-built libraries)'
+            inputs:
+              artifact: dist
+              path: $(System.DefaultWorkingDirectory)/src/frontend-libraries/dist
+
+          - task: CmdLine@2
+            displayName: 'Test demo-app'
+            inputs:
+              script: |
+                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+            continueOnError: false
+
+          - task: CmdLine@2
+            displayName: 'Test legacy-demo-app'
+            inputs:
+              script: |
+                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=legacy-demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+            continueOnError: false
+
+          - task: PublishTestResults@2
+            displayName: 'Publish app test results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/TESTS-*.xml'
+              searchFolder: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+              mergeTestResults: true
+              testRunTitle: 'Unit Tests - Demo Apps'
