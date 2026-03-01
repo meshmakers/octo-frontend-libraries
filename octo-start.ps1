@@ -28,11 +28,19 @@ try {
 
     # Start demo-app on port 4201
     Write-Host "Starting demo-app on https://localhost:4201" -ForegroundColor Cyan
-    $demoApp = Start-Process -NoNewWindow -PassThru -FilePath "npx" -ArgumentList "ng serve demo-app --port 4201 --configuration development"
+    $demoJob = Start-Job -ScriptBlock {
+        param($workDir)
+        Set-Location $workDir
+        npx ng serve demo-app --port 4201 --configuration development 2>&1
+    } -ArgumentList $frontendLibsPath -Name "demo-app"
 
     # Start legacy-demo-app on port 4202
     Write-Host "Starting legacy-demo-app on https://localhost:4202" -ForegroundColor Cyan
-    $legacyDemoApp = Start-Process -NoNewWindow -PassThru -FilePath "npx" -ArgumentList "ng serve legacy-demo-app --port 4202 --configuration development"
+    $legacyJob = Start-Job -ScriptBlock {
+        param($workDir)
+        Set-Location $workDir
+        npx ng serve legacy-demo-app --port 4202 --configuration development 2>&1
+    } -ArgumentList $frontendLibsPath -Name "legacy-demo-app"
 
     Write-Host ""
     Write-Host "Both servers are running. Press Ctrl+C to stop." -ForegroundColor Green
@@ -40,16 +48,20 @@ try {
     Write-Host "  legacy-demo-app: https://localhost:4202" -ForegroundColor Cyan
     Write-Host ""
 
-    # Wait for both processes
+    # Wait for both jobs
     try {
-        Wait-Process -Id $demoApp.Id, $legacyDemoApp.Id
+        while ($demoJob.State -eq "Running" -or $legacyJob.State -eq "Running") {
+            Start-Sleep -Seconds 2
+        }
     }
     catch {
-        # Ctrl+C pressed, stop both processes
+        # Ctrl+C pressed, stop both jobs
     }
     finally {
-        if (!$demoApp.HasExited) { Stop-Process -Id $demoApp.Id -Force -ErrorAction SilentlyContinue }
-        if (!$legacyDemoApp.HasExited) { Stop-Process -Id $legacyDemoApp.Id -Force -ErrorAction SilentlyContinue }
+        Stop-Job -Job $demoJob -ErrorAction SilentlyContinue
+        Stop-Job -Job $legacyJob -ErrorAction SilentlyContinue
+        Remove-Job -Job $demoJob -Force -ErrorAction SilentlyContinue
+        Remove-Job -Job $legacyJob -Force -ErrorAction SilentlyContinue
         Write-Host "Servers stopped." -ForegroundColor Yellow
     }
 }
