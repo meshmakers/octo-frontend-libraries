@@ -201,6 +201,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
                   [textField]="'attributePath'"
                   [valueField]="'attributePath'"
                   [valuePrimitive]="true"
+                  [allowCustom]="true"
                   [(ngModel)]="form.valueAttribute"
                   [filterable]="true"
                   (filterChange)="onColumnFilter($event)"

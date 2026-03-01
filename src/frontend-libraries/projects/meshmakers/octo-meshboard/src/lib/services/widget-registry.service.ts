@@ -385,12 +385,13 @@ export class WidgetRegistryService {
         resizable: true
       });
 
-      // Set initial values on the dialog component
+      // Set initial values on the dialog component using Angular's setInput API.
+      // This properly registers inputs and triggers change detection,
+      // matching the behavior of the old ViewContainerRef.createComponent() pattern.
       const initialConfig = this.getInitialConfig(widget);
-      const contentRef = windowRef.content as { instance?: Record<string, unknown> } | undefined;
-      if (contentRef?.instance) {
+      if (windowRef.content) {
         Object.entries(initialConfig).forEach(([key, value]) => {
-          contentRef.instance![key] = value;
+          windowRef.content.setInput(key, value);
         });
       }
 
