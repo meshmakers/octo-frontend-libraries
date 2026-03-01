@@ -3,7 +3,7 @@
 ## Project Structure
 
 - **Angular 21** with standalone components and signals
-- **Kendo UI Angular 21** for UI components (Charts, Gauges, Grid, etc.)
+- **Kendo UI Angular 23** for UI components (Charts, Gauges, Grid, etc.)
 - **Apollo Client** for GraphQL
 - **Monorepo** with multiple projects under `projects/`:
   - `demo-app` - Demo application
