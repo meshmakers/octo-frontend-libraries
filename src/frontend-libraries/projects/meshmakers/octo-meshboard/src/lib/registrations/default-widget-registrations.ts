@@ -139,6 +139,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Entity Card',
     component: EntityCardWidgetComponent,
     configDialogComponent: EntityCardConfigDialogComponent,
+    configDialogSize: { width: 600, height: 450, minWidth: 500, minHeight: 350 },
+    configDialogTitle: 'Entity Configuration',
     defaultSize: { colSpan: 2, rowSpan: 2 },
     supportedDataSources: ['runtimeEntity'],
     getInitialConfig: (widget) => ({
@@ -197,6 +199,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'KPI',
     component: KpiWidgetComponent,
     configDialogComponent: KpiConfigDialogComponent,
+    configDialogSize: { width: 650, height: 600, minWidth: 500, minHeight: 450 },
+    configDialogTitle: 'KPI Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
     supportedDataSources: ['runtimeEntity', 'persistentQuery'],
     getInitialConfig: (widget) => {
@@ -358,6 +362,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Entity with Associations',
     component: EntityAssociationsWidgetComponent,
     configDialogComponent: AssociationsConfigDialogComponent,
+    configDialogSize: { width: 650, height: 550, minWidth: 550, minHeight: 400 },
+    configDialogTitle: 'Associations Configuration',
     defaultSize: { colSpan: 2, rowSpan: 1 },
     supportedDataSources: ['runtimeEntity'],
     getInitialConfig: (widget) => {
@@ -433,6 +439,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Table',
     component: TableWidgetComponent,
     configDialogComponent: TableConfigDialogComponent,
+    configDialogSize: { width: 700, height: 600, minWidth: 550, minHeight: 450 },
+    configDialogTitle: 'Table Configuration',
     defaultSize: { colSpan: 4, rowSpan: 1 },
     supportedDataSources: ['runtimeEntity', 'persistentQuery'],
     getInitialConfig: (widget) => {
@@ -564,6 +572,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Gauge',
     component: GaugeWidgetComponent,
     configDialogComponent: GaugeConfigDialogComponent,
+    configDialogSize: { width: 650, height: 600, minWidth: 500, minHeight: 450 },
+    configDialogTitle: 'Gauge Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
     supportedDataSources: ['runtimeEntity', 'persistentQuery'],
     getInitialConfig: (widget) => {
@@ -754,6 +764,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Pie Chart',
     component: PieChartWidgetComponent,
     configDialogComponent: PieChartConfigDialogComponent,
+    configDialogSize: { width: 600, height: 550, minWidth: 500, minHeight: 400 },
+    configDialogTitle: 'Pie Chart Configuration',
     defaultSize: { colSpan: 2, rowSpan: 2 },
     supportedDataSources: ['persistentQuery', 'constructionKitQuery'],
     getInitialConfig: (widget) => {
@@ -921,6 +933,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Bar Chart',
     component: BarChartWidgetComponent,
     configDialogComponent: BarChartConfigDialogComponent,
+    configDialogSize: { width: 650, height: 550, minWidth: 500, minHeight: 400 },
+    configDialogTitle: 'Bar Chart Configuration',
     defaultSize: { colSpan: 2, rowSpan: 2 },
     supportedDataSources: ['persistentQuery'],
     getInitialConfig: (widget) => {
@@ -1034,6 +1048,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Stats Grid',
     component: StatsGridWidgetComponent,
     configDialogComponent: StatsGridConfigDialogComponent,
+    configDialogSize: { width: 700, height: 600, minWidth: 600, minHeight: 450 },
+    configDialogTitle: 'Stats Grid Configuration',
     defaultSize: { colSpan: 3, rowSpan: 1 },
     supportedDataSources: ['aggregation'],
     getInitialConfig: (widget) => {
@@ -1103,6 +1119,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Status Indicator',
     component: StatusIndicatorWidgetComponent,
     configDialogComponent: StatusIndicatorConfigDialogComponent,
+    configDialogSize: { width: 500, height: 500, minWidth: 450, minHeight: 400 },
+    configDialogTitle: 'Status Indicator Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
     supportedDataSources: ['serviceCall'],
     getInitialConfig: (widget) => {
@@ -1191,6 +1209,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Service Health',
     component: ServiceHealthWidgetComponent,
     configDialogComponent: ServiceHealthConfigDialogComponent,
+    configDialogSize: { width: 500, height: 450, minWidth: 450, minHeight: 350 },
+    configDialogTitle: 'Service Health Configuration',
     defaultSize: { colSpan: 2, rowSpan: 1 },
     supportedDataSources: ['serviceCall'],
     getInitialConfig: (widget) => {
@@ -1273,6 +1293,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Widget Group',
     component: WidgetGroupComponent,
     configDialogComponent: WidgetGroupConfigDialogComponent,
+    configDialogSize: { width: 700, height: 600, minWidth: 550, minHeight: 450 },
+    configDialogTitle: 'Widget Group Configuration',
     defaultSize: { colSpan: 4, rowSpan: 2 },
     supportedDataSources: ['repeaterQuery'],
     getInitialConfig: (widget) => {
@@ -1410,6 +1432,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Markdown',
     component: MarkdownWidgetComponent,
     configDialogComponent: MarkdownConfigDialogComponent,
+    configDialogSize: { width: 800, height: 600, minWidth: 600, minHeight: 450 },
+    configDialogTitle: 'Markdown Widget Configuration',
     defaultSize: { colSpan: 2, rowSpan: 2 },
     supportedDataSources: ['static'],
     getInitialConfig: (widget) => {

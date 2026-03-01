@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
+import { WindowService } from '@progress/kendo-angular-dialog';
 import {
   WidgetRegistryService,
   WidgetRegistration,
@@ -66,8 +66,6 @@ describe('WidgetRegistryService', () => {
   class MockConfigDialog implements WidgetConfigDialog {
     initialCkTypeId?: string;
     initialRtId?: string;
-    save = new Subject<WidgetConfigResult>();
-    cancelled = new Subject<void>();
   }
 
   // Helper to create a KPI widget registration
@@ -162,7 +160,13 @@ describe('WidgetRegistryService', () => {
   }
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    const mockWindowService = jasmine.createSpyObj('WindowService', ['open']);
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: WindowService, useValue: mockWindowService }
+      ]
+    });
     service = TestBed.inject(WidgetRegistryService);
   });
 

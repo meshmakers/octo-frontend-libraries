@@ -1,5 +1,6 @@
-import { Injectable, Type, inject, Injector, EnvironmentInjector, createComponent, ApplicationRef } from '@angular/core';
+import { Injectable, Type, inject, Injector, EnvironmentInjector, ApplicationRef } from '@angular/core';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
+import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { AnyWidgetConfig, WidgetType, RuntimeEntityDataSource, DataSourceType } from '../models/meshboard.models';
 
 /**
@@ -60,17 +61,27 @@ export interface WidgetPersistenceData {
 }
 
 /**
+ * Size configuration for widget config dialogs opened via WindowService.
+ */
+export interface WidgetConfigDialogSize {
+  width: number;
+  height: number;
+  minWidth: number;
+  minHeight: number;
+}
+
+/**
  * Interface that config dialog components must implement.
- * Uses EventEmitters for save/cancelled events.
+ * Dialogs are opened via WindowService and use WindowRef.close() to return results.
  */
 export interface WidgetConfigDialog<TResult extends WidgetConfigResult = WidgetConfigResult> {
   // Initial values - set via inputs
   initialCkTypeId?: string;
   initialRtId?: string;
 
-  // Events - dialog emits these
-  save: Subject<TResult>;
-  cancelled: Subject<void>;
+  // Legacy events (optional - dialogs now use WindowRef.close() instead)
+  save?: Subject<TResult>;
+  cancelled?: Subject<void>;
 }
 
 /**
@@ -100,7 +111,13 @@ export interface WidgetRegistration<
   component: Type<unknown>;
 
   /** Config dialog component (optional - some widgets may not be configurable) */
-  configDialogComponent?: Type<WidgetConfigDialog<TResult>>;
+  configDialogComponent?: Type<unknown>;
+
+  /** Size configuration for the config dialog window */
+  configDialogSize?: WidgetConfigDialogSize;
+
+  /** Title for the config dialog window */
+  configDialogTitle?: string;
 
   /** Function to apply config result to widget config */
   applyConfigResult?: ConfigResultApplier<TWidget, TResult>;
@@ -164,6 +181,7 @@ export class WidgetRegistryService {
   private readonly injector = inject(Injector);
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly appRef = inject(ApplicationRef);
+  private readonly windowService = inject(WindowService);
 
   private readonly registry = new Map<WidgetType, WidgetRegistration>();
 
@@ -298,7 +316,7 @@ export class WidgetRegistryService {
   /**
    * Gets the config dialog component for a widget type.
    */
-  getConfigDialogComponent(type: WidgetType): Type<WidgetConfigDialog> | undefined {
+  getConfigDialogComponent(type: WidgetType): Type<unknown> | undefined {
     return this.registry.get(type)?.configDialogComponent;
   }
 
@@ -342,7 +360,7 @@ export class WidgetRegistryService {
 
   /**
    * Opens a config dialog for a widget and returns an Observable with the result.
-   * The dialog is created dynamically and destroyed after closing.
+   * Uses WindowService to create a resizable Kendo Window.
    */
   openConfigDialog(widget: AnyWidgetConfig): Observable<ConfigDialogResult> {
     return new Observable(subscriber => {
@@ -354,47 +372,46 @@ export class WidgetRegistryService {
         return;
       }
 
-      // Create the dialog component dynamically
-      const componentRef = createComponent(registration.configDialogComponent, {
-        environmentInjector: this.envInjector,
-        elementInjector: this.injector
+      const dialogSize = registration.configDialogSize ?? { width: 600, height: 500, minWidth: 500, minHeight: 400 };
+      const dialogTitle = registration.configDialogTitle ?? `${registration.label} Configuration`;
+
+      const windowRef: WindowRef = this.windowService.open({
+        content: registration.configDialogComponent,
+        title: dialogTitle,
+        width: dialogSize.width,
+        height: dialogSize.height,
+        minWidth: dialogSize.minWidth,
+        minHeight: dialogSize.minHeight,
+        resizable: true
       });
 
       // Set initial values on the dialog component
       const initialConfig = this.getInitialConfig(widget);
-      const instance = componentRef.instance as unknown as Record<string, unknown>;
-      Object.entries(initialConfig).forEach(([key, value]) => {
-        instance[key] = value;
+      const contentRef = windowRef.content as { instance?: Record<string, unknown> } | undefined;
+      if (contentRef?.instance) {
+        Object.entries(initialConfig).forEach(([key, value]) => {
+          contentRef.instance![key] = value;
+        });
+      }
+
+      const subscription = windowRef.result.subscribe({
+        next: (result) => {
+          if (result instanceof WindowCloseResult) {
+            subscriber.next({ saved: false });
+          } else if (result && typeof result === 'object') {
+            subscriber.next({ saved: true, result: result as WidgetConfigResult });
+          } else {
+            subscriber.next({ saved: false });
+          }
+          subscriber.complete();
+        },
+        error: () => {
+          subscriber.next({ saved: false });
+          subscriber.complete();
+        }
       });
 
-      // Subscribe to dialog events
-      const saveSubscription = componentRef.instance.save.subscribe((result: WidgetConfigResult) => {
-        subscriber.next({ saved: true, result });
-        subscriber.complete();
-        cleanup();
-      });
-
-      const cancelSubscription = componentRef.instance.cancelled.subscribe(() => {
-        subscriber.next({ saved: false });
-        subscriber.complete();
-        cleanup();
-      });
-
-      // Attach to DOM
-      this.appRef.attachView(componentRef.hostView);
-      const domElement = (componentRef.hostView as unknown as { rootNodes: Node[] }).rootNodes[0];
-      document.body.appendChild(domElement);
-
-      // Cleanup function
-      const cleanup = () => {
-        saveSubscription.unsubscribe();
-        cancelSubscription.unsubscribe();
-        this.appRef.detachView(componentRef.hostView);
-        componentRef.destroy();
-      };
-
-      // Return cleanup on unsubscribe
-      return cleanup;
+      return () => subscription.unsubscribe();
     });
   }
 

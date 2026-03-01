@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule, CheckBoxModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -174,7 +174,6 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     CheckBoxModule,
@@ -183,11 +182,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
     EntitySelectInputComponent
   ],
   template: `
-    <kendo-dialog
-      title="Associations Widget Configuration"
-      [minWidth]="550"
-      [width]="650"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
         @if (isLoadingInitial) {
@@ -302,7 +297,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
         }
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -311,15 +306,21 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host { display: block; height: 100%; }
+    .config-container { display: flex; flex-direction: column; height: 100%; }
+    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
+
     .config-form {
       display: flex;
       flex-direction: column;
+      flex: 1;
+      overflow-y: auto;
       gap: 16px;
-      padding: 16px 0;
+      padding: 16px;
       position: relative;
     }
 
@@ -403,6 +404,7 @@ export class AssociationsConfigDialogComponent implements OnInit {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly getCkTypeAssociationRolesGQL = inject(GetCkTypeAssociationRolesDtoGQL);
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
+  private readonly windowRef = inject(WindowRef);
 
   @Input() initialCkTypeId?: string;
   @Input() initialRtId?: string;
@@ -410,9 +412,6 @@ export class AssociationsConfigDialogComponent implements OnInit {
   @Input() initialShowOutgoing?: boolean;
   @Input() initialRoleFilter?: string[];
   @Input() initialDisplayMode?: 'count' | 'expandable';
-
-  @Output() save = new EventEmitter<AssociationsConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   selectedCkType: CkTypeSelectorItem | null = null;
   selectedEntity: RuntimeEntityItem | null = null;
@@ -637,7 +636,7 @@ export class AssociationsConfigDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.selectedCkType && this.selectedEntity) {
-      this.save.emit({
+      this.windowRef.close({
         ckTypeId: this.selectedCkType.rtCkTypeId,
         rtId: this.selectedEntity.rtId,
         showIncoming: this.showIncoming,
@@ -649,6 +648,6 @@ export class AssociationsConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 }

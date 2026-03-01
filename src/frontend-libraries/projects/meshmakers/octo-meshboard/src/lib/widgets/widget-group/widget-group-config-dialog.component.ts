@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -60,7 +60,6 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     DropDownsModule,
@@ -69,11 +68,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
     QuerySelectorComponent
   ],
   template: `
-    <kendo-dialog
-      title="Widget Group Configuration"
-      [minWidth]="550"
-      [width]="700"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
         @if (isLoadingInitial) {
@@ -382,7 +377,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
         </div>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -391,17 +386,21 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host { display: block; height: 100%; }
+    .config-container { display: flex; flex-direction: column; height: 100%; }
+    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
+
     .config-form {
       display: flex;
       flex-direction: column;
       gap: 20px;
-      padding: 16px 0;
+      padding: 16px;
       position: relative;
-      max-height: calc(80vh - 120px);
+      flex: 1;
       overflow-y: auto;
     }
 
@@ -516,6 +515,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
+  private readonly windowRef = inject(WindowRef);
 
   @ViewChild('querySelector') querySelector?: QuerySelectorComponent;
 
@@ -532,9 +532,6 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
   @Input() initialMinChildWidth?: number;
   @Input() initialGap?: number;
   @Input() initialEmptyMessage?: string;
-
-  @Output() save = new EventEmitter<WidgetGroupConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   // Data source mode
   dataSourceMode: WidgetGroupDataSourceMode = 'persistentQuery';
@@ -860,7 +857,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
       emptyMessage: this.form.emptyMessage || undefined
     };
 
-    this.save.emit(result);
+    this.windowRef.close(result);
   }
 
   private buildStaticConfig(): Record<string, unknown> {
@@ -887,6 +884,6 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 }

@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -203,7 +203,6 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     DropDownsModule,
@@ -214,11 +213,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
   ],
   providers: [ProcessDataService],
   template: `
-    <kendo-dialog
-      title="Process Diagram Configuration"
-      [minWidth]="550"
-      [width]="680"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form">
         <kendo-tabstrip [animate]="false">
@@ -528,7 +523,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
         </kendo-tabstrip>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -537,12 +532,18 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host { display: block; height: 100%; }
+    .config-container { display: flex; flex-direction: column; height: 100%; }
+    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
+
     .config-form {
-      padding: 8px 0;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
     }
 
     .tab-content {
@@ -806,6 +807,7 @@ export class ProcessConfigDialogComponent implements OnInit {
   private readonly attributeSelectorService = inject(AttributeSelectorService);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
+  private readonly windowRef = inject(WindowRef);
 
   // Initial values for editing - Diagram
   @Input() initialProcessDiagramRtId?: string;
@@ -823,9 +825,6 @@ export class ProcessConfigDialogComponent implements OnInit {
   @Input() initialBindingQueryName?: string;
   @Input() initialBindingFilters?: WidgetFilterConfig[];
   @Input() initialPropertyMappings?: DiagramPropertyMapping[];
-
-  @Output() save = new EventEmitter<ProcessConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   // State - Diagram
   isLoadingDiagrams = false;
@@ -1320,10 +1319,10 @@ export class ProcessConfigDialogComponent implements OnInit {
       }
     }
 
-    this.save.emit(result);
+    this.windowRef.close(result);
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 }

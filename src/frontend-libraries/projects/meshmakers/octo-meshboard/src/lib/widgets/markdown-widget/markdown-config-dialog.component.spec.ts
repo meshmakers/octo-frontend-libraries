@@ -1,3 +1,5 @@
+import { TestBed } from '@angular/core/testing';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { MarkdownConfigDialogComponent, MarkdownConfigResult } from './markdown-config-dialog.component';
 
 /**
@@ -7,9 +9,21 @@ import { MarkdownConfigDialogComponent, MarkdownConfigResult } from './markdown-
  */
 describe('MarkdownConfigDialogComponent', () => {
   let component: MarkdownConfigDialogComponent;
+  let mockWindowRef: jasmine.SpyObj<WindowRef>;
+  let closeSpy: jasmine.Spy;
 
   beforeEach(() => {
-    component = new MarkdownConfigDialogComponent();
+    mockWindowRef = jasmine.createSpyObj('WindowRef', ['close']);
+    closeSpy = mockWindowRef.close as jasmine.Spy;
+
+    TestBed.configureTestingModule({
+      providers: [
+        MarkdownConfigDialogComponent,
+        { provide: WindowRef, useValue: mockWindowRef }
+      ]
+    });
+
+    component = TestBed.inject(MarkdownConfigDialogComponent);
   });
 
   // ========================================================================
@@ -105,93 +119,80 @@ describe('MarkdownConfigDialogComponent', () => {
   // ========================================================================
 
   describe('save', () => {
-    it('should emit save event with current values', (done) => {
+    it('should close window with current values on save', () => {
       component.content = '# Test Content';
       component.resolveVariables = true;
       component.padding = '20px';
       component.textAlign = 'center';
 
-      component.save.subscribe((result: MarkdownConfigResult) => {
-        expect(result.content).toBe('# Test Content');
-        expect(result.resolveVariables).toBeTrue();
-        expect(result.padding).toBe('20px');
-        expect(result.textAlign).toBe('center');
-        expect(result.ckTypeId).toBe('');
-        done();
-      });
-
       component.onSave();
+
+      expect(mockWindowRef.close).toHaveBeenCalledWith(jasmine.objectContaining({
+        content: '# Test Content',
+        resolveVariables: true,
+        padding: '20px',
+        textAlign: 'center',
+        ckTypeId: ''
+      }));
     });
 
-    it('should emit undefined padding when padding is empty', (done) => {
+    it('should emit undefined padding when padding is empty', () => {
       component.content = 'Test';
       component.padding = '';
 
-      component.save.subscribe((result: MarkdownConfigResult) => {
-        expect(result.padding).toBeUndefined();
-        done();
-      });
-
       component.onSave();
+
+      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      expect(result.padding).toBeUndefined();
     });
 
-    it('should emit left textAlign', (done) => {
+    it('should emit left textAlign', () => {
       component.content = 'Test';
       component.textAlign = 'left';
 
-      component.save.subscribe((result: MarkdownConfigResult) => {
-        expect(result.textAlign).toBe('left');
-        done();
-      });
-
       component.onSave();
+
+      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      expect(result.textAlign).toBe('left');
     });
 
-    it('should emit center textAlign', (done) => {
+    it('should emit center textAlign', () => {
       component.content = 'Test';
       component.textAlign = 'center';
 
-      component.save.subscribe((result: MarkdownConfigResult) => {
-        expect(result.textAlign).toBe('center');
-        done();
-      });
-
       component.onSave();
+
+      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      expect(result.textAlign).toBe('center');
     });
 
-    it('should emit right textAlign', (done) => {
+    it('should emit right textAlign', () => {
       component.content = 'Test';
       component.textAlign = 'right';
 
-      component.save.subscribe((result: MarkdownConfigResult) => {
-        expect(result.textAlign).toBe('right');
-        done();
-      });
-
       component.onSave();
+
+      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      expect(result.textAlign).toBe('right');
     });
 
-    it('should emit resolveVariables as false when set', (done) => {
+    it('should emit resolveVariables as false when set', () => {
       component.content = 'Test';
       component.resolveVariables = false;
 
-      component.save.subscribe((result: MarkdownConfigResult) => {
-        expect(result.resolveVariables).toBeFalse();
-        done();
-      });
-
       component.onSave();
+
+      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      expect(result.resolveVariables).toBeFalse();
     });
 
-    it('should emit empty content when not set', (done) => {
+    it('should emit empty content when not set', () => {
       component.content = '';
 
-      component.save.subscribe((result: MarkdownConfigResult) => {
-        expect(result.content).toBe('');
-        done();
-      });
-
       component.onSave();
+
+      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      expect(result.content).toBe('');
     });
   });
 
@@ -200,23 +201,15 @@ describe('MarkdownConfigDialogComponent', () => {
   // ========================================================================
 
   describe('cancel', () => {
-    it('should emit cancelled event', (done) => {
-      component.cancelled.subscribe(() => {
-        expect(true).toBeTrue();
-        done();
-      });
-
+    it('should close window without result on cancel', () => {
       component.onCancel();
+      expect(mockWindowRef.close).toHaveBeenCalledWith();
     });
 
-    it('should not emit save event on cancel', () => {
-      let saveCalled = false;
-      component.save.subscribe(() => {
-        saveCalled = true;
-      });
-
+    it('should not pass any result on cancel', () => {
       component.onCancel();
-      expect(saveCalled).toBeFalse();
+      expect(mockWindowRef.close).toHaveBeenCalledTimes(1);
+      expect(closeSpy.calls.mostRecent().args.length).toBe(0);
     });
   });
 

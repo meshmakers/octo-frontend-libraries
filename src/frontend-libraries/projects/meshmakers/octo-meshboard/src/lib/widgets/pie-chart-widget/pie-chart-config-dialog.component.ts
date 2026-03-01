@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -48,7 +48,6 @@ export interface PieChartConfigResult extends WidgetConfigResult {
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     DropDownsModule,
@@ -57,11 +56,7 @@ export interface PieChartConfigResult extends WidgetConfigResult {
     QuerySelectorComponent
   ],
   template: `
-    <kendo-dialog
-      title="Pie Chart Configuration"
-      [minWidth]="500"
-      [width]="600"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
         @if (isLoadingInitial) {
@@ -244,7 +239,7 @@ export interface PieChartConfigResult extends WidgetConfigResult {
         </div>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -253,15 +248,21 @@ export interface PieChartConfigResult extends WidgetConfigResult {
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host { display: block; height: 100%; }
+    .config-container { display: flex; flex-direction: column; height: 100%; }
+    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
+
     .config-form {
       display: flex;
       flex-direction: column;
+      flex: 1;
+      overflow-y: auto;
       gap: 20px;
-      padding: 16px 0;
+      padding: 16px;
       position: relative;
     }
 
@@ -394,6 +395,7 @@ export class PieChartConfigDialogComponent implements OnInit {
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
+  private readonly windowRef = inject(WindowRef);
 
   @ViewChild('querySelector') querySelector?: QuerySelectorComponent;
 
@@ -410,9 +412,6 @@ export class PieChartConfigDialogComponent implements OnInit {
   @Input() initialCkQueryTarget?: CkQueryTarget;
   @Input() initialCkGroupBy?: string;
   @Input() initialFilters?: WidgetFilterConfig[];
-
-  @Output() save = new EventEmitter<PieChartConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   protected readonly searchIcon = searchIcon;
   protected readonly chartPieIcon = chartPieIcon;
@@ -704,10 +703,10 @@ export class PieChartConfigDialogComponent implements OnInit {
       result.ckGroupBy = this.form.ckGroupBy;
     }
 
-    this.save.emit(result);
+    this.windowRef.close(result);
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 }

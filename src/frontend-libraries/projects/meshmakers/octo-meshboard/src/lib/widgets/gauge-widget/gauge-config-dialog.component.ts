@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, ViewChild, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -68,7 +68,6 @@ interface GaugeTypeOption {
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     DropDownsModule,
@@ -78,11 +77,7 @@ interface GaugeTypeOption {
     QuerySelectorComponent
   ],
   template: `
-    <kendo-dialog
-      title="Gauge Configuration"
-      [minWidth]="500"
-      [width]="650"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
         @if (isLoadingInitial) {
@@ -470,7 +465,7 @@ interface GaugeTypeOption {
         </div>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -479,17 +474,21 @@ interface GaugeTypeOption {
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host { display: block; height: 100%; }
+    .config-container { display: flex; flex-direction: column; height: 100%; }
+    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
+
     .config-form {
       display: flex;
       flex-direction: column;
       gap: 20px;
-      padding: 16px 0;
+      padding: 16px;
       position: relative;
-      max-height: 60vh;
+      flex: 1;
       overflow-y: auto;
     }
 
@@ -674,6 +673,7 @@ export class GaugeConfigDialogComponent implements OnInit {
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
+  private readonly windowRef = inject(WindowRef);
 
   @ViewChild('ckTypeSelector') ckTypeSelectorInput?: CkTypeSelectorInputComponent;
   @ViewChild('entitySelector') entitySelectorInput?: EntitySelectInputComponent;
@@ -704,9 +704,6 @@ export class GaugeConfigDialogComponent implements OnInit {
 
   // Initial values for filters
   @Input() initialFilters?: WidgetFilterConfig[];
-
-  @Output() save = new EventEmitter<GaugeConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   // Data source type selection
   dataSourceType: GaugeDataSourceType = 'runtimeEntity';
@@ -1015,7 +1012,7 @@ export class GaugeConfigDialogComponent implements OnInit {
       : undefined;
 
     if (this.dataSourceType === 'persistentQuery' && this.selectedPersistentQuery) {
-      this.save.emit({
+      this.windowRef.close({
         dataSourceType: 'persistentQuery',
         ckTypeId: '',
         rtId: undefined,
@@ -1037,7 +1034,7 @@ export class GaugeConfigDialogComponent implements OnInit {
         filters: filtersDto
       });
     } else if (this.selectedCkType && this.selectedEntity) {
-      this.save.emit({
+      this.windowRef.close({
         dataSourceType: 'runtimeEntity',
         ckTypeId: this.selectedCkType.rtCkTypeId,
         rtId: this.selectedEntity.rtId,
@@ -1057,7 +1054,7 @@ export class GaugeConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 
   // ============================================================================

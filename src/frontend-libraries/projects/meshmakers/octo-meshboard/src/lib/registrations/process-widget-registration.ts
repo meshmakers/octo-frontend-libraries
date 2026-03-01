@@ -47,6 +47,8 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
     label: 'Process Diagram',
     component: ProcessWidgetComponent,
     configDialogComponent: ProcessConfigDialogComponent,
+    configDialogSize: { width: 680, height: 650, minWidth: 550, minHeight: 500 },
+    configDialogTitle: 'Process Diagram Configuration',
     defaultSize: { colSpan: 4, rowSpan: 3 },
     supportedDataSources: ['static'],
 

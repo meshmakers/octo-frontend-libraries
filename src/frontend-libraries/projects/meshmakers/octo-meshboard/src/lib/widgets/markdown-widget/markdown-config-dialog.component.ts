@@ -1,11 +1,10 @@
-import { Component, Input, Output, OnInit, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { MarkdownModule } from 'ngx-markdown';
-import { Subject } from 'rxjs';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MarkdownTextAlign } from '../../models/meshboard.models';
 
@@ -25,18 +24,12 @@ export interface MarkdownConfigResult extends WidgetConfigResult {
   imports: [
     CommonModule,
     FormsModule,
-    DialogModule,
     ButtonsModule,
     InputsModule,
     MarkdownModule
   ],
   template: `
-    <kendo-dialog
-      title="Markdown Widget Configuration"
-      [minWidth]="600"
-      [width]="800"
-      [height]="600"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form">
         <!-- Preview Toggle -->
@@ -129,14 +122,16 @@ Variables: $variableName or \${variableName}">
         </div>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button kendoButton themeColor="primary" (click)="onSave()">Save</button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
     :host {
+      display: block;
+      height: 100%;
       --mm-prose-editor-bg: #f5f5f5;
       --mm-prose-editor-text: #333333;
       --mm-prose-editor-placeholder: #999999;
@@ -148,11 +143,27 @@ Variables: $variableName or \${variableName}">
       --mm-prose-hint-text: #666666;
     }
 
+    .config-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 16px;
+      border-top: 1px solid var(--kendo-color-border, #dee2e6);
+    }
+
     .config-form {
       display: flex;
       flex-direction: column;
       gap: 16px;
       height: 100%;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .mode-toggle {
@@ -286,13 +297,12 @@ Variables: $variableName or \${variableName}">
   `]
 })
 export class MarkdownConfigDialogComponent implements OnInit {
+  private readonly windowRef = inject(WindowRef);
+
   @Input() initialContent?: string;
   @Input() initialResolveVariables?: boolean;
   @Input() initialPadding?: string;
   @Input() initialTextAlign?: MarkdownTextAlign;
-
-  @Output() save = new Subject<MarkdownConfigResult>();
-  @Output() cancelled = new Subject<void>();
 
   readonly showPreview = signal(false);
 
@@ -309,7 +319,7 @@ export class MarkdownConfigDialogComponent implements OnInit {
   }
 
   onSave(): void {
-    this.save.next({
+    this.windowRef.close({
       ckTypeId: '',  // Not used for static content
       content: this.content,
       resolveVariables: this.resolveVariables,
@@ -319,6 +329,6 @@ export class MarkdownConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.next();
+    this.windowRef.close();
   }
 }

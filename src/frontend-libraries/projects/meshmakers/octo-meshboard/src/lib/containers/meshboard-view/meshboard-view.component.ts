@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, signal, computed, ViewContainerRef, Type, ComponentRef, OnDestroy, effect } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { TileLayoutModule, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { DialogService, DialogModule } from '@progress/kendo-angular-dialog';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import {
   gearIcon,
@@ -21,7 +21,7 @@ import {
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { EditModeStateService } from '../../services/edit-mode-state.service';
 import { WidgetFactoryService } from '../../services/widget-factory.service';
-import { WidgetRegistryService, WidgetConfigDialog, WidgetConfigResult } from '../../services/widget-registry.service';
+import { WidgetRegistryService } from '../../services/widget-registry.service';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection } from '../../models/meshboard.models';
@@ -69,7 +69,6 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private readonly widgetRegistry = inject(WidgetRegistryService);
   private readonly dataService = inject(MeshBoardDataService);
   private readonly dialogService = inject(DialogService);
-  private readonly viewContainerRef = inject(ViewContainerRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   protected readonly gridService = inject(MeshBoardGridService);
@@ -93,8 +92,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected showEditWidgetDialog = false;
   protected editingWidget: AnyWidgetConfig | null = null;
 
-  // Config dialog state - using ComponentRef to create dialog dynamically
-  private configDialogRef: ComponentRef<WidgetConfigDialog> | null = null;
+  // Config dialog state
+  private configDialogSubscription: Subscription | null = null;
 
   // State signals
   protected readonly config = this.stateService.meshBoardConfig;
@@ -554,8 +553,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   /**
    * Opens the configuration dialog for a widget.
-   * Creates the dialog component dynamically using ViewContainerRef to avoid
-   * double-wrapping with DialogService (config dialogs have their own kendo-dialog).
+   * Uses the WidgetRegistryService to open a resizable Kendo Window.
    */
   openWidgetConfig(widget: AnyWidgetConfig): void {
     const registration = this.widgetRegistry.getRegistration(widget.type);
@@ -567,48 +565,26 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     // Close any existing config dialog
     this.closeConfigDialog();
 
-    const initialConfig = registration.getInitialConfig?.(widget) ?? {};
+    this.configDialogSubscription = this.widgetRegistry.openConfigDialog(widget).subscribe(dialogResult => {
+      if (dialogResult.saved && dialogResult.result && registration.applyConfigResult) {
+        const updatedWidget = registration.applyConfigResult(widget, dialogResult.result);
+        this.stateService.updateWidget(widget.id, () => updatedWidget);
 
-    // Create the component dynamically - it will render its own kendo-dialog
-    this.configDialogRef = this.viewContainerRef.createComponent(registration.configDialogComponent);
-
-    // Set inputs using the new setInput API
-    Object.entries(initialConfig).forEach(([key, value]) => {
-      this.configDialogRef!.setInput(key, value);
-    });
-
-    // Subscribe to outputs
-    const instance = this.configDialogRef.instance;
-
-    if (instance.save) {
-      instance.save.subscribe((result: WidgetConfigResult) => {
-        if (registration.applyConfigResult) {
-          const updatedWidget = registration.applyConfigResult(widget, result);
-          this.stateService.updateWidget(widget.id, () => updatedWidget);
-
-          // Enter edit mode if not already in it
-          if (!this.isEditMode()) {
-            this.editModeService.enterEditMode(this.stateService.getConfig());
-          }
+        // Enter edit mode if not already in it
+        if (!this.isEditMode()) {
+          this.editModeService.enterEditMode(this.stateService.getConfig());
         }
-        this.closeConfigDialog();
-      });
-    }
-
-    if (instance.cancelled) {
-      instance.cancelled.subscribe(() => {
-        this.closeConfigDialog();
-      });
-    }
+      }
+    });
   }
 
   /**
    * Closes the configuration dialog if open.
    */
   private closeConfigDialog(): void {
-    if (this.configDialogRef) {
-      this.configDialogRef.destroy();
-      this.configDialogRef = null;
+    if (this.configDialogSubscription) {
+      this.configDialogSubscription.unsubscribe();
+      this.configDialogSubscription = null;
     }
   }
 
