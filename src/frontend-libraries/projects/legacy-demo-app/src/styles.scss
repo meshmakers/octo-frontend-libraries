@@ -26,7 +26,7 @@
     background-color: mat.get-theme-color($theme, error);
 
     span {
-      color:black;
+      color: white;
     }
   }
 
@@ -36,15 +36,11 @@
 }
 
 html {
-  //  // Apply the light theme by default
-  //  @include mat.core-theme(octo-theme.$dark-theme);
-  @include mat.all-component-themes(octo-theme.$dark-theme);
-  //  @include mat.all-component-colors(octo-theme.$dark-theme);
-  @include mat.system-level-colors(octo-theme.$dark-theme);
-  @include mat.system-level-typography(octo-theme.$dark-theme);
+  @include mat.all-component-themes(octo-theme.$light-theme);
+  @include mat.system-level-colors(octo-theme.$light-theme);
+  @include mat.system-level-typography(octo-theme.$light-theme);
 
-
-  @include theme(octo-theme.$dark-theme);
+  @include theme(octo-theme.$light-theme);
 }
 
 
@@ -53,16 +49,8 @@ html, body {
   height: 100%;
   box-sizing: border-box;
   margin: 0;
-  background-image: url("./assets/MM-Logo-Schrift-MNT.svg");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 50%;
 
   --bs-body-bg: var(--sys-background);
-  --bs-body-color: #4d9685;
-  --bs-link-color: #4d9685;
-  --bs-link-color-rgb: 77, 150, 133;
-  --bs-link-hover-color-rgb: 155, 165, 204;
 }
 
 body {
@@ -84,10 +72,6 @@ body {
 
     main {
       flex: 1;
-      background-image: url("./assets/OctoMesh-BG-Web-MM.svg");
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: cover;
     }
 
     app-footer {
@@ -99,4 +83,11 @@ body {
   display: flex;
   flex-direction: row;
   justify-content: center;
+  align-items: center;
+  height: 100vh;
+
+  .mm-loading {
+    width: 80px;
+    height: 80px;
+  }
 }

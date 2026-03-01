@@ -6,6 +6,10 @@ module.exports = tseslint.config(
   ...rootConfig,
   {
     files: ["**/*.ts"],
+    ignores: ["**/src/app/graphQL/**"],
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+    },
     rules: {
       // Legacy app uses NgModule pattern, not standalone components
       "@angular-eslint/prefer-standalone": "off",

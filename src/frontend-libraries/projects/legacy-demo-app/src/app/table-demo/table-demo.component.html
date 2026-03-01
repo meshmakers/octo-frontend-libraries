@@ -1,55 +1,38 @@
 <div class="table-demo-container">
-  <h1>Generic Table simple</h1>
-  <!-- when making changes to lib components, you need to rebuild the lib and the app to see the changes, using "Invoke-BuildFrontend" command -->
-  
-  <mm-table-simple [sortColumn]="'name'" [items]="[{ name: 'test' }]" [columns]="[{ key: 'name', header: 'Name' }]"></mm-table-simple>
-  
-  <div class="divider"></div>
-  <h1>Octo Table simple</h1>
-  
-  <!--simple example-->
-  <mm-octo-table [dataSource]="mmOctoTableDataSource" [columns]="['id', 'name']" [currentId]="'ckEnumId'"> > </mm-octo-table>
-  
-  <div class="divider"></div>
-  <h1>Octo Table advanced</h1>
-  
-  <p>Advanced example with special item access</p>
+  <h1>Customer Table</h1>
+  <p>Loads <code>OctoSdkDemo/Customer</code> entities from the <code>meshtest</code> tenant via GraphQL with sorting, pagination, search, and action columns.</p>
+
+  <span class="last-action" *ngIf="lastAction">{{ lastAction }}</span>
+
   <mm-octo-table
-    [dataSource]="mmOctoTableAdvancedDataSource"
-    [actionColumns]="[
-      { actionId: 'edit', displayText: 'Edit', iconName: 'edit' },
-      { actionId: 'delete', displayText: 'Delete', iconName: 'delete' }
-    ]"
-    [columns]="['ckTypeId', { dataKey: 'baseType.ckTypeId', displayName: 'FickiFacki' }, 'isAbstract', 'isFinal']"
-    [currentId]="'id'"
-  ></mm-octo-table>
-  
-  <div class="divider"></div>
-  <h1>Octo Table with Virtual Columns</h1>
-  
-  <mm-octo-table
-    [dataSource]="mmOctoTableVirtualDataSource"
+    [dataSource]="customerDataSource"
     [columns]="[
-      { dataKey: 'customerDisplay', displayName: 'Customer', templateName: 'customerDisplay' },
-      { dataKey: 'status', displayName: 'Status', templateName: 'statusDisplay' }
+      { dataKey: 'contact.firstName', displayName: 'First Name' },
+      { dataKey: 'contact.lastName', displayName: 'Last Name' },
+      { dataKey: 'contact.companyName', displayName: 'Company' },
+      { dataKey: 'customerStatus', displayName: 'Status' },
+      { dataKey: 'contact.address.cityTown', displayName: 'City' },
+      { dataKey: 'contact.address.nationalCode', displayName: 'Country' }
     ]"
-    [currentId]="'id'"
-  >
-    <ng-template #customerDisplay let-element>
-      @if (element.companyName) {
-      {{ element.companyName }}
-      } @else {
-      {{ element.customerFirstName }} {{ element.customerLastName }}
-      }
-    </ng-template>
-    <ng-template #statusDisplay let-element>
-      @switch (element.status) { @case ('ACTIVE') {
-      <mat-icon class="material-symbols-outlined" style="color: green">check_circle</mat-icon>
-      } @case ('PENDING') {
-      <mat-icon class="material-symbols-outlined" style="color: orange">pending</mat-icon>
-      } @case ('INACTIVE') {
-      <mat-icon class="material-symbols-outlined" style="color: red">cancel</mat-icon>
-      } }
-    </ng-template>
-  </mm-octo-table>
+    [actionColumns]="[
+      { actionId: 'view', displayText: 'View', iconName: 'visibility' }
+    ]"
+    [searchFilterColumns]="['contact.firstName', 'contact.lastName', 'contact.companyName', 'contact.address.cityTown']"
+    [currentId]="'rtId'"
+    [defaultSortColumn]="'contact.lastName'"
+    [selectedPageSize]="10"
+    [pageSizeOptions]="[5, 10, 20]"
+    (rowClicked)="onRowClicked($event)"
+    (actionColumnClick)="onActionColumnClick($event)"
+  ></mm-octo-table>
+
+  <div class="selected-row" *ngIf="selectedRow?.contact">
+    <h3>Selected Customer</h3>
+    <p>
+      <strong>{{ selectedRow?.contact?.firstName }} {{ selectedRow?.contact?.lastName }}</strong>
+      <span *ngIf="selectedRow?.contact?.companyName"> &mdash; {{ selectedRow?.contact?.companyName }}</span>
+    </p>
+    <p>{{ selectedRow?.contact?.address?.street }}, {{ selectedRow?.contact?.address?.zipcode }} {{ selectedRow?.contact?.address?.cityTown }}, {{ selectedRow?.contact?.address?.nationalCode }}</p>
+    <p>Status: {{ selectedRow?.customerStatus }} | RT ID: {{ selectedRow?.rtId }}</p>
+  </div>
 </div>

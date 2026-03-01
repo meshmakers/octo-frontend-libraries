@@ -1,0 +1,34 @@
+<div class="demo-container">
+  <h1>Progress Windows</h1>
+  <p class="subtitle">Demonstrates <code>ProgressWindowService</code> with determinate and indeterminate modes</p>
+
+  <h2>Determinate Progress (Linear Bar)</h2>
+  <p>Shows a progress bar from 0 to 100% with status text updates.</p>
+  <div class="button-row">
+    <button mat-flat-button color="primary" (click)="showDeterminate()">
+      <mat-icon class="material-symbols-outlined">trending_up</mat-icon>
+      Start Progress
+    </button>
+    <button mat-stroked-button (click)="showDeterminateWithCancel()">
+      <mat-icon class="material-symbols-outlined">cancel</mat-icon>
+      With Cancel
+    </button>
+    <span class="status-text" *ngIf="determinateStatus">{{ determinateStatus }}</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>Indeterminate Progress (Animated Bar)</h2>
+  <p>Shows an animated progress bar with status text for operations without known duration.</p>
+  <div class="button-row">
+    <button mat-flat-button color="primary" (click)="showIndeterminate()">
+      <mat-icon class="material-symbols-outlined">sync</mat-icon>
+      Start Progress
+    </button>
+    <button mat-stroked-button (click)="showIndeterminateWithCancel()">
+      <mat-icon class="material-symbols-outlined">cancel</mat-icon>
+      With Cancel
+    </button>
+    <span class="status-text" *ngIf="indeterminateStatus">{{ indeterminateStatus }}</span>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+{
+  "/tenants": {
+    "target": "https://localhost:5001",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/.well-known": {
+    "target": "https://localhost:5003",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/connect": {
+    "target": "https://localhost:5003",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

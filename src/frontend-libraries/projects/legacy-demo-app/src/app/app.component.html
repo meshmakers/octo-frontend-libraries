@@ -1,3 +1,40 @@
-<div>
-  <router-outlet></router-outlet>
-</div>
+<mat-toolbar color="primary" class="app-toolbar">
+  <button mat-icon-button (click)="sidenav.toggle()">
+    <mat-icon class="material-symbols-outlined">menu</mat-icon>
+  </button>
+  <span class="toolbar-title">{{ title }}</span>
+  <span class="toolbar-spacer"></span>
+  <mm-breadcrumb></mm-breadcrumb>
+  <span class="toolbar-spacer"></span>
+  <ng-container *ngIf="authService.isAuthenticated(); else loginTpl">
+    <span class="user-name">{{ authService.user()?.name }}</span>
+    <button mat-icon-button (click)="onLogout()">
+      <mat-icon class="material-symbols-outlined">logout</mat-icon>
+    </button>
+  </ng-container>
+  <ng-template #loginTpl>
+    <button mat-stroked-button (click)="onLogin()" *ngIf="!authService.sessionLoading()">
+      <mat-icon class="material-symbols-outlined">login</mat-icon>
+      Login
+    </button>
+  </ng-template>
+</mat-toolbar>
+
+<mat-sidenav-container>
+  <mat-sidenav #sidenav mode="side" opened class="app-sidenav">
+    <mat-nav-list>
+      <a mat-list-item
+         *ngFor="let item of navItems"
+         (click)="navigateTo(item.path)"
+         [class.active]="isActive(item.path)">
+        <mat-icon matListItemIcon class="material-symbols-outlined">{{ item.icon }}</mat-icon>
+        <span matListItemTitle>{{ item.label }}</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="app-content">
+    <mm-notification-bar></mm-notification-bar>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

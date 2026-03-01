@@ -1,22 +1,38 @@
 <div class="file-upload-demo-container">
   <h1>File Upload Demo</h1>
-  
+  <p class="subtitle">Demonstrates file selection with type filtering for ZIP, JSON, and YAML formats.</p>
+
+  <input #fileInput type="file" [accept]="acceptTypes" (change)="onFileSelected($event)" hidden>
+
   <div class="upload-section">
-    <p>Click the button below to upload a model file. Supported formats include ZIP, JSON, and YAML.</p>
-    
-    <button mat-flat-button color="primary" (click)="onFileUpload()">
+    <button mat-flat-button color="primary" (click)="openFileDialog()">
       <mat-icon class="material-symbols-outlined">upload_file</mat-icon>
-      Upload File
+      Select File
     </button>
+
+    <div class="file-info" *ngIf="selectedFile">
+      <mat-card>
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="material-symbols-outlined">description</mat-icon>
+          <mat-card-title>{{ selectedFile.name }}</mat-card-title>
+          <mat-card-subtitle>{{ formatSize(selectedFile.size) }} &mdash; {{ selectedFile.type || 'unknown type' }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-actions>
+          <button mat-flat-button color="primary" (click)="simulateUpload()">
+            <mat-icon class="material-symbols-outlined">cloud_upload</mat-icon>
+            Upload
+          </button>
+          <button mat-stroked-button (click)="clearFile()">
+            <mat-icon class="material-symbols-outlined">clear</mat-icon>
+            Clear
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
   </div>
 
-  <div class="info-section">
-    <h2>Upload Features:</h2>
-    <ul>
-      <li>File type filtering (ZIP, JSON, YAML)</li>
-      <li>Upload progress feedback</li>
-      <li>Error handling and display</li>
-      <li>Tenant-based file uploads</li>
-    </ul>
+  <div class="info-box">
+    <h3>Accepted Formats</h3>
+    <p>ZIP (<code>.zip</code>), JSON (<code>.json</code>), YAML (<code>.yaml</code>, <code>.yml</code>)</p>
   </div>
 </div>

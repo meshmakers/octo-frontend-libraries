@@ -18,23 +18,51 @@ interface DemoRoute {
 export class HomeComponent {
   demoRoutes: DemoRoute[] = [
     {
+      path: '/confirmation-demo',
+      title: 'Confirmation Dialogs',
+      description: 'Four dialog types: YesNo, YesNoCancel, OkCancel, and Ok using ConfirmationService.',
+      icon: 'help_outline',
+      color: '#9C27B0'
+    },
+    {
+      path: '/progress-demo',
+      title: 'Progress Windows',
+      description: 'Determinate and indeterminate progress dialogs with cancel support via ProgressWindowService.',
+      icon: 'hourglass_empty',
+      color: '#FF9800'
+    },
+    {
+      path: '/details-demo',
+      title: 'Details & Validation',
+      description: 'AbstractDetailsComponent with CommonValidators: phone, httpUri, ensureSameValue, conditionalRequired.',
+      icon: 'assignment',
+      color: '#009688'
+    },
+    {
       path: '/table-demo',
-      title: 'Table Demonstrations',
-      description: 'Explore various table implementations including simple tables, advanced tables with actions, and virtual columns.',
+      title: 'Data Table',
+      description: 'MmOctoTableComponent with sorting, pagination, action columns, virtual columns, and search filtering.',
       icon: 'table_chart',
       color: '#2196F3'
     },
     {
+      path: '/entity-select-demo',
+      title: 'Entity Select',
+      description: 'MmEntitySelectInputComponent with OctoSdkDemo/Customer entities via GraphQL.',
+      icon: 'search',
+      color: '#3F51B5'
+    },
+    {
       path: '/error-demo',
-      title: 'Error Message Dialogs',
-      description: 'Test error notification dialogs with different message lengths, formats, and copy-to-clipboard functionality.',
+      title: 'Error Notifications',
+      description: 'MmNotificationBarComponent showing error snackbars via MessageService with various message types.',
       icon: 'error_outline',
       color: '#F44336'
     },
     {
       path: '/file-upload-demo',
       title: 'File Upload',
-      description: 'Upload files with support for ZIP, JSON, and YAML formats. Includes progress feedback and error handling.',
+      description: 'File upload dialog with type filtering for ZIP, JSON, and YAML formats.',
       icon: 'upload_file',
       color: '#4CAF50'
     },

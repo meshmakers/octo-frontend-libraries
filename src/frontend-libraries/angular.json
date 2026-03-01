@@ -545,7 +545,8 @@
           "options": {
             "ssl": true,
             "sslCert": "localhost.crt",
-            "sslKey": "localhost.key"
+            "sslKey": "localhost.key",
+            "proxyConfig": "projects/legacy-demo-app/proxy.conf.json"
           },
           "configurations": {
             "production": {

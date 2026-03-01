@@ -1,34 +1,30 @@
 .home-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 0;
 
   .hero-section {
     text-align: center;
-    padding: 60px 20px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    color: white;
+    padding: 48px 20px;
+    background: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 
     h1 {
-      font-size: 48px;
+      font-size: 36px;
       font-weight: 700;
       margin: 0;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .subtitle {
-      font-size: 20px;
-      margin-top: 16px;
-      opacity: 0.95;
+      font-size: 16px;
+      margin-top: 12px;
+      opacity: 0.7;
     }
   }
 
   .demo-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 24px;
-    padding: 40px;
+    padding: 32px;
     max-width: 1400px;
     margin: 0 auto;
 
@@ -36,12 +32,11 @@
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border-left: 4px solid;
-      background: white;
       overflow: hidden;
 
       &:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 
         .demo-icon {
           transform: rotate(10deg) scale(1.1);
@@ -59,6 +54,7 @@
           justify-content: center;
           color: white;
           transition: transform 0.3s ease;
+          border-radius: 50%;
 
           mat-icon {
             font-size: 28px;
@@ -68,7 +64,7 @@
         }
 
         mat-card-title {
-          font-size: 20px;
+          font-size: 18px;
           font-weight: 500;
         }
       }
@@ -77,9 +73,9 @@
         padding-top: 0;
 
         p {
-          color: #666;
+          opacity: 0.7;
           line-height: 1.6;
-          min-height: 60px;
+          min-height: 48px;
         }
       }
 
@@ -100,28 +96,51 @@
     }
   }
 
+  .prereq-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 32px;
+    padding: 16px;
+    border-radius: 8px;
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+
+    .prereq-icon {
+      color: #1976d2;
+      flex-shrink: 0;
+    }
+
+    code {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.06);
+      font-size: 13px;
+    }
+  }
+
   .info-section {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 40px;
-    margin: 40px;
-    border-radius: 12px;
-    max-width: 1000px;
-    margin-left: auto;
-    margin-right: auto;
+    padding: 32px;
+    margin: 0 32px 32px;
+    border-radius: 8px;
     text-align: center;
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.12);
 
     h2 {
-      color: #333;
-      font-size: 28px;
-      margin-bottom: 20px;
+      font-size: 24px;
+      margin-bottom: 16px;
     }
 
     p {
-      color: #666;
-      font-size: 16px;
+      opacity: 0.7;
+      font-size: 15px;
       line-height: 1.8;
       max-width: 700px;
-      margin: 0 auto 24px;
+      margin: 0 auto 20px;
     }
 
     .tech-stack {
@@ -131,13 +150,12 @@
       flex-wrap: wrap;
 
       .tech-badge {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 14px;
+        padding: 6px 14px;
+        border-radius: 16px;
+        font-size: 13px;
         font-weight: 500;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        background: rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.12);
       }
     }
   }
@@ -147,17 +165,17 @@
   .home-container {
     .hero-section {
       h1 {
-        font-size: 32px;
+        font-size: 28px;
       }
 
       .subtitle {
-        font-size: 16px;
+        font-size: 14px;
       }
     }
 
     .demo-grid {
       grid-template-columns: 1fr;
-      padding: 20px;
+      padding: 16px;
     }
   }
 }
