@@ -9,6 +9,7 @@ import {PagedResultDto} from '@meshmakers/shared-services';
 import {ClientDto} from '../shared/clientDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
+import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 
 @Injectable({
   providedIn: 'root'
@@ -16,12 +17,22 @@ import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 export class IdentityService {
   private readonly httpClient = inject(HttpClient);
   private readonly configurationService = inject(CONFIGURATION_SERVICE);
+  private readonly tenantIdProvider: TenantIdProvider | null = inject(TENANT_ID_PROVIDER, {optional: true});
 
+  private async getApiBaseUrl(): Promise<string | null> {
+    if (!this.configurationService.config?.issuer) return null;
+    let tenantId = 'octosystem';
+    if (this.tenantIdProvider) {
+      tenantId = await this.tenantIdProvider() ?? 'octosystem';
+    }
+    return `${this.configurationService.config.issuer}${tenantId}/v1/`;
+  }
 
   async userDiagnostics(): Promise<DiagnosticsModel | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       return await firstValueFrom(this.httpClient.get<DiagnosticsModel>(
-        this.configurationService.config.issuer + 'system/v1/Diagnostics'
+        baseUrl + 'Diagnostics'
       ));
     }
     return null;
@@ -30,9 +41,10 @@ export class IdentityService {
   async getUsers(skip: number, take: number): Promise<PagedResultDto<UserDto> | null> {
     const params = new HttpParams().set('skip', '' + skip.toString()).set('take', '' + take.toString());
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<PagedResultDto<UserDto> | null>(this.configurationService.config.issuer + 'system/v1/users/getPaged', {
+        this.httpClient.get<PagedResultDto<UserDto> | null>(baseUrl + 'users/getPaged', {
           params,
           observe: 'response'
         })
@@ -43,9 +55,10 @@ export class IdentityService {
   }
 
   async getUserDetails(userName: string): Promise<UserDto | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<UserDto | null>(this.configurationService.config.issuer + `system/v1/users/${userName}`, {
+        this.httpClient.get<UserDto | null>(baseUrl + `users/${userName}`, {
           observe: 'response'
         })
       );
@@ -55,9 +68,10 @@ export class IdentityService {
   }
 
   async createUser(userDto: UserDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.post<any>(this.configurationService.config.issuer + 'system/v1/users', userDto, {
+        this.httpClient.post<any>(baseUrl + 'users', userDto, {
           observe: 'response'
         })
       );
@@ -65,9 +79,10 @@ export class IdentityService {
   }
 
   async updateUser(userName: string, userDto: UserDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/users/${userName}`, userDto, {
+        this.httpClient.put<any>(baseUrl + `users/${userName}`, userDto, {
           observe: 'response'
         })
       );
@@ -75,9 +90,10 @@ export class IdentityService {
   }
 
   async deleteUser(userName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(this.configurationService.config.issuer + `system/v1/users/${userName}`, {
+        this.httpClient.delete<any>(baseUrl + `users/${userName}`, {
           observe: 'response'
         })
       );
@@ -85,9 +101,10 @@ export class IdentityService {
   }
 
   async getUserRoles(userName: string): Promise<RoleDto[] | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<RoleDto[] | null>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles`, {
+        this.httpClient.get<RoleDto[] | null>(baseUrl + `users/${userName}/roles`, {
           observe: 'response'
         })
       );
@@ -97,11 +114,12 @@ export class IdentityService {
   }
 
   async updateUserRoles(userName: string, roles: RoleDto[]): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const roleIds = roles.map((role) => role.id);
 
       await firstValueFrom(
-        this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles`, roleIds, {
+        this.httpClient.put<any>(baseUrl + `users/${userName}/roles`, roleIds, {
           observe: 'response'
         })
       );
@@ -109,9 +127,10 @@ export class IdentityService {
   }
 
   async addUserToRole(userName: string, roleName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles/${roleName}`, null, {
+        this.httpClient.put<any>(baseUrl + `users/${userName}/roles/${roleName}`, null, {
           observe: 'response'
         })
       );
@@ -119,9 +138,10 @@ export class IdentityService {
   }
 
   async removeRoleFromUser(userName: string, roleName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles/${roleName}`, {
+        this.httpClient.delete<any>(baseUrl + `users/${userName}/roles/${roleName}`, {
           observe: 'response'
         })
       );
@@ -129,11 +149,12 @@ export class IdentityService {
   }
 
   async mergeUsers(targetUserName: string, sourceUserName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const request: MergeUsersRequestDto = { sourceUserName };
       await firstValueFrom(
         this.httpClient.post<void>(
-          this.configurationService.config.issuer + `system/v1/users/${encodeURIComponent(targetUserName)}/merge`,
+          baseUrl + `users/${encodeURIComponent(targetUserName)}/merge`,
           request,
           { observe: 'response' }
         )
@@ -144,9 +165,10 @@ export class IdentityService {
   async resetPassword(userName: string, password: string): Promise<any> {
     const params = new HttpParams().set('userName', userName).set('password', password);
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.post<any>(this.configurationService.config.issuer + 'system/v1/users/ResetPassword', null, {
+        this.httpClient.post<any>(baseUrl + 'users/ResetPassword', null, {
           params,
           observe: 'response'
         })
@@ -159,9 +181,10 @@ export class IdentityService {
   async getClients(skip: number, take: number): Promise<PagedResultDto<ClientDto> | null> {
     const params = new HttpParams().set('skip', '' + skip.toString()).set('take', '' + take.toString());
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<PagedResultDto<ClientDto> | null>(this.configurationService.config.issuer + 'system/v1/clients/getPaged', {
+        this.httpClient.get<PagedResultDto<ClientDto> | null>(baseUrl + 'clients/getPaged', {
           params,
           observe: 'response'
         })
@@ -172,9 +195,10 @@ export class IdentityService {
   }
 
   async getClientDetails(clientId: string): Promise<ClientDto | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<ClientDto>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, {
+        this.httpClient.get<ClientDto>(baseUrl + `clients/${clientId}`, {
           observe: 'response'
         })
       );
@@ -184,9 +208,10 @@ export class IdentityService {
   }
 
   async createClient(clientDto: ClientDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.post<any>(this.configurationService.config.issuer + 'system/v1/clients', clientDto, {
+        this.httpClient.post<any>(baseUrl + 'clients', clientDto, {
           observe: 'response'
         })
       );
@@ -194,16 +219,18 @@ export class IdentityService {
   }
 
   async updateClient(clientId: string, clientDto: ClientDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
-      await firstValueFrom(this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, clientDto, {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(this.httpClient.put<any>(baseUrl + `clients/${clientId}`, clientDto, {
         observe: 'response'
       }));
     }
   }
 
- async deleteClient(clientId: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
-      await firstValueFrom(this.httpClient.delete<any>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, {
+  async deleteClient(clientId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(this.httpClient.delete<any>(baseUrl + `clients/${clientId}`, {
         observe: 'response'
       }));
     }
@@ -212,9 +239,10 @@ export class IdentityService {
   async generatePassword(): Promise<GeneratedPasswordDto | null> {
     const params = new HttpParams();
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const r = await firstValueFrom(this.httpClient
-        .get<GeneratedPasswordDto>(this.configurationService.config.issuer + 'system/v1/tools/generatePassword', {
+        .get<GeneratedPasswordDto>(baseUrl + 'tools/generatePassword', {
           params,
           observe: 'response'
         }));
@@ -231,9 +259,10 @@ export class IdentityService {
   async getRoles(skip: number, take: number): Promise<PagedResultDto<RoleDto> | null> {
     const params = new HttpParams().set('skip', '' + skip.toString()).set('take', '' + take.toString());
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<PagedResultDto<RoleDto> | null>(this.configurationService.config.issuer + 'system/v1/roles/getPaged', {
+        this.httpClient.get<PagedResultDto<RoleDto> | null>(baseUrl + 'roles/getPaged', {
           params,
           observe: 'response'
         })
@@ -244,9 +273,10 @@ export class IdentityService {
   }
 
   async getRoleDetails(roleName: string): Promise<RoleDto | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<RoleDto | null>(this.configurationService.config.issuer + `system/v1/roles/names/${roleName}`, {
+        this.httpClient.get<RoleDto | null>(baseUrl + `roles/names/${roleName}`, {
           observe: 'response'
         })
       );
@@ -256,9 +286,10 @@ export class IdentityService {
   }
 
   async createRole(roleDto: RoleDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.post<any>(this.configurationService.config.issuer + 'system/v1/roles', roleDto, {
+        this.httpClient.post<any>(baseUrl + 'roles', roleDto, {
           observe: 'response'
         })
       );
@@ -266,9 +297,10 @@ export class IdentityService {
   }
 
   async updateRole(roleName: string, roleDto: RoleDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(this.configurationService.config.issuer + `system/v1/roles/${roleName}`, roleDto, {
+        this.httpClient.put<any>(baseUrl + `roles/${roleName}`, roleDto, {
           observe: 'response'
         })
       );
@@ -276,9 +308,10 @@ export class IdentityService {
   }
 
   async deleteRole(roleName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(this.configurationService.config.issuer + `system/v1/roles/${roleName}`, {
+        this.httpClient.delete<any>(baseUrl + `roles/${roleName}`, {
           observe: 'response'
         })
       );

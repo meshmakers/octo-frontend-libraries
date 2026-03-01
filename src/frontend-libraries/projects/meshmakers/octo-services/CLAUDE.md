@@ -127,7 +127,7 @@ Manages tenants and model import/export.
 
 ### IdentityService
 
-Manages users, roles, and OAuth clients.
+Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVIDER` (injected as `optional: true`) to resolve the current tenant ID for API requests. Falls back to `'octosystem'` when the provider is not available or returns `null`. API URLs follow the pattern `{issuer}{tenantId}/v1/...`.
 
 **User Management:**
 

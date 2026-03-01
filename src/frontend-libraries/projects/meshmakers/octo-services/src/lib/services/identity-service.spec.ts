@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { IdentityService } from './identity-service';
 import { CONFIGURATION_SERVICE } from './configuration.service';
+import { TENANT_ID_PROVIDER } from './tenant-provider';
 import { AddInConfiguration } from '../shared/addInConfiguration';
 import { UserDto } from '../shared/userDto';
 import { RoleDto } from '../shared/roleDto';
@@ -17,6 +18,7 @@ describe('IdentityService', () => {
   let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: jasmine.Spy };
 
   const baseUrl = 'https://identity.example.com/';
+  const apiPrefix = `${baseUrl}octosystem/v1/`;
 
   const mockConfig: AddInConfiguration = {
     assetServices: 'https://asset.example.com/',
@@ -60,6 +62,11 @@ describe('IdentityService', () => {
     isOfflineAccessEnabled: true
   };
 
+  /** Flush microtask queue so the async getApiBaseUrl() resolves before expectOne. */
+  async function tick(): Promise<void> {
+    await Promise.resolve();
+  }
+
   beforeEach(() => {
     mockConfigService = {
       config: mockConfig,
@@ -98,8 +105,9 @@ describe('IdentityService', () => {
         };
 
         const resultPromise = service.getUsers(0, 10);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/users/getPaged?skip=0&take=10`);
+        const req = httpMock.expectOne(`${apiPrefix}users/getPaged?skip=0&take=10`);
         expect(req.request.method).toBe('GET');
         req.flush(mockResponse);
 
@@ -117,8 +125,9 @@ describe('IdentityService', () => {
     describe('getUserDetails', () => {
       it('should return user details', async () => {
         const resultPromise = service.getUserDetails('john.doe');
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/users/john.doe`);
+        const req = httpMock.expectOne(`${apiPrefix}users/john.doe`);
         expect(req.request.method).toBe('GET');
         req.flush(mockUser);
 
@@ -136,8 +145,9 @@ describe('IdentityService', () => {
     describe('createUser', () => {
       it('should create user', async () => {
         const resultPromise = service.createUser(mockUser);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/users`);
+        const req = httpMock.expectOne(`${apiPrefix}users`);
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual(mockUser);
         req.flush(null);
@@ -155,8 +165,9 @@ describe('IdentityService', () => {
       it('should update user', async () => {
         const updatedUser = { ...mockUser, firstName: 'Jane' };
         const resultPromise = service.updateUser('john.doe', updatedUser);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/users/john.doe`);
+        const req = httpMock.expectOne(`${apiPrefix}users/john.doe`);
         expect(req.request.method).toBe('PUT');
         expect(req.request.body).toEqual(updatedUser);
         req.flush(null);
@@ -173,8 +184,9 @@ describe('IdentityService', () => {
     describe('deleteUser', () => {
       it('should delete user', async () => {
         const resultPromise = service.deleteUser('john.doe');
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/users/john.doe`);
+        const req = httpMock.expectOne(`${apiPrefix}users/john.doe`);
         expect(req.request.method).toBe('DELETE');
         req.flush(null);
 
@@ -191,8 +203,9 @@ describe('IdentityService', () => {
       it('should return user roles', async () => {
         const mockRoles: RoleDto[] = [mockRole];
         const resultPromise = service.getUserRoles('john.doe');
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/users/john.doe/roles`);
+        const req = httpMock.expectOne(`${apiPrefix}users/john.doe/roles`);
         expect(req.request.method).toBe('GET');
         req.flush(mockRoles);
 
@@ -211,8 +224,9 @@ describe('IdentityService', () => {
       it('should update user roles', async () => {
         const roles: RoleDto[] = [mockRole, { id: 'role-2', name: 'User' }];
         const resultPromise = service.updateUserRoles('john.doe', roles);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/users/john.doe/roles`);
+        const req = httpMock.expectOne(`${apiPrefix}users/john.doe/roles`);
         expect(req.request.method).toBe('PUT');
         expect(req.request.body).toEqual(['role-1', 'role-2']);
         req.flush(null);
@@ -229,8 +243,9 @@ describe('IdentityService', () => {
     describe('addUserToRole', () => {
       it('should add user to role', async () => {
         const resultPromise = service.addUserToRole('john.doe', 'Admin');
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/users/john.doe/roles/Admin`);
+        const req = httpMock.expectOne(`${apiPrefix}users/john.doe/roles/Admin`);
         expect(req.request.method).toBe('PUT');
         expect(req.request.body).toBeNull();
         req.flush(null);
@@ -247,8 +262,9 @@ describe('IdentityService', () => {
     describe('removeRoleFromUser', () => {
       it('should remove role from user', async () => {
         const resultPromise = service.removeRoleFromUser('john.doe', 'Admin');
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/users/john.doe/roles/Admin`);
+        const req = httpMock.expectOne(`${apiPrefix}users/john.doe/roles/Admin`);
         expect(req.request.method).toBe('DELETE');
         req.flush(null);
 
@@ -264,9 +280,10 @@ describe('IdentityService', () => {
     describe('resetPassword', () => {
       it('should reset password', async () => {
         const resultPromise = service.resetPassword('john.doe', 'newPassword123');
+        await tick();
 
         const req = httpMock.expectOne(
-          `${baseUrl}system/v1/users/ResetPassword?userName=john.doe&password=newPassword123`
+          `${apiPrefix}users/ResetPassword?userName=john.doe&password=newPassword123`
         );
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toBeNull();
@@ -295,8 +312,9 @@ describe('IdentityService', () => {
         };
 
         const resultPromise = service.getClients(0, 10);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/clients/getPaged?skip=0&take=10`);
+        const req = httpMock.expectOne(`${apiPrefix}clients/getPaged?skip=0&take=10`);
         expect(req.request.method).toBe('GET');
         req.flush(mockResponse);
 
@@ -314,8 +332,9 @@ describe('IdentityService', () => {
     describe('getClientDetails', () => {
       it('should return client details', async () => {
         const resultPromise = service.getClientDetails('client-1');
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/clients/client-1`);
+        const req = httpMock.expectOne(`${apiPrefix}clients/client-1`);
         expect(req.request.method).toBe('GET');
         req.flush(mockClient);
 
@@ -333,8 +352,9 @@ describe('IdentityService', () => {
     describe('createClient', () => {
       it('should create client', async () => {
         const resultPromise = service.createClient(mockClient);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/clients`);
+        const req = httpMock.expectOne(`${apiPrefix}clients`);
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual(mockClient);
         req.flush(null);
@@ -352,8 +372,9 @@ describe('IdentityService', () => {
       it('should update client', async () => {
         const updatedClient = { ...mockClient, clientName: 'Updated Client' };
         const resultPromise = service.updateClient('client-1', updatedClient);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/clients/client-1`);
+        const req = httpMock.expectOne(`${apiPrefix}clients/client-1`);
         expect(req.request.method).toBe('PUT');
         expect(req.request.body).toEqual(updatedClient);
         req.flush(null);
@@ -370,8 +391,9 @@ describe('IdentityService', () => {
     describe('deleteClient', () => {
       it('should delete client', async () => {
         const resultPromise = service.deleteClient('client-1');
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/clients/client-1`);
+        const req = httpMock.expectOne(`${apiPrefix}clients/client-1`);
         expect(req.request.method).toBe('DELETE');
         req.flush(null);
 
@@ -396,8 +418,9 @@ describe('IdentityService', () => {
         };
 
         const resultPromise = service.getRoles(0, 10);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/roles/getPaged?skip=0&take=10`);
+        const req = httpMock.expectOne(`${apiPrefix}roles/getPaged?skip=0&take=10`);
         expect(req.request.method).toBe('GET');
         req.flush(mockResponse);
 
@@ -415,8 +438,9 @@ describe('IdentityService', () => {
     describe('getRoleDetails', () => {
       it('should return role details', async () => {
         const resultPromise = service.getRoleDetails('Admin');
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/roles/names/Admin`);
+        const req = httpMock.expectOne(`${apiPrefix}roles/names/Admin`);
         expect(req.request.method).toBe('GET');
         req.flush(mockRole);
 
@@ -434,8 +458,9 @@ describe('IdentityService', () => {
     describe('createRole', () => {
       it('should create role', async () => {
         const resultPromise = service.createRole(mockRole);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/roles`);
+        const req = httpMock.expectOne(`${apiPrefix}roles`);
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual(mockRole);
         req.flush(null);
@@ -453,8 +478,9 @@ describe('IdentityService', () => {
       it('should update role', async () => {
         const updatedRole = { ...mockRole, name: 'SuperAdmin' };
         const resultPromise = service.updateRole('Admin', updatedRole);
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/roles/Admin`);
+        const req = httpMock.expectOne(`${apiPrefix}roles/Admin`);
         expect(req.request.method).toBe('PUT');
         expect(req.request.body).toEqual(updatedRole);
         req.flush(null);
@@ -471,8 +497,9 @@ describe('IdentityService', () => {
     describe('deleteRole', () => {
       it('should delete role', async () => {
         const resultPromise = service.deleteRole('Admin');
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/roles/Admin`);
+        const req = httpMock.expectOne(`${apiPrefix}roles/Admin`);
         expect(req.request.method).toBe('DELETE');
         req.flush(null);
 
@@ -491,8 +518,9 @@ describe('IdentityService', () => {
       it('should return diagnostics', async () => {
         const mockDiagnostics: DiagnosticsModel = { name: 'TestUser', claims: [] };
         const resultPromise = service.userDiagnostics();
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/Diagnostics`);
+        const req = httpMock.expectOne(`${apiPrefix}Diagnostics`);
         expect(req.request.method).toBe('GET');
         req.flush(mockDiagnostics);
 
@@ -511,8 +539,9 @@ describe('IdentityService', () => {
       it('should generate password', async () => {
         const mockPassword: GeneratedPasswordDto = { value: 'GeneratedP@ss123' };
         const resultPromise = service.generatePassword();
+        await tick();
 
-        const req = httpMock.expectOne(`${baseUrl}system/v1/tools/generatePassword`);
+        const req = httpMock.expectOne(`${apiPrefix}tools/generatePassword`);
         expect(req.request.method).toBe('GET');
         req.flush(mockPassword);
 
@@ -525,6 +554,60 @@ describe('IdentityService', () => {
         const result = await service.generatePassword();
         expect(result).toBeNull();
       });
+    });
+  });
+
+  describe('Tenant-Aware Routing', () => {
+    it('should use tenant ID from provider when available', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          IdentityService,
+          { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
+          { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve('meshtest') }
+        ]
+      });
+
+      const tenantService = TestBed.inject(IdentityService);
+      const tenantHttpMock = TestBed.inject(HttpTestingController);
+
+      const resultPromise = tenantService.getUsers(0, 10);
+      await tick();
+
+      const req = tenantHttpMock.expectOne(`${baseUrl}meshtest/v1/users/getPaged?skip=0&take=10`);
+      expect(req.request.method).toBe('GET');
+      req.flush({ skip: 0, take: 10, totalCount: 0, list: [] });
+
+      await resultPromise;
+      tenantHttpMock.verify();
+    });
+
+    it('should fall back to octosystem when provider returns null', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          IdentityService,
+          { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
+          { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(null) }
+        ]
+      });
+
+      const tenantService = TestBed.inject(IdentityService);
+      const tenantHttpMock = TestBed.inject(HttpTestingController);
+
+      const resultPromise = tenantService.getUsers(0, 10);
+      await tick();
+
+      const req = tenantHttpMock.expectOne(`${apiPrefix}users/getPaged?skip=0&take=10`);
+      expect(req.request.method).toBe('GET');
+      req.flush({ skip: 0, take: 10, totalCount: 0, list: [] });
+
+      await resultPromise;
+      tenantHttpMock.verify();
     });
   });
 });
