@@ -31,6 +31,7 @@ export * from './lib/shared/exportModelResponseDto';
 export * from './lib/shared/diagnosticsModel';
 export * from './lib/shared/clientDto';
 export * from './lib/shared/clientScope';
+export * from './lib/shared/identityProviderDto';
 export * from './lib/shared/tenantDto';
 export * from './lib/shared/adminPanelConfigurationDto';
 export * from './lib/shared/configurationDto';

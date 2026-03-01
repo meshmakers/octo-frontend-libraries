@@ -164,6 +164,16 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `updateClient(clientId, clientDto)` | Update client |
 | `deleteClient(clientId)` | Delete client |
 
+**Identity Provider Management:**
+
+| Method | Description |
+|--------|-------------|
+| `getIdentityProviders()` | List all identity providers |
+| `getIdentityProviderDetails(rtId)` | Get identity provider details |
+| `createIdentityProvider(dto)` | Create identity provider |
+| `updateIdentityProvider(rtId, dto)` | Update identity provider |
+| `deleteIdentityProvider(rtId)` | Delete identity provider |
+
 **Utilities:**
 
 | Method | Description |
@@ -414,6 +424,32 @@ interface ClientDto {
   description?: string;
   grantTypes?: GrantTypes[];
   scopes?: ClientScope[];
+}
+```
+
+### IdentityProviderDto
+
+```typescript
+interface IdentityProviderDto {
+  $type?: number;             // IdentityProviderType enum discriminator
+  rtId?: string;
+  name?: string;
+  description?: string;
+  isEnabled: boolean;
+  clientId?: string;          // OAuth providers
+  clientSecret?: string;      // OAuth providers
+  tenantId?: string;          // Azure Entra ID
+  authority?: string;         // Azure Entra ID
+  host?: string;              // LDAP providers
+  port?: number;              // LDAP providers
+  useTls?: boolean;           // LDAP providers
+  userBaseDn?: string;        // OpenLDAP
+  userNameAttribute?: string; // OpenLDAP
+}
+
+enum IdentityProviderType {
+  Google = 0, Microsoft = 1, MicrosoftAzureAd = 2,
+  MicrosoftActiveDirectory = 3, OpenLdap = 4, Facebook = 5
 }
 ```
 

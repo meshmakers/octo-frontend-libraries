@@ -7,6 +7,7 @@ import {UserDto} from '../shared/userDto';
 import {RoleDto} from '../shared/roleDto';
 import {PagedResultDto} from '@meshmakers/shared-services';
 import {ClientDto} from '../shared/clientDto';
+import {IdentityProviderDto, IdentityProvidersResult} from '../shared/identityProviderDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
@@ -312,6 +313,71 @@ export class IdentityService {
     if (baseUrl) {
       await firstValueFrom(
         this.httpClient.delete<any>(baseUrl + `roles/${roleName}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  // ========================================
+  // Identity Provider Management
+  // ========================================
+
+  async getIdentityProviders(): Promise<IdentityProvidersResult | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<IdentityProvidersResult | null>(baseUrl + 'identityproviders', {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getIdentityProviderDetails(rtId: string): Promise<IdentityProvidersResult | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<IdentityProvidersResult | null>(baseUrl + `identityproviders/${rtId}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async createIdentityProvider(dto: IdentityProviderDto): Promise<IdentityProviderDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<IdentityProviderDto>(baseUrl + 'identityproviders', dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async updateIdentityProvider(rtId: string, dto: IdentityProviderDto): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<any>(baseUrl + `identityproviders/${rtId}`, dto, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async deleteIdentityProvider(rtId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<any>(baseUrl + `identityproviders/${rtId}`, {
           observe: 'response'
         })
       );
