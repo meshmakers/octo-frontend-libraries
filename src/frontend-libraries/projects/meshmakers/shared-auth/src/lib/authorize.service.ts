@@ -44,6 +44,7 @@ export class AuthorizeService {
   private readonly _isInitialized: WritableSignal<boolean> = signal(false);
   private readonly _isInitializing: WritableSignal<boolean> = signal(false);
   private readonly _sessionLoading: WritableSignal<boolean> = signal(false);
+  private readonly _allowedTenants: WritableSignal<string[]> = signal([]);
 
   private authorizeOptions: AuthorizeOptions | null = null;
 
@@ -80,6 +81,12 @@ export class AuthorizeService {
    * Signal indicating whether the session is currently loading.
    */
   readonly sessionLoading: Signal<boolean> = this._sessionLoading.asReadonly();
+
+  /**
+   * Signal containing the list of tenants the user is allowed to access.
+   * Parsed from the allowed_tenants claims in the access token.
+   */
+  readonly allowedTenants: Signal<string[]> = this._allowedTenants.asReadonly();
 
   /**
    * Computed signal containing the user's roles.
@@ -193,6 +200,18 @@ export class AuthorizeService {
    */
   public getAccessTokenSync(): string | null {
     return this._accessToken();
+  }
+
+  /**
+   * Checks if the user is allowed to access the specified tenant.
+   * Returns true if no allowed_tenants claims are present (backwards compatibility).
+   */
+  public isTenantAllowed(tenantId: string): boolean {
+    const allowed = this._allowedTenants();
+    if (allowed.length === 0) {
+      return true; // No claims = backwards compatible (old tokens)
+    }
+    return allowed.some(t => t.toLowerCase() === tenantId.toLowerCase());
   }
 
   /**
@@ -324,7 +343,49 @@ export class AuthorizeService {
     this._accessToken.set(accessToken);
     this._isAuthenticated.set(true);
     this._sessionLoading.set(false);
+
+    // Parse allowed_tenants from the access token
+    this._allowedTenants.set(this.parseAllowedTenantsFromToken(accessToken));
+
     console.debug("AuthorizeService::loadUserAsync::done");
+  }
+
+  /**
+   * Decodes the JWT access token payload and extracts allowed_tenants claims.
+   * The claim can be a single string or an array of strings.
+   */
+  private parseAllowedTenantsFromToken(accessToken: string | null): string[] {
+    if (!accessToken) {
+      return [];
+    }
+
+    try {
+      const parts = accessToken.split('.');
+      if (parts.length !== 3) {
+        return [];
+      }
+
+      const payload = JSON.parse(atob(parts[1]));
+      const allowedTenants = payload['allowed_tenants'];
+
+      if (!allowedTenants) {
+        return [];
+      }
+
+      if (Array.isArray(allowedTenants)) {
+        return allowedTenants;
+      }
+
+      // Single value claim
+      if (typeof allowedTenants === 'string') {
+        return [allowedTenants];
+      }
+
+      return [];
+    } catch (e) {
+      console.warn('Failed to parse allowed_tenants from access token', e);
+      return [];
+    }
   }
 
   /**

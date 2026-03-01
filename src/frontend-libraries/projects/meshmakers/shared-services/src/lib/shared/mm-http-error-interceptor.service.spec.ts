@@ -272,7 +272,7 @@ describe('MmHttpErrorInterceptor', () => {
       });
     });
 
-    it('should not show message for 403 Forbidden', (done) => {
+    it('should show access denied message for 403 Forbidden', (done) => {
       const req = new HttpRequest('GET', '/api/data');
       const error = new HttpErrorResponse({
         status: 403,
@@ -282,8 +282,9 @@ describe('MmHttpErrorInterceptor', () => {
 
       interceptor.intercept(req, httpHandlerMock).subscribe({
         error: () => {
-          expect(messageServiceMock.showError).not.toHaveBeenCalled();
-          expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
+          expect(messageServiceMock.showError).toHaveBeenCalledWith(
+            'Access denied. You do not have permission to access this tenant or resource.'
+          );
           done();
         }
       });
