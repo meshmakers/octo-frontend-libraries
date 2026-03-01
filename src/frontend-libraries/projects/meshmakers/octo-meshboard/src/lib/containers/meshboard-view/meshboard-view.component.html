@@ -150,7 +150,7 @@
                   <span class="unconfigured-badge" title="Widget needs configuration">!</span>
                 }
                 @if (isEditMode()) {
-                  <div class="widget-actions">
+                  <div class="widget-actions" (pointerdown)="$event.stopPropagation()">
                     @if (supportsConfiguration(widget)) {
                       <button
                         kendoButton
