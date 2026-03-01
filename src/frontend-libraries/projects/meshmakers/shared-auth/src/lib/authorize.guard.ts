@@ -26,7 +26,17 @@ export const authorizeGuard: CanActivateFn = async (route: ActivatedRouteSnapsho
   const isAuthenticated = authorizeService.isAuthenticated();
 
   if (!isAuthenticated) {
-    authorizeService.login();
+    // Walk up the route tree to find the tenantId parameter
+    let tenantId: string | undefined;
+    let current: ActivatedRouteSnapshot | null = route;
+    while (current) {
+      if (current.params['tenantId']) {
+        tenantId = current.params['tenantId'];
+        break;
+      }
+      current = current.parent;
+    }
+    authorizeService.login(tenantId);
     return false;
   }
 
@@ -71,14 +81,16 @@ export const authorizeChildGuard: CanActivateFn = authorizeGuard;
  * }
  * ```
  */
-export const authorizeMatchGuard: CanMatchFn = () => {
+export const authorizeMatchGuard: CanMatchFn = (_route, segments) => {
   const authorizeService = inject(AuthorizeService);
 
   // Use signal directly (synchronous)
   const isAuthenticated = authorizeService.isAuthenticated();
 
   if (!isAuthenticated) {
-    authorizeService.login();
+    // The first URL segment is typically the tenantId (e.g., /:tenantId/...)
+    const tenantId = segments.length > 0 ? segments[0].path : undefined;
+    authorizeService.login(tenantId);
     return false;
   }
 

@@ -197,9 +197,15 @@ export class AuthorizeService {
 
   /**
    * Initiates the login flow.
+   * @param tenantId Optional tenant ID. When provided, includes acr_values=tenant:{tenantId}
+   *   so the identity server redirects to the correct tenant's login page.
    */
-  public login(): void {
-    this.oauthService.initImplicitFlow();
+  public login(tenantId?: string): void {
+    if (tenantId) {
+      this.oauthService.initImplicitFlow('', { acr_values: `tenant:${tenantId}` });
+    } else {
+      this.oauthService.initImplicitFlow();
+    }
   }
 
   /**
