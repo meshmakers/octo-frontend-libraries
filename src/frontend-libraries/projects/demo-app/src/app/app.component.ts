@@ -23,11 +23,11 @@ import {LoginAppBarSectionComponent} from '@meshmakers/shared-auth/login-ui';
 import {AppTitleService, BreadCrumbData, BreadCrumbService, CommandService, ComponentMenuService} from '@meshmakers/shared-services';
 import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
 import {MenuComponent, MenuSelectEvent} from '@progress/kendo-angular-menu';
-import {DialogContainerDirective} from '@progress/kendo-angular-dialog';
+import {DialogContainerDirective, WindowContainerDirective} from '@progress/kendo-angular-dialog';
 
 @Component({
   selector: 'app-root',
-  imports: [LoginAppBarSectionComponent, AsyncPipe, DrawerContainerComponent, DrawerContentComponent, DrawerComponent, ButtonComponent, AppBarSpacerComponent, AppBarSectionComponent, SVGIconComponent, AppBarComponent, RouterOutlet, MenuComponent, BreadCrumbComponent, DialogContainerDirective],
+  imports: [LoginAppBarSectionComponent, AsyncPipe, DrawerContainerComponent, DrawerContentComponent, DrawerComponent, ButtonComponent, AppBarSpacerComponent, AppBarSectionComponent, SVGIconComponent, AppBarComponent, RouterOutlet, MenuComponent, BreadCrumbComponent, DialogContainerDirective, WindowContainerDirective],
   providers: [ProductService],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'

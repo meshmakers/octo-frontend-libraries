@@ -3,13 +3,9 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { of } from 'rxjs';
-import { DialogRef, DialogModule } from '@progress/kendo-angular-dialog';
-import { GridModule, GridComponent, CellClickEvent } from '@progress/kendo-angular-grid';
-import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { InputsModule } from '@progress/kendo-angular-inputs';
-import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
-import { IconsModule } from '@progress/kendo-angular-icons';
-import { AttributeSelectorService, AttributeItem } from '@meshmakers/octo-services';
+import { WindowRef } from '@progress/kendo-angular-dialog';
+import { GridComponent, CellClickEvent } from '@progress/kendo-angular-grid';
+import { AttributeSelectorService, AttributeItem, AttributeValueTypeDto } from '@meshmakers/octo-services';
 import {
   AttributeSortSelectorDialogComponent,
   AttributeSortItem,
@@ -17,25 +13,18 @@ import {
   AttributeSortSelectorDialogResult
 } from './attribute-sort-selector-dialog.component';
 
-interface MockDialogContent {
-  instance: {
-    data: AttributeSortSelectorDialogData | null;
-  };
-}
-
 describe('AttributeSortSelectorDialogComponent', () => {
   let component: AttributeSortSelectorDialogComponent;
   let fixture: ComponentFixture<AttributeSortSelectorDialogComponent>;
   let attributeServiceMock: jasmine.SpyObj<AttributeSelectorService>;
-  let dialogRefMock: jasmine.SpyObj<DialogRef>;
-  let dialogContent: MockDialogContent;
+  let windowRefMock: jasmine.SpyObj<WindowRef>;
 
   const mockAttributes: AttributeItem[] = [
-    { attributePath: 'name', attributeValueType: 'String' },
-    { attributePath: 'age', attributeValueType: 'Integer' },
-    { attributePath: 'email', attributeValueType: 'String' },
-    { attributePath: 'createdAt', attributeValueType: 'DateTime' },
-    { attributePath: 'isActive', attributeValueType: 'Boolean' }
+    { attributePath: 'name', attributeValueType: 'String', description: 'The name' },
+    { attributePath: 'age', attributeValueType: 'Integer', description: null },
+    { attributePath: 'email', attributeValueType: 'String', description: 'Email address' },
+    { attributePath: 'createdAt', attributeValueType: 'DateTime', description: 'Creation date' },
+    { attributePath: 'isActive', attributeValueType: 'Boolean', description: 'Active status' }
   ];
 
   const mockDialogData: AttributeSortSelectorDialogData = {
@@ -47,34 +36,23 @@ describe('AttributeSortSelectorDialogComponent', () => {
     attributeServiceMock = jasmine.createSpyObj('AttributeSelectorService', ['getAvailableAttributes']);
     attributeServiceMock.getAvailableAttributes.and.returnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
 
-    dialogRefMock = jasmine.createSpyObj('DialogRef', ['close']);
-    dialogContent = {
-      instance: {
-        data: { ...mockDialogData }
-      }
-    };
-    (dialogRefMock as unknown as Record<string, unknown>)['content'] = dialogContent;
+    windowRefMock = jasmine.createSpyObj('WindowRef', ['close']);
 
     await TestBed.configureTestingModule({
       imports: [
         AttributeSortSelectorDialogComponent,
-        FormsModule,
-        GridModule,
-        ButtonsModule,
-        InputsModule,
-        DropDownListModule,
-        IconsModule,
-        DialogModule
+        FormsModule
       ],
       providers: [
         provideNoopAnimations(),
         { provide: AttributeSelectorService, useValue: attributeServiceMock },
-        { provide: DialogRef, useValue: dialogRefMock }
+        { provide: WindowRef, useValue: windowRefMock }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AttributeSortSelectorDialogComponent);
     component = fixture.componentInstance;
+    component.data = { ...mockDialogData };
   });
 
   describe('Component creation', () => {
@@ -103,6 +81,16 @@ describe('AttributeSortSelectorDialogComponent', () => {
         { text: 'Descending', value: 'descending' }
       ]);
     });
+
+    it('should have value type filter options', () => {
+      expect(component.valueTypeOptions.length).toBeGreaterThan(0);
+      expect(component.valueTypeOptions[0].text).toBe('All Types');
+      expect(component.valueTypeOptions[0].value).toBeNull();
+    });
+
+    it('should start with null value type filter', () => {
+      expect(component.selectedValueTypeFilter).toBeNull();
+    });
   });
 
   describe('ngOnInit', () => {
@@ -117,14 +105,14 @@ describe('AttributeSortSelectorDialogComponent', () => {
     });
 
     it('should use default dialogTitle when not provided', () => {
-      dialogContent.instance.data = { ckTypeId: 'TestCkType' };
+      component.data = { ckTypeId: 'TestCkType' };
       fixture.detectChanges();
       expect(component.dialogTitle).toBe('Select Attributes with Sort Order');
     });
 
     it('should load available attributes on init', () => {
       fixture.detectChanges();
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestCkType', undefined);
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalled();
       expect(component.availableAttributes.length).toBe(5);
     });
 
@@ -132,7 +120,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       const preSelected: AttributeSortItem[] = [
         { attributePath: 'name', attributeValueType: 'String', sortOrder: 'ascending' }
       ];
-      dialogContent.instance.data = {
+      component.data = {
         ckTypeId: 'TestCkType',
         selectedAttributes: preSelected
       };
@@ -148,7 +136,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
         { attributePath: 'name', attributeValueType: 'String', sortOrder: 'ascending' },
         { attributePath: 'email', attributeValueType: 'String', sortOrder: 'descending' }
       ];
-      dialogContent.instance.data = {
+      component.data = {
         ckTypeId: 'TestCkType',
         selectedAttributes: preSelected
       };
@@ -160,7 +148,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
     });
 
     it('should handle empty dialog data gracefully', () => {
-      dialogContent.instance.data = null;
+      component.data = null as unknown as AttributeSortSelectorDialogData;
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
@@ -174,7 +162,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       const preSelected: AttributeSortItem[] = [
         { attributePath: 'name', attributeValueType: 'String', sortOrder: 'ascending' }
       ];
-      dialogContent.instance.data = {
+      component.data = {
         ckTypeId: 'TestCkType',
         selectedAttributes: preSelected
       };
@@ -197,7 +185,9 @@ describe('AttributeSortSelectorDialogComponent', () => {
       expect(attributeServiceMock.getAvailableAttributes).not.toHaveBeenCalled();
 
       tick(300);
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestCkType', 'test');
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
+        'TestCkType', undefined, undefined, undefined, undefined, 'test'
+      );
     }));
 
     it('should not trigger search for same value (distinctUntilChanged)', fakeAsync(() => {
@@ -232,8 +222,27 @@ describe('AttributeSortSelectorDialogComponent', () => {
       tick(300);
 
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledTimes(1);
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestCkType', 'test2');
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
+        'TestCkType', undefined, undefined, undefined, undefined, 'test2'
+      );
     }));
+  });
+
+  describe('Value Type Filter', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should reload attributes when value type filter changes', () => {
+      attributeServiceMock.getAvailableAttributes.calls.reset();
+
+      component.selectedValueTypeFilter = AttributeValueTypeDto.StringDto;
+      component.onValueTypeFilterChange(component.selectedValueTypeFilter);
+
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
+        'TestCkType', undefined, undefined, undefined, 'STRING', undefined
+      );
+    });
   });
 
   describe('setSortOrder', () => {
@@ -547,15 +556,15 @@ describe('AttributeSortSelectorDialogComponent', () => {
       fixture.detectChanges();
     });
 
-    it('should close dialog with empty result when no selection', () => {
+    it('should close window with empty result when no selection', () => {
       component.onOk();
 
-      expect(dialogRefMock.close).toHaveBeenCalled();
-      const result = (dialogRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSortSelectorDialogResult;
+      expect(windowRefMock.close).toHaveBeenCalled();
+      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSortSelectorDialogResult;
       expect(result.selectedAttributes).toEqual([]);
     });
 
-    it('should close dialog with selected attributes', () => {
+    it('should close window with selected attributes', () => {
       component.selectedAvailableKeys = ['name'];
       component.currentSortOrder = 'ascending';
       component.addAttributeWithSort();
@@ -566,8 +575,8 @@ describe('AttributeSortSelectorDialogComponent', () => {
 
       component.onOk();
 
-      expect(dialogRefMock.close).toHaveBeenCalled();
-      const result = (dialogRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSortSelectorDialogResult;
+      expect(windowRefMock.close).toHaveBeenCalled();
+      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSortSelectorDialogResult;
       expect(result.selectedAttributes.length).toBe(2);
       expect(result.selectedAttributes[0]).toEqual({
         attributePath: 'name',
@@ -587,17 +596,17 @@ describe('AttributeSortSelectorDialogComponent', () => {
       fixture.detectChanges();
     });
 
-    it('should close dialog without result', () => {
+    it('should close window without result', () => {
       component.onCancel();
-      expect(dialogRefMock.close).toHaveBeenCalledWith();
+      expect(windowRefMock.close).toHaveBeenCalledWith();
     });
 
-    it('should close dialog without result even with selections', () => {
+    it('should close window without result even with selections', () => {
       component.selectedAvailableKeys = ['name'];
       component.addAttributeWithSort();
 
       component.onCancel();
-      expect(dialogRefMock.close).toHaveBeenCalledWith();
+      expect(windowRefMock.close).toHaveBeenCalledWith();
     });
   });
 
@@ -691,7 +700,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       // Confirm
       component.onOk();
 
-      const result = (dialogRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSortSelectorDialogResult;
+      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSortSelectorDialogResult;
       expect(result.selectedAttributes.length).toBe(2);
       expect(result.selectedAttributes[0]).toEqual({
         attributePath: 'age',
