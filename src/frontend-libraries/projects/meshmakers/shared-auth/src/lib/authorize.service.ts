@@ -314,12 +314,11 @@ export class AuthorizeService {
 
       this.authorizeOptions = null;
 
-      this._user.set(null);
-      this._isAuthenticated.set(false);
-      this._accessToken.set(null);
-      this._allowedTenants.set([]);
-      this._userInitials.set(null);
-      this._sessionLoading.set(false);
+      // Note: Do NOT clear auth signals (_accessToken, _isAuthenticated, etc.) here.
+      // The access token and user info are globally valid (not per-tenant) and remain
+      // valid during re-initialization. Clearing them creates a window where the HTTP
+      // interceptor sends requests without a Bearer token, causing 401 errors.
+      // Signals are already properly cleared on logout/session_terminated events.
 
       this._isInitialized.set(false);
       console.debug("AuthorizeService::uninitialize::done");
