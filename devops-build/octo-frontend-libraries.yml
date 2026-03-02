@@ -49,7 +49,7 @@ stages:
             displayName: 'Build demo-app (production)'
             inputs:
               script: |
-                rm -rf .angular/cache
+                rm -rf .angular/cache dist/demo-app
                 npx ng build --project demo-app
               workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
@@ -147,6 +147,12 @@ stages:
           name: meshmakers-ci-agents
         steps:
           - checkout: none
+
+          # Clean stale files from previous builds on this agent
+          - task: CmdLine@2
+            displayName: 'Clean artifact directories'
+            inputs:
+              script: rm -rf "$(Pipeline.Workspace)/dist" "$(Pipeline.Workspace)/docker-context"
 
           - task: DownloadPipelineArtifact@2
             displayName: 'Download dist artifact'
