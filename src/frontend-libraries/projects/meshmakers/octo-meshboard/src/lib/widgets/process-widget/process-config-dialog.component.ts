@@ -31,6 +31,7 @@ import {
 import type { ProcessDiagramConfig, TransformProperty } from '@meshmakers/octo-process-diagrams';
 import { ProcessDataService, ProcessDiagramSummary } from './services/process-data.service';
 import { ProcessDataBindingMode, DiagramPropertyMapping } from './process-widget-config.model';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { WidgetFilterConfig } from '../../models/meshboard.models';
 import { firstValueFrom, Observable, from, map } from 'rxjs';
 
@@ -209,7 +210,8 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
     LayoutModule,
     CkTypeSelectorInputComponent,
     EntitySelectInputComponent,
-    FieldFilterEditorComponent
+    FieldFilterEditorComponent,
+    LoadingOverlayComponent
   ],
   providers: [ProcessDataService],
   template: `
@@ -221,9 +223,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
           <kendo-tabstrip-tab [title]="'Diagram'" [selected]="true">
             <ng-template kendoTabContent>
               <div class="tab-content" [class.loading]="isLoadingDiagrams">
-                @if (isLoadingDiagrams) {
-                  <div class="loading-indicator">Loading diagrams...</div>
-                }
+                <mm-loading-overlay [loading]="isLoadingDiagrams" />
 
                 <div class="form-field">
                   <label>Process Diagram <span class="required">*</span></label>
@@ -553,19 +553,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
     }
 
     .tab-content.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 8px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .section-hint {

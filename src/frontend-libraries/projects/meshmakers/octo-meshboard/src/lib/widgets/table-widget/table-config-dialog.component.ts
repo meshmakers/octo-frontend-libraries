@@ -31,6 +31,7 @@ import { TableColumn } from '../../models/meshboard.models';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 /**
  * Data source type for table widget
@@ -72,7 +73,8 @@ export interface TableConfigResult {
     SVGIconModule,
     CkTypeSelectorInputComponent,
     FieldFilterEditorComponent,
-    QuerySelectorComponent
+    QuerySelectorComponent,
+    LoadingOverlayComponent
   ],
   providers: [
     AttributeSelectorDialogService,
@@ -82,9 +84,7 @@ export interface TableConfigResult {
     <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
 
         <!-- Data Source Type Selection -->
         <div class="form-field data-source-type">
@@ -297,19 +297,7 @@ export interface TableConfigResult {
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .form-field {

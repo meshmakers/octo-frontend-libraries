@@ -8,6 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { CkTypeSelectorInputComponent, FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
 import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, AttributeItem, FieldFilterDto, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
 import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { firstValueFrom } from 'rxjs';
@@ -74,15 +75,14 @@ interface GaugeTypeOption {
     CkTypeSelectorInputComponent,
     EntitySelectInputComponent,
     FieldFilterEditorComponent,
-    QuerySelectorComponent
+    QuerySelectorComponent,
+    LoadingOverlayComponent
   ],
   template: `
     <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
 
         <!-- Data Source Type Selection -->
         <div class="form-field">
@@ -493,19 +493,7 @@ interface GaugeTypeOption {
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .form-field {

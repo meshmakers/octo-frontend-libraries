@@ -374,7 +374,7 @@ export class WidgetRegistryService {
         return;
       }
 
-      const dialogSize = registration.configDialogSize ?? { width: 600, height: 500, minWidth: 500, minHeight: 400 };
+      const dialogSize = registration.configDialogSize ?? { width: 700, height: 600, minWidth: 550, minHeight: 450 };
       const dialogTitle = registration.configDialogTitle ?? `${registration.label} Configuration`;
 
       const windowRef: WindowRef = this.windowService.open({

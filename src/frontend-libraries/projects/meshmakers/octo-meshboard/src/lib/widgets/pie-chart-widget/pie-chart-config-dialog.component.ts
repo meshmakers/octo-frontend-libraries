@@ -16,6 +16,7 @@ import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@me
 import { FieldFilterDto, FieldFilterOperatorsDto, AttributeItem, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 /**
  * Configuration result from the Pie Chart dialog
@@ -53,15 +54,14 @@ export interface PieChartConfigResult extends WidgetConfigResult {
     DropDownsModule,
     SVGIconModule,
     FieldFilterEditorComponent,
-    QuerySelectorComponent
+    QuerySelectorComponent,
+    LoadingOverlayComponent
   ],
   template: `
     <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
 
         <!-- Data Source Type Section -->
         <div class="config-section">
@@ -267,19 +267,7 @@ export interface PieChartConfigResult extends WidgetConfigResult {
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .config-section {

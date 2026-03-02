@@ -17,6 +17,7 @@ import {
 import { EntitySelectDataSource, EntitySelectResult } from '@meshmakers/shared-services';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { GetCkTypeAssociationRolesDtoGQL } from '../../graphQL/getCkTypeAssociationRoles';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom, Observable, from, map } from 'rxjs';
 
 /**
@@ -179,15 +180,14 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
     CheckBoxModule,
     DropDownsModule,
     CkTypeSelectorInputComponent,
-    EntitySelectInputComponent
+    EntitySelectInputComponent,
+    LoadingOverlayComponent
   ],
   template: `
     <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
 
         <!-- CK Type Selection -->
         <div class="form-field">
@@ -325,19 +325,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .form-field {

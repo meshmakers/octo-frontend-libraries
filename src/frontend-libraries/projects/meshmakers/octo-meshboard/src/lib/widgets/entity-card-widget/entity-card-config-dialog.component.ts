@@ -14,6 +14,7 @@ import {
   RuntimeEntitySelectDataSource,
   RuntimeEntityDialogDataSource
 } from '../../utils/runtime-entity-data-sources';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 /**
  * Configuration result from the dialog
@@ -36,15 +37,14 @@ export interface EntityCardConfigResult {
     ButtonsModule,
     InputsModule,
     CkTypeSelectorInputComponent,
-    EntitySelectInputComponent
+    EntitySelectInputComponent,
+    LoadingOverlayComponent
   ],
   template: `
     <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
         <div class="form-field">
           <label>Runtime Entities</label>
           <mm-ck-type-selector-input
@@ -131,19 +131,7 @@ export interface EntityCardConfigResult {
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .form-field {

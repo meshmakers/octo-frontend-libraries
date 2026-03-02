@@ -20,6 +20,7 @@ import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 /**
  * Data source type selection
@@ -65,15 +66,14 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
     DropDownsModule,
     CkTypeSelectorInputComponent,
     FieldFilterEditorComponent,
-    QuerySelectorComponent
+    QuerySelectorComponent,
+    LoadingOverlayComponent
   ],
   template: `
     <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
 
         <!-- ============================================================ -->
         <!-- TAB 1: Data Source -->
@@ -406,19 +406,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .form-section {
