@@ -183,6 +183,8 @@ export class WidgetRegistryService {
   private readonly appRef = inject(ApplicationRef);
   private readonly windowService = inject(WindowService);
 
+  private static scrollbarStylesInjected = false;
+
   private readonly registry = new Map<WidgetType, WidgetRegistration>();
 
   /**
@@ -385,6 +387,19 @@ export class WidgetRegistryService {
         resizable: true
       });
 
+      // Ensure scrollbar styles are injected for macOS overlay scrollbar support.
+      // macOS hides scrollbars by default and only shows them during active scrolling.
+      // Defining ::-webkit-scrollbar pseudo-elements forces permanent visibility.
+      this.injectScrollbarStyles();
+
+      // Disable overflow on Kendo Window's content wrapper so our dialog's
+      // internal flex layout handles scrolling via .config-form { overflow-y: auto }.
+      const windowEl = windowRef.window.location.nativeElement;
+      const contentEl = windowEl.querySelector('.k-window-content');
+      if (contentEl instanceof HTMLElement) {
+        contentEl.style.overflow = 'hidden';
+      }
+
       // Set initial values on the dialog component using Angular's setInput API.
       // This properly registers inputs and triggers change detection,
       // matching the behavior of the old ViewContainerRef.createComponent() pattern.
@@ -441,5 +456,35 @@ export class WidgetRegistryService {
       return widget.dataSource.rtId;
     }
     return undefined;
+  }
+
+  /**
+   * Injects global CSS for permanent scrollbar visibility in config dialogs.
+   * macOS hides scrollbars by default (overlay scrollbar mode) and only shows
+   * them during active scrolling. Defining ::-webkit-scrollbar pseudo-elements
+   * overrides this behavior and makes scrollbars always visible.
+   */
+  private injectScrollbarStyles(): void {
+    if (WidgetRegistryService.scrollbarStylesInjected) return;
+
+    const style = document.createElement('style');
+    style.setAttribute('data-widget-config-scrollbar', '');
+    style.textContent = `
+      .k-window-content .config-form::-webkit-scrollbar {
+        width: 8px;
+      }
+      .k-window-content .config-form::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .k-window-content .config-form::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.3);
+        border-radius: 4px;
+      }
+      .k-window-content .config-form::-webkit-scrollbar-thumb:hover {
+        background: rgba(128, 128, 128, 0.5);
+      }
+    `;
+    document.head.appendChild(style);
+    WidgetRegistryService.scrollbarStylesInjected = true;
   }
 }
