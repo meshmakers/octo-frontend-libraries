@@ -47,6 +47,7 @@ export class AuthorizeService {
   private readonly _allowedTenants: WritableSignal<string[]> = signal([]);
 
   private authorizeOptions: AuthorizeOptions | null = null;
+  private lastAuthConfig: AuthConfig | null = null;
 
   // =============================================================================
   // PUBLIC API (Readonly Signals) - NEW API
@@ -235,6 +236,26 @@ export class AuthorizeService {
   }
 
   /**
+   * Updates the redirect URIs without performing a full re-initialization.
+   * Use this when the OAuth session is already established and only the
+   * redirect targets need to change (e.g., when switching tenants).
+   */
+  public updateRedirectUris(redirectUri: string, postLogoutRedirectUri: string): void {
+    if (this.authorizeOptions) {
+      this.authorizeOptions.redirectUri = redirectUri;
+      this.authorizeOptions.postLogoutRedirectUri = postLogoutRedirectUri;
+    }
+
+    if (this.lastAuthConfig) {
+      this.lastAuthConfig.redirectUri = redirectUri;
+      this.lastAuthConfig.postLogoutRedirectUri = postLogoutRedirectUri;
+      this.oauthService.configure(this.lastAuthConfig);
+    }
+
+    console.debug("AuthorizeService::updateRedirectUris::done");
+  }
+
+  /**
    * Initializes the authorization service with the specified options.
    */
   public async initialize(authorizeOptions: AuthorizeOptions): Promise<void> {
@@ -266,6 +287,7 @@ export class AuthorizeService {
       };
 
       this.authorizeOptions = authorizeOptions;
+      this.lastAuthConfig = config;
 
       this.oauthService.setStorage(localStorage);
       this.oauthService.configure(config);
@@ -313,6 +335,7 @@ export class AuthorizeService {
       this.oauthService.stopAutomaticRefresh();
 
       this.authorizeOptions = null;
+      this.lastAuthConfig = null;
 
       // Note: Do NOT clear auth signals (_accessToken, _isAuthenticated, etc.) here.
       // The access token and user info are globally valid (not per-tenant) and remain
