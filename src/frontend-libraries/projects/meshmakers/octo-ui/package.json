@@ -15,6 +15,7 @@
     "@progress/kendo-angular-icons": "^21.3.0",
     "@progress/kendo-angular-indicators": "^21.3.0",
     "@progress/kendo-angular-inputs": "^21.3.0",
+    "@progress/kendo-angular-popup": "^21.3.0",
     "@progress/kendo-data-query": "^1.7.2",
     "@progress/kendo-svg-icons": "^4.5.0",
     "apollo-angular": "^13.0.0"

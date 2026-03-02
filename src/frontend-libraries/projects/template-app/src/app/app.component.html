@@ -12,6 +12,11 @@
   <kendo-appbar-spacer width="32px"></kendo-appbar-spacer>
 
   <kendo-appbar-section>
+    <mm-tenant-switcher
+      [currentTenantId]="tenantId()"
+      [allowedTenants]="authorizeService.allowedTenants()"
+      (tenantSelected)="onTenantSelected($event)">
+    </mm-tenant-switcher>
   </kendo-appbar-section>
 
   <kendo-appbar-spacer></kendo-appbar-spacer>

@@ -20,6 +20,7 @@ export * from './lib/ck-type-selector-input';
 export * from './lib/field-filter-editor';
 export * from './lib/entity-id-info';
 export * from './lib/octo-loader';
+export * from './lib/tenant-switcher';
 
 /**
  * Provides OctoUi services using modern Angular provider functions.

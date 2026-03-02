@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {ProductService} from './services/product.service';
 import {AsyncPipe} from '@angular/common';
 import { VERSION } from '../environments/currentVersion';
@@ -20,28 +20,33 @@ import {
 } from '@progress/kendo-angular-navigation';
 import {SVGIconComponent} from '@progress/kendo-angular-icons';
 import {LoginAppBarSectionComponent} from '@meshmakers/shared-auth/login-ui';
+import {AuthorizeService} from '@meshmakers/shared-auth';
 import {AppTitleService, BreadCrumbData, BreadCrumbService, CommandService, ComponentMenuService} from '@meshmakers/shared-services';
-import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
+import {ActivatedRoute, NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {MenuComponent, MenuSelectEvent} from '@progress/kendo-angular-menu';
 import {DialogContainerDirective} from '@progress/kendo-angular-dialog';
+import {TenantSwitcherComponent} from '@meshmakers/octo-ui';
+import {filter} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
-  imports: [LoginAppBarSectionComponent, AsyncPipe, DrawerContainerComponent, DrawerContentComponent, DrawerComponent, ButtonComponent, AppBarSpacerComponent, AppBarSectionComponent, SVGIconComponent, AppBarComponent, RouterOutlet, MenuComponent, BreadCrumbComponent, DialogContainerDirective],
+  imports: [LoginAppBarSectionComponent, TenantSwitcherComponent, AsyncPipe, DrawerContainerComponent, DrawerContentComponent, DrawerComponent, ButtonComponent, AppBarSpacerComponent, AppBarSectionComponent, SVGIconComponent, AppBarComponent, RouterOutlet, MenuComponent, BreadCrumbComponent, DialogContainerDirective],
   providers: [ProductService],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  private router = inject(Router);
+  private readonly router = inject(Router);
   private readonly appTitleService = inject(AppTitleService);
   private readonly activatedRoute = inject(ActivatedRoute);
+  protected readonly authorizeService = inject(AuthorizeService);
   protected readonly commandService = inject(CommandService);
   protected readonly componentMenuService = inject(ComponentMenuService);
   protected readonly breadCrumbService = inject(BreadCrumbService);
 
   private readonly defaultTitle : string = 'OctoMesh Template App';
   protected title : string = this.defaultTitle;
+  protected readonly tenantId = signal<string | null>(null);
   protected expandedIndices: any[] = [];
   protected readonly menuIcon = menuIcon;
   protected readonly version = VERSION.version;
@@ -59,10 +64,32 @@ export class AppComponent {
   }
 
   constructor() {
-
     this.appTitleService.appTitle.subscribe((title) => {
       this.title = title ?? this.defaultTitle;
     });
+
+    // Extract tenantId from route changes
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.extractTenantId();
+    });
+  }
+
+  private extractTenantId(): void {
+    let route = this.activatedRoute.root;
+    while (route.firstChild) {
+      route = route.firstChild;
+      if (route.snapshot.params['tenantId']) {
+        this.tenantId.set(route.snapshot.params['tenantId']);
+        return;
+      }
+    }
+    this.tenantId.set(null);
+  }
+
+  protected onTenantSelected(tenantId: string): void {
+    this.router.navigate(['/', tenantId]);
   }
 
 

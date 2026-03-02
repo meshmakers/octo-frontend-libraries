@@ -27,7 +27,8 @@ src/lib/
 ├── ck-type-selector-input/       # CK type autocomplete input
 ├── data-sources/                 # GraphQL data source abstractions
 ├── field-filter-editor/          # Filter editor component
-└── property-grid/                # Property grid component
+├── property-grid/                # Property grid component
+└── tenant-switcher/              # Tenant switching badge with popup
     ├── components/               # Grid and value display components
     ├── models/                   # TypeScript interfaces and enums
     └── services/                 # Property converter service
@@ -399,6 +400,53 @@ export class QueryEditorComponent {
   availableFields: AttributeItem[] = [];
 }
 ```
+
+---
+
+## Tenant Switcher
+
+### TenantSwitcherComponent
+
+Reusable tenant switching badge with popup for multi-tenant applications. Theme-neutral, uses only Kendo CSS variables.
+
+```typescript
+import { TenantSwitcherComponent } from '@meshmakers/octo-ui';
+
+@Component({
+  imports: [TenantSwitcherComponent],
+  template: `
+    <mm-tenant-switcher
+      [currentTenantId]="tenantId()"
+      [allowedTenants]="authorizeService.allowedTenants()"
+      [isDenied]="isTenantDenied()"
+      (tenantSelected)="onTenantSelected($event)">
+    </mm-tenant-switcher>
+  `
+})
+export class AppComponent {
+  onTenantSelected(tenantId: string): void {
+    this.router.navigate(['/', tenantId]);
+  }
+}
+```
+
+**Inputs:**
+
+| Input | Type | Default | Description |
+|-------|------|---------|-------------|
+| `currentTenantId` | `string \| null` | `null` | Currently active tenant (hides component when null) |
+| `allowedTenants` | `string[]` | `[]` | Tenants available to switch to |
+| `isDenied` | `boolean` | `false` | Shows error/denied color scheme |
+
+**Outputs:**
+
+| Output | Type | Description |
+|--------|------|-------------|
+| `tenantSelected` | `EventEmitter<string>` | Emits tenant ID when user selects a different tenant |
+
+**Visual behavior:** Badge button showing tenant name + icon. Click opens a Kendo popup listing allowed tenants. Current tenant is highlighted. Clicking a different tenant emits event and closes popup. Escape/outside-click closes popup.
+
+**LCARS theming:** The component uses Kendo CSS variables for theme-neutral styling. Refinery Studio applies LCARS overrides via `::ng-deep mm-tenant-switcher { ... }` in `app.component.scss`.
 
 ---
 
