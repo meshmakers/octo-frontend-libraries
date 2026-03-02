@@ -102,25 +102,26 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
         <kendo-grid-column field="attributePath" title="Attribute Path" [width]="280">
           <ng-template kendoGridCellTemplate let-dataItem>
             @if (availableAttributes.length > 0) {
-              <kendo-dropdownlist
+              <kendo-combobox
                 [data]="filteredAttributeList"
                 [(ngModel)]="dataItem.attributePath"
                 (valueChange)="onAttributeChange(dataItem, $event)"
                 [textField]="'attributePath'"
                 [valueField]="'attributePath'"
                 [valuePrimitive]="true"
+                [allowCustom]="true"
                 [filterable]="true"
                 (filterChange)="onAttributeFilterChange($event)"
                 [listHeight]="300"
                 [popupSettings]="{ appendTo: 'root', animate: true }"
                 class="attribute-dropdown">
-                <ng-template kendoDropDownListItemTemplate let-item>
+                <ng-template kendoComboBoxItemTemplate let-item>
                   <div class="attribute-item">
                     <span class="attribute-path">{{ item.attributePath }}</span>
                     <span class="attribute-type">{{ item.attributeValueType }}</span>
                   </div>
                 </ng-template>
-              </kendo-dropdownlist>
+              </kendo-combobox>
             } @else {
               <kendo-textbox
                 [(ngModel)]="dataItem.attributePath"
