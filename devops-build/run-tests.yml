@@ -11,6 +11,12 @@ steps:
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
   - task: CmdLine@2
+    displayName: 'Activate Kendo UI license'
+    inputs:
+      script: npm run setup-license
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+  - task: CmdLine@2
     displayName: 'Lint all projects (parallel)'
     inputs:
       script: |

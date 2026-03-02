@@ -197,6 +197,12 @@ stages:
               script: npm ci
               workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
+          - task: CmdLine@2
+            displayName: 'Activate Kendo UI license'
+            inputs:
+              script: npm run setup-license
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
           # Download pre-built libraries so ng test can resolve @meshmakers/* imports
           - task: DownloadPipelineArtifact@2
             displayName: 'Download dist (pre-built libraries)'
