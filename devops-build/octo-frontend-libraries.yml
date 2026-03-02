@@ -44,10 +44,13 @@ stages:
           - template: handle-artifacts.yml
 
           # Build demo-app for Docker image (build only, no tests)
+          # Clear Angular cache to ensure kendo-licensing is rebundled with activated license
           - task: CmdLine@2
             displayName: 'Build demo-app (production)'
             inputs:
-              script: npx ng build --project demo-app
+              script: |
+                rm -rf .angular/cache
+                npx ng build --project demo-app
               workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
           # Publish dist/ as pipeline artifact (libraries + demo-app)

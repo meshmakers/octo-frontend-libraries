@@ -18,6 +18,13 @@ steps:
     env:
       TELERIK_LICENSE: $(TELERIK_LICENSE)
 
+  # Clear stale Angular cache to ensure builds pick up the activated kendo license
+  - task: CmdLine@2
+    displayName: 'Clear Angular cache'
+    inputs:
+      script: rm -rf .angular/cache
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
   - task: CmdLine@2
     displayName: 'Lint all projects (parallel)'
     inputs:
