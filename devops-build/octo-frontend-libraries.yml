@@ -202,6 +202,8 @@ stages:
             inputs:
               script: npm run setup-license
               workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+            env:
+              TELERIK_LICENSE: $(TELERIK_LICENSE)
 
           # Download pre-built libraries so ng test can resolve @meshmakers/* imports
           - task: DownloadPipelineArtifact@2
