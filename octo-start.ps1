@@ -26,11 +26,19 @@ try {
         }
     }
 
-    # Resolve npx path so child processes don't depend on shell PATH
-    $npxPath = (Get-Command npx -ErrorAction SilentlyContinue).Source
-    if (-not $npxPath) {
+    # Verify npx is available
+    if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
         Write-Host "npx not found in PATH" -ForegroundColor Red
         exit 1
+    }
+
+    # On Windows, run npx via cmd.exe to handle .cmd/.ps1 wrappers correctly
+    if ($IsWindows -or (-not ($IsMacOS -or $IsLinux))) {
+        $procFilePath = "cmd.exe"
+        $npxPrefix = "/c npx"
+    } else {
+        $procFilePath = (Get-Command npx).Source
+        $npxPrefix = ""
     }
 
     # Kill any leftover processes on our ports
@@ -53,8 +61,13 @@ try {
 
     # Start demo-app on port 4201
     Write-Host "Starting demo-app on https://localhost:4201" -ForegroundColor Cyan
-    $demoProc = Start-Process -FilePath $npxPath `
-        -ArgumentList "ng serve demo-app --port 4201 --configuration $ngConfiguration" `
+    if ($npxPrefix) {
+        $demoArgs = "$npxPrefix ng serve demo-app --port 4201 --configuration $ngConfiguration"
+    } else {
+        $demoArgs = "ng serve demo-app --port 4201 --configuration $ngConfiguration"
+    }
+    $demoProc = Start-Process -FilePath $procFilePath `
+        -ArgumentList $demoArgs `
         -WorkingDirectory $frontendLibsPath `
         -PassThru `
         -NoNewWindow
@@ -62,8 +75,13 @@ try {
 
     # Start legacy-demo-app on port 4202
     Write-Host "Starting legacy-demo-app on https://localhost:4202" -ForegroundColor Cyan
-    $legacyProc = Start-Process -FilePath $npxPath `
-        -ArgumentList "ng serve legacy-demo-app --port 4202 --configuration $ngConfiguration" `
+    if ($npxPrefix) {
+        $legacyArgs = "$npxPrefix ng serve legacy-demo-app --port 4202 --configuration $ngConfiguration"
+    } else {
+        $legacyArgs = "ng serve legacy-demo-app --port 4202 --configuration $ngConfiguration"
+    }
+    $legacyProc = Start-Process -FilePath $procFilePath `
+        -ArgumentList $legacyArgs `
         -WorkingDirectory $frontendLibsPath `
         -PassThru `
         -NoNewWindow
