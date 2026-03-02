@@ -44,10 +44,15 @@ export const authorizeGuard: CanActivateFn = async (route: ActivatedRouteSnapsho
   const userRoles = authorizeService.roles();
   const requiredRoles = route.data['roles'] as string[] | undefined;
 
-  if (!requiredRoles) {
+  if (requiredRoles === undefined || requiredRoles === null) {
     if (typeof ngDevMode === 'undefined' || ngDevMode) {
       console.warn(`[AuthGuard] Route "${route.routeConfig?.path}" has no required roles defined — access granted to any authenticated user.`);
     }
+    return true;
+  }
+
+  // Empty roles array (roles: []) means intentionally open to any authenticated user
+  if (requiredRoles.length === 0) {
     return true;
   }
 
