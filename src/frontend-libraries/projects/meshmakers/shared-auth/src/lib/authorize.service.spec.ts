@@ -402,6 +402,89 @@ describe('AuthorizeService', () => {
 
         expect(service.userInitials()).toBe('Ad');
       });
+
+      it('should derive initials from xt_ cross-tenant username', async () => {
+        const xtUser: IUser = {
+          ...mockUser,
+          given_name: null,
+          family_name: null,
+          name: 'xt_octosystem_gerald.lochner@salzburgdev.at'
+        };
+        oauthServiceMock.getIdentityClaims.and.returnValue(xtUser);
+
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.userInitials()).toBe('GL');
+      });
+
+      it('should derive initials from plain email username', async () => {
+        const emailUser: IUser = {
+          ...mockUser,
+          given_name: null,
+          family_name: null,
+          name: 'gerald.lochner@salzburgdev.at'
+        };
+        oauthServiceMock.getIdentityClaims.and.returnValue(emailUser);
+
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.userInitials()).toBe('GL');
+      });
+    });
+
+    describe('displayName', () => {
+      it('should return full name from given_name and family_name', async () => {
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.displayName()).toBe('Max Mustermann');
+      });
+
+      it('should derive display name from xt_ cross-tenant username', async () => {
+        const xtUser: IUser = {
+          ...mockUser,
+          given_name: null,
+          family_name: null,
+          name: 'xt_octosystem_gerald.lochner@salzburgdev.at'
+        };
+        oauthServiceMock.getIdentityClaims.and.returnValue(xtUser);
+
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.displayName()).toBe('Gerald Lochner');
+      });
+
+      it('should derive display name from plain email username', async () => {
+        const emailUser: IUser = {
+          ...mockUser,
+          given_name: null,
+          family_name: null,
+          name: 'gerald.lochner@salzburgdev.at'
+        };
+        oauthServiceMock.getIdentityClaims.and.returnValue(emailUser);
+
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.displayName()).toBe('Gerald Lochner');
+      });
+
+      it('should return null when user is null', () => {
+        expect(service.displayName()).toBeNull();
+      });
     });
 
     describe('isInRole', () => {

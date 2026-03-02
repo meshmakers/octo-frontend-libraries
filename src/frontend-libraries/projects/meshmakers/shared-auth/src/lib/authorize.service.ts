@@ -94,6 +94,19 @@ export class AuthorizeService {
    */
   readonly roles: Signal<string[]> = computed(() => this._user()?.role ?? []);
 
+  /**
+   * Computed signal for the user's display name.
+   * Uses given_name + family_name if available, otherwise derives from the username.
+   */
+  readonly displayName: Signal<string | null> = computed(() => {
+    const user = this._user();
+    if (!user) return null;
+    if (user.given_name && user.family_name) {
+      return user.given_name + ' ' + user.family_name;
+    }
+    return this.deriveDisplayNameFromUsername(user.name);
+  });
+
   constructor() {
     console.debug("AuthorizeService::created");
 
@@ -360,11 +373,11 @@ export class AuthorizeService {
     }
 
     const user = claims as IUser;
-    if (user.family_name && user.given_name) {
-      const initials = user.given_name.charAt(0) + user.family_name.charAt(0);
-      this._userInitials.set(initials);
+    if (user.given_name && user.family_name) {
+      this._userInitials.set(user.given_name.charAt(0).toUpperCase() + user.family_name.charAt(0).toUpperCase());
     } else {
-      this._userInitials.set(user.name.charAt(0) + user.name.charAt(1));
+      const derived = this.deriveDisplayNameFromUsername(user.name);
+      this._userInitials.set(this.deriveInitials(derived));
     }
 
     const accessToken = this.oauthService.getAccessToken();
@@ -415,6 +428,30 @@ export class AuthorizeService {
       console.warn('Failed to parse allowed_tenants from access token', e);
       return [];
     }
+  }
+
+  private deriveDisplayNameFromUsername(username: string): string {
+    let name = username;
+    // Strip xt_{tenantId}_ prefix
+    const xtMatch = name.match(/^xt_[^_]+_(.+)$/);
+    if (xtMatch) { name = xtMatch[1]; }
+    // Extract local part of email
+    const atIndex = name.indexOf('@');
+    if (atIndex > 0) { name = name.substring(0, atIndex); }
+    // Split by dots and capitalize
+    const parts = name.split('.').filter(p => p.length > 0);
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+  }
+
+  private deriveInitials(displayName: string): string {
+    const words = displayName.split(' ').filter(w => w.length > 0);
+    if (words.length >= 2) {
+      return words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase();
+    }
+    if (words.length === 1 && words[0].length >= 2) {
+      return words[0].charAt(0).toUpperCase() + words[0].charAt(1).toLowerCase();
+    }
+    return '??';
   }
 
   /**

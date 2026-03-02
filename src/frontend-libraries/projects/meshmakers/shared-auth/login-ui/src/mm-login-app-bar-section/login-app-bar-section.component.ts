@@ -31,15 +31,10 @@ export class LoginAppBarSectionComponent implements OnInit {
   );
 
   /**
-   * Computed signal for the user's full name (given name + family name).
+   * Computed signal for the user's display name.
+   * Delegates to AuthorizeService which handles cross-tenant username derivation.
    */
-  protected readonly fullName: Signal<string | null> = computed(() => {
-    const user = this.authorizeService.user();
-    if (user?.given_name && user?.family_name) {
-      return user.given_name + " " + user.family_name;
-    }
-    return null;
-  });
+  protected readonly fullName: Signal<string | null> = this.authorizeService.displayName;
 
   /**
    * Signal for the profile management URI.
