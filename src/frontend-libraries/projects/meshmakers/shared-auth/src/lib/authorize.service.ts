@@ -314,6 +314,13 @@ export class AuthorizeService {
 
       this.authorizeOptions = null;
 
+      this._user.set(null);
+      this._isAuthenticated.set(false);
+      this._accessToken.set(null);
+      this._allowedTenants.set([]);
+      this._userInitials.set(null);
+      this._sessionLoading.set(false);
+
       this._isInitialized.set(false);
       console.debug("AuthorizeService::uninitialize::done");
     } finally {
