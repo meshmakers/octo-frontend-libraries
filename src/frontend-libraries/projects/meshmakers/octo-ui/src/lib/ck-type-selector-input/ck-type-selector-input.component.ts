@@ -7,7 +7,8 @@ import {
   EventEmitter,
   forwardRef,
   ViewChild,
-  inject
+  inject,
+  ElementRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -20,7 +21,7 @@ import {
   ValidationErrors,
   NG_VALIDATORS
 } from '@angular/forms';
-import { AutoCompleteModule, AutoCompleteComponent } from '@progress/kendo-angular-dropdowns';
+import { AutoCompleteModule, AutoCompleteComponent, PopupSettings } from '@progress/kendo-angular-dropdowns';
 import { LoaderModule } from '@progress/kendo-angular-indicators';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IconsModule, SVGIconModule } from '@progress/kendo-angular-icons';
@@ -66,6 +67,7 @@ import { CkTypeSelectorDialogService } from '../ck-type-selector-dialog/ck-type-
         [suggest]="true"
         [clearButton]="true"
         [filterable]="true"
+        [popupSettings]="popupSettings"
         (filterChange)="onFilterChange($event)"
         (valueChange)="onSelectionChange($event)"
         (blur)="onBlur()"
@@ -225,12 +227,16 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
   private onTouched: () => void = () => { /* noop */ };
 
   protected readonly searchIcon = searchIcon;
+  protected popupSettings: PopupSettings = { appendTo: 'root', popupClass: 'mm-ck-type-popup' };
 
+  private static popupStyleInjected = false;
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private readonly dialogService = inject(CkTypeSelectorDialogService, { optional: true });
+  private readonly elementRef = inject(ElementRef);
 
   ngOnInit(): void {
     this.setupSearch();
+    this.injectPopupStyles();
   }
 
   ngOnDestroy(): void {
@@ -375,6 +381,29 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
         this.typeMap = new Map(items.map(item => [item.rtCkTypeId, item]));
       })
     );
+  }
+
+  private injectPopupStyles(): void {
+    if (CkTypeSelectorInputComponent.popupStyleInjected) return;
+    const style = document.createElement('style');
+    style.setAttribute('data-mm-ck-type-popup', '');
+    style.textContent = `
+      .mm-ck-type-popup {
+        max-width: 500px !important;
+        min-width: 0 !important;
+      }
+      .mm-ck-type-popup .k-child-animation-container {
+        max-width: 500px !important;
+      }
+      .mm-ck-type-popup .k-list-item {
+        padding: 4px 12px !important;
+        min-height: 0 !important;
+        font-size: 13px !important;
+        line-height: 20px !important;
+      }
+    `;
+    document.head.appendChild(style);
+    CkTypeSelectorInputComponent.popupStyleInjected = true;
   }
 
   private selectCkType(ckType: CkTypeSelectorItem): void {

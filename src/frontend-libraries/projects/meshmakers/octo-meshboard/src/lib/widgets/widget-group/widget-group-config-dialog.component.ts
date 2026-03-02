@@ -6,7 +6,7 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { CkTypeSelectorInputComponent, FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
-import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, AttributeItem, FieldFilterDto, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
+import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, FieldFilterDto, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -132,11 +132,11 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
             </div>
 
             <!-- Filters for CK Type mode -->
-            @if (selectedCkType && filterAttributes.length > 0) {
+            @if (selectedCkType?.rtCkTypeId) {
               <div class="form-field">
                 <label>Filters</label>
                 <mm-field-filter-editor
-                  [availableAttributes]="filterAttributes"
+                  [ckTypeId]="selectedCkType?.rtCkTypeId"
                   [filters]="filters"
                   [enableVariables]="filterVariables.length > 0"
                   [availableVariables]="filterVariables"
@@ -538,7 +538,6 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
 
   // Filter state
   filters: FieldFilterItem[] = [];
-  filterAttributes: AttributeItem[] = [];
   filterVariables: FilterVariable[] = [];
 
   isLoadingInitial = false;
@@ -753,7 +752,6 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
     this.selectedCkType = null;
     this.availableColumns = [];
     this.filteredColumns.set([]);
-    this.filterAttributes = [];
     this.filters = [];
   }
 
@@ -762,7 +760,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
 
     try {
       const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: ckTypeId, first: 1000 }
+        variables: { rtCkId: ckTypeId, first: 1000, includeNavigationProperties: true }
       }));
 
       const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
@@ -775,12 +773,10 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
 
       this.availableColumns = mappedColumns;
       this.filteredColumns.set(mappedColumns);
-      this.filterAttributes = mappedColumns;
     } catch (error) {
       console.error('Error loading CK type attributes:', error);
       this.availableColumns = [];
       this.filteredColumns.set([]);
-      this.filterAttributes = [];
     } finally {
       this.isLoadingColumns = false;
     }

@@ -383,11 +383,11 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
                 }
 
                 <!-- Filters Section -->
-                @if (dataBindingMode !== 'none' && filterAttributes.length > 0) {
+                @if (dataBindingMode !== 'none' && (dataBindingMode === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId)) {
                   <div class="form-field">
                     <label>Filters (Optional)</label>
                     <mm-field-filter-editor
-                      [availableAttributes]="filterAttributes"
+                      [ckTypeId]="(dataBindingMode === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId) ?? undefined"
                       [filters]="filters"
                       [enableVariables]="filterVariables.length > 0"
                       [availableVariables]="filterVariables"
@@ -1233,7 +1233,7 @@ export class ProcessConfigDialogComponent implements OnInit {
     try {
       const result = await firstValueFrom(
         this.getCkTypeAvailableQueryColumnsGQL.fetch({
-          variables: { rtCkId: ckTypeId, first: 1000 }
+          variables: { rtCkId: ckTypeId, first: 1000, includeNavigationProperties: true }
         })
       );
 

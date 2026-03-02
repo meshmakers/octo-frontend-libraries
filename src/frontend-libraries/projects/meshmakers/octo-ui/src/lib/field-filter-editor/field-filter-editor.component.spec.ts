@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from './field-filter-editor.component';
-import { FieldFilterOperatorsDto, AttributeItem } from '@meshmakers/octo-services';
+import { FieldFilterOperatorsDto, AttributeItem, AttributeSelectorService } from '@meshmakers/octo-services';
 
 describe('FieldFilterEditorComponent', () => {
   let component: FieldFilterEditorComponent;
@@ -31,7 +31,10 @@ describe('FieldFilterEditorComponent', () => {
         FieldFilterEditorComponent,
         FormsModule
       ],
-      providers: [provideNoopAnimations()]
+      providers: [
+        provideNoopAnimations(),
+        { provide: AttributeSelectorService, useValue: jasmine.createSpyObj('AttributeSelectorService', ['getAvailableAttributes']) }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(FieldFilterEditorComponent);

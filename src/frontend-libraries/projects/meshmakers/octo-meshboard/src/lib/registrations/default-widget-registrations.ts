@@ -838,7 +838,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       chartType: 'pie',
       categoryField: '',
       valueField: '',
-      showLabels: true,
+      showLabels: false,
       showLegend: true,
       legendPosition: 'right'
     }),
@@ -901,7 +901,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           chartType: (config['chartType'] as PieChartWidgetConfig['chartType']) ?? 'pie',
           categoryField: (config['categoryField'] as string) ?? '',
           valueField: (config['valueField'] as string) ?? '',
-          showLabels: (config['showLabels'] as boolean) ?? true,
+          showLabels: (config['showLabels'] as boolean) ?? false,
           showLegend: (config['showLegend'] as boolean) ?? true,
           legendPosition: (config['legendPosition'] as PieChartWidgetConfig['legendPosition']) ?? 'right',
           filters: config['filters'] as WidgetFilterConfig[] | undefined
@@ -919,7 +919,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         chartType: (config['chartType'] as PieChartWidgetConfig['chartType']) ?? 'pie',
         categoryField: (config['categoryField'] as string) ?? '',
         valueField: (config['valueField'] as string) ?? '',
-        showLabels: (config['showLabels'] as boolean) ?? true,
+        showLabels: (config['showLabels'] as boolean) ?? false,
         showLegend: (config['showLegend'] as boolean) ?? true,
         legendPosition: (config['legendPosition'] as PieChartWidgetConfig['legendPosition']) ?? 'right',
         filters: config['filters'] as WidgetFilterConfig[] | undefined

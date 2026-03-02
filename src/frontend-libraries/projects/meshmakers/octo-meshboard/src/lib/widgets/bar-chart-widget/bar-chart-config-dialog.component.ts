@@ -13,7 +13,7 @@ import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
-import { FieldFilterDto, FieldFilterOperatorsDto, AttributeItem, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
+import { FieldFilterDto, FieldFilterOperatorsDto } from '@meshmakers/octo-services';
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 
@@ -188,12 +188,12 @@ export interface BarChartConfigResult extends WidgetConfigResult {
         }
 
         <!-- Filters Section -->
-        @if (filterAttributes.length > 0) {
+        @if (selectedPersistentQuery?.queryCkTypeId) {
           <div class="config-section">
             <h3 class="section-title">Filters</h3>
             <p class="section-hint">Define filters to narrow down the data.</p>
             <mm-field-filter-editor
-              [availableAttributes]="filterAttributes"
+              [ckTypeId]="selectedPersistentQuery?.queryCkTypeId ?? undefined"
               [filters]="filters"
               [enableVariables]="filterVariables.length > 0"
               [availableVariables]="filterVariables"
@@ -434,7 +434,6 @@ export interface BarChartConfigResult extends WidgetConfigResult {
 })
 export class BarChartConfigDialogComponent implements OnInit {
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
-  private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -464,7 +463,6 @@ export class BarChartConfigDialogComponent implements OnInit {
 
   // Filter state
   filters: FieldFilterItem[] = [];
-  filterAttributes: AttributeItem[] = [];
   filterVariables: FilterVariable[] = [];
 
   // Series mode and fields selection
@@ -559,9 +557,6 @@ export class BarChartConfigDialogComponent implements OnInit {
           if (query) {
             this.selectedPersistentQuery = query;
             await this.loadQueryColumns(query.rtId);
-            if (query.queryCkTypeId) {
-              await this.loadFilterAttributes(query.queryCkTypeId);
-            }
           }
         }
         this.isLoadingInitial = false;
@@ -574,7 +569,6 @@ export class BarChartConfigDialogComponent implements OnInit {
     this.queryColumns = [];
     this.numericColumns = [];
     this.nonNumericColumns = [];
-    this.filterAttributes = [];
     this.filters = [];
     this.form.categoryField = '';
     this.selectedSeriesFields = [];
@@ -584,11 +578,6 @@ export class BarChartConfigDialogComponent implements OnInit {
     if (query) {
       // Load query columns for field mapping
       await this.loadQueryColumns(query.rtId);
-
-      // Load filter attributes from CK type
-      if (query.queryCkTypeId) {
-        await this.loadFilterAttributes(query.queryCkTypeId);
-      }
     }
   }
 
@@ -647,29 +636,6 @@ export class BarChartConfigDialogComponent implements OnInit {
       this.nonNumericColumns = [];
     } finally {
       this.isLoadingColumns = false;
-    }
-  }
-
-  /**
-   * Loads all available filter attributes from the CK type.
-   * Uses getCkTypeAvailableQueryColumns to get all attributes, not just query result columns.
-   */
-  private async loadFilterAttributes(queryCkTypeId: string): Promise<void> {
-    try {
-      const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: queryCkTypeId, first: 1000 }
-      }));
-
-      const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
-      this.filterAttributes = columns
-        .filter((c): c is NonNullable<typeof c> => c !== null)
-        .map(c => ({
-          attributePath: c.attributePath || '',
-          attributeValueType: c.attributeValueType
-        }));
-    } catch (error) {
-      console.error('Error loading filter attributes:', error);
-      this.filterAttributes = [];
     }
   }
 

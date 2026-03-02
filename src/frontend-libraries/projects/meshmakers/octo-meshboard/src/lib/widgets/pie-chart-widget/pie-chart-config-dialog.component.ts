@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WindowRef } from '@progress/kendo-angular-dialog';
@@ -13,7 +13,7 @@ import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
-import { FieldFilterDto, FieldFilterOperatorsDto, AttributeItem, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
+import { FieldFilterDto, FieldFilterOperatorsDto } from '@meshmakers/octo-services';
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
@@ -167,13 +167,12 @@ export interface PieChartConfigResult extends WidgetConfigResult {
           </div>
         }
 
-        <!-- Filters Section (only for persistent queries with columns) -->
-        @if (form.dataSourceType === 'persistentQuery' && filterAttributes.length > 0) {
+        <!-- Filters Section (only for persistent queries with a CK type) -->
+        @if (form.dataSourceType === 'persistentQuery' && selectedPersistentQuery?.queryCkTypeId) {
           <div class="config-section">
             <h3 class="section-title">Filters</h3>
-            <p class="section-hint">Define filters to narrow down the data.</p>
             <mm-field-filter-editor
-              [availableAttributes]="filterAttributes"
+              [ckTypeId]="selectedPersistentQuery?.queryCkTypeId ?? undefined"
               [filters]="filters"
               [enableVariables]="filterVariables.length > 0"
               [availableVariables]="filterVariables"
@@ -208,23 +207,29 @@ export interface PieChartConfigResult extends WidgetConfigResult {
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-field checkbox-field">
-              <label>
-                <input type="checkbox" [(ngModel)]="form.showLabels" kendoCheckBox />
-                Show Labels
+          <div class="form-field">
+            <label>Display Mode</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio"
+                       name="displayMode"
+                       value="legend"
+                       [(ngModel)]="form.displayMode"
+                       kendoRadioButton />
+                <span>Legend</span>
               </label>
-            </div>
-
-            <div class="form-field checkbox-field">
-              <label>
-                <input type="checkbox" [(ngModel)]="form.showLegend" kendoCheckBox />
-                Show Legend
+              <label class="radio-label">
+                <input type="radio"
+                       name="displayMode"
+                       value="labels"
+                       [(ngModel)]="form.displayMode"
+                       kendoRadioButton />
+                <span>Labels</span>
               </label>
             </div>
           </div>
 
-          @if (form.showLegend) {
+          @if (form.displayMode === 'legend') {
             <div class="form-field">
               <label>Legend Position</label>
               <kendo-dropdownlist
@@ -330,24 +335,6 @@ export interface PieChartConfigResult extends WidgetConfigResult {
       font-weight: normal;
     }
 
-    .form-row {
-      display: flex;
-      gap: 24px;
-    }
-
-    .checkbox-field {
-      flex-direction: row;
-      align-items: center;
-    }
-
-    .checkbox-field label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      font-weight: normal;
-    }
-
     .query-item {
       display: flex;
       flex-direction: column;
@@ -379,9 +366,8 @@ export interface PieChartConfigResult extends WidgetConfigResult {
     }
   `]
 })
-export class PieChartConfigDialogComponent implements OnInit {
+export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
-  private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -433,7 +419,6 @@ export class PieChartConfigDialogComponent implements OnInit {
 
   // Filter state
   filters: FieldFilterItem[] = [];
-  filterAttributes: AttributeItem[] = [];
   filterVariables: FilterVariable[] = [];
 
   // Legend position options
@@ -450,8 +435,7 @@ export class PieChartConfigDialogComponent implements OnInit {
     chartType: 'pie' as PieChartType,
     categoryField: '',
     valueField: '',
-    showLabels: true,
-    showLegend: true,
+    displayMode: 'legend' as 'legend' | 'labels',
     legendPosition: 'right' as 'top' | 'bottom' | 'left' | 'right',
     ckQueryTarget: 'models' as CkQueryTarget,
     ckGroupBy: 'modelState'
@@ -485,8 +469,7 @@ export class PieChartConfigDialogComponent implements OnInit {
     this.form.chartType = this.initialChartType ?? 'pie';
     this.form.categoryField = this.initialCategoryField ?? '';
     this.form.valueField = this.initialValueField ?? '';
-    this.form.showLabels = this.initialShowLabels ?? true;
-    this.form.showLegend = this.initialShowLegend ?? true;
+    this.form.displayMode = this.initialShowLabels === true ? 'labels' : 'legend';
     this.form.legendPosition = this.initialLegendPosition ?? 'right';
     this.form.ckQueryTarget = this.initialCkQueryTarget ?? 'models';
     this.form.ckGroupBy = this.initialCkGroupBy ?? 'modelState';
@@ -504,23 +487,23 @@ export class PieChartConfigDialogComponent implements OnInit {
     // Initialize CK group by options
     this.updateCkGroupByOptions(this.form.ckQueryTarget);
 
-    // If editing with initial query, load it after view init
+    // Mark as loading if we need to restore initial query (loaded in ngAfterViewInit)
     if (this.form.dataSourceType === 'persistentQuery' && this.initialQueryRtId) {
       this.isLoadingInitial = true;
-      // Defer to allow QuerySelectorComponent to initialize
-      setTimeout(async () => {
-        if (this.querySelector) {
-          const query = await this.querySelector.selectByRtId(this.initialQueryRtId!);
-          if (query) {
-            this.selectedPersistentQuery = query;
-            await this.loadQueryColumns(query.rtId);
-            if (query.queryCkTypeId) {
-              await this.loadFilterAttributes(query.queryCkTypeId);
-            }
-          }
+    }
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    if (this.form.dataSourceType === 'persistentQuery' && this.initialQueryRtId && this.querySelector) {
+      try {
+        const query = await this.querySelector.selectByRtId(this.initialQueryRtId);
+        if (query) {
+          this.selectedPersistentQuery = query;
+          await this.loadQueryColumns(query.rtId);
         }
+      } finally {
         this.isLoadingInitial = false;
-      }, 100);
+      }
     }
   }
 
@@ -531,7 +514,6 @@ export class PieChartConfigDialogComponent implements OnInit {
     if (dataSourceType !== 'persistentQuery') {
       this.selectedPersistentQuery = null;
       this.queryColumns = [];
-      this.filterAttributes = [];
       this.filters = [];
       this.form.categoryField = '';
       this.form.valueField = '';
@@ -568,19 +550,12 @@ export class PieChartConfigDialogComponent implements OnInit {
   async onQuerySelected(query: PersistentQueryItem | null): Promise<void> {
     this.selectedPersistentQuery = query;
     this.queryColumns = [];
-    this.filterAttributes = [];
     this.filters = [];
     this.form.categoryField = '';
     this.form.valueField = '';
 
     if (query) {
-      // Load query columns for field mapping
       await this.loadQueryColumns(query.rtId);
-
-      // Load filter attributes from CK type
-      if (query.queryCkTypeId) {
-        await this.loadFilterAttributes(query.queryCkTypeId);
-      }
     }
   }
 
@@ -628,29 +603,6 @@ export class PieChartConfigDialogComponent implements OnInit {
     }
   }
 
-  /**
-   * Loads all available filter attributes from the CK type.
-   * Uses getCkTypeAvailableQueryColumns to get all attributes, not just query result columns.
-   */
-  private async loadFilterAttributes(queryCkTypeId: string): Promise<void> {
-    try {
-      const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: queryCkTypeId, first: 1000 }
-      }));
-
-      const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
-      this.filterAttributes = columns
-        .filter((c): c is NonNullable<typeof c> => c !== null)
-        .map(c => ({
-          attributePath: c.attributePath || '',
-          attributeValueType: c.attributeValueType
-        }));
-    } catch (error) {
-      console.error('Error loading filter attributes:', error);
-      this.filterAttributes = [];
-    }
-  }
-
   private sanitizeFieldName(fieldName: string): string {
     return fieldName.replace(/\./g, '_');
   }
@@ -676,8 +628,8 @@ export class PieChartConfigDialogComponent implements OnInit {
       chartType: this.form.chartType,
       categoryField: this.form.categoryField,
       valueField: this.form.valueField,
-      showLabels: this.form.showLabels,
-      showLegend: this.form.showLegend,
+      showLabels: this.form.displayMode === 'labels',
+      showLegend: this.form.displayMode === 'legend',
       legendPosition: this.form.legendPosition,
       filters: filtersDto
     };

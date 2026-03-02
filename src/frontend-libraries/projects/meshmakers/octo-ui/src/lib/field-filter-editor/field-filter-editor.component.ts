@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GridModule } from '@progress/kendo-angular-grid';
@@ -15,8 +15,10 @@ import {
   FieldFilterDto,
   FieldFilterOperatorsDto,
   AttributeValueTypeDto,
-  AttributeItem
+  AttributeItem,
+  AttributeSelectorService
 } from '@meshmakers/octo-services';
+import { firstValueFrom } from 'rxjs';
 
 /**
  * Variable definition for use in filter values.
@@ -56,6 +58,30 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
   ],
   template: `
     <div class="field-filter-editor">
+      @if (ckTypeId) {
+        <div class="attribute-options">
+          <label class="inline-checkbox">
+            <input type="checkbox" kendoCheckBox
+              [(ngModel)]="includeNavigationProperties"
+              (ngModelChange)="onNavigationPropertiesChange()" />
+            Include Navigation Properties
+          </label>
+          <label class="inline-field">
+            Max Depth
+            <kendo-numerictextbox
+              [(ngModel)]="maxDepth"
+              [min]="1" [max]="5" [step]="1" [format]="'n0'"
+              [spinners]="true"
+              [disabled]="!includeNavigationProperties"
+              (valueChange)="onMaxDepthChange($event)"
+              class="depth-input">
+            </kendo-numerictextbox>
+          </label>
+          @if (isLoadingAttributes) {
+            <span class="loading-hint">Loading...</span>
+          }
+        </div>
+      }
       <div class="toolbar">
         <button
           kendoButton
@@ -292,6 +318,37 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
       gap: 10px;
     }
 
+    .attribute-options {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.85rem;
+    }
+
+    .inline-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    .inline-field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: normal;
+    }
+
+    .depth-input {
+      width: 80px;
+    }
+
+    .loading-hint {
+      font-size: 0.8rem;
+      color: var(--kendo-color-subtle, #6c757d);
+    }
+
     .toolbar {
       display: flex;
       gap: 10px;
@@ -398,6 +455,8 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
   `]
 })
 export class FieldFilterEditorComponent implements OnChanges {
+  private readonly attributeService = inject(AttributeSelectorService, { optional: true });
+
   protected readonly plusIcon = plusIcon;
   protected readonly minusIcon = minusIcon;
   protected readonly trashIcon = trashIcon;
@@ -427,11 +486,24 @@ export class FieldFilterEditorComponent implements OnChanges {
 
   @Input() public availableAttributes: AttributeItem[] = [];
 
+  /**
+   * Optional CK type ID for self-loading attributes.
+   * When set, the component loads available attributes itself and shows
+   * navigation property controls (checkbox + max depth).
+   * When not set, the component uses the externally provided availableAttributes input.
+   */
+  @Input() public ckTypeId?: string;
+
   /** Enable variable mode - allows using variables instead of literal values */
   @Input() public enableVariables = false;
 
   /** Available variables for selection when enableVariables is true */
   @Input() public availableVariables: FilterVariable[] = [];
+
+  /** Controls for self-loading mode (when ckTypeId is set) */
+  public includeNavigationProperties = true;
+  public maxDepth: number | null = null;
+  public isLoadingAttributes = false;
 
   private _filters: FieldFilterItem[] = [];
   private nextId = 1;
@@ -451,7 +523,12 @@ export class FieldFilterEditorComponent implements OnChanges {
 
   public selectedKeys: number[] = [];
 
-  ngOnChanges(): void {
+  ngOnChanges(changes?: SimpleChanges): void {
+    // Self-load attributes when ckTypeId changes
+    if (changes?.['ckTypeId'] && this.ckTypeId) {
+      this.loadAttributesFromCkType();
+    }
+
     this.filteredAttributeList = [...this.availableAttributes];
     this.buildAttributeTypeMap();
     // Ensure useVariable flag is set correctly for filters with variable values
@@ -476,6 +553,51 @@ export class FieldFilterEditorComponent implements OnChanges {
     this.attributeTypeMap.clear();
     for (const attr of this.availableAttributes) {
       this.attributeTypeMap.set(attr.attributePath, attr.attributeValueType as AttributeValueTypeDto);
+    }
+  }
+
+  // ============================================================================
+  // Self-loading attribute methods (when ckTypeId is set)
+  // ============================================================================
+
+  public onNavigationPropertiesChange(): void {
+    if (!this.includeNavigationProperties) {
+      this.maxDepth = null;
+    }
+    this.loadAttributesFromCkType();
+  }
+
+  public onMaxDepthChange(value: number | null): void {
+    this.maxDepth = value;
+    this.loadAttributesFromCkType();
+  }
+
+  private async loadAttributesFromCkType(): Promise<void> {
+    if (!this.ckTypeId || !this.attributeService) return;
+
+    this.isLoadingAttributes = true;
+    try {
+      const result = await firstValueFrom(
+        this.attributeService.getAvailableAttributes(
+          this.ckTypeId,
+          undefined, // filter
+          1000,      // first
+          undefined, // after
+          undefined, // attributeValueType
+          undefined, // searchTerm
+          this.includeNavigationProperties,
+          this.maxDepth ?? undefined
+        )
+      );
+      this.availableAttributes = result.items;
+      this.filteredAttributeList = [...this.availableAttributes];
+      this.buildAttributeTypeMap();
+    } catch (error) {
+      console.error('Error loading filter attributes:', error);
+      this.availableAttributes = [];
+      this.filteredAttributeList = [];
+    } finally {
+      this.isLoadingAttributes = false;
     }
   }
 

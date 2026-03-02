@@ -6,7 +6,7 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { CkTypeSelectorInputComponent, FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
-import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, AttributeItem, FieldFilterDto, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
+import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, AttributeItem, FieldFilterDto } from '@meshmakers/octo-services';
 import {
   EntitySelectInputComponent
 } from '@meshmakers/shared-ui';
@@ -392,12 +392,12 @@ interface TrendOption {
         </div>
 
         <!-- Filters Section -->
-        @if (filterAttributes.length > 0) {
+        @if (dataSourceType === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId) {
           <div class="form-section">
             <h4>Filters</h4>
             <p class="section-hint">Define filters to narrow down the data.</p>
             <mm-field-filter-editor
-              [availableAttributes]="filterAttributes"
+              [ckTypeId]="(dataSourceType === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId) ?? undefined"
               [filters]="filters"
               [enableVariables]="filterVariables.length > 0"
               [availableVariables]="filterVariables"
@@ -572,7 +572,6 @@ export class KpiConfigDialogComponent implements OnInit {
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private readonly attributeSelectorService = inject(AttributeSelectorService);
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
-  private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -628,7 +627,6 @@ export class KpiConfigDialogComponent implements OnInit {
 
   // Filter state
   filters: FieldFilterItem[] = [];
-  filterAttributes: AttributeItem[] = [];
   filterVariables: FilterVariable[] = [];
 
   form = {
@@ -717,9 +715,6 @@ export class KpiConfigDialogComponent implements OnInit {
           if (query) {
             this.selectedPersistentQuery = query;
             await this.loadQueryColumnsAndValues();
-            if (query.queryCkTypeId) {
-              await this.loadFilterAttributesFromCkType(query.queryCkTypeId);
-            }
           }
         }
         this.isLoadingInitial = false;
@@ -820,7 +815,6 @@ export class KpiConfigDialogComponent implements OnInit {
     this.availableAttributes.set([]);
     this.filteredValueAttributes.set([]);
     this.filteredLabelAttributes.set([]);
-    this.filterAttributes = [];
     this.filters = [];
   }
 
@@ -831,8 +825,6 @@ export class KpiConfigDialogComponent implements OnInit {
         this.availableAttributes.set(result.items);
         this.filteredValueAttributes.set(result.items);
         this.filteredLabelAttributes.set(result.items);
-        // Also set filter attributes for the filter editor
-        this.filterAttributes = result.items;
         this.isLoadingAttributes.set(false);
       },
       error: (err) => {
@@ -840,7 +832,6 @@ export class KpiConfigDialogComponent implements OnInit {
         this.availableAttributes.set([]);
         this.filteredValueAttributes.set([]);
         this.filteredLabelAttributes.set([]);
-        this.filterAttributes = [];
         this.isLoadingAttributes.set(false);
       }
     });
@@ -932,7 +923,6 @@ export class KpiConfigDialogComponent implements OnInit {
     this.selectedPersistentQuery = query;
     this.queryColumns = [];
     this.categoryValues = [];
-    this.filterAttributes = [];
     this.filters = [];
     this.form.queryValueField = '';
     this.form.queryCategoryField = '';
@@ -941,11 +931,6 @@ export class KpiConfigDialogComponent implements OnInit {
     if (query) {
       // Load query columns for field mapping
       await this.loadQueryColumnsAndValues(query.rtId);
-
-      // Load filter attributes from CK type
-      if (query.queryCkTypeId) {
-        await this.loadFilterAttributesFromCkType(query.queryCkTypeId);
-      }
     }
   }
 
@@ -1001,29 +986,6 @@ export class KpiConfigDialogComponent implements OnInit {
       this.queryColumns = [];
     } finally {
       this.isLoadingQueryColumns = false;
-    }
-  }
-
-  /**
-   * Loads all available filter attributes from the CK type.
-   * Uses getCkTypeAvailableQueryColumns to get all attributes, not just query result columns.
-   */
-  private async loadFilterAttributesFromCkType(queryCkTypeId: string): Promise<void> {
-    try {
-      const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: queryCkTypeId, first: 1000 }
-      }));
-
-      const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
-      this.filterAttributes = columns
-        .filter((c): c is NonNullable<typeof c> => c !== null)
-        .map(c => ({
-          attributePath: c.attributePath || '',
-          attributeValueType: c.attributeValueType
-        }));
-    } catch (error) {
-      console.error('Error loading filter attributes:', error);
-      this.filterAttributes = [];
     }
   }
 

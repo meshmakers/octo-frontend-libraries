@@ -139,34 +139,36 @@ export const DEFAULT_TIME_RANGE_LABELS: TimeRangePickerLabels = {
  */
 export class TimeRangeUtils {
   /**
-   * Calculate time range for a specific year
+   * Calculate time range for a specific year.
+   * Uses exclusive end boundary (start of next year) for correct LESS_THAN filtering.
    */
   static getYearRange(year: number): TimeRange {
     return {
       from: new Date(year, 0, 1, 0, 0, 0, 0),
-      to: new Date(year, 11, 31, 23, 59, 59, 999)
+      to: new Date(year + 1, 0, 1, 0, 0, 0, 0)
     };
   }
 
   /**
-   * Calculate time range for a specific quarter
+   * Calculate time range for a specific quarter.
+   * Uses exclusive end boundary (start of next quarter) for correct LESS_THAN filtering.
    */
   static getQuarterRange(year: number, quarter: Quarter): TimeRange {
     const startMonth = (quarter - 1) * 3;
-    const endMonth = startMonth + 2;
     return {
       from: new Date(year, startMonth, 1, 0, 0, 0, 0),
-      to: new Date(year, endMonth + 1, 0, 23, 59, 59, 999) // Last day of end month
+      to: new Date(year, startMonth + 3, 1, 0, 0, 0, 0)
     };
   }
 
   /**
-   * Calculate time range for a specific month
+   * Calculate time range for a specific month.
+   * Uses exclusive end boundary (start of next month) for correct LESS_THAN filtering.
    */
   static getMonthRange(year: number, month: number): TimeRange {
     return {
       from: new Date(year, month, 1, 0, 0, 0, 0),
-      to: new Date(year, month + 1, 0, 23, 59, 59, 999) // Last day of month
+      to: new Date(year, month + 1, 1, 0, 0, 0, 0)
     };
   }
 

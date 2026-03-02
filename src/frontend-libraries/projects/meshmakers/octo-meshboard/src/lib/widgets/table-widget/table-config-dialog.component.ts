@@ -174,7 +174,7 @@ export interface TableConfigResult {
             <div class="card-content filter-content">
               <mm-field-filter-editor
                 #filterEditor
-                [availableAttributes]="availableAttributes"
+                [ckTypeId]="selectedCkType?.rtCkTypeId"
                 [filters]="filters"
                 [enableVariables]="filterVariables.length > 0"
                 [availableVariables]="filterVariables"
@@ -232,7 +232,7 @@ export interface TableConfigResult {
                 </div>
                 <div class="card-content filter-content">
                   <mm-field-filter-editor
-                    [availableAttributes]="queryFilterAttributes"
+                    [ckTypeId]="selectedPersistentQuery?.queryCkTypeId ?? undefined"
                     [filters]="filters"
                     [enableVariables]="filterVariables.length > 0"
                     [availableVariables]="filterVariables"
@@ -481,8 +481,6 @@ export class TableConfigDialogComponent implements OnInit {
 
   // Query configuration
   selectedPersistentQuery: PersistentQueryItem | null = null;
-  isLoadingQueryColumns = false;
-  queryFilterAttributes: AttributeItem[] = [];
 
   // Variables for filter editor
   filterVariables: FilterVariable[] = [];
@@ -544,10 +542,6 @@ export class TableConfigDialogComponent implements OnInit {
           const query = await this.querySelector.selectByRtId(this.initialQueryRtId);
           if (query) {
             this.selectedPersistentQuery = query;
-            // Load filter attributes from CK type
-            if (query.queryCkTypeId) {
-              await this.loadFilterAttributesForQuery(query.queryCkTypeId);
-            }
           }
         }
       });
@@ -578,7 +572,7 @@ export class TableConfigDialogComponent implements OnInit {
   private async loadAvailableAttributes(ckTypeId: string): Promise<void> {
     try {
       const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: ckTypeId, first: 1000 }
+        variables: { rtCkId: ckTypeId, first: 1000, includeNavigationProperties: true }
       }));
 
       const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
@@ -614,42 +608,7 @@ export class TableConfigDialogComponent implements OnInit {
 
   async onQuerySelected(query: PersistentQueryItem | null): Promise<void> {
     this.selectedPersistentQuery = query;
-    this.queryFilterAttributes = [];
     this.filters = [];
-
-    if (query) {
-      // Load filter attributes from CK type (not from query columns)
-      if (query.queryCkTypeId) {
-        await this.loadFilterAttributesForQuery(query.queryCkTypeId);
-      }
-    }
-  }
-
-  /**
-   * Loads all available filter attributes from the CK type.
-   * Uses getCkTypeAvailableQueryColumns instead of query result columns.
-   */
-  private async loadFilterAttributesForQuery(queryCkTypeId: string): Promise<void> {
-    this.isLoadingQueryColumns = true;
-
-    try {
-      const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: queryCkTypeId, first: 1000 }
-      }));
-
-      const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
-      this.queryFilterAttributes = columns
-        .filter((c): c is NonNullable<typeof c> => c !== null)
-        .map(c => ({
-          attributePath: c.attributePath || '',
-          attributeValueType: c.attributeValueType
-        }));
-    } catch (error) {
-      console.error('Error loading filter attributes:', error);
-      this.queryFilterAttributes = [];
-    } finally {
-      this.isLoadingQueryColumns = false;
-    }
   }
 
   async openColumnSelector(): Promise<void> {

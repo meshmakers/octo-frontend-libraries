@@ -429,6 +429,26 @@ export class MeshBoardStateService {
   }
 
   /**
+   * Duplicates an existing MeshBoard including all its widgets, variables, and time filter settings.
+   * Returns the rtId of the newly created MeshBoard.
+   */
+  async duplicateMeshBoard(sourceRtId: string): Promise<string> {
+    const result = await this.persistenceService.getMeshBoardWithWidgets(sourceRtId);
+    if (!result) {
+      throw new Error(`MeshBoard not found: ${sourceRtId}`);
+    }
+
+    const config = this.persistenceService.toMeshBoardConfig(result.meshBoard, result.widgets);
+    config.name = `${config.name} (Copy)`;
+    config.rtWellKnownName = undefined;
+
+    const newRtId = await this.persistenceService.createMeshBoard(config);
+    await this.refreshMeshBoardList();
+
+    return newRtId;
+  }
+
+  /**
    * Deletes a MeshBoard.
    * If the deleted MeshBoard was the current one, switches to the first available.
    */

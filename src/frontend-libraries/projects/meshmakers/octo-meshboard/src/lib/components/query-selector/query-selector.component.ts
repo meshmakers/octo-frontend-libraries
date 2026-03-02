@@ -118,10 +118,11 @@ export class QuerySelectorComponent implements OnInit, ControlValueAccessor {
   // ControlValueAccessor (initialized as noop, set by registerOnChange/registerOnTouched)
   private onChange: (value: PersistentQueryItem | null) => void = () => { /* noop */ };
   private onTouched: () => void = () => { /* noop */ };
+  private loadPromise: Promise<void> | null = null;
 
   ngOnInit(): void {
     if (this.autoLoad) {
-      this.loadQueries();
+      this.loadPromise = this.loadQueries();
     }
   }
 
@@ -179,8 +180,10 @@ export class QuerySelectorComponent implements OnInit, ControlValueAccessor {
    * Sets the selected query by rtId (useful for loading existing config)
    */
   async selectByRtId(rtId: string): Promise<PersistentQueryItem | null> {
-    // First ensure queries are loaded
-    if (this.queries.length === 0) {
+    // Await any in-progress load before checking queries
+    if (this.loadPromise) {
+      await this.loadPromise;
+    } else if (this.queries.length === 0) {
       await this.loadQueries();
     }
 
