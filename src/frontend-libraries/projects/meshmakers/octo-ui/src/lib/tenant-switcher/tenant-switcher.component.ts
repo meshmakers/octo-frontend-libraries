@@ -7,33 +7,26 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import { ButtonComponent } from '@progress/kendo-angular-buttons';
 import { PopupComponent } from '@progress/kendo-angular-popup';
-import { SVGIconComponent } from '@progress/kendo-angular-icons';
-import { circleIcon, exclamationCircleIcon } from '@progress/kendo-svg-icons';
 
 @Component({
   selector: 'mm-tenant-switcher',
   standalone: true,
   imports: [
-    ButtonComponent,
-    PopupComponent,
-    SVGIconComponent
+    PopupComponent
   ],
   template: `
     @if (currentTenantId) {
-      <button kendoButton #badgeBtn fillMode="flat" class="tenant-badge" [class.denied]="isDenied"
-              (click)="onToggle()">
-        <kendo-svgicon [icon]="isDenied ? exclamationCircleIcon : circleIcon"
-                       class="tenant-icon"></kendo-svgicon>
+      <div #badgeEl class="tenant-badge" [class.denied]="isDenied" (click)="onToggle()">
+        <span class="tenant-icon">{{ isDenied ? '\u26A0' : '\u25C6' }}</span>
         <span class="tenant-name">{{ currentTenantId }}</span>
         @if (isDenied) {
           <span class="denied-label">NO ACCESS</span>
         }
-      </button>
+      </div>
 
       @if (showPopup && !isDenied) {
-        <kendo-popup #popupContent [anchor]="badgeBtn.element"
+        <kendo-popup #popupContent [anchor]="badgeEl"
                      (anchorViewportLeave)="showPopup = false">
           <div class="tenant-popup">
             <div class="tenant-popup-header">Switch Tenant</div>
@@ -41,7 +34,7 @@ import { circleIcon, exclamationCircleIcon } from '@progress/kendo-svg-icons';
               @for (tenant of allowedTenants; track tenant) {
                 <li class="tenant-list-item" [class.active]="tenant === currentTenantId"
                     (click)="onSelectTenant(tenant)">
-                  <kendo-svgicon [icon]="circleIcon" class="tenant-list-icon"></kendo-svgicon>
+                  <span class="tenant-list-icon">&#9670;</span>
                   <span>{{ tenant }}</span>
                 </li>
               }
@@ -58,7 +51,7 @@ import { circleIcon, exclamationCircleIcon } from '@progress/kendo-svg-icons';
     }
 
     .tenant-badge {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 8px;
       padding: 6px 14px;
@@ -160,16 +153,13 @@ import { circleIcon, exclamationCircleIcon } from '@progress/kendo-svg-icons';
   `]
 })
 export class TenantSwitcherComponent {
-  protected readonly circleIcon = circleIcon;
-  protected readonly exclamationCircleIcon = exclamationCircleIcon;
-
   @Input() currentTenantId: string | null = null;
   @Input() allowedTenants: string[] = [];
   @Input() isDenied = false;
 
   @Output() tenantSelected = new EventEmitter<string>();
 
-  @ViewChild('badgeBtn', { read: ElementRef })
+  @ViewChild('badgeEl', { read: ElementRef })
   private anchor: ElementRef | null = null;
 
   @ViewChild('popupContent', { read: ElementRef })
