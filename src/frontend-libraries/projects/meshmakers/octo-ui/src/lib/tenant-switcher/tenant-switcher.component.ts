@@ -55,45 +55,54 @@ import { PopupComponent } from '@progress/kendo-angular-popup';
       align-items: center;
       gap: 8px;
       padding: 6px 14px;
-      border: 1px solid var(--kendo-color-border, #dee2e6);
-      border-radius: 4px 16px 16px 4px;
+      background: var(--mm-tenant-switcher-bg, var(--kendo-color-surface, transparent));
+      border: 1px solid var(--mm-tenant-switcher-border, var(--kendo-color-border, #dee2e6));
+      border-radius: var(--mm-tenant-switcher-radius, 4px 16px 16px 4px);
+      box-shadow: var(--mm-tenant-switcher-shadow, none);
       cursor: pointer;
       transition: all 0.2s ease;
-      background: var(--kendo-color-surface, transparent);
 
       &:hover {
-        background: var(--kendo-color-base-hover, rgba(0, 0, 0, 0.04));
+        background: var(--mm-tenant-switcher-bg-hover, var(--kendo-color-base-hover, rgba(0, 0, 0, 0.04)));
+        box-shadow: var(--mm-tenant-switcher-shadow-hover, var(--mm-tenant-switcher-shadow, none));
       }
     }
 
     .tenant-icon {
       font-size: 0.7rem;
-      color: var(--kendo-color-primary, #ff6358);
+      color: var(--mm-tenant-switcher-accent, var(--kendo-color-primary, #ff6358));
+      animation: var(--mm-tenant-switcher-icon-animation, none);
     }
 
     .tenant-name {
+      font-family: var(--mm-tenant-switcher-font, inherit);
       font-size: 0.85rem;
       font-weight: 600;
       letter-spacing: 1px;
-      color: var(--kendo-color-primary, #ff6358);
+      color: var(--mm-tenant-switcher-accent, var(--kendo-color-primary, #ff6358));
       text-transform: uppercase;
+      text-shadow: var(--mm-tenant-switcher-text-shadow, none);
+    }
+
+    .denied {
+      background: var(--mm-tenant-switcher-denied-bg, var(--mm-tenant-switcher-bg, var(--kendo-color-surface, transparent)));
+      border-color: var(--mm-tenant-switcher-denied-border, var(--kendo-color-error, #d9534f));
+      box-shadow: var(--mm-tenant-switcher-denied-shadow, none);
     }
 
     .denied .tenant-icon,
     .denied .tenant-name {
-      color: var(--kendo-color-error, #d9534f);
-    }
-
-    .denied {
-      border-color: var(--kendo-color-error, #d9534f);
+      color: var(--mm-tenant-switcher-denied-accent, var(--kendo-color-error, #d9534f));
+      text-shadow: var(--mm-tenant-switcher-denied-text-shadow, none);
     }
 
     .denied-label {
+      font-family: var(--mm-tenant-switcher-font, inherit);
       font-size: 0.55rem;
       font-weight: 700;
       letter-spacing: 1px;
-      color: var(--kendo-color-error, #d9534f);
-      background: color-mix(in srgb, var(--kendo-color-error, #d9534f) 15%, transparent);
+      color: var(--mm-tenant-switcher-denied-accent, var(--kendo-color-error, #d9534f));
+      background: var(--mm-tenant-switcher-denied-label-bg, color-mix(in srgb, var(--kendo-color-error, #d9534f) 15%, transparent));
       padding: 2px 6px;
       border-radius: 3px;
     }
@@ -149,6 +158,11 @@ import { PopupComponent } from '@progress/kendo-angular-popup';
 
     .tenant-list-item.active .tenant-list-icon {
       color: var(--kendo-color-primary, #ff6358);
+    }
+
+    @keyframes mm-icon-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.1); }
     }
   `]
 })
