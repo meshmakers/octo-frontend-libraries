@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WindowRef, WindowModule } from '@progress/kendo-angular-dialog';
-import { GridModule, GridDataResult, SelectionEvent, PageChangeEvent, RowArgs } from '@progress/kendo-angular-grid';
+import { GridModule, GridDataResult, SelectionEvent, PageChangeEvent, RowArgs, CellClickEvent } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -78,13 +78,13 @@ export interface CkTypeSelectorDialogResult {
         <kendo-grid
           [data]="gridData"
           [loading]="isLoading"
-          [height]="400"
           [selectable]="{ mode: 'single' }"
           [pageable]="{ pageSizes: [25, 50, 100] }"
           [pageSize]="pageSize"
           [skip]="skip"
           (pageChange)="onPageChange($event)"
           (selectionChange)="onSelectionChange($event)"
+          (cellClick)="onCellClick($event)"
           [kendoGridSelectBy]="selectItemBy"
           [(selectedKeys)]="selectedKeys"
           class="type-grid">
@@ -113,21 +113,28 @@ export interface CkTypeSelectorDialogResult {
       <div class="selection-info" *ngIf="selectedType">
         <strong>Selected:</strong> {{ selectedType.rtCkTypeId }}
       </div>
-    </div>
 
-    <div class="dialog-actions">
-      <button kendoButton (click)="onCancel()">Cancel</button>
-      <button kendoButton themeColor="primary" [disabled]="!selectedType || (selectedType.isAbstract && !allowAbstract)" (click)="onConfirm()">OK</button>
+      <div class="dialog-actions">
+        <button kendoButton (click)="onCancel()">Cancel</button>
+        <button kendoButton themeColor="primary" [disabled]="!selectedType || (selectedType.isAbstract && !allowAbstract)" (click)="onConfirm()">OK</button>
+      </div>
     </div>
   `,
   styles: [`
-    .ck-type-selector-container {
+    :host {
       display: flex;
       flex-direction: column;
       height: 100%;
+    }
+
+    .ck-type-selector-container {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
       padding: 20px;
-      min-width: 700px;
       box-sizing: border-box;
+      gap: 12px;
     }
 
     .filter-container {
@@ -167,6 +174,14 @@ export interface CkTypeSelectorDialogResult {
     .grid-container {
       flex: 1;
       min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .grid-container kendo-grid,
+    .grid-container .type-grid {
+      flex: 1;
+      min-height: 200px;
     }
 
     .type-grid {
@@ -255,6 +270,8 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
 
   private initialCkModelIds?: string[];
   public derivedFromRtCkTypeId?: string;
+  private lastClickTime = 0;
+  private lastClickRtCkTypeId: string | null = null;
 
   /** Data passed from the service */
   public data?: CkTypeSelectorDialogData;
@@ -381,6 +398,20 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
     } else {
       this.selectedType = null;
     }
+  }
+
+  public onCellClick(event: CellClickEvent): void {
+    const item = event.dataItem as CkTypeSelectorItem;
+    const now = Date.now();
+    if (item && item.rtCkTypeId === this.lastClickRtCkTypeId && (now - this.lastClickTime) < 400) {
+      // Double-click detected
+      if (!item.isAbstract || this.allowAbstract) {
+        this.selectedType = item;
+        this.onConfirm();
+      }
+    }
+    this.lastClickTime = now;
+    this.lastClickRtCkTypeId = item?.rtCkTypeId ?? null;
   }
 
   public onCancel(): void {

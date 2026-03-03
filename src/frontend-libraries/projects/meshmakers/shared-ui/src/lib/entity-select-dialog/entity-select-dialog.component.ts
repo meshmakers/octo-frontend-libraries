@@ -69,29 +69,36 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       <div class="selection-info" *ngIf="selectedEntities.length > 0">
         {{ selectedEntities.length }} selected
       </div>
-    </div>
 
-    <div class="dialog-actions">
-      <button kendoButton (click)="onCancel()">Cancel</button>
-      <button kendoButton
-              themeColor="primary"
-              [disabled]="selectedEntities.length === 0"
-              (click)="onConfirm()">
-        OK
-      </button>
+      <div class="dialog-actions">
+        <button kendoButton (click)="onCancel()">Cancel</button>
+        <button kendoButton
+                themeColor="primary"
+                [disabled]="selectedEntities.length === 0"
+                (click)="onConfirm()">
+          OK
+        </button>
+      </div>
     </div>
   `,
   styles: [`
-    .entity-select-dialog-content {
+    :host {
       display: flex;
       flex-direction: column;
       height: 100%;
-      min-height: 400px;
+    }
+
+    .entity-select-dialog-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      padding: 16px 20px;
       box-sizing: border-box;
+      gap: 12px;
     }
 
     .search-toolbar {
-      padding: 8px 0 16px 0;
       flex-shrink: 0;
     }
 
@@ -112,7 +119,6 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       display: flex;
       justify-content: flex-end;
       gap: 8px;
-      padding: 8px 0 0 0;
       flex-shrink: 0;
     }
   `]
