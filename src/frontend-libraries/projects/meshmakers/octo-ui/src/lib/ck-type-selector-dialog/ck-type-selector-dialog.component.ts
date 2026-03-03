@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogRef, DialogModule, DialogContentBase } from '@progress/kendo-angular-dialog';
+import { WindowRef, WindowModule } from '@progress/kendo-angular-dialog';
 import { GridModule, GridDataResult, SelectionEvent, PageChangeEvent, RowArgs } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
@@ -37,7 +37,7 @@ export interface CkTypeSelectorDialogResult {
     DropDownsModule,
     IconsModule,
     LoaderModule,
-    DialogModule
+    WindowModule
   ],
   template: `
     <div class="ck-type-selector-container">
@@ -115,10 +115,10 @@ export interface CkTypeSelectorDialogResult {
       </div>
     </div>
 
-    <kendo-dialog-actions>
+    <div class="dialog-actions">
       <button kendoButton (click)="onCancel()">Cancel</button>
       <button kendoButton themeColor="primary" [disabled]="!selectedType || (selectedType.isAbstract && !allowAbstract)" (click)="onConfirm()">OK</button>
-    </kendo-dialog-actions>
+    </div>
   `,
   styles: [`
     .ck-type-selector-container {
@@ -216,9 +216,18 @@ export interface CkTypeSelectorDialogResult {
       font-size: 14px;
       flex-shrink: 0;
     }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 20px 0 20px;
+      flex-shrink: 0;
+    }
   `]
 })
-export class CkTypeSelectorDialogComponent extends DialogContentBase implements OnInit, OnDestroy {
+export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
+  private readonly windowRef = inject(WindowRef);
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private searchSubject = new Subject<string>();
   private subscriptions = new Subscription();
@@ -247,21 +256,18 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
   private initialCkModelIds?: string[];
   public derivedFromRtCkTypeId?: string;
 
-  constructor() {
-    super(inject(DialogRef));
-  }
+  /** Data passed from the service */
+  public data?: CkTypeSelectorDialogData;
 
   ngOnInit(): void {
-    const data = this.dialog.content?.instance?.data as CkTypeSelectorDialogData;
+    if (this.data) {
+      this.dialogTitle = this.data.dialogTitle || 'Select Construction Kit Type';
+      this.allowAbstract = this.data.allowAbstract ?? false;
+      this.initialCkModelIds = this.data.ckModelIds;
+      this.derivedFromRtCkTypeId = this.data.derivedFromRtCkTypeId;
 
-    if (data) {
-      this.dialogTitle = data.dialogTitle || 'Select Construction Kit Type';
-      this.allowAbstract = data.allowAbstract ?? false;
-      this.initialCkModelIds = data.ckModelIds;
-      this.derivedFromRtCkTypeId = data.derivedFromRtCkTypeId;
-
-      if (data.selectedCkTypeId) {
-        this.selectedKeys = [data.selectedCkTypeId];
+      if (this.data.selectedCkTypeId) {
+        this.selectedKeys = [this.data.selectedCkTypeId];
       }
     }
 
@@ -378,7 +384,7 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
   }
 
   public onCancel(): void {
-    this.dialog.close();
+    this.windowRef.close();
   }
 
   public onConfirm(): void {
@@ -386,7 +392,7 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
       const result: CkTypeSelectorDialogResult = {
         selectedCkType: this.selectedType
       };
-      this.dialog.close(result);
+      this.windowRef.close(result);
     }
   }
 }

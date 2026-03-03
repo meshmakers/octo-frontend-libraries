@@ -1,6 +1,6 @@
 import { Component, Input, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DialogContentBase, DialogRef, DialogModule } from '@progress/kendo-angular-dialog';
+import { WindowRef, WindowModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import {
   GridComponent,
@@ -24,7 +24,7 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
   imports: [
     CommonModule,
     ButtonsModule,
-    DialogModule,
+    WindowModule,
     GridComponent,
     ColumnComponent,
     CheckboxColumnComponent,
@@ -71,7 +71,7 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       </div>
     </div>
 
-    <kendo-dialog-actions>
+    <div class="dialog-actions">
       <button kendoButton (click)="onCancel()">Cancel</button>
       <button kendoButton
               themeColor="primary"
@@ -79,7 +79,7 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
               (click)="onConfirm()">
         OK
       </button>
-    </kendo-dialog-actions>
+    </div>
   `,
   styles: [`
     .entity-select-dialog-content {
@@ -107,10 +107,18 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       color: var(--kendo-color-subtle);
       flex-shrink: 0;
     }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 0 0 0;
+      flex-shrink: 0;
+    }
   `]
 })
-export class EntitySelectDialogComponent<T> extends DialogContentBase implements OnInit, OnDestroy {
-  private readonly dialogRef: DialogRef;
+export class EntitySelectDialogComponent<T> implements OnInit, OnDestroy {
+  private readonly windowRef = inject(WindowRef);
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -141,12 +149,6 @@ export class EntitySelectDialogComponent<T> extends DialogContentBase implements
       mode: this.multiSelect ? 'multiple' : 'single',
       checkboxOnly: true
     };
-  }
-
-  constructor() {
-    const dialogRef = inject(DialogRef);
-    super(dialogRef);
-    this.dialogRef = dialogRef;
   }
 
   ngOnInit(): void {
@@ -264,10 +266,10 @@ export class EntitySelectDialogComponent<T> extends DialogContentBase implements
     const result: EntitySelectDialogResult<T> = {
       selectedEntities: this.selectedEntities
     };
-    this.dialogRef.close(result);
+    this.windowRef.close(result);
   }
 
   onCancel(): void {
-    this.dialogRef.close(null);
+    this.windowRef.close();
   }
 }

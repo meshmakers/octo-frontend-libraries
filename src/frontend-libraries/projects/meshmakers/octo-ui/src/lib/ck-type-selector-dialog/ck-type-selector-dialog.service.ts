@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { DialogService, DialogRef } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { firstValueFrom } from 'rxjs';
 import { CkTypeSelectorItem } from '@meshmakers/octo-services';
 import {
@@ -15,7 +15,7 @@ export interface CkTypeSelectorResult {
 
 @Injectable()
 export class CkTypeSelectorDialogService {
-  private readonly dialogService = inject(DialogService);
+  private readonly windowService = inject(WindowService);
 
   /**
    * Opens the CkType selector dialog
@@ -37,22 +37,31 @@ export class CkTypeSelectorDialogService {
       derivedFromRtCkTypeId: options.derivedFromRtCkTypeId
     };
 
-    const dialogRef: DialogRef = this.dialogService.open({
+    const windowRef = this.windowService.open({
       content: CkTypeSelectorDialogComponent,
       width: 900,
       height: 650,
       minWidth: 750,
       minHeight: 550,
+      resizable: true,
       title: options.dialogTitle || 'Select Construction Kit Type'
     });
 
     // Pass data to the component
-    if (dialogRef.content?.instance) {
-      dialogRef.content.instance.data = data;
+    const contentRef = windowRef.content as { instance?: CkTypeSelectorDialogComponent } | undefined;
+    if (contentRef?.instance) {
+      contentRef.instance.data = data;
     }
 
     try {
-      const result = await firstValueFrom(dialogRef.result);
+      const result = await firstValueFrom(windowRef.result);
+
+      if (result instanceof WindowCloseResult) {
+        return {
+          confirmed: false,
+          selectedCkType: null
+        };
+      }
 
       if (result && typeof result === 'object' && 'selectedCkType' in result) {
         // User clicked OK and we have a result
