@@ -1,3 +1,7 @@
+@use "sass:map";
+@use "sass:color";
+@use "@progress/kendo-theme-material/scss/index.scss" as *;
+
 // ============================================================================
 // OCTO DATA REFINERY STUDIO - LCARS-INSPIRED THEME
 // Brand Manual Colors + Star Trek LCARS Design Language
@@ -96,6 +100,8 @@ $surface-elevated: #1f2e40; // Elevated surfaces
 // ----------------------------------------------------------------------------
 // KENDO THEME COLOR CONFIGURATION
 // ----------------------------------------------------------------------------
+
+$kendo-colors: () !default; // Inicjalizacja pustej mapy, jeśli nie istnieje
 
 // Surface colors
 $kendo-colors: map.merge(
