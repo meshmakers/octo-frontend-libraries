@@ -4,6 +4,12 @@ import { OAuthService, OAuthEvent } from 'angular-oauth2-oidc';
 import { AuthorizeService, AuthorizeOptions, IUser } from './authorize.service';
 import { Roles } from './roles';
 
+function createMockJwt(payload: Record<string, unknown>): string {
+  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+  const body = btoa(JSON.stringify(payload));
+  return `${header}.${body}.signature`;
+}
+
 describe('AuthorizeService', () => {
   let service: AuthorizeService;
   let oauthServiceMock: jasmine.SpyObj<OAuthService>;
@@ -586,6 +592,62 @@ describe('AuthorizeService', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
 
         expect(service.user()).toBeNull();
+      });
+    });
+
+    describe('tokenTenantId', () => {
+      it('should return null when not authenticated', () => {
+        expect(service.tokenTenantId()).toBeNull();
+      });
+
+      it('should return parsed tenant_id after token_received', async () => {
+        const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+
+        await service.initialize(mockOptions);
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.tokenTenantId()).toBe('octosystem');
+      });
+
+      it('should return null when token has no tenant_id claim', async () => {
+        const mockToken = createMockJwt({ sub: 'user-123' });
+        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+
+        await service.initialize(mockOptions);
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.tokenTenantId()).toBeNull();
+      });
+
+      it('should be cleared on logout event', async () => {
+        const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+
+        await service.initialize(mockOptions);
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(service.tokenTenantId()).toBe('octosystem');
+
+        oauthEvents$.next({ type: 'logout' } as OAuthEvent);
+
+        expect(service.tokenTenantId()).toBeNull();
+      });
+
+      it('should be cleared on session_terminated event', async () => {
+        const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+
+        await service.initialize(mockOptions);
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(service.tokenTenantId()).toBe('octosystem');
+
+        oauthEvents$.next({ type: 'session_terminated' } as OAuthEvent);
+
+        expect(service.tokenTenantId()).toBeNull();
       });
     });
 

@@ -45,6 +45,10 @@ export class AuthorizeService {
   private readonly _isInitializing: WritableSignal<boolean> = signal(false);
   private readonly _sessionLoading: WritableSignal<boolean> = signal(false);
   private readonly _allowedTenants: WritableSignal<string[]> = signal([]);
+  private readonly _tokenTenantId: WritableSignal<string | null> = signal(null);
+
+  private static readonly TENANT_REAUTH_KEY = 'octo_tenant_reauth';
+  private static readonly TENANT_SWITCH_ATTEMPTED_KEY = 'octo_tenant_switch_attempted';
 
   private authorizeOptions: AuthorizeOptions | null = null;
   private lastAuthConfig: AuthConfig | null = null;
@@ -90,6 +94,12 @@ export class AuthorizeService {
   readonly allowedTenants: Signal<string[]> = this._allowedTenants.asReadonly();
 
   /**
+   * Signal containing the tenant_id claim from the current access token.
+   * Used to detect tenant mismatch when navigating between tenants.
+   */
+  readonly tokenTenantId: Signal<string | null> = this._tokenTenantId.asReadonly();
+
+  /**
    * Computed signal containing the user's roles.
    */
   readonly roles: Signal<string[]> = computed(() => this._user()?.role ?? []);
@@ -126,6 +136,7 @@ export class AuthorizeService {
           this._accessToken.set(null);
           this._user.set(null);
           this._isAuthenticated.set(false);
+          this._tokenTenantId.set(null);
           // Reload the page to trigger the auth flow and redirect to login
           this.reloadPage();
         }
@@ -151,6 +162,7 @@ export class AuthorizeService {
         this._accessToken.set(null);
         this._user.set(null);
         this._isAuthenticated.set(false);
+        this._tokenTenantId.set(null);
         // Reload the page to trigger the auth flow and redirect to login
         this.reloadPage();
       }
@@ -167,6 +179,7 @@ export class AuthorizeService {
         this._accessToken.set(null);
         this._user.set(null);
         this._isAuthenticated.set(false);
+        this._tokenTenantId.set(null);
         // Reload the page to trigger the auth flow and redirect to login
         this.reloadPage();
       }
@@ -184,6 +197,7 @@ export class AuthorizeService {
           this._accessToken.set(null);
           this._user.set(null);
           this._isAuthenticated.set(false);
+          this._tokenTenantId.set(null);
           this.reloadPage();
         }
       };
@@ -238,6 +252,98 @@ export class AuthorizeService {
       this.oauthService.initImplicitFlow('', { acr_values: `tenant:${tenantId}` });
     } else {
       this.oauthService.initImplicitFlow();
+    }
+  }
+
+  /**
+   * Forces re-authentication for a different tenant by clearing the local
+   * OAuth session and reloading the page. On reload, the guard will see
+   * isAuthenticated=false and call login(tenantId) with the correct acr_values.
+   *
+   * This is used when the current token's tenant_id does not match the
+   * route's tenantId (e.g., navigating from octosystem to meshtest).
+   */
+  /**
+   * Returns true if the switch was initiated, false if skipped (loop prevention).
+   */
+  public switchTenant(targetTenantId: string, targetUrl: string): boolean {
+    console.debug(`AuthorizeService::switchTenant to "${targetTenantId}" at "${targetUrl}"`);
+
+    // Prevent infinite redirect loop: if we already attempted a switch to this
+    // exact tenant and ended up here again, the Identity Server did not issue
+    // a token for the target tenant. Do NOT attempt again.
+    try {
+      const previousAttempt = sessionStorage.getItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY);
+      if (previousAttempt && previousAttempt.toLowerCase() === targetTenantId.toLowerCase()) {
+        console.warn(`AuthorizeService::switchTenant — already attempted switch to "${targetTenantId}", skipping to prevent loop`);
+        return false;
+      }
+    } catch {
+      // sessionStorage may be unavailable
+    }
+
+    // Store target tenant so login() uses the correct acr_values after reload
+    try {
+      sessionStorage.setItem(AuthorizeService.TENANT_REAUTH_KEY, targetTenantId);
+      sessionStorage.setItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY, targetTenantId);
+    } catch {
+      // sessionStorage may be unavailable
+    }
+
+    // Clear local OAuth tokens directly from storage.
+    // Do NOT use oauthService.logOut() — it fires a 'logout' event
+    // whose handler calls reloadPage(), racing with our navigation below.
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('id_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('id_token_claims_obj');
+    localStorage.removeItem('id_token_expires_at');
+    localStorage.removeItem('id_token_stored_at');
+    localStorage.removeItem('access_token_stored_at');
+    localStorage.removeItem('expires_at');
+    localStorage.removeItem('nonce');
+    localStorage.removeItem('PKCE_verifier');
+    localStorage.removeItem('session_state');
+    localStorage.removeItem('granted_scopes');
+    localStorage.removeItem('requested_route');
+
+    // Clear our signals
+    this._accessToken.set(null);
+    this._user.set(null);
+    this._isAuthenticated.set(false);
+    this._tokenTenantId.set(null);
+
+    // Full page navigation to the target URL — triggers fresh auth flow
+    window.location.href = targetUrl;
+    return true;
+  }
+
+  /**
+   * Returns the pending tenant switch target (if any) and clears it.
+   * Called by the guard to pass the correct tenantId to login() after a switchTenant reload.
+   */
+  public consumePendingTenantSwitch(): string | null {
+    try {
+      const tenantId = sessionStorage.getItem(AuthorizeService.TENANT_REAUTH_KEY);
+      sessionStorage.removeItem(AuthorizeService.TENANT_REAUTH_KEY);
+      return tenantId;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Returns the tenant for which a switch was already attempted (if any) and clears it.
+   * Used by the guard to prevent infinite redirect loops: if the Identity Server
+   * issues a token for the wrong tenant even after a switch, we skip the second attempt.
+   */
+  public consumeSwitchAttempted(): string | null {
+    try {
+      const tenantId = sessionStorage.getItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY);
+      sessionStorage.removeItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY);
+      return tenantId;
+    } catch {
+      return null;
     }
   }
 
@@ -389,7 +495,11 @@ export class AuthorizeService {
     // Parse allowed_tenants from the access token
     this._allowedTenants.set(this.parseAllowedTenantsFromToken(accessToken));
 
-    console.debug("AuthorizeService::loadUserAsync::done");
+    // Parse tenant_id from the access token (used for tenant mismatch detection)
+    const tokenTenantId = this.parseTenantIdFromToken(accessToken);
+    this._tokenTenantId.set(tokenTenantId);
+
+    console.debug(`AuthorizeService::loadUserAsync::done (tokenTenantId="${tokenTenantId}", allowedTenants=${JSON.stringify(this._allowedTenants())})`);
   }
 
   /**
@@ -427,6 +537,27 @@ export class AuthorizeService {
     } catch (e) {
       console.warn('Failed to parse allowed_tenants from access token', e);
       return [];
+    }
+  }
+
+  /**
+   * Decodes the JWT access token payload and extracts the tenant_id claim.
+   */
+  private parseTenantIdFromToken(accessToken: string | null): string | null {
+    if (!accessToken) {
+      return null;
+    }
+
+    try {
+      const parts = accessToken.split('.');
+      if (parts.length !== 3) {
+        return null;
+      }
+
+      const payload = JSON.parse(atob(parts[1]));
+      return payload['tenant_id'] ?? null;
+    } catch {
+      return null;
     }
   }
 

@@ -20,17 +20,23 @@ describe('Functional Guards', () => {
   // Signal mock values
   let isAuthenticatedValue = false;
   let rolesValue: string[] = [];
+  let tokenTenantIdValue: string | null = null;
 
   beforeEach(() => {
     isAuthenticatedValue = false;
     rolesValue = [];
+    tokenTenantIdValue = null;
 
     // Create mock with signals (callable functions)
-    authServiceMock = jasmine.createSpyObj('AuthorizeService', ['login'], {
+    authServiceMock = jasmine.createSpyObj('AuthorizeService', ['login', 'switchTenant', 'consumePendingTenantSwitch', 'consumeSwitchAttempted'], {
       // Signal mocks - these return a function that returns the value
       isAuthenticated: jasmine.createSpy('isAuthenticated').and.callFake(() => isAuthenticatedValue),
-      roles: jasmine.createSpy('roles').and.callFake(() => rolesValue)
+      roles: jasmine.createSpy('roles').and.callFake(() => rolesValue),
+      tokenTenantId: jasmine.createSpy('tokenTenantId').and.callFake(() => tokenTenantIdValue)
     });
+    authServiceMock.consumePendingTenantSwitch.and.returnValue(null);
+    authServiceMock.consumeSwitchAttempted.and.returnValue(null);
+    authServiceMock.switchTenant.and.returnValue(true);
 
     routerMock = jasmine.createSpyObj('Router', ['navigate']);
     routerMock.navigate.and.returnValue(Promise.resolve(true));
@@ -141,6 +147,119 @@ describe('Functional Guards', () => {
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
         expect(result).toBeFalse();
+      });
+    });
+
+    describe('tenant mismatch detection', () => {
+      beforeEach(() => {
+        isAuthenticatedValue = true;
+        rolesValue = [Roles.AdminPanelManagement];
+      });
+
+      it('should allow access when token tenant_id matches route tenantId', async () => {
+        tokenTenantIdValue = 'octosystem';
+        mockRoute = {
+          data: { roles: [] },
+          params: {},
+          parent: {
+            params: { tenantId: 'octosystem' },
+            parent: null
+          } as unknown as ActivatedRouteSnapshot
+        } as unknown as ActivatedRouteSnapshot;
+
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
+
+        expect(result).toBeTrue();
+        expect(authServiceMock.login).not.toHaveBeenCalled();
+      });
+
+      it('should allow access when token tenant_id matches route tenantId case-insensitively', async () => {
+        tokenTenantIdValue = 'OctoSystem';
+        mockRoute = {
+          data: { roles: [] },
+          params: {},
+          parent: {
+            params: { tenantId: 'octosystem' },
+            parent: null
+          } as unknown as ActivatedRouteSnapshot
+        } as unknown as ActivatedRouteSnapshot;
+
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
+
+        expect(result).toBeTrue();
+        expect(authServiceMock.login).not.toHaveBeenCalled();
+      });
+
+      it('should call switchTenant with target URL when token tenant_id differs from route tenantId', async () => {
+        tokenTenantIdValue = 'octosystem';
+        mockState = { url: '/meshtest/dashboard' } as RouterStateSnapshot;
+        mockRoute = {
+          data: { roles: [] },
+          params: {},
+          parent: {
+            params: { tenantId: 'meshtest' },
+            parent: null
+          } as unknown as ActivatedRouteSnapshot
+        } as unknown as ActivatedRouteSnapshot;
+
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
+
+        expect(result).toBeFalse();
+        // Must use state.url (target URL), not window.location.href (current URL)
+        expect(authServiceMock.switchTenant).toHaveBeenCalledWith('meshtest', jasmine.stringContaining('/meshtest/dashboard'));
+        expect(authServiceMock.login).not.toHaveBeenCalled();
+      });
+
+      it('should skip tenant check when tokenTenantId is null', async () => {
+        tokenTenantIdValue = null;
+        mockRoute = {
+          data: { roles: [] },
+          params: {},
+          parent: {
+            params: { tenantId: 'meshtest' },
+            parent: null
+          } as unknown as ActivatedRouteSnapshot
+        } as unknown as ActivatedRouteSnapshot;
+
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
+
+        expect(result).toBeTrue();
+        expect(authServiceMock.login).not.toHaveBeenCalled();
+      });
+
+      it('should skip tenant check when route has no tenantId', async () => {
+        tokenTenantIdValue = 'octosystem';
+        mockRoute = {
+          data: { roles: [] },
+          params: {},
+          parent: null
+        } as unknown as ActivatedRouteSnapshot;
+
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
+
+        expect(result).toBeTrue();
+        expect(authServiceMock.login).not.toHaveBeenCalled();
+      });
+
+      it('should fall through to role check when switchTenant returns false (loop prevention)', async () => {
+        tokenTenantIdValue = 'octosystem';
+        authServiceMock.switchTenant.and.returnValue(false);
+        mockState = { url: '/meshtest' } as RouterStateSnapshot;
+        mockRoute = {
+          data: { roles: [] },
+          params: {},
+          parent: {
+            params: { tenantId: 'meshtest' },
+            parent: null
+          } as unknown as ActivatedRouteSnapshot
+        } as unknown as ActivatedRouteSnapshot;
+
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
+
+        // switchTenant was called but returned false (loop prevention)
+        expect(authServiceMock.switchTenant).toHaveBeenCalledWith('meshtest', jasmine.stringContaining('/meshtest'));
+        // Guard falls through to role check — empty roles means access granted
+        expect(result).toBeTrue();
       });
     });
   });
