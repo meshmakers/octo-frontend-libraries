@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowCloseResult, WindowRef } from '@progress/kendo-angular-dialog';
 import { Subject, of } from 'rxjs';
 
 import { EntitySelectDialogService } from './entity-select-dialog.service';
@@ -10,15 +10,15 @@ import {
 
 describe('EntitySelectDialogService', () => {
   let service: EntitySelectDialogService;
-  let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogRefMock: jasmine.SpyObj<DialogRef>;
-  let resultSubject: Subject<EntitySelectDialogResult<string> | object>;
+  let windowServiceMock: jasmine.SpyObj<WindowService>;
+  let resultSubject: Subject<EntitySelectDialogResult<string> | WindowCloseResult>;
+  let mockWindowRef: Partial<WindowRef>;
   let mockDataSource: EntitySelectDialogDataSource<string>;
 
   beforeEach(() => {
-    resultSubject = new Subject<EntitySelectDialogResult<string> | object>();
+    resultSubject = new Subject<EntitySelectDialogResult<string> | WindowCloseResult>();
 
-    dialogRefMock = jasmine.createSpyObj('DialogRef', ['close'], {
+    mockWindowRef = {
       result: resultSubject.asObservable(),
       content: {
         instance: {
@@ -26,11 +26,13 @@ describe('EntitySelectDialogService', () => {
           multiSelect: false,
           preSelectedEntities: []
         }
-      }
-    });
+      } as unknown as WindowRef['content'],
+      close: jasmine.createSpy('close'),
+      window: undefined as unknown as WindowRef['window']
+    };
 
-    dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
-    dialogServiceMock.open.and.returnValue(dialogRefMock);
+    windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
+    windowServiceMock.open.and.returnValue(mockWindowRef as WindowRef);
 
     mockDataSource = {
       getColumns: () => [],
@@ -42,7 +44,7 @@ describe('EntitySelectDialogService', () => {
     TestBed.configureTestingModule({
       providers: [
         EntitySelectDialogService,
-        { provide: DialogService, useValue: dialogServiceMock }
+        { provide: WindowService, useValue: windowServiceMock }
       ]
     });
     service = TestBed.inject(EntitySelectDialogService);
@@ -58,12 +60,12 @@ describe('EntitySelectDialogService', () => {
         title: 'Select Entity'
       });
 
-      resultSubject.next({});
+      resultSubject.next(new WindowCloseResult());
       resultSubject.complete();
       await resultPromise;
 
-      expect(dialogServiceMock.open).toHaveBeenCalled();
-      const openCall = dialogServiceMock.open.calls.mostRecent().args[0];
+      expect(windowServiceMock.open).toHaveBeenCalled();
+      const openCall = windowServiceMock.open.calls.mostRecent().args[0];
       expect(openCall.title).toBe('Select Entity');
     });
 
@@ -72,10 +74,10 @@ describe('EntitySelectDialogService', () => {
         title: 'Select'
       });
 
-      const component = dialogRefMock.content.instance;
-      expect(component.dataSource).toBe(mockDataSource);
+      const component = (mockWindowRef.content as { instance: Record<string, unknown> }).instance;
+      expect(component['dataSource']).toBe(mockDataSource);
 
-      resultSubject.next({});
+      resultSubject.next(new WindowCloseResult());
       resultSubject.complete();
       await resultPromise;
     });
@@ -101,7 +103,7 @@ describe('EntitySelectDialogService', () => {
         title: 'Select'
       });
 
-      resultSubject.next({});
+      resultSubject.next(new WindowCloseResult());
       resultSubject.complete();
 
       const result = await resultPromise;
@@ -114,10 +116,10 @@ describe('EntitySelectDialogService', () => {
         multiSelect: true
       });
 
-      const component = dialogRefMock.content.instance;
-      expect(component.multiSelect).toBeTrue();
+      const component = (mockWindowRef.content as { instance: Record<string, unknown> }).instance;
+      expect(component['multiSelect']).toBeTrue();
 
-      resultSubject.next({});
+      resultSubject.next(new WindowCloseResult());
       resultSubject.complete();
       await resultPromise;
     });
@@ -128,10 +130,10 @@ describe('EntitySelectDialogService', () => {
         selectedEntities: ['entity1', 'entity2']
       });
 
-      const component = dialogRefMock.content.instance;
-      expect(component.preSelectedEntities).toEqual(['entity1', 'entity2']);
+      const component = (mockWindowRef.content as { instance: Record<string, unknown> }).instance;
+      expect(component['preSelectedEntities']).toEqual(['entity1', 'entity2']);
 
-      resultSubject.next({});
+      resultSubject.next(new WindowCloseResult());
       resultSubject.complete();
       await resultPromise;
     });
@@ -141,11 +143,11 @@ describe('EntitySelectDialogService', () => {
         title: 'Select'
       });
 
-      const openCall = dialogServiceMock.open.calls.mostRecent().args[0];
+      const openCall = windowServiceMock.open.calls.mostRecent().args[0];
       expect(openCall.width).toBe(800);
       expect(openCall.height).toBe(600);
 
-      resultSubject.next({});
+      resultSubject.next(new WindowCloseResult());
       resultSubject.complete();
       await resultPromise;
     });
@@ -157,11 +159,11 @@ describe('EntitySelectDialogService', () => {
         height: 700
       });
 
-      const openCall = dialogServiceMock.open.calls.mostRecent().args[0];
+      const openCall = windowServiceMock.open.calls.mostRecent().args[0];
       expect(openCall.width).toBe(1000);
       expect(openCall.height).toBe(700);
 
-      resultSubject.next({});
+      resultSubject.next(new WindowCloseResult());
       resultSubject.complete();
       await resultPromise;
     });

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Observable, Subject } from 'rxjs';
-import { DialogService, DialogRef, DialogResult } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowCloseResult, WindowRef } from '@progress/kendo-angular-dialog';
 import { CkTypeSelectorDialogService } from './ck-type-selector-dialog.service';
 import { CkTypeSelectorDialogComponent, CkTypeSelectorDialogResult } from './ck-type-selector-dialog.component';
 import { CkTypeSelectorItem } from '@meshmakers/octo-services';
@@ -17,9 +17,9 @@ interface MockComponentInstance {
 
 describe('CkTypeSelectorDialogService', () => {
   let service: CkTypeSelectorDialogService;
-  let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogResultSubject: Subject<CkTypeSelectorDialogResult | Record<string, unknown> | string | undefined>;
-  let mockDialogRef: Partial<DialogRef>;
+  let windowServiceMock: jasmine.SpyObj<WindowService>;
+  let dialogResultSubject: Subject<CkTypeSelectorDialogResult | WindowCloseResult | Record<string, unknown> | string | undefined>;
+  let mockWindowRef: Partial<WindowRef>;
   let mockComponentInstance: MockComponentInstance;
 
   const mockCkType: CkTypeSelectorItem = {
@@ -31,23 +31,25 @@ describe('CkTypeSelectorDialogService', () => {
   };
 
   beforeEach(() => {
-    dialogResultSubject = new Subject<CkTypeSelectorDialogResult | Record<string, unknown> | string | undefined>();
+    dialogResultSubject = new Subject<CkTypeSelectorDialogResult | WindowCloseResult | Record<string, unknown> | string | undefined>();
     mockComponentInstance = {};
 
-    mockDialogRef = {
-      result: dialogResultSubject.asObservable() as unknown as Observable<DialogResult>,
+    mockWindowRef = {
+      result: dialogResultSubject.asObservable() as unknown as Observable<WindowCloseResult>,
       content: {
         instance: mockComponentInstance
-      } as unknown as DialogRef['content']
+      } as unknown as WindowRef['content'],
+      close: jasmine.createSpy('close'),
+      window: undefined as unknown as WindowRef['window']
     };
 
-    dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
-    dialogServiceMock.open.and.returnValue(mockDialogRef as DialogRef);
+    windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
+    windowServiceMock.open.and.returnValue(mockWindowRef as WindowRef);
 
     TestBed.configureTestingModule({
       providers: [
         CkTypeSelectorDialogService,
-        { provide: DialogService, useValue: dialogServiceMock }
+        { provide: WindowService, useValue: windowServiceMock }
       ]
     });
 
@@ -62,30 +64,32 @@ describe('CkTypeSelectorDialogService', () => {
     it('should open dialog with default configuration when no options provided', async () => {
       const resultPromise = service.openCkTypeSelector();
 
-      dialogResultSubject.next({ selectedCkType: null });
+      dialogResultSubject.next({ selectedCkType: null } as unknown as CkTypeSelectorDialogResult);
       dialogResultSubject.complete();
 
       await resultPromise;
 
-      expect(dialogServiceMock.open).toHaveBeenCalledWith({
-        content: CkTypeSelectorDialogComponent,
-        width: 900,
-        height: 650,
-        minWidth: 750,
-        minHeight: 550,
-        title: 'Select Construction Kit Type'
-      });
+      expect(windowServiceMock.open).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          content: CkTypeSelectorDialogComponent,
+          width: 900,
+          height: 650,
+          minWidth: 750,
+          minHeight: 550,
+          title: 'Select Construction Kit Type'
+        })
+      );
     });
 
     it('should use custom dialog title when provided', async () => {
       const resultPromise = service.openCkTypeSelector({ dialogTitle: 'Choose CK Type' });
 
-      dialogResultSubject.next({ selectedCkType: null });
+      dialogResultSubject.next({ selectedCkType: null } as unknown as CkTypeSelectorDialogResult);
       dialogResultSubject.complete();
 
       await resultPromise;
 
-      expect(dialogServiceMock.open).toHaveBeenCalledWith(
+      expect(windowServiceMock.open).toHaveBeenCalledWith(
         jasmine.objectContaining({
           title: 'Choose CK Type'
         })
@@ -102,7 +106,7 @@ describe('CkTypeSelectorDialogService', () => {
 
       const resultPromise = service.openCkTypeSelector(options);
 
-      dialogResultSubject.next({ selectedCkType: null });
+      dialogResultSubject.next({ selectedCkType: null } as unknown as CkTypeSelectorDialogResult);
       dialogResultSubject.complete();
 
       await resultPromise;
@@ -132,10 +136,10 @@ describe('CkTypeSelectorDialogService', () => {
       expect(result.selectedCkType).toEqual(mockCkType);
     });
 
-    it('should return confirmed=false with null when user cancels', async () => {
+    it('should return confirmed=false with null when user cancels via WindowCloseResult', async () => {
       const resultPromise = service.openCkTypeSelector();
 
-      dialogResultSubject.next(undefined);
+      dialogResultSubject.next(new WindowCloseResult());
       dialogResultSubject.complete();
 
       const result = await resultPromise;
@@ -180,7 +184,7 @@ describe('CkTypeSelectorDialogService', () => {
     });
 
     it('should handle dialog without content instance', async () => {
-      mockDialogRef.content = null as unknown as DialogRef['content'];
+      mockWindowRef.content = null as unknown as WindowRef['content'];
 
       const resultPromise = service.openCkTypeSelector();
 
@@ -195,7 +199,7 @@ describe('CkTypeSelectorDialogService', () => {
     it('should handle null selectedCkType in result (valid confirmation with no selection)', async () => {
       const resultPromise = service.openCkTypeSelector();
 
-      dialogResultSubject.next({ selectedCkType: null });
+      dialogResultSubject.next({ selectedCkType: null } as unknown as CkTypeSelectorDialogResult);
       dialogResultSubject.complete();
 
       const result = await resultPromise;
