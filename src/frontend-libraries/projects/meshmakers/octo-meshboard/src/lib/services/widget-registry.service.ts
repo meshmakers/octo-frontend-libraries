@@ -187,6 +187,9 @@ export class WidgetRegistryService {
 
   private readonly registry = new Map<WidgetType, WidgetRegistration>();
 
+  /** Session-persisted dialog size: remembered when user resizes a config dialog */
+  private sessionDialogSize: { width: number; height: number } | null = null;
+
   /**
    * Registers a widget type with its components and handlers.
    */
@@ -374,8 +377,16 @@ export class WidgetRegistryService {
         return;
       }
 
-      const dialogSize = registration.configDialogSize ?? { width: 700, height: 600, minWidth: 550, minHeight: 450 };
+      const registeredSize = registration.configDialogSize ?? { width: 700, height: 600, minWidth: 550, minHeight: 450 };
       const dialogTitle = registration.configDialogTitle ?? `${registration.label} Configuration`;
+
+      // Calculate responsive width: ~1/3 of viewport, clamped to min constraint
+      const responsiveWidth = Math.max(registeredSize.minWidth, Math.round(window.innerWidth / 3));
+
+      // Use session-persisted size if available, otherwise responsive width
+      const dialogSize = this.sessionDialogSize
+        ? { ...registeredSize, width: this.sessionDialogSize.width, height: this.sessionDialogSize.height }
+        : { ...registeredSize, width: responsiveWidth };
 
       const windowRef: WindowRef = this.windowService.open({
         content: registration.configDialogComponent,
@@ -412,6 +423,12 @@ export class WidgetRegistryService {
 
       const subscription = windowRef.result.subscribe({
         next: (result) => {
+          // Persist dialog size for the session so user doesn't have to resize every time
+          const rect = windowEl.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            this.sessionDialogSize = { width: Math.round(rect.width), height: Math.round(rect.height) };
+          }
+
           if (result instanceof WindowCloseResult) {
             subscriber.next({ saved: false });
           } else if (result && typeof result === 'object') {
