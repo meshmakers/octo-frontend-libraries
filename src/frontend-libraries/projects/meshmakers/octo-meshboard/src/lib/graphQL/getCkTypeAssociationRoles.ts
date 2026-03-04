@@ -8,7 +8,7 @@ export type GetCkTypeAssociationRolesQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetCkTypeAssociationRolesQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', rtCkTypeId: any, associations?: { __typename?: 'CkTypeAssociationDirection', in?: { __typename?: 'CkTypeAssociationSource', all?: Array<{ __typename?: 'CkTypeAssociation', navigationPropertyName: string, multiplicity: Types.MultiplicitiesDto, roleId: { __typename?: 'CkAssociationRoleId', fullName: string, semanticVersionedFullName: string }, targetCkTypeId: { __typename?: 'CkTypeId', fullName: string } } | null> | null } | null, out?: { __typename?: 'CkTypeAssociationSource', all?: Array<{ __typename?: 'CkTypeAssociation', navigationPropertyName: string, multiplicity: Types.MultiplicitiesDto, roleId: { __typename?: 'CkAssociationRoleId', fullName: string, semanticVersionedFullName: string }, targetCkTypeId: { __typename?: 'CkTypeId', fullName: string } } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetCkTypeAssociationRolesQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', rtCkTypeId: any, associations?: { __typename?: 'CkTypeAssociationDirection', in?: { __typename?: 'CkTypeAssociationSource', all?: Array<{ __typename?: 'CkTypeAssociation', rtRoleId: any, navigationPropertyName: string, multiplicity: Types.MultiplicitiesDto, rtTargetCkTypeId: any, roleId: { __typename?: 'CkAssociationRoleId', fullName: string, semanticVersionedFullName: string }, targetCkTypeId: { __typename?: 'CkTypeId', fullName: string } } | null> | null } | null, out?: { __typename?: 'CkTypeAssociationSource', all?: Array<{ __typename?: 'CkTypeAssociation', rtRoleId: any, navigationPropertyName: string, multiplicity: Types.MultiplicitiesDto, rtTargetCkTypeId: any, roleId: { __typename?: 'CkAssociationRoleId', fullName: string, semanticVersionedFullName: string }, targetCkTypeId: { __typename?: 'CkTypeId', fullName: string } } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetCkTypeAssociationRolesDocumentDto = gql`
     query getCkTypeAssociationRoles($ckTypeId: String!) {
@@ -23,11 +23,13 @@ export const GetCkTypeAssociationRolesDocumentDto = gql`
                 fullName
                 semanticVersionedFullName
               }
+              rtRoleId
               navigationPropertyName
               multiplicity
               targetCkTypeId {
                 fullName
               }
+              rtTargetCkTypeId
             }
           }
           out {
@@ -36,11 +38,13 @@ export const GetCkTypeAssociationRolesDocumentDto = gql`
                 fullName
                 semanticVersionedFullName
               }
+              rtRoleId
               navigationPropertyName
               multiplicity
               targetCkTypeId {
                 fullName
               }
+              rtTargetCkTypeId
             }
           }
         }

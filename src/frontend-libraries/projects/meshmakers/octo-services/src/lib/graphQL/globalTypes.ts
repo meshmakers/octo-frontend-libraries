@@ -2656,6 +2656,8 @@ export type CkAssociationRoleDto = {
   outboundMultiplicity: MultiplicitiesDto;
   /** The name of navigation property of outbound direction side */
   outboundName: Scalars['String']['output'];
+  /** Runtime construction kit id of the association role. */
+  rtCkAssociationRoleId: Scalars['RtCkAssociationRoleId']['output'];
 };
 
 /** A connection from an object to a list of objects of type `CkAssociationRoleDto`. */
@@ -3084,6 +3086,10 @@ export type CkTypeAssociationDto = {
   originCkTypeId: CkTypeIdDto;
   /** Construction kit attribute id. */
   roleId: CkAssociationRoleIdDto;
+  /** Runtime construction kit id of the association role. */
+  rtRoleId: Scalars['RtCkAssociationRoleId']['output'];
+  /** Runtime construction kit type id of the target side of the association */
+  rtTargetCkTypeId: Scalars['RtCkTypeId']['output'];
   /** Type id of the construction kit type of the target side of the association */
   targetCkTypeId: CkTypeIdDto;
 };

@@ -10,11 +10,13 @@ query getCkTypeAssociationRoles($ckTypeId: String!) {
                 fullName
                 semanticVersionedFullName
               }
+              rtRoleId
               navigationPropertyName
               multiplicity
               targetCkTypeId {
                 fullName
               }
+              rtTargetCkTypeId
             }
           }
           out {
@@ -23,11 +25,13 @@ query getCkTypeAssociationRoles($ckTypeId: String!) {
                 fullName
                 semanticVersionedFullName
               }
+              rtRoleId
               navigationPropertyName
               multiplicity
               targetCkTypeId {
                 fullName
               }
+              rtTargetCkTypeId
             }
           }
         }

@@ -3888,6 +3888,8 @@ type CkAssociationRole {
   outboundMultiplicity: Multiplicities!
   "The name of navigation property of outbound direction side"
   outboundName: String!
+  "Runtime construction kit id of the association role."
+  rtCkAssociationRoleId: RtCkAssociationRoleId!
 }
 
 "A connection from an object to a list of objects of type `CkAssociationRoleDto`."
@@ -4281,6 +4283,10 @@ type CkTypeAssociation {
   originCkTypeId: CkTypeId!
   "Construction kit attribute id."
   roleId: CkAssociationRoleId!
+  "Runtime construction kit id of the association role."
+  rtRoleId: RtCkAssociationRoleId!
+  "Runtime construction kit type id of the target side of the association"
+  rtTargetCkTypeId: RtCkTypeId!
   "Type id of the construction kit type of the target side of the association"
   targetCkTypeId: CkTypeId!
 }
