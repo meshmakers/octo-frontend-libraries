@@ -374,7 +374,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowIncoming: assocWidget.showIncoming,
         initialShowOutgoing: assocWidget.showOutgoing,
         initialRoleFilter: assocWidget.roleFilter,
-        initialDisplayMode: assocWidget.displayMode
+        initialDisplayMode: assocWidget.displayMode,
+        initialEntityAttributePaths: assocWidget.entityAttributePaths,
+        initialTargetAttributePaths: assocWidget.targetAttributePaths
       };
     },
     applyConfigResult: (widget, result) => ({
@@ -383,7 +385,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       showIncoming: result.showIncoming,
       showOutgoing: result.showOutgoing,
       roleFilter: result.roleFilter,
-      displayMode: result.displayMode
+      displayMode: result.displayMode,
+      entityAttributePaths: result.entityAttributePaths,
+      targetAttributePaths: result.targetAttributePaths
     }),
 
     // SOLID: Factory function
@@ -408,7 +412,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showOutgoing: widget.showOutgoing,
         maxAssociations: widget.maxAssociations,
         roleFilter: widget.roleFilter,
-        displayMode: widget.displayMode
+        displayMode: widget.displayMode,
+        entityAttributePaths: widget.entityAttributePaths ?? [],
+        targetAttributePaths: widget.targetAttributePaths ?? []
       }
     }),
 
@@ -428,7 +434,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showOutgoing: (config['showOutgoing'] as boolean) ?? true,
         maxAssociations: (config['maxAssociations'] as number) ?? 5,
         roleFilter: config['roleFilter'] as string[] | undefined,
-        displayMode: config['displayMode'] as EntityWithAssociationsWidgetConfig['displayMode']
+        displayMode: config['displayMode'] as EntityWithAssociationsWidgetConfig['displayMode'],
+        entityAttributePaths: (config['entityAttributePaths'] as string[]) ?? [],
+        targetAttributePaths: (config['targetAttributePaths'] as string[]) ?? []
       };
     }
   });

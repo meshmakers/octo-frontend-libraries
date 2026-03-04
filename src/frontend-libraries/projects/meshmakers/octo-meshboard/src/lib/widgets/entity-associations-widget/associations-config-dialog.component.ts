@@ -7,6 +7,7 @@ import { InputsModule, CheckBoxModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { CkTypeSelectorInputComponent } from '@meshmakers/octo-ui';
 import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto } from '@meshmakers/octo-services';
+import { MeshBoardDataService, CkTypeAttributeInfo } from '../../services/meshboard-data.service';
 import {
   EntitySelectInputComponent,
   EntitySelectDialogDataSource,
@@ -52,6 +53,8 @@ export interface AssociationsConfigResult {
   showOutgoing: boolean;
   roleFilter: string[];
   displayMode: 'count' | 'expandable';
+  entityAttributePaths: string[];
+  targetAttributePaths: string[];
 }
 
 /**
@@ -282,6 +285,56 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
           <p class="field-hint">How to display association targets.</p>
         </div>
 
+        <!-- Entity Attributes -->
+        <div class="form-field" [class.disabled]="!selectedCkType || availableEntityAttributes().length === 0">
+          <label>Entity Attributes (optional)</label>
+          @if (isLoadingEntityAttributes()) {
+            <div class="loading-roles">Loading attributes...</div>
+          } @else if (availableEntityAttributes().length > 0) {
+            <kendo-multiselect
+              [data]="filteredEntityAttributes()"
+              [textField]="'attributeName'"
+              [valueField]="'attributeName'"
+              [(ngModel)]="selectedEntityAttributes"
+              [valuePrimitive]="true"
+              placeholder="No attributes selected"
+              [filterable]="true"
+              (filterChange)="onEntityAttrFilterChange($event)">
+            </kendo-multiselect>
+          } @else {
+            <kendo-textbox
+              [disabled]="true"
+              placeholder="No attributes available">
+            </kendo-textbox>
+          }
+          <p class="field-hint">Attributes of the source entity to display below the header.</p>
+        </div>
+
+        <!-- Target Attributes -->
+        <div class="form-field" [class.disabled]="!selectedCkType || availableTargetAttributes().length === 0">
+          <label>Target Attributes (optional)</label>
+          @if (isLoadingTargetAttributes()) {
+            <div class="loading-roles">Loading attributes...</div>
+          } @else if (availableTargetAttributes().length > 0) {
+            <kendo-multiselect
+              [data]="filteredTargetAttributes()"
+              [textField]="'attributeName'"
+              [valueField]="'attributeName'"
+              [(ngModel)]="selectedTargetAttributes"
+              [valuePrimitive]="true"
+              placeholder="No attributes selected"
+              [filterable]="true"
+              (filterChange)="onTargetAttrFilterChange($event)">
+            </kendo-multiselect>
+          } @else {
+            <kendo-textbox
+              [disabled]="true"
+              placeholder="No target attributes available">
+            </kendo-textbox>
+          }
+          <p class="field-hint">Attributes of target entities to display inline in the expanded list.</p>
+        </div>
+
         <!-- Selection Preview -->
         @if (selectedEntity) {
           <div class="selection-preview">
@@ -392,6 +445,7 @@ export class AssociationsConfigDialogComponent implements OnInit {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly getCkTypeAssociationRolesGQL = inject(GetCkTypeAssociationRolesDtoGQL);
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
+  private readonly dataService = inject(MeshBoardDataService);
   private readonly windowRef = inject(WindowRef);
 
   @Input() initialCkTypeId?: string;
@@ -400,6 +454,8 @@ export class AssociationsConfigDialogComponent implements OnInit {
   @Input() initialShowOutgoing?: boolean;
   @Input() initialRoleFilter?: string[];
   @Input() initialDisplayMode?: 'count' | 'expandable';
+  @Input() initialEntityAttributePaths?: string[];
+  @Input() initialTargetAttributePaths?: string[];
 
   selectedCkType: CkTypeSelectorItem | null = null;
   selectedEntity: RuntimeEntityItem | null = null;
@@ -411,12 +467,25 @@ export class AssociationsConfigDialogComponent implements OnInit {
   selectedRoles: AssociationRoleItem[] = [];
   displayMode: 'count' | 'expandable' = 'expandable';
 
+  selectedEntityAttributes: string[] = [];
+  selectedTargetAttributes: string[] = [];
+
   isLoadingInitial = false;
   readonly isLoadingRoles = signal(false);
   readonly availableRoles = signal<AssociationRoleItem[]>([]);
   readonly filteredRoles = signal<AssociationRoleItem[]>([]);
 
+  readonly isLoadingEntityAttributes = signal(false);
+  readonly availableEntityAttributes = signal<CkTypeAttributeInfo[]>([]);
+  readonly filteredEntityAttributes = signal<CkTypeAttributeInfo[]>([]);
+
+  readonly isLoadingTargetAttributes = signal(false);
+  readonly availableTargetAttributes = signal<CkTypeAttributeInfo[]>([]);
+  readonly filteredTargetAttributes = signal<CkTypeAttributeInfo[]>([]);
+
   private roleFilterText = '';
+  private entityAttrFilterText = '';
+  private targetAttrFilterText = '';
 
   get isValid(): boolean {
     return this.selectedCkType !== null &&
@@ -434,6 +503,12 @@ export class AssociationsConfigDialogComponent implements OnInit {
     }
     if (this.initialDisplayMode) {
       this.displayMode = this.initialDisplayMode;
+    }
+    if (this.initialEntityAttributePaths) {
+      this.selectedEntityAttributes = [...this.initialEntityAttributePaths];
+    }
+    if (this.initialTargetAttributePaths) {
+      this.selectedTargetAttributes = [...this.initialTargetAttributePaths];
     }
 
     if (this.initialCkTypeId) {
@@ -460,12 +535,18 @@ export class AssociationsConfigDialogComponent implements OnInit {
           await this.loadInitialEntity();
         }
 
-        // Set initial role filter after roles are loaded
+        // Restore initial selections after onCkTypeSelected() (which resets them)
         if (this.initialRoleFilter && this.initialRoleFilter.length > 0) {
           const allRoles = this.availableRoles();
           this.selectedRoles = allRoles.filter(r =>
             this.initialRoleFilter!.includes(r.roleId)
           );
+        }
+        if (this.initialEntityAttributePaths?.length) {
+          this.selectedEntityAttributes = [...this.initialEntityAttributePaths];
+        }
+        if (this.initialTargetAttributePaths?.length) {
+          this.selectedTargetAttributes = [...this.initialTargetAttributePaths];
         }
       }
     } catch (error) {
@@ -512,6 +593,7 @@ export class AssociationsConfigDialogComponent implements OnInit {
     this.selectedCkType = ckType;
     this.selectedEntity = null;
     this.selectedRoles = [];
+    this.selectedEntityAttributes = [];
 
     // Create data sources for entity selection
     this.entityDataSource = new RuntimeEntitySelectDataSource(
@@ -523,8 +605,11 @@ export class AssociationsConfigDialogComponent implements OnInit {
       ckType.rtCkTypeId
     );
 
-    // Load available association roles
-    await this.loadAssociationRoles(ckType.rtCkTypeId);
+    // Load available association roles and entity attributes in parallel
+    await Promise.all([
+      this.loadAssociationRoles(ckType.rtCkTypeId),
+      this.loadEntityAttributes(ckType.rtCkTypeId)
+    ]);
   }
 
   onCkTypeCleared(): void {
@@ -535,6 +620,12 @@ export class AssociationsConfigDialogComponent implements OnInit {
     this.availableRoles.set([]);
     this.filteredRoles.set([]);
     this.selectedRoles = [];
+    this.availableEntityAttributes.set([]);
+    this.filteredEntityAttributes.set([]);
+    this.selectedEntityAttributes = [];
+    this.availableTargetAttributes.set([]);
+    this.filteredTargetAttributes.set([]);
+    this.selectedTargetAttributes = [];
   }
 
   onEntitySelected(entity: RuntimeEntityItem): void {
@@ -585,12 +676,12 @@ export class AssociationsConfigDialogComponent implements OnInit {
       for (const assoc of inAssocs) {
         if (!assoc) continue;
         roles.push({
-          roleId: assoc.roleId.semanticVersionedFullName,
+          roleId: assoc.rtRoleId,
           navigationPropertyName: assoc.navigationPropertyName,
           direction: 'in',
-          targetCkTypeId: assoc.targetCkTypeId.fullName,
+          targetCkTypeId: assoc.rtTargetCkTypeId,
           multiplicity: assoc.multiplicity,
-          displayName: `[IN] ${assoc.navigationPropertyName} (${this.formatTypeName(assoc.targetCkTypeId.fullName)})`
+          displayName: `[IN] ${assoc.rtRoleId} (${assoc.rtTargetCkTypeId})`
         });
       }
 
@@ -599,17 +690,20 @@ export class AssociationsConfigDialogComponent implements OnInit {
       for (const assoc of outAssocs) {
         if (!assoc) continue;
         roles.push({
-          roleId: assoc.roleId.semanticVersionedFullName,
+          roleId: assoc.rtRoleId,
           navigationPropertyName: assoc.navigationPropertyName,
           direction: 'out',
-          targetCkTypeId: assoc.targetCkTypeId.fullName,
+          targetCkTypeId: assoc.rtTargetCkTypeId,
           multiplicity: assoc.multiplicity,
-          displayName: `[OUT] ${assoc.navigationPropertyName} (${this.formatTypeName(assoc.targetCkTypeId.fullName)})`
+          displayName: `[OUT] ${assoc.rtRoleId} (${assoc.rtTargetCkTypeId})`
         });
       }
 
       this.availableRoles.set(roles);
       this.filteredRoles.set(roles);
+
+      // Load target attributes from unique target CK types
+      await this.loadTargetAttributesFromRoles(roles);
     } catch (error) {
       console.error('Error loading association roles:', error);
     } finally {
@@ -617,9 +711,86 @@ export class AssociationsConfigDialogComponent implements OnInit {
     }
   }
 
-  private formatTypeName(fullName: string): string {
-    const parts = fullName.split('/');
-    return parts[parts.length - 1];
+  private async loadEntityAttributes(ckTypeId: string): Promise<void> {
+    this.isLoadingEntityAttributes.set(true);
+    this.availableEntityAttributes.set([]);
+    this.filteredEntityAttributes.set([]);
+
+    try {
+      const attrs = await firstValueFrom(this.dataService.fetchCkTypeAttributes(ckTypeId));
+      this.availableEntityAttributes.set(attrs);
+      this.filteredEntityAttributes.set(attrs);
+    } catch (error) {
+      console.error('Error loading entity attributes:', error);
+    } finally {
+      this.isLoadingEntityAttributes.set(false);
+    }
+  }
+
+  private async loadTargetAttributesFromRoles(roles: AssociationRoleItem[]): Promise<void> {
+    // Collect unique target CK type IDs from the roles
+    const targetCkTypeIds = [...new Set(roles.map(r => r.targetCkTypeId))];
+    if (targetCkTypeIds.length === 0) return;
+
+    this.isLoadingTargetAttributes.set(true);
+    this.availableTargetAttributes.set([]);
+    this.filteredTargetAttributes.set([]);
+
+    try {
+      // Load attributes from all target types and merge (union)
+      const allAttrs = new Map<string, CkTypeAttributeInfo>();
+
+      for (const ckTypeId of targetCkTypeIds) {
+        const attrs = await firstValueFrom(this.dataService.fetchCkTypeAttributes(ckTypeId));
+        for (const attr of attrs) {
+          if (!allAttrs.has(attr.attributeName)) {
+            allAttrs.set(attr.attributeName, attr);
+          }
+        }
+      }
+
+      const merged = Array.from(allAttrs.values()).sort((a, b) =>
+        a.attributeName.localeCompare(b.attributeName)
+      );
+      this.availableTargetAttributes.set(merged);
+      this.filteredTargetAttributes.set(merged);
+    } catch (error) {
+      console.error('Error loading target attributes:', error);
+    } finally {
+      this.isLoadingTargetAttributes.set(false);
+    }
+  }
+
+  onEntityAttrFilterChange(filter: string): void {
+    this.entityAttrFilterText = filter.toLowerCase();
+    this.updateFilteredEntityAttributes();
+  }
+
+  onTargetAttrFilterChange(filter: string): void {
+    this.targetAttrFilterText = filter.toLowerCase();
+    this.updateFilteredTargetAttributes();
+  }
+
+  private updateFilteredEntityAttributes(): void {
+    const all = this.availableEntityAttributes();
+    if (!this.entityAttrFilterText) {
+      this.filteredEntityAttributes.set(all);
+    } else {
+      this.filteredEntityAttributes.set(
+        all.filter(a => a.attributeName.toLowerCase().includes(this.entityAttrFilterText))
+      );
+    }
+  }
+
+  private updateFilteredTargetAttributes(): void {
+    const all = this.availableTargetAttributes();
+    if (!this.targetAttrFilterText) {
+      this.filteredTargetAttributes.set(all);
+    } else {
+      this.filteredTargetAttributes.set(
+        all.filter(a => a.attributeName.toLowerCase().includes(this.targetAttrFilterText))
+      );
+    }
   }
 
   onSave(): void {
@@ -630,7 +801,9 @@ export class AssociationsConfigDialogComponent implements OnInit {
         showIncoming: this.showIncoming,
         showOutgoing: this.showOutgoing,
         roleFilter: this.selectedRoles.map(r => r.roleId),
-        displayMode: this.displayMode
+        displayMode: this.displayMode,
+        entityAttributePaths: this.selectedEntityAttributes,
+        targetAttributePaths: this.selectedTargetAttributes
       });
     }
   }

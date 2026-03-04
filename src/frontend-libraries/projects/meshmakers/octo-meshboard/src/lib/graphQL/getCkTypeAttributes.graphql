@@ -1,0 +1,15 @@
+query getCkTypeAttributesForMeshboard($ckTypeId: String!, $first: Int) {
+  constructionKit {
+    types(rtCkId: $ckTypeId, first: 1) {
+      items {
+        rtCkTypeId
+        attributes(first: $first) {
+          items {
+            attributeName
+            attributeValueType
+          }
+        }
+      }
+    }
+  }
+}

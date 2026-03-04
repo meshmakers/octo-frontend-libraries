@@ -223,6 +223,10 @@ export interface EntityWithAssociationsWidgetConfig extends WidgetConfig {
   roleFilter?: string[];
   /** Display mode: 'expandable' shows groups that can be expanded */
   displayMode?: 'count' | 'expandable';
+  /** Attribute names to display for the source entity (e.g. ['name', 'status']) */
+  entityAttributePaths?: string[];
+  /** Attribute names to display for target entities (global for all targets) */
+  targetAttributePaths?: string[];
 }
 
 /**
