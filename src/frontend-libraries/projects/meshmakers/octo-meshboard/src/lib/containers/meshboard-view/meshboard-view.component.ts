@@ -154,14 +154,15 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    */
   private updateUrlWithRtId(rtId: string): void {
     const currentUrl = this.router.url;
+    const hasRtIdParam = this.route.snapshot.paramMap.has('rtId');
 
-    // Check if we're already on a meshboard/:rtId route or just /meshboard
-    if (currentUrl.includes('/meshboard/')) {
-      // Replace the rtId in the URL
-      const newUrl = currentUrl.replace(/\/meshboard\/[^/]+/, `/meshboard/${rtId}`);
+    if (hasRtIdParam) {
+      // Replace the last URL segment (the old rtId) with the new one
+      const lastSlashIndex = currentUrl.lastIndexOf('/');
+      const newUrl = currentUrl.substring(0, lastSlashIndex + 1) + rtId;
       this.router.navigateByUrl(newUrl, { replaceUrl: true });
-    } else if (currentUrl.endsWith('/meshboard')) {
-      // Append the rtId
+    } else {
+      // Append the rtId to the current URL
       this.router.navigateByUrl(`${currentUrl}/${rtId}`, { replaceUrl: true });
     }
   }
