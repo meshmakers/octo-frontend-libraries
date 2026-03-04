@@ -163,8 +163,11 @@ export class AuthorizeService {
         this._user.set(null);
         this._isAuthenticated.set(false);
         this._tokenTenantId.set(null);
-        // Reload the page to trigger the auth flow and redirect to login
-        this.reloadPage();
+        // Do NOT call reloadPage() here — oauthService.logOut() already
+        // redirects to the Identity Server's end_session_endpoint.
+        // Calling reload() would race with that redirect and cause the
+        // page to reload before the server-side session is terminated,
+        // leaving the user still logged in.
       }
     });
 
@@ -348,10 +351,37 @@ export class AuthorizeService {
   }
 
   /**
-   * Logs out the current user.
+   * Logs out the current user by redirecting to the Identity Server's
+   * OIDC end_session_endpoint for proper Single Logout (SLO).
+   *
+   * We cannot rely on oauthService.logOut() for the redirect because it calls
+   * clearStorage() which may clear internal state before the redirect happens.
+   * Instead, we capture the logoutUrl and id_token first, then clear state,
+   * then manually redirect to the end_session_endpoint.
    */
   public logout(): void {
-    this.oauthService.logOut(false);
+    // Read the end_session_endpoint (stored as logoutUrl on the service) and id_token BEFORE clearing storage
+    const endSessionEndpoint = this.oauthService.logoutUrl;
+    const idToken = this.oauthService.getIdToken();
+    const postLogoutRedirectUri = this.lastAuthConfig?.postLogoutRedirectUri;
+
+    // Clear local OAuth state (tokens, discovery doc, etc.)
+    this.oauthService.logOut(true); // true = noRedirectToLogoutUrl (we redirect manually)
+
+    if (endSessionEndpoint) {
+      // Build the end_session URL with id_token_hint and post_logout_redirect_uri
+      const params = new URLSearchParams();
+      if (idToken) {
+        params.set('id_token_hint', idToken);
+      }
+      if (postLogoutRedirectUri) {
+        params.set('post_logout_redirect_uri', postLogoutRedirectUri);
+      }
+      window.location.href = `${endSessionEndpoint}?${params.toString()}`;
+    } else {
+      // Fallback: no end_session_endpoint available, just reload
+      this.reloadPage();
+    }
   }
 
   /**
@@ -368,8 +398,14 @@ export class AuthorizeService {
     if (this.lastAuthConfig) {
       this.lastAuthConfig.redirectUri = redirectUri;
       this.lastAuthConfig.postLogoutRedirectUri = postLogoutRedirectUri;
-      this.oauthService.configure(this.lastAuthConfig);
     }
+
+    // Update the redirect URIs directly on the OAuthService without calling
+    // configure(), because configure() does Object.assign(this, new AuthConfig(), config)
+    // which resets ALL properties — including logoutUrl, tokenEndpoint, and other
+    // discovery document endpoints — back to their AuthConfig defaults (empty).
+    this.oauthService.redirectUri = redirectUri;
+    this.oauthService.postLogoutRedirectUri = postLogoutRedirectUri;
 
     console.debug("AuthorizeService::updateRedirectUris::done");
   }

@@ -52,6 +52,7 @@ describe('AuthorizeService', () => {
       'refreshToken',
       'getIdentityClaims',
       'getAccessToken',
+      'getIdToken',
       'initImplicitFlow',
       'logOut'
     ], {
@@ -204,10 +205,10 @@ describe('AuthorizeService', () => {
     });
 
     describe('logout', () => {
-      it('should call logOut', () => {
+      it('should call logOut with noRedirectToLogoutUrl=true', () => {
         service.logout();
 
-        expect(oauthServiceMock.logOut).toHaveBeenCalled();
+        expect(oauthServiceMock.logOut as jasmine.Spy).toHaveBeenCalledWith(true);
       });
     });
 
@@ -343,7 +344,7 @@ describe('AuthorizeService', () => {
           expect(service.accessToken()).toBeNull();
         });
 
-        it('should call reloadPage on logout event', async () => {
+        it('should not call reloadPage on logout event (redirect handled by oauthService)', async () => {
           await service.initialize(mockOptions);
 
           oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -352,7 +353,7 @@ describe('AuthorizeService', () => {
           _reloadPageSpy.calls.reset();
           oauthEvents$.next({ type: 'logout' } as OAuthEvent);
 
-          expect(_reloadPageSpy).toHaveBeenCalled();
+          expect(_reloadPageSpy).not.toHaveBeenCalled();
         });
       });
 
@@ -661,5 +662,48 @@ describe('AuthorizeService', () => {
     // 2. BroadcastChannel listener: Receives logout messages from other tabs
     // Both handlers clear user state and call reloadPage() when authenticated.
     // These features should be verified through E2E/integration tests.
+  });
+
+  // =============================================================================
+  // updateRedirectUris TESTS
+  // =============================================================================
+
+  describe('updateRedirectUris', () => {
+    it('should not reset discovery document endpoints', async () => {
+      oauthServiceMock.hasValidIdToken.and.returnValue(false);
+      oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.resolveTo(true);
+
+      await service.initialize(mockOptions);
+
+      // Simulate discovery document having loaded — set endpoints on the mock
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockObj = oauthServiceMock as any;
+      mockObj.logoutUrl = 'https://auth.example.com/connect/endsession';
+      mockObj.tokenEndpoint = 'https://auth.example.com/connect/token';
+
+      // Call updateRedirectUris (this previously called configure() which reset all properties)
+      service.updateRedirectUris('https://app.example.com/tenant1', 'https://app.example.com');
+
+      // The discovery document endpoints should NOT have been reset
+      expect(mockObj.logoutUrl).toBe('https://auth.example.com/connect/endsession');
+      expect(mockObj.tokenEndpoint).toBe('https://auth.example.com/connect/token');
+
+      // configure() should NOT be called again (only once during initialize)
+      expect(oauthServiceMock.configure).toHaveBeenCalledTimes(1);
+    });
+
+    it('should update redirect URIs directly on the service', async () => {
+      oauthServiceMock.hasValidIdToken.and.returnValue(false);
+      oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.resolveTo(true);
+
+      await service.initialize(mockOptions);
+
+      service.updateRedirectUris('https://app.example.com/tenant1', 'https://app.example.com/logout');
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockObj = oauthServiceMock as any;
+      expect(mockObj.redirectUri).toBe('https://app.example.com/tenant1');
+      expect(mockObj.postLogoutRedirectUri).toBe('https://app.example.com/logout');
+    });
   });
 });
