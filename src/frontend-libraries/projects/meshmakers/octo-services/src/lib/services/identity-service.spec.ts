@@ -220,6 +220,27 @@ describe('IdentityService', () => {
       });
     });
 
+    describe('getUserDirectRoles', () => {
+      it('should return user direct roles', async () => {
+        const mockRoles: RoleDto[] = [mockRole];
+        const resultPromise = service.getUserDirectRoles('john.doe');
+        await tick();
+
+        const req = httpMock.expectOne(`${apiPrefix}users/john.doe/directRoles`);
+        expect(req.request.method).toBe('GET');
+        req.flush(mockRoles);
+
+        const result = await resultPromise;
+        expect(result).toEqual(mockRoles);
+      });
+
+      it('should return null when config is not available', async () => {
+        mockConfigService.config = null as any;
+        const result = await service.getUserDirectRoles('john.doe');
+        expect(result).toBeNull();
+      });
+    });
+
     describe('updateUserRoles', () => {
       it('should update user roles', async () => {
         const roles: RoleDto[] = [mockRole, { id: 'role-2', name: 'User' }];

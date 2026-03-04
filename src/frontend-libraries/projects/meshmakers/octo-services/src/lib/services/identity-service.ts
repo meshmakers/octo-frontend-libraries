@@ -10,6 +10,7 @@ import {ClientDto} from '../shared/clientDto';
 import {IdentityProviderDto, IdentityProvidersResult} from '../shared/identityProviderDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
+import {CreateGroupDto, GroupDto, UpdateGroupDto} from '../shared/groupDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 
 @Injectable({
@@ -106,6 +107,19 @@ export class IdentityService {
     if (baseUrl) {
       const response = await firstValueFrom(
         this.httpClient.get<RoleDto[] | null>(baseUrl + `users/${userName}/roles`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getUserDirectRoles(userName: string): Promise<RoleDto[] | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<RoleDto[] | null>(baseUrl + `users/${userName}/directRoles`, {
           observe: 'response'
         })
       );
@@ -378,6 +392,169 @@ export class IdentityService {
     if (baseUrl) {
       await firstValueFrom(
         this.httpClient.delete<any>(baseUrl + `identityproviders/${rtId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  // ========================================
+  // Group Management
+  // ========================================
+
+  async getGroups(): Promise<GroupDto[] | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<GroupDto[] | null>(baseUrl + 'groups', {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getGroupsPaged(skip: number, take: number): Promise<GroupDto[] | null> {
+    const params = new HttpParams().set('skip', skip.toString()).set('take', take.toString());
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<GroupDto[] | null>(baseUrl + 'groups/getPaged', {
+          params,
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getGroupById(rtId: string): Promise<GroupDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<GroupDto | null>(baseUrl + `groups/${rtId}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getGroupByName(groupName: string): Promise<GroupDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<GroupDto | null>(baseUrl + `groups/names/${encodeURIComponent(groupName)}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async createGroup(dto: CreateGroupDto): Promise<GroupDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<GroupDto>(baseUrl + 'groups', dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async updateGroup(rtId: string, dto: UpdateGroupDto): Promise<GroupDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.put<GroupDto>(baseUrl + `groups/${rtId}`, dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async deleteGroup(rtId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<any>(baseUrl + `groups/${rtId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async getGroupRoles(rtId: string): Promise<string[] | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<string[] | null>(baseUrl + `groups/${rtId}/roles`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async updateGroupRoles(rtId: string, roleIds: string[]): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<any>(baseUrl + `groups/${rtId}/roles`, roleIds, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async addUserToGroup(rtId: string, userId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<any>(baseUrl + `groups/${rtId}/members/users/${userId}`, null, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async removeUserFromGroup(rtId: string, userId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<any>(baseUrl + `groups/${rtId}/members/users/${userId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async addGroupToGroup(rtId: string, childGroupId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<any>(baseUrl + `groups/${rtId}/members/groups/${childGroupId}`, null, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async removeGroupFromGroup(rtId: string, childGroupId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<any>(baseUrl + `groups/${rtId}/members/groups/${childGroupId}`, {
           observe: 'response'
         })
       );

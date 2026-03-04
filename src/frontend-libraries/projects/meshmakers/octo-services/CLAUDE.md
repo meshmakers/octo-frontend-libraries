@@ -139,7 +139,8 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `updateUser(userName, userDto)` | Update user |
 | `deleteUser(userName)` | Delete user |
 | `resetPassword(userName, password)` | Reset user password |
-| `getUserRoles(userName)` | Get user's roles |
+| `getUserRoles(userName)` | Get user's roles (direct + group-inherited) |
+| `getUserDirectRoles(userName)` | Get user's directly assigned roles only |
 | `updateUserRoles(userName, roles)` | Update user's roles |
 | `addUserToRole(userName, roleName)` | Add user to role |
 | `removeRoleFromUser(userName, roleName)` | Remove user from role |
@@ -173,6 +174,24 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `createIdentityProvider(dto)` | Create identity provider |
 | `updateIdentityProvider(rtId, dto)` | Update identity provider |
 | `deleteIdentityProvider(rtId)` | Delete identity provider |
+
+**Group Management:**
+
+| Method | Description |
+|--------|-------------|
+| `getGroups()` | List all groups |
+| `getGroupsPaged(skip, take)` | List groups with pagination |
+| `getGroupById(rtId)` | Get group by ID |
+| `getGroupByName(groupName)` | Get group by name |
+| `createGroup(dto)` | Create group |
+| `updateGroup(rtId, dto)` | Update group name/description |
+| `deleteGroup(rtId)` | Delete group |
+| `getGroupRoles(rtId)` | Get assigned role IDs |
+| `updateGroupRoles(rtId, roleIds)` | Replace role assignments |
+| `addUserToGroup(rtId, userId)` | Add user member |
+| `removeUserFromGroup(rtId, userId)` | Remove user member |
+| `addGroupToGroup(rtId, childGroupId)` | Add nested group member |
+| `removeGroupFromGroup(rtId, childGroupId)` | Remove nested group member |
 
 **Utilities:**
 
@@ -411,6 +430,31 @@ interface RoleDto {
   id?: string;
   name?: string;
   normalizedName?: string;
+}
+```
+
+### GroupDto
+
+```typescript
+interface GroupDto {
+  id?: string;
+  groupName: string;
+  groupDescription?: string;
+  roleIds: string[];
+  memberUserIds: string[];
+  memberExternalUserIds: string[];
+  memberGroupIds: string[];
+}
+
+interface CreateGroupDto {
+  groupName: string;
+  groupDescription?: string;
+  roleIds?: string[];
+}
+
+interface UpdateGroupDto {
+  groupName: string;
+  groupDescription?: string;
 }
 ```
 
