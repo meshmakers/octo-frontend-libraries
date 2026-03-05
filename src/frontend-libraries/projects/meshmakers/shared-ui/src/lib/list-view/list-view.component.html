@@ -96,6 +96,7 @@
                        [filter]="getFilterType(column)" format="{{column.format}}"
                        [width]="$any(column.width)"
                        [sortable]="column.sortable !== false"
+                       [filterable]="column.filterable !== false"
                        [title]="getDisplayName(column) | pascalCase">
       <ng-template kendoGridFilterCellTemplate let-filter let-gridColumn="column">
         @if (hasFilterOptions(column)) {
@@ -121,7 +122,7 @@
             </ng-template>
             <ng-template kendoDropDownListItemTemplate let-dataItem>
               @if (dataItem?.value && column.statusMapping?.[dataItem.value]; as mapping) {
-                <span class="filter-status-item">
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
                   <span [style.color]="mapping.color">
                     <kendo-svg-icon [icon]="mapping.icon" [size]="'small'"></kendo-svg-icon>
                   </span>

@@ -55,6 +55,12 @@ export interface TableColumn {
    */
   sortable?: boolean;
   /**
+   * Whether filtering is enabled for this column.
+   * When not set, defaults to true (filterable).
+   * Set to false to hide the filter cell for this column when row filtering is active.
+   */
+  filterable?: boolean;
+  /**
    * Dropdown filter options for the row filter.
    * When set, the column's row filter renders a dropdown instead of a text input.
    * Each option has a display text and a value used for filtering.
