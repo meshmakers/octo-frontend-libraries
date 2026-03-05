@@ -1,13 +1,22 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
 import {
+  BooleanFilterCellComponent,
   CellClickEvent,
   CellTemplateDirective, CheckboxColumnComponent,
-  ColumnComponent, CommandColumnComponent, CustomMessagesComponent, ExcelModule,
+  ColumnComponent, CommandColumnComponent, CustomMessagesComponent,
+  DateFilterCellComponent,
+  ExcelModule,
+  FilterCellTemplateDirective,
   GridComponent,
-  GridSpacerComponent, PageChangeEvent,
+  GridSpacerComponent,
+  NumericFilterCellComponent,
+  PageChangeEvent,
   PagerSettings, PDFModule, SelectableSettings, SelectionEvent,
+  StringFilterCellComponent,
   ToolbarTemplateDirective
 } from '@progress/kendo-angular-grid';
+import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
+import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
 import {ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
@@ -52,7 +61,15 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     DatePipe,
     BytesToSizePipe,
     SVGIconModule,
-    CustomMessagesComponent
+    CustomMessagesComponent,
+    FilterCellTemplateDirective,
+    StringFilterCellComponent,
+    NumericFilterCellComponent,
+    BooleanFilterCellComponent,
+    DateFilterCellComponent,
+    DropDownListComponent,
+    ValueTemplateDirective,
+    ItemTemplateDirective
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -295,6 +312,41 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   protected getCronHumanReadable(expression: unknown): string {
     if (!expression || typeof expression !== 'string') return '';
     return this.cronHumanizer.toHumanReadable(expression, 'en');
+  }
+
+  protected hasFilterOptions(column: TableColumn): boolean {
+    return !!column.filterOptions && column.filterOptions.length > 0;
+  }
+
+  protected getSelectedFilterValue(column: TableColumn): string | null {
+    const grid = this.gridComponent;
+    if (!grid) return null;
+    const filter = grid.filter as CompositeFilterDescriptor;
+    if (!filter?.filters) return null;
+    const fd = filter.filters.find(
+      f => 'field' in f && (f as FilterDescriptor).field === column.field
+    ) as FilterDescriptor | undefined;
+    return fd?.value as string | null ?? null;
+  }
+
+  protected onDropdownFilter(value: string | null, column: TableColumn): void {
+    const grid = this.gridComponent;
+    if (!grid) return;
+
+    const currentFilter: CompositeFilterDescriptor = grid.filter as CompositeFilterDescriptor ?? { logic: 'and', filters: [] };
+    // Remove existing filter for this field
+    const otherFilters = currentFilter.filters.filter(
+      f => !('field' in f) || (f as FilterDescriptor).field !== column.field
+    );
+
+    if (value) {
+      otherFilters.push({ field: column.field, operator: 'eq', value });
+    }
+
+    const newFilter: CompositeFilterDescriptor = { logic: 'and', filters: otherFilters };
+    grid.filter = newFilter;
+    // Sync filter into directive state and trigger rebind
+    this.dataBindingDirective?.notifyFilterChange(newFilter);
   }
 
   protected onShowRowFilter() {

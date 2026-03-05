@@ -54,6 +54,12 @@ export interface TableColumn {
    * Set to false to disable sorting for computed or client-side-only columns.
    */
   sortable?: boolean;
+  /**
+   * Dropdown filter options for the row filter.
+   * When set, the column's row filter renders a dropdown instead of a text input.
+   * Each option has a display text and a value used for filtering.
+   */
+  filterOptions?: { text: string; value: string }[];
 }
 
 export type ColumnDefinition =

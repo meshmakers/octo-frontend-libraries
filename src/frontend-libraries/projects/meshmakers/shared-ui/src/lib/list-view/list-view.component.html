@@ -97,6 +97,58 @@
                        [width]="$any(column.width)"
                        [sortable]="column.sortable !== false"
                        [title]="getDisplayName(column) | pascalCase">
+      <ng-template kendoGridFilterCellTemplate let-filter let-gridColumn="column">
+        @if (hasFilterOptions(column)) {
+          <kendo-dropdownlist
+            class="status-filter-dropdown"
+            [data]="column.filterOptions!"
+            textField="text"
+            valueField="value"
+            [valuePrimitive]="true"
+            [value]="getSelectedFilterValue(column)"
+            [defaultItem]="{ text: '', value: null }"
+            [popupSettings]="{ width: 'auto' }"
+            (valueChange)="onDropdownFilter($event, column)"
+          >
+            <ng-template kendoDropDownListValueTemplate let-dataItem>
+              @if (dataItem?.value && column.statusMapping?.[dataItem.value]; as mapping) {
+                <span class="filter-status-item">
+                  <span [style.color]="mapping.color">
+                    <kendo-svg-icon [icon]="mapping.icon" [size]="'small'"></kendo-svg-icon>
+                  </span>
+                </span>
+              }
+            </ng-template>
+            <ng-template kendoDropDownListItemTemplate let-dataItem>
+              @if (dataItem?.value && column.statusMapping?.[dataItem.value]; as mapping) {
+                <span class="filter-status-item">
+                  <span [style.color]="mapping.color">
+                    <kendo-svg-icon [icon]="mapping.icon" [size]="'small'"></kendo-svg-icon>
+                  </span>
+                  <span>{{ dataItem.text }}</span>
+                </span>
+              } @else {
+                <span>{{ dataItem.text }}</span>
+              }
+            </ng-template>
+          </kendo-dropdownlist>
+        } @else {
+          @switch (getFilterType(column)) {
+            @case ('numeric') {
+              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-numeric-filter-cell>
+            }
+            @case ('boolean') {
+              <kendo-grid-boolean-filter-cell [column]="gridColumn" [filter]="filter"></kendo-grid-boolean-filter-cell>
+            }
+            @case ('date') {
+              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-date-filter-cell>
+            }
+            @default {
+              <kendo-grid-string-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-string-filter-cell>
+            }
+          }
+        }
+      </ng-template>
       <ng-template kendoGridCellTemplate let-dataItem>
         @switch (column.dataType) {
           @case ('boolean') {

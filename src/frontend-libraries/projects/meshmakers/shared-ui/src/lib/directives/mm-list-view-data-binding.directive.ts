@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Directive, OnDestroy, OnInit, inject } from "@angular/core";
 import {DataBindingDirective, GridComponent} from "@progress/kendo-angular-grid";
+import {CompositeFilterDescriptor} from "@progress/kendo-data-query";
 import {Observable, of, Subscription} from "rxjs";
 import {DataSourceBase} from "../data-sources/data-source-base";
 
@@ -71,6 +72,15 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
   }
 
   // noinspection JSUnusedGlobalSymbols
+
+  /**
+   * Triggers a rebind when the filter state changes programmatically.
+   * Syncs the grid's filter into the DataBindingDirective state before rebinding.
+   */
+  public notifyFilterChange(filter: CompositeFilterDescriptor): void {
+    this.state.filter = filter;
+    this.rebind();
+  }
 
   public override rebind(): void {
     try {
