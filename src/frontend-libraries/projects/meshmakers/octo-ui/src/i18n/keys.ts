@@ -1,6 +1,6 @@
 /**
  * Translation keys for runtime-browser components.
- * Translations are self-contained in octo-ui (i18n/*.json) - no host app configuration needed.
+ * Translations in octo-ui i18n/*.json, loaded via HTTP. Use createMergedTranslateLoader in app config.
  * Keys use RuntimeBrowser_ prefix to avoid collision with app-specific keys.
  */
 export const RUNTIME_BROWSER_KEYS = {

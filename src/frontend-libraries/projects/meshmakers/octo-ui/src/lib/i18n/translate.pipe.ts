@@ -3,7 +3,7 @@ import { AppTranslateService } from './translate.service';
 
 /**
  * Translation pipe for runtime-browser.
- * Uses JSON translations (en, en-GB, de-AT) with English fallback when ngx-translate is not provided.
+ * Delegates to host app's TranslateService. Use createMergedTranslateLoader to merge library translations.
  */
 @Pipe({ name: 'appTranslate' })
 export class AppTranslatePipe implements PipeTransform {

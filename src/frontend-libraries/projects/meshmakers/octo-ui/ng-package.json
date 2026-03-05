@@ -9,6 +9,11 @@
       "input": "src/lib/runtime-browser/styles",
       "glob": "**/*.scss",
       "output": "styles"
+    },
+    {
+      "input": "src/i18n",
+      "glob": "**/*.json",
+      "output": "i18n"
     }
   ]
 }

@@ -6,8 +6,6 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideOctoServices } from '@meshmakers/octo-services';
 import { provideMmSharedAuth } from '@meshmakers/shared-auth';
 import { provideMmSharedUi } from '@meshmakers/shared-ui';
-import { provideTranslateService } from '@ngx-translate/core';
-import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AttributeSortSelectorDialogService } from './lib/attribute-sort-selector-dialog';
 import { CkTypeSelectorDialogService } from './lib/ck-type-selector-dialog';
 import { PropertyConverterService } from './lib/property-grid';
@@ -19,6 +17,7 @@ export * from './lib/data-sources/octo-graph-ql-data-source';
 export * from './lib/data-sources/octo-graph-ql-hierarchy-data-source';
 export * from './lib/entity-id-info';
 export * from './lib/field-filter-editor';
+export * from './lib/i18n/merge-translate-loader';
 export * from './lib/octo-loader';
 export * from './lib/property-grid';
 export * from './lib/runtime-browser';
@@ -33,14 +32,6 @@ export function provideOctoUi(): EnvironmentProviders {
     provideMmSharedUi(),
     provideMmSharedAuth(),
     provideAnimations(),
-    provideTranslateService({
-      loader: provideTranslateHttpLoader({
-        prefix: '/src/i18n/',
-        suffix: '.json',
-        enforceLoading: false,
-        useHttpBackend: false,
-      }),
-    }),
     AttributeSortSelectorDialogService,
     PropertyConverterService,
     CkTypeSelectorDialogService,
