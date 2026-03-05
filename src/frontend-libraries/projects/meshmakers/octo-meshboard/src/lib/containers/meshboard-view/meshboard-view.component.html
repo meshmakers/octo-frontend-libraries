@@ -54,23 +54,25 @@
       }
 
       <div class="toolbar-right">
-        <!-- Manager Button (icon only) -->
-        <button
-          kendoButton
-          [svgIcon]="gridLayoutIcon"
-          (click)="openManager()"
-          title="Manage MeshBoards"
-          fillMode="flat">
-        </button>
+        @if (!isReadonly()) {
+          <!-- Manager Button (icon only) -->
+          <button
+            kendoButton
+            [svgIcon]="gridLayoutIcon"
+            (click)="openManager()"
+            title="Manage MeshBoards"
+            fillMode="flat">
+          </button>
 
-        <!-- Settings Button (icon only) -->
-        <button
-          kendoButton
-          [svgIcon]="gearIcon"
-          (click)="openSettings()"
-          title="MeshBoard Settings"
-          fillMode="flat">
-        </button>
+          <!-- Settings Button (icon only) -->
+          <button
+            kendoButton
+            [svgIcon]="gearIcon"
+            (click)="openSettings()"
+            title="MeshBoard Settings"
+            fillMode="flat">
+          </button>
+        }
 
         <!-- Refresh Button (icon only) -->
         <button
@@ -81,48 +83,50 @@
           fillMode="flat">
         </button>
 
-        <!-- Edit Mode Toggle (icon only) -->
-        @if (!isEditMode()) {
-          <button
-            kendoButton
-            [svgIcon]="pencilIcon"
-            (click)="toggleEditMode()"
-            title="Enter Edit Mode"
-            fillMode="flat">
-          </button>
-        } @else {
-          <button
-            kendoButton
-            [svgIcon]="xIcon"
-            (click)="cancelEdit()"
-            title="Cancel Edit Mode"
-            fillMode="flat">
-          </button>
-        }
+        @if (!isReadonly()) {
+          <!-- Edit Mode Toggle (icon only) -->
+          @if (!isEditMode()) {
+            <button
+              kendoButton
+              [svgIcon]="pencilIcon"
+              (click)="toggleEditMode()"
+              title="Enter Edit Mode"
+              fillMode="flat">
+            </button>
+          } @else {
+            <button
+              kendoButton
+              [svgIcon]="xIcon"
+              (click)="cancelEdit()"
+              title="Cancel Edit Mode"
+              fillMode="flat">
+            </button>
+          }
 
-        <!-- Add Widget Button (with text) -->
-        <button
-          kendoButton
-          [svgIcon]="plusIcon"
-          (click)="openAddWidget()"
-          title="Add Widget"
-          fillMode="flat"
-          themeColor="primary">
-          Add Widget
-        </button>
-
-        <!-- Save Button (with text) -->
-        @if (canSave()) {
+          <!-- Add Widget Button (with text) -->
           <button
             kendoButton
-            [svgIcon]="saveIcon"
-            (click)="save()"
-            [disabled]="isSaving()"
-            title="Save MeshBoard"
-            fillMode="solid"
+            [svgIcon]="plusIcon"
+            (click)="openAddWidget()"
+            title="Add Widget"
+            fillMode="flat"
             themeColor="primary">
-            {{ isSaving() ? 'Saving...' : 'Save' }}
+            Add Widget
           </button>
+
+          <!-- Save Button (with text) -->
+          @if (canSave()) {
+            <button
+              kendoButton
+              [svgIcon]="saveIcon"
+              (click)="save()"
+              [disabled]="isSaving()"
+              title="Save MeshBoard"
+              fillMode="solid"
+              themeColor="primary">
+              {{ isSaving() ? 'Saving...' : 'Save' }}
+            </button>
+          }
         }
       </div>
     </div>
