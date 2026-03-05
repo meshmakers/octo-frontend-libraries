@@ -235,7 +235,7 @@ describe('IdentityService', () => {
       });
 
       it('should return null when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         const result = await service.getUserDirectRoles('john.doe');
         expect(result).toBeNull();
       });

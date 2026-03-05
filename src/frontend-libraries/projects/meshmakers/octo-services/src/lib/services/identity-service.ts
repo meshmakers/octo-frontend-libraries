@@ -75,7 +75,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.post<any>(baseUrl + 'users', userDto, {
+        this.httpClient.post<void>(baseUrl + 'users', userDto, {
           observe: 'response'
         })
       );
@@ -86,7 +86,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(baseUrl + `users/${userName}`, userDto, {
+        this.httpClient.put<void>(baseUrl + `users/${userName}`, userDto, {
           observe: 'response'
         })
       );
@@ -97,7 +97,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(baseUrl + `users/${userName}`, {
+        this.httpClient.delete<void>(baseUrl + `users/${userName}`, {
           observe: 'response'
         })
       );
@@ -136,7 +136,7 @@ export class IdentityService {
       const roleIds = roles.map((role) => role.id);
 
       await firstValueFrom(
-        this.httpClient.put<any>(baseUrl + `users/${userName}/roles`, roleIds, {
+        this.httpClient.put<void>(baseUrl + `users/${userName}/roles`, roleIds, {
           observe: 'response'
         })
       );
@@ -147,7 +147,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(baseUrl + `users/${userName}/roles/${roleName}`, null, {
+        this.httpClient.put<void>(baseUrl + `users/${userName}/roles/${roleName}`, null, {
           observe: 'response'
         })
       );
@@ -158,7 +158,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(baseUrl + `users/${userName}/roles/${roleName}`, {
+        this.httpClient.delete<void>(baseUrl + `users/${userName}/roles/${roleName}`, {
           observe: 'response'
         })
       );
@@ -179,13 +179,13 @@ export class IdentityService {
     }
   }
 
-  async resetPassword(userName: string, password: string): Promise<any> {
+  async resetPassword(userName: string, password: string): Promise<unknown> {
     const params = new HttpParams().set('userName', userName).set('password', password);
 
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.post<any>(baseUrl + 'users/ResetPassword', null, {
+        this.httpClient.post<unknown>(baseUrl + 'users/ResetPassword', null, {
           params,
           observe: 'response'
         })
@@ -228,7 +228,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.post<any>(baseUrl + 'clients', clientDto, {
+        this.httpClient.post<void>(baseUrl + 'clients', clientDto, {
           observe: 'response'
         })
       );
@@ -238,7 +238,7 @@ export class IdentityService {
   async updateClient(clientId: string, clientDto: ClientDto): Promise<void> {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
-      await firstValueFrom(this.httpClient.put<any>(baseUrl + `clients/${clientId}`, clientDto, {
+      await firstValueFrom(this.httpClient.put<void>(baseUrl + `clients/${clientId}`, clientDto, {
         observe: 'response'
       }));
     }
@@ -247,7 +247,7 @@ export class IdentityService {
   async deleteClient(clientId: string): Promise<void> {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
-      await firstValueFrom(this.httpClient.delete<any>(baseUrl + `clients/${clientId}`, {
+      await firstValueFrom(this.httpClient.delete<void>(baseUrl + `clients/${clientId}`, {
         observe: 'response'
       }));
     }
@@ -306,7 +306,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.post<any>(baseUrl + 'roles', roleDto, {
+        this.httpClient.post<void>(baseUrl + 'roles', roleDto, {
           observe: 'response'
         })
       );
@@ -317,7 +317,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(baseUrl + `roles/${roleName}`, roleDto, {
+        this.httpClient.put<void>(baseUrl + `roles/${roleName}`, roleDto, {
           observe: 'response'
         })
       );
@@ -328,7 +328,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(baseUrl + `roles/${roleName}`, {
+        this.httpClient.delete<void>(baseUrl + `roles/${roleName}`, {
           observe: 'response'
         })
       );
@@ -382,7 +382,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(baseUrl + `identityproviders/${rtId}`, dto, {
+        this.httpClient.put<void>(baseUrl + `identityproviders/${rtId}`, dto, {
           observe: 'response'
         })
       );
@@ -393,7 +393,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(baseUrl + `identityproviders/${rtId}`, {
+        this.httpClient.delete<void>(baseUrl + `identityproviders/${rtId}`, {
           observe: 'response'
         })
       );
@@ -447,7 +447,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(baseUrl + `emaildomaingrouprules/${rtId}`, dto, {
+        this.httpClient.put<void>(baseUrl + `emaildomaingrouprules/${rtId}`, dto, {
           observe: 'response'
         })
       );
@@ -458,7 +458,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(baseUrl + `emaildomaingrouprules/${rtId}`, {
+        this.httpClient.delete<void>(baseUrl + `emaildomaingrouprules/${rtId}`, {
           observe: 'response'
         })
       );
@@ -553,7 +553,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(baseUrl + `groups/${rtId}`, {
+        this.httpClient.delete<void>(baseUrl + `groups/${rtId}`, {
           observe: 'response'
         })
       );
@@ -577,7 +577,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(baseUrl + `groups/${rtId}/roles`, roleIds, {
+        this.httpClient.put<void>(baseUrl + `groups/${rtId}/roles`, roleIds, {
           observe: 'response'
         })
       );
@@ -588,7 +588,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(baseUrl + `groups/${rtId}/members/users/${userId}`, null, {
+        this.httpClient.put<void>(baseUrl + `groups/${rtId}/members/users/${userId}`, null, {
           observe: 'response'
         })
       );
@@ -599,7 +599,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(baseUrl + `groups/${rtId}/members/users/${userId}`, {
+        this.httpClient.delete<void>(baseUrl + `groups/${rtId}/members/users/${userId}`, {
           observe: 'response'
         })
       );
@@ -610,7 +610,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<any>(baseUrl + `groups/${rtId}/members/groups/${childGroupId}`, null, {
+        this.httpClient.put<void>(baseUrl + `groups/${rtId}/members/groups/${childGroupId}`, null, {
           observe: 'response'
         })
       );
@@ -621,7 +621,7 @@ export class IdentityService {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(baseUrl + `groups/${rtId}/members/groups/${childGroupId}`, {
+        this.httpClient.delete<void>(baseUrl + `groups/${rtId}/members/groups/${childGroupId}`, {
           observe: 'response'
         })
       );
@@ -683,7 +683,7 @@ export class IdentityService {
     const baseUrl = this.getSystemTenantBaseUrl();
     if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<any>(
+        this.httpClient.delete<void>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/${encodeURIComponent(mappingRtId)}`, {
           observe: 'response'
         })
