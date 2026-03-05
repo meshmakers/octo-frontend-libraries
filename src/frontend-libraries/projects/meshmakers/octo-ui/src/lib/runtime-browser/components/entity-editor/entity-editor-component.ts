@@ -1,7 +1,6 @@
 import { Component, EventEmitter, inject, Input, Output } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { CkTypeDto, RtEntityInputDto } from "@meshmakers/octo-services";
-import { TranslateService } from "@ngx-translate/core";
 import { KENDO_BUTTONS } from "@progress/kendo-angular-buttons";
 import { KENDO_DATEINPUTS } from "@progress/kendo-angular-dateinputs";
 import { KENDO_DROPDOWNS } from "@progress/kendo-angular-dropdowns";
@@ -12,6 +11,7 @@ import { NotificationService } from "@progress/kendo-angular-notification";
 import { firstValueFrom } from "rxjs";
 import { RUNTIME_BROWSER_KEYS } from "../../../../i18n/keys";
 import { AppTranslatePipe } from "../../../i18n/translate.pipe";
+import { AppTranslateService } from "../../../i18n/translate.service";
 import { CreateEntitiesDtoGQL } from "../../graphQL/createEntities";
 import { FormAttributesServiceMapper } from "../../services/form-attributes-mapper";
 import { FormAttributesService } from "../../services/form-attributes-service";
@@ -117,7 +117,7 @@ export class EntityEditorComponent {
 
   // Services
   private readonly notificationService = inject(NotificationService);
-  private readonly translation = inject(TranslateService);
+  private readonly translation = inject(AppTranslateService);
   protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
 
   // State

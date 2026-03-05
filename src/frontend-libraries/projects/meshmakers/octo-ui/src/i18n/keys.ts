@@ -1,7 +1,6 @@
 /**
  * Translation keys for runtime-browser components.
- * Host apps (MacoAppService, Refinery Studio) should provide translations for these keys
- * via their localization system (e.g. .resx files, JSON).
+ * Translations are self-contained in octo-ui (i18n/*.json) - no host app configuration needed.
  * Keys use RuntimeBrowser_ prefix to avoid collision with app-specific keys.
  */
 export const RUNTIME_BROWSER_KEYS = {

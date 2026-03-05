@@ -13,7 +13,6 @@ import {
   InputService,
   NodeDroppedEvent,
 } from '@meshmakers/shared-ui';
-import { TranslateService } from '@ngx-translate/core';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import {
   arrowRotateCwIcon,
@@ -142,7 +141,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   detailsPanel!: RuntimeBrowserDetailsComponent;
   // Define toolbar actions
   protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
-  private readonly translation = inject(TranslateService);
+  private readonly translation = inject(AppTranslateService);
 
   protected get leftToolbarActions(): CommandItem[] {
     return [
