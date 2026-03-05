@@ -1,17 +1,26 @@
-import { Component, EventEmitter, Input, Output, ViewChild, inject, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
 import {
+  BooleanFilterCellComponent,
   CellClickEvent,
   CellTemplateDirective, CheckboxColumnComponent,
-  ColumnComponent, CommandColumnComponent, ExcelModule,
+  ColumnComponent, CommandColumnComponent, CustomMessagesComponent,
+  DateFilterCellComponent,
+  ExcelModule,
+  FilterCellTemplateDirective,
   GridComponent,
-  GridSpacerComponent, PageChangeEvent,
+  GridSpacerComponent,
+  NumericFilterCellComponent,
+  PageChangeEvent,
   PagerSettings, PDFModule, SelectableSettings, SelectionEvent,
+  StringFilterCellComponent,
   ToolbarTemplateDirective
 } from '@progress/kendo-angular-grid';
-import {ColumnDefinition, ContextMenuType, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
+import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
+import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
+import {ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
-import {SeparatorComponent, TextBoxComponent, CheckBoxComponent} from '@progress/kendo-angular-inputs';
+import {SeparatorComponent, CheckBoxComponent} from '@progress/kendo-angular-inputs';
 import {fileExcelIcon, filePdfIcon, filterIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
@@ -26,8 +35,8 @@ import {
 import {CommandBaseService, CommandItem, CommandSettingsService} from '@meshmakers/shared-services';
 import {Router} from '@angular/router';
 import {BytesToSizePipe} from '../pipes/bytes-to-size.pipe';
-import {Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, takeUntil} from 'rxjs/operators';
+import {asyncScheduler, Subject} from 'rxjs';
+import {debounceTime, distinctUntilChanged, observeOn, takeUntil} from 'rxjs/operators';
 import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.service';
 
 @Component({
@@ -38,7 +47,6 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     ColumnComponent,
     PascalCasePipe,
     ToolbarTemplateDirective,
-    TextBoxComponent,
     GridSpacerComponent,
     ExcelModule,
     PDFModule,
@@ -52,10 +60,20 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     SeparatorComponent,
     DatePipe,
     BytesToSizePipe,
-    SVGIconModule
+    SVGIconModule,
+    CustomMessagesComponent,
+    FilterCellTemplateDirective,
+    StringFilterCellComponent,
+    NumericFilterCellComponent,
+    BooleanFilterCellComponent,
+    DateFilterCellComponent,
+    DropDownListComponent,
+    ValueTemplateDirective,
+    ItemTemplateDirective
   ],
   templateUrl: './list-view.component.html',
-  styleUrl: './list-view.component.scss'
+  styleUrl: './list-view.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListViewComponent extends CommandBaseService implements OnDestroy, AfterViewInit {
 
@@ -79,7 +97,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   protected _showRowFilter = false;
 
   /** Indicates if the data source is currently loading data */
-  protected isLoading = false;
+  protected isLoading = signal(false);
 
   @ViewChild(GridComponent) private gridComponent?: GridComponent;
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;
@@ -130,6 +148,16 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public rowFilterEnabled = false;
   @Input() public searchTextBoxEnabled = false;
 
+  protected _messages: ListViewMessages = {...DEFAULT_LIST_VIEW_MESSAGES};
+
+  @Input() public set messages(value: Partial<ListViewMessages>) {
+    this._messages = {...DEFAULT_LIST_VIEW_MESSAGES, ...value};
+  }
+
+  public get messages(): ListViewMessages {
+    return this._messages;
+  }
+
   @Input() public selectable: SelectableSettings = {
     enabled: false
   };
@@ -155,8 +183,6 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return this._columns;
   }
 
-  private readonly cdr = inject(ChangeDetectorRef);
-
   constructor() {
     const commandSettingsService = inject(CommandSettingsService);
     const router = inject(Router);
@@ -174,17 +200,16 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   ngAfterViewInit(): void {
-    // Subscribe to loading state from the data binding directive
+    // Subscribe to loading state from the data binding directive.
+    // Use asyncScheduler to defer each emission to a separate macrotask,
+    // preventing the signal from changing during Angular's CD verify pass
+    // (which causes NG0100 when Apollo returns cached data quickly).
     if (this.dataBindingDirective) {
       this.dataBindingDirective.isLoading$.pipe(
+        observeOn(asyncScheduler),
         takeUntil(this.destroy$)
       ).subscribe(loading => {
-        // Use setTimeout to defer the update to the next tick,
-        // avoiding ExpressionChangedAfterItHasBeenCheckedError
-        setTimeout(() => {
-          this.isLoading = loading;
-          this.cdr.markForCheck();
-        });
+        this.isLoading.set(loading);
       });
     }
   }
@@ -287,6 +312,41 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   protected getCronHumanReadable(expression: unknown): string {
     if (!expression || typeof expression !== 'string') return '';
     return this.cronHumanizer.toHumanReadable(expression, 'en');
+  }
+
+  protected hasFilterOptions(column: TableColumn): boolean {
+    return !!column.filterOptions && column.filterOptions.length > 0;
+  }
+
+  protected getSelectedFilterValue(column: TableColumn): string | null {
+    const grid = this.gridComponent;
+    if (!grid) return null;
+    const filter = grid.filter as CompositeFilterDescriptor;
+    if (!filter?.filters) return null;
+    const fd = filter.filters.find(
+      f => 'field' in f && (f as FilterDescriptor).field === column.field
+    ) as FilterDescriptor | undefined;
+    return fd?.value as string | null ?? null;
+  }
+
+  protected onDropdownFilter(value: string | null, column: TableColumn): void {
+    const grid = this.gridComponent;
+    if (!grid) return;
+
+    const currentFilter: CompositeFilterDescriptor = grid.filter as CompositeFilterDescriptor ?? { logic: 'and', filters: [] };
+    // Remove existing filter for this field
+    const otherFilters = currentFilter.filters.filter(
+      f => !('field' in f) || (f as FilterDescriptor).field !== column.field
+    );
+
+    if (value) {
+      otherFilters.push({ field: column.field, operator: 'eq', value });
+    }
+
+    const newFilter: CompositeFilterDescriptor = { logic: 'and', filters: otherFilters };
+    grid.filter = newFilter;
+    // Sync filter into directive state and trigger rebind
+    this.dataBindingDirective?.notifyFilterChange(newFilter);
   }
 
   protected onShowRowFilter() {
@@ -426,6 +486,12 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     }
 
     return items;
+  }
+
+  protected getPdfPageText(pageNum: number, totalPages: number): string {
+    return this._messages.pdfPageTemplate
+      .replace('{pageNum}', String(pageNum))
+      .replace('{totalPages}', String(totalPages));
   }
 
   protected readonly moreVerticalIcon = moreVerticalIcon;

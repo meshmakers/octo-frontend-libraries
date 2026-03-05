@@ -1,11 +1,23 @@
 <kendo-grid
   mmListViewDataBinding
+  [loading]="isLoading()"
   [pageSize]="pageSize" [selectable]="selectable" (pageChange)="onPageChange($event)"
   [skip]="skip" (selectionChange)="onRowSelect($event)" (cellClick)="onCellClick($event)"
   [pageable]="pageable"
   [sortable]="sortable"
   [filterable]="_showRowFilter"
 >
+  <kendo-grid-messages
+    [pagerItemsPerPage]="_messages.pagerItemsPerPage"
+    [pagerOf]="_messages.pagerOf"
+    [pagerItems]="_messages.pagerItems"
+    [pagerPage]="_messages.pagerPage"
+    [pagerFirstPage]="_messages.pagerFirstPage"
+    [pagerLastPage]="_messages.pagerLastPage"
+    [pagerPreviousPage]="_messages.pagerPreviousPage"
+    [pagerNextPage]="_messages.pagerNextPage"
+    [noRecords]="_messages.noRecords"
+  ></kendo-grid-messages>
   <ng-template kendoGridToolbarTemplate>
 
     @for (commandItem of leftToolbarActions; track commandItem.id) {
@@ -13,13 +25,13 @@
         @switch (commandItem.type) {
           @case ('link') {
             @if (commandItem.svgIcon) {
-              <button kendoTooltip kendoButton [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading"
+              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
+                      [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             } @else {
-              <button kendoTooltip kendoButton [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading"
+              <button kendoTooltip kendoButton themeColor="primary" [title]="commandItem.text"
+                      [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             }
@@ -33,13 +45,13 @@
 
     <kendo-grid-spacer></kendo-grid-spacer>
     @if (searchTextBoxEnabled) {
-      <kendo-textbox
+      <input
+        class="k-textbox k-input k-input-md k-rounded-md"
         [style.width.px]="165"
-        placeholder="Search in all columns..."
+        [placeholder]="_messages.searchPlaceholder"
         [value]="searchValue"
-        [disabled]="isLoading"
-        (valueChange)="onFilter($event)"
-      ></kendo-textbox>
+        (input)="onFilter($any($event.target).value || null)"
+      />
     }
 
     @for (commandItem of rightToolbarActions; track commandItem.id) {
@@ -47,13 +59,13 @@
         @switch (commandItem.type) {
           @case ('link') {
             @if (commandItem.svgIcon) {
-              <button kendoTooltip kendoButton [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading"
+              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
+                      [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             } @else {
-              <button kendoTooltip kendoButton [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading"
+              <button kendoTooltip kendoButton themeColor="primary" [title]="commandItem.text"
+                      [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             }
@@ -66,12 +78,12 @@
     }
 
     @if (rowFilterEnabled) {
-      <button kendoTooltip kendoButton [svgIcon]="filterIcon" (click)="onShowRowFilter()"
-              [disabled]="isLoading" title="Show Row Filter"></button>
+      <button kendoTooltip kendoButton themeColor="primary" fillMode="flat" [svgIcon]="filterIcon" (click)="onShowRowFilter()"
+              [disabled]="isLoading()" [title]="_messages.showRowFilter"></button>
     }
-    <button kendoTooltip kendoGridExcelCommand [svgIcon]="excelSVG" [disabled]="isLoading" title="Export to Excel"></button>
-    <button kendoTooltip kendoGridPDFCommand [svgIcon]="pdfSVG" [disabled]="isLoading" title="Export to PDF"></button>
-    <button kendoTooltip kendoButton [svgIcon]="refreshIcon" (click)="onRefresh()" [disabled]="isLoading" title="Refresh Data"></button>
+    <button kendoTooltip kendoGridExcelCommand themeColor="primary" fillMode="flat" [svgIcon]="excelSVG" [disabled]="isLoading()" [title]="_messages.exportToExcel"></button>
+    <button kendoTooltip kendoGridPDFCommand themeColor="primary" fillMode="flat" [svgIcon]="pdfSVG" [disabled]="isLoading()" [title]="_messages.exportToPdf"></button>
+    <button kendoTooltip kendoButton themeColor="primary" fillMode="flat" [svgIcon]="refreshIcon" (click)="onRefresh()" [disabled]="isLoading()" [title]="_messages.refreshData"></button>
   </ng-template>
 
   @if (showRowCheckBoxes && selectable.enabled) {
@@ -85,6 +97,58 @@
                        [width]="$any(column.width)"
                        [sortable]="column.sortable !== false"
                        [title]="getDisplayName(column) | pascalCase">
+      <ng-template kendoGridFilterCellTemplate let-filter let-gridColumn="column">
+        @if (hasFilterOptions(column)) {
+          <kendo-dropdownlist
+            class="status-filter-dropdown"
+            [data]="column.filterOptions!"
+            textField="text"
+            valueField="value"
+            [valuePrimitive]="true"
+            [value]="getSelectedFilterValue(column)"
+            [defaultItem]="{ text: '', value: null }"
+            [popupSettings]="{ width: 'auto' }"
+            (valueChange)="onDropdownFilter($event, column)"
+          >
+            <ng-template kendoDropDownListValueTemplate let-dataItem>
+              @if (dataItem?.value && column.statusMapping?.[dataItem.value]; as mapping) {
+                <span class="filter-status-item">
+                  <span [style.color]="mapping.color">
+                    <kendo-svg-icon [icon]="mapping.icon" [size]="'small'"></kendo-svg-icon>
+                  </span>
+                </span>
+              }
+            </ng-template>
+            <ng-template kendoDropDownListItemTemplate let-dataItem>
+              @if (dataItem?.value && column.statusMapping?.[dataItem.value]; as mapping) {
+                <span class="filter-status-item">
+                  <span [style.color]="mapping.color">
+                    <kendo-svg-icon [icon]="mapping.icon" [size]="'small'"></kendo-svg-icon>
+                  </span>
+                  <span>{{ dataItem.text }}</span>
+                </span>
+              } @else {
+                <span>{{ dataItem.text }}</span>
+              }
+            </ng-template>
+          </kendo-dropdownlist>
+        } @else {
+          @switch (getFilterType(column)) {
+            @case ('numeric') {
+              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-numeric-filter-cell>
+            }
+            @case ('boolean') {
+              <kendo-grid-boolean-filter-cell [column]="gridColumn" [filter]="filter"></kendo-grid-boolean-filter-cell>
+            }
+            @case ('date') {
+              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-date-filter-cell>
+            }
+            @default {
+              <kendo-grid-string-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-string-filter-cell>
+            }
+          }
+        }
+      </ng-template>
       <ng-template kendoGridCellTemplate let-dataItem>
         @switch (column.dataType) {
           @case ('boolean') {
@@ -125,27 +189,23 @@
   }
 
   @if (_actionMenuItems.length > 0 || (_contextMenuItems.length > 0 &&  contextMenuType == 'actionMenu')) {
-    <kendo-grid-command-column title="Actions" [width]="220">
+    <kendo-grid-command-column [title]="_messages.actionsColumnTitle" [width]="220">
       <ng-template kendoGridCellTemplate let-dataItem>
         @if (_actionMenuItems.length > 0) {
           @for (menuItem of _actionMenuItems; track menuItem.text) {
             @if (!menuItem.separator) {
-              <button
-                type="button"
-                class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base"
+              <button kendoButton themeColor="primary" fillMode="flat"
+                [svgIcon]="menuItem.svgIcon!"
                 [title]="menuItem.text ?? ''"
-                [disabled]="(menuItem.disabled ?? false) || isLoading"
+                [disabled]="(menuItem.disabled ?? false) || isLoading()"
                 (click)="onSelectOptionActionItem($event, dataItem, menuItem)">
-                @if (menuItem.svgIcon) {
-                  <kendo-svg-icon [icon]="menuItem.svgIcon"></kendo-svg-icon>
-                }
               </button>
             }
           }
         }
 
         @if (_contextMenuItems.length > 0 && contextMenuType == 'actionMenu') {
-          <button kendoButton [svgIcon]="moreVerticalIcon" [disabled]="isLoading" (click)="onContextMenu(dataItem, $event)"></button>
+          <button kendoButton themeColor="primary" fillMode="flat" [svgIcon]="moreVerticalIcon" [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
         }
       </ng-template>
     </kendo-grid-command-column>
@@ -170,7 +230,7 @@
     <ng-template kendoGridPDFTemplate let-pageNum="pageNum" let-totalPages="totalPages">
       <div class="page-template">
         <div class="footer" style="position: absolute; bottom: 0; width: 100%; text-align: center; font-size: 9px; color: #666;">
-          Page {{ pageNum }} of {{ totalPages }}
+          {{ getPdfPageText(pageNum, totalPages) }}
         </div>
       </div>
     </ng-template>

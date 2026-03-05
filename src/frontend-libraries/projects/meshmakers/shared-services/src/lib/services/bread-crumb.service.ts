@@ -22,13 +22,14 @@ export class BreadCrumbService {
     this._breadCrumbItems.next(this.createBreadCrumbs(this.activatedRoute.root));
   }
 
-  private createBreadCrumbs(route: ActivatedRoute, path: BreadCrumbData[] = []): BreadCrumbData[] {
+  private createBreadCrumbs(route: ActivatedRoute, path: BreadCrumbData[] = [], lastBreadcrumbRef?: BreadCrumbRouteItem[]): BreadCrumbData[] {
     const children = route.children;
 
     for (const child of children) {
 
       const breadCrumbRouteItems: BreadCrumbRouteItem[] = child.snapshot.data['breadcrumb'];
-      if (breadCrumbRouteItems) {
+      // Skip inherited breadcrumb data (Angular passes parent route data to children by reference)
+      if (breadCrumbRouteItems && breadCrumbRouteItems !== lastBreadcrumbRef) {
 
         for (const breadCrumbRouteItem of breadCrumbRouteItems) {
 
@@ -70,7 +71,7 @@ export class BreadCrumbService {
         }
       }
 
-      return this.createBreadCrumbs(child, path);
+      return this.createBreadCrumbs(child, path, breadCrumbRouteItems ?? lastBreadcrumbRef);
     }
 
     return path;
@@ -98,6 +99,8 @@ export class BreadCrumbService {
         }
       }
     }
+    // Re-emit to notify subscribers (e.g. translated breadcrumb pipes)
+    this._breadCrumbItems.next(list);
   }
 
   // noinspection JSUnusedGlobalSymbols
