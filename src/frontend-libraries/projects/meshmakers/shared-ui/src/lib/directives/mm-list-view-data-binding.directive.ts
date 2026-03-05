@@ -1,4 +1,4 @@
-import { Directive, OnDestroy, OnInit, inject } from "@angular/core";
+import { ChangeDetectorRef, Directive, OnDestroy, OnInit, inject } from "@angular/core";
 import {DataBindingDirective, GridComponent} from "@progress/kendo-angular-grid";
 import {Observable, of, Subscription} from "rxjs";
 import {DataSourceBase} from "../data-sources/data-source-base";
@@ -28,16 +28,21 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
 
   constructor() {
     const grid = inject(GridComponent);
+    const changeDetector = inject(ChangeDetectorRef);
 
-    super(grid);
+    super(grid, changeDetector);
     this._serviceSubscription = null;
     this._executeFilterSubscription = null;
     this._fetchAgainSubscription = null;
     this._refreshDataSubscription = null;
   }
 
-  public override async ngOnInit(): Promise<void> {
+  public override ngOnInit(): void {
     super.ngOnInit();
+
+    if (!this.dataSource) {
+      return;
+    }
 
     this._fetchAgainSubscription = this.dataSource.fetchAgainEvent.subscribe(() => {
       this._forceRefresh = true;
@@ -91,11 +96,13 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
           }
           this.notifyDataChange();
         },
-        error: () => {
+        error: (err) => {
+          console.error('[MmListViewDataBinding] fetchData error:', err);
           this.dataSource.setLoading(false);
         }
       });
-    } catch {
+    } catch (e) {
+      console.error('[MmListViewDataBinding] rebind() caught error:', e);
       this.dataSource.setLoading(false);
     }
   }

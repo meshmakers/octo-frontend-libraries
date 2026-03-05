@@ -1,5 +1,6 @@
 <kendo-grid
   mmListViewDataBinding
+  [loading]="isLoading()"
   [pageSize]="pageSize" [selectable]="selectable" (pageChange)="onPageChange($event)"
   [skip]="skip" (selectionChange)="onRowSelect($event)" (cellClick)="onCellClick($event)"
   [pageable]="pageable"
