@@ -1,16 +1,25 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { ActivatedRoute, Event as RouterEvent, NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { BreadCrumbService } from './bread-crumb.service';
 import { BreadCrumbRouteItem } from '../models/breadCrumbRouteItem';
+import { BreadCrumbData } from '../models/breadCrumbData';
+
+interface MockRoute {
+  snapshot: {
+    data: Record<string, unknown>;
+    params: Record<string, string>;
+  };
+  children: MockRoute[];
+}
 
 describe('BreadCrumbService', () => {
   let service: BreadCrumbService;
-  let routerEvents$: Subject<any>;
-  let mockActivatedRoute: any;
-  let mockRouter: any;
+  let routerEvents$: Subject<RouterEvent>;
+  let mockActivatedRoute: { root: MockRoute };
+  let mockRouter: unknown;
 
-  function createMockRoute(breadcrumb: BreadCrumbRouteItem[] | undefined, params: Record<string, string> = {}, children: any[] = []): any {
+  function createMockRoute(breadcrumb: BreadCrumbRouteItem[] | undefined, params: Record<string, string> = {}, children: MockRoute[] = []): MockRoute {
     return {
       snapshot: {
         data: breadcrumb ? { breadcrumb } : {},
@@ -21,7 +30,7 @@ describe('BreadCrumbService', () => {
   }
 
   beforeEach(() => {
-    routerEvents$ = new Subject<any>();
+    routerEvents$ = new Subject<RouterEvent>();
 
     mockActivatedRoute = {
       root: createMockRoute(undefined, {}, [])
@@ -82,7 +91,7 @@ describe('BreadCrumbService', () => {
 
       service = TestBed.inject(BreadCrumbService);
 
-      const receivedItems: any[] = [];
+      const receivedItems: BreadCrumbData[][] = [];
       service.breadCrumbItems.subscribe(items => {
         receivedItems.push([...items]);
       });
@@ -110,14 +119,14 @@ describe('BreadCrumbService', () => {
 
       service = TestBed.inject(BreadCrumbService);
 
-      const receivedItems: any[] = [];
+      const receivedItems: BreadCrumbData[][] = [];
       service.breadCrumbItems.subscribe(items => {
         receivedItems.push([...items]);
       });
 
       // Emit other router events
-      routerEvents$.next({ type: 'NavigationStart' });
-      routerEvents$.next({ type: 'RouteConfigLoadStart' });
+      routerEvents$.next(new NavigationStart(1, '/test'));
+      routerEvents$.next(new NavigationStart(2, '/test2'));
       tick();
 
       // Should only have initial emission
@@ -396,7 +405,7 @@ describe('BreadCrumbService', () => {
       tick();
 
       // Subscribe after initialization
-      let receivedItems: any[] | undefined;
+      let receivedItems: BreadCrumbData[] | undefined;
       service.breadCrumbItems.subscribe(items => {
         receivedItems = items;
       });
@@ -417,8 +426,8 @@ describe('BreadCrumbService', () => {
       service = TestBed.inject(BreadCrumbService);
       tick();
 
-      const subscriber1Items: any[] = [];
-      const subscriber2Items: any[] = [];
+      const subscriber1Items: BreadCrumbData[][] = [];
+      const subscriber2Items: BreadCrumbData[][] = [];
 
       service.breadCrumbItems.subscribe(items => subscriber1Items.push(items));
       service.breadCrumbItems.subscribe(items => subscriber2Items.push(items));

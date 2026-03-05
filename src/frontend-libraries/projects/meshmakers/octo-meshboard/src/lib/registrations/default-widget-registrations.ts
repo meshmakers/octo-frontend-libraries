@@ -139,6 +139,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Entity Card',
     component: EntityCardWidgetComponent,
     configDialogComponent: EntityCardConfigDialogComponent,
+    configDialogSize: { width: 700, height: 550, minWidth: 500, minHeight: 400 },
+    configDialogTitle: 'Entity Configuration',
     defaultSize: { colSpan: 2, rowSpan: 2 },
     supportedDataSources: ['runtimeEntity'],
     getInitialConfig: (widget) => ({
@@ -197,6 +199,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'KPI',
     component: KpiWidgetComponent,
     configDialogComponent: KpiConfigDialogComponent,
+    configDialogSize: { width: 750, height: 700, minWidth: 550, minHeight: 500 },
+    configDialogTitle: 'KPI Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
     supportedDataSources: ['runtimeEntity', 'persistentQuery'],
     getInitialConfig: (widget) => {
@@ -358,6 +362,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Entity with Associations',
     component: EntityAssociationsWidgetComponent,
     configDialogComponent: AssociationsConfigDialogComponent,
+    configDialogSize: { width: 750, height: 650, minWidth: 550, minHeight: 450 },
+    configDialogTitle: 'Associations Configuration',
     defaultSize: { colSpan: 2, rowSpan: 1 },
     supportedDataSources: ['runtimeEntity'],
     getInitialConfig: (widget) => {
@@ -368,7 +374,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowIncoming: assocWidget.showIncoming,
         initialShowOutgoing: assocWidget.showOutgoing,
         initialRoleFilter: assocWidget.roleFilter,
-        initialDisplayMode: assocWidget.displayMode
+        initialDisplayMode: assocWidget.displayMode,
+        initialEntityAttributePaths: assocWidget.entityAttributePaths,
+        initialTargetAttributePaths: assocWidget.targetAttributePaths
       };
     },
     applyConfigResult: (widget, result) => ({
@@ -377,7 +385,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       showIncoming: result.showIncoming,
       showOutgoing: result.showOutgoing,
       roleFilter: result.roleFilter,
-      displayMode: result.displayMode
+      displayMode: result.displayMode,
+      entityAttributePaths: result.entityAttributePaths,
+      targetAttributePaths: result.targetAttributePaths
     }),
 
     // SOLID: Factory function
@@ -402,7 +412,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showOutgoing: widget.showOutgoing,
         maxAssociations: widget.maxAssociations,
         roleFilter: widget.roleFilter,
-        displayMode: widget.displayMode
+        displayMode: widget.displayMode,
+        entityAttributePaths: widget.entityAttributePaths ?? [],
+        targetAttributePaths: widget.targetAttributePaths ?? []
       }
     }),
 
@@ -422,7 +434,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showOutgoing: (config['showOutgoing'] as boolean) ?? true,
         maxAssociations: (config['maxAssociations'] as number) ?? 5,
         roleFilter: config['roleFilter'] as string[] | undefined,
-        displayMode: config['displayMode'] as EntityWithAssociationsWidgetConfig['displayMode']
+        displayMode: config['displayMode'] as EntityWithAssociationsWidgetConfig['displayMode'],
+        entityAttributePaths: (config['entityAttributePaths'] as string[]) ?? [],
+        targetAttributePaths: (config['targetAttributePaths'] as string[]) ?? []
       };
     }
   });
@@ -433,6 +447,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Table',
     component: TableWidgetComponent,
     configDialogComponent: TableConfigDialogComponent,
+    configDialogSize: { width: 800, height: 700, minWidth: 600, minHeight: 500 },
+    configDialogTitle: 'Table Configuration',
     defaultSize: { colSpan: 4, rowSpan: 1 },
     supportedDataSources: ['runtimeEntity', 'persistentQuery'],
     getInitialConfig: (widget) => {
@@ -564,6 +580,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Gauge',
     component: GaugeWidgetComponent,
     configDialogComponent: GaugeConfigDialogComponent,
+    configDialogSize: { width: 750, height: 700, minWidth: 550, minHeight: 500 },
+    configDialogTitle: 'Gauge Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
     supportedDataSources: ['runtimeEntity', 'persistentQuery'],
     getInitialConfig: (widget) => {
@@ -754,6 +772,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Pie Chart',
     component: PieChartWidgetComponent,
     configDialogComponent: PieChartConfigDialogComponent,
+    configDialogSize: { width: 700, height: 650, minWidth: 550, minHeight: 450 },
+    configDialogTitle: 'Pie Chart Configuration',
     defaultSize: { colSpan: 2, rowSpan: 2 },
     supportedDataSources: ['persistentQuery', 'constructionKitQuery'],
     getInitialConfig: (widget) => {
@@ -826,7 +846,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       chartType: 'pie',
       categoryField: '',
       valueField: '',
-      showLabels: true,
+      showLabels: false,
       showLegend: true,
       legendPosition: 'right'
     }),
@@ -889,7 +909,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           chartType: (config['chartType'] as PieChartWidgetConfig['chartType']) ?? 'pie',
           categoryField: (config['categoryField'] as string) ?? '',
           valueField: (config['valueField'] as string) ?? '',
-          showLabels: (config['showLabels'] as boolean) ?? true,
+          showLabels: (config['showLabels'] as boolean) ?? false,
           showLegend: (config['showLegend'] as boolean) ?? true,
           legendPosition: (config['legendPosition'] as PieChartWidgetConfig['legendPosition']) ?? 'right',
           filters: config['filters'] as WidgetFilterConfig[] | undefined
@@ -907,7 +927,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         chartType: (config['chartType'] as PieChartWidgetConfig['chartType']) ?? 'pie',
         categoryField: (config['categoryField'] as string) ?? '',
         valueField: (config['valueField'] as string) ?? '',
-        showLabels: (config['showLabels'] as boolean) ?? true,
+        showLabels: (config['showLabels'] as boolean) ?? false,
         showLegend: (config['showLegend'] as boolean) ?? true,
         legendPosition: (config['legendPosition'] as PieChartWidgetConfig['legendPosition']) ?? 'right',
         filters: config['filters'] as WidgetFilterConfig[] | undefined
@@ -921,6 +941,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Bar Chart',
     component: BarChartWidgetComponent,
     configDialogComponent: BarChartConfigDialogComponent,
+    configDialogSize: { width: 750, height: 650, minWidth: 550, minHeight: 450 },
+    configDialogTitle: 'Bar Chart Configuration',
     defaultSize: { colSpan: 2, rowSpan: 2 },
     supportedDataSources: ['persistentQuery'],
     getInitialConfig: (widget) => {
@@ -1034,6 +1056,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Stats Grid',
     component: StatsGridWidgetComponent,
     configDialogComponent: StatsGridConfigDialogComponent,
+    configDialogSize: { width: 800, height: 700, minWidth: 600, minHeight: 500 },
+    configDialogTitle: 'Stats Grid Configuration',
     defaultSize: { colSpan: 3, rowSpan: 1 },
     supportedDataSources: ['aggregation'],
     getInitialConfig: (widget) => {
@@ -1103,6 +1127,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Status Indicator',
     component: StatusIndicatorWidgetComponent,
     configDialogComponent: StatusIndicatorConfigDialogComponent,
+    configDialogSize: { width: 600, height: 600, minWidth: 500, minHeight: 450 },
+    configDialogTitle: 'Status Indicator Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
     supportedDataSources: ['serviceCall'],
     getInitialConfig: (widget) => {
@@ -1191,6 +1217,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Service Health',
     component: ServiceHealthWidgetComponent,
     configDialogComponent: ServiceHealthConfigDialogComponent,
+    configDialogSize: { width: 600, height: 550, minWidth: 500, minHeight: 400 },
+    configDialogTitle: 'Service Health Configuration',
     defaultSize: { colSpan: 2, rowSpan: 1 },
     supportedDataSources: ['serviceCall'],
     getInitialConfig: (widget) => {
@@ -1273,6 +1301,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Widget Group',
     component: WidgetGroupComponent,
     configDialogComponent: WidgetGroupConfigDialogComponent,
+    configDialogSize: { width: 800, height: 700, minWidth: 600, minHeight: 500 },
+    configDialogTitle: 'Widget Group Configuration',
     defaultSize: { colSpan: 4, rowSpan: 2 },
     supportedDataSources: ['repeaterQuery'],
     getInitialConfig: (widget) => {
@@ -1410,6 +1440,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     label: 'Markdown',
     component: MarkdownWidgetComponent,
     configDialogComponent: MarkdownConfigDialogComponent,
+    configDialogSize: { width: 900, height: 700, minWidth: 650, minHeight: 500 },
+    configDialogTitle: 'Markdown Widget Configuration',
     defaultSize: { colSpan: 2, rowSpan: 2 },
     supportedDataSources: ['static'],
     getInitialConfig: (widget) => {
@@ -1578,7 +1610,7 @@ export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProvide
  * import { provideMeshBoard, provideWidgetRegistrations } from '@meshmakers/octo-meshboard';
  * import { MyCustomWidget, MyCustomConfigDialog } from './widgets/my-custom-widget';
  *
- * const customWidgets: WidgetRegistration<any, any>[] = [
+ * const customWidgets: WidgetRegistration<AnyWidgetConfig, WidgetConfigResult>[] = [
  *   {
  *     type: 'myCustom',
  *     label: 'My Custom Widget',
@@ -1599,7 +1631,7 @@ export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProvide
  * ```
  */
 export function provideWidgetRegistrations(
-  registrations: WidgetRegistration<any, any>[]
+  registrations: WidgetRegistration<AnyWidgetConfig, WidgetConfigResult>[]
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
     provideAppInitializer(() => {

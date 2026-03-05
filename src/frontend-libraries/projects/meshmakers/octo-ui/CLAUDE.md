@@ -26,13 +26,24 @@ src/lib/
 ├── ck-type-selector-dialog/      # CK type selection dialog
 ├── ck-type-selector-input/       # CK type autocomplete input
 ├── data-sources/                 # GraphQL data source abstractions
+├── entity-id-info/               # Entity ID display with copy dropdown
 ├── field-filter-editor/          # Filter editor component
+├── octo-loader/                  # Animated loading indicator
 ├── property-grid/                # Property grid component
 └── tenant-switcher/              # Tenant switching badge with popup
     ├── components/               # Grid and value display components
     ├── models/                   # TypeScript interfaces and enums
     └── services/                 # Property converter service
 ```
+
+## Documentation and Testing Standards
+
+- **All developer documentation must be written in English**
+- **Every code change must include updated documentation** — update README.md, CLAUDE.md, or inline docs when adding, modifying, or removing features
+- **Unit tests and integration tests must be executed** after every code change
+- **Existing tests must be updated** when the behavior of tested code changes
+- **New tests must be added** when new features, components, or services are implemented
+- Never commit code with failing tests
 
 ---
 

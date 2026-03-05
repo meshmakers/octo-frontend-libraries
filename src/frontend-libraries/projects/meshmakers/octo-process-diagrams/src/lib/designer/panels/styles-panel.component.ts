@@ -3,7 +3,8 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { IDockviewPanelProps } from '../dockview/dockview.component';
+import { DockviewApi } from 'dockview-core';
+import { IDockviewPanelProps, DockviewPanelApi } from '../dockview/dockview.component';
 import { StyleClass, createStyleClass } from '../../primitives';
 
 /**
@@ -446,12 +447,12 @@ import { StyleClass, createStyleClass } from '../../primitives';
 export class StylesPanelComponent implements IDockviewPanelProps {
   private readonly cdr = inject(ChangeDetectorRef);
 
-  api: any;
-  containerApi: any;
-  private _params: Record<string, any> = {};
+  api!: DockviewPanelApi;
+  containerApi!: DockviewApi;
+  private _params: Record<string, unknown> = {};
 
   // Setter to intercept params assignment and extract signal reference
-  set params(value: Record<string, any>) {
+  set params(value: Record<string, unknown>) {
     this._params = value;
     // Store signal reference for effect tracking
     const styleClassesParam = value['styleClasses'];
@@ -460,7 +461,7 @@ export class StylesPanelComponent implements IDockviewPanelProps {
     }
   }
 
-  get params(): Record<string, any> {
+  get params(): Record<string, unknown> {
     return this._params;
   }
 
@@ -494,7 +495,7 @@ export class StylesPanelComponent implements IDockviewPanelProps {
     if (typeof param === 'function') {
       return param() ?? [];
     }
-    return param ?? [];
+    return (param as StyleClass[]) ?? [];
   }
 
   /**
@@ -517,14 +518,14 @@ export class StylesPanelComponent implements IDockviewPanelProps {
    * Callback for style classes changes
    */
   private get onStyleClassesChange(): ((classes: StyleClass[]) => void) | undefined {
-    return this.params['onStyleClassesChange'];
+    return this.params['onStyleClassesChange'] as ((classes: StyleClass[]) => void) | undefined;
   }
 
   /**
    * Callback for applying style to selection
    */
   private get onApplyStyleToSelection(): ((styleClassId: string) => void) | undefined {
-    return this.params['onApplyStyleToSelection'];
+    return this.params['onApplyStyleToSelection'] as ((styleClassId: string) => void) | undefined;
   }
 
   /**

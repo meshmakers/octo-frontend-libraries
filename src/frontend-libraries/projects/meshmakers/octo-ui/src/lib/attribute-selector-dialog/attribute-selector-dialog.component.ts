@@ -1,13 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogRef, DialogModule, DialogContentBase } from '@progress/kendo-angular-dialog';
+import { WindowModule, WindowRef } from '@progress/kendo-angular-dialog';
 import { GridModule, GridDataResult, CellClickEvent } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
+import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { IconsModule } from '@progress/kendo-angular-icons';
 import { arrowRightIcon, arrowLeftIcon, searchIcon, arrowUpIcon, arrowDownIcon, chevronDoubleRightIcon, chevronDoubleLeftIcon } from '@progress/kendo-svg-icons';
-import { AttributeSelectorService, AttributeItem } from '@meshmakers/octo-services';
+import { AttributeSelectorService, AttributeItem, AttributeValueTypeDto } from '@meshmakers/octo-services';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -15,10 +16,18 @@ export interface AttributeSelectorDialogData {
   rtCkTypeId: string;
   selectedAttributes?: string[];
   dialogTitle?: string;
+  singleSelect?: boolean;
+  includeNavigationProperties?: boolean;
+  maxDepth?: number;
 }
 
 export interface AttributeSelectorDialogResult {
   selectedAttributes: AttributeItem[];
+}
+
+interface ValueTypeFilterOption {
+  text: string;
+  value: AttributeValueTypeDto | null;
 }
 
 @Component({
@@ -30,37 +39,66 @@ export interface AttributeSelectorDialogResult {
     GridModule,
     ButtonsModule,
     InputsModule,
+    DropDownListModule,
     IconsModule,
-    DialogModule
+    WindowModule
   ],
   template: `
     <div class="attribute-selector-container">
-      <div class="search-container">
+      <div class="filter-container">
         <kendo-textbox
           [(ngModel)]="searchText"
           (ngModelChange)="onSearchChange($event)"
-          placeholder="Search attributes..."
+          placeholder="Search path & description..."
           class="search-input">
           <ng-template kendoTextBoxSuffixTemplate>
             <button kendoButton [svgIcon]="searchIcon" fillMode="clear"></button>
           </ng-template>
         </kendo-textbox>
+        <kendo-dropdownlist
+          [data]="valueTypeOptions"
+          [(ngModel)]="selectedValueTypeFilter"
+          (valueChange)="onValueTypeFilterChange($event)"
+          textField="text"
+          valueField="value"
+          [valuePrimitive]="true"
+          class="type-filter-dropdown">
+        </kendo-dropdownlist>
       </div>
 
-      <div class="lists-container">
+      <div class="options-container">
+        <input type="checkbox" kendoCheckBox
+          [(ngModel)]="includeNavigationProperties"
+          (ngModelChange)="onNavigationPropertiesChange()" />
+        <label class="option-label">Include Navigation Properties</label>
+
+        <kendo-numerictextbox
+          [(ngModel)]="maxDepth"
+          [min]="1" [max]="5" [step]="1" [format]="'n0'"
+          [placeholder]="'Depth'"
+          [spinners]="true"
+          [disabled]="!includeNavigationProperties"
+          (valueChange)="onMaxDepthChange($event)"
+          class="depth-input">
+        </kendo-numerictextbox>
+        <label class="option-label">Max Depth</label>
+      </div>
+
+      <div class="lists-container" *ngIf="!singleSelect">
         <div class="list-section">
           <h4>Available Attributes</h4>
           <kendo-grid
             [data]="availableGridData"
-            [height]="350"
             [scrollable]="'scrollable'"
             [selectable]="{ mode: 'multiple', enabled: true }"
             [kendoGridSelectBy]="'attributePath'"
             [(selectedKeys)]="selectedAvailableKeys"
             (cellClick)="onAvailableCellClick($event)"
+            [resizable]="true"
             class="attribute-grid">
-            <kendo-grid-column field="attributePath" title="Attribute Path" [width]="200"></kendo-grid-column>
+            <kendo-grid-column field="attributePath" title="Attribute Path" [width]="250"></kendo-grid-column>
             <kendo-grid-column field="attributeValueType" title="Type" [width]="100"></kendo-grid-column>
+            <kendo-grid-column field="description" title="Description"></kendo-grid-column>
           </kendo-grid>
         </div>
 
@@ -100,12 +138,12 @@ export interface AttributeSelectorDialogResult {
           <h4>Selected Attributes ({{ selectedAttributes.length }})</h4>
           <kendo-grid
             [data]="selectedGridData"
-            [height]="350"
             [scrollable]="'scrollable'"
             [selectable]="{ mode: 'single', enabled: true }"
             [kendoGridSelectBy]="'attributePath'"
             [(selectedKeys)]="selectedChosenKeys"
             (cellClick)="onSelectedCellClick($event)"
+            [resizable]="true"
             class="attribute-grid">
             <kendo-grid-column field="attributePath" title="Attribute Path" [width]="200">
               <ng-template kendoGridCellTemplate let-dataItem let-rowIndex="rowIndex">
@@ -134,55 +172,100 @@ export interface AttributeSelectorDialogResult {
           </button>
         </div>
       </div>
-    </div>
 
-    <kendo-dialog-actions>
-      <button kendoButton (click)="onCancel()">Cancel</button>
-      <button kendoButton themeColor="primary" (click)="onConfirm()">OK</button>
-    </kendo-dialog-actions>
+      <div class="single-select-container" *ngIf="singleSelect">
+        <kendo-grid
+          [data]="availableGridData"
+          [scrollable]="'scrollable'"
+          [selectable]="{ mode: 'single', enabled: true }"
+          [kendoGridSelectBy]="'attributePath'"
+          [(selectedKeys)]="selectedSingleKey"
+          (cellClick)="onSingleSelectCellClick($event)"
+          [resizable]="true"
+          class="attribute-grid">
+          <kendo-grid-column field="attributePath" title="Attribute Path" [width]="250"></kendo-grid-column>
+          <kendo-grid-column field="attributeValueType" title="Type" [width]="100"></kendo-grid-column>
+          <kendo-grid-column field="description" title="Description"></kendo-grid-column>
+        </kendo-grid>
+      </div>
+
+      <div class="action-bar">
+        <button kendoButton (click)="onCancel()">Cancel</button>
+        <button kendoButton themeColor="primary" [disabled]="singleSelect && selectedSingleKey.length === 0" (click)="onConfirm()">OK</button>
+      </div>
+    </div>
   `,
   styles: [`
     :host {
       display: block;
+      height: 100%;
     }
 
     .attribute-selector-container {
       display: flex;
       flex-direction: column;
+      height: 100%;
       padding: 16px 20px;
-      min-width: 800px;
       box-sizing: border-box;
       gap: 16px;
     }
 
-    .search-container {
+    .filter-container {
+      display: flex;
+      gap: 12px;
       flex-shrink: 0;
     }
 
     .search-input {
-      width: 100%;
+      flex: 1;
+    }
+
+    .type-filter-dropdown {
+      width: 160px;
+      flex-shrink: 0;
+    }
+
+    .options-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .option-label {
+      cursor: pointer;
+    }
+
+    .depth-input {
+      width: 90px;
     }
 
     .lists-container {
       display: flex;
       gap: 16px;
-      align-items: flex-start;
+      flex: 1;
+      min-height: 0;
     }
 
     .list-section {
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-height: 0;
     }
 
     .list-section h4 {
       margin: 0 0 10px 0;
       font-size: 0.85rem;
       font-weight: 600;
+      flex-shrink: 0;
     }
 
     .attribute-grid {
       border-radius: 4px;
+      flex: 1;
+      min-height: 200px;
     }
 
     .attribute-grid ::ng-deep .k-grid-table tbody tr {
@@ -220,15 +303,32 @@ export interface AttributeSelectorDialogResult {
       min-width: 24px;
       display: inline-block;
     }
+
+    .single-select-container {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .single-select-container .attribute-grid {
+      flex: 1;
+    }
+
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+      padding-top: 8px;
+      border-top: 1px solid var(--kendo-color-border, #dee2e6);
+    }
   `]
 })
-export class AttributeSelectorDialogComponent extends DialogContentBase implements OnInit {
+export class AttributeSelectorDialogComponent implements OnInit {
+  private readonly windowRef = inject(WindowRef);
   private readonly attributeService = inject(AttributeSelectorService);
   private searchSubject = new Subject<string>();
-
-  constructor() {
-    super(inject(DialogRef));
-  }
 
   protected readonly arrowRightIcon = arrowRightIcon;
   protected readonly arrowLeftIcon = arrowLeftIcon;
@@ -238,9 +338,15 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
   protected readonly arrowUpIcon = arrowUpIcon;
   protected readonly arrowDownIcon = arrowDownIcon;
 
+  public data!: AttributeSelectorDialogData;
   public dialogTitle = 'Select Attributes';
   public rtCkTypeId!: string;
+  public singleSelect = false;
   public searchText = '';
+  public selectedSingleKey: string[] = [];
+  public selectedValueTypeFilter: AttributeValueTypeDto | null = null;
+  public includeNavigationProperties = true;
+  public maxDepth: number | null = null;
 
   public availableAttributes: AttributeItem[] = [];
   public selectedAttributes: AttributeItem[] = [];
@@ -251,21 +357,38 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
   public selectedAvailableKeys: string[] = [];
   public selectedChosenKeys: string[] = [];
 
+  public valueTypeOptions: ValueTypeFilterOption[] = [
+    { text: 'All Types', value: null },
+    { text: 'String', value: AttributeValueTypeDto.StringDto },
+    { text: 'Integer', value: AttributeValueTypeDto.IntegerDto },
+    { text: 'Double', value: AttributeValueTypeDto.DoubleDto },
+    { text: 'Boolean', value: AttributeValueTypeDto.BooleanDto },
+    { text: 'DateTime', value: AttributeValueTypeDto.DateTimeDto },
+    { text: 'DateTimeOffset', value: AttributeValueTypeDto.DateTimeOffsetDto },
+    { text: 'Enum', value: AttributeValueTypeDto.EnumDto },
+    { text: 'TimeSpan', value: AttributeValueTypeDto.TimeSpanDto }
+  ];
+
   // Double-click tracking
   private lastClickTime = 0;
   private lastClickedItem: string | null = null;
   private readonly doubleClickDelay = 300; // milliseconds
 
   ngOnInit(): void {
-    const data = (this.dialog.content as any)?.instance?.data as AttributeSelectorDialogData;
+    if (this.data) {
+      this.rtCkTypeId = this.data.rtCkTypeId;
+      this.dialogTitle = this.data.dialogTitle || 'Select Attributes';
+      this.singleSelect = this.data.singleSelect ?? false;
+      this.includeNavigationProperties = this.data.includeNavigationProperties ?? true;
+      this.maxDepth = this.data.maxDepth ?? null;
 
-    if (data) {
-      this.rtCkTypeId = data.rtCkTypeId;
-      this.dialogTitle = data.dialogTitle || 'Select Attributes';
-
-      if (data.selectedAttributes && data.selectedAttributes.length > 0) {
-        // Pre-populate selected attributes if provided
-        this.loadInitialSelectedAttributes(data.selectedAttributes);
+      if (this.data.selectedAttributes && this.data.selectedAttributes.length > 0) {
+        if (this.singleSelect) {
+          this.selectedSingleKey = [this.data.selectedAttributes[0]];
+        } else {
+          // Pre-populate selected attributes if provided
+          this.loadInitialSelectedAttributes(this.data.selectedAttributes);
+        }
       }
     }
 
@@ -281,8 +404,14 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
     this.loadAvailableAttributes();
   }
 
-  private loadAvailableAttributes(filter?: string): void {
-    this.attributeService.getAvailableAttributes(this.rtCkTypeId, filter).subscribe(result => {
+  private loadAvailableAttributes(searchTerm?: string): void {
+    this.attributeService.getAvailableAttributes(
+      this.rtCkTypeId, undefined, undefined, undefined,
+      this.selectedValueTypeFilter || undefined,
+      searchTerm || undefined,
+      this.includeNavigationProperties,
+      this.maxDepth ?? undefined
+    ).subscribe(result => {
       // Filter out already selected attributes
       const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
       this.availableAttributes = result.items.filter(item => !selectedPaths.has(item.attributePath));
@@ -312,6 +441,22 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
 
   public onSearchChange(value: string): void {
     this.searchSubject.next(value);
+  }
+
+  public onValueTypeFilterChange(_value: AttributeValueTypeDto | null): void {
+    this.loadAvailableAttributes(this.searchText || undefined);
+  }
+
+  public onNavigationPropertiesChange(): void {
+    if (!this.includeNavigationProperties) {
+      this.maxDepth = null;
+    }
+    this.loadAvailableAttributes(this.searchText || undefined);
+  }
+
+  public onMaxDepthChange(value: number | null): void {
+    this.maxDepth = value;
+    this.loadAvailableAttributes(this.searchText || undefined);
   }
 
   public addSelected(): void {
@@ -420,14 +565,24 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
   }
 
   public onCancel(): void {
-    this.dialog.close();
+    this.windowRef.close();
   }
 
   public onConfirm(): void {
-    const result: AttributeSelectorDialogResult = {
-      selectedAttributes: this.selectedAttributes
-    };
-    this.dialog.close(result);
+    if (this.singleSelect) {
+      const selected = this.availableAttributes.find(
+        a => a.attributePath === this.selectedSingleKey[0]
+      );
+      const result: AttributeSelectorDialogResult = {
+        selectedAttributes: selected ? [selected] : []
+      };
+      this.windowRef.close(result);
+    } else {
+      const result: AttributeSelectorDialogResult = {
+        selectedAttributes: this.selectedAttributes
+      };
+      this.windowRef.close(result);
+    }
   }
 
   /**
@@ -477,6 +632,31 @@ export class AttributeSelectorDialogComponent extends DialogContentBase implemen
       this.lastClickedItem = null;
     } else {
       // Single click - just update tracking
+      this.lastClickTime = currentTime;
+      this.lastClickedItem = attributePath;
+    }
+  }
+
+  /**
+   * Handle cell click on single-select grid to detect double-click (confirm immediately)
+   */
+  public onSingleSelectCellClick(event: CellClickEvent): void {
+    const dataItem = event.dataItem as AttributeItem;
+    if (!dataItem) return;
+
+    const currentTime = Date.now();
+    const attributePath = dataItem.attributePath;
+
+    if (
+      this.lastClickedItem === attributePath &&
+      currentTime - this.lastClickTime <= this.doubleClickDelay
+    ) {
+      // Double-click detected - confirm immediately
+      this.selectedSingleKey = [attributePath];
+      this.onConfirm();
+      this.lastClickTime = 0;
+      this.lastClickedItem = null;
+    } else {
       this.lastClickTime = currentTime;
       this.lastClickedItem = attributePath;
     }

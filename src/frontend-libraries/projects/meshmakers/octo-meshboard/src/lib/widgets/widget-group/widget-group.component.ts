@@ -56,6 +56,9 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
 
   @Input() config!: WidgetGroupConfig;
 
+  // Signal mirror of the config input so computed() signals can track changes.
+  private readonly _config = signal<WidgetGroupConfig | undefined>(undefined);
+
   // Widget state signals
   private readonly _isLoading = signal(false);
   private readonly _data = signal<RepeaterDataItem[] | null>(null);
@@ -69,7 +72,8 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
    * Computed: Check if widget is not configured (needs data source setup).
    */
   readonly isNotConfigured = computed(() => {
-    const dataSource = this.config?.dataSource;
+    const cfg = this._config();
+    const dataSource = cfg?.dataSource;
     if (!dataSource) return true;
     if (dataSource.type !== 'repeaterQuery') return true;
     return !dataSource.queryRtId && !dataSource.ckTypeId;
@@ -89,9 +93,10 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
    * Computed: CSS grid template columns based on layout configuration
    */
   readonly gridTemplateColumns = computed(() => {
-    const layout = this.config?.layout ?? 'grid';
-    const columns = this.config?.gridColumns ?? 4;
-    const minWidth = this.config?.minChildWidth ?? 150;
+    const cfg = this._config();
+    const layout = cfg?.layout ?? 'grid';
+    const columns = cfg?.gridColumns ?? 4;
+    const minWidth = cfg?.minChildWidth ?? 150;
 
     switch (layout) {
       case 'horizontal':
@@ -108,24 +113,30 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
    * Computed: Layout CSS class
    */
   readonly layoutClass = computed(() => {
-    return `layout-${this.config?.layout ?? 'grid'}`;
+    const cfg = this._config();
+    return `layout-${cfg?.layout ?? 'grid'}`;
   });
 
   /**
    * Computed: Gap style
    */
   readonly gapStyle = computed(() => {
-    const gap = this.config?.gap ?? 8;
+    const cfg = this._config();
+    const gap = cfg?.gap ?? 8;
     return `${gap}px`;
   });
 
   ngOnInit(): void {
+    this._config.set(this.config);
     this.loadData();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['config'] && !changes['config'].firstChange) {
-      this.loadData();
+    if (changes['config']) {
+      this._config.set(this.config);
+      if (!changes['config'].firstChange) {
+        this.loadData();
+      }
     }
   }
 

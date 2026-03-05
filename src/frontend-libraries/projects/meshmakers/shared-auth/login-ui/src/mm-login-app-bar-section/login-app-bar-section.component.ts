@@ -64,7 +64,7 @@ export class LoginAppBarSectionComponent implements OnInit {
     console.debug('mm-login-app-bar-section::created');
   }
 
-  @Output() get register(): EventEmitter<any> {
+  @Output() get register(): EventEmitter<void> {
     return this._register;
   }
 

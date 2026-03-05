@@ -1,0 +1,102 @@
+.demo-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  h1 {
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    margin-bottom: 24px;
+    opacity: 0.7;
+
+    code {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.06);
+    }
+  }
+}
+
+.demo-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.form-section {
+  .action-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    mat-form-field {
+      width: 100%;
+    }
+  }
+}
+
+.state-panel {
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  position: sticky;
+  top: 80px;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+  }
+
+  .state-item {
+    margin-bottom: 12px;
+
+    .state-label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      opacity: 0.5;
+      margin-bottom: 4px;
+    }
+
+    .state-value {
+      font-family: monospace;
+      font-size: 14px;
+
+      &.active {
+        color: #2e7d32;
+      }
+    }
+
+    .entity-json {
+      font-size: 11px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+      margin: 0;
+      padding: 8px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.06);
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .demo-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .state-panel {
+    position: static;
+  }
+}

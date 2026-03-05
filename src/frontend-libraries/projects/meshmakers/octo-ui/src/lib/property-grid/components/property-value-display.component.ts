@@ -5,6 +5,15 @@ import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { chevronRightIcon, chevronDownIcon, downloadIcon } from '@progress/kendo-svg-icons';
 import { AttributeValueTypeDto, PropertyDisplayMode, BinaryDownloadEvent } from '../models/property-grid.models';
 
+/** Shape of binary linked value from OctoMesh */
+interface BinaryLinkedValue {
+  binaryId?: string;
+  downloadUri?: string;
+  filename?: string;
+  size?: number;
+  contentType?: string;
+}
+
 /**
  * Component for displaying property values with appropriate formatting
  */
@@ -304,7 +313,7 @@ import { AttributeValueTypeDto, PropertyDisplayMode, BinaryDownloadEvent } from 
   `]
 })
 export class PropertyValueDisplayComponent implements OnInit {
-  @Input() value: any;
+  @Input() value: unknown;
   @Input() type: AttributeValueTypeDto = AttributeValueTypeDto.StringDto;
   @Input() displayMode: PropertyDisplayMode = PropertyDisplayMode.Text;
 
@@ -492,9 +501,9 @@ export class PropertyValueDisplayComponent implements OnInit {
   /**
    * Format date/time values
    */
-  private formatDateTime(value: any): string {
+  private formatDateTime(value: unknown): string {
     try {
-      const date = value instanceof Date ? value : new Date(value);
+      const date = value instanceof Date ? value : new Date(String(value));
       if (isNaN(date.getTime())) {
         return String(value);
       }
@@ -507,7 +516,7 @@ export class PropertyValueDisplayComponent implements OnInit {
   /**
    * Format array values
    */
-  private formatArray(value: any): string {
+  private formatArray(value: unknown): string {
     if (!Array.isArray(value)) {
       return String(value);
     }
@@ -526,28 +535,29 @@ export class PropertyValueDisplayComponent implements OnInit {
   /**
    * Format object values
    */
-  private formatObject(value: any): string {
+  private formatObject(value: unknown): string {
     if (typeof value !== 'object' || value === null) {
       return String(value);
     }
 
-    const keys = Object.keys(value);
+    const obj = value as Record<string, unknown>;
+    const keys = Object.keys(obj);
     if (keys.length === 0) {
       return '{}';
     }
 
     if (keys.length <= 2) {
-      const preview = keys.map(key => `${key}: ${this.truncateValue(value[key])}`).join(', ');
+      const preview = keys.map(key => `${key}: ${this.truncateValue(obj[key])}`).join(', ');
       return `{${preview}}`;
     }
 
-    return `{${keys.slice(0, 2).map(key => `${key}: ${this.truncateValue(value[key])}`).join(', ')}, ... +${keys.length - 2} more}`;
+    return `{${keys.slice(0, 2).map(key => `${key}: ${this.truncateValue(obj[key])}`).join(', ')}, ... +${keys.length - 2} more}`;
   }
 
   /**
    * Format binary data
    */
-  private formatBinary(value: any): string {
+  private formatBinary(value: unknown): string {
     if (value instanceof ArrayBuffer) {
       return `<Binary: ${value.byteLength} bytes>`;
     }
@@ -560,7 +570,7 @@ export class PropertyValueDisplayComponent implements OnInit {
   /**
    * Format numeric values
    */
-  private formatNumber(value: any, decimals: number): string {
+  private formatNumber(value: unknown, decimals: number): string {
     const num = Number(value);
     if (isNaN(num)) {
       return String(value);
@@ -571,7 +581,7 @@ export class PropertyValueDisplayComponent implements OnInit {
   /**
    * Truncate long values for preview
    */
-  private truncateValue(value: any): string {
+  private truncateValue(value: unknown): string {
     const str = String(value);
     return str.length > 20 ? str.substring(0, 20) + '...' : str;
   }
@@ -604,30 +614,31 @@ export class PropertyValueDisplayComponent implements OnInit {
   /**
    * Get properties of an object for display
    */
-  getObjectProperties(obj: any): {key: string, value: any}[] {
+  getObjectProperties(obj: unknown): {key: string, value: unknown}[] {
     if (typeof obj !== 'object' || obj === null) {
       return [];
     }
 
-    if (Array.isArray(obj) && obj.length > 0 && obj[0].id === 'ckRecordId') {
+    if (Array.isArray(obj) && obj.length > 0 && typeof obj[0] === 'object' && obj[0] !== null && 'id' in obj[0] && obj[0].id === 'ckRecordId') {
       // Handle array of records
-      return obj.map((item, _) => ({
-        key: item.name,
-        value: item.value
+      return obj.map((item: Record<string, unknown>) => ({
+        key: String(item['name']),
+        value: item['value']
       }));
     }
 
     // Handle regular objects
-    return Object.keys(obj).map(key => ({
+    const record = obj as Record<string, unknown>;
+    return Object.keys(record).map(key => ({
       key,
-      value: obj[key]
+      value: record[key]
     }));
   }
 
   /**
    * Determine the appropriate type for a nested property value
    */
-  getPropertyType(value: any): AttributeValueTypeDto {
+  getPropertyType(value: unknown): AttributeValueTypeDto {
     if (value === null || value === undefined) {
       return AttributeValueTypeDto.StringDto;
     }
@@ -649,7 +660,7 @@ export class PropertyValueDisplayComponent implements OnInit {
     }
 
     if (Array.isArray(value)) {
-      if (value.length > 0 && typeof value[0] === 'object' && value[0].id === 'ckRecordId') {
+      if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'id' in value[0] && value[0].id === 'ckRecordId') {
         return AttributeValueTypeDto.RecordDto;
       }
       if (value.length > 0 && typeof value[0] === 'object') {
@@ -679,7 +690,7 @@ export class PropertyValueDisplayComponent implements OnInit {
     }
 
     // Check if value has binaryId or downloadUri (LargeBinaryInfo structure)
-    return this.value && typeof this.value === 'object' && ('binaryId' in this.value || 'downloadUri' in this.value);
+    return !!this.value && typeof this.value === 'object' && ('binaryId' in this.value || 'downloadUri' in this.value);
   }
 
   /**
@@ -689,7 +700,7 @@ export class PropertyValueDisplayComponent implements OnInit {
     if (!this.value || typeof this.value !== 'object') {
       return null;
     }
-    return this.value.filename || null;
+    return (this.value as BinaryLinkedValue).filename || null;
   }
 
   /**
@@ -699,7 +710,7 @@ export class PropertyValueDisplayComponent implements OnInit {
     if (!this.value || typeof this.value !== 'object') {
       return null;
     }
-    return this.value.size || null;
+    return (this.value as BinaryLinkedValue).size || null;
   }
 
   /**
@@ -709,7 +720,7 @@ export class PropertyValueDisplayComponent implements OnInit {
     if (!this.value || typeof this.value !== 'object') {
       return null;
     }
-    return this.value.contentType || null;
+    return (this.value as BinaryLinkedValue).contentType || null;
   }
 
   /**
@@ -741,18 +752,20 @@ export class PropertyValueDisplayComponent implements OnInit {
       return;
     }
 
+    const binaryValue = this.value as BinaryLinkedValue;
+
     // If downloadUri is available, open directly
-    if (this.value.downloadUri) {
-      window.open(this.value.downloadUri, '_blank', 'noopener,noreferrer');
+    if (binaryValue.downloadUri) {
+      window.open(binaryValue.downloadUri, '_blank', 'noopener,noreferrer');
       return;
     }
 
     // Otherwise, emit event for parent to handle (needs to load downloadUri)
-    if (this.value.binaryId) {
+    if (binaryValue.binaryId) {
       const event: BinaryDownloadEvent = {
-        binaryId: this.value.binaryId,
-        filename: this.value.filename,
-        contentType: this.value.contentType
+        binaryId: binaryValue.binaryId,
+        filename: binaryValue.filename,
+        contentType: binaryValue.contentType
       };
       this.binaryDownload.emit(event);
     } else {

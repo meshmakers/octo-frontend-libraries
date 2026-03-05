@@ -1,0 +1,69 @@
+<div class="demo-container">
+  <h1>Entity Select</h1>
+  <p class="subtitle">Demonstrates <code>MmEntitySelectInputComponent</code> with a real <code>OctoSdkDemo/Customer</code> data source</p>
+
+  <div class="demo-layout">
+    <div class="select-section">
+      <h3>Customer Search</h3>
+      <p>Type at least 3 characters to search by first name, last name, company or city.</p>
+
+      <mat-form-field appearance="outline" class="entity-field">
+        <mat-label>Select a Customer</mat-label>
+        <mm-entity-select
+          [dataSource]="customerDataSource"
+          placeholder="Type to search customers..."
+          (valueChange)="onCustomerSelected($any($event))">
+        </mm-entity-select>
+      </mat-form-field>
+
+      <div class="actions">
+        <button mat-stroked-button (click)="clearSelection()">
+          <mat-icon class="material-symbols-outlined">clear</mat-icon>
+          Clear Selection
+        </button>
+      </div>
+    </div>
+
+    <div class="details-section" *ngIf="selectedCustomer?.contact">
+      <h3>Selected Customer</h3>
+      <mat-card>
+        <mat-card-header>
+          <mat-icon mat-card-avatar class="material-symbols-outlined product-icon">person</mat-icon>
+          <mat-card-title>{{ selectedCustomer?.contact?.firstName }} {{ selectedCustomer?.contact?.lastName }}</mat-card-title>
+          <mat-card-subtitle>{{ selectedCustomer?.contact?.companyName }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="product-detail">
+            <span class="label">Status</span>
+            <span class="value">{{ selectedCustomer?.customerStatus }}</span>
+          </div>
+          <div class="product-detail">
+            <span class="label">Street</span>
+            <span class="value">{{ selectedCustomer?.contact?.address?.street }}</span>
+          </div>
+          <div class="product-detail">
+            <span class="label">City</span>
+            <span class="value">{{ selectedCustomer?.contact?.address?.zipcode }} {{ selectedCustomer?.contact?.address?.cityTown }}</span>
+          </div>
+          <div class="product-detail">
+            <span class="label">Country</span>
+            <span class="value">{{ selectedCustomer?.contact?.address?.nationalCode }}</span>
+          </div>
+          <div class="product-detail">
+            <span class="label">Entity Type</span>
+            <span class="value">{{ selectedCustomer?.contact?.legalEntityType }}</span>
+          </div>
+          <div class="product-detail">
+            <span class="label">RT ID</span>
+            <span class="value">{{ selectedCustomer?.rtId }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h3>Data Source</h3>
+    <p>Queries <code>OctoSdkDemo/Customer</code> entities from the <code>meshtest</code> tenant via GraphQL. Searches across first name, last name, company name and city.</p>
+  </div>
+</div>

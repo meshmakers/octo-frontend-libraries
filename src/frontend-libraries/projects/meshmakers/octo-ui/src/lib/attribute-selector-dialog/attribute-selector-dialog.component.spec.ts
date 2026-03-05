@@ -3,35 +3,33 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { of } from 'rxjs';
-import { DialogRef } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { CellClickEvent } from '@progress/kendo-angular-grid';
 import {
   AttributeSelectorDialogComponent,
-  AttributeSelectorDialogData,
   AttributeSelectorDialogResult
 } from './attribute-selector-dialog.component';
-import { AttributeSelectorService, AttributeItem } from '@meshmakers/octo-services';
+import { AttributeSelectorService, AttributeItem, AttributeValueTypeDto } from '@meshmakers/octo-services';
 
 describe('AttributeSelectorDialogComponent', () => {
   let component: AttributeSelectorDialogComponent;
   let fixture: ComponentFixture<AttributeSelectorDialogComponent>;
   let attributeServiceMock: jasmine.SpyObj<AttributeSelectorService>;
-  let dialogRefMock: jasmine.SpyObj<DialogRef>;
+  let windowRefMock: jasmine.SpyObj<WindowRef>;
 
   const mockAttributes: AttributeItem[] = [
-    { attributePath: 'name', attributeValueType: 'STRING' },
-    { attributePath: 'age', attributeValueType: 'INT' },
-    { attributePath: 'email', attributeValueType: 'STRING' },
-    { attributePath: 'createdAt', attributeValueType: 'DATE_TIME' },
-    { attributePath: 'isActive', attributeValueType: 'BOOLEAN' }
+    { attributePath: 'name', attributeValueType: 'STRING', description: 'The name field' },
+    { attributePath: 'age', attributeValueType: 'INT', description: 'The age field' },
+    { attributePath: 'email', attributeValueType: 'STRING', description: null },
+    { attributePath: 'createdAt', attributeValueType: 'DATE_TIME', description: 'Creation timestamp' },
+    { attributePath: 'isActive', attributeValueType: 'BOOLEAN', description: 'Active status' }
   ];
 
   beforeEach(async () => {
     attributeServiceMock = jasmine.createSpyObj('AttributeSelectorService', ['getAvailableAttributes']);
     attributeServiceMock.getAvailableAttributes.and.returnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
 
-    dialogRefMock = jasmine.createSpyObj('DialogRef', ['close']);
-    (dialogRefMock as any).content = { instance: { data: null } };
+    windowRefMock = jasmine.createSpyObj('WindowRef', ['close']);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -41,7 +39,7 @@ describe('AttributeSelectorDialogComponent', () => {
       providers: [
         provideNoopAnimations(),
         { provide: AttributeSelectorService, useValue: attributeServiceMock },
-        { provide: DialogRef, useValue: dialogRefMock }
+        { provide: WindowRef, useValue: windowRefMock }
       ]
     }).compileComponents();
 
@@ -71,21 +69,20 @@ describe('AttributeSelectorDialogComponent', () => {
     });
 
     it('should load available attributes on init', fakeAsync(() => {
-      component.rtCkTypeId = 'TestType/Entity';
+      component.data = { rtCkTypeId: 'TestType/Entity' };
       component.ngOnInit();
       tick(300);
 
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestType/Entity', undefined);
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalled();
       expect(component.availableAttributes.length).toBe(5);
     }));
 
-    it('should use data from dialog content when provided', fakeAsync(() => {
-      const data: AttributeSelectorDialogData = {
+    it('should use data from component data when provided', fakeAsync(() => {
+      component.data = {
         rtCkTypeId: 'Custom/Type',
         dialogTitle: 'Custom Title',
         selectedAttributes: ['name']
       };
-      (dialogRefMock as any).content = { instance: { data } };
 
       component.ngOnInit();
       tick(300);
@@ -95,11 +92,10 @@ describe('AttributeSelectorDialogComponent', () => {
     }));
 
     it('should pre-select attributes when provided', fakeAsync(() => {
-      const data: AttributeSelectorDialogData = {
+      component.data = {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: ['name', 'age']
       };
-      (dialogRefMock as any).content = { instance: { data } };
 
       component.ngOnInit();
       tick(300);
@@ -107,6 +103,16 @@ describe('AttributeSelectorDialogComponent', () => {
       expect(component.selectedAttributes.length).toBe(2);
       expect(component.availableAttributes.length).toBe(3);
     }));
+
+    it('should have value type filter options', () => {
+      expect(component.valueTypeOptions.length).toBeGreaterThan(0);
+      expect(component.valueTypeOptions[0].text).toBe('All Types');
+      expect(component.valueTypeOptions[0].value).toBeNull();
+    });
+
+    it('should start with null value type filter', () => {
+      expect(component.selectedValueTypeFilter).toBeNull();
+    });
   });
 
   // =========================================================================
@@ -115,7 +121,7 @@ describe('AttributeSelectorDialogComponent', () => {
 
   describe('Add/Remove Operations', () => {
     beforeEach(fakeAsync(() => {
-      component.rtCkTypeId = 'TestType/Entity';
+      component.data = { rtCkTypeId: 'TestType/Entity' };
       component.ngOnInit();
       tick(300);
     }));
@@ -176,7 +182,7 @@ describe('AttributeSelectorDialogComponent', () => {
 
   describe('Move Up/Down Operations', () => {
     beforeEach(fakeAsync(() => {
-      component.rtCkTypeId = 'TestType/Entity';
+      component.data = { rtCkTypeId: 'TestType/Entity' };
       component.ngOnInit();
       tick(300);
       // Add all and select second item
@@ -273,31 +279,31 @@ describe('AttributeSelectorDialogComponent', () => {
 
   describe('Dialog Actions', () => {
     beforeEach(fakeAsync(() => {
-      component.rtCkTypeId = 'TestType/Entity';
+      component.data = { rtCkTypeId: 'TestType/Entity' };
       component.ngOnInit();
       tick(300);
     }));
 
-    it('should close dialog on cancel', () => {
+    it('should close window on cancel', () => {
       component.onCancel();
-      expect(dialogRefMock.close).toHaveBeenCalledWith();
+      expect(windowRefMock.close).toHaveBeenCalledWith();
     });
 
-    it('should close dialog with result on confirm', () => {
+    it('should close window with result on confirm', () => {
       component.selectedAvailableKeys = ['name', 'age'];
       component.addSelected();
 
       component.onConfirm();
 
-      expect(dialogRefMock.close).toHaveBeenCalled();
-      const result = (dialogRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSelectorDialogResult;
+      expect(windowRefMock.close).toHaveBeenCalled();
+      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSelectorDialogResult;
       expect(result.selectedAttributes.length).toBe(2);
     });
 
     it('should return empty array on confirm with no selection', () => {
       component.onConfirm();
 
-      const result = (dialogRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSelectorDialogResult;
+      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSelectorDialogResult;
       expect(result.selectedAttributes).toEqual([]);
     });
   });
@@ -308,7 +314,7 @@ describe('AttributeSelectorDialogComponent', () => {
 
   describe('Search', () => {
     beforeEach(fakeAsync(() => {
-      component.rtCkTypeId = 'TestType/Entity';
+      component.data = { rtCkTypeId: 'TestType/Entity' };
       component.ngOnInit();
       tick(300);
     }));
@@ -325,7 +331,6 @@ describe('AttributeSelectorDialogComponent', () => {
 
       // Only the last call should be made due to debouncing
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledTimes(1);
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestType/Entity', 'test3');
     }));
 
     it('should not call service for duplicate search terms', fakeAsync(() => {
@@ -339,6 +344,103 @@ describe('AttributeSelectorDialogComponent', () => {
       // distinctUntilChanged should prevent duplicate calls
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledTimes(1);
     }));
+
+    it('should pass searchTerm to attribute service', fakeAsync(() => {
+      attributeServiceMock.getAvailableAttributes.calls.reset();
+
+      component.onSearchChange('test');
+      tick(300);
+
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
+        'TestType/Entity', undefined, undefined, undefined, undefined, 'test', true, undefined
+      );
+    }));
+  });
+
+  // =========================================================================
+  // Value Type Filter
+  // =========================================================================
+
+  describe('Value Type Filter', () => {
+    beforeEach(fakeAsync(() => {
+      component.data = { rtCkTypeId: 'TestType/Entity' };
+      component.ngOnInit();
+      tick(300);
+    }));
+
+    it('should reload attributes when value type filter changes', fakeAsync(() => {
+      attributeServiceMock.getAvailableAttributes.calls.reset();
+
+      component.selectedValueTypeFilter = AttributeValueTypeDto.StringDto;
+      component.onValueTypeFilterChange(component.selectedValueTypeFilter);
+
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
+        'TestType/Entity', undefined, undefined, undefined, 'STRING', undefined, true, undefined
+      );
+    }));
+  });
+
+  // =========================================================================
+  // Navigation Properties
+  // =========================================================================
+
+  describe('Navigation Properties', () => {
+    beforeEach(fakeAsync(() => {
+      component.data = { rtCkTypeId: 'TestType/Entity' };
+      component.ngOnInit();
+      tick(300);
+    }));
+
+    it('should have default includeNavigationProperties=true and maxDepth=null', () => {
+      expect(component.includeNavigationProperties).toBe(true);
+      expect(component.maxDepth).toBeNull();
+    });
+
+    it('should initialize from data when provided', fakeAsync(() => {
+      component.data = { rtCkTypeId: 'TestType/Entity', includeNavigationProperties: false, maxDepth: 2 };
+      component.ngOnInit();
+      tick(300);
+
+      expect(component.includeNavigationProperties).toBe(false);
+      expect(component.maxDepth).toBe(2);
+    }));
+
+    it('should reload attributes with includeNavigationProperties=false when toggled', fakeAsync(() => {
+      attributeServiceMock.getAvailableAttributes.calls.reset();
+
+      component.includeNavigationProperties = false;
+      component.onNavigationPropertiesChange();
+
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
+        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, false, undefined
+      );
+    }));
+
+    it('should clear maxDepth when navigation properties is unchecked', fakeAsync(() => {
+      component.maxDepth = 3;
+      component.includeNavigationProperties = false;
+      component.onNavigationPropertiesChange();
+
+      expect(component.maxDepth).toBeNull();
+    }));
+
+    it('should reload attributes when maxDepth changes', fakeAsync(() => {
+      attributeServiceMock.getAvailableAttributes.calls.reset();
+
+      component.onMaxDepthChange(2);
+
+      expect(component.maxDepth).toBe(2);
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
+        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, true, 2
+      );
+    }));
+
+    it('should set maxDepth to null when null is passed', fakeAsync(() => {
+      component.maxDepth = 3;
+      component.onMaxDepthChange(null);
+
+      expect(component.maxDepth).toBeNull();
+    }));
   });
 
   // =========================================================================
@@ -347,7 +449,7 @@ describe('AttributeSelectorDialogComponent', () => {
 
   describe('Double-Click Handling', () => {
     beforeEach(fakeAsync(() => {
-      component.rtCkTypeId = 'TestType/Entity';
+      component.data = { rtCkTypeId: 'TestType/Entity' };
       component.ngOnInit();
       tick(300);
     }));
@@ -423,7 +525,7 @@ describe('AttributeSelectorDialogComponent', () => {
 
   describe('Grid Data Updates', () => {
     beforeEach(fakeAsync(() => {
-      component.rtCkTypeId = 'TestType/Entity';
+      component.data = { rtCkTypeId: 'TestType/Entity' };
       component.ngOnInit();
       tick(300);
     }));
@@ -457,7 +559,7 @@ describe('AttributeSelectorDialogComponent', () => {
 
   describe('Edge Cases', () => {
     beforeEach(fakeAsync(() => {
-      component.rtCkTypeId = 'TestType/Entity';
+      component.data = { rtCkTypeId: 'TestType/Entity' };
       component.ngOnInit();
       tick(300);
     }));
@@ -492,11 +594,10 @@ describe('AttributeSelectorDialogComponent', () => {
     });
 
     it('should filter out already selected from available on load', fakeAsync(() => {
-      const data: AttributeSelectorDialogData = {
+      component.data = {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: ['name', 'age']
       };
-      (dialogRefMock as any).content = { instance: { data } };
 
       component.ngOnInit();
       tick(300);
@@ -509,20 +610,27 @@ describe('AttributeSelectorDialogComponent', () => {
     it('should handle empty service response', fakeAsync(() => {
       attributeServiceMock.getAvailableAttributes.and.returnValue(of({ items: [], totalCount: 0 }));
 
-      component.rtCkTypeId = 'EmptyType';
+      component.data = { rtCkTypeId: 'EmptyType' };
       component.ngOnInit();
       tick(300);
 
       expect(component.availableAttributes).toEqual([]);
     }));
 
-    it('should handle missing data in dialog content', fakeAsync(() => {
-      (dialogRefMock as any).content = null;
-
+    it('should handle missing data', fakeAsync(() => {
       expect(() => {
         component.ngOnInit();
         tick(300);
       }).not.toThrow();
+    }));
+
+    it('should include description in available attributes', fakeAsync(() => {
+      component.data = { rtCkTypeId: 'TestType/Entity' };
+      component.ngOnInit();
+      tick(300);
+
+      const nameAttr = component.availableAttributes.find(a => a.attributePath === 'name');
+      expect(nameAttr?.description).toBe('The name field');
     }));
   });
 });

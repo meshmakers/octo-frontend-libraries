@@ -9,6 +9,13 @@ import { SymbolLibrary, SymbolDefinition } from '../../primitives/models/symbol.
 import { PrimitiveBase } from '../../primitives';
 import { By } from '@angular/platform-browser';
 
+/**
+ * Test helper interface to access protected members of SymbolLibraryDetailComponent
+ */
+interface SymbolLibraryDetailTestAccess {
+  getPointsString(points: string | { x?: number; y?: number }[] | null | undefined): string;
+}
+
 // Helper to create primitives with config (using type assertion for tests)
 function createPrimitive(primitive: Record<string, unknown>): PrimitiveBase {
   return primitive as unknown as PrimitiveBase;
@@ -359,29 +366,29 @@ describe('SymbolLibraryDetailComponent', () => {
 
   describe('getPointsString', () => {
     it('should return string as-is', () => {
-      const result = (component as any).getPointsString('10,20 30,40');
+      const result = (component as unknown as SymbolLibraryDetailTestAccess).getPointsString('10,20 30,40');
       expect(result).toBe('10,20 30,40');
     });
 
     it('should convert array of points to string', () => {
       const points = [{ x: 10, y: 20 }, { x: 30, y: 40 }, { x: 50, y: 60 }];
-      const result = (component as any).getPointsString(points);
+      const result = (component as unknown as SymbolLibraryDetailTestAccess).getPointsString(points);
       expect(result).toBe('10,20 30,40 50,60');
     });
 
     it('should handle empty array', () => {
-      const result = (component as any).getPointsString([]);
+      const result = (component as unknown as SymbolLibraryDetailTestAccess).getPointsString([]);
       expect(result).toBe('');
     });
 
     it('should handle null/undefined', () => {
-      expect((component as any).getPointsString(null)).toBe('');
-      expect((component as any).getPointsString(undefined)).toBe('');
+      expect((component as unknown as SymbolLibraryDetailTestAccess).getPointsString(null)).toBe('');
+      expect((component as unknown as SymbolLibraryDetailTestAccess).getPointsString(undefined)).toBe('');
     });
 
     it('should handle points with missing coordinates', () => {
       const points = [{ x: 10 }, { y: 20 }, {}];
-      const result = (component as any).getPointsString(points);
+      const result = (component as unknown as SymbolLibraryDetailTestAccess).getPointsString(points);
       expect(result).toBe('10,0 0,20 0,0');
     });
   });

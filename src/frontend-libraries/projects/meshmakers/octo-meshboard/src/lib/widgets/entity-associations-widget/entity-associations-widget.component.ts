@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EntityWithAssociationsWidgetConfig, RuntimeEntityData, EntityAssociation } from '../../models/meshboard.models';
-import { DashboardDataService } from '../../services/meshboard-data.service';
+import { EntityWithAssociationsWidgetConfig, RuntimeEntityData, EntityAssociation, EntityAttribute } from '../../models/meshboard.models';
+import { DashboardDataService, TargetEntityWithAttributes } from '../../services/meshboard-data.service';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
@@ -23,6 +23,7 @@ interface TargetEntity {
   rtId: string;
   ckTypeId: string;
   displayName: string;
+  attributes?: EntityAttribute[];
 }
 
 @Component({
@@ -48,6 +49,10 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
   private readonly _data = signal<RuntimeEntityData | null>(null);
   private readonly _error = signal<string | null>(null);
   private readonly _expandedGroups = signal<Set<string>>(new Set());
+
+  // Cache for target entity attributes per group (key = roleId_direction)
+  private readonly _targetAttributesCache = signal<Map<string, TargetEntityWithAttributes[]>>(new Map());
+  private readonly _loadingTargetGroups = signal<Set<string>>(new Set());
 
   // Detail dialog state
   protected showDetailDialog = false;
@@ -91,6 +96,16 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
 
   readonly displayMode = computed(() => {
     return this.config?.displayMode ?? 'expandable';
+  });
+
+  /**
+   * Filtered source entity attributes based on configured entityAttributePaths
+   */
+  readonly filteredEntityAttributes = computed(() => {
+    const data = this._data();
+    const paths = this.config?.entityAttributePaths;
+    if (!data?.attributes || !paths?.length) return [];
+    return data.attributes.filter(a => paths.includes(a.attributeName));
   });
 
   readonly groupedAssociations = computed(() => {
@@ -184,6 +199,8 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
       expanded.delete(key);
     } else {
       expanded.add(key);
+      // Load target attributes when expanding, if configured
+      this.loadTargetAttributes(group);
     }
 
     this._expandedGroups.set(expanded);
@@ -198,6 +215,20 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
   }
 
   protected getTargetEntities(group: GroupedAssociation): TargetEntity[] {
+    const cacheKey = this.getGroupCacheKey(group);
+    const cached = this._targetAttributesCache().get(cacheKey);
+
+    if (cached) {
+      // Return enriched targets from cache
+      return cached.map(t => ({
+        rtId: t.rtId,
+        ckTypeId: t.ckTypeId,
+        displayName: t.rtWellKnownName || t.rtId,
+        attributes: t.attributes
+      }));
+    }
+
+    // Fall back to basic association data
     const sourceRtId = this._data()?.rtId;
     return group.associations.map(assoc => {
       const isOutgoing = assoc.originRtId === sourceRtId;
@@ -206,8 +237,94 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
       return {
         rtId,
         ckTypeId,
-        displayName: rtId // Could be enhanced with wellKnownName if available
+        displayName: rtId
       };
+    });
+  }
+
+  protected isLoadingTargets(group: GroupedAssociation): boolean {
+    return this._loadingTargetGroups().has(this.getGroupCacheKey(group));
+  }
+
+  protected formatAttributeName(name: string): string {
+    // camelCase/PascalCase → "Title Case"
+    return name
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, str => str.toUpperCase())
+      .trim();
+  }
+
+  protected formatValue(value: unknown): string {
+    if (value === null || value === undefined) return '–';
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (typeof value === 'number') {
+      return value.toLocaleString('de-AT', {
+        minimumFractionDigits: value % 1 !== 0 ? 1 : 0,
+        maximumFractionDigits: 2
+      });
+    }
+    if (value instanceof Date) return value.toLocaleDateString('de-AT');
+    if (typeof value === 'string') {
+      // Try to detect ISO date strings
+      if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) return date.toLocaleDateString('de-AT');
+      }
+      return value;
+    }
+    return String(value);
+  }
+
+  private getGroupCacheKey(group: GroupedAssociation): string {
+    return `${group.direction}-${group.roleId}-${group.targetType}`;
+  }
+
+  private loadTargetAttributes(group: GroupedAssociation): void {
+    const targetAttributePaths = this.config?.targetAttributePaths;
+    if (!targetAttributePaths?.length) return;
+
+    const cacheKey = this.getGroupCacheKey(group);
+
+    // Skip if already cached or loading
+    if (this._targetAttributesCache().has(cacheKey) || this._loadingTargetGroups().has(cacheKey)) return;
+
+    const data = this._data();
+    if (!data) return;
+
+    // Mark as loading
+    const loading = new Set(this._loadingTargetGroups());
+    loading.add(cacheKey);
+    this._loadingTargetGroups.set(loading);
+
+    // Determine target CK type from the group's associations
+    const sourceRtId = data.rtId;
+    const firstAssoc = group.associations[0];
+    const isOutgoing = firstAssoc.originRtId === sourceRtId;
+    const targetCkTypeId = isOutgoing ? firstAssoc.targetCkTypeId : firstAssoc.originCkTypeId;
+
+    this.dataService.fetchAssociationTargets(
+      data.rtId,
+      data.ckTypeId,
+      targetCkTypeId,
+      group.roleId,
+      group.direction,
+      targetAttributePaths,
+      group.count
+    ).pipe(
+      catchError(err => {
+        console.error('Error loading target attributes:', err);
+        return of([]);
+      })
+    ).subscribe(targets => {
+      // Update cache
+      const cache = new Map(this._targetAttributesCache());
+      cache.set(cacheKey, targets);
+      this._targetAttributesCache.set(cache);
+
+      // Remove from loading
+      const loadingState = new Set(this._loadingTargetGroups());
+      loadingState.delete(cacheKey);
+      this._loadingTargetGroups.set(loadingState);
     });
   }
 
@@ -242,6 +359,8 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
     if (dataSource.type === 'runtimeEntity') {
       this._isLoading.set(true);
       this._error.set(null);
+      this._targetAttributesCache.set(new Map());
+      this._loadingTargetGroups.set(new Set());
 
       this.dataService.fetchEntityWithAssociations(dataSource.rtId!, dataSource.ckTypeId!)
         .pipe(
@@ -254,6 +373,15 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
         .subscribe(entityData => {
           this._data.set(entityData);
           this._isLoading.set(false);
+
+          // Re-load target attributes for any currently expanded groups
+          if (entityData && this.config?.targetAttributePaths?.length) {
+            for (const group of this.groupedAssociations()) {
+              if (this.isGroupExpanded(group)) {
+                this.loadTargetAttributes(group);
+              }
+            }
+          }
         });
     }
   }

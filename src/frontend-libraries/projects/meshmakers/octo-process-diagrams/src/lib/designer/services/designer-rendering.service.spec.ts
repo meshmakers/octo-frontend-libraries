@@ -6,6 +6,7 @@ import {
 import { ProcessElement, ProcessDiagramConfig, ProcessConnection, ConnectionPort, Position } from '../../process-widget.models';
 import { BoundingBox } from './designer-grouping.service';
 import { PrimitiveBase, GroupPrimitive } from '../../primitives';
+import { SymbolInstance } from '../../primitives/models/symbol.model';
 
 describe('DesignerRenderingService', () => {
   let service: DesignerRenderingService;
@@ -271,7 +272,7 @@ describe('DesignerRenderingService', () => {
         symbolRtId: 'sym-def-1',
         position: { x: 100, y: 200 },
         scale: 1
-      } as any;
+      } as SymbolInstance;
 
       const bounds = service.getSymbolBounds(symbol);
 
@@ -286,7 +287,7 @@ describe('DesignerRenderingService', () => {
         symbolRtId: 'sym-def-1',
         position: { x: 100, y: 200 },
         scale: 2
-      } as any;
+      } as SymbolInstance;
 
       const bounds = service.getSymbolBounds(symbol);
 
@@ -301,7 +302,7 @@ describe('DesignerRenderingService', () => {
         symbolRtId: 'sym-def-1',
         position: { x: 100, y: 200 },
         scale: 1
-      } as any;
+      } as SymbolInstance;
 
       const provider = (symbolRtId: string) => {
         if (symbolRtId === 'sym-def-1') {
@@ -323,7 +324,7 @@ describe('DesignerRenderingService', () => {
         symbolRtId: 'sym-def-1',
         position: { x: 100, y: 200 },
         scale: 1.5
-      } as any;
+      } as SymbolInstance;
 
       const provider = () => ({ x: 0, y: 0, width: 100, height: 80 });
 
@@ -339,7 +340,7 @@ describe('DesignerRenderingService', () => {
         libraryRtId: 'lib1',
         symbolRtId: 'sym-def-1',
         position: { x: 50, y: 50 }
-      } as any;
+      } as SymbolInstance;
 
       const bounds = service.getSymbolBounds(symbol);
 
@@ -373,7 +374,7 @@ describe('DesignerRenderingService', () => {
       } as GroupPrimitive;
 
       // Override to simulate missing values
-      (group.config as any).originalBounds = undefined;
+      (group.config as unknown as { originalBounds: unknown }).originalBounds = undefined;
 
       const bounds = service.getPrimitiveBounds(group);
 
@@ -515,7 +516,7 @@ describe('DesignerRenderingService', () => {
         position: { x: 100, y: 200 },
         scale: 1,
         rotation: 0
-      } as any;
+      } as SymbolInstance;
 
       const transform = service.getSymbolTransform(symbol);
 
@@ -528,7 +529,7 @@ describe('DesignerRenderingService', () => {
         position: { x: 100, y: 200 },
         scale: 2,
         rotation: 0
-      } as any;
+      } as SymbolInstance;
 
       const transform = service.getSymbolTransform(symbol);
 
@@ -542,7 +543,7 @@ describe('DesignerRenderingService', () => {
         position: { x: 100, y: 200 },
         scale: 1,
         rotation: 45
-      } as any;
+      } as SymbolInstance;
 
       const transform = service.getSymbolTransform(symbol);
 
@@ -554,7 +555,7 @@ describe('DesignerRenderingService', () => {
       const symbol = {
         id: 'sym1',
         position: { x: 50, y: 75 }
-      } as any;
+      } as SymbolInstance;
 
       const transform = service.getSymbolTransform(symbol);
 

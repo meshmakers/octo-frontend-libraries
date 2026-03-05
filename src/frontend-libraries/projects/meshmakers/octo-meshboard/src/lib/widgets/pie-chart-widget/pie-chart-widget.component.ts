@@ -41,6 +41,7 @@ interface ChartDataItem {
         </div>
       } @else {
         <kendo-chart class="chart-container">
+          <kendo-chart-plot-area [margin]="plotAreaMargin"></kendo-chart-plot-area>
           <kendo-chart-series>
             <kendo-chart-series-item
               [type]="config.chartType"
@@ -168,19 +169,37 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     return true; // Unknown data source type
   }
 
-  readonly labelSettings = computed(() => ({
-    visible: this.config?.showLabels !== false,
-    content: (e: { category: string; value: number }) =>
-      `${e.category}: ${this.formatValue(e.value)}`
-  }));
+  /** Extra margin around the plot area so outsideEnd labels are not clipped by the SVG boundary. */
+  readonly plotAreaMargin = { top: 30, right: 30, bottom: 30, left: 30 };
+
+  private readonly _labelSettings = signal<{ visible: boolean; content: (e: { category: string; value: number }) => string }>({
+    visible: false,
+    content: (e) => e.category
+  });
+  readonly labelSettings = this._labelSettings.asReadonly();
+
+  private updateLabelSettings(): void {
+    this._labelSettings.set({
+      visible: this.config?.showLabels === true,
+      content: (e: { category: string; value: number }) => {
+        const maxLen = 20;
+        const name = e.category.length > maxLen ? e.category.substring(0, maxLen) + '...' : e.category;
+        return `${name}: ${this.formatValue(e.value)}`;
+      }
+    });
+  }
 
   ngOnInit(): void {
+    this.updateLabelSettings();
     this.loadData();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['config'] && !changes['config'].firstChange) {
-      this.loadData();
+    if (changes['config']) {
+      this.updateLabelSettings();
+      if (!changes['config'].firstChange) {
+        this.loadData();
+      }
     }
   }
 

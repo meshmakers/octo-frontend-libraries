@@ -4,6 +4,8 @@ import { GetDashboardEntityDtoGQL } from '../graphQL/getDashboardEntity';
 import { GetCkModelsWithStateDtoGQL, GetCkModelsWithStateQueryDto } from '../graphQL/getCkModelsWithState';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
+import { GetAssociationTargetsDtoGQL } from '../graphQL/getAssociationTargets';
+import { GetCkTypeAttributesForMeshboardDtoGQL } from '../graphQL/getCkTypeAttributes';
 import {
   DataSource,
   RuntimeEntityData,
@@ -15,7 +17,7 @@ import {
   WidgetFilterConfig,
   RepeaterQueryDataSource
 } from '../models/meshboard.models';
-import { FieldFilterDto } from '@meshmakers/octo-services';
+import { FieldFilterDto, GraphDirectionDto } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 import { Apollo, gql } from 'apollo-angular';
 import { MeshBoardStateService } from './meshboard-state.service';
@@ -35,6 +37,24 @@ export interface GroupedDataItem {
 export interface CkQueryResult {
   items: GroupedDataItem[];
   totalCount: number;
+}
+
+/**
+ * Target entity with its attribute values (from associations.targets query)
+ */
+export interface TargetEntityWithAttributes {
+  rtId: string;
+  ckTypeId: string;
+  rtWellKnownName?: string;
+  attributes: EntityAttribute[];
+}
+
+/**
+ * CK type attribute definition (name + value type)
+ */
+export interface CkTypeAttributeInfo {
+  attributeName: string;
+  attributeValueType: string;
 }
 
 /**
@@ -60,6 +80,8 @@ export class MeshBoardDataService {
   private readonly getCkModelsWithStateGQL = inject(GetCkModelsWithStateDtoGQL);
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly getAssociationTargetsGQL = inject(GetAssociationTargetsDtoGQL);
+  private readonly getCkTypeAttributesGQL = inject(GetCkTypeAttributesForMeshboardDtoGQL);
   private readonly apollo = inject(Apollo);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
@@ -450,6 +472,81 @@ export class MeshBoardDataService {
       console.error('Failed to fetch repeater data from entities:', error);
       return [];
     }
+  }
+
+  // ============================================================================
+  // Association Target Queries
+  // ============================================================================
+
+  /**
+   * Fetches target entities of an association group with their attributes.
+   * Uses the associations.targets() GraphQL endpoint.
+   */
+  fetchAssociationTargets(
+    sourceRtId: string,
+    sourceCkTypeId: string,
+    targetCkTypeId: string,
+    roleId: string,
+    direction: 'in' | 'out',
+    attributeNames?: string[],
+    first?: number
+  ): Observable<TargetEntityWithAttributes[]> {
+    const graphDirection = direction === 'out' ? GraphDirectionDto.OutboundDto : GraphDirectionDto.InboundDto;
+
+    return this.getAssociationTargetsGQL.fetch({
+      variables: {
+        rtId: sourceRtId,
+        ckTypeId: sourceCkTypeId,
+        targetCkTypeId,
+        roleId,
+        direction: graphDirection,
+        first: first ?? 100,
+        attributeNames: attributeNames ?? null
+      }
+    }).pipe(
+      map(result => {
+        const entity = result.data?.runtime?.runtimeEntities?.items?.[0];
+        const targets = entity?.associations?.targets?.items ?? [];
+
+        return targets
+          .filter((t): t is NonNullable<typeof t> => t !== null)
+          .map(t => ({
+            rtId: t.rtId,
+            ckTypeId: t.ckTypeId,
+            rtWellKnownName: t.rtWellKnownName ?? undefined,
+            attributes: (t.attributes?.items ?? [])
+              .filter((a): a is NonNullable<typeof a> => a !== null && a.attributeName !== null)
+              .map(a => ({
+                attributeName: a.attributeName!,
+                value: a.value
+              }))
+          }));
+      })
+    );
+  }
+
+  /**
+   * Fetches CK type attribute definitions (name + type) for config dialog.
+   */
+  fetchCkTypeAttributes(ckTypeId: string): Observable<CkTypeAttributeInfo[]> {
+    return this.getCkTypeAttributesGQL.fetch({
+      variables: {
+        ckTypeId,
+        first: 200
+      }
+    }).pipe(
+      map(result => {
+        const ckType = result.data?.constructionKit?.types?.items?.[0];
+        const attrs = ckType?.attributes?.items ?? [];
+
+        return attrs
+          .filter((a): a is NonNullable<typeof a> => a !== null)
+          .map(a => ({
+            attributeName: a.attributeName,
+            attributeValueType: a.attributeValueType
+          }));
+      })
+    );
   }
 
   // ============================================================================

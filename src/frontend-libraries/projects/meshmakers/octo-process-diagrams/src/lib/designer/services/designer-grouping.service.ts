@@ -3,6 +3,11 @@ import { ProcessDiagramConfig, ProcessElement } from '../../process-widget.model
 import { PrimitiveBase, isGroupPrimitive, GroupPrimitive } from '../../primitives';
 import { SymbolInstance } from '../../primitives/models/symbol.model';
 import { PathPrimitive, estimatePathBounds } from '../../primitives/models/path.model';
+import { RectanglePrimitive } from '../../primitives/models/rectangle.model';
+import { EllipsePrimitive } from '../../primitives/models/ellipse.model';
+import { LinePrimitive } from '../../primitives/models/line.model';
+import { TextPrimitive } from '../../primitives/models/text.model';
+import { PolygonPrimitive, PolylinePrimitive } from '../../primitives/models/polygon.model';
 
 /**
  * Bounding box interface
@@ -320,30 +325,34 @@ export class DesignerGroupingService {
    */
   getPrimitiveBounds(primitive: PrimitiveBase): BoundingBox {
     const pos = primitive.position;
-    const config = (primitive as any).config ?? {};
 
     switch (primitive.type) {
-      case 'rectangle':
+      case 'rectangle': {
+        const rectConfig = (primitive as RectanglePrimitive).config;
         return {
           x: pos.x,
           y: pos.y,
-          width: config.width ?? 100,
-          height: config.height ?? 100
+          width: rectConfig?.width ?? 100,
+          height: rectConfig?.height ?? 100
         };
+      }
 
-      case 'ellipse':
+      case 'ellipse': {
+        const ellipseConfig = (primitive as EllipsePrimitive).config;
         return {
-          x: pos.x - (config.radiusX ?? 50),
-          y: pos.y - (config.radiusY ?? 50),
-          width: (config.radiusX ?? 50) * 2,
-          height: (config.radiusY ?? 50) * 2
+          x: pos.x - (ellipseConfig?.radiusX ?? 50),
+          y: pos.y - (ellipseConfig?.radiusY ?? 50),
+          width: (ellipseConfig?.radiusX ?? 50) * 2,
+          height: (ellipseConfig?.radiusY ?? 50) * 2
         };
+      }
 
       case 'line': {
         // Lines use config.start and config.end, which are absolute positions
         // (position.x/y is typically an offset that's already applied to start/end)
-        const start = config.start ?? { x: pos.x, y: pos.y };
-        const end = config.end ?? { x: pos.x + 100, y: pos.y };
+        const lineConfig = (primitive as LinePrimitive).config;
+        const start = lineConfig?.start ?? { x: pos.x, y: pos.y };
+        const end = lineConfig?.end ?? { x: pos.x + 100, y: pos.y };
         // Apply position offset if present (line coords can be relative to position)
         const x1 = pos.x + start.x;
         const y1 = pos.y + start.y;
@@ -358,10 +367,11 @@ export class DesignerGroupingService {
       }
 
       case 'polyline':
-      case 'polygon':
-        if (config.points && Array.isArray(config.points) && config.points.length > 0) {
+      case 'polygon': {
+        const polyConfig = (primitive as PolygonPrimitive | PolylinePrimitive).config;
+        if (polyConfig?.points && polyConfig.points.length > 0) {
           let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-          for (const pt of config.points) {
+          for (const pt of polyConfig.points) {
             minX = Math.min(minX, pt.x);
             minY = Math.min(minY, pt.y);
             maxX = Math.max(maxX, pt.x);
@@ -375,11 +385,13 @@ export class DesignerGroupingService {
           };
         }
         return { x: pos.x, y: pos.y, width: 100, height: 100 };
+      }
 
       case 'text': {
         // Text bounds are approximated
-        const fontSize = config.style?.fontSize ?? 14;
-        const textLength = (config.text ?? '').length;
+        const textConfig = (primitive as TextPrimitive).config;
+        const fontSize = textConfig?.textStyle?.fontSize ?? 14;
+        const textLength = (textConfig?.content ?? '').length;
         return {
           x: pos.x,
           y: pos.y,
@@ -394,12 +406,12 @@ export class DesignerGroupingService {
       }
 
       case 'group': {
-        const groupConfig = config as { originalBounds?: { width: number; height: number } };
+        const groupConfig = (primitive as GroupPrimitive).config;
         return {
           x: pos.x,
           y: pos.y,
-          width: groupConfig.originalBounds?.width ?? 100,
-          height: groupConfig.originalBounds?.height ?? 100
+          width: groupConfig?.originalBounds?.width ?? 100,
+          height: groupConfig?.originalBounds?.height ?? 100
         };
       }
 

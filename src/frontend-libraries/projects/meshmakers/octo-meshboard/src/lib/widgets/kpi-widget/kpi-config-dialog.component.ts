@@ -1,15 +1,16 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, ViewChild, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { CkTypeSelectorInputComponent, FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
-import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, AttributeItem, FieldFilterDto, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
+import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, AttributeItem, FieldFilterDto } from '@meshmakers/octo-services';
 import {
   EntitySelectInputComponent
 } from '@meshmakers/shared-ui';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { firstValueFrom } from 'rxjs';
@@ -64,26 +65,20 @@ interface TrendOption {
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     DropDownsModule,
     CkTypeSelectorInputComponent,
     EntitySelectInputComponent,
     FieldFilterEditorComponent,
-    QuerySelectorComponent
+    QuerySelectorComponent,
+    LoadingOverlayComponent
   ],
   template: `
-    <kendo-dialog
-      title="KPI Configuration"
-      [minWidth]="500"
-      [width]="650"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
 
         <!-- Data Source Type Selection -->
         <div class="form-field">
@@ -397,12 +392,12 @@ interface TrendOption {
         </div>
 
         <!-- Filters Section -->
-        @if (filterAttributes.length > 0) {
+        @if (dataSourceType === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId) {
           <div class="form-section">
             <h4>Filters</h4>
             <p class="section-hint">Define filters to narrow down the data.</p>
             <mm-field-filter-editor
-              [availableAttributes]="filterAttributes"
+              [ckTypeId]="(dataSourceType === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId) ?? undefined"
               [filters]="filters"
               [enableVariables]="filterVariables.length > 0"
               [availableVariables]="filterVariables"
@@ -412,7 +407,7 @@ interface TrendOption {
         }
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -421,32 +416,41 @@ interface TrendOption {
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+    }
+
+    .config-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 16px;
+      border-top: 1px solid var(--kendo-color-border, #dee2e6);
+    }
+
     .config-form {
       display: flex;
       flex-direction: column;
       gap: 20px;
-      padding: 16px 0;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
       position: relative;
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .form-field {
@@ -568,8 +572,8 @@ export class KpiConfigDialogComponent implements OnInit {
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private readonly attributeSelectorService = inject(AttributeSelectorService);
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
-  private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
+  private readonly windowRef = inject(WindowRef);
 
   @ViewChild('ckTypeSelector') ckTypeSelectorInput?: CkTypeSelectorInputComponent;
   @ViewChild('entitySelector') entitySelectorInput?: EntitySelectInputComponent;
@@ -595,9 +599,6 @@ export class KpiConfigDialogComponent implements OnInit {
 
   // Initial values for filters
   @Input() initialFilters?: WidgetFilterConfig[];
-
-  @Output() save = new EventEmitter<KpiConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   // Data source type selection
   dataSourceType: KpiDataSourceType = 'runtimeEntity';
@@ -626,7 +627,6 @@ export class KpiConfigDialogComponent implements OnInit {
 
   // Filter state
   filters: FieldFilterItem[] = [];
-  filterAttributes: AttributeItem[] = [];
   filterVariables: FilterVariable[] = [];
 
   form = {
@@ -715,9 +715,6 @@ export class KpiConfigDialogComponent implements OnInit {
           if (query) {
             this.selectedPersistentQuery = query;
             await this.loadQueryColumnsAndValues();
-            if (query.queryCkTypeId) {
-              await this.loadFilterAttributesFromCkType(query.queryCkTypeId);
-            }
           }
         }
         this.isLoadingInitial = false;
@@ -818,7 +815,6 @@ export class KpiConfigDialogComponent implements OnInit {
     this.availableAttributes.set([]);
     this.filteredValueAttributes.set([]);
     this.filteredLabelAttributes.set([]);
-    this.filterAttributes = [];
     this.filters = [];
   }
 
@@ -829,8 +825,6 @@ export class KpiConfigDialogComponent implements OnInit {
         this.availableAttributes.set(result.items);
         this.filteredValueAttributes.set(result.items);
         this.filteredLabelAttributes.set(result.items);
-        // Also set filter attributes for the filter editor
-        this.filterAttributes = result.items;
         this.isLoadingAttributes.set(false);
       },
       error: (err) => {
@@ -838,7 +832,6 @@ export class KpiConfigDialogComponent implements OnInit {
         this.availableAttributes.set([]);
         this.filteredValueAttributes.set([]);
         this.filteredLabelAttributes.set([]);
-        this.filterAttributes = [];
         this.isLoadingAttributes.set(false);
       }
     });
@@ -879,7 +872,7 @@ export class KpiConfigDialogComponent implements OnInit {
       : undefined;
 
     if (this.dataSourceType === 'persistentQuery' && this.selectedPersistentQuery) {
-      this.save.emit({
+      this.windowRef.close({
         dataSourceType: 'persistentQuery',
         ckTypeId: '',
         rtId: undefined,
@@ -896,7 +889,7 @@ export class KpiConfigDialogComponent implements OnInit {
         filters: filtersDto
       });
     } else if (this.selectedCkType) {
-      this.save.emit({
+      this.windowRef.close({
         dataSourceType: 'runtimeEntity',
         ckTypeId: this.selectedCkType.rtCkTypeId,
         rtId: this.isCountMode ? undefined : this.selectedEntity?.rtId,
@@ -911,7 +904,7 @@ export class KpiConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 
   // ============================================================================
@@ -930,7 +923,6 @@ export class KpiConfigDialogComponent implements OnInit {
     this.selectedPersistentQuery = query;
     this.queryColumns = [];
     this.categoryValues = [];
-    this.filterAttributes = [];
     this.filters = [];
     this.form.queryValueField = '';
     this.form.queryCategoryField = '';
@@ -939,11 +931,6 @@ export class KpiConfigDialogComponent implements OnInit {
     if (query) {
       // Load query columns for field mapping
       await this.loadQueryColumnsAndValues(query.rtId);
-
-      // Load filter attributes from CK type
-      if (query.queryCkTypeId) {
-        await this.loadFilterAttributesFromCkType(query.queryCkTypeId);
-      }
     }
   }
 
@@ -999,29 +986,6 @@ export class KpiConfigDialogComponent implements OnInit {
       this.queryColumns = [];
     } finally {
       this.isLoadingQueryColumns = false;
-    }
-  }
-
-  /**
-   * Loads all available filter attributes from the CK type.
-   * Uses getCkTypeAvailableQueryColumns to get all attributes, not just query result columns.
-   */
-  private async loadFilterAttributesFromCkType(queryCkTypeId: string): Promise<void> {
-    try {
-      const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: queryCkTypeId, first: 1000 }
-      }));
-
-      const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
-      this.filterAttributes = columns
-        .filter((c): c is NonNullable<typeof c> => c !== null)
-        .map(c => ({
-          attributePath: c.attributePath || '',
-          attributeValueType: c.attributeValueType
-        }));
-    } catch (error) {
-      console.error('Error loading filter attributes:', error);
-      this.filterAttributes = [];
     }
   }
 

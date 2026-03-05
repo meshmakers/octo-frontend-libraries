@@ -1,18 +1,18 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Event as RouterEvent, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { ComponentMenuService } from './component-menu.service';
 import { CommandSettingsService } from './command-settings.service';
 
 describe('ComponentMenuService', () => {
   let service: ComponentMenuService;
-  let routerEvents$: Subject<any>;
-  let mockActivatedRoute: any;
-  let mockRouter: any;
-  let mockCommandSettingsService: any;
+  let routerEvents$: Subject<RouterEvent>;
+  let mockActivatedRoute: unknown;
+  let mockRouter: unknown;
+  let mockCommandSettingsService: unknown;
 
   beforeEach(() => {
-    routerEvents$ = new Subject<any>();
+    routerEvents$ = new Subject<RouterEvent>();
 
     mockActivatedRoute = {
       root: {

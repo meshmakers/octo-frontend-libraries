@@ -7,7 +7,7 @@ export abstract class CommandBaseService {
   protected constructor(protected readonly commandSettingsService: CommandSettingsService, private readonly router: Router) {
   }
 
-  protected async navigateAsync(commandItem: CommandItem, data?: any): Promise<void> {
+  protected async navigateAsync(commandItem: CommandItem, data?: unknown): Promise<void> {
 
     console.debug('navigateAsync', commandItem);
     const hrefUri = await CommandBaseService.getHref(commandItem, data);
@@ -48,7 +48,7 @@ export abstract class CommandBaseService {
     return false;
   }
 
-  private static async getLink(commandItem: CommandItem, data?: any): Promise<string | null> {
+  private static async getLink(commandItem: CommandItem, data?: unknown): Promise<string | null> {
     if (commandItem.link !== undefined) {
       if (typeof commandItem.link === 'string') {
         return CommandBaseService.interpolateString(commandItem.link, data);
@@ -59,7 +59,7 @@ export abstract class CommandBaseService {
     return null;
   }
 
-  private static async getHref(commandItem: CommandItem, data?: any): Promise<string | null> {
+  private static async getHref(commandItem: CommandItem, data?: unknown): Promise<string | null> {
     if (commandItem.href !== undefined) {
       if (typeof commandItem.href === 'string') {
         return CommandBaseService.interpolateString(commandItem.href, data);
@@ -71,15 +71,18 @@ export abstract class CommandBaseService {
   }
 
 
-  private static async executeClickEvent(commandItem: CommandItem, data?: any): Promise<void> {
+  private static async executeClickEvent(commandItem: CommandItem, data?: unknown): Promise<void> {
     if (commandItem.onClick !== undefined) {
       return await commandItem.onClick({commandItem, data});
     }
   }
 
-  private static interpolateString(template: string | null, data?: any): string | null {
-    return template?.replace(/{{\s*(\w+)\s*}}/g, (match, propName) => {
-      return data && data[propName] !== undefined ? data[propName] : match;
+  private static interpolateString(template: string | null, data?: unknown): string | null {
+    return template?.replace(/{{\s*(\w+)\s*}}/g, (match, propName: string) => {
+      if (data && typeof data === 'object' && propName in data) {
+        return String((data as Record<string, unknown>)[propName]);
+      }
+      return match;
     }) ?? null;
   }
 }

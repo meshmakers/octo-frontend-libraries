@@ -11,6 +11,21 @@ steps:
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
 
   - task: CmdLine@2
+    displayName: 'Activate Kendo UI license'
+    inputs:
+      script: npm run setup-license
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+    env:
+      TELERIK_LICENSE: $(TELERIK_LICENSE)
+
+  # Clear stale Angular cache to ensure builds pick up the activated kendo license
+  - task: CmdLine@2
+    displayName: 'Clear Angular cache'
+    inputs:
+      script: rm -rf .angular/cache
+      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+  - task: CmdLine@2
     displayName: 'Lint all projects (parallel)'
     inputs:
       script: |
@@ -46,9 +61,11 @@ steps:
         pid8=$!
         npx ng lint @meshmakers/octo-meshboard &
         pid9=$!
-        npx ng lint template-app &
+        npx ng lint demo-app &
         pid10=$!
-        wait_all $pid1 $pid2 $pid3 $pid4 $pid5 $pid6 $pid7 $pid8 $pid9 $pid10
+        npx ng lint legacy-demo-app &
+        pid11=$!
+        wait_all $pid1 $pid2 $pid3 $pid4 $pid5 $pid6 $pid7 $pid8 $pid9 $pid10 $pid11
 
         echo "=== All lint checks passed ==="
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
@@ -154,15 +171,6 @@ steps:
         wait_all $pid4 $pid5 $pid6
 
         echo "=== All library tests passed ==="
-      workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
-    continueOnError: false
-
-  - task: CmdLine@2
-    displayName: 'Build and test template-app'
-    inputs:
-      script: |
-        npx ng build --project template-app
-        NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=template-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
       workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
     continueOnError: false
 

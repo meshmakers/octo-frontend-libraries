@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
-import { DialogService, DialogRef } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { AttributeSortSelectorDialogService } from './attribute-sort-selector-dialog.service';
 import {
   AttributeSortSelectorDialogComponent,
@@ -8,12 +8,21 @@ import {
   AttributeSortItem
 } from './attribute-sort-selector-dialog.component';
 
+interface MockComponentInstance {
+  data?: {
+    ckTypeId: string;
+    selectedAttributes?: AttributeSortItem[];
+    dialogTitle?: string;
+  };
+}
+
 describe('AttributeSortSelectorDialogService', () => {
   let service: AttributeSortSelectorDialogService;
-  let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogResultSubject: Subject<any>;
-  let mockDialogRef: Partial<DialogRef>;
-  let mockComponentInstance: any;
+  let windowServiceMock: jasmine.SpyObj<WindowService>;
+  let windowResultSubject: Subject<AttributeSortSelectorDialogResult | WindowCloseResult | Record<string, unknown> | string | undefined>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockWindowRef: Record<string, any>;
+  let mockComponentInstance: MockComponentInstance;
 
   const mockSortAttributes: AttributeSortItem[] = [
     { attributePath: 'name', attributeValueType: 'STRING', sortOrder: 'ascending' },
@@ -21,23 +30,23 @@ describe('AttributeSortSelectorDialogService', () => {
   ];
 
   beforeEach(() => {
-    dialogResultSubject = new Subject<any>();
+    windowResultSubject = new Subject();
     mockComponentInstance = {};
 
-    mockDialogRef = {
-      result: dialogResultSubject.asObservable(),
+    mockWindowRef = {
+      result: windowResultSubject.asObservable(),
       content: {
         instance: mockComponentInstance
-      } as any
+      } as unknown as WindowRef['content']
     };
 
-    dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
-    dialogServiceMock.open.and.returnValue(mockDialogRef as DialogRef);
+    windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
+    windowServiceMock.open.and.returnValue(mockWindowRef as WindowRef);
 
     TestBed.configureTestingModule({
       providers: [
         AttributeSortSelectorDialogService,
-        { provide: DialogService, useValue: dialogServiceMock }
+        { provide: WindowService, useValue: windowServiceMock }
       ]
     });
 
@@ -49,20 +58,21 @@ describe('AttributeSortSelectorDialogService', () => {
   });
 
   describe('openAttributeSortSelector', () => {
-    it('should open dialog with correct configuration', async () => {
+    it('should open window with correct configuration', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next({ selectedAttributes: [] });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
 
       await resultPromise;
 
-      expect(dialogServiceMock.open).toHaveBeenCalledWith({
+      expect(windowServiceMock.open).toHaveBeenCalledWith({
         content: AttributeSortSelectorDialogComponent,
-        width: 1100,
+        width: 1200,
         height: 750,
         minWidth: 1050,
         minHeight: 700,
+        resizable: true,
         title: 'Select Attributes with Sort Order'
       });
     });
@@ -70,12 +80,12 @@ describe('AttributeSortSelectorDialogService', () => {
     it('should use custom dialog title when provided', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity', undefined, 'Sort Configuration');
 
-      dialogResultSubject.next({ selectedAttributes: [] });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
 
       await resultPromise;
 
-      expect(dialogServiceMock.open).toHaveBeenCalledWith(
+      expect(windowServiceMock.open).toHaveBeenCalledWith(
         jasmine.objectContaining({
           title: 'Sort Configuration'
         })
@@ -85,8 +95,8 @@ describe('AttributeSortSelectorDialogService', () => {
     it('should pass data to dialog component', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity', mockSortAttributes, 'Custom Title');
 
-      dialogResultSubject.next({ selectedAttributes: [] });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
 
       await resultPromise;
 
@@ -104,8 +114,8 @@ describe('AttributeSortSelectorDialogService', () => {
 
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next(dialogResult);
-      dialogResultSubject.complete();
+      windowResultSubject.next(dialogResult);
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -113,11 +123,23 @@ describe('AttributeSortSelectorDialogService', () => {
       expect(result.selectedAttributes).toEqual(mockSortAttributes);
     });
 
+    it('should return confirmed=false when WindowCloseResult (X button)', async () => {
+      const resultPromise = service.openAttributeSortSelector('TestType/Entity');
+
+      windowResultSubject.next(new WindowCloseResult());
+      windowResultSubject.complete();
+
+      const result = await resultPromise;
+
+      expect(result.confirmed).toBe(false);
+      expect(result.selectedAttributes).toEqual([]);
+    });
+
     it('should return confirmed=false with empty array when user cancels', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next(undefined);
-      dialogResultSubject.complete();
+      windowResultSubject.next(undefined);
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -128,8 +150,8 @@ describe('AttributeSortSelectorDialogService', () => {
     it('should return confirmed=false with empty array when result is not an object', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next('invalid');
-      dialogResultSubject.complete();
+      windowResultSubject.next('invalid');
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -140,8 +162,8 @@ describe('AttributeSortSelectorDialogService', () => {
     it('should return confirmed=false with empty array when result has no selectedAttributes property', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next({ someOtherProperty: 'value' });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ someOtherProperty: 'value' });
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -149,10 +171,10 @@ describe('AttributeSortSelectorDialogService', () => {
       expect(result.selectedAttributes).toEqual([]);
     });
 
-    it('should return confirmed=false with empty array when dialog throws error', async () => {
+    it('should return confirmed=false with empty array when window throws error', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.error(new Error('Dialog closed'));
+      windowResultSubject.error(new Error('Window closed'));
 
       const result = await resultPromise;
 
@@ -160,13 +182,13 @@ describe('AttributeSortSelectorDialogService', () => {
       expect(result.selectedAttributes).toEqual([]);
     });
 
-    it('should handle dialog without content instance', async () => {
-      mockDialogRef.content = null as any;
+    it('should handle window without content instance', async () => {
+      mockWindowRef['content'] = null as unknown as WindowRef['content'];
 
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next({ selectedAttributes: mockSortAttributes });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: mockSortAttributes });
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -176,8 +198,8 @@ describe('AttributeSortSelectorDialogService', () => {
     it('should handle null selectedAttributes in result', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next({ selectedAttributes: null });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: null });
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -188,8 +210,8 @@ describe('AttributeSortSelectorDialogService', () => {
     it('should handle empty selectedAttributes array', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next({ selectedAttributes: [] });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -200,8 +222,8 @@ describe('AttributeSortSelectorDialogService', () => {
     it('should work without optional parameters', async () => {
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next({ selectedAttributes: mockSortAttributes });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: mockSortAttributes });
+      windowResultSubject.complete();
 
       await resultPromise;
 
@@ -221,14 +243,29 @@ describe('AttributeSortSelectorDialogService', () => {
 
       const resultPromise = service.openAttributeSortSelector('TestType/Entity');
 
-      dialogResultSubject.next({ selectedAttributes: mixedSortAttributes });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: mixedSortAttributes });
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
       expect(result.selectedAttributes[0].sortOrder).toBe('standard');
       expect(result.selectedAttributes[1].sortOrder).toBe('ascending');
       expect(result.selectedAttributes[2].sortOrder).toBe('descending');
+    });
+
+    it('should set resizable to true', async () => {
+      const resultPromise = service.openAttributeSortSelector('TestType/Entity');
+
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
+
+      await resultPromise;
+
+      expect(windowServiceMock.open).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          resizable: true
+        })
+      );
     });
   });
 });

@@ -3,10 +3,10 @@
 ## Project Structure
 
 - **Angular 21** with standalone components and signals
-- **Kendo UI Angular 21** for UI components (Charts, Gauges, Grid, etc.)
+- **Kendo UI Angular 23** for UI components (Charts, Gauges, Grid, etc.)
 - **Apollo Client** for GraphQL
 - **Monorepo** with multiple projects under `projects/`:
-  - `template-app` - Demo/Template application
+  - `demo-app` - Demo application
   - `meshmakers/octo-ui` - Shared UI components library
   - `meshmakers/octo-services` - GraphQL services library
   - `meshmakers/octo-meshboard` - MeshBoard dashboard widget system
@@ -14,12 +14,14 @@
   - `meshmakers/shared-auth` - Authentication library
   - `meshmakers/shared-services` - Shared services
   - `meshmakers/shared-ui` - Shared UI utilities
+  - `meshmakers/shared-ui-legacy` - Legacy Material UI (backward compatibility)
+  - `meshmakers/octo-ui-legacy` - Legacy Material UI components (backward compatibility)
 
 ## Build Commands
 
 ```bash
-# Build template-app (with lint)
-npm run build:template-app
+# Build demo-app (with lint)
+npm run build:demo-app
 
 # Build library projects
 npm run build:octo-services
@@ -30,7 +32,7 @@ npm run build:shared-ui
 
 # Generate GraphQL types
 npm run codegen
-npm run codegen:template-app
+npm run codegen:demo-app
 
 # Run tests for specific project
 npm test -- --project=@meshmakers/octo-meshboard --watch=false
@@ -39,11 +41,30 @@ npm test -- --project=@meshmakers/octo-meshboard --watch=false
 ## Documentation Standards
 
 - **All concept documents and technical documentation must be written in English**
+- **Every code change must include updated developer documentation** — when adding, modifying, or removing features, update the relevant README.md, CLAUDE.md, or inline documentation accordingly
 - New shared components should have:
   - Developer documentation in the component folder
-  - Demo page in template-app with usage examples
-- Components in shared-ui must be **theme-neutral** (no LCARS-specific styling)
-- LCARS styling is applied in the consuming application (e.g., Refinery Studio's `styles.scss`)
+  - Demo page in demo-app with usage examples
+- **All library components must use neutral/theme-agnostic styling** — no LCARS-specific colors, fonts, or design language. Use CSS custom properties (variables) with neutral defaults so host applications can apply their own theme.
+- Theme-specific styling (e.g., LCARS) is the responsibility of the consuming host application (via `styles.scss` or CSS variable overrides)
+
+## Testing (REQUIRED)
+
+**IMPORTANT: Always run tests after every code change!**
+
+- **Unit tests and integration tests must be executed** after every code change to ensure nothing is broken
+- **Existing tests must be updated** when the behavior of tested code changes
+- **New tests must be added** when new features, components, or services are implemented
+- If tests fail, fix them before committing — never commit code with failing tests
+
+```bash
+# Run all tests
+npm test -- --watch=false --browsers=ChromeHeadless
+
+# Run tests for specific library
+npm test -- --project=@meshmakers/octo-meshboard --watch=false
+npm test -- --project=@meshmakers/shared-auth --watch=false
+```
 
 ## Linting (REQUIRED)
 
@@ -75,9 +96,9 @@ Common lint issues:
 npm run build:octo-ui      # or whichever library was modified
 ```
 
-## Pre-Commit Checklist (REQUIRED)
+## Pre-Commit Checklist (MANDATORY)
 
-**CRITICAL: Before every commit, ensure the following steps are completed to prevent CI failures:**
+**CRITICAL: Before every commit and push, ALL of the following steps MUST be completed locally to prevent CI failures. NEVER push code without running lint and build locally first — this has caused multiple failed CI builds in the past.**
 
 ### 1. Regenerate package-lock.json (if dependencies changed)
 
@@ -268,7 +289,7 @@ Use `<kendo-lineargauge-pointers>` wrapper:
 ```bash
 # Regenerate all GraphQL types after schema changes
 npm run codegen
-npm run codegen:template-app
+npm run codegen:demo-app
 ```
 
 **Workflow for GraphQL changes:**
@@ -884,7 +905,7 @@ mm-symbol-editor {
 }
 ```
 
-**Important:** The library uses neutral default colors. Host applications (like Refinery Studio) should override these variables to match their theme. Do NOT hardcode theme-specific colors in the library.
+**Important:** The library uses neutral default colors. Host applications should override these variables to match their theme. Do NOT hardcode theme-specific colors in the library.
 
 ### Build Command
 

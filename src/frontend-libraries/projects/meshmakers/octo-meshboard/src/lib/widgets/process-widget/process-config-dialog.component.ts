@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -25,10 +25,13 @@ import { EntitySelectDataSource, EntitySelectResult } from '@meshmakers/shared-s
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
-import { GetSystemPersistentQueriesDtoGQL } from '../../graphQL/getSystemPersistentQueries';
+import {
+  GetSystemPersistentQueriesDtoGQL
+} from '../../graphQL/getSystemPersistentQueries';
 import type { ProcessDiagramConfig, TransformProperty } from '@meshmakers/octo-process-diagrams';
 import { ProcessDataService, ProcessDiagramSummary } from './services/process-data.service';
 import { ProcessDataBindingMode, DiagramPropertyMapping } from './process-widget-config.model';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { WidgetFilterConfig } from '../../models/meshboard.models';
 import { firstValueFrom, Observable, from, map } from 'rxjs';
 
@@ -201,22 +204,18 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     DropDownsModule,
     LayoutModule,
     CkTypeSelectorInputComponent,
     EntitySelectInputComponent,
-    FieldFilterEditorComponent
+    FieldFilterEditorComponent,
+    LoadingOverlayComponent
   ],
   providers: [ProcessDataService],
   template: `
-    <kendo-dialog
-      title="Process Diagram Configuration"
-      [minWidth]="550"
-      [width]="680"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form">
         <kendo-tabstrip [animate]="false">
@@ -224,9 +223,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
           <kendo-tabstrip-tab [title]="'Diagram'" [selected]="true">
             <ng-template kendoTabContent>
               <div class="tab-content" [class.loading]="isLoadingDiagrams">
-                @if (isLoadingDiagrams) {
-                  <div class="loading-indicator">Loading diagrams...</div>
-                }
+                <mm-loading-overlay [loading]="isLoadingDiagrams" />
 
                 <div class="form-field">
                   <label>Process Diagram <span class="required">*</span></label>
@@ -386,11 +383,11 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
                 }
 
                 <!-- Filters Section -->
-                @if (dataBindingMode !== 'none' && filterAttributes.length > 0) {
+                @if (dataBindingMode !== 'none' && (dataBindingMode === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId)) {
                   <div class="form-field">
                     <label>Filters (Optional)</label>
                     <mm-field-filter-editor
-                      [availableAttributes]="filterAttributes"
+                      [ckTypeId]="(dataBindingMode === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId) ?? undefined"
                       [filters]="filters"
                       [enableVariables]="filterVariables.length > 0"
                       [availableVariables]="filterVariables"
@@ -526,7 +523,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
         </kendo-tabstrip>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -535,12 +532,18 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host { display: block; height: 100%; }
+    .config-container { display: flex; flex-direction: column; height: 100%; }
+    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
+
     .config-form {
-      padding: 8px 0;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
     }
 
     .tab-content {
@@ -550,19 +553,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
     }
 
     .tab-content.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 8px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .section-hint {
@@ -804,6 +795,7 @@ export class ProcessConfigDialogComponent implements OnInit {
   private readonly attributeSelectorService = inject(AttributeSelectorService);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
+  private readonly windowRef = inject(WindowRef);
 
   // Initial values for editing - Diagram
   @Input() initialProcessDiagramRtId?: string;
@@ -821,9 +813,6 @@ export class ProcessConfigDialogComponent implements OnInit {
   @Input() initialBindingQueryName?: string;
   @Input() initialBindingFilters?: WidgetFilterConfig[];
   @Input() initialPropertyMappings?: DiagramPropertyMapping[];
-
-  @Output() save = new EventEmitter<ProcessConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   // State - Diagram
   isLoadingDiagrams = false;
@@ -1209,6 +1198,7 @@ export class ProcessConfigDialogComponent implements OnInit {
         this.getSystemPersistentQueriesGQL.fetch({
           first: 100,
           searchFilter: searchText ? { searchTerm: searchText, language: 'de' } : undefined
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Apollo fetch requires flexible variable typing
         } as any)
       );
 
@@ -1243,7 +1233,7 @@ export class ProcessConfigDialogComponent implements OnInit {
     try {
       const result = await firstValueFrom(
         this.getCkTypeAvailableQueryColumnsGQL.fetch({
-          variables: { rtCkId: ckTypeId, first: 1000 }
+          variables: { rtCkId: ckTypeId, first: 1000, includeNavigationProperties: true }
         })
       );
 
@@ -1317,10 +1307,10 @@ export class ProcessConfigDialogComponent implements OnInit {
       }
     }
 
-    this.save.emit(result);
+    this.windowRef.close(result);
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 }

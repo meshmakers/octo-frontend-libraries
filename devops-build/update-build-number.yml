@@ -1,5 +1,6 @@
 steps:
 - task: PowerShell@2
+  name: SetBuildVars
   inputs:
     targetType: 'inline'
     script: |
@@ -65,5 +66,7 @@ steps:
       Write-Host "##vso[task.setvariable variable=BuildNumberShort;]$buildNumberShort"
       Write-Host "##vso[task.setvariable variable=BuildNumberLong;]$buildNumberLong"
       Write-Host "##vso[task.setvariable variable=BuildTagName;]$tagName"
+      Write-Host "##vso[task.setvariable variable=BuildTagName;isoutput=true]$tagName"
       Write-Host "##vso[task.setvariable variable=OctoVersion;]$octoVersion"
+      Write-Host "##vso[task.setvariable variable=OctoVersion;isoutput=true]$octoVersion"
   displayName: 'Set build number'

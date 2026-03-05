@@ -2,10 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GetCkTypeAvailableQueryColumnsDtoGQL } from '../graphQL/getCkTypeAvailableQueryColumns';
+import { AttributeValueTypeDto } from '../graphQL/globalTypes';
 
 export interface AttributeItem {
   attributePath: string;
   attributeValueType: string;
+  description?: string | null;
 }
 
 export interface AttributeSelectorResult {
@@ -23,14 +25,22 @@ export class AttributeSelectorService {
     ckTypeId: string,
     filter?: string,
     first = 1000,
-    after?: string
+    after?: string,
+    attributeValueType?: string,
+    searchTerm?: string,
+    includeNavigationProperties?: boolean,
+    maxDepth?: number
   ): Observable<AttributeSelectorResult> {
     return this.getCkTypeAvailableQueryColumnsGQL.fetch({
       variables: {
         rtCkId: ckTypeId,
         filter: filter,
         first: first,
-        after: after
+        after: after,
+        attributeValueType: attributeValueType as AttributeValueTypeDto,
+        searchTerm: searchTerm,
+        includeNavigationProperties: includeNavigationProperties,
+        maxDepth: maxDepth
       },
       fetchPolicy: 'network-only'
     }).pipe(
@@ -44,7 +54,8 @@ export class AttributeSelectorService {
           .filter((item): item is NonNullable<typeof item> => item !== null)
           .map(item => ({
             attributePath: item.attributePath,
-            attributeValueType: item.attributeValueType
+            attributeValueType: item.attributeValueType,
+            description: item.description
           }));
 
         return {

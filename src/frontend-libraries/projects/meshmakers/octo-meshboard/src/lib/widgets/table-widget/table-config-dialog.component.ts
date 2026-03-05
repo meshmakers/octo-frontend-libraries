@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule, NumericTextBoxModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -31,6 +31,7 @@ import { TableColumn } from '../../models/meshboard.models';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 /**
  * Data source type for table widget
@@ -65,7 +66,6 @@ export interface TableConfigResult {
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     NumericTextBoxModule,
@@ -73,23 +73,18 @@ export interface TableConfigResult {
     SVGIconModule,
     CkTypeSelectorInputComponent,
     FieldFilterEditorComponent,
-    QuerySelectorComponent
+    QuerySelectorComponent,
+    LoadingOverlayComponent
   ],
   providers: [
     AttributeSelectorDialogService,
     AttributeSortSelectorDialogService
   ],
   template: `
-    <kendo-dialog
-      title="Table Configuration"
-      [minWidth]="550"
-      [width]="700"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
 
         <!-- Data Source Type Selection -->
         <div class="form-field data-source-type">
@@ -179,7 +174,7 @@ export interface TableConfigResult {
             <div class="card-content filter-content">
               <mm-field-filter-editor
                 #filterEditor
-                [availableAttributes]="availableAttributes"
+                [ckTypeId]="selectedCkType?.rtCkTypeId"
                 [filters]="filters"
                 [enableVariables]="filterVariables.length > 0"
                 [availableVariables]="filterVariables"
@@ -237,7 +232,7 @@ export interface TableConfigResult {
                 </div>
                 <div class="card-content filter-content">
                   <mm-field-filter-editor
-                    [availableAttributes]="queryFilterAttributes"
+                    [ckTypeId]="selectedPersistentQuery?.queryCkTypeId ?? undefined"
                     [filters]="filters"
                     [enableVariables]="filterVariables.length > 0"
                     [availableVariables]="filterVariables"
@@ -274,7 +269,7 @@ export interface TableConfigResult {
         </div>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -283,32 +278,26 @@ export interface TableConfigResult {
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host { display: block; height: 100%; }
+    .config-container { display: flex; flex-direction: column; height: 100%; }
+    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
+
     .config-form {
       display: flex;
       flex-direction: column;
       gap: 16px;
-      padding: 16px 0;
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
       position: relative;
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .form-field {
@@ -452,6 +441,7 @@ export class TableConfigDialogComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
+  private readonly windowRef = inject(WindowRef);
 
   @ViewChild('ckTypeSelector') ckTypeSelectorInput?: CkTypeSelectorInputComponent;
   @ViewChild('filterEditor') filterEditor?: FieldFilterEditorComponent;
@@ -467,9 +457,6 @@ export class TableConfigDialogComponent implements OnInit {
   @Input() initialSortable?: boolean;
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
-
-  @Output() save = new EventEmitter<TableConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   protected readonly columnsIcon = columnsIcon;
   protected readonly sortIcon = sortAscIcon;
@@ -494,8 +481,6 @@ export class TableConfigDialogComponent implements OnInit {
 
   // Query configuration
   selectedPersistentQuery: PersistentQueryItem | null = null;
-  isLoadingQueryColumns = false;
-  queryFilterAttributes: AttributeItem[] = [];
 
   // Variables for filter editor
   filterVariables: FilterVariable[] = [];
@@ -557,10 +542,6 @@ export class TableConfigDialogComponent implements OnInit {
           const query = await this.querySelector.selectByRtId(this.initialQueryRtId);
           if (query) {
             this.selectedPersistentQuery = query;
-            // Load filter attributes from CK type
-            if (query.queryCkTypeId) {
-              await this.loadFilterAttributesForQuery(query.queryCkTypeId);
-            }
           }
         }
       });
@@ -591,7 +572,7 @@ export class TableConfigDialogComponent implements OnInit {
   private async loadAvailableAttributes(ckTypeId: string): Promise<void> {
     try {
       const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: ckTypeId, first: 1000 }
+        variables: { rtCkId: ckTypeId, first: 1000, includeNavigationProperties: true }
       }));
 
       const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
@@ -627,42 +608,7 @@ export class TableConfigDialogComponent implements OnInit {
 
   async onQuerySelected(query: PersistentQueryItem | null): Promise<void> {
     this.selectedPersistentQuery = query;
-    this.queryFilterAttributes = [];
     this.filters = [];
-
-    if (query) {
-      // Load filter attributes from CK type (not from query columns)
-      if (query.queryCkTypeId) {
-        await this.loadFilterAttributesForQuery(query.queryCkTypeId);
-      }
-    }
-  }
-
-  /**
-   * Loads all available filter attributes from the CK type.
-   * Uses getCkTypeAvailableQueryColumns instead of query result columns.
-   */
-  private async loadFilterAttributesForQuery(queryCkTypeId: string): Promise<void> {
-    this.isLoadingQueryColumns = true;
-
-    try {
-      const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: queryCkTypeId, first: 1000 }
-      }));
-
-      const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
-      this.queryFilterAttributes = columns
-        .filter((c): c is NonNullable<typeof c> => c !== null)
-        .map(c => ({
-          attributePath: c.attributePath || '',
-          attributeValueType: c.attributeValueType
-        }));
-    } catch (error) {
-      console.error('Error loading filter attributes:', error);
-      this.queryFilterAttributes = [];
-    } finally {
-      this.isLoadingQueryColumns = false;
-    }
   }
 
   async openColumnSelector(): Promise<void> {
@@ -755,7 +701,7 @@ export class TableConfigDialogComponent implements OnInit {
         comparisonValue: f.comparisonValue
       }));
 
-      this.save.emit({
+      this.windowRef.close({
         dataSourceType: 'runtimeEntity',
         ckTypeId: this.selectedCkType.rtCkTypeId,
         columns,
@@ -772,7 +718,7 @@ export class TableConfigDialogComponent implements OnInit {
         comparisonValue: f.comparisonValue
       }));
 
-      this.save.emit({
+      this.windowRef.close({
         dataSourceType: 'persistentQuery',
         ckTypeId: '', // Not used for persistent query
         columns: [], // Will be derived from query
@@ -795,6 +741,6 @@ export class TableConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 }

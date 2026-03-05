@@ -3,38 +3,38 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "template-app": {
+    "demo-app": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss"
         }
       },
-      "root": "projects/template-app",
-      "sourceRoot": "projects/template-app/src",
+      "root": "projects/demo-app",
+      "sourceRoot": "projects/demo-app/src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser-esbuild",
           "options": {
-            "outputPath": "dist/template-app",
-            "index": "projects/template-app/src/index.html",
-            "main": "projects/template-app/src/main.ts",
+            "outputPath": "dist/demo-app",
+            "index": "projects/demo-app/src/index.html",
+            "main": "projects/demo-app/src/main.ts",
             "polyfills": [
               "zone.js",
               "@angular/localize/init"
             ],
-            "tsConfig": "projects/template-app/tsconfig.app.json",
+            "tsConfig": "projects/demo-app/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "projects/template-app/src/assets",
+              "projects/demo-app/src/assets",
               {
                 "glob": "**/*",
-                "input": "projects/template-app/public"
+                "input": "projects/demo-app/public"
               }
             ],
             "styles": [
-              "projects/template-app/src/styles.scss"
+              "projects/demo-app/src/styles.scss"
             ],
             "scripts": []
           },
@@ -70,12 +70,17 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "ssl": true,
+            "sslCert": "localhost.crt",
+            "sslKey": "localhost.key"
+          },
           "configurations": {
             "production": {
-              "buildTarget": "template-app:build:production"
+              "buildTarget": "demo-app:build:production"
             },
             "development": {
-              "buildTarget": "template-app:build:development"
+              "buildTarget": "demo-app:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -92,16 +97,16 @@
               "zone.js/testing",
               "@angular/localize/init"
             ],
-            "tsConfig": "projects/template-app/tsconfig.spec.json",
+            "tsConfig": "projects/demo-app/tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/template-app/public"
+                "input": "projects/demo-app/public"
               }
             ],
             "styles": [
-              "projects/template-app/src/styles.scss"
+              "projects/demo-app/src/styles.scss"
             ],
             "scripts": []
           }
@@ -110,10 +115,10 @@
           "builder": "@angular-eslint/builder:lint",
           "options": {
             "lintFilePatterns": [
-              "projects/template-app/**/*.ts",
-              "projects/template-app/**/*.html"
+              "projects/demo-app/**/*.ts",
+              "projects/demo-app/**/*.html"
             ],
-            "eslintConfig": "projects/template-app/eslint.config.js"
+            "eslintConfig": "projects/demo-app/eslint.config.js"
           }
         }
       }
@@ -472,33 +477,33 @@
         }
       }
     },
-    "test-app": {
+    "legacy-demo-app": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss"
         }
       },
-      "root": "projects/test-app",
-      "sourceRoot": "projects/test-app/src",
+      "root": "projects/legacy-demo-app",
+      "sourceRoot": "projects/legacy-demo-app/src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/test-app",
-            "index": "projects/test-app/src/index.html",
-            "main": "projects/test-app/src/main.ts",
-            "polyfills": "projects/test-app/src/polyfills.ts",
-            "tsConfig": "projects/test-app/tsconfig.app.json",
+            "outputPath": "dist/legacy-demo-app",
+            "index": "projects/legacy-demo-app/src/index.html",
+            "main": "projects/legacy-demo-app/src/main.ts",
+            "polyfills": "projects/legacy-demo-app/src/polyfills.ts",
+            "tsConfig": "projects/legacy-demo-app/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "projects/test-app/src/favicon.ico",
-              "projects/test-app/src/assets"
+              "projects/legacy-demo-app/src/favicon.ico",
+              "projects/legacy-demo-app/src/assets"
             ],
             "styles": [
               "@angular/material/prebuilt-themes/purple-green.css",
-              "projects/test-app/src/styles.scss"
+              "projects/legacy-demo-app/src/styles.scss"
             ],
             "scripts": []
           },
@@ -518,8 +523,8 @@
               ],
               "fileReplacements": [
                 {
-                  "replace": "projects/test-app/src/environments/environment.ts",
-                  "with": "projects/test-app/src/environments/environment.prod.ts"
+                  "replace": "projects/legacy-demo-app/src/environments/environment.ts",
+                  "with": "projects/legacy-demo-app/src/environments/environment.prod.ts"
                 }
               ],
               "outputHashing": "all"
@@ -537,12 +542,18 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "ssl": true,
+            "sslCert": "localhost.crt",
+            "sslKey": "localhost.key",
+            "proxyConfig": "projects/legacy-demo-app/proxy.conf.json"
+          },
           "configurations": {
             "production": {
-              "buildTarget": "test-app:build:production"
+              "buildTarget": "legacy-demo-app:build:production"
             },
             "development": {
-              "buildTarget": "test-app:build:development"
+              "buildTarget": "legacy-demo-app:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -550,7 +561,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "test-app:build"
+            "buildTarget": "legacy-demo-app:build"
           }
         },
         "test": {
@@ -560,18 +571,28 @@
               "zone.js",
               "zone.js/testing"
             ],
-            "tsConfig": "projects/test-app/tsconfig.spec.json",
-            "karmaConfig": "projects/test-app/karma.conf.js",
+            "tsConfig": "projects/legacy-demo-app/tsconfig.spec.json",
+            "karmaConfig": "projects/legacy-demo-app/karma.conf.js",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "projects/test-app/src/favicon.ico",
-              "projects/test-app/src/assets"
+              "projects/legacy-demo-app/src/favicon.ico",
+              "projects/legacy-demo-app/src/assets"
             ],
             "styles": [
               "@angular/material/prebuilt-themes/purple-green.css",
-              "projects/test-app/src/styles.scss"
+              "projects/legacy-demo-app/src/styles.scss"
             ],
             "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/legacy-demo-app/**/*.ts",
+              "projects/legacy-demo-app/**/*.html"
+            ],
+            "eslintConfig": "projects/legacy-demo-app/eslint.config.js"
           }
         }
       }

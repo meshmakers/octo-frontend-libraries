@@ -30,12 +30,12 @@ describe('UnsavedChangesGuard', () => {
 
   describe('when component is null or undefined', () => {
     it('should allow navigation when component is null', async () => {
-      const result = await guard.canDeactivate(null as any);
+      const result = await guard.canDeactivate(null as unknown as HasUnsavedChanges);
       expect(result).toBeTrue();
     });
 
     it('should allow navigation when component is undefined', async () => {
-      const result = await guard.canDeactivate(undefined as any);
+      const result = await guard.canDeactivate(undefined as unknown as HasUnsavedChanges);
       expect(result).toBeTrue();
     });
   });

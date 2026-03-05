@@ -32,8 +32,8 @@ variables:
 stages:
   - stage: Build
     jobs:
-      - job: linux
-        displayName: npm build
+      - job: build_and_test
+        displayName: Build, Lint & Test Libraries
         pool:
           name: meshmakers-ci-agents
         steps:
@@ -41,48 +41,208 @@ stages:
           - template: set-version.yml
           - template: setup-telerik-license.yml
           - template: run-tests.yml
+          - template: handle-artifacts.yml
 
-          # Publish @meshmakers/* npm packages (already built by run-tests.yml)
+          # Build demo-app for Docker image (build only, no tests)
+          # Clear Angular cache to ensure kendo-licensing is rebundled with activated license
+          - task: CmdLine@2
+            displayName: 'Build demo-app (production)'
+            inputs:
+              script: |
+                rm -rf .angular/cache dist/demo-app
+                npx ng build --project demo-app
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+          # Publish dist/ as pipeline artifact (libraries + demo-app)
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish dist artifact'
+            inputs:
+              targetPath: $(System.DefaultWorkingDirectory)/src/frontend-libraries/dist
+              artifact: dist
+              publishLocation: pipeline
+
+          # Assemble Docker context files into single artifact
+          - task: CmdLine@2
+            displayName: 'Assemble Docker context files'
+            inputs:
+              script: |
+                set -e
+                CONTEXT="$(Build.ArtifactStagingDirectory)/docker-context"
+                mkdir -p "$CONTEXT"
+                cp Dockerfile.prebuilt "$CONTEXT/"
+                cp nginx.conf "$CONTEXT/"
+                cp entrypoint.sh "$CONTEXT/"
+                echo "=== Docker context files ==="
+                ls -la "$CONTEXT"
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Docker context'
+            inputs:
+              targetPath: $(Build.ArtifactStagingDirectory)/docker-context
+              artifact: docker-context
+              publishLocation: pipeline
+
+  - stage: Publish
+    dependsOn: Build
+    variables:
+      BuildTagName: $[ stageDependencies.Build.build_and_test.outputs['SetBuildVars.BuildTagName'] ]
+      OctoVersion: $[ stageDependencies.Build.build_and_test.outputs['SetBuildVars.OctoVersion'] ]
+    jobs:
+      # Job 1: npm publish (parallel)
+      - job: npm_publish
+        displayName: Publish npm packages
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - checkout: none
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download dist artifact'
+            inputs:
+              artifact: dist
+              path: $(Pipeline.Workspace)/dist
+
           - template: npm-publish-to-npmjs.yml
             parameters:
-              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-services'
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/shared-services'
               libName: 'shared-services'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-auth'
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/shared-auth'
               libName: 'shared-auth'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-services'
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/octo-services'
               libName: 'octo-services'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-ui'
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/shared-ui'
               libName: 'shared-ui'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/shared-ui-legacy'
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/shared-ui-legacy'
               libName: 'shared-ui-legacy'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-ui'
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/octo-ui'
               libName: 'octo-ui'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-ui-legacy'
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/octo-ui-legacy'
               libName: 'octo-ui-legacy'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-process-diagrams'
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/octo-process-diagrams'
               libName: 'octo-process-diagrams'
           - template: npm-publish-to-npmjs.yml
             parameters:
-              publishWorkingDirectory: 'src/frontend-libraries/dist/meshmakers/octo-meshboard'
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/octo-meshboard'
               libName: 'octo-meshboard'
+
+      # Job 2: Docker build (parallel)
+      - job: docker_build
+        displayName: Build & Push Docker image
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - checkout: none
+
+          # Clean stale files from previous builds on this agent
+          - task: CmdLine@2
+            displayName: 'Clean artifact directories'
+            inputs:
+              script: rm -rf "$(Pipeline.Workspace)/dist" "$(Pipeline.Workspace)/docker-context"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download dist artifact'
+            inputs:
+              artifact: dist
+              path: $(Pipeline.Workspace)/dist
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Docker context'
+            inputs:
+              artifact: docker-context
+              path: $(Pipeline.Workspace)/docker-context
+
+          # Add demo-app build output to Docker context
+          - task: CmdLine@2
+            displayName: 'Assemble Docker context'
+            inputs:
+              script: |
+                set -e
+                CONTEXT="$(Pipeline.Workspace)/docker-context"
+                cp -r "$(Pipeline.Workspace)/dist/demo-app" "$CONTEXT/demo-app"
+                echo "=== Docker context contents ==="
+                ls -la "$CONTEXT"
+                echo "=== demo-app contents ==="
+                ls -la "$CONTEXT/demo-app" | head -20
+
           - template: build-and-push-docker-image.yml
             parameters:
               PublicRegistryServiceConnection: $(DockerRegistryPublicConnection)
               PrivateRegistryName: $(DockerRegistryPrivateUri)
-              Repository: meshmakers/octo-mesh-template-app
-              Dockerfile: src/frontend-libraries/Dockerfile
-          - template: handle-artifacts.yml
+              Repository: meshmakers/octo-mesh-demo-app
+              Dockerfile: $(Pipeline.Workspace)/docker-context/Dockerfile.prebuilt
+              DockerContext: $(Pipeline.Workspace)/docker-context
+
+      # Job 3: Verify demo apps (parallel)
+      - job: verify_apps
+        displayName: Test demo & legacy-demo apps
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - template: setup-telerik-license.yml
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: '20.x'
+
+          - task: CmdLine@2
+            displayName: 'Install dependencies'
+            inputs:
+              script: npm ci
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+
+          - task: CmdLine@2
+            displayName: 'Activate Kendo UI license'
+            inputs:
+              script: npm run setup-license
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+            env:
+              TELERIK_LICENSE: $(TELERIK_LICENSE)
+
+          # Download pre-built libraries so ng test can resolve @meshmakers/* imports
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download dist (pre-built libraries)'
+            inputs:
+              artifact: dist
+              path: $(System.DefaultWorkingDirectory)/src/frontend-libraries/dist
+
+          - task: CmdLine@2
+            displayName: 'Test demo-app'
+            inputs:
+              script: |
+                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+            continueOnError: false
+
+          - task: CmdLine@2
+            displayName: 'Test legacy-demo-app'
+            inputs:
+              script: |
+                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=legacy-demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+              workingDirectory: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+            continueOnError: false
+
+          - task: PublishTestResults@2
+            displayName: 'Publish app test results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/TESTS-*.xml'
+              searchFolder: $(System.DefaultWorkingDirectory)/src/frontend-libraries
+              mergeTestResults: true
+              testRunTitle: 'Unit Tests - Demo Apps'

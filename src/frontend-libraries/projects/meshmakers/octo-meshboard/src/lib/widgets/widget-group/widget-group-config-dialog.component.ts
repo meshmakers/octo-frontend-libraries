@@ -1,12 +1,12 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { CkTypeSelectorInputComponent, FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
-import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, AttributeItem, FieldFilterDto, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
+import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, FieldFilterDto, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -20,6 +20,7 @@ import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 /**
  * Data source type selection
@@ -60,25 +61,19 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     DropDownsModule,
     CkTypeSelectorInputComponent,
     FieldFilterEditorComponent,
-    QuerySelectorComponent
+    QuerySelectorComponent,
+    LoadingOverlayComponent
   ],
   template: `
-    <kendo-dialog
-      title="Widget Group Configuration"
-      [minWidth]="550"
-      [width]="700"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
 
         <!-- ============================================================ -->
         <!-- TAB 1: Data Source -->
@@ -137,11 +132,11 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
             </div>
 
             <!-- Filters for CK Type mode -->
-            @if (selectedCkType && filterAttributes.length > 0) {
+            @if (selectedCkType?.rtCkTypeId) {
               <div class="form-field">
                 <label>Filters</label>
                 <mm-field-filter-editor
-                  [availableAttributes]="filterAttributes"
+                  [ckTypeId]="selectedCkType?.rtCkTypeId"
                   [filters]="filters"
                   [enableVariables]="filterVariables.length > 0"
                   [availableVariables]="filterVariables"
@@ -206,6 +201,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
                   [textField]="'attributePath'"
                   [valueField]="'attributePath'"
                   [valuePrimitive]="true"
+                  [allowCustom]="true"
                   [(ngModel)]="form.valueAttribute"
                   [filterable]="true"
                   (filterChange)="onColumnFilter($event)"
@@ -382,7 +378,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
         </div>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -391,34 +387,26 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host { display: block; height: 100%; }
+    .config-container { display: flex; flex-direction: column; height: 100%; }
+    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
+
     .config-form {
       display: flex;
       flex-direction: column;
       gap: 20px;
-      padding: 16px 0;
+      padding: 16px;
       position: relative;
-      max-height: calc(80vh - 120px);
+      flex: 1;
       overflow-y: auto;
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .form-section {
@@ -516,6 +504,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
+  private readonly windowRef = inject(WindowRef);
 
   @ViewChild('querySelector') querySelector?: QuerySelectorComponent;
 
@@ -533,9 +522,6 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
   @Input() initialGap?: number;
   @Input() initialEmptyMessage?: string;
 
-  @Output() save = new EventEmitter<WidgetGroupConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
-
   // Data source mode
   dataSourceMode: WidgetGroupDataSourceMode = 'persistentQuery';
 
@@ -552,7 +538,6 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
 
   // Filter state
   filters: FieldFilterItem[] = [];
-  filterAttributes: AttributeItem[] = [];
   filterVariables: FilterVariable[] = [];
 
   isLoadingInitial = false;
@@ -767,7 +752,6 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
     this.selectedCkType = null;
     this.availableColumns = [];
     this.filteredColumns.set([]);
-    this.filterAttributes = [];
     this.filters = [];
   }
 
@@ -776,7 +760,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
 
     try {
       const result = await firstValueFrom(this.getCkTypeAvailableQueryColumnsGQL.fetch({
-        variables: { rtCkId: ckTypeId, first: 1000 }
+        variables: { rtCkId: ckTypeId, first: 1000, includeNavigationProperties: true }
       }));
 
       const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items || [];
@@ -789,12 +773,10 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
 
       this.availableColumns = mappedColumns;
       this.filteredColumns.set(mappedColumns);
-      this.filterAttributes = mappedColumns;
     } catch (error) {
       console.error('Error loading CK type attributes:', error);
       this.availableColumns = [];
       this.filteredColumns.set([]);
-      this.filterAttributes = [];
     } finally {
       this.isLoadingColumns = false;
     }
@@ -860,10 +842,10 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
       emptyMessage: this.form.emptyMessage || undefined
     };
 
-    this.save.emit(result);
+    this.windowRef.close(result);
   }
 
-  private buildStaticConfig(): Partial<any> {
+  private buildStaticConfig(): Record<string, unknown> {
     switch (this.form.childWidgetType) {
       case 'kpi':
         return {
@@ -887,6 +869,6 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 }

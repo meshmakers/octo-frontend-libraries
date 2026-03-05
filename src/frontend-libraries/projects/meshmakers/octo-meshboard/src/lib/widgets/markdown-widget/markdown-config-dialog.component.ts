@@ -1,11 +1,10 @@
-import { Component, Input, Output, OnInit, signal } from '@angular/core';
+import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { MarkdownModule } from 'ngx-markdown';
-import { Subject } from 'rxjs';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MarkdownTextAlign } from '../../models/meshboard.models';
 
@@ -25,18 +24,12 @@ export interface MarkdownConfigResult extends WidgetConfigResult {
   imports: [
     CommonModule,
     FormsModule,
-    DialogModule,
     ButtonsModule,
     InputsModule,
     MarkdownModule
   ],
   template: `
-    <kendo-dialog
-      title="Markdown Widget Configuration"
-      [minWidth]="600"
-      [width]="800"
-      [height]="600"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form">
         <!-- Preview Toggle -->
@@ -82,7 +75,7 @@ Code block
 Variables: $variableName or \${variableName}">
             </textarea>
           } @else {
-            <div class="markdown-preview lcars-prose">
+            <div class="markdown-preview mm-prose">
               <markdown [data]="content"></markdown>
             </div>
           }
@@ -129,18 +122,48 @@ Variables: $variableName or \${variableName}">
         </div>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button kendoButton themeColor="primary" (click)="onSave()">Save</button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+      --mm-prose-editor-bg: #f5f5f5;
+      --mm-prose-editor-text: #333333;
+      --mm-prose-editor-placeholder: #999999;
+      --mm-prose-editor-border: #e0e0e0;
+      --mm-prose-preview-border: #e0e0e0;
+      --mm-prose-form-bg: #f5f5f5;
+      --mm-prose-form-border: #e0e0e0;
+      --mm-prose-label-text: #333333;
+      --mm-prose-hint-text: #666666;
+    }
+
+    .config-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 16px;
+      border-top: 1px solid var(--kendo-color-border, #dee2e6);
+    }
+
     .config-form {
       display: flex;
       flex-direction: column;
       gap: 16px;
       height: 100%;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .mode-toggle {
@@ -161,30 +184,30 @@ Variables: $variableName or \${variableName}">
       font-family: 'Roboto Mono', monospace;
       font-size: 0.9rem;
       padding: 12px;
-      border: 1px solid rgba(100, 206, 185, 0.3);
+      border: 1px solid var(--mm-prose-editor-border);
       border-radius: 4px;
       resize: none;
-      background: #1f2e40;
-      color: #c8d0d8;
+      background: var(--mm-prose-editor-bg);
+      color: var(--mm-prose-editor-text);
     }
 
     .markdown-editor::placeholder {
-      color: #6b7a8c;
+      color: var(--mm-prose-editor-placeholder);
     }
 
     .markdown-preview {
       flex: 1;
       padding: 12px;
-      border: 1px solid rgba(100, 206, 185, 0.3);
+      border: 1px solid var(--mm-prose-preview-border);
       border-radius: 4px;
       overflow: auto;
-      background: #1f2e40;
+      background: var(--mm-prose-editor-bg);
     }
 
     .form-section {
       padding: 12px;
-      background: #394555;
-      border: 1px solid rgba(100, 206, 185, 0.2);
+      background: var(--mm-prose-form-bg);
+      border: 1px solid var(--mm-prose-form-border);
       border-radius: 4px;
     }
 
@@ -205,22 +228,22 @@ Variables: $variableName or \${variableName}">
       display: flex;
       align-items: center;
       gap: 8px;
-      color: #c8d0d8;
+      color: var(--mm-prose-label-text);
     }
 
     .field-hint {
       margin: 0;
       font-size: 0.8rem;
-      color: #9292a6;
+      color: var(--mm-prose-hint-text);
     }
 
-    /* LCARS-themed prose styles for preview */
-    .lcars-prose {
-      color: #c8d0d8;
+    /* Prose styles for preview - uses same CSS variables as the widget */
+    .mm-prose {
+      color: var(--mm-prose-text, #333333);
       line-height: 1.6;
 
       h1, h2, h3, h4, h5, h6 {
-        color: #64ceb9;
+        color: var(--mm-prose-heading, #1976d2);
         font-weight: 600;
         margin-top: 1em;
         margin-bottom: 0.5em;
@@ -232,18 +255,18 @@ Variables: $variableName or \${variableName}">
 
       p { margin-bottom: 0.75em; }
 
-      a { color: #00a8dc; }
+      a { color: var(--mm-prose-link, #1565c0); }
 
       code {
-        background: rgba(100, 206, 185, 0.1);
-        color: #64ceb9;
+        background: var(--mm-prose-code-bg, #f5f5f5);
+        color: var(--mm-prose-code-text, #d32f2f);
         padding: 0.2em 0.4em;
         border-radius: 4px;
       }
 
       pre {
-        background: #394555;
-        color: #c8d0d8;
+        background: var(--mm-prose-pre-bg, #f5f5f5);
+        color: var(--mm-prose-text, #333333);
         padding: 1em;
         border-radius: 8px;
         overflow-x: auto;
@@ -251,36 +274,35 @@ Variables: $variableName or \${variableName}">
 
       pre code {
         background: transparent;
-        color: #c8d0d8;
+        color: var(--mm-prose-text, #333333);
       }
 
       blockquote {
-        border-left: 4px solid #6c4da8;
-        background: rgba(108, 77, 168, 0.1);
+        border-left: 4px solid var(--mm-prose-blockquote-border, #6c4da8);
+        background: var(--mm-prose-blockquote-bg, rgba(108, 77, 168, 0.05));
         padding: 0.75em 1em;
         margin: 1em 0;
         border-radius: 0 8px 8px 0;
       }
 
       strong, b {
-        color: #ffffff;
+        color: var(--mm-prose-strong, #111111);
         font-weight: 600;
       }
 
       em, i {
-        color: #00a8dc;
+        color: var(--mm-prose-em, #1565c0);
       }
     }
   `]
 })
 export class MarkdownConfigDialogComponent implements OnInit {
+  private readonly windowRef = inject(WindowRef);
+
   @Input() initialContent?: string;
   @Input() initialResolveVariables?: boolean;
   @Input() initialPadding?: string;
   @Input() initialTextAlign?: MarkdownTextAlign;
-
-  @Output() save = new Subject<MarkdownConfigResult>();
-  @Output() cancelled = new Subject<void>();
 
   readonly showPreview = signal(false);
 
@@ -297,7 +319,7 @@ export class MarkdownConfigDialogComponent implements OnInit {
   }
 
   onSave(): void {
-    this.save.next({
+    this.windowRef.close({
       ckTypeId: '',  // Not used for static content
       content: this.content,
       resolveVariables: this.resolveVariables,
@@ -307,6 +329,6 @@ export class MarkdownConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.next();
+    this.windowRef.close();
   }
 }

@@ -7,8 +7,8 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { IconsModule } from '@progress/kendo-angular-icons';
 import { searchIcon, sortAscSmallIcon, sortDescSmallIcon } from '@progress/kendo-svg-icons';
-import { AttributeSelectorService, AttributeItem } from '@meshmakers/octo-services';
-import { DialogContentBase, DialogRef, DialogModule } from '@progress/kendo-angular-dialog';
+import { AttributeSelectorService, AttributeItem, AttributeValueTypeDto } from '@meshmakers/octo-services';
+import { WindowModule, WindowRef } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -33,6 +33,11 @@ export interface SortOption {
   value: 'standard' | 'ascending' | 'descending';
 }
 
+interface ValueTypeFilterOption {
+  text: string;
+  value: AttributeValueTypeDto | null;
+}
+
 @Component({
   selector: 'mm-attribute-sort-selector-dialog',
   standalone: true,
@@ -45,21 +50,30 @@ export interface SortOption {
     InputsModule,
     DropDownListModule,
     IconsModule,
-    DialogModule
+    WindowModule
   ],
   template: `
       <div class="attribute-sort-selector-container">
-        <!-- Search Section -->
-        <div class="search-container">
+        <!-- Filter Section -->
+        <div class="filter-container">
           <kendo-textbox
             [(ngModel)]="searchText"
             (ngModelChange)="onSearchChange($event)"
-            placeholder="Search attributes..."
+            placeholder="Search path & description..."
             class="search-input">
             <ng-template kendoTextBoxSuffixTemplate>
               <button kendoButton [svgIcon]="searchIcon" fillMode="clear"></button>
             </ng-template>
           </kendo-textbox>
+          <kendo-dropdownlist
+            [data]="valueTypeOptions"
+            [(ngModel)]="selectedValueTypeFilter"
+            (valueChange)="onValueTypeFilterChange($event)"
+            textField="text"
+            valueField="value"
+            [valuePrimitive]="true"
+            class="type-filter-dropdown">
+          </kendo-dropdownlist>
         </div>
 
         <!-- Main Content Area - All side by side -->
@@ -69,15 +83,16 @@ export interface SortOption {
             <h4>Available Attributes</h4>
             <kendo-grid
               [data]="availableGridData"
-              [height]="350"
               [scrollable]="'scrollable'"
               [selectable]="{ mode: 'single', enabled: true }"
               [kendoGridSelectBy]="'attributePath'"
               [(selectedKeys)]="selectedAvailableKeys"
               (cellClick)="onAvailableCellClick($event)"
+              [resizable]="true"
               class="attribute-grid">
-              <kendo-grid-column field="attributePath" title="Attribute Path" [width]="200"></kendo-grid-column>
-              <kendo-grid-column field="attributeValueType" title="Type" [width]="140"></kendo-grid-column>
+              <kendo-grid-column field="attributePath" title="Attribute Path" [width]="250"></kendo-grid-column>
+              <kendo-grid-column field="attributeValueType" title="Type" [width]="100"></kendo-grid-column>
+              <kendo-grid-column field="description" title="Description"></kendo-grid-column>
             </kendo-grid>
           </div>
 
@@ -129,12 +144,12 @@ export interface SortOption {
             <h4>Selected ({{ selectedAttributes.length }})</h4>
             <kendo-grid
               [data]="selectedGridData"
-              [height]="350"
               [scrollable]="'scrollable'"
               [selectable]="{ mode: 'single', enabled: true }"
               [kendoGridSelectBy]="'attributePath'"
               [(selectedKeys)]="selectedChosenKeys"
               (cellClick)="onSelectedCellClick($event)"
+              [resizable]="true"
               class="attribute-grid">
               <kendo-grid-column field="attributePath" title="Attribute Path" [width]="180"></kendo-grid-column>
               <kendo-grid-column field="sortOrder" title="Sort" [width]="100">
@@ -160,55 +175,69 @@ export interface SortOption {
             </kendo-grid>
           </div>
         </div>
-      </div>
 
-      <kendo-dialog-actions>
-        <button kendoButton (click)="onCancel()">Cancel</button>
-        <button kendoButton themeColor="primary" (click)="onOk()">Apply</button>
-      </kendo-dialog-actions>
+        <!-- Action Bar -->
+        <div class="action-bar">
+          <button kendoButton (click)="onCancel()">Cancel</button>
+          <button kendoButton themeColor="primary" (click)="onOk()">Apply</button>
+        </div>
+      </div>
   `,
   styles: [`
     :host {
       display: block;
+      height: 100%;
     }
 
     .attribute-sort-selector-container {
       display: flex;
       flex-direction: column;
+      height: 100%;
       padding: 16px 20px;
-      min-width: 1000px;
       box-sizing: border-box;
       gap: 16px;
     }
 
-    .search-container {
+    .filter-container {
+      display: flex;
+      gap: 12px;
       flex-shrink: 0;
     }
 
     .search-input {
-      width: 100%;
+      flex: 1;
+    }
+
+    .type-filter-dropdown {
+      width: 160px;
+      flex-shrink: 0;
     }
 
     .lists-container {
       display: flex;
       gap: 16px;
-      align-items: flex-start;
+      flex: 1;
+      min-height: 0;
     }
 
     .list-section {
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-height: 0;
     }
 
     .list-section h4, .sort-options-section h4 {
       margin: 0 0 10px 0;
       font-size: 0.85rem;
       font-weight: 600;
+      flex-shrink: 0;
     }
 
     .attribute-grid {
       border-radius: 4px;
+      flex: 1;
+      min-height: 200px;
     }
 
     .attribute-grid ::ng-deep .k-grid-table tbody tr {
@@ -255,20 +284,28 @@ export interface SortOption {
       font-weight: bold;
       color: var(--kendo-color-primary, #ff6358);
     }
+
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+      padding-top: 8px;
+      border-top: 1px solid var(--kendo-color-border, #dee2e6);
+    }
   `]
 })
-export class AttributeSortSelectorDialogComponent extends DialogContentBase implements OnInit {
+export class AttributeSortSelectorDialogComponent implements OnInit {
+  private readonly windowRef = inject(WindowRef);
   private readonly attributeService = inject(AttributeSelectorService);
   private searchSubject = new Subject<string>();
 
-  constructor() {
-    super(inject(DialogRef));
-  }
-
   // Dialog data
+  public data!: AttributeSortSelectorDialogData;
   public ckTypeId!: string;
   public searchText = '';
   public currentSortOrder: 'standard' | 'ascending' | 'descending' = 'standard';
+  public selectedValueTypeFilter: AttributeValueTypeDto | null = null;
 
   // Grid data
   public availableAttributes: AttributeItem[] = [];
@@ -294,6 +331,18 @@ export class AttributeSortSelectorDialogComponent extends DialogContentBase impl
     { text: 'Descending', value: 'descending' }
   ];
 
+  public valueTypeOptions: ValueTypeFilterOption[] = [
+    { text: 'All Types', value: null },
+    { text: 'String', value: AttributeValueTypeDto.StringDto },
+    { text: 'Integer', value: AttributeValueTypeDto.IntegerDto },
+    { text: 'Double', value: AttributeValueTypeDto.DoubleDto },
+    { text: 'Boolean', value: AttributeValueTypeDto.BooleanDto },
+    { text: 'DateTime', value: AttributeValueTypeDto.DateTimeDto },
+    { text: 'DateTimeOffset', value: AttributeValueTypeDto.DateTimeOffsetDto },
+    { text: 'Enum', value: AttributeValueTypeDto.EnumDto },
+    { text: 'TimeSpan', value: AttributeValueTypeDto.TimeSpanDto }
+  ];
+
   // Icons
   protected readonly searchIcon = searchIcon;
   protected readonly sortAscIcon = sortAscSmallIcon;
@@ -301,21 +350,14 @@ export class AttributeSortSelectorDialogComponent extends DialogContentBase impl
 
   ngOnInit(): void {
     // Get dialog data
-    const data = (this.dialog.content as any)?.instance?.data as AttributeSortSelectorDialogData;
-    console.log('ngOnInit - received data:', data);
+    if (this.data) {
+      this.ckTypeId = this.data.ckTypeId;
+      this.dialogTitle = this.data.dialogTitle || 'Select Attributes with Sort Order';
 
-    if (data) {
-      this.ckTypeId = data.ckTypeId;
-      this.dialogTitle = data.dialogTitle || 'Select Attributes with Sort Order';
-      console.log('Set ckTypeId:', this.ckTypeId);
-
-      if (data.selectedAttributes && data.selectedAttributes.length > 0) {
-        this.selectedAttributes = [...data.selectedAttributes];
+      if (this.data.selectedAttributes && this.data.selectedAttributes.length > 0) {
+        this.selectedAttributes = [...this.data.selectedAttributes];
         this.updateSelectedGrid();
-        console.log('Pre-populated selectedAttributes:', this.selectedAttributes);
       }
-    } else {
-      console.warn('No dialog data received');
     }
 
     // Set up search debouncing
@@ -330,8 +372,12 @@ export class AttributeSortSelectorDialogComponent extends DialogContentBase impl
     this.loadAvailableAttributes();
   }
 
-  private loadAvailableAttributes(filter?: string): void {
-    this.attributeService.getAvailableAttributes(this.ckTypeId, filter).subscribe(result => {
+  private loadAvailableAttributes(searchTerm?: string): void {
+    this.attributeService.getAvailableAttributes(
+      this.ckTypeId, undefined, undefined, undefined,
+      this.selectedValueTypeFilter || undefined,
+      searchTerm || undefined
+    ).subscribe(result => {
       // Filter out already selected attributes
       const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
       this.availableAttributes = result.items.filter(item => !selectedPaths.has(item.attributePath));
@@ -341,6 +387,10 @@ export class AttributeSortSelectorDialogComponent extends DialogContentBase impl
 
   public onSearchChange(value: string): void {
     this.searchSubject.next(value);
+  }
+
+  public onValueTypeFilterChange(_value: AttributeValueTypeDto | null): void {
+    this.loadAvailableAttributes(this.searchText || undefined);
   }
 
   public setSortOrder(order: 'standard' | 'ascending' | 'descending'): void {
@@ -401,7 +451,6 @@ export class AttributeSortSelectorDialogComponent extends DialogContentBase impl
   }
 
   private addAttributeToSelected(attribute: AttributeItem): void {
-    console.log('Adding attribute to selected:', attribute, 'with sort order:', this.currentSortOrder);
     const sortItem: AttributeSortItem = {
       attributePath: attribute.attributePath,
       attributeValueType: attribute.attributeValueType,
@@ -409,7 +458,6 @@ export class AttributeSortSelectorDialogComponent extends DialogContentBase impl
     };
 
     this.selectedAttributes.push(sortItem);
-    console.log('Selected attributes after add:', this.selectedAttributes);
 
     // Remove from available
     this.availableAttributes = this.availableAttributes.filter(
@@ -478,16 +526,13 @@ export class AttributeSortSelectorDialogComponent extends DialogContentBase impl
   }
 
   public onOk(): void {
-    console.log('onOk called, selectedAttributes:', this.selectedAttributes);
     const result: AttributeSortSelectorDialogResult = {
       selectedAttributes: this.selectedAttributes
     };
-    console.log('Closing dialog with result:', result);
-    this.dialog.close(result);
+    this.windowRef.close(result);
   }
 
   public onCancel(): void {
-    console.log('onCancel called');
-    this.dialog.close();
+    this.windowRef.close();
   }
 }

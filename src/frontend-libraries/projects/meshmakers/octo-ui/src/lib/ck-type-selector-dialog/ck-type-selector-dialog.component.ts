@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogRef, DialogModule, DialogContentBase } from '@progress/kendo-angular-dialog';
-import { GridModule, GridDataResult, SelectionEvent, PageChangeEvent, RowArgs } from '@progress/kendo-angular-grid';
+import { WindowRef, WindowModule } from '@progress/kendo-angular-dialog';
+import { GridModule, GridDataResult, SelectionEvent, PageChangeEvent, RowArgs, CellClickEvent } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -18,6 +18,7 @@ export interface CkTypeSelectorDialogData {
   ckModelIds?: string[];
   dialogTitle?: string;
   allowAbstract?: boolean;
+  derivedFromRtCkTypeId?: string;
 }
 
 export interface CkTypeSelectorDialogResult {
@@ -36,13 +37,13 @@ export interface CkTypeSelectorDialogResult {
     DropDownsModule,
     IconsModule,
     LoaderModule,
-    DialogModule
+    WindowModule
   ],
   template: `
     <div class="ck-type-selector-container">
       <div class="filter-container">
         <div class="filter-row">
-          <div class="filter-item">
+          <div class="filter-item" *ngIf="!derivedFromRtCkTypeId">
             <label>Model Filter</label>
             <kendo-combobox
               [data]="availableModels"
@@ -77,13 +78,13 @@ export interface CkTypeSelectorDialogResult {
         <kendo-grid
           [data]="gridData"
           [loading]="isLoading"
-          [height]="400"
           [selectable]="{ mode: 'single' }"
           [pageable]="{ pageSizes: [25, 50, 100] }"
           [pageSize]="pageSize"
           [skip]="skip"
           (pageChange)="onPageChange($event)"
           (selectionChange)="onSelectionChange($event)"
+          (cellClick)="onCellClick($event)"
           [kendoGridSelectBy]="selectItemBy"
           [(selectedKeys)]="selectedKeys"
           class="type-grid">
@@ -112,21 +113,28 @@ export interface CkTypeSelectorDialogResult {
       <div class="selection-info" *ngIf="selectedType">
         <strong>Selected:</strong> {{ selectedType.rtCkTypeId }}
       </div>
-    </div>
 
-    <kendo-dialog-actions>
-      <button kendoButton (click)="onCancel()">Cancel</button>
-      <button kendoButton themeColor="primary" [disabled]="!selectedType || (selectedType.isAbstract && !allowAbstract)" (click)="onConfirm()">OK</button>
-    </kendo-dialog-actions>
+      <div class="dialog-actions">
+        <button kendoButton (click)="onCancel()">Cancel</button>
+        <button kendoButton themeColor="primary" [disabled]="!selectedType || (selectedType.isAbstract && !allowAbstract)" (click)="onConfirm()">OK</button>
+      </div>
+    </div>
   `,
   styles: [`
-    .ck-type-selector-container {
+    :host {
       display: flex;
       flex-direction: column;
       height: 100%;
+    }
+
+    .ck-type-selector-container {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
       padding: 20px;
-      min-width: 700px;
       box-sizing: border-box;
+      gap: 12px;
     }
 
     .filter-container {
@@ -166,6 +174,14 @@ export interface CkTypeSelectorDialogResult {
     .grid-container {
       flex: 1;
       min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .grid-container kendo-grid,
+    .grid-container .type-grid {
+      flex: 1;
+      min-height: 200px;
     }
 
     .type-grid {
@@ -215,9 +231,18 @@ export interface CkTypeSelectorDialogResult {
       font-size: 14px;
       flex-shrink: 0;
     }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 20px 0 20px;
+      flex-shrink: 0;
+    }
   `]
 })
-export class CkTypeSelectorDialogComponent extends DialogContentBase implements OnInit, OnDestroy {
+export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
+  private readonly windowRef = inject(WindowRef);
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private searchSubject = new Subject<string>();
   private subscriptions = new Subscription();
@@ -244,21 +269,22 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
   public selectItemBy = (context: RowArgs): string => (context.dataItem as CkTypeSelectorItem).fullName;
 
   private initialCkModelIds?: string[];
+  public derivedFromRtCkTypeId?: string;
+  private lastClickTime = 0;
+  private lastClickRtCkTypeId: string | null = null;
 
-  constructor() {
-    super(inject(DialogRef));
-  }
+  /** Data passed from the service */
+  public data?: CkTypeSelectorDialogData;
 
   ngOnInit(): void {
-    const data = (this.dialog.content as any)?.instance?.data as CkTypeSelectorDialogData;
+    if (this.data) {
+      this.dialogTitle = this.data.dialogTitle || 'Select Construction Kit Type';
+      this.allowAbstract = this.data.allowAbstract ?? false;
+      this.initialCkModelIds = this.data.ckModelIds;
+      this.derivedFromRtCkTypeId = this.data.derivedFromRtCkTypeId;
 
-    if (data) {
-      this.dialogTitle = data.dialogTitle || 'Select Construction Kit Type';
-      this.allowAbstract = data.allowAbstract ?? false;
-      this.initialCkModelIds = data.ckModelIds;
-
-      if (data.selectedCkTypeId) {
-        this.selectedKeys = [data.selectedCkTypeId];
+      if (this.data.selectedCkTypeId) {
+        this.selectedKeys = [this.data.selectedCkTypeId];
       }
     }
 
@@ -275,7 +301,9 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
 
     // Load initial types and extract available models
     this.loadTypes();
-    this.loadAvailableModels();
+    if (!this.derivedFromRtCkTypeId) {
+      this.loadAvailableModels();
+    }
   }
 
   ngOnDestroy(): void {
@@ -285,17 +313,19 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
   private loadTypes(): void {
     this.isLoading = true;
 
-    const ckModelIds = this.selectedModel
-      ? [this.selectedModel]
-      : this.initialCkModelIds;
+    const source$ = this.derivedFromRtCkTypeId
+      ? this.ckTypeSelectorService.getDerivedCkTypes(this.derivedFromRtCkTypeId, {
+          searchText: this.searchText || undefined
+        })
+      : this.ckTypeSelectorService.getCkTypes({
+          ckModelIds: this.selectedModel ? [this.selectedModel] : this.initialCkModelIds,
+          searchText: this.searchText || undefined,
+          first: this.pageSize,
+          skip: this.skip
+        });
 
     this.subscriptions.add(
-      this.ckTypeSelectorService.getCkTypes({
-        ckModelIds,
-        searchText: this.searchText || undefined,
-        first: this.pageSize,
-        skip: this.skip
-      }).subscribe({
+      source$.subscribe({
         next: result => {
           this.gridData = {
             data: result.items,
@@ -370,8 +400,22 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
     }
   }
 
+  public onCellClick(event: CellClickEvent): void {
+    const item = event.dataItem as CkTypeSelectorItem;
+    const now = Date.now();
+    if (item && item.rtCkTypeId === this.lastClickRtCkTypeId && (now - this.lastClickTime) < 400) {
+      // Double-click detected
+      if (!item.isAbstract || this.allowAbstract) {
+        this.selectedType = item;
+        this.onConfirm();
+      }
+    }
+    this.lastClickTime = now;
+    this.lastClickRtCkTypeId = item?.rtCkTypeId ?? null;
+  }
+
   public onCancel(): void {
-    this.dialog.close();
+    this.windowRef.close();
   }
 
   public onConfirm(): void {
@@ -379,7 +423,7 @@ export class CkTypeSelectorDialogComponent extends DialogContentBase implements 
       const result: CkTypeSelectorDialogResult = {
         selectedCkType: this.selectedType
       };
-      this.dialog.close(result);
+      this.windowRef.close(result);
     }
   }
 }

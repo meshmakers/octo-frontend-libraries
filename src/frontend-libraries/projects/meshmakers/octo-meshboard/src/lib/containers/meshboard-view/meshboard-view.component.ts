@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, signal, computed, ViewContainerRef, Type, ComponentRef, OnDestroy, effect } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { TileLayoutModule } from '@progress/kendo-angular-layout';
+import { TileLayoutModule, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { DialogService, DialogModule } from '@progress/kendo-angular-dialog';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import {
   gearIcon,
@@ -69,7 +69,6 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private readonly widgetRegistry = inject(WidgetRegistryService);
   private readonly dataService = inject(MeshBoardDataService);
   private readonly dialogService = inject(DialogService);
-  private readonly viewContainerRef = inject(ViewContainerRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   protected readonly gridService = inject(MeshBoardGridService);
@@ -93,8 +92,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected showEditWidgetDialog = false;
   protected editingWidget: AnyWidgetConfig | null = null;
 
-  // Config dialog state - using ComponentRef to create dialog dynamically
-  private configDialogRef: ComponentRef<any> | null = null;
+  // Config dialog state
+  private configDialogSubscription: Subscription | null = null;
 
   // State signals
   protected readonly config = this.stateService.meshBoardConfig;
@@ -155,14 +154,15 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    */
   private updateUrlWithRtId(rtId: string): void {
     const currentUrl = this.router.url;
+    const hasRtIdParam = this.route.snapshot.paramMap.has('rtId');
 
-    // Check if we're already on a meshboard/:rtId route or just /meshboard
-    if (currentUrl.includes('/meshboard/')) {
-      // Replace the rtId in the URL
-      const newUrl = currentUrl.replace(/\/meshboard\/[^/]+/, `/meshboard/${rtId}`);
+    if (hasRtIdParam) {
+      // Replace the last URL segment (the old rtId) with the new one
+      const lastSlashIndex = currentUrl.lastIndexOf('/');
+      const newUrl = currentUrl.substring(0, lastSlashIndex + 1) + rtId;
       this.router.navigateByUrl(newUrl, { replaceUrl: true });
-    } else if (currentUrl.endsWith('/meshboard')) {
-      // Append the rtId
+    } else {
+      // Append the rtId to the current URL
       this.router.navigateByUrl(`${currentUrl}/${rtId}`, { replaceUrl: true });
     }
   }
@@ -554,8 +554,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   /**
    * Opens the configuration dialog for a widget.
-   * Creates the dialog component dynamically using ViewContainerRef to avoid
-   * double-wrapping with DialogService (config dialogs have their own kendo-dialog).
+   * Uses the WidgetRegistryService to open a resizable Kendo Window.
    */
   openWidgetConfig(widget: AnyWidgetConfig): void {
     const registration = this.widgetRegistry.getRegistration(widget.type);
@@ -567,48 +566,26 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     // Close any existing config dialog
     this.closeConfigDialog();
 
-    const initialConfig = registration.getInitialConfig?.(widget) ?? {};
+    this.configDialogSubscription = this.widgetRegistry.openConfigDialog(widget).subscribe(dialogResult => {
+      if (dialogResult.saved && dialogResult.result && registration.applyConfigResult) {
+        const updatedWidget = registration.applyConfigResult(widget, dialogResult.result);
+        this.stateService.updateWidget(widget.id, () => updatedWidget);
 
-    // Create the component dynamically - it will render its own kendo-dialog
-    this.configDialogRef = this.viewContainerRef.createComponent(registration.configDialogComponent);
-
-    // Set inputs using the new setInput API
-    Object.entries(initialConfig).forEach(([key, value]) => {
-      this.configDialogRef!.setInput(key, value);
-    });
-
-    // Subscribe to outputs
-    const instance = this.configDialogRef.instance;
-
-    if (instance.save) {
-      instance.save.subscribe((result: any) => {
-        if (registration.applyConfigResult) {
-          const updatedWidget = registration.applyConfigResult(widget, result);
-          this.stateService.updateWidget(widget.id, () => updatedWidget);
-
-          // Enter edit mode if not already in it
-          if (!this.isEditMode()) {
-            this.editModeService.enterEditMode(this.stateService.getConfig());
-          }
+        // Enter edit mode if not already in it
+        if (!this.isEditMode()) {
+          this.editModeService.enterEditMode(this.stateService.getConfig());
         }
-        this.closeConfigDialog();
-      });
-    }
-
-    if (instance.cancelled) {
-      instance.cancelled.subscribe(() => {
-        this.closeConfigDialog();
-      });
-    }
+      }
+    });
   }
 
   /**
    * Closes the configuration dialog if open.
    */
   private closeConfigDialog(): void {
-    if (this.configDialogRef) {
-      this.configDialogRef.destroy();
-      this.configDialogRef = null;
+    if (this.configDialogSubscription) {
+      this.configDialogSubscription.unsubscribe();
+      this.configDialogSubscription = null;
     }
   }
 
@@ -633,9 +610,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   /**
    * Handles TileLayout resize events.
    */
-  onResize(event: any): void {
+  onResize(event: TileLayoutResizeEvent): void {
     // Extract the resized item from the event
-    const item = event.item || event;
+    const item = event.item;
 
     // Find the widget in our config that matches this item
     const config = this.stateService.getConfig();
@@ -673,8 +650,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Checks if a widget is unconfigured (needs data source setup).
    */
   isWidgetUnconfigured(widget: AnyWidgetConfig): boolean {
-    const dataSource = (widget as any).dataSource;
-    if (!dataSource) return true;
+    const dataSource = widget.dataSource;
 
     if (dataSource.type === 'runtimeEntity') {
       return !dataSource.rtId && !dataSource.ckTypeId;

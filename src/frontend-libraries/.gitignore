@@ -49,4 +49,4 @@ kendo-ui-license.txt
 telerik-license.txt
 
 # Auto-generated version file
-projects/template-app/src/environments/currentVersion.ts
+projects/demo-app/src/environments/currentVersion.ts

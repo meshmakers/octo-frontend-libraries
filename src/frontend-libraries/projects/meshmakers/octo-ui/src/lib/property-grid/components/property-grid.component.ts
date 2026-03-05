@@ -7,6 +7,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import {
+  SVGIcon,
   fileIcon,
   folderIcon,
   calendarIcon,
@@ -287,7 +288,7 @@ export class PropertyGridComponent implements OnInit, OnChanges {
   /**
    * Get appropriate icon for property type
    */
-  getTypeIcon(type: AttributeValueTypeDto): any {
+  getTypeIcon(type: AttributeValueTypeDto): SVGIcon {
     switch (type) {
       case AttributeValueTypeDto.BooleanDto:
         return checkboxCheckedIcon;
@@ -344,7 +345,7 @@ export class PropertyGridComponent implements OnInit, OnChanges {
   /**
    * Handle property value change
    */
-  onPropertyChange(property: PropertyGridItem, oldValue: any, newValue: any) {
+  onPropertyChange(property: PropertyGridItem, oldValue: unknown, newValue: unknown) {
     const changeEvent: PropertyChangeEvent = {
       property,
       oldValue,

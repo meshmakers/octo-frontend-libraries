@@ -354,7 +354,7 @@ export class SymbolEditorComponent implements OnChanges {
   /**
    * Emitted when symbol settings change in the settings panel
    */
-  @Output() symbolSettingsChange = new EventEmitter<{ key: string; value: any }>();
+  @Output() symbolSettingsChange = new EventEmitter<{ key: string; value: string | number }>();
 
   // Transform property editing state
   private _transformProperties = signal<TransformProperty[]>([]);

@@ -29,7 +29,7 @@ mm-dockview {
 /*
  * CSS Variables for theming - use neutral defaults that can be overridden
  * Host applications can override these via:
- *   1. LCARS theme mixin: @include dockview.lcars-theme()
+ *   1. Theme mixin (for host apps): @include dockview.lcars-theme()
  *   2. Direct CSS variable overrides on mm-process-designer or mm-symbol-editor
  */
 .dv-dockview,

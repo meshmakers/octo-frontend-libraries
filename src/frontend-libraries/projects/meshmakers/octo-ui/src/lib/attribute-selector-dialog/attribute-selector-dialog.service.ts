@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { DialogService, DialogRef } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { firstValueFrom } from 'rxjs';
 import {
   AttributeSelectorDialogComponent,
@@ -15,42 +15,55 @@ export interface AttributeSelectorResult {
 
 @Injectable()
 export class AttributeSelectorDialogService {
-  private readonly dialogService = inject(DialogService);
+  private readonly windowService = inject(WindowService);
 
   /**
    * Opens the attribute selector dialog
    * @param rtCkTypeId The RtCkType ID to fetch attributes for
    * @param selectedAttributes Optional array of pre-selected attribute paths
    * @param dialogTitle Optional custom dialog title
+   * @param singleSelect Optional flag for single-select mode
    * @returns Promise that resolves with the result containing selected attributes and confirmation status
    */
   public async openAttributeSelector(
     rtCkTypeId: string,
     selectedAttributes?: string[],
-    dialogTitle?: string
+    dialogTitle?: string,
+    singleSelect?: boolean
   ): Promise<AttributeSelectorResult> {
     const data: AttributeSelectorDialogData = {
       rtCkTypeId,
       selectedAttributes,
-      dialogTitle
+      dialogTitle,
+      singleSelect
     };
 
-    const dialogRef: DialogRef = this.dialogService.open({
+    const windowRef: WindowRef = this.windowService.open({
       content: AttributeSelectorDialogComponent,
-      width: 900,
-      height: 700,
-      minWidth: 800,
-      minHeight: 650,
+      width: singleSelect ? 550 : 1000,
+      height: singleSelect ? 650 : 700,
+      minWidth: singleSelect ? 450 : 850,
+      minHeight: singleSelect ? 550 : 650,
+      resizable: true,
       title: dialogTitle || 'Select Attributes'
     });
 
     // Pass data to the component
-    if ((dialogRef.content as any)?.instance) {
-      ((dialogRef.content as any).instance as any).data = data;
+    const contentRef = windowRef.content as { instance?: AttributeSelectorDialogComponent } | undefined;
+    if (contentRef?.instance) {
+      contentRef.instance.data = data;
     }
 
     try {
-      const result = await firstValueFrom(dialogRef.result);
+      const result = await firstValueFrom(windowRef.result);
+
+      if (result instanceof WindowCloseResult) {
+        // User closed the window via X button
+        return {
+          confirmed: false,
+          selectedAttributes: []
+        };
+      }
 
       if (result && typeof result === 'object' && 'selectedAttributes' in result) {
         // User clicked OK and we have a result

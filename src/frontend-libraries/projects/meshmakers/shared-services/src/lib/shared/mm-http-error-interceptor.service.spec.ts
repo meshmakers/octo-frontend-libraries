@@ -354,18 +354,23 @@ describe('MmHttpErrorInterceptor', () => {
     });
 
     it('should handle requests with different HTTP methods', (done) => {
-      const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+      const requests = [
+        new HttpRequest('GET', '/api/data'),
+        new HttpRequest('POST', '/api/data', null),
+        new HttpRequest('PUT', '/api/data', null),
+        new HttpRequest('DELETE', '/api/data'),
+        new HttpRequest('PATCH', '/api/data', null)
+      ];
       let completedCount = 0;
 
-      methods.forEach(method => {
-        const req = new HttpRequest(method as any, '/api/data');
+      requests.forEach(req => {
         const response = new HttpResponse({ status: 200 });
         httpHandlerMock.handle.and.returnValue(of(response));
 
         interceptor.intercept(req, httpHandlerMock).subscribe(() => {
           completedCount++;
-          if (completedCount === methods.length) {
-            expect(httpHandlerMock.handle).toHaveBeenCalledTimes(methods.length);
+          if (completedCount === requests.length) {
+            expect(httpHandlerMock.handle).toHaveBeenCalledTimes(requests.length);
             done();
           }
         });

@@ -20,6 +20,18 @@
       </div>
     </div>
 
+    <!-- Entity Attributes (Source) -->
+    @if (filteredEntityAttributes().length > 0) {
+      <div class="entity-attributes">
+        @for (attr of filteredEntityAttributes(); track attr.attributeName) {
+          <div class="attribute-row">
+            <span class="attribute-name">{{ formatAttributeName(attr.attributeName) }}</span>
+            <span class="attribute-value">{{ formatValue(attr.value) }}</span>
+          </div>
+        }
+      </div>
+    }
+
     <!-- Associations List -->
     <div class="associations-container">
       @for (group of groupedAssociations(); track group.roleId + group.direction) {
@@ -54,10 +66,25 @@
           <!-- Expanded Target List -->
           @if (displayMode() === 'expandable' && isGroupExpanded(group)) {
             <div class="target-list">
+              @if (isLoadingTargets(group)) {
+                <div class="target-loading">Loading attributes...</div>
+              }
               @for (target of getTargetEntities(group); track target.rtId) {
-                <div class="target-item" (click)="onTargetClick(target)">
-                  <span class="target-id">{{ target.displayName }}</span>
-                  <span class="target-type-hint">{{ target.ckTypeId | slice:-30 }}</span>
+                <div class="target-entry">
+                  <div class="target-item" (click)="onTargetClick(target)">
+                    <span class="target-id">{{ target.displayName }}</span>
+                    <span class="target-type-hint" [title]="target.ckTypeId">{{ target.ckTypeId }}</span>
+                  </div>
+                  @if (target.attributes?.length) {
+                    <div class="target-attributes">
+                      @for (attr of target.attributes; track attr.attributeName) {
+                        <div class="target-attr-row">
+                          <span class="target-attr-name">{{ formatAttributeName(attr.attributeName) }}</span>
+                          <span class="target-attr-value">{{ formatValue(attr.value) }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
                 </div>
               }
             </div>

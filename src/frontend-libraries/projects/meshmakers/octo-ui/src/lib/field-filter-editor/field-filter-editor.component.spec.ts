@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from './field-filter-editor.component';
-import { FieldFilterOperatorsDto, AttributeItem } from '@meshmakers/octo-services';
+import { FieldFilterOperatorsDto, AttributeItem, AttributeSelectorService } from '@meshmakers/octo-services';
 
 describe('FieldFilterEditorComponent', () => {
   let component: FieldFilterEditorComponent;
@@ -31,7 +31,10 @@ describe('FieldFilterEditorComponent', () => {
         FieldFilterEditorComponent,
         FormsModule
       ],
-      providers: [provideNoopAnimations()]
+      providers: [
+        provideNoopAnimations(),
+        { provide: AttributeSelectorService, useValue: jasmine.createSpyObj('AttributeSelectorService', ['getAvailableAttributes']) }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(FieldFilterEditorComponent);
@@ -420,7 +423,7 @@ describe('FieldFilterEditorComponent', () => {
           id: 1,
           attributePath: 'name',
           operator: FieldFilterOperatorsDto.EqualsDto,
-          comparisonValue: null as any
+          comparisonValue: null
         };
 
         expect(component.getDisplayValue(filter)).toBe('');
@@ -466,7 +469,7 @@ describe('FieldFilterEditorComponent', () => {
           id: 1,
           attributePath: 'isActive',
           operator: FieldFilterOperatorsDto.EqualsDto,
-          comparisonValue: true as any
+          comparisonValue: true
         };
 
         expect(component.getBooleanValue(filter)).toBe('true');
@@ -501,7 +504,7 @@ describe('FieldFilterEditorComponent', () => {
           id: 1,
           attributePath: 'age',
           operator: FieldFilterOperatorsDto.EqualsDto,
-          comparisonValue: null as any
+          comparisonValue: null
         };
 
         expect(component.getNumericValue(filter)).toBe(0);
@@ -819,7 +822,7 @@ describe('FieldFilterEditorComponent', () => {
         operator: FieldFilterOperatorsDto.LikeDto,
         comparisonValue: 'test'
       });
-      expect((result[0] as any).id).toBeUndefined();
+      expect((result[0] as unknown as Record<string, unknown>)['id']).toBeUndefined();
     });
 
     it('should set filters from DTO array', () => {

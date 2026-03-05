@@ -8,6 +8,7 @@ import {
   SortOrdersDto
 } from '@meshmakers/octo-services';
 import { ListViewComponent, FetchDataOptions, FetchResultTyped } from '@meshmakers/shared-ui';
+import { FilterOperator } from '@progress/kendo-data-query';
 import { State } from '@progress/kendo-data-query/dist/npm/state';
 import { Observable, of } from 'rxjs';
 
@@ -91,7 +92,7 @@ describe('OctoGraphQlDataSource', () => {
 
     it('should return null when filter has no filters array', () => {
       const state: State = { filter: { logic: 'and', filters: [] } };
-      state.filter!.filters = undefined as any;
+      state.filter!.filters = undefined as never;
       const result = dataSource.testGetFieldFilterDefinitions(state);
       expect(result).toBeNull();
     });
@@ -311,7 +312,7 @@ describe('OctoGraphQlDataSource', () => {
       const state: State = {
         filter: {
           logic: 'and',
-          filters: [{ field: 'name', operator: 'unsupported' as any, value: 'test' }]
+          filters: [{ field: 'name', operator: 'unsupported' as unknown as FilterOperator, value: 'test' }]
         }
       };
 

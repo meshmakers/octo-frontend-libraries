@@ -1,7 +1,7 @@
 import { NgClass } from '@angular/common';
 import { Component, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommandBaseService, CommandItem, CommandSettingsService, TreeItemDataTyped } from '@meshmakers/shared-services';
+import { CommandBaseService, CommandItem, CommandSettingsService, TreeItemData, TreeItemDataTyped } from '@meshmakers/shared-services';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
 import { SeparatorComponent } from '@progress/kendo-angular-inputs';
 import { SplitterComponent, SplitterPaneComponent } from '@progress/kendo-angular-layout';
@@ -96,7 +96,7 @@ import { NodeDroppedEvent } from '../models/node-dropped-event';
   `,
   styleUrls: ['./base-tree-detail.component.scss']
 })
-export class BaseTreeDetailComponent<T = any> extends CommandBaseService {
+export class BaseTreeDetailComponent<T = unknown> extends CommandBaseService {
   @Input() treeDataSource!: HierarchyDataSource;
   @Input() leftPaneSize = '25%';
   @Input() leftToolbarActions: CommandItem[] = [];
@@ -120,13 +120,13 @@ export class BaseTreeDetailComponent<T = any> extends CommandBaseService {
     return this.leftToolbarActions.length > 0 || this.rightToolbarActions.length > 0;
   }
 
-  protected onNodeClick(treeItem: TreeItemDataTyped<T>): void {
-    this.selectedNode = treeItem;
-    this.nodeSelected.emit(treeItem);
+  protected onNodeClick(treeItem: TreeItemData): void {
+    this.selectedNode = treeItem as TreeItemDataTyped<T>;
+    this.nodeSelected.emit(treeItem as TreeItemDataTyped<T>);
   }
 
-  protected onNodeDrop(event: NodeDroppedEvent<T>): void {
-    this.nodeDropped.emit(event);
+  protected onNodeDrop(event: NodeDroppedEvent<unknown>): void {
+    this.nodeDropped.emit(event as NodeDroppedEvent<T>);
   }
 
   protected async onToolbarCommand(commandItem: CommandItem): Promise<void> {
@@ -192,7 +192,7 @@ export class BaseTreeDetailComponent<T = any> extends CommandBaseService {
     await this.treeComponent.refreshRuntimeEntities(nodes);
   }
 
-  public getExpandedKeys(): any[] {
+  public getExpandedKeys(): string[] {
     return this.treeComponent.getExpandedKeys();
   }
 
@@ -200,7 +200,7 @@ export class BaseTreeDetailComponent<T = any> extends CommandBaseService {
     this.treeComponent.collapseAll();
   }
 
-  public setExpandedKeys(keys: any[]): void {
+  public setExpandedKeys(keys: string[]): void {
     this.treeComponent.setExpandedKeys(keys);
   }
 }

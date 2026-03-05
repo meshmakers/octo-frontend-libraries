@@ -116,7 +116,7 @@ describe('IdentityService', () => {
       });
 
       it('should return null when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         const result = await service.getUsers(0, 10);
         expect(result).toBeNull();
       });
@@ -136,7 +136,7 @@ describe('IdentityService', () => {
       });
 
       it('should return null when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         const result = await service.getUserDetails('john.doe');
         expect(result).toBeNull();
       });
@@ -156,7 +156,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.createUser(mockUser);
       });
     });
@@ -176,7 +176,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.updateUser('john.doe', mockUser);
       });
     });
@@ -194,7 +194,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.deleteUser('john.doe');
       });
     });
@@ -214,7 +214,7 @@ describe('IdentityService', () => {
       });
 
       it('should return null when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         const result = await service.getUserRoles('john.doe');
         expect(result).toBeNull();
       });
@@ -256,7 +256,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.updateUserRoles('john.doe', [mockRole]);
       });
     });
@@ -275,7 +275,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.addUserToRole('john.doe', 'Admin');
       });
     });
@@ -293,7 +293,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.removeRoleFromUser('john.doe', 'Admin');
       });
     });
@@ -315,7 +315,7 @@ describe('IdentityService', () => {
       });
 
       it('should return null when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         const result = await service.resetPassword('john.doe', 'newPassword123');
         expect(result).toBeNull();
       });
@@ -344,7 +344,7 @@ describe('IdentityService', () => {
       });
 
       it('should return null when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         const result = await service.getClients(0, 10);
         expect(result).toBeNull();
       });
@@ -364,7 +364,7 @@ describe('IdentityService', () => {
       });
 
       it('should return null when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         const result = await service.getClientDetails('client-1');
         expect(result).toBeNull();
       });
@@ -384,7 +384,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.createClient(mockClient);
       });
     });
@@ -404,7 +404,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.updateClient('client-1', mockClient);
       });
     });
@@ -422,7 +422,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.deleteClient('client-1');
       });
     });
@@ -450,7 +450,7 @@ describe('IdentityService', () => {
       });
 
       it('should return null when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         const result = await service.getRoles(0, 10);
         expect(result).toBeNull();
       });
@@ -470,7 +470,7 @@ describe('IdentityService', () => {
       });
 
       it('should return null when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         const result = await service.getRoleDetails('Admin');
         expect(result).toBeNull();
       });
@@ -490,7 +490,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.createRole(mockRole);
       });
     });
@@ -510,7 +510,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.updateRole('Admin', mockRole);
       });
     });
@@ -528,7 +528,7 @@ describe('IdentityService', () => {
       });
 
       it('should not make request when config is not available', async () => {
-        mockConfigService.config = null as any;
+        mockConfigService.config = null;
         await service.deleteRole('Admin');
       });
     });

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { DialogService, DialogRef } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { firstValueFrom } from 'rxjs';
 import {
   AttributeSortSelectorDialogComponent,
@@ -15,7 +15,7 @@ export interface AttributeSortSelectorResult {
 
 @Injectable()
 export class AttributeSortSelectorDialogService {
-  private readonly dialogService = inject(DialogService);
+  private readonly windowService = inject(WindowService);
 
   /**
    * Opens the attribute sort selector dialog
@@ -35,23 +35,33 @@ export class AttributeSortSelectorDialogService {
       dialogTitle
     };
 
-    const dialogRef: DialogRef = this.dialogService.open({
+    const windowRef: WindowRef = this.windowService.open({
       content: AttributeSortSelectorDialogComponent,
-      width: 1100,
+      width: 1200,
       height: 750,
       minWidth: 1050,
       minHeight: 700,
+      resizable: true,
       title: dialogTitle || 'Select Attributes with Sort Order'
     });
 
     // Pass data to the component
-    if ((dialogRef.content as any)?.instance) {
-      ((dialogRef.content as any).instance as any).data = data;
+    const contentRef = windowRef.content as { instance?: AttributeSortSelectorDialogComponent } | undefined;
+    if (contentRef?.instance) {
+      contentRef.instance.data = data;
     }
 
     try {
-      const result = await firstValueFrom(dialogRef.result);
-      
+      const result = await firstValueFrom(windowRef.result);
+
+      if (result instanceof WindowCloseResult) {
+        // User closed the window via X button
+        return {
+          confirmed: false,
+          selectedAttributes: []
+        };
+      }
+
       if (result && typeof result === 'object' && 'selectedAttributes' in result) {
         // User clicked OK
         const dialogResult = result as AttributeSortSelectorDialogResult;

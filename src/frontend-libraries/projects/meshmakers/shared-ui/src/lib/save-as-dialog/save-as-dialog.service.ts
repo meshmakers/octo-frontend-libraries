@@ -23,8 +23,9 @@ export class SaveAsDialogService {
     });
 
     // Pass options to the component
-    if ((dialogRef.content as any)?.instance) {
-      (dialogRef.content as any).instance.options = options;
+    const contentRef = dialogRef.content as { instance?: { options?: SaveAsDialogOptions } };
+    if (contentRef?.instance) {
+      contentRef.instance.options = options;
     }
 
     try {

@@ -1,0 +1,36 @@
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  .toolbar-title {
+    margin-left: 8px;
+    font-weight: 500;
+  }
+
+  .toolbar-spacer {
+    flex: 1;
+  }
+
+  mm-breadcrumb {
+    flex: 0 1 auto;
+  }
+
+  .user-name {
+    font-size: 14px;
+    margin-right: 4px;
+  }
+}
+
+.app-sidenav {
+  width: 220px;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+
+  .active {
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.app-content {
+  min-height: calc(100vh - 64px);
+}

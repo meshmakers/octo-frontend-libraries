@@ -4,13 +4,14 @@ import { BotService } from './bot-service';
 import { MessageService } from '@meshmakers/shared-services';
 import { ProgressWindowService } from '../shared/progress-window.service';
 import { JobDto } from '../shared/jobDto';
+import { ProgressDialogRef, ProgressWindowOptions } from '../shared/progress-window.service';
 
 describe('JobManagementService', () => {
   let service: JobManagementService;
   let botServiceMock: jasmine.SpyObj<BotService>;
   let messageServiceMock: jasmine.SpyObj<MessageService>;
   let progressWindowServiceMock: jasmine.SpyObj<ProgressWindowService>;
-  let mockProgressDialog: any;
+  let mockProgressDialog: ProgressDialogRef;
 
   const mockSucceededJobDto: JobDto = {
     id: 'job-123',
@@ -75,7 +76,7 @@ describe('JobManagementService', () => {
         download: '',
         click: jasmine.createSpy('click')
       };
-      spyOn(document, 'createElement').and.returnValue(mockLink as any);
+      spyOn(document, 'createElement').and.returnValue(mockLink as unknown as HTMLElement);
 
       await service.downloadJobResult('tenant-1', 'job-123', 'export.zip');
 
@@ -187,7 +188,7 @@ describe('JobManagementService', () => {
 
       const progressCallArgs = progressWindowServiceMock.showIndeterminateProgress.calls.mostRecent().args;
       expect(progressCallArgs[0]).toBe('Test Title');
-      const options = progressCallArgs[2] as any;
+      const options = progressCallArgs[2] as Partial<ProgressWindowOptions>;
       expect(options.isCancelOperationAvailable).toBeTrue();
       expect(options.width).toBe(500);
     });
