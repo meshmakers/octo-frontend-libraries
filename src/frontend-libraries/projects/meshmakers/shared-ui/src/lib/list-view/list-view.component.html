@@ -7,6 +7,17 @@
   [sortable]="sortable"
   [filterable]="_showRowFilter"
 >
+  <kendo-grid-messages
+    [pagerItemsPerPage]="_messages.pagerItemsPerPage"
+    [pagerOf]="_messages.pagerOf"
+    [pagerItems]="_messages.pagerItems"
+    [pagerPage]="_messages.pagerPage"
+    [pagerFirstPage]="_messages.pagerFirstPage"
+    [pagerLastPage]="_messages.pagerLastPage"
+    [pagerPreviousPage]="_messages.pagerPreviousPage"
+    [pagerNextPage]="_messages.pagerNextPage"
+    [noRecords]="_messages.noRecords"
+  ></kendo-grid-messages>
   <ng-template kendoGridToolbarTemplate>
 
     @for (commandItem of leftToolbarActions; track commandItem.id) {
@@ -14,12 +25,12 @@
         @switch (commandItem.type) {
           @case ('link') {
             @if (commandItem.svgIcon) {
-              <button kendoTooltip kendoButton [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
+              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
                       [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             } @else {
-              <button kendoTooltip kendoButton [title]="commandItem.text"
+              <button kendoTooltip kendoButton themeColor="primary" [title]="commandItem.text"
                       [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -37,7 +48,7 @@
       <input
         class="k-textbox k-input k-input-md k-rounded-md"
         [style.width.px]="165"
-        placeholder="Search in all columns..."
+        [placeholder]="_messages.searchPlaceholder"
         [value]="searchValue"
         (input)="onFilter($any($event.target).value || null)"
       />
@@ -48,12 +59,12 @@
         @switch (commandItem.type) {
           @case ('link') {
             @if (commandItem.svgIcon) {
-              <button kendoTooltip kendoButton [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
+              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
                       [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             } @else {
-              <button kendoTooltip kendoButton [title]="commandItem.text"
+              <button kendoTooltip kendoButton themeColor="primary" [title]="commandItem.text"
                       [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -67,12 +78,12 @@
     }
 
     @if (rowFilterEnabled) {
-      <button kendoTooltip kendoButton [svgIcon]="filterIcon" (click)="onShowRowFilter()"
-              [disabled]="isLoading()" title="Show Row Filter"></button>
+      <button kendoTooltip kendoButton themeColor="primary" fillMode="flat" [svgIcon]="filterIcon" (click)="onShowRowFilter()"
+              [disabled]="isLoading()" [title]="_messages.showRowFilter"></button>
     }
-    <button kendoTooltip kendoGridExcelCommand [svgIcon]="excelSVG" [disabled]="isLoading()" title="Export to Excel"></button>
-    <button kendoTooltip kendoGridPDFCommand [svgIcon]="pdfSVG" [disabled]="isLoading()" title="Export to PDF"></button>
-    <button kendoTooltip kendoButton [svgIcon]="refreshIcon" (click)="onRefresh()" [disabled]="isLoading()" title="Refresh Data"></button>
+    <button kendoTooltip kendoGridExcelCommand themeColor="primary" fillMode="flat" [svgIcon]="excelSVG" [disabled]="isLoading()" [title]="_messages.exportToExcel"></button>
+    <button kendoTooltip kendoGridPDFCommand themeColor="primary" fillMode="flat" [svgIcon]="pdfSVG" [disabled]="isLoading()" [title]="_messages.exportToPdf"></button>
+    <button kendoTooltip kendoButton themeColor="primary" fillMode="flat" [svgIcon]="refreshIcon" (click)="onRefresh()" [disabled]="isLoading()" [title]="_messages.refreshData"></button>
   </ng-template>
 
   @if (showRowCheckBoxes && selectable.enabled) {
@@ -126,27 +137,23 @@
   }
 
   @if (_actionMenuItems.length > 0 || (_contextMenuItems.length > 0 &&  contextMenuType == 'actionMenu')) {
-    <kendo-grid-command-column title="Actions" [width]="220">
+    <kendo-grid-command-column [title]="_messages.actionsColumnTitle" [width]="220">
       <ng-template kendoGridCellTemplate let-dataItem>
         @if (_actionMenuItems.length > 0) {
           @for (menuItem of _actionMenuItems; track menuItem.text) {
             @if (!menuItem.separator) {
-              <button
-                type="button"
-                class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base"
+              <button kendoButton themeColor="primary" fillMode="flat"
+                [svgIcon]="menuItem.svgIcon!"
                 [title]="menuItem.text ?? ''"
                 [disabled]="(menuItem.disabled ?? false) || isLoading()"
                 (click)="onSelectOptionActionItem($event, dataItem, menuItem)">
-                @if (menuItem.svgIcon) {
-                  <kendo-svg-icon [icon]="menuItem.svgIcon"></kendo-svg-icon>
-                }
               </button>
             }
           }
         }
 
         @if (_contextMenuItems.length > 0 && contextMenuType == 'actionMenu') {
-          <button kendoButton [svgIcon]="moreVerticalIcon" [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
+          <button kendoButton themeColor="primary" fillMode="flat" [svgIcon]="moreVerticalIcon" [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
         }
       </ng-template>
     </kendo-grid-command-column>
@@ -171,7 +178,7 @@
     <ng-template kendoGridPDFTemplate let-pageNum="pageNum" let-totalPages="totalPages">
       <div class="page-template">
         <div class="footer" style="position: absolute; bottom: 0; width: 100%; text-align: center; font-size: 9px; color: #666;">
-          Page {{ pageNum }} of {{ totalPages }}
+          {{ getPdfPageText(pageNum, totalPages) }}
         </div>
       </div>
     </ng-template>

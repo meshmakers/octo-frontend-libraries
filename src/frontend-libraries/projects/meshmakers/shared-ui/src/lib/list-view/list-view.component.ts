@@ -2,13 +2,13 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewCh
 import {
   CellClickEvent,
   CellTemplateDirective, CheckboxColumnComponent,
-  ColumnComponent, CommandColumnComponent, ExcelModule,
+  ColumnComponent, CommandColumnComponent, CustomMessagesComponent, ExcelModule,
   GridComponent,
   GridSpacerComponent, PageChangeEvent,
   PagerSettings, PDFModule, SelectableSettings, SelectionEvent,
   ToolbarTemplateDirective
 } from '@progress/kendo-angular-grid';
-import {ColumnDefinition, ContextMenuType, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
+import {ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent} from '@progress/kendo-angular-inputs';
@@ -51,7 +51,8 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     SeparatorComponent,
     DatePipe,
     BytesToSizePipe,
-    SVGIconModule
+    SVGIconModule,
+    CustomMessagesComponent
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -129,6 +130,16 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public sortable = false;
   @Input() public rowFilterEnabled = false;
   @Input() public searchTextBoxEnabled = false;
+
+  protected _messages: ListViewMessages = {...DEFAULT_LIST_VIEW_MESSAGES};
+
+  @Input() public set messages(value: Partial<ListViewMessages>) {
+    this._messages = {...DEFAULT_LIST_VIEW_MESSAGES, ...value};
+  }
+
+  public get messages(): ListViewMessages {
+    return this._messages;
+  }
 
   @Input() public selectable: SelectableSettings = {
     enabled: false
@@ -423,6 +434,12 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     }
 
     return items;
+  }
+
+  protected getPdfPageText(pageNum: number, totalPages: number): string {
+    return this._messages.pdfPageTemplate
+      .replace('{pageNum}', String(pageNum))
+      .replace('{totalPages}', String(totalPages));
   }
 
   protected readonly moreVerticalIcon = moreVerticalIcon;
