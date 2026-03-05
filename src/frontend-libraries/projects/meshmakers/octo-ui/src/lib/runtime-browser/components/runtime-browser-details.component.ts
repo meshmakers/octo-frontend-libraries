@@ -19,6 +19,9 @@ import { ListViewComponent } from "@meshmakers/shared-ui";
 import { ButtonModule } from "@progress/kendo-angular-buttons";
 import { SVGIconModule } from "@progress/kendo-angular-icons";
 import { eyeIcon } from "@progress/kendo-svg-icons";
+import { RUNTIME_BROWSER_KEYS } from "../../../i18n/keys";
+import { AppTranslatePipe } from "../../i18n/translate.pipe";
+import { AppTranslateService } from "../../i18n/translate.service";
 import { CkTypeEntitiesDataSourceDirective } from "../data-sources/ck-type-entities-data-source.directive";
 import { EntityDetailDataSource } from "../data-sources/entity-detail-data-source.service";
 import { CkModelDto, CkTypeDto, RtEntityDto } from "../graphQL/globalTypes";
@@ -44,6 +47,7 @@ type BrowserItem =
     CommonModule,
     ButtonModule,
     SVGIconModule,
+    AppTranslatePipe,
     EntityDetailViewComponent,
     ListViewComponent,
     CkTypeEntitiesDataSourceDirective,
@@ -66,8 +70,8 @@ type BrowserItem =
               <div class="placeholder-icon">
                 <span class="k-icon k-i-information"></span>
               </div>
-              <h3>Runtime Browser</h3>
-              <p>Select an item from the tree to view its details</p>
+              <h3>{{ RUNTIME_BROWSER_KEYS.Title | appTranslate }}</h3>
+              <p>{{ RUNTIME_BROWSER_KEYS.SelectItem | appTranslate }}</p>
             </div>
           </div>
         }
@@ -87,52 +91,78 @@ type BrowserItem =
               </mm-entity-detail-view>
             } @else if (isCkModel(selectedItem.item)) {
               <div class="ck-model-details">
-                <h3>Construction Kit Model</h3>
+                <h3>
+                  {{ RUNTIME_BROWSER_KEYS.ConstructionKitModel | appTranslate }}
+                </h3>
                 <p>
-                  <strong>Full Name:</strong>
+                  <strong
+                    >{{ RUNTIME_BROWSER_KEYS.FullName | appTranslate }}:</strong
+                  >
                   {{ getCkModelIdFullName(selectedItem.item) }}
                 </p>
                 <p>
-                  <strong>Semantic Name:</strong>
+                  <strong
+                    >{{
+                      RUNTIME_BROWSER_KEYS.SemanticName | appTranslate
+                    }}:</strong
+                  >
                   {{ getCkModelIdSemanticName(selectedItem.item) }}
                 </p>
                 <p>
-                  <strong>Model Name:</strong>
+                  <strong
+                    >{{
+                      RUNTIME_BROWSER_KEYS.ModelName | appTranslate
+                    }}:</strong
+                  >
                   {{ getCkModelIdName(selectedItem.item) }}
                 </p>
                 <p>
-                  <strong>Version:</strong>
+                  <strong
+                    >{{ RUNTIME_BROWSER_KEYS.Version | appTranslate }}:</strong
+                  >
                   {{ getCkModelIdVersion(selectedItem.item) }}
                 </p>
                 <p>
-                  <strong>State:</strong>
+                  <strong
+                    >{{ RUNTIME_BROWSER_KEYS.State | appTranslate }}:</strong
+                  >
                   {{ getCkModelState(selectedItem.item) }}
                 </p>
                 <p class="info-text">
-                  Select a type from the tree to view its details.
+                  {{ RUNTIME_BROWSER_KEYS.SelectTypeFromTree | appTranslate }}
                 </p>
               </div>
             } @else if (isCkType(selectedItem.item)) {
               <div class="ck-type-details">
                 <div class="type-header">
-                  <h3>Type: {{ getCkTypeId(selectedItem.item) }}</h3>
+                  <h3>
+                    {{ RUNTIME_BROWSER_KEYS.Type | appTranslate }}:
+                    {{ getCkTypeId(selectedItem.item) }}
+                  </h3>
                   <div class="type-metadata">
                     @if (isCkTypeAbstract(selectedItem.item)) {
-                      <span class="badge abstract">Abstract</span>
+                      <span class="badge abstract">{{
+                        RUNTIME_BROWSER_KEYS.Abstract | appTranslate
+                      }}</span>
                     }
                     @if (isCkTypeFinal(selectedItem.item)) {
-                      <span class="badge final">Final</span>
+                      <span class="badge final">{{
+                        RUNTIME_BROWSER_KEYS.Final | appTranslate
+                      }}</span>
                     }
                     @if (getCkTypeBaseType(selectedItem.item)) {
                       <span class="base-type"
-                        >Base: {{ getCkTypeBaseType(selectedItem.item) }}</span
+                        >{{ RUNTIME_BROWSER_KEYS.Base | appTranslate }}:
+                        {{ getCkTypeBaseType(selectedItem.item) }}</span
                       >
                     }
                   </div>
                 </div>
 
                 <div class="entities-table">
-                  <h4>Runtime Entities</h4>
+                  <h4>
+                    {{ RUNTIME_BROWSER_KEYS.RuntimeEntities | appTranslate }}
+                  </h4>
                   <mm-list-view
                     mmCkTypeEntitiesDataSource
                     #dir="mmCkTypeEntitiesDataSource"
@@ -140,53 +170,21 @@ type BrowserItem =
                     [pageable]="{ buttonCount: 3, pageSizes: [10, 20, 50] }"
                     [pageSize]="20"
                     [selectable]="{ mode: 'single', enabled: true }"
-                    [columns]="[
-                      {
-                        field: 'rtId',
-                        displayName: 'Runtime ID',
-                        dataType: 'text',
-                      },
-                      {
-                        field: 'ckTypeId',
-                        displayName: 'Type ID',
-                        dataType: 'text',
-                      },
-                      {
-                        field: 'rtWellKnownName',
-                        displayName: 'Well Known Name',
-                        dataType: 'text',
-                      },
-                      {
-                        field: 'rtCreationDateTime',
-                        displayName: 'Created',
-                        format: 'short',
-                        dataType: 'iso8601',
-                      },
-                      {
-                        field: 'rtChangedDateTime',
-                        displayName: 'Modified',
-                        format: 'short',
-                        dataType: 'iso8601',
-                      },
-                    ]"
-                    [actionCommandItems]="[
-                      {
-                        id: 'view',
-                        type: 'link',
-                        text: 'View Details',
-                        svgIcon: detailsIcon,
-                        onClick: onViewEntityDetails,
-                      },
-                    ]"
+                    [columns]="ckTypeColumns"
+                    [actionCommandItems]="[ckTypeViewDetailsCommand]"
                   >
                   </mm-list-view>
                 </div>
               </div>
             } @else if (isCkModelsRoot(selectedItem.item)) {
               <div class="ck-models-root">
-                <h3>Construction Kit Models</h3>
+                <h3>
+                  {{
+                    RUNTIME_BROWSER_KEYS.ConstructionKitModels | appTranslate
+                  }}
+                </h3>
                 <p class="info-text">
-                  Browse available construction kit models and their types.
+                  {{ RUNTIME_BROWSER_KEYS.BrowseModelsAndTypes | appTranslate }}
                 </p>
               </div>
             }
@@ -214,9 +212,56 @@ export class RuntimeBrowserDetailsComponent
   private readonly stateService = inject(RuntimeBrowserStateService);
 
   protected readonly typeHelperService = inject(TypeHelperService);
+  protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
+  private readonly translation = inject(AppTranslateService);
 
   protected readonly detailsIcon = eyeIcon;
   protected fullEntity: RtEntityDto | null = null;
+
+  protected get ckTypeColumns() {
+    return [
+      {
+        field: "rtId",
+        displayName: this.translation.instant(RUNTIME_BROWSER_KEYS.RuntimeId),
+        dataType: "text" as const,
+      },
+      {
+        field: "ckTypeId",
+        displayName: this.translation.instant(RUNTIME_BROWSER_KEYS.TypeId),
+        dataType: "text" as const,
+      },
+      {
+        field: "rtWellKnownName",
+        displayName: this.translation.instant(
+          RUNTIME_BROWSER_KEYS.WellKnownName,
+        ),
+        dataType: "text" as const,
+      },
+      {
+        field: "rtCreationDateTime",
+        displayName: this.translation.instant(RUNTIME_BROWSER_KEYS.Created),
+        format: "short" as const,
+        dataType: "iso8601" as const,
+      },
+      {
+        field: "rtChangedDateTime",
+        displayName: this.translation.instant(RUNTIME_BROWSER_KEYS.Modified),
+        format: "short" as const,
+        dataType: "iso8601" as const,
+      },
+    ];
+  }
+
+  protected get ckTypeViewDetailsCommand() {
+    return {
+      id: "view",
+      type: "link" as const,
+      text: this.translation.instant(RUNTIME_BROWSER_KEYS.ViewDetails),
+      svgIcon: this.detailsIcon,
+      onClick: this.onViewEntityDetails,
+    };
+  }
+
   protected loading = false;
   protected error: string | null = null;
   private pendingRtCkTypeId: string | null = null;
@@ -297,11 +342,15 @@ export class RuntimeBrowserDetailsComponent
       );
 
       if (!this.fullEntity) {
-        this.error = "Could not load entity details";
+        this.error = this.translation.instant(
+          RUNTIME_BROWSER_KEYS.CouldNotLoadEntityDetails,
+        );
       }
     } catch (error) {
       console.error("Failed to load full entity details:", error);
-      this.error = "Failed to load entity details";
+      this.error = this.translation.instant(
+        RUNTIME_BROWSER_KEYS.FailedToLoadEntityDetails,
+      );
       // Fall back to the basic entity data
       this.fullEntity = runtimeEntity;
     } finally {

@@ -1805,24 +1805,6 @@ mm-process-widget {
 }
 
 // ----------------------------------------------------------------------------
-// GLOBAL STYLES
-// ----------------------------------------------------------------------------
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden;
-}
-
-body {
-  background-color: var(--kendo-color-app-surface);
-  color: var(--kendo-color-on-app-surface);
-  font-family: var(--lcars-font-primary);
-}
-
-// ----------------------------------------------------------------------------
 // LCARS PANEL STYLES
 // ----------------------------------------------------------------------------
 

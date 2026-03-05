@@ -1,6 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { CkTypeDto, RtEntityInputDto } from "@meshmakers/octo-services";
+import { TranslateService } from "@ngx-translate/core";
 import { KENDO_BUTTONS } from "@progress/kendo-angular-buttons";
 import { KENDO_DATEINPUTS } from "@progress/kendo-angular-dateinputs";
 import { KENDO_DROPDOWNS } from "@progress/kendo-angular-dropdowns";
@@ -9,6 +10,8 @@ import { KENDO_LABEL } from "@progress/kendo-angular-label";
 import { CardModule } from "@progress/kendo-angular-layout";
 import { NotificationService } from "@progress/kendo-angular-notification";
 import { firstValueFrom } from "rxjs";
+import { RUNTIME_BROWSER_KEYS } from "../../../../i18n/keys";
+import { AppTranslatePipe } from "../../../i18n/translate.pipe";
 import { CreateEntitiesDtoGQL } from "../../graphQL/createEntities";
 import { FormAttributesServiceMapper } from "../../services/form-attributes-mapper";
 import { FormAttributesService } from "../../services/form-attributes-service";
@@ -20,6 +23,7 @@ import { AttributesForm } from "../attributes-form/attributes-form";
   imports: [
     ReactiveFormsModule,
     CardModule,
+    AppTranslatePipe,
     AttributesForm,
     KENDO_INPUTS,
     KENDO_LABEL,
@@ -31,19 +35,25 @@ import { AttributesForm } from "../attributes-form/attributes-form";
     <div class="entity-editor-container">
       <kendo-card class="basic-info-card">
         <kendo-card-header>
-          <h3 class="title">Create Entity</h3>
+          <h3 class="title">
+            {{ RUNTIME_BROWSER_KEYS.CreateEntity | appTranslate }}
+          </h3>
         </kendo-card-header>
         <kendo-card-body>
           <div class="info-item">
-            <label>Target Location</label>
+            <label>{{
+              RUNTIME_BROWSER_KEYS.TargetLocation | appTranslate
+            }}</label>
             <kendo-textbox
               [disabled]="true"
-              [value]="parent?.text || 'Root Level'"
+              [value]="
+                parent?.text || (RUNTIME_BROWSER_KEYS.RootLevel | appTranslate)
+              "
             ></kendo-textbox>
           </div>
 
           <div class="info-item">
-            <label>Entity Type</label>
+            <label>{{ RUNTIME_BROWSER_KEYS.EntityType | appTranslate }}</label>
             <kendo-dropdownlist
               [data]="availableCkTypes"
               textField="rtCkTypeId"
@@ -67,7 +77,7 @@ import { AttributesForm } from "../attributes-form/attributes-form";
           </mm-attributes-form>
         } @else {
           <p class="select-type-prompt">
-            Please select an Entity Type to configure attributes.
+            {{ RUNTIME_BROWSER_KEYS.SelectTypePrompt | appTranslate }}
           </p>
         }
       </div>
@@ -78,10 +88,10 @@ import { AttributesForm } from "../attributes-form/attributes-form";
           [disabled]="!isSaveButtonEnabled"
           (click)="onSave()"
         >
-          Save
+          {{ RUNTIME_BROWSER_KEYS.Save | appTranslate }}
         </button>
         <button kendoButton [disabled]="isSaving" (click)="cancelEdit.emit()">
-          Cancel
+          {{ RUNTIME_BROWSER_KEYS.Cancel | appTranslate }}
         </button>
       </div>
     </div>
@@ -107,6 +117,8 @@ export class EntityEditorComponent {
 
   // Services
   private readonly notificationService = inject(NotificationService);
+  private readonly translation = inject(TranslateService);
+  protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
 
   // State
   protected isSaving = false;
@@ -140,7 +152,9 @@ export class EntityEditorComponent {
     if (!newNodeRtCkTypeId) {
       console.error("Missing required identifiers to create an entity.");
       this.showErrorNotification(
-        "Missing required identifiers to create an entity.",
+        this.translation.instant(
+          RUNTIME_BROWSER_KEYS.MissingRequiredIdentifiers,
+        ),
       );
       return;
     }
@@ -186,7 +200,9 @@ export class EntityEditorComponent {
       } as EntityCreationResult);
     } catch (error) {
       console.error("Error creating entity:", error);
-      this.showErrorNotification("Failed to create entity. Please try again.");
+      this.showErrorNotification(
+        this.translation.instant(RUNTIME_BROWSER_KEYS.FailedToCreateEntity),
+      );
       this.saveEdit.emit({
         success: false,
         rtId: undefined,

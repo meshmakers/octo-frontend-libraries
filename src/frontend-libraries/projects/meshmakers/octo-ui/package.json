@@ -2,6 +2,9 @@
   "name": "@meshmakers/octo-ui",
   "version": "0.0.1",
   "peerDependencies": {
+    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/http-loader": "^17.0.0",
+    "@angular/animations": "^21.0.6",
     "@angular/common": "^21.0.6",
     "@angular/core": "^21.0.6",
     "@angular/forms": "^21.0.6",
@@ -20,6 +23,14 @@
     "@progress/kendo-data-query": "^1.7.2",
     "@progress/kendo-svg-icons": "^4.5.0",
     "apollo-angular": "^13.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@ngx-translate/core": {
+      "optional": true
+    },
+    "@ngx-translate/http-loader": {
+      "optional": true
+    }
   },
   "dependencies": {
     "tslib": "^2.8.1"

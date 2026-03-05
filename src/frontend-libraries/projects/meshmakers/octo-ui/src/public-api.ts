@@ -1,15 +1,16 @@
 /*
  * Public API Surface of octo-ui
  */
-
 import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideOctoServices } from '@meshmakers/octo-services';
 import { provideMmSharedAuth } from '@meshmakers/shared-auth';
 import { provideMmSharedUi } from '@meshmakers/shared-ui';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AttributeSortSelectorDialogService } from './lib/attribute-sort-selector-dialog';
 import { CkTypeSelectorDialogService } from './lib/ck-type-selector-dialog';
 import { PropertyConverterService } from './lib/property-grid';
-
 export * from './lib/attribute-selector-dialog';
 export * from './lib/attribute-sort-selector-dialog';
 export * from './lib/ck-type-selector-dialog';
@@ -31,6 +32,15 @@ export function provideOctoUi(): EnvironmentProviders {
     provideOctoServices(),
     provideMmSharedUi(),
     provideMmSharedAuth(),
+    provideAnimations(),
+    provideTranslateService({
+      loader: provideTranslateHttpLoader({
+        prefix: '/src/i18n/',
+        suffix: '.json',
+        enforceLoading: false,
+        useHttpBackend: false,
+      }),
+    }),
     AttributeSortSelectorDialogService,
     PropertyConverterService,
     CkTypeSelectorDialogService,

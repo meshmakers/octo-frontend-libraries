@@ -1,4 +1,11 @@
-import { AfterViewInit, Component, inject, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  effect,
+  inject,
+  input,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandItem, TreeItemDataTyped } from '@meshmakers/shared-services';
 import {
@@ -6,6 +13,7 @@ import {
   InputService,
   NodeDroppedEvent,
 } from '@meshmakers/shared-ui';
+import { TranslateService } from '@ngx-translate/core';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import {
   arrowRotateCwIcon,
@@ -14,6 +22,9 @@ import {
   xIcon,
 } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
+import { RUNTIME_BROWSER_KEYS } from '../../i18n/keys';
+import { AppTranslatePipe } from '../i18n/translate.pipe';
+import { AppTranslateService } from '../i18n/translate.service';
 import { RuntimeBrowserDetailsComponent } from './components/runtime-browser-details.component';
 import { RuntimeBrowserDataSource } from './data-sources/runtime-browser-data-source.service';
 import { GetRuntimeEntityByIdDtoGQL } from './graphQL/getRuntimeEntityById';
@@ -36,7 +47,11 @@ type BrowserItem =
 
 @Component({
   selector: 'mm-runtime-browser',
-  imports: [BaseTreeDetailComponent, RuntimeBrowserDetailsComponent],
+  imports: [
+    BaseTreeDetailComponent,
+    RuntimeBrowserDetailsComponent,
+    AppTranslatePipe,
+  ],
   template: `
     <div class="runtime-browser-container">
       <!-- LCARS Header -->
@@ -44,13 +59,19 @@ type BrowserItem =
         <div class="lcars-header-accent"></div>
         <div class="header-content">
           <h1 class="page-title">
-            <span class="title-prefix">REPOSITORY</span>
-            <span class="title-main">Runtime Browser</span>
+            <span class="title-prefix">{{
+              RUNTIME_BROWSER_KEYS.TitlePrefix | appTranslate
+            }}</span>
+            <span class="title-main">{{
+              RUNTIME_BROWSER_KEYS.Title | appTranslate
+            }}</span>
           </h1>
           <div class="header-stats">
             <div class="stat-badge">
               <span class="badge-icon">&#9632;</span>
-              <span class="badge-label">Entities & Data</span>
+              <span class="badge-label">{{
+                RUNTIME_BROWSER_KEYS.BadgeLabel | appTranslate
+              }}</span>
             </div>
           </div>
         </div>
@@ -88,7 +109,9 @@ type BrowserItem =
         <div class="footer-spacer"></div>
         <div class="footer-indicator">
           <span class="indicator-dot"></span>
-          <span class="indicator-text">READY</span>
+          <span class="indicator-text">{{
+            RUNTIME_BROWSER_KEYS.Ready | appTranslate
+          }}</span>
         </div>
       </div>
     </div>
@@ -105,53 +128,63 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   private readonly stateService = inject(RuntimeBrowserStateService);
   private readonly typeHelperService = inject(TypeHelperService);
   private readonly notificationService = inject(NotificationService);
+  private readonly appTranslateService = inject(AppTranslateService);
 
   private isSelectedItemAnRtEntity = false;
   private isLoading = false;
   private isCreating = false;
+
+  language = input('en-GB');
 
   @ViewChild('treeDetail', { static: false })
   treeDetail!: BaseTreeDetailComponent<BrowserItem>;
   @ViewChild('detailsPanel', { static: false })
   detailsPanel!: RuntimeBrowserDetailsComponent;
   // Define toolbar actions
-  protected readonly leftToolbarActions: CommandItem[] = [
-    {
-      id: 'goto-entity',
-      type: 'link',
-      text: 'Goto Entity',
-      svgIcon: locationsIcon,
-      onClick: async () => await this.onGotoEntity(),
-      isDisabled: () => !this.isGoToEntityButtonEnabled,
-    },
-  ];
+  protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
+  private readonly translation = inject(TranslateService);
 
-  protected readonly rightToolbarActions: CommandItem[] = [
-    {
-      id: 'refresh',
-      type: 'link',
-      text: 'Refresh',
-      svgIcon: arrowRotateCwIcon,
-      onClick: async () => await this.onRefresh(),
-      isDisabled: () => !this.isRefreshButtonEnabled,
-    },
-    {
-      id: 'create',
-      type: 'link',
-      text: 'Create',
-      svgIcon: plusIcon,
-      onClick: async () => await this.onCreate(),
-      isDisabled: () => !this.isCreateButtonEnabled,
-    },
-    {
-      id: 'delete',
-      type: 'link',
-      text: 'Delete',
-      svgIcon: xIcon,
-      onClick: async () => await this.onDelete(),
-      isDisabled: () => !this.isDeleteButtonEnabled,
-    },
-  ];
+  protected get leftToolbarActions(): CommandItem[] {
+    return [
+      {
+        id: 'goto-entity',
+        type: 'link',
+        text: this.translation.instant(RUNTIME_BROWSER_KEYS.GotoEntity),
+        svgIcon: locationsIcon,
+        onClick: async () => await this.onGotoEntity(),
+        isDisabled: () => !this.isGoToEntityButtonEnabled,
+      },
+    ];
+  }
+
+  protected get rightToolbarActions(): CommandItem[] {
+    return [
+      {
+        id: 'refresh',
+        type: 'link',
+        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Refresh),
+        svgIcon: arrowRotateCwIcon,
+        onClick: async () => await this.onRefresh(),
+        isDisabled: () => !this.isRefreshButtonEnabled,
+      },
+      {
+        id: 'create',
+        type: 'link',
+        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Create),
+        svgIcon: plusIcon,
+        onClick: async () => await this.onCreate(),
+        isDisabled: () => !this.isCreateButtonEnabled,
+      },
+      {
+        id: 'delete',
+        type: 'link',
+        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Delete),
+        svgIcon: xIcon,
+        onClick: async () => await this.onDelete(),
+        isDisabled: () => !this.isDeleteButtonEnabled,
+      },
+    ];
+  }
 
   private _selectedItem: TreeItemDataTyped<BrowserItem> | null = null;
   protected get selectedItem(): TreeItemDataTyped<BrowserItem> | null {
@@ -175,6 +208,12 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   }
   private get isDeleteButtonEnabled() {
     return !this.isLoading && this.isSelectedItemAnRtEntity;
+  }
+
+  constructor() {
+    effect(() => {
+      this.appTranslateService.setLanguage(this.language());
+    });
   }
 
   ngAfterViewInit(): void {
@@ -525,10 +564,10 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   protected async onGotoEntity(): Promise<void> {
     try {
       const entityIdentifier = await this.inputService.showInputDialog(
-        'Go to Entity',
-        'Enter entity identifier in format "ckTypeId@rtId":',
+        this.translation.instant(RUNTIME_BROWSER_KEYS.GoToEntityTitle),
+        this.translation.instant(RUNTIME_BROWSER_KEYS.GoToEntityPrompt),
         'ckTypeId@rtId',
-        'Go',
+        this.translation.instant(RUNTIME_BROWSER_KEYS.Go),
       );
 
       if (entityIdentifier) {

@@ -28,6 +28,9 @@ import {
   infoCircleIcon,
 } from "@progress/kendo-svg-icons";
 import { firstValueFrom } from "rxjs";
+import { RUNTIME_BROWSER_KEYS } from "../../../i18n/keys";
+import { AppTranslatePipe } from "../../i18n/translate.pipe";
+import { AppTranslateService } from "../../i18n/translate.service";
 import {
   BinaryDownloadEvent,
   PropertyConverterService,
@@ -58,6 +61,7 @@ interface DirectionOption {
     CardModule,
     DropDownListModule,
     TextBoxModule,
+    AppTranslatePipe,
     PropertyGridComponent,
     ListViewComponent,
     EntityAssociationsDataSourceDirective,
@@ -65,14 +69,16 @@ interface DirectionOption {
   template: `
     @if (loading) {
       <div class="loading-state">
-        <p>Loading entity details...</p>
+        <p>{{ RUNTIME_BROWSER_KEYS.LoadingEntityDetails | appTranslate }}</p>
       </div>
     }
 
     @if (error) {
       <div class="error-state">
         <p class="error-message">{{ error }}</p>
-        <button kendoButton (click)="retry.emit()">Retry</button>
+        <button kendoButton (click)="retry.emit()">
+          {{ RUNTIME_BROWSER_KEYS.Retry | appTranslate }}
+        </button>
       </div>
     }
 
@@ -83,7 +89,7 @@ interface DirectionOption {
           <kendo-card-header>
             <h3>
               <kendo-svgicon [icon]="infoCircleIcon"></kendo-svgicon>
-              Entity Information
+              {{ RUNTIME_BROWSER_KEYS.EntityInformation | appTranslate }}
             </h3>
           </kendo-card-header>
           <kendo-card-body>
@@ -97,13 +103,20 @@ interface DirectionOption {
                     fillMode="flat"
                     size="small"
                     [svgIcon]="copyIcon"
-                    title="Copy to clipboard"
-                    (click)="copyToClipboard(entity.rtId, 'Runtime ID')"
+                    [title]="
+                      RUNTIME_BROWSER_KEYS.CopyToClipboard | appTranslate
+                    "
+                    (click)="
+                      copyToClipboard(
+                        entity.rtId,
+                        translation.instant(RUNTIME_BROWSER_KEYS.RuntimeId)
+                      )
+                    "
                   ></button>
                 </div>
               </div>
               <div class="info-item with-action">
-                <label>Type ID:</label>
+                <label>{{ RUNTIME_BROWSER_KEYS.TypeId | appTranslate }}:</label>
                 <div class="value-with-action">
                   <span class="value">{{ entity.ckTypeId }}</span>
                   <button
@@ -111,13 +124,24 @@ interface DirectionOption {
                     fillMode="flat"
                     size="small"
                     [svgIcon]="copyIcon"
-                    title="Copy to clipboard"
-                    (click)="copyToClipboard(entity.ckTypeId, 'Type ID')"
+                    [title]="
+                      RUNTIME_BROWSER_KEYS.CopyToClipboard | appTranslate
+                    "
+                    (click)="
+                      copyToClipboard(
+                        entity.ckTypeId,
+                        translation.instant(RUNTIME_BROWSER_KEYS.TypeId)
+                      )
+                    "
                   ></button>
                 </div>
               </div>
               <div class="info-item with-action">
-                <label>Entity Identifier:</label>
+                <label
+                  >{{
+                    RUNTIME_BROWSER_KEYS.EntityIdentifier | appTranslate
+                  }}:</label
+                >
                 <div class="value-with-action">
                   <span class="value">{{ getEntityIdentifier() }}</span>
                   <button
@@ -125,11 +149,16 @@ interface DirectionOption {
                     fillMode="flat"
                     size="small"
                     [svgIcon]="copyIcon"
-                    title="Copy entity identifier to clipboard"
+                    [title]="
+                      RUNTIME_BROWSER_KEYS.CopyEntityIdentifierToClipboard
+                        | appTranslate
+                    "
                     (click)="
                       copyToClipboard(
                         getEntityIdentifier(),
-                        'Entity Identifier'
+                        translation.instant(
+                          RUNTIME_BROWSER_KEYS.EntityIdentifier
+                        )
                       )
                     "
                   ></button>
@@ -137,7 +166,11 @@ interface DirectionOption {
               </div>
               @if (entity.rtWellKnownName) {
                 <div class="info-item">
-                  <label>Well Known Name:</label>
+                  <label
+                    >{{
+                      RUNTIME_BROWSER_KEYS.WellKnownName | appTranslate
+                    }}:</label
+                  >
                   <span class="value">{{ entity.rtWellKnownName }}</span>
                 </div>
               }
@@ -148,7 +181,12 @@ interface DirectionOption {
         <!-- Tab Strip for Detailed Information -->
         <kendo-tabstrip class="entity-tabs" (tabSelect)="onTabSelect($event)">
           <kendo-tabstrip-tab
-            [title]="'Attributes (' + getPropertyCount() + ')'"
+            [title]="
+              (RUNTIME_BROWSER_KEYS.Attributes | appTranslate) +
+              ' (' +
+              getPropertyCount() +
+              ')'
+            "
             [selected]="true"
           >
             <ng-template kendoTabContent>
@@ -175,13 +213,22 @@ interface DirectionOption {
           </kendo-tabstrip-tab>
 
           <kendo-tabstrip-tab
-            [title]="'Associations (' + getAssociationCount() + ')'"
+            [title]="
+              (RUNTIME_BROWSER_KEYS.Associations | appTranslate) +
+              ' (' +
+              getAssociationCount() +
+              ')'
+            "
           >
             <ng-template kendoTabContent>
               <div class="tab-content associations-tab">
                 <div class="associations-toolbar">
                   <div class="filter-group">
-                    <label>Direction:</label>
+                    <label
+                      >{{
+                        RUNTIME_BROWSER_KEYS.Direction | appTranslate
+                      }}:</label
+                    >
                     <kendo-dropdownlist
                       [data]="directionOptions"
                       [value]="selectedDirection"
@@ -193,31 +240,47 @@ interface DirectionOption {
                     </kendo-dropdownlist>
                   </div>
                   <div class="filter-group">
-                    <label>Role:</label>
+                    <label
+                      >{{ RUNTIME_BROWSER_KEYS.Role | appTranslate }}:</label
+                    >
                     <kendo-textbox
                       [value]="selectedRoleId ?? ''"
                       [clearButton]="true"
-                      placeholder="All roles"
+                      [placeholder]="
+                        RUNTIME_BROWSER_KEYS.AllRoles | appTranslate
+                      "
                       (valueChange)="onRoleIdChange($event)"
                     >
                     </kendo-textbox>
                   </div>
                   <div class="filter-group">
-                    <label>Related Type:</label>
+                    <label
+                      >{{
+                        RUNTIME_BROWSER_KEYS.RelatedType | appTranslate
+                      }}:</label
+                    >
                     <kendo-textbox
                       [value]="selectedRelatedRtCkId ?? ''"
                       [clearButton]="true"
-                      placeholder="All types"
+                      [placeholder]="
+                        RUNTIME_BROWSER_KEYS.AllTypes | appTranslate
+                      "
                       (valueChange)="onRelatedRtCkIdChange($event)"
                     >
                     </kendo-textbox>
                   </div>
                   <div class="filter-group">
-                    <label>Related Entity:</label>
+                    <label
+                      >{{
+                        RUNTIME_BROWSER_KEYS.RelatedEntity | appTranslate
+                      }}:</label
+                    >
                     <kendo-textbox
                       [value]="selectedRelatedRtId ?? ''"
                       [clearButton]="true"
-                      placeholder="Entity ID"
+                      [placeholder]="
+                        RUNTIME_BROWSER_KEYS.EntityId | appTranslate
+                      "
                       (valueChange)="onRelatedRtIdChange($event)"
                     >
                     </kendo-textbox>
@@ -257,7 +320,9 @@ interface DirectionOption {
                     {
                       id: 'view',
                       type: 'link',
-                      text: 'View Details',
+                      text: translation.instant(
+                        RUNTIME_BROWSER_KEYS.ViewDetails
+                      ),
                       svgIcon: detailsIcon,
                       onClick: onViewAssociationDetails,
                     },
@@ -292,6 +357,8 @@ export class EntityDetailViewComponent implements OnChanges {
   private readonly notificationService = inject(NotificationService);
   private readonly propertyConverter = inject(PropertyConverterService);
   private readonly getBinaryInfoGQL = inject(GetBinaryInfoDtoGQL);
+  protected readonly translation = inject(AppTranslateService);
+  protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
 
   protected readonly infoCircleIcon = infoCircleIcon;
   protected readonly propertiesIcon = gearIcon;
@@ -306,12 +373,23 @@ export class EntityDetailViewComponent implements OnChanges {
     showSearch: true,
   };
 
-  // Direction filter
-  protected readonly directionOptions: DirectionOption[] = [
-    { text: "All", value: GraphDirectionDto.AnyDto },
-    { text: "Inbound", value: GraphDirectionDto.InboundDto },
-    { text: "Outbound", value: GraphDirectionDto.OutboundDto },
-  ];
+  // Direction filter - use getter for translation
+  protected get directionOptions(): DirectionOption[] {
+    return [
+      {
+        text: this.translation.instant(RUNTIME_BROWSER_KEYS.All),
+        value: GraphDirectionDto.AnyDto,
+      },
+      {
+        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Inbound),
+        value: GraphDirectionDto.InboundDto,
+      },
+      {
+        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Outbound),
+        value: GraphDirectionDto.OutboundDto,
+      },
+    ];
+  }
   protected selectedDirection: GraphDirectionDto = GraphDirectionDto.AnyDto;
 
   // Role filter
@@ -452,7 +530,7 @@ export class EntityDetailViewComponent implements OnChanges {
       .writeText(value)
       .then(() => {
         this.notificationService.show({
-          content: `${label} copied to clipboard`,
+          content: `${label} ${this.translation.instant(RUNTIME_BROWSER_KEYS.CopiedToClipboard)}`,
           type: { style: "success", icon: true },
           position: { horizontal: "right", vertical: "top" },
           hideAfter: 2000,
@@ -462,7 +540,9 @@ export class EntityDetailViewComponent implements OnChanges {
       .catch((err) => {
         console.error("Failed to copy:", err);
         this.notificationService.show({
-          content: "Failed to copy to clipboard",
+          content: this.translation.instant(
+            RUNTIME_BROWSER_KEYS.FailedToCopyToClipboard,
+          ),
           type: { style: "error", icon: true },
           position: { horizontal: "right", vertical: "top" },
           hideAfter: 3000,
@@ -497,7 +577,9 @@ export class EntityDetailViewComponent implements OnChanges {
       } else {
         console.warn("No downloadUri found for binary");
         this.notificationService.show({
-          content: "Download not available for this file",
+          content: this.translation.instant(
+            RUNTIME_BROWSER_KEYS.DownloadNotAvailable,
+          ),
           type: { style: "warning", icon: true },
           position: { horizontal: "right", vertical: "top" },
           hideAfter: 3000,
@@ -507,7 +589,9 @@ export class EntityDetailViewComponent implements OnChanges {
     } catch (error) {
       console.error("Failed to load binary info:", error);
       this.notificationService.show({
-        content: "Failed to load download information",
+        content: this.translation.instant(
+          RUNTIME_BROWSER_KEYS.FailedToLoadDownloadInfo,
+        ),
         type: { style: "error", icon: true },
         position: { horizontal: "right", vertical: "top" },
         hideAfter: 3000,
