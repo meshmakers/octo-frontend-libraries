@@ -107,6 +107,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly isInitialized = this._isInitialized.asReadonly();
   private readonly _notFoundError = signal<string | null>(null);
   protected readonly notFoundError = this._notFoundError.asReadonly();
+  private readonly _isReadonly = signal(false);
+  protected readonly isReadonly = this._isReadonly.asReadonly();
 
   // Computed link to MeshBoard page with tenant
   protected readonly meshBoardPageLink = computed(() => {
@@ -176,6 +178,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       const rtIdFromRoute = this.route.snapshot.paramMap.get('rtId');
       // Get meshBoardWellKnownName from route data (for pre-configured routes)
       const wellKnownName = this.route.snapshot.data['meshBoardWellKnownName'] as string | undefined;
+      const readonly = this.route.snapshot.data['meshBoardReadonly'] as boolean | undefined;
+      this._isReadonly.set(readonly === true);
 
       if (rtIdFromRoute) {
         // Load specific MeshBoard from URL parameter
