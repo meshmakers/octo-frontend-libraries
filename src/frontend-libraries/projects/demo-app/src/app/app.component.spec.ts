@@ -27,7 +27,9 @@ describe('AppComponent', () => {
     mockComponentMenuService = jasmine.createSpyObj('ComponentMenuService', ['setSelectedMenuItem'], {
       menuItems: of([])
     });
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockRouter = jasmine.createSpyObj('Router', ['navigate'], {
+      events: of()
+    });
     mockAuthorizeService = jasmine.createSpyObj('AuthorizeService', [
       'initialize', 'isAuthenticated', 'isInRole', 'login', 'logout', 'getUsername'
     ], {
