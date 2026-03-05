@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, inject, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
 import {
   CellClickEvent,
   CellTemplateDirective, CheckboxColumnComponent,
@@ -11,7 +11,7 @@ import {
 import {ColumnDefinition, ContextMenuType, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
-import {SeparatorComponent, TextBoxComponent, CheckBoxComponent} from '@progress/kendo-angular-inputs';
+import {SeparatorComponent, CheckBoxComponent} from '@progress/kendo-angular-inputs';
 import {fileExcelIcon, filePdfIcon, filterIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
@@ -26,8 +26,8 @@ import {
 import {CommandBaseService, CommandItem, CommandSettingsService} from '@meshmakers/shared-services';
 import {Router} from '@angular/router';
 import {BytesToSizePipe} from '../pipes/bytes-to-size.pipe';
-import {Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, takeUntil} from 'rxjs/operators';
+import {asyncScheduler, Subject} from 'rxjs';
+import {debounceTime, distinctUntilChanged, observeOn, takeUntil} from 'rxjs/operators';
 import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.service';
 
 @Component({
@@ -38,7 +38,6 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     ColumnComponent,
     PascalCasePipe,
     ToolbarTemplateDirective,
-    TextBoxComponent,
     GridSpacerComponent,
     ExcelModule,
     PDFModule,
@@ -55,7 +54,8 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     SVGIconModule
   ],
   templateUrl: './list-view.component.html',
-  styleUrl: './list-view.component.scss'
+  styleUrl: './list-view.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListViewComponent extends CommandBaseService implements OnDestroy, AfterViewInit {
 
@@ -79,7 +79,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   protected _showRowFilter = false;
 
   /** Indicates if the data source is currently loading data */
-  protected isLoading = false;
+  protected isLoading = signal(false);
 
   @ViewChild(GridComponent) private gridComponent?: GridComponent;
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;
@@ -155,8 +155,6 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return this._columns;
   }
 
-  private readonly cdr = inject(ChangeDetectorRef);
-
   constructor() {
     const commandSettingsService = inject(CommandSettingsService);
     const router = inject(Router);
@@ -174,17 +172,16 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   ngAfterViewInit(): void {
-    // Subscribe to loading state from the data binding directive
+    // Subscribe to loading state from the data binding directive.
+    // Use asyncScheduler to defer each emission to a separate macrotask,
+    // preventing the signal from changing during Angular's CD verify pass
+    // (which causes NG0100 when Apollo returns cached data quickly).
     if (this.dataBindingDirective) {
       this.dataBindingDirective.isLoading$.pipe(
+        observeOn(asyncScheduler),
         takeUntil(this.destroy$)
       ).subscribe(loading => {
-        // Use setTimeout to defer the update to the next tick,
-        // avoiding ExpressionChangedAfterItHasBeenCheckedError
-        setTimeout(() => {
-          this.isLoading = loading;
-          this.cdr.markForCheck();
-        });
+        this.isLoading.set(loading);
       });
     }
   }

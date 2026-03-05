@@ -72,7 +72,8 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
       if (!this.dataSource) {
         return;
       }
-      this.grid.loading = true;
+      // Only use dataSource.setLoading() (tracked via isLoading$ / isLoading signal).
+      // Do NOT set grid.loading directly — it triggers Kendo's internal loading overlay.
       this.dataSource.setLoading(true);
       const forceRefresh = this._forceRefresh;
       this._forceRefresh = false; // Reset for next call
@@ -83,7 +84,6 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
         forceRefresh
       }).subscribe({
         next: value => {
-          this.grid.loading = false;
           this.dataSource.setLoading(false);
           this.grid.data = {
             data: (value?.data ?? []) as unknown[],
@@ -92,12 +92,10 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
           this.notifyDataChange();
         },
         error: () => {
-          this.grid.loading = false;
           this.dataSource.setLoading(false);
         }
       });
     } catch {
-      this.grid.loading = false;
       this.dataSource.setLoading(false);
     }
   }

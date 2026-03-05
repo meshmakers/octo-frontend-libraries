@@ -14,12 +14,12 @@
           @case ('link') {
             @if (commandItem.svgIcon) {
               <button kendoTooltip kendoButton [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading"
+                      [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             } @else {
               <button kendoTooltip kendoButton [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading"
+                      [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             }
@@ -33,13 +33,13 @@
 
     <kendo-grid-spacer></kendo-grid-spacer>
     @if (searchTextBoxEnabled) {
-      <kendo-textbox
+      <input
+        class="k-textbox k-input k-input-md k-rounded-md"
         [style.width.px]="165"
         placeholder="Search in all columns..."
         [value]="searchValue"
-        [disabled]="isLoading"
-        (valueChange)="onFilter($event)"
-      ></kendo-textbox>
+        (input)="onFilter($any($event.target).value || null)"
+      />
     }
 
     @for (commandItem of rightToolbarActions; track commandItem.id) {
@@ -48,12 +48,12 @@
           @case ('link') {
             @if (commandItem.svgIcon) {
               <button kendoTooltip kendoButton [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading"
+                      [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             } @else {
               <button kendoTooltip kendoButton [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading"
+                      [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             }
@@ -67,11 +67,11 @@
 
     @if (rowFilterEnabled) {
       <button kendoTooltip kendoButton [svgIcon]="filterIcon" (click)="onShowRowFilter()"
-              [disabled]="isLoading" title="Show Row Filter"></button>
+              [disabled]="isLoading()" title="Show Row Filter"></button>
     }
-    <button kendoTooltip kendoGridExcelCommand [svgIcon]="excelSVG" [disabled]="isLoading" title="Export to Excel"></button>
-    <button kendoTooltip kendoGridPDFCommand [svgIcon]="pdfSVG" [disabled]="isLoading" title="Export to PDF"></button>
-    <button kendoTooltip kendoButton [svgIcon]="refreshIcon" (click)="onRefresh()" [disabled]="isLoading" title="Refresh Data"></button>
+    <button kendoTooltip kendoGridExcelCommand [svgIcon]="excelSVG" [disabled]="isLoading()" title="Export to Excel"></button>
+    <button kendoTooltip kendoGridPDFCommand [svgIcon]="pdfSVG" [disabled]="isLoading()" title="Export to PDF"></button>
+    <button kendoTooltip kendoButton [svgIcon]="refreshIcon" (click)="onRefresh()" [disabled]="isLoading()" title="Refresh Data"></button>
   </ng-template>
 
   @if (showRowCheckBoxes && selectable.enabled) {
@@ -134,7 +134,7 @@
                 type="button"
                 class="k-button k-button-md k-rounded-md k-button-solid k-button-solid-base"
                 [title]="menuItem.text ?? ''"
-                [disabled]="(menuItem.disabled ?? false) || isLoading"
+                [disabled]="(menuItem.disabled ?? false) || isLoading()"
                 (click)="onSelectOptionActionItem($event, dataItem, menuItem)">
                 @if (menuItem.svgIcon) {
                   <kendo-svg-icon [icon]="menuItem.svgIcon"></kendo-svg-icon>
@@ -145,7 +145,7 @@
         }
 
         @if (_contextMenuItems.length > 0 && contextMenuType == 'actionMenu') {
-          <button kendoButton [svgIcon]="moreVerticalIcon" [disabled]="isLoading" (click)="onContextMenu(dataItem, $event)"></button>
+          <button kendoButton [svgIcon]="moreVerticalIcon" [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
         }
       </ng-template>
     </kendo-grid-command-column>
