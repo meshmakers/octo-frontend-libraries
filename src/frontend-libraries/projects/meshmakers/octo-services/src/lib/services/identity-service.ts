@@ -8,9 +8,11 @@ import {RoleDto} from '../shared/roleDto';
 import {PagedResultDto} from '@meshmakers/shared-services';
 import {ClientDto} from '../shared/clientDto';
 import {IdentityProviderDto, IdentityProvidersResult} from '../shared/identityProviderDto';
+import {EmailDomainGroupRuleDto, EmailDomainGroupRulesResult} from '../shared/emailDomainGroupRuleDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 import {CreateGroupDto, GroupDto, UpdateGroupDto} from '../shared/groupDto';
+import {CreateExternalTenantUserMappingDto, ExternalTenantUserMappingDto} from '../shared/externalTenantUserMappingDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 
 @Injectable({
@@ -399,6 +401,71 @@ export class IdentityService {
   }
 
   // ========================================
+  // Email Domain Group Rules
+  // ========================================
+
+  async getEmailDomainGroupRules(): Promise<EmailDomainGroupRulesResult | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<EmailDomainGroupRulesResult | null>(baseUrl + 'emaildomaingrouprules', {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getEmailDomainGroupRuleDetails(rtId: string): Promise<EmailDomainGroupRuleDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<EmailDomainGroupRuleDto | null>(baseUrl + `emaildomaingrouprules/${rtId}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async createEmailDomainGroupRule(dto: EmailDomainGroupRuleDto): Promise<EmailDomainGroupRuleDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<EmailDomainGroupRuleDto>(baseUrl + 'emaildomaingrouprules', dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async updateEmailDomainGroupRule(rtId: string, dto: EmailDomainGroupRuleDto): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<any>(baseUrl + `emaildomaingrouprules/${rtId}`, dto, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async deleteEmailDomainGroupRule(rtId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<any>(baseUrl + `emaildomaingrouprules/${rtId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  // ========================================
   // Group Management
   // ========================================
 
@@ -555,6 +622,69 @@ export class IdentityService {
     if (baseUrl) {
       await firstValueFrom(
         this.httpClient.delete<any>(baseUrl + `groups/${rtId}/members/groups/${childGroupId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  // ========================================
+  // Admin Provisioning (via system tenant)
+  // ========================================
+
+  private getSystemTenantBaseUrl(): string | null {
+    if (!this.configurationService.config?.issuer) return null;
+    return `${this.configurationService.config.issuer}octosystem/v1/`;
+  }
+
+  async getAdminProvisionedUsers(targetTenantId: string): Promise<ExternalTenantUserMappingDto[] | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<ExternalTenantUserMappingDto[]>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async provisionCurrentUser(targetTenantId: string): Promise<ExternalTenantUserMappingDto | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<ExternalTenantUserMappingDto>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/provisionCurrentUser`, null, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async createAdminProvisioning(targetTenantId: string, dto: CreateExternalTenantUserMappingDto): Promise<ExternalTenantUserMappingDto | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<ExternalTenantUserMappingDto>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}`, dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async deleteAdminProvisioning(targetTenantId: string, mappingRtId: string): Promise<void> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<any>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/${encodeURIComponent(mappingRtId)}`, {
           observe: 'response'
         })
       );

@@ -175,6 +175,16 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `updateIdentityProvider(rtId, dto)` | Update identity provider |
 | `deleteIdentityProvider(rtId)` | Delete identity provider |
 
+**Email Domain Group Rules:**
+
+| Method | Description |
+|--------|-------------|
+| `getEmailDomainGroupRules()` | List all email domain group rules |
+| `getEmailDomainGroupRuleDetails(rtId)` | Get email domain group rule details |
+| `createEmailDomainGroupRule(dto)` | Create email domain group rule |
+| `updateEmailDomainGroupRule(rtId, dto)` | Update email domain group rule |
+| `deleteEmailDomainGroupRule(rtId)` | Delete email domain group rule |
+
 **Group Management:**
 
 | Method | Description |
@@ -489,11 +499,29 @@ interface IdentityProviderDto {
   useTls?: boolean;           // LDAP providers
   userBaseDn?: string;        // OpenLDAP
   userNameAttribute?: string; // OpenLDAP
+  allowSelfRegistration?: boolean;  // Login configuration
+  defaultGroupRtId?: string;        // Login configuration
+  parentTenantId?: string;          // OctoTenant (cross-tenant auth)
 }
 
 enum IdentityProviderType {
   Google = 0, Microsoft = 1, MicrosoftAzureAd = 2,
-  MicrosoftActiveDirectory = 3, OpenLdap = 4, Facebook = 5
+  MicrosoftActiveDirectory = 3, OpenLdap = 4, Facebook = 5, OctoTenant = 6
+}
+```
+
+### EmailDomainGroupRuleDto
+
+```typescript
+interface EmailDomainGroupRuleDto {
+  rtId?: string;
+  emailDomainPattern?: string;
+  targetGroupRtId?: string;
+  description?: string;
+}
+
+interface EmailDomainGroupRulesResult {
+  emailDomainGroupRules?: EmailDomainGroupRuleDto[];
 }
 ```
 

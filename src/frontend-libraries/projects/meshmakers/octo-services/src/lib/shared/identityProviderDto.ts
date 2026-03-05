@@ -4,7 +4,8 @@ export enum IdentityProviderType {
   MicrosoftAzureAd = 2,
   MicrosoftActiveDirectory = 3,
   OpenLdap = 4,
-  Facebook = 5
+  Facebook = 5,
+  OctoTenant = 6
 }
 
 export interface IdentityProviderDto {
@@ -25,6 +26,11 @@ export interface IdentityProviderDto {
   useTls?: boolean;
   userBaseDn?: string;
   userNameAttribute?: string;
+  // Login configuration
+  allowSelfRegistration?: boolean;
+  defaultGroupRtId?: string;
+  // OctoTenant fields
+  parentTenantId?: string;
 }
 
 export interface IdentityProvidersResult {
@@ -37,5 +43,6 @@ export const IDENTITY_PROVIDER_TYPE_LABELS: Record<number, string> = {
   [IdentityProviderType.MicrosoftAzureAd]: 'Azure Entra ID',
   [IdentityProviderType.MicrosoftActiveDirectory]: 'Microsoft Active Directory',
   [IdentityProviderType.OpenLdap]: 'OpenLDAP',
-  [IdentityProviderType.Facebook]: 'Facebook'
+  [IdentityProviderType.Facebook]: 'Facebook',
+  [IdentityProviderType.OctoTenant]: 'Octo Tenant'
 };
