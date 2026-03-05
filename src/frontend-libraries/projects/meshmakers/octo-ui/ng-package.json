@@ -6,9 +6,14 @@
   },
   "assets": [
     {
-      "input": "src/lib/runtime-browser/styles",
+      "input": "src/styles",
       "glob": "**/*.scss",
       "output": "styles"
+    },
+    {
+      "input": "src/lib/runtime-browser/styles",
+      "glob": "**/*.scss",
+      "output": "lib/runtime-browser/styles"
     },
     {
       "input": "src/i18n",

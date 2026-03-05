@@ -8,29 +8,29 @@
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// BRAND COLOR PALETTE (from Brand Manual)
+// BRAND COLOR PALETTE (neutral defaults; override via @use ... with)
 // ----------------------------------------------------------------------------
 
 // Primary Colors
-$octo-mint: #64ceb9; // Primary highlight
-$neo-cyan: #00a8dc; // Secondary highlight
+$octo-mint: #8ca3a1 !default; // Primary highlight (neutral default)
+$neo-cyan: #7f97ad !default; // Secondary highlight (neutral default)
 
 // Secondary Colors
-$indigogo: #546fbd; // Panel accents
+$indigogo: #6e7f99 !default; // Panel accents (neutral default)
 
 // Tertiary Colors
-$toffee: #da9162; // Warm accent
-$bubblegum: #ec658f; // Alert/warning accent
-$lilac-glow: #c861d6; // Hover states, glow effects
-$royal-violet: #6c4da8; // LCARS-typical accent
+$toffee: #b8a184 !default; // Warm accent (neutral default)
+$bubblegum: #b38f9f !default; // Alert/warning accent (neutral default)
+$lilac-glow: #a3a0b6 !default; // Hover states, glow effects (neutral default)
+$royal-violet: #8f85a8 !default; // LCARS-typical accent (neutral default)
 
 // Neutral Colors
-$ash-blue: #9292a6; // Inactive elements, secondary text
-$iron-navy: #394555; // Surface, panels
-$deep-sea: #07172b; // Background (NEVER use black!)
+$ash-blue: #9aa4b2 !default; // Inactive elements, secondary text
+$iron-navy: #3b4657 !default; // Surface, panels
+$deep-sea: #1a2230 !default; // Background (neutral default)
 
 // Additional UI Colors
-$surface-elevated: #1f2e40; // Elevated surfaces
+$surface-elevated: #243042 !default; // Elevated surfaces
 
 // ----------------------------------------------------------------------------
 // LCARS DESIGN TOKENS

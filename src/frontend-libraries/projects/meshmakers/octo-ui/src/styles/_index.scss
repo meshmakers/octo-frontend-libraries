@@ -1,0 +1,3 @@
+// Global Octo UI styles entrypoint.
+// Forward runtime-browser styles so consumers can configure theme variables.
+@forward "../lib/runtime-browser/styles/index";
