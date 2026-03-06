@@ -13,7 +13,7 @@ export const defaultAuthorizeOptions: AuthorizeOptions = {
 
   // set the scope for the permissions the client should request
   // The first three are defined by OIDC. The 4th is a use case-specific one
-  scope: 'openid profile email role offline_access assetSystemAPI.full_access identityAPI.full_access botAPI.full_access communicationSystemAPI.full_access communicationTenantAPI.full_access',
+  scope: 'openid profile email role offline_access octo_api',
 
   showDebugInformation: true,
   sessionChecksEnabled: true,
