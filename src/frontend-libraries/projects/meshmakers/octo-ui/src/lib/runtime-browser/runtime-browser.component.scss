@@ -3,12 +3,7 @@
 // Common LCARS styles are in global styles.scss
 // ============================================================================
 
-@use "sass:color";
-
-// LCARS Color Variables (for component-specific overrides)
-$octo-mint: #64ceb9;
-$deep-sea: #07172b;
-$surface-elevated: #1f2e40;
+// LCARS Color Variables come from global CSS custom properties
 
 // Container
 .runtime-browser-container {
@@ -18,8 +13,8 @@ $surface-elevated: #1f2e40;
   padding: 16px;
   background: linear-gradient(
     180deg,
-    rgba($deep-sea, 0.95),
-    rgba($deep-sea, 1)
+    var(--deep-sea-95),
+    var(--deep-sea)
   );
   gap: 16px;
 }
@@ -31,14 +26,14 @@ $surface-elevated: #1f2e40;
     border: none;
 
     .k-splitbar {
-      background: linear-gradient(180deg, rgba($octo-mint, 0.3), transparent);
+      background: linear-gradient(180deg, var(--octo-mint-30), transparent);
       width: 4px !important;
 
       &:hover {
         background: linear-gradient(
           180deg,
-          rgba($octo-mint, 0.5),
-          rgba($octo-mint, 0.2)
+          var(--octo-mint-50),
+          var(--octo-mint-20)
         );
       }
     }
@@ -53,23 +48,23 @@ $surface-elevated: #1f2e40;
         border-radius: 4px;
 
         &:hover {
-          background: rgba($octo-mint, 0.1);
-          color: $octo-mint;
+          background: var(--octo-mint-10);
+          color: var(--octo-mint);
         }
 
         &.k-selected {
           background: linear-gradient(
             90deg,
-            rgba($octo-mint, 0.2),
+            var(--octo-mint-20),
             transparent
           );
-          color: $octo-mint;
-          border-left: 3px solid $octo-mint;
+          color: var(--octo-mint);
+          border-left: 3px solid var(--octo-mint);
 
           &:hover {
             background: linear-gradient(
               90deg,
-              rgba($octo-mint, 0.25),
+              var(--octo-mint-25),
               transparent
             );
           }
@@ -79,8 +74,8 @@ $surface-elevated: #1f2e40;
   }
 
   .toolbar {
-    background: linear-gradient(90deg, rgba($octo-mint, 0.05), transparent);
-    border-bottom: 1px solid rgba($octo-mint, 0.2);
+    background: linear-gradient(90deg, var(--octo-mint-05), transparent);
+    border-bottom: 1px solid var(--octo-mint-20);
   }
 
   .base-tree-detail-container {

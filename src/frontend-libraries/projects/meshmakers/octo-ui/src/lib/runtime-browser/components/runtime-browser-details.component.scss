@@ -2,16 +2,7 @@
 // RUNTIME BROWSER DETAILS - LCARS STYLE
 // ============================================================================
 
-@use "sass:color";
-
-// LCARS Color Variables
-$octo-mint: #64ceb9;
-$neo-cyan: #00a8dc;
-$royal-violet: #6c4da8;
-$iron-navy: #394555;
-$surface-elevated: #1f2e40;
-$deep-sea: #07172b;
-$toffee: #da9162;
+// LCARS Color Variables come from global CSS custom properties
 
 // Host element must fill available space
 :host {
@@ -28,7 +19,11 @@ $toffee: #da9162;
   padding: 24px;
   box-sizing: border-box;
   overflow-y: auto;
-  background: linear-gradient(180deg, $surface-elevated 0%, $deep-sea 100%);
+  background: linear-gradient(
+    180deg,
+    var(--surface-elevated) 0%,
+    var(--deep-sea) 100%
+  );
 
   // ============================================================================
   // NO SELECTION STATE - LCARS STYLE
@@ -47,22 +42,22 @@ $toffee: #da9162;
       padding: 40px;
       background: linear-gradient(
         135deg,
-        rgba($iron-navy, 0.8),
-        rgba($surface-elevated, 0.9)
+        var(--iron-navy-80),
+        var(--surface-elevated-90)
       );
-      border: 1px solid rgba($octo-mint, 0.3);
+      border: 1px solid var(--octo-mint-30);
       border-radius: 8px 24px 8px 24px;
       box-shadow:
-        0 0 30px rgba($octo-mint, 0.1),
-        inset 0 0 40px rgba($octo-mint, 0.03);
+        0 0 30px var(--octo-mint-10),
+        inset 0 0 40px var(--octo-mint-03);
 
       .placeholder-icon {
         margin-bottom: 24px;
 
         .k-icon {
           font-size: 64px;
-          color: rgba($octo-mint, 0.5);
-          text-shadow: 0 0 20px rgba($octo-mint, 0.5);
+          color: var(--octo-mint-50);
+          text-shadow: 0 0 20px var(--octo-mint-50);
           animation: lcars-icon-pulse 3s ease-in-out infinite;
         }
       }
@@ -74,8 +69,8 @@ $toffee: #da9162;
         font-weight: 700;
         letter-spacing: 2px;
         text-transform: uppercase;
-        color: $octo-mint;
-        text-shadow: 0 0 15px rgba($octo-mint, 0.5);
+        color: var(--octo-mint);
+        text-shadow: 0 0 15px var(--octo-mint-50);
       }
 
       p {
@@ -104,14 +99,14 @@ $toffee: #da9162;
       align-items: center;
       gap: 16px;
       padding: 16px 20px 16px 24px;
-      background: linear-gradient(180deg, $iron-navy, $surface-elevated);
-      border: 1px solid rgba($octo-mint, 0.3);
+      background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+      border: 1px solid var(--octo-mint-30);
       border-radius: 4px 16px 4px 16px;
       margin-bottom: 20px;
       position: relative;
       box-shadow:
         0 4px 20px rgba(0, 0, 0, 0.4),
-        0 0 15px rgba($octo-mint, 0.08);
+        0 0 15px var(--octo-mint-08);
 
       // LCARS accent line
       &::before {
@@ -123,18 +118,18 @@ $toffee: #da9162;
         height: 100%;
         background: linear-gradient(
           180deg,
-          $octo-mint,
-          $neo-cyan,
-          $royal-violet
+          var(--octo-mint),
+          var(--neo-cyan),
+          var(--royal-violet)
         );
-        box-shadow: 0 0 10px rgba($octo-mint, 0.5);
+        box-shadow: 0 0 10px var(--octo-mint-50);
         border-radius: 4px 0 0 4px;
       }
 
       .entity-icon {
         font-size: 28px;
-        color: $octo-mint;
-        text-shadow: 0 0 10px rgba($octo-mint, 0.5);
+        color: var(--octo-mint);
+        text-shadow: 0 0 10px var(--octo-mint-50);
       }
 
       .entity-title {
@@ -154,11 +149,11 @@ $toffee: #da9162;
           margin: 0;
           font-family: "Roboto Mono", monospace;
           font-size: 0.8rem;
-          color: $neo-cyan;
-          background: rgba($deep-sea, 0.6);
+          color: var(--neo-cyan);
+          background: var(--deep-sea-60);
           padding: 4px 10px;
           border-radius: 4px;
-          border: 1px solid rgba($neo-cyan, 0.3);
+          border: 1px solid var(--neo-cyan-30);
           display: inline-block;
         }
       }
@@ -178,8 +173,8 @@ $toffee: #da9162;
     .ck-model-details,
     .ck-models-root {
       padding: 24px;
-      background: linear-gradient(180deg, $iron-navy, $surface-elevated);
-      border: 1px solid rgba($octo-mint, 0.3);
+      background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+      border: 1px solid var(--octo-mint-30);
       border-radius: 4px 16px 4px 16px;
       position: relative;
 
@@ -192,11 +187,11 @@ $toffee: #da9162;
         height: 100%;
         background: linear-gradient(
           180deg,
-          $octo-mint,
-          $neo-cyan,
-          $royal-violet
+          var(--octo-mint),
+          var(--neo-cyan),
+          var(--royal-violet)
         );
-        box-shadow: 0 0 10px rgba($octo-mint, 0.5);
+        box-shadow: 0 0 10px var(--octo-mint-50);
       }
 
       h3 {
@@ -221,7 +216,7 @@ $toffee: #da9162;
           font-size: 0.8rem;
           letter-spacing: 0.5px;
           text-transform: uppercase;
-          color: rgba($octo-mint, 0.8);
+          color: var(--octo-mint-80);
           margin-right: 12px;
         }
 
@@ -232,10 +227,10 @@ $toffee: #da9162;
           padding: 16px 20px;
           background: linear-gradient(
             135deg,
-            rgba($neo-cyan, 0.1),
-            rgba($neo-cyan, 0.05)
+            var(--neo-cyan-10),
+            var(--neo-cyan-05)
           );
-          border: 1px solid rgba($neo-cyan, 0.3);
+          border: 1px solid var(--neo-cyan-30);
           border-radius: 4px 12px 4px 12px;
         }
       }
@@ -254,8 +249,8 @@ $toffee: #da9162;
       .type-header {
         margin-bottom: 20px;
         padding: 20px 24px;
-        background: linear-gradient(180deg, $iron-navy, $surface-elevated);
-        border: 1px solid rgba($octo-mint, 0.3);
+        background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+        border: 1px solid var(--octo-mint-30);
         border-radius: 4px 16px 4px 16px;
         position: relative;
 
@@ -268,11 +263,11 @@ $toffee: #da9162;
           height: 100%;
           background: linear-gradient(
             180deg,
-            $octo-mint,
-            $neo-cyan,
-            $royal-violet
+            var(--octo-mint),
+            var(--neo-cyan),
+            var(--royal-violet)
           );
-          box-shadow: 0 0 10px rgba($octo-mint, 0.5);
+          box-shadow: 0 0 10px var(--octo-mint-50);
         }
 
         h3 {
@@ -302,34 +297,34 @@ $toffee: #da9162;
             &.abstract {
               background: linear-gradient(
                 135deg,
-                rgba($royal-violet, 0.3),
-                rgba($royal-violet, 0.15)
+                var(--royal-violet-30),
+                var(--royal-violet-15)
               );
-              border: 1px solid rgba($royal-violet, 0.5);
-              color: color.adjust($royal-violet, $lightness: 20%);
-              box-shadow: 0 0 10px rgba($royal-violet, 0.3);
+              border: 1px solid var(--royal-violet-50);
+              color: var(--royal-violet-light-20);
+              box-shadow: 0 0 10px var(--royal-violet-30);
             }
 
             &.final {
               background: linear-gradient(
                 135deg,
-                rgba($toffee, 0.3),
-                rgba($toffee, 0.15)
+                var(--toffee-30),
+                var(--toffee-15)
               );
-              border: 1px solid rgba($toffee, 0.5);
-              color: $toffee;
-              box-shadow: 0 0 10px rgba($toffee, 0.3);
+              border: 1px solid var(--toffee-50);
+              color: var(--toffee);
+              box-shadow: 0 0 10px var(--toffee-30);
             }
           }
 
           .base-type {
             font-family: "Roboto Mono", monospace;
             font-size: 0.8rem;
-            color: $neo-cyan;
-            background: rgba($deep-sea, 0.6);
+            color: var(--neo-cyan);
+            background: var(--deep-sea-60);
             padding: 4px 10px;
             border-radius: 4px;
-            border: 1px solid rgba($neo-cyan, 0.3);
+            border: 1px solid var(--neo-cyan-30);
           }
         }
       }
@@ -339,8 +334,8 @@ $toffee: #da9162;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        background: linear-gradient(180deg, $iron-navy, $surface-elevated);
-        border: 1px solid rgba($octo-mint, 0.3);
+        background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+        border: 1px solid var(--octo-mint-30);
         border-radius: 4px 16px 4px 16px;
         padding: 20px;
 
@@ -351,7 +346,7 @@ $toffee: #da9162;
           font-weight: 600;
           letter-spacing: 1px;
           text-transform: uppercase;
-          color: $octo-mint;
+          color: var(--octo-mint);
         }
 
         mm-list-view {
