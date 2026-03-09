@@ -14,7 +14,7 @@
       font-size: 48px;
       font-weight: 700;
       margin: 0;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      text-shadow: 2px 2px 4px rgba(#000, 0.2);
     }
 
     .subtitle {
@@ -41,7 +41,7 @@
 
       &:hover {
         transform: translateY(-8px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 12px 24px rgba(#000, 0.2);
 
         .demo-icon {
           transform: rotate(10deg) scale(1.1);

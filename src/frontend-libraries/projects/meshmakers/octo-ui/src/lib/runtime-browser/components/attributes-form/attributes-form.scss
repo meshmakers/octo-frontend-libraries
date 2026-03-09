@@ -1,7 +1,5 @@
 @use "sass:color";
 
-$octo-mint: #64ceb9;
-
 .attributes-form-container {
   ::ng-deep {
     kendo-card {
@@ -48,8 +46,8 @@ $octo-mint: #64ceb9;
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  background-color: rgba($octo-mint, 0.05);
-  border: 1px solid rgba($octo-mint, 0.2);
+  background-color: rgba(#{var(--octo-mint)}, 0.05);
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.2);
   border-radius: 4px;
   margin-bottom: 16px;
 }
@@ -57,7 +55,7 @@ $octo-mint: #64ceb9;
 .record-actions-description {
   margin: 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(#{var(--octo-text-color)}, 0.7);
   line-height: 1.5;
 }
 

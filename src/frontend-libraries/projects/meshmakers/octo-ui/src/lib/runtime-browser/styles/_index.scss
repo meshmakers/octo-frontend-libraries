@@ -1,36 +1,10 @@
 @use "sass:map";
-@use "sass:color";
 @use "@progress/kendo-theme-material/scss/index.scss" as *;
 
 // ============================================================================
 // OCTO DATA REFINERY STUDIO - LCARS-INSPIRED THEME
 // Brand Manual Colors + Star Trek LCARS Design Language
 // ============================================================================
-
-// ----------------------------------------------------------------------------
-// BRAND COLOR PALETTE (neutral defaults; override via @use ... with)
-// ----------------------------------------------------------------------------
-
-// Primary Colors
-$octo-mint: #8ca3a1 !default; // Primary highlight (neutral default)
-$neo-cyan: #7f97ad !default; // Secondary highlight (neutral default)
-
-// Secondary Colors
-$indigogo: #6e7f99 !default; // Panel accents (neutral default)
-
-// Tertiary Colors
-$toffee: #b8a184 !default; // Warm accent (neutral default)
-$bubblegum: #b38f9f !default; // Alert/warning accent (neutral default)
-$lilac-glow: #a3a0b6 !default; // Hover states, glow effects (neutral default)
-$royal-violet: #8f85a8 !default; // LCARS-typical accent (neutral default)
-
-// Neutral Colors
-$ash-blue: #9aa4b2 !default; // Inactive elements, secondary text
-$iron-navy: #3b4657 !default; // Surface, panels
-$deep-sea: #1a2230 !default; // Background (neutral default)
-
-// Additional UI Colors
-$surface-elevated: #243042 !default; // Elevated surfaces
 
 // ----------------------------------------------------------------------------
 // LCARS DESIGN TOKENS
@@ -40,19 +14,21 @@ $surface-elevated: #243042 !default; // Elevated surfaces
   // Typography
   --lcars-font-primary: "Montserrat", "Roboto", "Helvetica Neue", sans-serif;
   --lcars-font-mono: "Roboto Mono", "Consolas", monospace;
+  --lcars-border-color: #64ceb9;
 
   // Brand Colors as CSS Variables
-  --octo-mint: #{$octo-mint};
-  --neo-cyan: #{$neo-cyan};
-  --indigogo: #{$indigogo};
-  --toffee: #{$toffee};
-  --bubblegum: #{$bubblegum};
-  --lilac-glow: #{$lilac-glow};
-  --royal-violet: #{$royal-violet};
-  --ash-blue: #{$ash-blue};
-  --iron-navy: #{$iron-navy};
-  --deep-sea: #{$deep-sea};
-  --surface-elevated: #{$surface-elevated};
+  --octo-mint: #8ca3a1;
+  --neo-cyan: #7f97ad;
+  --indigogo: #6e7f99;
+  --toffee: #b8a184;
+  --bubblegum: #b38f9f;
+  --lilac-glow: #a3a0b6;
+  --royal-violet: #8f85a8;
+  --ash-blue: #9aa4b2;
+  --iron-navy: #3b4657;
+  --deep-sea: #1a2230;
+  --surface-elevated: #243042;
+  --octo-text-color: #ffffff;
 
   // Derived colors for gradients/overlays (theme-aware)
   --octo-mint-05: color-mix(in srgb, var(--octo-mint) 5%, transparent);
@@ -73,31 +49,17 @@ $surface-elevated: #243042 !default; // Elevated surfaces
   --bubblegum-20: color-mix(in srgb, var(--bubblegum) 20%, transparent);
   --bubblegum-30: color-mix(in srgb, var(--bubblegum) 30%, transparent);
   --bubblegum-40: color-mix(in srgb, var(--bubblegum) 40%, transparent);
+  --bubblegum-50: color-mix(in srgb, var(--bubblegum) 50%, transparent);
+  --bubblegum-60: color-mix(in srgb, var(--bubblegum) 60%, transparent);
 
   --toffee-15: color-mix(in srgb, var(--toffee) 15%, transparent);
   --toffee-30: color-mix(in srgb, var(--toffee) 30%, transparent);
   --toffee-50: color-mix(in srgb, var(--toffee) 50%, transparent);
 
-  --royal-violet-15: color-mix(
-    in srgb,
-    var(--royal-violet) 15%,
-    transparent
-  );
-  --royal-violet-30: color-mix(
-    in srgb,
-    var(--royal-violet) 30%,
-    transparent
-  );
-  --royal-violet-50: color-mix(
-    in srgb,
-    var(--royal-violet) 50%,
-    transparent
-  );
-  --royal-violet-light-20: color-mix(
-    in srgb,
-    var(--royal-violet),
-    white 20%
-  );
+  --royal-violet-15: color-mix(in srgb, var(--royal-violet) 15%, transparent);
+  --royal-violet-30: color-mix(in srgb, var(--royal-violet) 30%, transparent);
+  --royal-violet-50: color-mix(in srgb, var(--royal-violet) 50%, transparent);
+  --royal-violet-light-20: color-mix(in srgb, var(--royal-violet), white 20%);
 
   --neo-cyan-05: color-mix(in srgb, var(--neo-cyan) 5%, transparent);
   --neo-cyan-10: color-mix(in srgb, var(--neo-cyan) 10%, transparent);
@@ -105,12 +67,19 @@ $surface-elevated: #243042 !default; // Elevated surfaces
 
   --iron-navy-60: color-mix(in srgb, var(--iron-navy) 60%, transparent);
   --iron-navy-80: color-mix(in srgb, var(--iron-navy) 80%, transparent);
+  --iron-navy-50: color-mix(in srgb, var(--iron-navy) 50%, transparent);
+  --iron-navy-70: color-mix(in srgb, var(--iron-navy) 70%, transparent);
   --deep-sea-40: color-mix(in srgb, var(--deep-sea) 40%, transparent);
   --deep-sea-50: color-mix(in srgb, var(--deep-sea) 50%, transparent);
   --deep-sea-60: color-mix(in srgb, var(--deep-sea) 60%, transparent);
   --deep-sea-80: color-mix(in srgb, var(--deep-sea) 80%, transparent);
   --deep-sea-90: color-mix(in srgb, var(--deep-sea) 90%, transparent);
   --deep-sea-95: color-mix(in srgb, var(--deep-sea) 95%, transparent);
+  --ash-blue-10: color-mix(in srgb, var(--ash-blue) 10%, transparent);
+  --ash-blue-15: color-mix(in srgb, var(--ash-blue) 15%, transparent);
+  --ash-blue-30: color-mix(in srgb, var(--ash-blue) 30%, transparent);
+  --ash-blue-50: color-mix(in srgb, var(--ash-blue) 50%, transparent);
+  --ash-blue-70: color-mix(in srgb, var(--ash-blue) 70%, transparent);
   --surface-elevated-90: color-mix(
     in srgb,
     var(--surface-elevated) 90%,
@@ -121,6 +90,11 @@ $surface-elevated: #243042 !default; // Elevated surfaces
     var(--surface-elevated) 60%,
     transparent
   );
+  --surface-elevated-80: color-mix(
+    in srgb,
+    var(--surface-elevated) 80%,
+    transparent
+  );
 
   --octo-mint-dark-10: color-mix(in srgb, var(--octo-mint), black 10%);
   --octo-mint-light-5: color-mix(in srgb, var(--octo-mint), white 5%);
@@ -128,11 +102,7 @@ $surface-elevated: #243042 !default; // Elevated surfaces
   --neo-cyan-dark-10: color-mix(in srgb, var(--neo-cyan), black 10%);
   --iron-navy-dark-5: color-mix(in srgb, var(--iron-navy), black 5%);
   --neo-cyan-40: color-mix(in srgb, var(--neo-cyan) 40%, transparent);
-  --royal-violet-40: color-mix(
-    in srgb,
-    var(--royal-violet) 40%,
-    transparent
-  );
+  --royal-violet-40: color-mix(in srgb, var(--royal-violet) 40%, transparent);
 
   // LCARS-specific design tokens
   --lcars-glow-primary: 0 0 10px var(--octo-mint-40);
@@ -156,14 +126,14 @@ $surface-elevated: #243042 !default; // Elevated surfaces
   --lcars-transition-normal: 250ms ease;
 
   // Kendo overrides
-  --kendo-color-primary-on-surface: #{$octo-mint};
+  --kendo-color-primary-on-surface: var(--octo-mint);
   font-family: var(--lcars-font-primary);
 
   // Designer/Symbol Editor Panel Variables (LCARS theme)
   --designer-panel-bg: var(--surface-elevated);
   --designer-panel-bg-elevated: var(--iron-navy);
   --designer-panel-border: var(--octo-mint-20);
-  --designer-panel-text: #ffffff;
+  --designer-panel-text: var(--octo-text-color);
   --designer-panel-text-secondary: var(--ash-blue);
   --designer-panel-text-muted: color-mix(
     in srgb,
@@ -182,6 +152,10 @@ $surface-elevated: #243042 !default; // Elevated surfaces
   --mm-cron-text-secondary: var(--ash-blue);
 }
 
+@function rgba($color, $alpha) {
+  @return color-mix(in srgb, #{$color} #{percentage($alpha)}, transparent);
+}
+
 // ----------------------------------------------------------------------------
 // KENDO THEME COLOR CONFIGURATION
 // ----------------------------------------------------------------------------
@@ -192,38 +166,38 @@ $kendo-colors: () !default; // Inicjalizacja pustej mapy, jeśli nie istnieje
 $kendo-colors: map.merge(
   $kendo-colors,
   (
-    surface: $iron-navy,
-    surface-alt: $surface-elevated,
-    app-surface: $deep-sea,
+    surface: #3b4657,
+    surface-alt: #243042,
+    app-surface: #1a2230,
     on-app-surface: #ffffff,
-    subtle: $ash-blue,
+    subtle: #9aa4b2,
   )
 );
 
 // Generate color variations for all brand colors
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("base", $ash-blue, "material")
+  k-generate-color-variations("base", #9aa4b2, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("primary", $octo-mint, "material")
+  k-generate-color-variations("primary", #8ca3a1, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("secondary", $neo-cyan, "material")
+  k-generate-color-variations("secondary", #7f97ad, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("tertiary", $toffee, "material")
+  k-generate-color-variations("tertiary", #b8a184, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("light", $ash-blue, "material")
+  k-generate-color-variations("light", #9aa4b2, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("dark", $iron-navy, "material")
+  k-generate-color-variations("dark", #3b4657, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
@@ -231,7 +205,7 @@ $kendo-colors: map.merge(
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("info", $indigogo, "material")
+  k-generate-color-variations("info", #6e7f99, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
@@ -239,37 +213,37 @@ $kendo-colors: map.merge(
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("warning", $toffee, "material")
+  k-generate-color-variations("warning", #b8a184, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("error", $bubblegum, "material")
+  k-generate-color-variations("error", #b38f9f, "material")
 );
 
 // Chart series colors (LCARS-inspired)
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-a", $octo-mint, "material")
+  k-generate-color-variations("series-a", #8ca3a1, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-b", $neo-cyan, "material")
+  k-generate-color-variations("series-b", #7f97ad, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-c", $lilac-glow, "material")
+  k-generate-color-variations("series-c", #a3a0b6, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-d", $royal-violet, "material")
+  k-generate-color-variations("series-d", #8f85a8, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-e", $bubblegum, "material")
+  k-generate-color-variations("series-e", #b38f9f, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-f", $toffee, "material")
+  k-generate-color-variations("series-f", #b8a184, "material")
 );
 
 @include kendo-theme--styles();
@@ -278,18 +252,18 @@ $kendo-colors: map.merge(
 // These must be at the root level to properly cascade into the dockview library
 .dv-dockview,
 .dv-grid-view {
-  background-color: $deep-sea !important;
+  background-color: var(--deep-sea) !important;
 }
 
 .dv-tabs-container,
 .dv-tabs-and-actions-container {
-  background-color: $iron-navy !important;
-  border-bottom: 1px solid rgba($octo-mint, 0.2) !important;
+  background-color: var(--iron-navy) !important;
+  border-bottom: 1px solid var(--octo-mint-20) !important;
 }
 
 .dv-tab {
-  background-color: $iron-navy !important;
-  color: $ash-blue !important;
+  background-color: var(--iron-navy) !important;
+  color: var(--ash-blue) !important;
   font-family: "Montserrat", "Roboto", sans-serif !important;
   font-weight: 500 !important;
   text-transform: uppercase !important;
@@ -299,47 +273,47 @@ $kendo-colors: map.merge(
   border: none !important;
 
   &.dv-active-tab {
-    background-color: $surface-elevated !important;
-    color: $octo-mint !important;
-    border-bottom: 2px solid $octo-mint !important;
+    background-color: var(--surface-elevated) !important;
+    color: var(--octo-mint) !important;
+    border-bottom: 2px solid var(--octo-mint) !important;
   }
 
   &:hover:not(.dv-active-tab) {
-    background-color: rgba($octo-mint, 0.15) !important;
-    color: #ffffff !important;
+    background-color: var(--octo-mint-15) !important;
+    color: var(--octo-text-color) !important;
   }
 }
 
 .dv-default-tab-action {
-  color: $ash-blue !important;
+  color: var(--ash-blue) !important;
 
   &:hover {
-    color: $octo-mint !important;
-    background-color: rgba($octo-mint, 0.2) !important;
+    color: var(--octo-mint) !important;
+    background-color: var(--octo-mint-20) !important;
   }
 }
 
 .dv-groupview,
 .dv-content-container {
-  background-color: $surface-elevated !important;
+  background-color: var(--surface-elevated) !important;
 }
 
 .dv-sash {
-  background-color: rgba($octo-mint, 0.2) !important;
+  background-color: var(--octo-mint-20) !important;
 
   &:hover,
   &.dv-active {
-    background-color: $octo-mint !important;
-    box-shadow: 0 0 8px rgba($octo-mint, 0.5);
+    background-color: var(--octo-mint) !important;
+    box-shadow: 0 0 8px var(--octo-mint-50);
   }
 }
 
 .dv-tabs-overflow-container {
-  background-color: $iron-navy !important;
-  border: 1px solid rgba($octo-mint, 0.3) !important;
+  background-color: var(--iron-navy) !important;
+  border: 1px solid var(--octo-mint-30) !important;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.4),
-    0 0 15px rgba($octo-mint, 0.1) !important;
+    0 4px 20px rgba(#000, 0.4),
+    0 0 15px var(--octo-mint-10) !important;
 }
 
 // Dockview panel content areas
@@ -355,21 +329,21 @@ mm-styles-panel {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
-  background: $surface-elevated !important;
-  color: #ffffff !important;
+  background: var(--surface-elevated) !important;
+  color: var(--octo-text-color) !important;
 }
 
 // Styles Panel LCARS theming (overrides library defaults)
 // Use ::ng-deep to penetrate Angular's ViewEncapsulation
 ::ng-deep mm-styles-panel {
   .panel-container {
-    background: $surface-elevated !important;
+    background: var(--surface-elevated) !important;
     overflow-y: auto !important;
     min-height: 0 !important;
   }
 
   .panel-toolbar {
-    border-bottom-color: rgba($octo-mint, 0.2) !important;
+    border-bottom-color: var(--octo-mint-20) !important;
     flex-shrink: 0 !important;
   }
 
@@ -386,104 +360,104 @@ mm-styles-panel {
   }
 
   .add-button {
-    background: $iron-navy !important;
-    border-color: rgba($octo-mint, 0.3) !important;
-    color: $ash-blue !important;
+    background: var(--iron-navy) !important;
+    border-color: var(--octo-mint-30) !important;
+    color: var(--ash-blue) !important;
 
     &:hover {
-      background: rgba($octo-mint, 0.15) !important;
-      border-color: $octo-mint !important;
-      color: $octo-mint !important;
+      background: var(--octo-mint-15) !important;
+      border-color: var(--octo-mint) !important;
+      color: var(--octo-mint) !important;
     }
   }
 
   .style-item {
-    background: $surface-elevated !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: var(--surface-elevated) !important;
+    border-color: var(--octo-mint-20) !important;
 
     &:hover {
-      background: $iron-navy !important;
-      border-color: $octo-mint !important;
+      background: var(--iron-navy) !important;
+      border-color: var(--octo-mint) !important;
     }
 
     &.selected {
-      background: rgba($octo-mint, 0.15) !important;
-      border-color: $octo-mint !important;
+      background: var(--octo-mint-15) !important;
+      border-color: var(--octo-mint) !important;
     }
   }
 
   .style-name {
-    color: #ffffff !important;
+    color: var(--octo-text-color) !important;
   }
 
   .delete-button {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
 
     &:hover {
-      background: rgba($bubblegum, 0.2) !important;
-      color: $bubblegum !important;
+      background: var(--bubblegum-20) !important;
+      color: var(--bubblegum) !important;
     }
   }
 
   .empty-state {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .style-editor {
-    background: $iron-navy !important;
-    border-top-color: rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border-top-color: var(--octo-mint-20) !important;
   }
 
   .editor-section h4 {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .form-group {
     label {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     input[type="text"],
     input[type="number"] {
-      background: $deep-sea !important;
-      border-color: rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border-color: var(--octo-mint-30) !important;
+      color: var(--octo-text-color) !important;
 
       &:focus {
-        border-color: $octo-mint !important;
+        border-color: var(--octo-mint) !important;
       }
     }
 
     input[type="color"] {
-      border-color: rgba($octo-mint, 0.3) !important;
+      border-color: var(--octo-mint-30) !important;
     }
   }
 
   .line-type-select {
-    background: $deep-sea !important;
-    border-color: rgba($octo-mint, 0.3) !important;
-    color: #ffffff !important;
+    background: var(--deep-sea) !important;
+    border-color: var(--octo-mint-30) !important;
+    color: var(--octo-text-color) !important;
 
     &:focus {
-      border-color: $octo-mint !important;
+      border-color: var(--octo-mint) !important;
     }
   }
 
   .line-preview {
-    background: $deep-sea !important;
-    border-color: rgba($octo-mint, 0.3) !important;
+    background: var(--deep-sea) !important;
+    border-color: var(--octo-mint-30) !important;
   }
 
   .opacity-value {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .panel-footer {
-    background: $iron-navy !important;
-    border-top-color: rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border-top-color: var(--octo-mint-20) !important;
 
     .hint {
-      color: rgba($ash-blue, 0.7) !important;
+      color: var(--ash-blue-70) !important;
     }
   }
 }
@@ -491,38 +465,38 @@ mm-styles-panel {
 // Element Palette styling (inside dockview panels)
 .element-palette,
 .symbols-palette {
-  background: $surface-elevated !important;
+  background: var(--surface-elevated) !important;
 
   .palette-search {
     input {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid var(--octo-mint-30) !important;
+      color: var(--octo-text-color) !important;
       border-radius: 4px !important;
 
       &::placeholder {
-        color: $ash-blue !important;
+        color: var(--ash-blue) !important;
       }
 
       &:focus {
-        border-color: $octo-mint !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+        border-color: var(--octo-mint) !important;
+        box-shadow: 0 0 8px var(--octo-mint-30) !important;
         outline: none !important;
       }
     }
   }
 
   .palette-content {
-    background: $surface-elevated !important;
+    background: var(--surface-elevated) !important;
   }
 
   .palette-category {
     background: transparent !important;
-    border-bottom: 1px solid rgba($octo-mint, 0.1) !important;
+    border-bottom: 1px solid var(--octo-mint-10) !important;
 
     .category-header {
-      background: rgba($iron-navy, 0.5) !important;
-      color: $ash-blue !important;
+      background: var(--iron-navy-50) !important;
+      color: var(--ash-blue) !important;
       font-family: "Montserrat", "Roboto", sans-serif !important;
       font-size: 11px !important;
       text-transform: uppercase !important;
@@ -532,12 +506,12 @@ mm-styles-panel {
       transition: all 0.15s ease;
 
       &:hover {
-        background: rgba($octo-mint, 0.1) !important;
-        color: #ffffff !important;
+        background: var(--octo-mint-10) !important;
+        color: var(--octo-text-color) !important;
       }
 
       .category-icon {
-        color: $ash-blue !important;
+        color: var(--ash-blue) !important;
       }
 
       .category-name {
@@ -545,39 +519,39 @@ mm-styles-panel {
       }
 
       .category-count {
-        color: rgba($ash-blue, 0.7) !important;
+        color: var(--ash-blue-70) !important;
       }
     }
 
     .category-elements {
-      background: $surface-elevated !important;
+      background: var(--surface-elevated) !important;
       padding: 8px !important;
     }
   }
 
   .palette-element {
-    background: rgba($iron-navy, 0.5) !important;
-    border: 1px solid rgba($octo-mint, 0.15) !important;
+    background: var(--iron-navy-50) !important;
+    border: 1px solid var(--octo-mint-15) !important;
     border-radius: 4px !important;
-    color: #ffffff !important;
+    color: var(--octo-text-color) !important;
     transition: all 0.15s ease !important;
     cursor: pointer;
 
     &:hover {
-      background: rgba($octo-mint, 0.15) !important;
-      border-color: rgba($octo-mint, 0.4) !important;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+      background: var(--octo-mint-15) !important;
+      border-color: var(--octo-mint-40) !important;
+      box-shadow: 0 2px 8px rgba(#000, 0.2) !important;
     }
 
     .element-preview {
       svg {
-        stroke: $octo-mint !important;
+        stroke: var(--octo-mint) !important;
         fill: none !important;
       }
     }
 
     .element-label {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
       font-size: 10px !important;
       text-transform: uppercase !important;
     }
@@ -586,46 +560,46 @@ mm-styles-panel {
 
 // Property Inspector styling
 .property-inspector {
-  background: $surface-elevated !important;
+  background: var(--surface-elevated) !important;
 
   .inspector-content {
-    background: $surface-elevated !important;
-    color: #ffffff !important;
+    background: var(--surface-elevated) !important;
+    color: var(--octo-text-color) !important;
   }
 
   .no-selection,
   .multi-selection {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
     font-family: "Montserrat", "Roboto", sans-serif !important;
 
     .hint {
-      color: rgba($ash-blue, 0.7) !important;
+      color: var(--ash-blue-70) !important;
     }
   }
 
   // Section headers
   .section-header {
-    color: $octo-mint !important;
-    border-bottom-color: rgba($octo-mint, 0.2) !important;
+    color: var(--octo-mint) !important;
+    border-bottom-color: var(--octo-mint-20) !important;
     font-family: "Montserrat", "Roboto", sans-serif !important;
   }
 
   // Labels
   .property-row label {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   // Text inputs and number inputs
   .property-row input[type="text"],
   .property-row input[type="number"] {
-    background: $deep-sea !important;
-    border: 1px solid rgba($octo-mint, 0.3) !important;
-    color: #ffffff !important;
+    background: var(--deep-sea) !important;
+    border: 1px solid var(--octo-mint-30) !important;
+    color: var(--octo-text-color) !important;
     border-radius: 4px !important;
 
     &:focus {
-      border-color: $octo-mint !important;
-      box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+      border-color: var(--octo-mint) !important;
+      box-shadow: 0 0 8px var(--octo-mint-30) !important;
       outline: none !important;
     }
   }
@@ -634,56 +608,56 @@ mm-styles-panel {
   .property-row select,
   .style-class-select,
   .line-type-select {
-    background: $deep-sea !important;
-    border: 1px solid rgba($octo-mint, 0.3) !important;
-    color: #ffffff !important;
+    background: var(--deep-sea) !important;
+    border: 1px solid var(--octo-mint-30) !important;
+    color: var(--octo-text-color) !important;
     border-radius: 4px !important;
 
     &:focus {
-      border-color: $octo-mint !important;
-      box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+      border-color: var(--octo-mint) !important;
+      box-shadow: 0 0 8px var(--octo-mint-30) !important;
       outline: none !important;
     }
 
     option {
-      background: $deep-sea !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      color: var(--octo-text-color) !important;
     }
   }
 
   // Checkboxes
   .property-row input[type="checkbox"] {
-    accent-color: $octo-mint !important;
+    accent-color: var(--octo-mint) !important;
   }
 
   // Color inputs
   .property-row input[type="color"] {
-    background: $deep-sea !important;
-    border: 1px solid rgba($octo-mint, 0.3) !important;
+    background: var(--deep-sea) !important;
+    border: 1px solid var(--octo-mint-30) !important;
     border-radius: 4px !important;
   }
 
   // Type badge
   .type-badge {
-    background: rgba($octo-mint, 0.15) !important;
-    color: $octo-mint !important;
-    border: 1px solid rgba($octo-mint, 0.3) !important;
+    background: var(--octo-mint-15) !important;
+    color: var(--octo-mint) !important;
+    border: 1px solid var(--octo-mint-30) !important;
   }
 
   // Opacity value text
   .opacity-value {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   // Info values
   .info-value {
-    color: #ffffff !important;
+    color: var(--octo-text-color) !important;
   }
 
   // Line preview
   .line-preview {
-    background: $iron-navy !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border-color: var(--octo-mint-20) !important;
   }
 
   // Opacity slider
@@ -695,20 +669,20 @@ mm-styles-panel {
     ) !important;
 
     &::-webkit-slider-thumb {
-      background: $octo-mint !important;
-      border-color: $surface-elevated !important;
+      background: var(--octo-mint) !important;
+      border-color: var(--surface-elevated) !important;
     }
 
     &::-moz-range-thumb {
-      background: $octo-mint !important;
-      border-color: $surface-elevated !important;
+      background: var(--octo-mint) !important;
+      border-color: var(--surface-elevated) !important;
     }
   }
 
   // Image preview container
   .image-preview-container {
-    background: $iron-navy !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border-color: var(--octo-mint-20) !important;
   }
 
   // File upload button
@@ -718,8 +692,8 @@ mm-styles-panel {
       var(--octo-mint-15),
       var(--octo-mint-05)
     ) !important;
-    border: 1px solid rgba($octo-mint, 0.3) !important;
-    color: $octo-mint !important;
+    border: 1px solid var(--octo-mint-30) !important;
+    color: var(--octo-mint) !important;
 
     &:hover {
       background: linear-gradient(
@@ -727,43 +701,43 @@ mm-styles-panel {
         var(--octo-mint-25),
         var(--octo-mint-15)
       ) !important;
-      border-color: $octo-mint !important;
+      border-color: var(--octo-mint) !important;
     }
   }
 
   .file-type-hint {
-    color: rgba($ash-blue, 0.7) !important;
+    color: var(--ash-blue-70) !important;
   }
 
   // Exposed properties
   .exposed-property label {
-    color: #ffffff !important;
+    color: var(--octo-text-color) !important;
   }
 
   .default-value {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .exposed-hint {
-    color: rgba($ash-blue, 0.7) !important;
+    color: var(--ash-blue-70) !important;
   }
 }
 
 // Animation Editor styling
 .animation-editor {
-  background: $surface-elevated !important;
+  background: var(--surface-elevated) !important;
 
   .editor-toolbar {
-    background: $iron-navy !important;
-    border-bottom: 1px solid rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border-bottom: 1px solid var(--octo-mint-20) !important;
   }
 
   .section-content {
-    background: $surface-elevated !important;
+    background: var(--surface-elevated) !important;
   }
 
   .empty-state {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
 
     button {
       background: linear-gradient(
@@ -771,8 +745,8 @@ mm-styles-panel {
         var(--octo-mint-15),
         var(--octo-mint-05)
       ) !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: $octo-mint !important;
+      border: 1px solid var(--octo-mint-30) !important;
+      color: var(--octo-mint) !important;
 
       &:hover {
         background: linear-gradient(
@@ -780,35 +754,35 @@ mm-styles-panel {
           var(--octo-mint-25),
           var(--octo-mint-15)
         ) !important;
-        border-color: $octo-mint !important;
+        border-color: var(--octo-mint) !important;
       }
     }
   }
 
   // Animation items
   .animation-item {
-    background: rgba($iron-navy, 0.5) !important;
-    border-color: rgba($octo-mint, 0.15) !important;
+    background: var(--iron-navy-50) !important;
+    border-color: var(--octo-mint-15) !important;
 
     &:hover {
-      background: rgba($iron-navy, 0.7) !important;
+      background: var(--iron-navy-70) !important;
     }
 
     &.expanded {
-      border-color: rgba($octo-mint, 0.3) !important;
+      border-color: var(--octo-mint-30) !important;
     }
   }
 
   .item-header {
-    color: #ffffff !important;
+    color: var(--octo-text-color) !important;
 
     &:hover {
-      background: rgba($octo-mint, 0.1) !important;
+      background: var(--octo-mint-10) !important;
     }
   }
 
   .item-info {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   // Action buttons - always visible, not just on hover
@@ -818,11 +792,11 @@ mm-styles-panel {
     .k-button {
       background: transparent !important;
       border: none !important;
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
 
       &:hover {
-        color: $octo-mint !important;
-        background: rgba($octo-mint, 0.1) !important;
+        color: var(--octo-mint) !important;
+        background: var(--octo-mint-10) !important;
       }
 
       .k-svg-icon,
@@ -833,91 +807,91 @@ mm-styles-panel {
 
     // Delete button with red/pink accent on hover
     .k-button:last-child:hover {
-      color: #ec658f !important;
-      background: rgba(236, 101, 143, 0.1) !important;
+      color: var(--bubblegum) !important;
+      background: var(--bubblegum) 1a !important;
     }
   }
 
   // Edit form
   .item-edit-form {
-    background: $iron-navy !important;
-    border-top-color: rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border-top-color: var(--octo-mint-20) !important;
   }
 
   .form-row label {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .form-row.hint-row {
-    background: rgba($octo-mint, 0.1) !important;
+    background: var(--octo-mint-10) !important;
   }
 
   .hint-text {
-    color: $octo-mint !important;
+    color: var(--octo-mint) !important;
   }
 
   .input-with-unit .unit {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   // Anchor grid
   .anchor-point {
-    background: $deep-sea !important;
-    border-color: rgba($octo-mint, 0.3) !important;
+    background: var(--deep-sea) !important;
+    border-color: var(--octo-mint-30) !important;
 
     &:hover {
-      border-color: $octo-mint !important;
+      border-color: var(--octo-mint) !important;
     }
 
     &.selected {
-      border-color: $octo-mint !important;
-      background: rgba($octo-mint, 0.2) !important;
+      border-color: var(--octo-mint) !important;
+      background: var(--octo-mint-20) !important;
     }
   }
 
   .anchor-dot {
-    background: $ash-blue !important;
+    background: var(--ash-blue) !important;
   }
 
   .anchor-point.selected .anchor-dot {
-    background: $octo-mint !important;
+    background: var(--octo-mint) !important;
   }
 
   // Preset picker
   .preset-picker {
-    background: $surface-elevated !important;
-    border-color: $octo-mint !important;
+    background: var(--surface-elevated) !important;
+    border-color: var(--octo-mint) !important;
   }
 
   .preset-header {
-    background: rgba($octo-mint, 0.15) !important;
-    border-bottom-color: rgba($octo-mint, 0.3) !important;
-    color: #ffffff !important;
+    background: var(--octo-mint-15) !important;
+    border-bottom-color: var(--octo-mint-30) !important;
+    color: var(--octo-text-color) !important;
   }
 
   .group-name {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .preset-button {
-    background: $deep-sea !important;
-    border-color: rgba($octo-mint, 0.3) !important;
-    color: #ffffff !important;
+    background: var(--deep-sea) !important;
+    border-color: var(--octo-mint-30) !important;
+    color: var(--octo-text-color) !important;
 
     &:hover {
-      border-color: $octo-mint !important;
-      background: rgba($octo-mint, 0.15) !important;
+      border-color: var(--octo-mint) !important;
+      background: var(--octo-mint-15) !important;
     }
   }
 
   // Path textarea
   .path-textarea {
-    background: $deep-sea !important;
-    border-color: rgba($octo-mint, 0.3) !important;
-    color: #ffffff !important;
+    background: var(--deep-sea) !important;
+    border-color: var(--octo-mint-30) !important;
+    color: var(--octo-text-color) !important;
 
     &:focus {
-      border-color: $octo-mint !important;
+      border-color: var(--octo-mint) !important;
       outline: none !important;
     }
   }
@@ -925,152 +899,152 @@ mm-styles-panel {
 
 // Transform Property Editor (Exposures Panel) styling
 .transform-property-editor {
-  background: $surface-elevated !important;
+  background: var(--surface-elevated) !important;
 
   .editor-toolbar {
-    background: $iron-navy !important;
-    border-bottom: 1px solid rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border-bottom: 1px solid var(--octo-mint-20) !important;
   }
 
   .properties-list {
-    background: $surface-elevated !important;
+    background: var(--surface-elevated) !important;
   }
 
   .empty-state {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
 
     .hint {
-      color: rgba($ash-blue, 0.7) !important;
+      color: var(--ash-blue-70) !important;
     }
   }
 
   // Property cards
   .property-card {
-    background: $iron-navy !important;
-    border: 1px solid rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border: 1px solid var(--octo-mint-20) !important;
     border-radius: 8px !important;
 
     &:hover {
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+      box-shadow: 0 2px 8px rgba(#000, 0.3) !important;
     }
 
     &.editing {
-      border-color: $octo-mint !important;
-      box-shadow: 0 2px 8px rgba($octo-mint, 0.2) !important;
+      border-color: var(--octo-mint) !important;
+      box-shadow: 0 2px 8px var(--octo-mint-20) !important;
     }
   }
 
   .property-name {
-    color: #ffffff !important;
+    color: var(--octo-text-color) !important;
   }
 
   .property-type-badge {
-    background: rgba($octo-mint, 0.15) !important;
-    color: $octo-mint !important;
+    background: var(--octo-mint-15) !important;
+    color: var(--octo-mint) !important;
   }
 
   .property-unit {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .property-details {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .bindings-count {
-    background: rgba($octo-mint, 0.1) !important;
-    color: $ash-blue !important;
+    background: var(--octo-mint-10) !important;
+    color: var(--ash-blue) !important;
   }
 
   .property-description {
-    color: rgba($ash-blue, 0.7) !important;
+    color: var(--ash-blue-70) !important;
   }
 
   .color-swatch {
-    border-color: rgba($octo-mint, 0.3) !important;
+    border-color: var(--octo-mint-30) !important;
   }
 
   // Edit form
   .property-edit-form {
-    background: $iron-navy !important;
+    background: var(--iron-navy) !important;
 
     .form-row label {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .form-row input[type="text"],
     .form-row input[type="number"],
     .form-row select {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid var(--octo-mint-30) !important;
+      color: var(--octo-text-color) !important;
 
       &:focus {
-        border-color: $octo-mint !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+        border-color: var(--octo-mint) !important;
+        box-shadow: 0 0 8px var(--octo-mint-30) !important;
         outline: none !important;
       }
 
       option {
-        background: $deep-sea !important;
-        color: #ffffff !important;
+        background: var(--deep-sea) !important;
+        color: var(--octo-text-color) !important;
       }
     }
 
     .form-row input[type="color"] {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
     }
 
     .form-row input[type="checkbox"] {
-      accent-color: $octo-mint !important;
+      accent-color: var(--octo-mint) !important;
     }
 
     .form-actions {
-      border-top-color: rgba($octo-mint, 0.2) !important;
+      border-top-color: rgba(#{var(--octo-mint)}, 0.2) !important;
     }
   }
 }
 
 // Simulation Panel styling
 .simulation-panel {
-  background: $surface-elevated !important;
+  background: var(--surface-elevated) !important;
 
   .panel-toolbar {
-    background: $iron-navy !important;
-    border-bottom: 1px solid rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border-bottom: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .k-button {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
 
       &:hover {
-        color: $octo-mint !important;
-        background: rgba($octo-mint, 0.1) !important;
+        color: var(--octo-mint) !important;
+        background: rgba(#{var(--octo-mint)}, 0.1) !important;
       }
     }
   }
 
   .panel-content {
-    background: $surface-elevated !important;
+    background: var(--surface-elevated) !important;
   }
 
   // Property control cards
   .property-control {
-    background: $iron-navy !important;
-    border: 1px solid rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
 
     &:hover {
-      border-color: rgba($octo-mint, 0.4) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.4) !important;
     }
   }
 
   .control-header {
     .property-name {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
     }
 
     .property-unit {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
   }
 
@@ -1084,47 +1058,47 @@ mm-styles-panel {
       ) !important;
 
       &::-webkit-slider-thumb {
-        background: $octo-mint !important;
-        border-color: $deep-sea !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.5) !important;
+        background: var(--octo-mint) !important;
+        border-color: var(--deep-sea) !important;
+        box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.5) !important;
       }
 
       &::-moz-range-thumb {
-        background: $octo-mint !important;
-        border-color: $deep-sea !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.5) !important;
+        background: var(--octo-mint) !important;
+        border-color: var(--deep-sea) !important;
+        box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.5) !important;
       }
     }
 
     .value-input {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-text-color) !important;
 
       &:focus {
-        border-color: $octo-mint !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+        border-color: var(--octo-mint) !important;
+        box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3) !important;
       }
     }
   }
 
   .value-range {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   // Color control
   .color-control {
     input[type="color"] {
-      border-color: rgba($octo-mint, 0.3) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
     }
 
     .color-input {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: $octo-mint !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-mint) !important;
 
       &:focus {
-        border-color: $octo-mint !important;
+        border-color: var(--octo-mint) !important;
       }
     }
   }
@@ -1132,34 +1106,34 @@ mm-styles-panel {
   // Boolean control
   .boolean-control {
     .toggle-label input[type="checkbox"] {
-      accent-color: $octo-mint !important;
+      accent-color: var(--octo-mint) !important;
     }
 
     .toggle-text {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
   }
 
   // String control
   .string-control input {
-    background: $deep-sea !important;
-    border: 1px solid rgba($octo-mint, 0.3) !important;
-    color: #ffffff !important;
+    background: var(--deep-sea) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+    color: var(--octo-text-color) !important;
 
     &:focus {
-      border-color: $octo-mint !important;
-      box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+      border-color: var(--octo-mint) !important;
+      box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3) !important;
     }
   }
 
   // Reset button - always visible
   .reset-button {
     opacity: 1 !important;
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
 
     &:hover {
-      color: $octo-mint !important;
-      background: rgba($octo-mint, 0.1) !important;
+      color: var(--octo-mint) !important;
+      background: rgba(#{var(--octo-mint)}, 0.1) !important;
     }
   }
 }
@@ -1168,65 +1142,65 @@ mm-styles-panel {
 
 // Settings Panel styling
 .panel-container {
-  background: $surface-elevated !important;
+  background: var(--surface-elevated) !important;
 
   .settings-section {
-    border-bottom-color: rgba($octo-mint, 0.2) !important;
+    border-bottom-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
     h4 {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
     }
   }
 
   .form-group {
     label {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     input,
     textarea {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-text-color) !important;
 
       &::placeholder {
-        color: $ash-blue !important;
+        color: var(--ash-blue) !important;
       }
 
       &:focus {
-        border-color: $octo-mint !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+        border-color: var(--octo-mint) !important;
+        box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3) !important;
       }
     }
 
     // Kendo TextBox
     .k-textbox,
     .k-input {
-      background: $deep-sea !important;
-      border-color: rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-text-color) !important;
     }
 
     // Kendo NumericTextBox
     .k-numerictextbox,
     kendo-numerictextbox {
-      background: $deep-sea !important;
-      border-color: rgba($octo-mint, 0.3) !important;
+      background: var(--deep-sea) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
 
       .k-input-inner {
         background: transparent !important;
-        color: #ffffff !important;
+        color: var(--octo-text-color) !important;
       }
 
       .k-input-button,
       .k-spinner-increase,
       .k-spinner-decrease {
-        background: rgba($octo-mint, 0.1) !important;
-        border-color: rgba($octo-mint, 0.3) !important;
-        color: $octo-mint !important;
+        background: rgba(#{var(--octo-mint)}, 0.1) !important;
+        border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
+        color: var(--octo-mint) !important;
 
         &:hover {
-          background: rgba($octo-mint, 0.2) !important;
+          background: rgba(#{var(--octo-mint)}, 0.2) !important;
         }
       }
     }
@@ -1234,12 +1208,12 @@ mm-styles-panel {
     // Kendo TextArea
     .k-textarea,
     kendo-textarea {
-      background: $deep-sea !important;
-      border-color: rgba($octo-mint, 0.3) !important;
+      background: var(--deep-sea) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
 
       textarea {
         background: transparent !important;
-        color: #ffffff !important;
+        color: var(--octo-text-color) !important;
       }
     }
   }
@@ -1247,58 +1221,58 @@ mm-styles-panel {
 
 // Symbol Library Panel styling
 .symbol-library-panel {
-  background: $surface-elevated !important;
+  background: var(--surface-elevated) !important;
 
   .panel-search {
-    border-bottom: 1px solid rgba($octo-mint, 0.2) !important;
+    border-bottom: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
 
     input {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-text-color) !important;
 
       &::placeholder {
-        color: $ash-blue !important;
+        color: var(--ash-blue) !important;
       }
 
       &:focus {
-        border-color: $octo-mint !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+        border-color: var(--octo-mint) !important;
+        box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3) !important;
       }
     }
   }
 
   .panel-content {
-    background: $surface-elevated !important;
+    background: var(--surface-elevated) !important;
   }
 
   // Loading state
   .loading {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .loading-spinner {
-    border-color: rgba($octo-mint, 0.2) !important;
-    border-top-color: $octo-mint !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.2) !important;
+    border-top-color: var(--octo-mint) !important;
   }
 
   // Error state
   .error {
-    color: #ec658f !important;
+    color: var(--bubblegum) !important;
   }
 
   .error-icon {
-    background: rgba(236, 101, 143, 0.2) !important;
-    color: #ec658f !important;
+    background: rgba(#{var(--bubblegum)}, 0.2) !important;
+    color: var(--bubblegum) !important;
   }
 
   .retry-btn {
     background: transparent !important;
-    border: 1px solid #ec658f !important;
-    color: #ec658f !important;
+    border: 1px solid var(--bubblegum) !important;
+    color: var(--bubblegum) !important;
 
     &:hover {
-      background: rgba(236, 101, 143, 0.1) !important;
+      background: rgba(#{var(--bubblegum)}, 0.1) !important;
     }
   }
 
@@ -1308,25 +1282,25 @@ mm-styles-panel {
   }
 
   .library-header {
-    background: $iron-navy !important;
-    border: 1px solid rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
 
     &:hover {
-      background: rgba($octo-mint, 0.1) !important;
-      border-color: rgba($octo-mint, 0.4) !important;
+      background: rgba(#{var(--octo-mint)}, 0.1) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.4) !important;
     }
   }
 
   .expand-icon {
-    color: $octo-mint !important;
+    color: var(--octo-mint) !important;
   }
 
   .library-name {
-    color: #ffffff !important;
+    color: var(--octo-text-color) !important;
   }
 
   .library-count {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   // Symbol items
@@ -1335,194 +1309,194 @@ mm-styles-panel {
   }
 
   .symbol-item {
-    background: $iron-navy !important;
-    border: 1px solid rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
 
     &:hover {
-      border-color: $octo-mint !important;
-      box-shadow: 0 0 12px rgba($octo-mint, 0.3) !important;
+      border-color: var(--octo-mint) !important;
+      box-shadow: 0 0 12px rgba(#{var(--octo-mint)}, 0.3) !important;
     }
   }
 
   .symbol-preview {
     // Use a lighter background so dark symbols remain visible
     background: #4a5568 !important;
-    border: 1px solid rgba($octo-mint, 0.15) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.15) !important;
   }
 
   .symbol-label {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   // Empty/no results states
   .empty-library,
   .no-results {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 }
 
 // Binding Editor Dialog styling
 .binding-editor-content {
-  background: $surface-elevated !important;
+  background: var(--surface-elevated) !important;
 
   .list-header {
-    border-bottom-color: rgba($octo-mint, 0.2) !important;
-    color: #ffffff !important;
+    border-bottom-color: rgba(#{var(--octo-mint)}, 0.2) !important;
+    color: var(--octo-text-color) !important;
   }
 
   .empty-state {
-    background: $iron-navy !important;
-    color: $ash-blue !important;
+    background: var(--iron-navy) !important;
+    color: var(--ash-blue) !important;
 
     .hint {
-      color: rgba($ash-blue, 0.7) !important;
+      color: rgba(#{var(--ash-blue)}, 0.7) !important;
     }
   }
 
   // Binding cards
   .binding-card {
-    background: $iron-navy !important;
-    border: 1px solid rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
 
     &.expanded {
-      border-color: $octo-mint !important;
+      border-color: var(--octo-mint) !important;
     }
   }
 
   .binding-header {
-    background: rgba($iron-navy, 0.8) !important;
+    background: rgba(#{var(--iron-navy)}, 0.8) !important;
 
     &:hover {
-      background: rgba($octo-mint, 0.1) !important;
+      background: rgba(#{var(--octo-mint)}, 0.1) !important;
     }
   }
 
   .target-name {
-    color: #ffffff !important;
+    color: var(--octo-text-color) !important;
   }
 
   .effect-badge {
-    background: rgba($octo-mint, 0.15) !important;
-    color: $octo-mint !important;
+    background: rgba(#{var(--octo-mint)}, 0.15) !important;
+    color: var(--octo-mint) !important;
   }
 
   // Binding form
   .binding-form {
-    border-top-color: rgba($octo-mint, 0.2) !important;
-    background: $surface-elevated !important;
+    border-top-color: rgba(#{var(--octo-mint)}, 0.2) !important;
+    background: var(--surface-elevated) !important;
 
     .form-row label {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .form-row select,
     .form-row input[type="text"],
     .form-row input[type="number"] {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-text-color) !important;
 
       &:focus {
-        border-color: $octo-mint !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+        border-color: var(--octo-mint) !important;
+        box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3) !important;
         outline: none !important;
       }
 
       option,
       optgroup {
-        background: $deep-sea !important;
-        color: #ffffff !important;
+        background: var(--deep-sea) !important;
+        color: var(--octo-text-color) !important;
       }
     }
   }
 
   // Expression hint
   .expression-hint {
-    color: rgba($ash-blue, 0.7) !important;
+    color: rgba(#{var(--ash-blue)}, 0.7) !important;
 
     code {
-      background: $deep-sea !important;
-      color: $octo-mint !important;
+      background: var(--deep-sea) !important;
+      color: var(--octo-mint) !important;
     }
   }
 
   // Expression preview
   .expression-preview {
-    background: $iron-navy !important;
+    background: var(--iron-navy) !important;
     border-radius: 6px !important;
 
     > label {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .preview-input,
     .preview-output {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .preview-input input[type="number"] {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-text-color) !important;
     }
 
     .preview-input input[type="checkbox"] {
-      accent-color: $octo-mint !important;
+      accent-color: var(--octo-mint) !important;
     }
 
     .boolean-label {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
     }
 
     .preview-arrow {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .preview-output .output-value {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
     }
 
     .preview-output.error .output-value {
-      color: #ec658f !important;
+      color: var(--bubblegum) !important;
     }
   }
 
   // Anchor grid
   .anchor-grid {
-    background: rgba($octo-mint, 0.1) !important;
+    background: rgba(#{var(--octo-mint)}, 0.1) !important;
   }
 
   .anchor-point {
-    background: $deep-sea !important;
+    background: var(--deep-sea) !important;
     border: none !important;
 
     &:hover {
-      background: rgba($octo-mint, 0.2) !important;
+      background: rgba(#{var(--octo-mint)}, 0.2) !important;
     }
 
     &.selected {
-      background: $octo-mint !important;
+      background: var(--octo-mint) !important;
     }
   }
 
   .anchor-dot {
-    background: $ash-blue !important;
+    background: var(--ash-blue) !important;
   }
 
   .anchor-point.selected .anchor-dot {
-    background: $deep-sea !important;
+    background: var(--deep-sea) !important;
   }
 
   .anchor-point:hover .anchor-dot {
-    background: $octo-mint !important;
+    background: var(--octo-mint) !important;
   }
 
   .anchor-point.selected:hover .anchor-dot {
-    background: $deep-sea !important;
+    background: var(--deep-sea) !important;
   }
 
   .anchor-label {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 }
 
@@ -1535,65 +1509,65 @@ mm-symbol-editor-page {
   .k-input,
   kendo-textbox input,
   kendo-numerictextbox input {
-    background: $deep-sea !important;
-    border-color: rgba($octo-mint, 0.3) !important;
-    color: #ffffff !important;
+    background: var(--deep-sea) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
+    color: var(--octo-text-color) !important;
 
     &:focus,
     &.k-focus {
-      border-color: $octo-mint !important;
-      box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+      border-color: var(--octo-mint) !important;
+      box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3) !important;
     }
   }
 
   // Kendo DropDownList
   .k-dropdownlist,
   kendo-dropdownlist {
-    background: $deep-sea !important;
-    border-color: rgba($octo-mint, 0.3) !important;
-    color: #ffffff !important;
+    background: var(--deep-sea) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
+    color: var(--octo-text-color) !important;
 
     .k-input-inner {
       background: transparent !important;
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
     }
 
     .k-button {
       background: transparent !important;
       border-color: transparent !important;
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
 
       &:hover {
-        color: $octo-mint !important;
+        color: var(--octo-mint) !important;
       }
     }
 
     &:focus,
     &.k-focus {
-      border-color: $octo-mint !important;
-      box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+      border-color: var(--octo-mint) !important;
+      box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3) !important;
     }
   }
 
   // Kendo NumericTextBox
   .k-numerictextbox {
-    background: $deep-sea !important;
-    border-color: rgba($octo-mint, 0.3) !important;
+    background: var(--deep-sea) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
 
     .k-input-inner {
       background: transparent !important;
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
     }
 
     .k-input-button,
     .k-spinner-increase,
     .k-spinner-decrease {
-      background: rgba($octo-mint, 0.1) !important;
-      border-color: rgba($octo-mint, 0.3) !important;
-      color: $octo-mint !important;
+      background: rgba(#{var(--octo-mint)}, 0.1) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-mint) !important;
 
       &:hover {
-        background: rgba($octo-mint, 0.2) !important;
+        background: rgba(#{var(--octo-mint)}, 0.2) !important;
       }
     }
   }
@@ -1602,15 +1576,15 @@ mm-symbol-editor-page {
 // SVG Import Dialog styling
 .svg-file-group,
 .form-group.svg-file-group {
-  background: $surface-elevated !important;
-  border: 2px dashed rgba($octo-mint, 0.3) !important;
+  background: var(--surface-elevated) !important;
+  border: 2px dashed rgba(#{var(--octo-mint)}, 0.3) !important;
   border-radius: 8px !important;
   padding: 16px !important;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: rgba($octo-mint, 0.5) !important;
-    background: rgba($octo-mint, 0.05) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.5) !important;
+    background: rgba(#{var(--octo-mint)}, 0.05) !important;
   }
 
   // File input button
@@ -1620,8 +1594,8 @@ mm-symbol-editor-page {
       var(--octo-mint-15),
       var(--octo-mint-05)
     ) !important;
-    border: 1px solid rgba($octo-mint, 0.3) !important;
-    color: $octo-mint !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+    color: var(--octo-mint) !important;
 
     &:hover {
       background: linear-gradient(
@@ -1629,8 +1603,8 @@ mm-symbol-editor-page {
         var(--octo-mint-25),
         var(--octo-mint-15)
       ) !important;
-      border-color: $octo-mint !important;
-      box-shadow: 0 0 10px rgba($octo-mint, 0.3) !important;
+      border-color: var(--octo-mint) !important;
+      box-shadow: 0 0 10px rgba(#{var(--octo-mint)}, 0.3) !important;
     }
   }
 }
@@ -1638,37 +1612,37 @@ mm-symbol-editor-page {
 // SVG Scale group styling
 .svg-scale-group,
 .form-group.svg-scale-group {
-  background: $surface-elevated !important;
-  border: 1px solid rgba($octo-mint, 0.2) !important;
+  background: var(--surface-elevated) !important;
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
   border-radius: 8px !important;
   padding: 12px 16px !important;
 
   label {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .scale-info,
   .dimension-info {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   // Kendo numeric textbox
   .k-numerictextbox {
-    background: $deep-sea !important;
-    border-color: rgba($octo-mint, 0.3) !important;
+    background: var(--deep-sea) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
 
     .k-input-inner {
-      background: $deep-sea !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      color: var(--octo-text-color) !important;
     }
 
     .k-input-button {
-      background: rgba($octo-mint, 0.1) !important;
-      border-color: rgba($octo-mint, 0.3) !important;
-      color: $octo-mint !important;
+      background: rgba(#{var(--octo-mint)}, 0.1) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-mint) !important;
 
       &:hover {
-        background: rgba($octo-mint, 0.2) !important;
+        background: rgba(#{var(--octo-mint)}, 0.2) !important;
       }
     }
   }
@@ -1677,12 +1651,12 @@ mm-symbol-editor-page {
   button.reset-btn,
   .reset-button {
     background: transparent !important;
-    border: 1px solid rgba($ash-blue, 0.3) !important;
-    color: $ash-blue !important;
+    border: 1px solid rgba(#{var(--ash-blue)}, 0.3) !important;
+    color: var(--ash-blue) !important;
 
     &:hover {
-      background: rgba($ash-blue, 0.1) !important;
-      border-color: $ash-blue !important;
+      background: rgba(#{var(--ash-blue)}, 0.1) !important;
+      border-color: var(--ash-blue) !important;
     }
   }
 }
@@ -1691,29 +1665,29 @@ mm-symbol-editor-page {
 .import-svg-dialog,
 .symbol-import-dialog {
   .dialog-content {
-    background: $deep-sea !important;
+    background: var(--deep-sea) !important;
   }
 
   .form-group {
     label {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     input[type="text"] {
-      background: $deep-sea !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
-      color: #ffffff !important;
+      background: var(--deep-sea) !important;
+      border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+      color: var(--octo-text-color) !important;
 
       &:focus {
-        border-color: $octo-mint !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.3) !important;
+        border-color: var(--octo-mint) !important;
+        box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3) !important;
       }
     }
   }
 
   .preview-container {
-    background: $iron-navy !important;
-    border: 1px solid rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
   }
 }
 
@@ -1726,33 +1700,33 @@ mm-process-designer,
 mm-symbol-editor,
 mm-symbol-editor-page {
   // Override designer CSS variables for LCARS theme
-  --designer-bg: #{$deep-sea} !important;
-  --designer-surface: #{$surface-elevated} !important;
-  --designer-surface-alt: #{$iron-navy} !important;
-  --designer-border: rgba(100, 206, 185, 0.2) !important;
-  --designer-text: #ffffff !important;
-  --designer-text-muted: #{$ash-blue} !important;
-  --designer-accent: #{$octo-mint} !important;
-  --designer-accent-secondary: #{$neo-cyan} !important;
-  --designer-canvas-bg: #{$surface-elevated} !important;
-  --designer-hover-bg: rgba(100, 206, 185, 0.1) !important;
+  --designer-bg: #{var(--deep-sea)} !important;
+  --designer-surface: #{var(--surface-elevated)} !important;
+  --designer-surface-alt: #{var(--iron-navy)} !important;
+  --designer-border: rgba(#{var(--lcars-border-color)}, 0.2) !important;
+  --designer-text: var(--octo-text-color) !important;
+  --designer-text-muted: #{var(--ash-blue)} !important;
+  --designer-accent: #{var(--octo-mint)} !important;
+  --designer-accent-secondary: #{var(--neo-cyan)} !important;
+  --designer-canvas-bg: #{var(--surface-elevated)} !important;
+  --designer-hover-bg: rgba(#{var(--lcars-border-color)}, 0.1) !important;
 
   // Canvas-specific colors (SVG canvas fill and grid)
-  --designer-canvas-color: #{$iron-navy} !important;
-  --designer-grid-color: rgba(100, 206, 185, 0.15) !important;
+  --designer-canvas-color: #{var(--iron-navy)} !important;
+  --designer-grid-color: rgba(#{var(--lcars-border-color)}, 0.15) !important;
 
   // Editor-specific variables (inherited from designer)
-  --editor-bg: #{$deep-sea} !important;
-  --editor-surface: #{$surface-elevated} !important;
-  --editor-surface-alt: #{$iron-navy} !important;
-  --editor-border: rgba(100, 206, 185, 0.2) !important;
-  --editor-text: #ffffff !important;
-  --editor-text-muted: #{$ash-blue} !important;
-  --editor-accent: #{$octo-mint} !important;
-  --editor-hover-bg: rgba(100, 206, 185, 0.1) !important;
+  --editor-bg: #{var(--deep-sea)} !important;
+  --editor-surface: #{var(--surface-elevated)} !important;
+  --editor-surface-alt: #{var(--iron-navy)} !important;
+  --editor-border: rgba(#{var(--lcars-border-color)}, 0.2) !important;
+  --editor-text: var(--octo-text-color) !important;
+  --editor-text-muted: #{var(--ash-blue)} !important;
+  --editor-accent: #{var(--octo-mint)} !important;
+  --editor-hover-bg: rgba(#{var(--lcars-border-color)}, 0.1) !important;
 
   // Force backgrounds directly on elements
-  background: #{$deep-sea} !important;
+  background: #{var(--deep-sea)} !important;
 }
 
 // Force LCARS styling on process designer internal elements
@@ -1760,99 +1734,99 @@ mm-symbol-editor-page {
   mm-process-designer,
   mm-symbol-editor {
     .process-designer {
-      background: #{$deep-sea} !important;
+      background: #{var(--deep-sea)} !important;
     }
 
     .designer-canvas-container {
-      background: #{$surface-elevated} !important;
+      background: #{var(--surface-elevated)} !important;
     }
 
     // Canvas SVG background - LCARS dark theme
     .canvas-background {
-      fill: #{$iron-navy} !important;
+      fill: #{var(--iron-navy)} !important;
     }
 
     // Grid lines - subtle mint-colored grid
     .designer-grid-line {
-      stroke: rgba(100, 206, 185, 0.15) !important;
+      stroke: rgba(#{var(--lcars-border-color)}, 0.15) !important;
     }
 
     .designer-sidebar,
     .designer-inspector-container {
-      background: #{$surface-elevated} !important;
-      border-color: rgba(100, 206, 185, 0.2) !important;
+      background: #{var(--surface-elevated)} !important;
+      border-color: rgba(#{var(--lcars-border-color)}, 0.2) !important;
     }
 
     .sidebar-tab {
-      background: #{$iron-navy} !important;
-      color: #{$ash-blue} !important;
+      background: #{var(--iron-navy)} !important;
+      color: #{var(--ash-blue)} !important;
 
       &.active {
-        background: #{$surface-elevated} !important;
-        color: #{$octo-mint} !important;
-        border-bottom-color: #{$octo-mint} !important;
+        background: #{var(--surface-elevated)} !important;
+        color: #{var(--octo-mint)} !important;
+        border-bottom-color: #{var(--octo-mint)} !important;
       }
     }
 
     .designer-statusbar {
-      background: #{$iron-navy} !important;
-      border-color: rgba(100, 206, 185, 0.2) !important;
-      color: #{$ash-blue} !important;
+      background: #{var(--iron-navy)} !important;
+      border-color: rgba(#{var(--lcars-border-color)}, 0.2) !important;
+      color: #{var(--ash-blue)} !important;
     }
 
     .dockview-panels-container {
-      background: #{$surface-elevated} !important;
-      border-color: rgba(100, 206, 185, 0.2) !important;
+      background: #{var(--surface-elevated)} !important;
+      border-color: rgba(#{var(--lcars-border-color)}, 0.2) !important;
     }
   }
 
   mm-symbol-editor-page {
     .symbol-editor-page-container {
-      background: #{$deep-sea} !important;
+      background: #{var(--deep-sea)} !important;
     }
 
     .editor-header {
-      background: #{$iron-navy} !important;
-      border-color: rgba(100, 206, 185, 0.2) !important;
+      background: #{var(--iron-navy)} !important;
+      border-color: rgba(#{var(--lcars-border-color)}, 0.2) !important;
     }
 
     .symbol-title {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
     }
 
     .library-name {
-      color: #{$ash-blue} !important;
+      color: #{var(--ash-blue)} !important;
     }
   }
 
   // Symbol editor container
   mm-symbol-editor {
     .symbol-editor-container {
-      background: #{$deep-sea} !important;
+      background: #{var(--deep-sea)} !important;
     }
 
     .properties-panel {
-      background: #{$surface-elevated} !important;
-      border-color: rgba(100, 206, 185, 0.2) !important;
+      background: #{var(--surface-elevated)} !important;
+      border-color: rgba(#{var(--lcars-border-color)}, 0.2) !important;
     }
 
     .panel-header {
-      background: #{$iron-navy} !important;
-      border-color: rgba(100, 206, 185, 0.2) !important;
+      background: #{var(--iron-navy)} !important;
+      border-color: rgba(#{var(--lcars-border-color)}, 0.2) !important;
     }
 
     .panel-title {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
     }
 
     .panel-collapsed {
-      background: #{$iron-navy} !important;
-      border-color: rgba(100, 206, 185, 0.2) !important;
+      background: #{var(--iron-navy)} !important;
+      border-color: rgba(#{var(--lcars-border-color)}, 0.2) !important;
     }
 
     .collapsed-label,
     .collapsed-icon {
-      color: #{$ash-blue} !important;
+      color: #{var(--ash-blue)} !important;
     }
   }
 }
@@ -1864,32 +1838,32 @@ mm-symbol-editor-page {
 // ----------------------------------------------------------------------------
 mm-process-widget {
   // Override CSS variables used by the process widget
-  --process-bg: #{$iron-navy};
-  --process-canvas-bg: #{$iron-navy};
+  --process-bg: #{var(--iron-navy)};
+  --process-canvas-bg: #{var(--iron-navy)};
 
   .process-widget {
-    background-color: #{$iron-navy} !important;
+    background-color: #{var(--iron-navy)} !important;
   }
 
   .diagram-container {
-    background-color: #{$iron-navy} !important;
+    background-color: #{var(--iron-navy)} !important;
   }
 
   .loading-overlay {
-    color: #{$ash-blue} !important;
+    color: #{var(--ash-blue)} !important;
   }
 
   .loading-spinner {
-    border-color: rgba(100, 206, 185, 0.2) !important;
-    border-top-color: #{$octo-mint} !important;
+    border-color: rgba(#{var(--lcars-border-color)}, 0.2) !important;
+    border-top-color: #{var(--octo-mint)} !important;
   }
 
   .error-container {
-    color: #{$bubblegum} !important;
+    color: #{var(--bubblegum)} !important;
   }
 
   .no-config {
-    color: #{$ash-blue} !important;
+    color: #{var(--ash-blue)} !important;
   }
 }
 
@@ -1960,10 +1934,10 @@ mm-process-widget {
     var(--iron-navy),
     var(--iron-navy-dark-5)
   ) !important;
-  border-bottom: 1px solid rgba($octo-mint, 0.3);
+  border-bottom: 1px solid rgba(#{var(--octo-mint)}, 0.3);
   box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba($octo-mint, 0.1);
+    0 2px 8px rgba(#000, 0.3),
+    0 0 20px rgba(#{var(--octo-mint)}, 0.1);
 }
 
 // Buttons - LCARS style
@@ -1981,14 +1955,14 @@ mm-process-widget {
       var(--octo-mint-30),
       var(--octo-mint-15)
     );
-    border: 1px solid rgba($octo-mint, 0.5);
-    color: #ffffff;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.5);
+    color: var(--octo-text-color);
 
     .k-svg-icon,
     .k-icon,
     svg {
-      fill: #ffffff;
-      color: #ffffff;
+      fill: var(--octo-text-color);
+      color: var(--octo-text-color);
     }
 
     &:hover:not(:disabled) {
@@ -1997,8 +1971,8 @@ mm-process-widget {
         var(--octo-mint-45),
         var(--octo-mint-25)
       );
-      border-color: $octo-mint;
-      box-shadow: 0 0 15px rgba($octo-mint, 0.4);
+      border-color: var(--octo-mint);
+      box-shadow: 0 0 15px rgba(#{var(--octo-mint)}, 0.4);
     }
 
     &:active:not(:disabled) {
@@ -2029,14 +2003,14 @@ mm-process-widget {
       var(--octo-mint-15),
       var(--octo-mint-05)
     );
-    border: 1px solid rgba($octo-mint, 0.3);
-    color: $octo-mint;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.3);
+    color: var(--octo-mint);
 
     .k-svg-icon,
     .k-icon,
     svg {
-      fill: $octo-mint;
-      color: $octo-mint;
+      fill: var(--octo-mint);
+      color: var(--octo-mint);
     }
 
     &:hover:not(:disabled) {
@@ -2045,8 +2019,8 @@ mm-process-widget {
         var(--octo-mint-25),
         var(--octo-mint-15)
       );
-      border-color: rgba($octo-mint, 0.5);
-      box-shadow: 0 0 10px rgba($octo-mint, 0.3);
+      border-color: rgba(#{var(--octo-mint)}, 0.5);
+      box-shadow: 0 0 10px rgba(#{var(--octo-mint)}, 0.3);
     }
 
     &:active:not(:disabled) {
@@ -2059,15 +2033,15 @@ mm-process-widget {
 
     &:disabled {
       opacity: 0.5;
-      color: $ash-blue;
-      border-color: rgba($ash-blue, 0.3);
-      background: rgba($ash-blue, 0.1);
+      color: var(--ash-blue);
+      border-color: rgba(#{var(--ash-blue)}, 0.3);
+      background: rgba(#{var(--ash-blue)}, 0.1);
 
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: $ash-blue;
-        color: $ash-blue;
+        fill: var(--ash-blue);
+        color: var(--ash-blue);
       }
     }
   }
@@ -2079,14 +2053,14 @@ mm-process-widget {
       var(--bubblegum-20),
       var(--bubblegum-10)
     );
-    border: 1px solid rgba($bubblegum, 0.4);
-    color: $bubblegum;
+    border: 1px solid rgba(#{var(--bubblegum)}, 0.4);
+    color: var(--bubblegum);
 
     .k-svg-icon,
     .k-icon,
     svg {
-      fill: $bubblegum;
-      color: $bubblegum;
+      fill: var(--bubblegum);
+      color: var(--bubblegum);
     }
 
     &:hover:not(:disabled) {
@@ -2095,8 +2069,8 @@ mm-process-widget {
         var(--bubblegum-30),
         var(--bubblegum-20)
       );
-      border-color: rgba($bubblegum, 0.6);
-      box-shadow: 0 0 10px rgba($bubblegum, 0.4);
+      border-color: rgba(#{var(--bubblegum)}, 0.6);
+      box-shadow: 0 0 10px rgba(#{var(--bubblegum)}, 0.4);
     }
 
     &:active:not(:disabled) {
@@ -2122,100 +2096,100 @@ mm-process-widget {
 
   // Outline base buttons - ensure visibility on dark background
   &.k-button-outline-base {
-    color: $ash-blue;
-    border-color: rgba($ash-blue, 0.5);
+    color: var(--ash-blue);
+    border-color: rgba(#{var(--ash-blue)}, 0.5);
     background: transparent;
 
     .k-svg-icon,
     .k-icon,
     svg {
-      fill: $ash-blue;
-      color: $ash-blue;
+      fill: var(--ash-blue);
+      color: var(--ash-blue);
     }
 
     &:hover:not(:disabled) {
-      color: $octo-mint;
-      border-color: rgba($octo-mint, 0.5);
-      background: rgba($octo-mint, 0.1);
+      color: var(--octo-mint);
+      border-color: rgba(#{var(--octo-mint)}, 0.5);
+      background: rgba(#{var(--octo-mint)}, 0.1);
       box-shadow: var(--lcars-glow-primary);
 
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: $octo-mint;
-        color: $octo-mint;
+        fill: var(--octo-mint);
+        color: var(--octo-mint);
       }
     }
 
     &:active:not(:disabled) {
-      background: rgba($octo-mint, 0.15);
+      background: rgba(#{var(--octo-mint)}, 0.15);
     }
   }
 
   // Outline primary buttons - for selected state
   &.k-button-outline-primary {
-    color: $octo-mint;
-    border-color: rgba($octo-mint, 0.5);
+    color: var(--octo-mint);
+    border-color: rgba(#{var(--octo-mint)}, 0.5);
     background: transparent;
 
     .k-svg-icon,
     .k-icon,
     svg {
-      fill: $octo-mint;
-      color: $octo-mint;
+      fill: var(--octo-mint);
+      color: var(--octo-mint);
     }
 
     &:hover:not(:disabled) {
-      background: rgba($octo-mint, 0.15);
+      background: rgba(#{var(--octo-mint)}, 0.15);
       box-shadow: var(--lcars-glow-primary);
     }
   }
 
   // Flat error buttons (delete/remove actions) - make visible on dark background
   &.k-button-flat-error {
-    color: $bubblegum !important;
-    background: rgba($bubblegum, 0.1);
-    border: 1px solid rgba($bubblegum, 0.3);
+    color: var(--bubblegum) !important;
+    background: rgba(#{var(--bubblegum)}, 0.1);
+    border: 1px solid rgba(#{var(--bubblegum)}, 0.3);
 
     .k-svg-icon,
     .k-icon,
     svg {
-      fill: $bubblegum !important;
-      color: $bubblegum !important;
+      fill: var(--bubblegum) !important;
+      color: var(--bubblegum) !important;
     }
 
     &:hover {
-      background: rgba($bubblegum, 0.2);
-      border-color: rgba($bubblegum, 0.5);
-      box-shadow: 0 0 8px rgba($bubblegum, 0.4);
+      background: rgba(#{var(--bubblegum)}, 0.2);
+      border-color: rgba(#{var(--bubblegum)}, 0.5);
+      box-shadow: 0 0 8px rgba(#{var(--bubblegum)}, 0.4);
     }
 
     &:active {
-      background: rgba($bubblegum, 0.3);
+      background: rgba(#{var(--bubblegum)}, 0.3);
     }
   }
 
   // General flat buttons - ensure visibility
   &.k-button-flat {
     &:not(.k-button-flat-error):not(.k-button-flat-primary) {
-      color: $ash-blue;
+      color: var(--ash-blue);
 
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: $ash-blue;
-        color: $ash-blue;
+        fill: var(--ash-blue);
+        color: var(--ash-blue);
       }
 
       &:hover {
-        background: rgba($ash-blue, 0.15);
-        color: $octo-mint;
+        background: rgba(#{var(--ash-blue)}, 0.15);
+        color: var(--octo-mint);
 
         .k-svg-icon,
         .k-icon,
         svg {
-          fill: $octo-mint;
-          color: $octo-mint;
+          fill: var(--octo-mint);
+          color: var(--octo-mint);
         }
       }
     }
@@ -2234,7 +2208,7 @@ mm-process-widget {
       var(--iron-navy),
       var(--surface-elevated)
     );
-    border-bottom: 2px solid rgba($octo-mint, 0.3);
+    border-bottom: 2px solid rgba(#{var(--octo-mint)}, 0.3);
 
     th {
       font-family: var(--lcars-font-primary);
@@ -2242,30 +2216,30 @@ mm-process-widget {
       text-transform: uppercase;
       font-size: 0.85em;
       letter-spacing: 0.5px;
-      color: $octo-mint;
+      color: var(--octo-mint);
     }
   }
 
   .k-grid-content {
-    background: rgba($deep-sea, 0.8);
+    background: rgba(#{var(--deep-sea)}, 0.8);
 
     tr {
       transition: background var(--lcars-transition-fast);
 
       &:hover {
-        background: rgba($octo-mint, 0.08) !important;
+        background: rgba(#{var(--octo-mint)}, 0.08) !important;
       }
 
       &.k-selected {
-        background: rgba($octo-mint, 0.15) !important;
-        border-left: 3px solid $octo-mint;
+        background: rgba(#{var(--octo-mint)}, 0.15) !important;
+        border-left: 3px solid var(--octo-mint);
       }
     }
   }
 
   .k-pager {
-    background: $iron-navy;
-    border-top: 1px solid rgba($octo-mint, 0.2);
+    background: var(--iron-navy);
+    border-top: 1px solid rgba(#{var(--octo-mint)}, 0.2);
   }
 }
 
@@ -2277,13 +2251,13 @@ mm-process-widget {
       transition: all var(--lcars-transition-fast);
 
       &:hover {
-        background: rgba($octo-mint, 0.1);
+        background: rgba(#{var(--octo-mint)}, 0.1);
       }
 
       &.k-selected {
-        background: rgba($octo-mint, 0.2);
-        border-left: 3px solid $octo-mint;
-        box-shadow: inset 0 0 10px rgba($octo-mint, 0.1);
+        background: rgba(#{var(--octo-mint)}, 0.2);
+        border-left: 3px solid var(--octo-mint);
+        box-shadow: inset 0 0 10px rgba(#{var(--octo-mint)}, 0.1);
       }
     }
   }
@@ -2293,18 +2267,18 @@ mm-process-widget {
 .k-input,
 .k-picker,
 .k-textbox {
-  background: rgba($deep-sea, 0.8);
-  border: 1px solid rgba($ash-blue, 0.3);
+  background: rgba(#{var(--deep-sea)}, 0.8);
+  border: 1px solid rgba(#{var(--ash-blue)}, 0.3);
   border-radius: var(--lcars-radius-sm);
   transition: all var(--lcars-transition-fast);
 
   &:hover {
-    border-color: rgba($octo-mint, 0.5);
+    border-color: rgba(#{var(--octo-mint)}, 0.5);
   }
 
   &:focus,
   &.k-focus {
-    border-color: $octo-mint;
+    border-color: var(--octo-mint);
     box-shadow: var(--lcars-glow-primary);
   }
 }
@@ -2315,32 +2289,32 @@ kendo-formfield,
   kendo-label,
   .k-label,
   > label {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
     font-family: var(--lcars-font-primary);
     font-weight: 500;
   }
 
   kendo-formhint,
   .k-form-hint {
-    color: rgba($ash-blue, 0.7) !important;
+    color: rgba(#{var(--ash-blue)}, 0.7) !important;
   }
 
   kendo-formerror,
   .k-form-error {
-    color: $bubblegum !important;
+    color: var(--bubblegum) !important;
   }
 }
 
 // Standalone labels - LCARS style
 .k-label,
 kendo-label {
-  color: $ash-blue !important;
+  color: var(--ash-blue) !important;
 }
 
 // Checkbox labels
 .k-checkbox-label,
 label.k-checkbox-label {
-  color: #ffffff !important;
+  color: var(--octo-text-color) !important;
 }
 
 // ============================================
@@ -2391,29 +2365,29 @@ div.k-window.k-dialog {
 
   .form-field {
     > label {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
       font-family: var(--lcars-font-primary);
       font-weight: 500;
 
       .required {
-        color: $bubblegum !important;
+        color: var(--bubblegum) !important;
       }
     }
 
     .field-hint {
-      color: rgba($ash-blue, 0.7) !important;
+      color: rgba(#{var(--ash-blue)}, 0.7) !important;
     }
 
     .switch-label {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
     }
   }
 
   .form-section {
     h4 {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
       font-family: var(--lcars-font-primary);
-      border-bottom-color: rgba($octo-mint, 0.2) !important;
+      border-bottom-color: rgba(#{var(--octo-mint)}, 0.2) !important;
     }
   }
 
@@ -2421,14 +2395,14 @@ div.k-window.k-dialog {
   .data-source-type {
     .radio-group {
       .radio-label {
-        color: #ffffff !important;
+        color: var(--octo-text-color) !important;
 
         span {
-          color: #ffffff !important;
+          color: var(--octo-text-color) !important;
         }
 
         input[type="radio"] {
-          accent-color: $octo-mint;
+          accent-color: var(--octo-mint);
         }
       }
     }
@@ -2436,28 +2410,28 @@ div.k-window.k-dialog {
 
   // Config cards (Columns, Sorting, Filters, Options, Query Info)
   .config-card {
-    background: rgba($surface-elevated, 0.6) !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: rgba(#{var(--surface-elevated)}, 0.6) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .card-header {
       .card-title {
-        color: $octo-mint !important;
+        color: var(--octo-mint) !important;
         font-family: var(--lcars-font-primary);
       }
 
       .card-count {
-        color: $ash-blue !important;
+        color: var(--ash-blue) !important;
       }
 
       kendo-svgicon,
       .k-svg-icon {
-        color: $octo-mint !important;
+        color: var(--octo-mint) !important;
       }
     }
 
     .card-content {
       .config-summary {
-        color: rgba(#ffffff, 0.9) !important;
+        color: rgba(#{var(--octo-text-color)}, 0.9) !important;
       }
     }
 
@@ -2466,11 +2440,11 @@ div.k-window.k-dialog {
     .query-info {
       .info-row {
         .info-label {
-          color: $ash-blue !important;
+          color: var(--ash-blue) !important;
         }
 
         .info-value {
-          color: #ffffff !important;
+          color: var(--octo-text-color) !important;
         }
       }
     }
@@ -2478,7 +2452,7 @@ div.k-window.k-dialog {
     // Options card
     &.options-card {
       .checkbox-field label {
-        color: #ffffff !important;
+        color: var(--octo-text-color) !important;
       }
     }
   }
@@ -2486,58 +2460,58 @@ div.k-window.k-dialog {
   // Query combobox items
   .query-item {
     .query-name {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
     }
 
     .query-description {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
   }
 
   // Loading indicator
   .loading-indicator {
-    color: $octo-mint !important;
+    color: var(--octo-mint) !important;
   }
 
   // Config sections (used in Pie Chart, Bar Chart, etc.)
   .config-section {
-    background: rgba($surface-elevated, 0.6) !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: rgba(#{var(--surface-elevated)}, 0.6) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .section-title {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
       font-family: var(--lcars-font-primary);
     }
 
     .section-hint {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
   }
 
   // Form sections (used in Stats Grid Config Dialog, etc.)
   .form-section {
-    background: rgba($surface-elevated, 0.6) !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: rgba(#{var(--surface-elevated)}, 0.6) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .section-header {
       h4 {
-        color: $octo-mint !important;
+        color: var(--octo-mint) !important;
         font-family: var(--lcars-font-primary);
       }
     }
 
     .empty-state {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
   }
 
   // Stat items (used in Stats Grid Config Dialog)
   .stat-item {
-    background: rgba($surface-elevated, 0.8) !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: rgba(#{var(--surface-elevated)}, 0.8) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .stat-number {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
     }
   }
 }
@@ -2563,58 +2537,58 @@ div.k-window.k-dialog {
 .sort-button,
 .k-spinner-increase,
 .k-spinner-decrease {
-  background: rgba($octo-mint, 0.1) !important;
-  border-color: rgba($octo-mint, 0.3) !important;
-  color: $octo-mint !important;
+  background: rgba(#{var(--octo-mint)}, 0.1) !important;
+  border-color: rgba(#{var(--octo-mint)}, 0.3) !important;
+  color: var(--octo-mint) !important;
 
   // Make SVG icons visible
   .k-svg-icon,
   .k-icon,
   svg {
-    fill: $octo-mint !important;
-    color: $octo-mint !important;
+    fill: var(--octo-mint) !important;
+    color: var(--octo-mint) !important;
   }
 
   &:hover {
-    background: rgba($octo-mint, 0.2) !important;
-    border-color: rgba($octo-mint, 0.5) !important;
+    background: rgba(#{var(--octo-mint)}, 0.2) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.5) !important;
   }
 
   &:active {
-    background: rgba($octo-mint, 0.3) !important;
+    background: rgba(#{var(--octo-mint)}, 0.3) !important;
   }
 }
 
 // Dropdown/Popup - LCARS style
 .k-popup {
-  background: $iron-navy;
-  border: 1px solid rgba($octo-mint, 0.3);
+  background: var(--iron-navy);
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.3);
   border-radius: var(--lcars-radius-md);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 20px rgba($octo-mint, 0.1);
+    0 8px 32px rgba(#000, 0.4),
+    0 0 20px rgba(#{var(--octo-mint)}, 0.1);
 
   .k-list-item {
     transition: background var(--lcars-transition-fast);
 
     &:hover {
-      background: rgba($octo-mint, 0.15);
+      background: rgba(#{var(--octo-mint)}, 0.15);
     }
 
     &.k-selected {
-      background: rgba($octo-mint, 0.25);
-      color: $octo-mint;
+      background: rgba(#{var(--octo-mint)}, 0.25);
+      color: var(--octo-mint);
     }
   }
 }
 
 // Dialog - LCARS style
 .k-dialog {
-  border: 1px solid rgba($octo-mint, 0.3);
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.3);
   border-radius: var(--lcars-radius-lg);
   box-shadow:
-    0 16px 64px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba($octo-mint, 0.15);
+    0 16px 64px rgba(#000, 0.5),
+    0 0 40px rgba(#{var(--octo-mint)}, 0.15);
   overflow: hidden;
 
   .k-dialog-titlebar {
@@ -2623,7 +2597,7 @@ div.k-window.k-dialog {
       var(--iron-navy),
       var(--surface-elevated)
     );
-    border-bottom: 2px solid $octo-mint;
+    border-bottom: 2px solid var(--octo-mint);
     font-family: var(--lcars-font-primary);
     font-weight: 600;
     text-transform: uppercase;
@@ -2636,13 +2610,13 @@ div.k-window.k-dialog {
       top: 0;
       bottom: 0;
       width: 4px;
-      background: $octo-mint;
+      background: var(--octo-mint);
     }
   }
 
   .k-dialog-content,
   .k-window-content {
-    background: $deep-sea;
+    background: var(--deep-sea);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -2656,8 +2630,8 @@ div.k-window.k-dialog {
   }
 
   .k-dialog-actions {
-    background: $iron-navy;
-    border-top: 1px solid rgba($octo-mint, 0.2);
+    background: var(--iron-navy);
+    border-top: 1px solid rgba(#{var(--octo-mint)}, 0.2);
     flex-shrink: 0;
   }
 }
@@ -2665,7 +2639,7 @@ div.k-window.k-dialog {
 // Drawer - LCARS style
 .k-drawer {
   background: linear-gradient(180deg, var(--iron-navy), var(--deep-sea));
-  border-right: 1px solid rgba($octo-mint, 0.2);
+  border-right: 1px solid rgba(#{var(--octo-mint)}, 0.2);
 
   .k-drawer-wrapper {
     overflow-x: hidden;
@@ -2706,17 +2680,13 @@ div.k-window.k-dialog {
     }
 
     &:hover {
-      background: rgba($octo-mint, 0.1);
+      background: rgba(#{var(--octo-mint)}, 0.1);
     }
 
     &.k-selected {
-      background: linear-gradient(
-        90deg,
-        var(--octo-mint-20),
-        transparent
-      );
-      border-left: 3px solid $octo-mint;
-      color: $octo-mint;
+      background: linear-gradient(90deg, var(--octo-mint-20), transparent);
+      border-left: 3px solid var(--octo-mint);
+      color: var(--octo-mint);
     }
 
     // Separator styling
@@ -2725,11 +2695,7 @@ div.k-window.k-dialog {
       min-height: 1px;
       padding: 0;
       margin: 8px 12px;
-      background: linear-gradient(
-        90deg,
-        var(--octo-mint-30),
-        transparent
-      );
+      background: linear-gradient(90deg, var(--octo-mint-30), transparent);
     }
   }
 
@@ -2749,7 +2715,7 @@ div.k-window.k-dialog {
       }
 
       &.k-selected {
-        border-left: 3px solid $octo-mint;
+        border-left: 3px solid var(--octo-mint);
         padding-left: 0;
       }
     }
@@ -2759,7 +2725,7 @@ div.k-window.k-dialog {
 // Tabs - LCARS style
 .k-tabstrip {
   .k-tabstrip-items {
-    border-bottom: 2px solid rgba($ash-blue, 0.2);
+    border-bottom: 2px solid rgba(#{var(--ash-blue)}, 0.2);
 
     .k-item {
       font-family: var(--lcars-font-primary);
@@ -2770,13 +2736,13 @@ div.k-window.k-dialog {
       transition: all var(--lcars-transition-fast);
 
       &:hover {
-        background: rgba($octo-mint, 0.1);
+        background: rgba(#{var(--octo-mint)}, 0.1);
       }
 
       &.k-active {
-        background: $iron-navy;
-        border-bottom: 3px solid $octo-mint;
-        color: $octo-mint;
+        background: var(--iron-navy);
+        border-bottom: 3px solid var(--octo-mint);
+        color: var(--octo-mint);
       }
     }
   }
@@ -2791,7 +2757,7 @@ div.k-window.k-dialog {
 
   .k-card-header {
     background: linear-gradient(90deg, var(--iron-navy), transparent);
-    border-left: 4px solid $octo-mint;
+    border-left: 4px solid var(--octo-mint);
     font-family: var(--lcars-font-primary);
     font-weight: 600;
   }
@@ -2799,17 +2765,17 @@ div.k-window.k-dialog {
 
 // Tooltip - LCARS style
 .k-tooltip {
-  background: $iron-navy;
-  border: 1px solid rgba($octo-mint, 0.4);
+  background: var(--iron-navy);
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.4);
   border-radius: var(--lcars-radius-sm);
   box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.3),
+    0 4px 16px rgba(#000, 0.3),
     var(--lcars-glow-primary);
 }
 
 // Progress indicators - LCARS style
 .k-progressbar {
-  background: rgba($ash-blue, 0.2);
+  background: rgba(#{var(--ash-blue)}, 0.2);
   border-radius: var(--lcars-radius-pill);
   overflow: hidden;
 
@@ -2885,7 +2851,7 @@ div.k-window.k-dialog {
   border-color: var(--octo-mint);
 }
 .lcars-border-glow {
-  border: 1px solid rgba($octo-mint, 0.4);
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.4);
   box-shadow: var(--lcars-glow-primary);
 }
 
@@ -2988,17 +2954,17 @@ div.k-window.k-dialog {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba($ash-blue, 0.8);
+    background: rgba(#{var(--ash-blue)}, 0.8);
     border-radius: 4px;
-    border: 1px solid rgba($octo-mint, 0.3);
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.3);
 
     &:hover {
-      background: $octo-mint;
+      background: var(--octo-mint);
     }
   }
 
   &::-webkit-scrollbar-track {
-    background: rgba($iron-navy, 0.6);
+    background: rgba(#{var(--iron-navy)}, 0.6);
     border-radius: 4px;
   }
 
@@ -3050,14 +3016,14 @@ kendo-drawer-content {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba($deep-sea, 0.5);
+  background: rgba(#{var(--deep-sea)}, 0.5);
   border-radius: var(--lcars-radius-sm);
 }
 
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, var(--iron-navy), var(--ash-blue));
   border-radius: var(--lcars-radius-sm);
-  border: 1px solid rgba($octo-mint, 0.2);
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.2);
 
   &:hover {
     background: linear-gradient(180deg, var(--ash-blue), var(--octo-mint));
@@ -3067,7 +3033,7 @@ kendo-drawer-content {
 // Firefox scrollbar
 * {
   scrollbar-width: thin;
-  scrollbar-color: $iron-navy rgba($deep-sea, 0.5);
+  scrollbar-color: var(--iron-navy) rgba(#{var(--deep-sea)}, 0.5);
 }
 
 // ----------------------------------------------------------------------------
@@ -3110,7 +3076,7 @@ div.content div.buttons button.k-button-solid-primary {
     var(--octo-mint-dark-10)
   ) !important;
   border: none !important;
-  color: $deep-sea !important;
+  color: var(--deep-sea) !important;
 }
 
 div.content div.buttons button.k-button-solid-primary:hover {
@@ -3119,18 +3085,18 @@ div.content div.buttons button.k-button-solid-primary:hover {
     var(--octo-mint-light-5),
     var(--octo-mint)
   ) !important;
-  box-shadow: 0 0 15px rgba($octo-mint, 0.5) !important;
+  box-shadow: 0 0 15px rgba(#{var(--octo-mint)}, 0.5) !important;
 }
 
 div.content div.buttons a.k-button-solid {
-  background: rgba($octo-mint, 0.1) !important;
-  border: 1px solid rgba($octo-mint, 0.3) !important;
-  color: $octo-mint !important;
+  background: rgba(#{var(--octo-mint)}, 0.1) !important;
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+  color: var(--octo-mint) !important;
 }
 
 div.content div.buttons a.k-button-solid:hover {
-  background: rgba($octo-mint, 0.2) !important;
-  box-shadow: 0 0 10px rgba($octo-mint, 0.3) !important;
+  background: rgba(#{var(--octo-mint)}, 0.2) !important;
+  box-shadow: 0 0 10px rgba(#{var(--octo-mint)}, 0.3) !important;
 }
 
 // Content container styling
@@ -3149,8 +3115,8 @@ div.content {
 }
 
 div.content .user-avatar {
-  border: 2px solid rgba($octo-mint, 0.4) !important;
-  box-shadow: 0 0 15px rgba($octo-mint, 0.3) !important;
+  border: 2px solid rgba(#{var(--octo-mint)}, 0.4) !important;
+  box-shadow: 0 0 15px rgba(#{var(--octo-mint)}, 0.3) !important;
 }
 
 div.content .user-avatar .k-avatar-text {
@@ -3162,7 +3128,7 @@ div.content .user-avatar .k-avatar-text {
 div.content .user-name {
   font-family: var(--lcars-font-primary, "Montserrat", sans-serif) !important;
   font-size: 0.85rem !important;
-  color: #ffffff !important;
+  color: var(--octo-text-color) !important;
   margin: 0 !important;
   text-align: center !important;
   word-break: break-all !important;
@@ -3171,12 +3137,12 @@ div.content .user-name {
 
 // Style the popup container itself
 .k-popup {
-  background: $iron-navy !important;
-  border: 1px solid rgba($octo-mint, 0.3) !important;
+  background: var(--iron-navy) !important;
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.3) !important;
   border-radius: 8px !important;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 20px rgba($octo-mint, 0.1) !important;
+    0 8px 32px rgba(#000, 0.4),
+    0 0 20px rgba(#{var(--octo-mint)}, 0.1) !important;
   // Allow scrolling in dropdowns - do NOT use overflow: hidden
 }
 
@@ -3185,12 +3151,12 @@ div.content .user-name {
 // ----------------------------------------------------------------------------
 .k-context-menu,
 .k-menu.k-context-menu {
-  background: $iron-navy;
-  border: 1px solid rgba($octo-mint, 0.3);
+  background: var(--iron-navy);
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.3);
   border-radius: 8px;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.5),
-    0 0 20px rgba($octo-mint, 0.15);
+    0 8px 32px rgba(#000, 0.5),
+    0 0 20px rgba(#{var(--octo-mint)}, 0.15);
   padding: 8px 0;
   min-width: 180px;
   overflow: hidden;
@@ -3201,7 +3167,7 @@ div.content .user-name {
 
     .k-menu-link {
       padding: 10px 16px;
-      color: $ash-blue;
+      color: var(--ash-blue);
       font-family: var(--lcars-font-primary);
       font-size: 0.85rem;
       font-weight: 500;
@@ -3219,8 +3185,8 @@ div.content .user-name {
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: $ash-blue;
-        color: $ash-blue;
+        fill: var(--ash-blue);
+        color: var(--ash-blue);
         width: 18px;
         height: 18px;
         transition: all 0.15s ease;
@@ -3235,34 +3201,34 @@ div.content .user-name {
         var(--octo-mint-20),
         var(--octo-mint-05)
       );
-      color: $octo-mint;
+      color: var(--octo-mint);
 
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: $octo-mint;
-        color: $octo-mint;
+        fill: var(--octo-mint);
+        color: var(--octo-mint);
       }
     }
 
     // Focus state
     &:focus > .k-menu-link,
     &.k-focus > .k-menu-link {
-      background: rgba($octo-mint, 0.15);
-      box-shadow: inset 3px 0 0 $octo-mint;
+      background: rgba(#{var(--octo-mint)}, 0.15);
+      box-shadow: inset 3px 0 0 var(--octo-mint);
     }
 
     // Delete/destructive action styling
     &[data-command="delete"],
     &.destructive {
       .k-menu-link {
-        color: $bubblegum;
+        color: var(--bubblegum);
 
         .k-svg-icon,
         .k-icon,
         svg {
-          fill: $bubblegum;
-          color: $bubblegum;
+          fill: var(--bubblegum);
+          color: var(--bubblegum);
         }
       }
 
@@ -3272,13 +3238,13 @@ div.content .user-name {
           var(--bubblegum-20),
           var(--bubblegum-05)
         );
-        color: $bubblegum;
+        color: var(--bubblegum);
 
         .k-svg-icon,
         .k-icon,
         svg {
-          fill: $bubblegum;
-          color: $bubblegum;
+          fill: var(--bubblegum);
+          color: var(--bubblegum);
         }
       }
     }
@@ -3302,7 +3268,7 @@ div.content .user-name {
 // Context menu popup wrapper
 .k-menu-popup {
   .k-context-menu {
-    background: $iron-navy;
+    background: var(--iron-navy);
   }
 }
 
@@ -3339,13 +3305,9 @@ td.k-command-cell {
 
 // LCARS Button Mixin - shared button styles for toolbars
 @mixin lcars-button {
-  background: linear-gradient(
-    180deg,
-    var(--octo-mint-15),
-    var(--octo-mint-05)
-  );
-  border: 1px solid rgba($octo-mint, 0.3);
-  color: $octo-mint;
+  background: linear-gradient(180deg, var(--octo-mint-15), var(--octo-mint-05));
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.3);
+  color: var(--octo-mint);
   font-family: var(--lcars-font-primary);
   font-weight: 600;
   font-size: 0.8rem;
@@ -3360,8 +3322,8 @@ td.k-command-cell {
       var(--octo-mint-25),
       var(--octo-mint-15)
     );
-    border-color: rgba($octo-mint, 0.5);
-    box-shadow: 0 0 10px rgba($octo-mint, 0.3);
+    border-color: rgba(#{var(--octo-mint)}, 0.5);
+    box-shadow: 0 0 10px rgba(#{var(--octo-mint)}, 0.3);
   }
 
   &:active:not(:disabled) {
@@ -3385,8 +3347,8 @@ td.k-command-cell {
       var(--octo-mint-30),
       var(--octo-mint-15)
     );
-    border-color: rgba($octo-mint, 0.5);
-    color: #ffffff;
+    border-color: rgba(#{var(--octo-mint)}, 0.5);
+    color: var(--octo-text-color);
 
     &:hover:not(:disabled) {
       background: linear-gradient(
@@ -3394,8 +3356,8 @@ td.k-command-cell {
         var(--octo-mint-45),
         var(--octo-mint-25)
       );
-      border-color: $octo-mint;
-      box-shadow: 0 0 15px rgba($octo-mint, 0.4);
+      border-color: var(--octo-mint);
+      box-shadow: 0 0 15px rgba(#{var(--octo-mint)}, 0.4);
     }
   }
 }
@@ -3403,7 +3365,7 @@ td.k-command-cell {
 // List view toolbar styling
 .list-view-toolbar {
   background: linear-gradient(90deg, var(--octo-mint-10), transparent);
-  border-bottom: 1px solid rgba($octo-mint, 0.2);
+  border-bottom: 1px solid rgba(#{var(--octo-mint)}, 0.2);
   padding: 12px 16px;
 
   .k-button {
@@ -3460,7 +3422,7 @@ td.k-command-cell {
   height: 56px;
   background: linear-gradient(180deg, var(--octo-mint), var(--neo-cyan));
   border-radius: 4px 0 0 4px;
-  box-shadow: 0 0 15px rgba($octo-mint, 0.5);
+  box-shadow: 0 0 15px rgba(#{var(--octo-mint)}, 0.5);
   flex-shrink: 0;
 }
 
@@ -3481,7 +3443,7 @@ td.k-command-cell {
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 3px;
-    color: $ash-blue;
+    color: var(--ash-blue);
     text-transform: uppercase;
   }
 
@@ -3489,7 +3451,7 @@ td.k-command-cell {
     font-size: 1.5rem;
     font-weight: 600;
     letter-spacing: 2px;
-    color: #ffffff;
+    color: var(--octo-text-color);
     text-transform: uppercase;
   }
 }
@@ -3504,20 +3466,20 @@ td.k-command-cell {
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  background: rgba($octo-mint, 0.1);
-  border: 1px solid rgba($octo-mint, 0.3);
+  background: rgba(#{var(--octo-mint)}, 0.1);
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.3);
   border-radius: 4px;
 
   .badge-icon {
     font-size: 0.6rem;
-    color: $octo-mint;
+    color: var(--octo-mint);
     animation: lcars-pulse 2s ease-in-out infinite;
   }
 
   .badge-label {
     font-size: 0.75rem;
     font-weight: 500;
-    color: $octo-mint;
+    color: var(--octo-mint);
     text-transform: uppercase;
     letter-spacing: 1px;
   }
@@ -3542,17 +3504,17 @@ td.k-command-cell {
   display: flex;
   flex-direction: column;
   position: relative;
-  background: rgba($surface-elevated, 0.4);
-  border: 1px solid rgba($octo-mint, 0.2);
+  background: rgba(#{var(--surface-elevated)}, 0.4);
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.2);
   border-radius: 8px;
   overflow: hidden;
   min-height: 0;
 
   &:hover {
-    border-color: rgba($octo-mint, 0.35);
+    border-color: rgba(#{var(--octo-mint)}, 0.35);
     box-shadow:
-      0 4px 30px rgba(0, 0, 0, 0.3),
-      0 0 30px rgba($octo-mint, 0.08);
+      0 4px 30px rgba(#000, 0.3),
+      0 0 30px rgba(#{var(--octo-mint)}, 0.08);
   }
 
   // Ensure child components fill available space
@@ -3604,19 +3566,19 @@ td.k-command-cell {
   &.bar-1 {
     width: 60px;
     background: linear-gradient(90deg, var(--octo-mint), var(--neo-cyan));
-    box-shadow: 0 0 8px rgba($octo-mint, 0.4);
+    box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.4);
   }
 
   &.bar-2 {
     width: 40px;
-    background: $royal-violet;
-    box-shadow: 0 0 8px rgba($royal-violet, 0.4);
+    background: var(--royal-violet);
+    box-shadow: 0 0 8px rgba(#{var(--royal-violet)}, 0.4);
   }
 
   &.bar-3 {
     width: 24px;
-    background: $toffee;
-    box-shadow: 0 0 8px rgba($toffee, 0.4);
+    background: var(--toffee);
+    box-shadow: 0 0 8px rgba(#{var(--toffee)}, 0.4);
   }
 }
 
@@ -3629,16 +3591,16 @@ td.k-command-cell {
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  background: rgba(55, 180, 0, 0.1);
-  border: 1px solid rgba(55, 180, 0, 0.3);
+  background: rgba(#{var(--mm-cron-success)}, 0.1);
+  border: 1px solid rgba(#{var(--mm-cron-success)}, 0.3);
   border-radius: 4px;
 
   .indicator-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #37b400;
-    box-shadow: 0 0 10px rgba(55, 180, 0, 0.6);
+    background: var(--mm-cron-success);
+    box-shadow: 0 0 10px rgba(#{var(--mm-cron-success)}, 0.6);
     animation: lcars-pulse 2s ease-in-out infinite;
   }
 
@@ -3647,7 +3609,7 @@ td.k-command-cell {
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 2px;
-    color: #37b400;
+    color: var(--mm-cron-success);
     text-transform: uppercase;
   }
 }
@@ -3744,23 +3706,19 @@ td.k-command-cell {
 // ============================================================================
 .mm-base-form-container {
   // Override form CSS custom properties for LCARS theme
-  --mm-form-bg: rgba(31, 46, 64, 0.6);
-  --mm-form-bg-alt: rgba(31, 46, 64, 0.8);
-  --mm-form-border: rgba($octo-mint, 0.2);
-  --mm-form-border-subtle: rgba($octo-mint, 0.15);
-  --mm-form-text: #ffffff;
-  --mm-form-text-subtle: $ash-blue;
-  --mm-form-text-label: $ash-blue;
-  --mm-form-accent: $octo-mint;
-  --mm-form-error: #ec658f;
-  --mm-form-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  --mm-form-overlay-bg: rgba(7, 23, 43, 0.95);
+  --mm-form-bg: rgba(#1f2e40, 0.6);
+  --mm-form-bg-alt: rgba(#1f2e40, 0.8);
+  --mm-form-border: rgba(#{var(--octo-mint)}, 0.2);
+  --mm-form-border-subtle: rgba(#{var(--octo-mint)}, 0.15);
+  --mm-form-text: var(--octo-text-color);
+  --mm-form-text-subtle: var(--ash-blue);
+  --mm-form-text-label: var(--ash-blue);
+  --mm-form-accent: var(--octo-mint);
+  --mm-form-error: var(--bubblegum);
+  --mm-form-shadow: 0 4px 20px rgba(#000, 0.3);
+  --mm-form-overlay-bg: rgba(#07172b, 0.95);
 
-  background: linear-gradient(
-    180deg,
-    var(--deep-sea-95),
-    var(--deep-sea)
-  );
+  background: linear-gradient(180deg, var(--deep-sea-95), var(--deep-sea));
 
   // Extra padding at bottom for scroll visibility
   padding-bottom: 32px !important;
@@ -3788,21 +3746,21 @@ td.k-command-cell {
 
   // Form header LCARS styling
   .mm-form-header {
-    background: rgba($octo-mint, 0.05);
-    border-bottom-color: rgba($octo-mint, 0.2);
+    background: rgba(#{var(--octo-mint)}, 0.05);
+    border-bottom-color: rgba(#{var(--octo-mint)}, 0.2);
 
     .mm-form-title {
       font-family: var(--lcars-font-primary);
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #ffffff;
+      color: var(--octo-text-color);
     }
   }
 
   // Form actions - LCARS button styling
   .mm-form-actions {
-    background: rgba($octo-mint, 0.05);
-    border-top-color: rgba($octo-mint, 0.2);
+    background: rgba(#{var(--octo-mint)}, 0.05);
+    border-top-color: rgba(#{var(--octo-mint)}, 0.2);
 
     .k-button {
       @include lcars-button;
@@ -3818,12 +3776,12 @@ mm-login-app-bar-section {
     transition: all 0.2s ease;
 
     &:hover {
-      background: rgba($octo-mint, 0.15);
-      box-shadow: 0 0 12px rgba($octo-mint, 0.3);
+      background: rgba(#{var(--octo-mint)}, 0.15);
+      box-shadow: 0 0 12px rgba(#{var(--octo-mint)}, 0.3);
     }
 
     .k-avatar {
-      border: 2px solid rgba($octo-mint, 0.4);
+      border: 2px solid rgba(#{var(--octo-mint)}, 0.4);
 
       .k-avatar-text {
         font-family: var(--lcars-font-primary, "Montserrat", sans-serif);
@@ -3849,7 +3807,7 @@ mm-login-app-bar-section {
   // Loading state
   .loading-container {
     .k-loading-text {
-      color: $octo-mint;
+      color: var(--octo-mint);
       font-family: var(--lcars-font-primary);
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -3859,12 +3817,12 @@ mm-login-app-bar-section {
   // Model unavailable / Not found state
   .model-unavailable {
     .message-card {
-      background: rgba($surface-elevated, 0.9);
-      border: 1px solid rgba($octo-mint, 0.3);
+      background: rgba(#{var(--surface-elevated)}, 0.9);
+      border: 1px solid rgba(#{var(--octo-mint)}, 0.3);
       border-radius: 8px;
       box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba($octo-mint, 0.1);
+        0 8px 32px rgba(#000, 0.4),
+        0 0 20px rgba(#{var(--octo-mint)}, 0.1);
 
       &::before {
         content: "";
@@ -3876,31 +3834,31 @@ mm-login-app-bar-section {
       }
 
       h2 {
-        color: #ffffff;
+        color: var(--octo-text-color);
         font-family: var(--lcars-font-primary);
         text-transform: uppercase;
         letter-spacing: 1px;
       }
 
       p {
-        color: $ash-blue;
+        color: var(--ash-blue);
       }
 
       ol {
-        color: $ash-blue;
+        color: var(--ash-blue);
 
         a {
-          color: $octo-mint;
+          color: var(--octo-mint);
 
           &:hover {
-            color: $neo-cyan;
-            text-shadow: 0 0 8px rgba($octo-mint, 0.5);
+            color: var(--neo-cyan);
+            text-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.5);
           }
         }
       }
 
       kendo-svg-icon {
-        color: $bubblegum;
+        color: var(--bubblegum);
       }
     }
   }
@@ -3913,19 +3871,19 @@ mm-login-app-bar-section {
     var(--iron-navy),
     var(--surface-elevated)
   ) !important;
-  border-bottom: 2px solid rgba($octo-mint, 0.3) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid rgba(#{var(--octo-mint)}, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(#000, 0.3);
 
   .toolbar-left {
     .meshboard-title {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
       font-family: var(--lcars-font-primary);
       text-transform: uppercase;
       letter-spacing: 1px;
     }
 
     .meshboard-description {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
   }
 
@@ -3939,26 +3897,26 @@ mm-login-app-bar-section {
 // MeshBoard Empty State - LCARS style
 .meshboard-view .empty-state {
   .empty-state-content {
-    background: rgba($surface-elevated, 0.6);
-    border: 1px solid rgba($octo-mint, 0.2);
+    background: rgba(#{var(--surface-elevated)}, 0.6);
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.2);
     border-radius: 12px;
     padding: 3rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px rgba(#000, 0.3);
 
     kendo-svg-icon {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
       opacity: 0.6;
     }
 
     h3 {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
       font-family: var(--lcars-font-primary);
       text-transform: uppercase;
       letter-spacing: 1px;
     }
 
     p {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .k-button {
@@ -3972,17 +3930,17 @@ kendo-tilelayout {
   background: transparent !important;
 
   kendo-tilelayout-item {
-    background: rgba($surface-elevated, 0.6) !important;
-    border: 1px solid rgba($octo-mint, 0.2) !important;
+    background: rgba(#{var(--surface-elevated)}, 0.6) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
     border-radius: 8px !important;
     overflow: hidden;
     transition: all 0.2s ease;
 
     &:hover {
-      border-color: rgba($octo-mint, 0.4) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.4) !important;
       box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.3),
-        0 0 15px rgba($octo-mint, 0.1);
+        0 4px 20px rgba(#000, 0.3),
+        0 0 15px rgba(#{var(--octo-mint)}, 0.1);
     }
 
     // Widget header
@@ -3992,11 +3950,11 @@ kendo-tilelayout {
         var(--octo-mint-10),
         transparent
       ) !important;
-      border-bottom: 1px solid rgba($octo-mint, 0.2) !important;
+      border-bottom: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
 
       .widget-header {
         .widget-title {
-          color: $octo-mint !important;
+          color: var(--octo-mint) !important;
           font-family: var(--lcars-font-primary);
           font-weight: 600;
           text-transform: uppercase;
@@ -4005,33 +3963,33 @@ kendo-tilelayout {
         }
 
         &.unconfigured {
-          background: rgba($toffee, 0.15) !important;
+          background: rgba(#{var(--toffee)}, 0.15) !important;
         }
 
         .unconfigured-badge {
-          background: $toffee !important;
-          box-shadow: 0 0 8px rgba($toffee, 0.5);
+          background: var(--toffee) !important;
+          box-shadow: 0 0 8px rgba(#{var(--toffee)}, 0.5);
         }
 
         .widget-actions {
           .k-button {
-            color: $ash-blue;
+            color: var(--ash-blue);
 
             &:hover {
-              color: $octo-mint;
-              background: rgba($octo-mint, 0.15);
+              color: var(--octo-mint);
+              background: rgba(#{var(--octo-mint)}, 0.15);
             }
           }
 
           .config-widget-btn.needs-config {
-            color: $toffee !important;
+            color: var(--toffee) !important;
           }
 
           .remove-widget-btn {
-            color: $bubblegum !important;
+            color: var(--bubblegum) !important;
 
             &:hover {
-              background: rgba($bubblegum, 0.15);
+              background: rgba(#{var(--bubblegum)}, 0.15);
             }
           }
         }
@@ -4040,14 +3998,14 @@ kendo-tilelayout {
 
     // Widget body
     kendo-tilelayout-item-body {
-      background: rgba($deep-sea, 0.5) !important;
+      background: rgba(#{var(--deep-sea)}, 0.5) !important;
     }
   }
 }
 
 // Widget Error State
 .widget-error {
-  color: $bubblegum !important;
+  color: var(--bubblegum) !important;
   font-family: var(--lcars-font-primary);
 }
 
@@ -4058,18 +4016,18 @@ kendo-tilelayout {
 // KPI Widget
 .kpi-widget {
   .kpi-value {
-    color: $octo-mint !important;
+    color: var(--octo-mint) !important;
     font-family: var(--lcars-font-primary);
-    text-shadow: 0 0 20px rgba($octo-mint, 0.3);
+    text-shadow: 0 0 20px rgba(#{var(--octo-mint)}, 0.3);
   }
 
   .kpi-prefix,
   .kpi-suffix {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
   }
 
   .kpi-label {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
     font-family: var(--lcars-font-primary);
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -4077,18 +4035,18 @@ kendo-tilelayout {
 
   .kpi-trend {
     &.trend-up {
-      background: rgba($octo-mint, 0.15) !important;
-      color: $octo-mint !important;
+      background: rgba(#{var(--octo-mint)}, 0.15) !important;
+      color: var(--octo-mint) !important;
     }
 
     &.trend-down {
-      background: rgba($bubblegum, 0.15) !important;
-      color: $bubblegum !important;
+      background: rgba(#{var(--bubblegum)}, 0.15) !important;
+      color: var(--bubblegum) !important;
     }
 
     &.trend-neutral {
-      background: rgba($ash-blue, 0.15) !important;
-      color: $ash-blue !important;
+      background: rgba(#{var(--ash-blue)}, 0.15) !important;
+      color: var(--ash-blue) !important;
     }
   }
 }
@@ -4096,79 +4054,79 @@ kendo-tilelayout {
 // Stats Grid Widget - Update colors for LCARS dark theme
 .stats-grid {
   .stat-card {
-    background: rgba($surface-elevated, 0.4) !important;
-    border: 1px solid rgba($octo-mint, 0.15);
+    background: rgba(#{var(--surface-elevated)}, 0.4) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.15);
     border-radius: 8px;
     transition: all 0.2s ease;
 
     &:hover {
       transform: translateY(-2px);
       box-shadow:
-        0 4px 16px rgba(0, 0, 0, 0.3),
-        0 0 10px rgba($octo-mint, 0.15);
-      border-color: rgba($octo-mint, 0.3);
+        0 4px 16px rgba(#000, 0.3),
+        0 0 10px rgba(#{var(--octo-mint)}, 0.15);
+      border-color: rgba(#{var(--octo-mint)}, 0.3);
     }
 
     // LCARS color variants
     &.stat-mint {
-      background: rgba($octo-mint, 0.1) !important;
-      border-left: 4px solid $octo-mint;
+      background: rgba(#{var(--octo-mint)}, 0.1) !important;
+      border-left: 4px solid var(--octo-mint);
       .stat-value {
-        color: $octo-mint !important;
-        text-shadow: 0 0 15px rgba($octo-mint, 0.4);
+        color: var(--octo-mint) !important;
+        text-shadow: 0 0 15px rgba(#{var(--octo-mint)}, 0.4);
       }
     }
 
     &.stat-cyan {
-      background: rgba($neo-cyan, 0.1) !important;
-      border-left: 4px solid $neo-cyan;
+      background: rgba(#{var(--neo-cyan)}, 0.1) !important;
+      border-left: 4px solid var(--neo-cyan);
       .stat-value {
-        color: $neo-cyan !important;
-        text-shadow: 0 0 15px rgba($neo-cyan, 0.4);
+        color: var(--neo-cyan) !important;
+        text-shadow: 0 0 15px rgba(#{var(--neo-cyan)}, 0.4);
       }
     }
 
     &.stat-violet {
-      background: rgba($royal-violet, 0.1) !important;
-      border-left: 4px solid $royal-violet;
+      background: rgba(#{var(--royal-violet)}, 0.1) !important;
+      border-left: 4px solid var(--royal-violet);
       .stat-value {
-        color: $lilac-glow !important;
-        text-shadow: 0 0 15px rgba($royal-violet, 0.4);
+        color: var(--lilac-glow) !important;
+        text-shadow: 0 0 15px rgba(#{var(--royal-violet)}, 0.4);
       }
     }
 
     &.stat-toffee {
-      background: rgba($toffee, 0.1) !important;
-      border-left: 4px solid $toffee;
+      background: rgba(#{var(--toffee)}, 0.1) !important;
+      border-left: 4px solid var(--toffee);
       .stat-value {
-        color: $toffee !important;
-        text-shadow: 0 0 15px rgba($toffee, 0.4);
+        color: var(--toffee) !important;
+        text-shadow: 0 0 15px rgba(#{var(--toffee)}, 0.4);
       }
     }
 
     &.stat-lilac {
-      background: rgba($lilac-glow, 0.1) !important;
-      border-left: 4px solid $lilac-glow;
+      background: rgba(#{var(--lilac-glow)}, 0.1) !important;
+      border-left: 4px solid var(--lilac-glow);
       .stat-value {
-        color: $lilac-glow !important;
-        text-shadow: 0 0 15px rgba($lilac-glow, 0.4);
+        color: var(--lilac-glow) !important;
+        text-shadow: 0 0 15px rgba(#{var(--lilac-glow)}, 0.4);
       }
     }
 
     &.stat-bubblegum {
-      background: rgba($bubblegum, 0.1) !important;
-      border-left: 4px solid $bubblegum;
+      background: rgba(#{var(--bubblegum)}, 0.1) !important;
+      border-left: 4px solid var(--bubblegum);
       .stat-value {
-        color: $bubblegum !important;
-        text-shadow: 0 0 15px rgba($bubblegum, 0.4);
+        color: var(--bubblegum) !important;
+        text-shadow: 0 0 15px rgba(#{var(--bubblegum)}, 0.4);
       }
     }
 
     &.stat-default {
-      background: rgba($ash-blue, 0.1) !important;
-      border-left: 4px solid $ash-blue;
+      background: rgba(#{var(--ash-blue)}, 0.1) !important;
+      border-left: 4px solid var(--ash-blue);
       .stat-value {
-        color: #ffffff !important;
+        color: var(--octo-text-color) !important;
       }
     }
   }
@@ -4178,60 +4136,60 @@ kendo-tilelayout {
   }
 
   .stat-label {
-    color: $ash-blue !important;
+    color: var(--ash-blue) !important;
     font-family: var(--lcars-font-primary);
   }
 
   .stats-error {
-    color: $bubblegum !important;
+    color: var(--bubblegum) !important;
   }
 }
 
 // Service Health Widget
 .service-health {
-  background: rgba($surface-elevated, 0.4) !important;
-  border: 1px solid rgba($octo-mint, 0.15);
+  background: rgba(#{var(--surface-elevated)}, 0.4) !important;
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.15);
 
   &.clickable:hover {
-    background: rgba($surface-elevated, 0.6) !important;
+    background: rgba(#{var(--surface-elevated)}, 0.6) !important;
     box-shadow:
-      0 2px 12px rgba(0, 0, 0, 0.3),
-      0 0 10px rgba($octo-mint, 0.1);
-    border-color: rgba($octo-mint, 0.3);
+      0 2px 12px rgba(#000, 0.3),
+      0 0 10px rgba(#{var(--octo-mint)}, 0.1);
+    border-color: rgba(#{var(--octo-mint)}, 0.3);
   }
 
   &.healthy {
     .health-dot {
-      background: $octo-mint !important;
-      box-shadow: 0 0 12px rgba($octo-mint, 0.6);
+      background: var(--octo-mint) !important;
+      box-shadow: 0 0 12px rgba(#{var(--octo-mint)}, 0.6);
     }
 
     .pulse-ring.pulse-active {
-      border-color: $octo-mint !important;
+      border-color: var(--octo-mint) !important;
     }
 
     .health-status {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
     }
   }
 
   &.unhealthy {
     .health-dot {
-      background: $bubblegum !important;
-      box-shadow: 0 0 12px rgba($bubblegum, 0.6);
+      background: var(--bubblegum) !important;
+      box-shadow: 0 0 12px rgba(#{var(--bubblegum)}, 0.6);
     }
 
     .pulse-ring {
-      border-color: $bubblegum !important;
+      border-color: var(--bubblegum) !important;
     }
 
     .health-status {
-      color: $bubblegum !important;
+      color: var(--bubblegum) !important;
     }
   }
 
   .service-name {
-    color: #ffffff !important;
+    color: var(--octo-text-color) !important;
     font-family: var(--lcars-font-primary);
   }
 
@@ -4242,14 +4200,14 @@ kendo-tilelayout {
   }
 
   .last-checked {
-    color: rgba($ash-blue, 0.7) !important;
+    color: rgba(#{var(--ash-blue)}, 0.7) !important;
   }
 }
 
 // Entity Card Widget - UML style with LCARS colors
 .entity-card {
-  background: rgba($surface-elevated, 0.6) !important;
-  border: 1px solid rgba($octo-mint, 0.2) !important;
+  background: rgba(#{var(--surface-elevated)}, 0.6) !important;
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
 
   .entity-header {
     background: linear-gradient(
@@ -4257,44 +4215,44 @@ kendo-tilelayout {
       var(--octo-mint-30),
       var(--octo-mint-15)
     ) !important;
-    border-bottom: 2px solid $octo-mint;
+    border-bottom: 2px solid var(--octo-mint);
 
     .entity-stereotype {
-      color: rgba(#ffffff, 0.8) !important;
+      color: rgba(#{var(--octo-text-color)}, 0.8) !important;
     }
 
     .entity-name {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
       font-family: var(--lcars-font-primary);
     }
   }
 
   .entity-attributes {
-    background: rgba($deep-sea, 0.5);
+    background: rgba(#{var(--deep-sea)}, 0.5);
 
     .attribute-row {
-      border-bottom-color: rgba($octo-mint, 0.1) !important;
+      border-bottom-color: rgba(#{var(--octo-mint)}, 0.1) !important;
 
       &:hover {
-        background: rgba($octo-mint, 0.08) !important;
+        background: rgba(#{var(--octo-mint)}, 0.08) !important;
       }
     }
 
     .attribute-name {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .attribute-value {
-      color: #ffffff !important;
+      color: var(--octo-text-color) !important;
     }
   }
 
   .entity-footer {
-    background: rgba($iron-navy, 0.5) !important;
-    border-top-color: rgba($octo-mint, 0.2) !important;
+    background: rgba(#{var(--iron-navy)}, 0.5) !important;
+    border-top-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .entity-id {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
       font-family: var(--lcars-font-mono);
     }
   }
@@ -4304,15 +4262,15 @@ kendo-tilelayout {
 .status-indicator {
   .status-badge {
     font-family: var(--lcars-font-primary);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 15px rgba(#000, 0.3);
   }
 
   .status-text {
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 3px rgba(#000, 0.3);
   }
 
   .status-error {
-    color: $bubblegum !important;
+    color: var(--bubblegum) !important;
   }
 }
 
@@ -4324,12 +4282,12 @@ kendo-tilelayout {
 .add-widget-dialog {
   .dialog-content {
     .dialog-description {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .widget-types-list {
-      background: rgba($deep-sea, 0.5) !important;
-      border-color: rgba($octo-mint, 0.2) !important;
+      background: rgba(#{var(--deep-sea)}, 0.5) !important;
+      border-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
       .list-header {
         background: linear-gradient(
@@ -4337,54 +4295,54 @@ kendo-tilelayout {
           var(--octo-mint-10),
           transparent
         ) !important;
-        border-bottom-color: rgba($octo-mint, 0.2) !important;
-        color: $octo-mint !important;
+        border-bottom-color: rgba(#{var(--octo-mint)}, 0.2) !important;
+        color: var(--octo-mint) !important;
         font-family: var(--lcars-font-primary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
 
       .widget-type-item {
-        border-bottom-color: rgba($octo-mint, 0.1) !important;
+        border-bottom-color: rgba(#{var(--octo-mint)}, 0.1) !important;
 
         &:hover {
-          background: rgba($octo-mint, 0.08) !important;
+          background: rgba(#{var(--octo-mint)}, 0.08) !important;
         }
 
         &.selected {
-          background: rgba($octo-mint, 0.15) !important;
-          box-shadow: inset 3px 0 0 $octo-mint !important;
+          background: rgba(#{var(--octo-mint)}, 0.15) !important;
+          box-shadow: inset 3px 0 0 var(--octo-mint) !important;
         }
 
         .widget-icon {
-          background: rgba($octo-mint, 0.1) !important;
-          color: $octo-mint !important;
+          background: rgba(#{var(--octo-mint)}, 0.1) !important;
+          color: var(--octo-mint) !important;
         }
 
         &.selected .widget-icon {
-          background: $octo-mint !important;
-          color: $deep-sea !important;
+          background: var(--octo-mint) !important;
+          color: var(--deep-sea) !important;
         }
 
         .widget-info {
           .widget-label {
-            color: #ffffff !important;
+            color: var(--octo-text-color) !important;
           }
 
           .widget-description {
-            color: $ash-blue !important;
+            color: var(--ash-blue) !important;
           }
         }
 
         .selected-indicator {
-          color: $octo-mint !important;
+          color: var(--octo-mint) !important;
         }
       }
     }
   }
 
   .dialog-actions {
-    border-top-color: rgba($octo-mint, 0.2) !important;
+    border-top-color: rgba(#{var(--octo-mint)}, 0.2) !important;
   }
 }
 
@@ -4392,7 +4350,7 @@ kendo-tilelayout {
 .meshboard-manager-dialog {
   .dialog-header {
     .dialog-description {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .header-actions .k-button {
@@ -4401,11 +4359,11 @@ kendo-tilelayout {
   }
 
   .create-form {
-    background: rgba($surface-elevated, 0.5) !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: rgba(#{var(--surface-elevated)}, 0.5) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .form-title {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
       font-family: var(--lcars-font-primary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -4417,72 +4375,72 @@ kendo-tilelayout {
   }
 
   .meshboards-list {
-    background: rgba($deep-sea, 0.5) !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: rgba(#{var(--deep-sea)}, 0.5) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .loading-state,
     .empty-state {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
 
       h3 {
-        color: #ffffff !important;
+        color: var(--octo-text-color) !important;
       }
 
       p {
-        color: $ash-blue !important;
+        color: var(--ash-blue) !important;
       }
 
       kendo-svg-icon {
-        color: $octo-mint !important;
+        color: var(--octo-mint) !important;
         opacity: 0.5;
       }
     }
 
     .meshboard-item {
-      border-bottom-color: rgba($octo-mint, 0.1) !important;
+      border-bottom-color: rgba(#{var(--octo-mint)}, 0.1) !important;
 
       &:not(.active):not(.editing):hover {
-        background: rgba($octo-mint, 0.08) !important;
+        background: rgba(#{var(--octo-mint)}, 0.08) !important;
       }
 
       &.active {
-        background: rgba($octo-mint, 0.15) !important;
-        box-shadow: inset 4px 0 0 $octo-mint !important;
+        background: rgba(#{var(--octo-mint)}, 0.15) !important;
+        box-shadow: inset 4px 0 0 var(--octo-mint) !important;
       }
 
       &.editing {
-        background: rgba($surface-elevated, 0.6) !important;
+        background: rgba(#{var(--surface-elevated)}, 0.6) !important;
       }
 
       .item-content {
         .item-icon {
-          background: rgba($octo-mint, 0.1) !important;
-          color: $octo-mint !important;
+          background: rgba(#{var(--octo-mint)}, 0.1) !important;
+          color: var(--octo-mint) !important;
         }
 
         .item-info {
           .item-name {
-            color: #ffffff !important;
+            color: var(--octo-text-color) !important;
 
             .active-badge {
-              background: $octo-mint !important;
-              color: $deep-sea !important;
+              background: var(--octo-mint) !important;
+              color: var(--deep-sea) !important;
             }
           }
 
           .item-description {
-            color: $ash-blue !important;
+            color: var(--ash-blue) !important;
           }
         }
 
         &::after {
-          color: rgba($octo-mint, 0.5) !important;
+          color: rgba(#{var(--octo-mint)}, 0.5) !important;
         }
       }
 
       &.active .item-content .item-icon {
-        background: $octo-mint !important;
-        color: $deep-sea !important;
+        background: var(--octo-mint) !important;
+        color: var(--deep-sea) !important;
       }
 
       .item-edit {
@@ -4511,7 +4469,7 @@ kendo-tilelayout {
 
     .form-group {
       label {
-        color: $ash-blue !important;
+        color: var(--ash-blue) !important;
         font-family: var(--lcars-font-primary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -4520,14 +4478,14 @@ kendo-tilelayout {
     }
 
     .section-title {
-      color: $octo-mint !important;
-      border-bottom-color: rgba($octo-mint, 0.2) !important;
+      color: var(--octo-mint) !important;
+      border-bottom-color: rgba(#{var(--octo-mint)}, 0.2) !important;
       font-family: var(--lcars-font-primary);
     }
 
     kendo-formfield {
       kendo-label {
-        color: $ash-blue !important;
+        color: var(--ash-blue) !important;
         font-family: var(--lcars-font-primary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -4535,15 +4493,15 @@ kendo-tilelayout {
       }
 
       kendo-formhint {
-        color: rgba($ash-blue, 0.7) !important;
+        color: rgba(#{var(--ash-blue)}, 0.7) !important;
       }
     }
   }
 
   kendo-dialog-actions {
     flex-shrink: 0;
-    background: $iron-navy !important;
-    border-top-color: rgba($octo-mint, 0.2) !important;
+    background: var(--iron-navy) !important;
+    border-top-color: rgba(#{var(--octo-mint)}, 0.2) !important;
   }
 }
 
@@ -4581,16 +4539,16 @@ kendo-tilelayout {
 // Variables Editor (in dialogs) - Override library component styles
 mm-variables-editor .variables-editor,
 .variables-editor {
-  background: rgba($surface-elevated, 0.6) !important;
-  border: 1px solid rgba($octo-mint, 0.2) !important;
+  background: rgba(#{var(--surface-elevated)}, 0.6) !important;
+  border: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
   border-radius: 8px !important;
   padding: 1rem !important;
 
   .variables-header {
-    border-bottom: 1px solid rgba($octo-mint, 0.2) !important;
+    border-bottom: 1px solid rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .section-title {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
       font-family: var(--lcars-font-primary) !important;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -4598,54 +4556,54 @@ mm-variables-editor .variables-editor,
   }
 
   .variables-list {
-    background: rgba($deep-sea, 0.5) !important;
-    border-color: rgba($octo-mint, 0.2) !important;
+    background: rgba(#{var(--deep-sea)}, 0.5) !important;
+    border-color: rgba(#{var(--octo-mint)}, 0.2) !important;
 
     .list-header {
-      background: rgba($octo-mint, 0.1) !important;
-      border-bottom-color: rgba($octo-mint, 0.2) !important;
-      color: $octo-mint !important;
+      background: rgba(#{var(--octo-mint)}, 0.1) !important;
+      border-bottom-color: rgba(#{var(--octo-mint)}, 0.2) !important;
+      color: var(--octo-mint) !important;
     }
 
     .variable-row {
-      border-bottom-color: rgba($octo-mint, 0.1) !important;
+      border-bottom-color: rgba(#{var(--octo-mint)}, 0.1) !important;
 
       &:hover {
-        background: rgba($octo-mint, 0.05) !important;
+        background: rgba(#{var(--octo-mint)}, 0.05) !important;
       }
 
       .error-text {
-        color: $bubblegum !important;
+        color: var(--bubblegum) !important;
       }
     }
   }
 
   .empty-state {
-    background: rgba($deep-sea, 0.5) !important;
-    border: 1px dashed rgba($octo-mint, 0.3) !important;
-    color: $ash-blue !important;
+    background: rgba(#{var(--deep-sea)}, 0.5) !important;
+    border: 1px dashed rgba(#{var(--octo-mint)}, 0.3) !important;
+    color: var(--ash-blue) !important;
 
     p {
-      color: $ash-blue !important;
+      color: var(--ash-blue) !important;
     }
 
     .hint {
-      color: rgba($ash-blue, 0.7) !important;
+      color: rgba(#{var(--ash-blue)}, 0.7) !important;
     }
   }
 
   .usage-hint {
-    background: rgba($deep-sea, 0.5) !important;
-    border: 1px solid rgba($octo-mint, 0.15) !important;
-    color: $ash-blue !important;
+    background: rgba(#{var(--deep-sea)}, 0.5) !important;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.15) !important;
+    color: var(--ash-blue) !important;
 
     strong {
-      color: $octo-mint !important;
+      color: var(--octo-mint) !important;
     }
 
     code {
-      background: rgba($octo-mint, 0.15) !important;
-      color: $octo-mint !important;
+      background: rgba(#{var(--octo-mint)}, 0.15) !important;
+      color: var(--octo-mint) !important;
       font-family: var(--lcars-font-mono) !important;
     }
   }
@@ -4658,14 +4616,14 @@ mm-time-range-picker {
       @include lcars-button;
 
       &.active {
-        background: rgba($octo-mint, 0.25) !important;
-        border-color: $octo-mint !important;
-        color: #ffffff !important;
+        background: rgba(#{var(--octo-mint)}, 0.25) !important;
+        border-color: var(--octo-mint) !important;
+        color: var(--octo-text-color) !important;
       }
     }
 
     .date-range-display {
-      color: $ash-blue;
+      color: var(--ash-blue);
       font-family: var(--lcars-font-mono);
       font-size: 0.85rem;
     }
@@ -4678,47 +4636,47 @@ mm-time-range-picker {
 // =============================================================================
 mm-cron-builder {
   // Override CSS custom properties with LCARS theme colors
-  --mm-cron-bg: #{rgba($surface-elevated, 0.6)};
-  --mm-cron-border: #{rgba($octo-mint, 0.2)};
+  --mm-cron-bg: #{rgba(#{var(--surface-elevated)}, 0.6)};
+  --mm-cron-border: #{rgba(#{var(--octo-mint)}, 0.2)};
   --mm-cron-border-radius: 8px;
-  --mm-cron-text: #ffffff;
-  --mm-cron-text-secondary: #{$ash-blue};
-  --mm-cron-accent: #{$octo-mint};
+  --mm-cron-text: var(--octo-text-color);
+  --mm-cron-text-secondary: #{var(--ash-blue)};
+  --mm-cron-accent: #{var(--octo-mint)};
   --mm-cron-accent-hover: var(--octo-mint-light-10);
-  --mm-cron-preview-bg: #{rgba($deep-sea, 0.8)};
-  --mm-cron-tab-active-bg: #{rgba($octo-mint, 0.15)};
-  --mm-cron-tab-active-border: #{$octo-mint};
-  --mm-cron-error: #{$bubblegum};
+  --mm-cron-preview-bg: #{rgba(#{var(--deep-sea)}, 0.8)};
+  --mm-cron-tab-active-bg: #{rgba(#{var(--octo-mint)}, 0.15)};
+  --mm-cron-tab-active-border: #{var(--octo-mint)};
+  --mm-cron-error: #{var(--bubblegum)};
   --mm-cron-success: #37b400;
-  --mm-cron-code-bg: #{$deep-sea};
-  --mm-cron-code-text: #{$octo-mint};
+  --mm-cron-code-bg: #{var(--deep-sea)};
+  --mm-cron-code-text: #{var(--octo-mint)};
   --mm-cron-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px #{rgba($octo-mint, 0.08)};
+    0 4px 20px rgba(#000, 0.3), 0 0 20px #{rgba(#{var(--octo-mint)}, 0.08)};
   --mm-cron-font-family: var(--lcars-font-primary);
   --mm-cron-font-mono: var(--lcars-font-mono);
 
   // Additional LCARS styling
   .cron-builder {
-    border: 1px solid rgba($octo-mint, 0.25);
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.25);
     transition:
       border-color 0.2s ease,
       box-shadow 0.2s ease;
 
     &:hover:not(.disabled) {
-      border-color: rgba($octo-mint, 0.4);
+      border-color: rgba(#{var(--octo-mint)}, 0.4);
       box-shadow:
-        0 4px 30px rgba(0, 0, 0, 0.3),
-        0 0 25px rgba($octo-mint, 0.12);
+        0 4px 30px rgba(#000, 0.3),
+        0 0 25px rgba(#{var(--octo-mint)}, 0.12);
     }
   }
 
   // Expression display with LCARS glow
   .expression-value {
-    border: 1px solid rgba($octo-mint, 0.3);
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.3);
+    box-shadow: inset 0 0 10px rgba(#000, 0.3);
 
     &:not(.invalid) {
-      text-shadow: 0 0 8px rgba($octo-mint, 0.5);
+      text-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.5);
     }
   }
 
@@ -4729,8 +4687,8 @@ mm-cron-builder {
       var(--iron-navy-80),
       var(--deep-sea-90)
     );
-    border: 1px solid rgba($octo-mint, 0.15);
-    border-left: 3px solid $octo-mint;
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.15);
+    border-left: 3px solid var(--octo-mint);
   }
 
   // Preset buttons LCARS styling
@@ -4738,9 +4696,9 @@ mm-cron-builder {
     @include lcars-button;
 
     &:hover:not(:disabled) {
-      border-color: $octo-mint;
-      color: $octo-mint;
-      box-shadow: 0 0 10px rgba($octo-mint, 0.3);
+      border-color: var(--octo-mint);
+      color: var(--octo-mint);
+      box-shadow: 0 0 10px rgba(#{var(--octo-mint)}, 0.3);
     }
   }
 
@@ -4755,9 +4713,9 @@ mm-cron-builder {
         var(--octo-mint-30),
         var(--octo-mint-20)
       ) !important;
-      border-color: $octo-mint !important;
-      color: #ffffff !important;
-      box-shadow: 0 0 10px rgba($octo-mint, 0.4);
+      border-color: var(--octo-mint) !important;
+      color: var(--octo-text-color) !important;
+      box-shadow: 0 0 10px rgba(#{var(--octo-mint)}, 0.4);
     }
   }
 
@@ -4772,9 +4730,9 @@ mm-cron-builder {
         var(--octo-mint-30),
         var(--octo-mint-20)
       ) !important;
-      border-color: $octo-mint !important;
-      color: #ffffff !important;
-      box-shadow: 0 0 10px rgba($octo-mint, 0.4);
+      border-color: var(--octo-mint) !important;
+      color: var(--octo-text-color) !important;
+      box-shadow: 0 0 10px rgba(#{var(--octo-mint)}, 0.4);
     }
   }
 
@@ -4782,12 +4740,12 @@ mm-cron-builder {
   ::ng-deep .k-tabstrip {
     .k-tabstrip-items-wrapper {
       background: transparent;
-      border-bottom: 1px solid rgba($octo-mint, 0.2);
+      border-bottom: 1px solid rgba(#{var(--octo-mint)}, 0.2);
     }
 
     .k-tabstrip-items .k-item {
       background: transparent;
-      color: $ash-blue;
+      color: var(--ash-blue);
       font-family: var(--lcars-font-primary);
       font-weight: 500;
       text-transform: uppercase;
@@ -4797,14 +4755,14 @@ mm-cron-builder {
       transition: all 0.15s ease;
 
       &:hover:not(.k-active) {
-        color: #ffffff;
-        background: rgba($octo-mint, 0.1);
+        color: var(--octo-text-color);
+        background: rgba(#{var(--octo-mint)}, 0.1);
       }
 
       &.k-active {
-        color: $octo-mint;
-        background: rgba($octo-mint, 0.15);
-        border-bottom: 2px solid $octo-mint;
+        color: var(--octo-mint);
+        background: rgba(#{var(--octo-mint)}, 0.15);
+        border-bottom: 2px solid var(--octo-mint);
       }
     }
 
@@ -4816,35 +4774,35 @@ mm-cron-builder {
 
   // Dropdown styling
   ::ng-deep .k-dropdownlist {
-    background: $deep-sea;
-    border: 1px solid rgba($octo-mint, 0.2);
-    color: #ffffff;
+    background: var(--deep-sea);
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.2);
+    color: var(--octo-text-color);
 
     &:hover {
-      border-color: rgba($octo-mint, 0.4);
+      border-color: rgba(#{var(--octo-mint)}, 0.4);
     }
 
     &.k-focus {
-      border-color: $octo-mint;
-      box-shadow: 0 0 8px rgba($octo-mint, 0.3);
+      border-color: var(--octo-mint);
+      box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3);
     }
   }
 
   // TextBox styling (custom tab)
   ::ng-deep .k-textbox {
-    background: $deep-sea;
-    border: 1px solid rgba($octo-mint, 0.2);
-    color: $octo-mint;
+    background: var(--deep-sea);
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.2);
+    color: var(--octo-mint);
     font-family: var(--lcars-font-mono);
 
     &:hover {
-      border-color: rgba($octo-mint, 0.4);
+      border-color: rgba(#{var(--octo-mint)}, 0.4);
     }
 
     &:focus,
     &.k-focus {
-      border-color: $octo-mint;
-      box-shadow: 0 0 8px rgba($octo-mint, 0.3);
+      border-color: var(--octo-mint);
+      box-shadow: 0 0 8px rgba(#{var(--octo-mint)}, 0.3);
     }
   }
 
@@ -4855,28 +4813,28 @@ mm-cron-builder {
       var(--iron-navy-60),
       var(--deep-sea-80)
     );
-    border: 1px solid rgba($octo-mint, 0.15);
+    border: 1px solid rgba(#{var(--octo-mint)}, 0.15);
   }
 
   // Next executions list
   .next-executions-list li {
-    color: $ash-blue;
+    color: var(--ash-blue);
 
     &::before {
-      color: $octo-mint;
-      text-shadow: 0 0 6px rgba($octo-mint, 0.5);
+      color: var(--octo-mint);
+      text-shadow: 0 0 6px rgba(#{var(--octo-mint)}, 0.5);
     }
   }
 
   // Copy button success state
   .copy-button.copied {
-    color: #37b400 !important;
-    text-shadow: 0 0 8px rgba(55, 180, 0, 0.5);
+    color: var(--mm-cron-success) !important;
+    text-shadow: 0 0 8px rgba(#{var(--mm-cron-success)}, 0.5);
   }
 
   // Labels
   kendo-label {
-    color: $ash-blue;
+    color: var(--ash-blue);
     font-weight: 500;
     text-transform: uppercase;
     font-size: 0.75rem;

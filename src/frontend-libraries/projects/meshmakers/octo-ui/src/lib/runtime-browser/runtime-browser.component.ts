@@ -4,6 +4,7 @@ import {
   effect,
   inject,
   input,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -52,7 +53,8 @@ type BrowserItem =
     AppTranslatePipe,
   ],
   template: `
-    <div class="runtime-browser-container">
+    @if (translationsReady()) {
+      <div class="runtime-browser-container">
       <!-- LCARS Header -->
       <div class="lcars-page-header">
         <div class="lcars-header-accent"></div>
@@ -113,7 +115,8 @@ type BrowserItem =
           }}</span>
         </div>
       </div>
-    </div>
+      </div>
+    }
   `,
   styleUrls: ['./runtime-browser.component.scss'],
 })
@@ -134,6 +137,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   private isCreating = false;
 
   language = input('en-GB');
+  protected readonly translationsReady = signal(false);
 
   @ViewChild('treeDetail', { static: false })
   treeDetail!: BaseTreeDetailComponent<BrowserItem>;
@@ -211,8 +215,19 @@ export class RuntimeBrowserComponent implements AfterViewInit {
 
   constructor() {
     effect(() => {
-      this.appTranslateService.setLanguage(this.language());
+      void this.loadTranslations(this.language());
     });
+  }
+
+  private async loadTranslations(language: string): Promise<void> {
+    this.translationsReady.set(false);
+    try {
+      await this.appTranslateService.initialize(language);
+    } catch (error: unknown) {
+      console.error('Failed to load translations:', error);
+    } finally {
+      this.translationsReady.set(true);
+    }
   }
 
   ngAfterViewInit(): void {

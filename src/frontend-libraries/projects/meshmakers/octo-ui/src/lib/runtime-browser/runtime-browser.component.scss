@@ -11,11 +11,7 @@
   flex-direction: column;
   height: 100%;
   padding: 16px;
-  background: linear-gradient(
-    180deg,
-    var(--deep-sea-95),
-    var(--deep-sea)
-  );
+  background: linear-gradient(180deg, var(--deep-sea-95), var(--deep-sea));
   gap: 16px;
 }
 
@@ -42,7 +38,7 @@
   kendo-treeview {
     .k-treeview-item {
       .k-treeview-leaf {
-        color: rgba(255, 255, 255, 0.85);
+        color: rgba(#{var(--octo-text-color)}, 0.85);
         font-family: "Roboto", sans-serif;
         transition: all 0.2s ease;
         border-radius: 4px;
@@ -53,11 +49,7 @@
         }
 
         &.k-selected {
-          background: linear-gradient(
-            90deg,
-            var(--octo-mint-20),
-            transparent
-          );
+          background: linear-gradient(90deg, var(--octo-mint-20), transparent);
           color: var(--octo-mint);
           border-left: 3px solid var(--octo-mint);
 

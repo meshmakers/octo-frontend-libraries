@@ -41,7 +41,11 @@
 
   .basic-info-card {
     padding: 20px 24px;
-    background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+    background: linear-gradient(
+      180deg,
+      var(--iron-navy),
+      var(--surface-elevated)
+    );
     border: 1px solid var(--octo-mint-30);
     border-radius: 4px 16px 4px 16px;
     position: relative;
@@ -89,7 +93,7 @@
         .value {
           font-family: "Roboto Mono", monospace;
           font-size: 0.875rem;
-          color: rgba(255, 255, 255, 0.9);
+          color: rgba(#{var(--octo-text-color)}, 0.9);
           word-break: break-word;
           background: var(--deep-sea-40);
           padding: 8px 12px;
@@ -105,7 +109,7 @@
             flex: 1;
             font-family: "Roboto Mono", monospace;
             font-size: 0.875rem;
-            color: rgba(255, 255, 255, 0.9);
+            color: rgba(#{var(--octo-text-color)}, 0.9);
             word-break: break-word;
           }
         }
@@ -120,7 +124,11 @@
   .entity-tabs {
     flex: 1;
     min-height: 400px;
-    background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+    background: linear-gradient(
+      180deg,
+      var(--iron-navy),
+      var(--surface-elevated)
+    );
     border: 1px solid var(--octo-mint-30);
     border-radius: 4px 16px 4px 16px;
     overflow: hidden;
@@ -150,11 +158,7 @@
         background: transparent;
 
         .k-tabstrip-items-wrapper {
-          background: linear-gradient(
-            90deg,
-            var(--octo-mint-10),
-            transparent
-          );
+          background: linear-gradient(90deg, var(--octo-mint-10), transparent);
           border-bottom: 1px solid var(--octo-mint-20);
           padding-left: 20px;
 
@@ -162,7 +166,7 @@
             .k-item {
               background: transparent;
               border: none;
-              color: rgba(255, 255, 255, 0.7);
+              color: rgba(#{var(--octo-text-color)}, 0.7);
               font-family: "Montserrat", sans-serif;
               font-weight: 600;
               font-size: 0.8rem;
@@ -224,7 +228,7 @@
           margin: 0;
           font-family: "Montserrat", sans-serif;
           font-size: 0.9rem;
-          color: rgba(255, 255, 255, 0.5);
+          color: rgba(#{var(--octo-text-color)}, 0.5);
           letter-spacing: 0.5px;
         }
       }
@@ -253,11 +257,7 @@
           align-items: center;
           gap: 16px;
           padding: 16px 20px;
-          background: linear-gradient(
-            90deg,
-            var(--octo-mint-05),
-            transparent
-          );
+          background: linear-gradient(90deg, var(--octo-mint-05), transparent);
           border-bottom: 1px solid var(--octo-mint-20);
 
           .filter-group {

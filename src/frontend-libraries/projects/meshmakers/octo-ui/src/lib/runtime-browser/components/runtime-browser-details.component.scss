@@ -78,7 +78,7 @@
         font-family: "Montserrat", sans-serif;
         font-size: 0.9rem;
         line-height: 1.6;
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(#{var(--octo-text-color)}, 0.7);
         letter-spacing: 0.5px;
       }
     }
@@ -99,7 +99,11 @@
       align-items: center;
       gap: 16px;
       padding: 16px 20px 16px 24px;
-      background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+      background: linear-gradient(
+        180deg,
+        var(--iron-navy),
+        var(--surface-elevated)
+      );
       border: 1px solid var(--octo-mint-30);
       border-radius: 4px 16px 4px 16px;
       margin-bottom: 20px;
@@ -142,7 +146,7 @@
           font-weight: 600;
           letter-spacing: 1px;
           text-transform: uppercase;
-          color: #ffffff;
+          color: var(--octo-text-color);
         }
 
         .entity-type {
@@ -173,7 +177,11 @@
     .ck-model-details,
     .ck-models-root {
       padding: 24px;
-      background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+      background: linear-gradient(
+        180deg,
+        var(--iron-navy),
+        var(--surface-elevated)
+      );
       border: 1px solid var(--octo-mint-30);
       border-radius: 4px 16px 4px 16px;
       position: relative;
@@ -201,14 +209,14 @@
         font-weight: 600;
         letter-spacing: 1px;
         text-transform: uppercase;
-        color: #ffffff;
+        color: var(--octo-text-color);
       }
 
       p {
         margin: 0 0 12px 0;
         font-family: "Roboto", sans-serif;
         font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.85);
+        color: rgba(#{var(--octo-text-color)}, 0.85);
 
         strong {
           font-family: "Montserrat", sans-serif;
@@ -221,7 +229,7 @@
         }
 
         &.info-text {
-          color: rgba(255, 255, 255, 0.6);
+          color: rgba(#{var(--octo-text-color)}, 0.6);
           font-style: italic;
           margin-top: 24px;
           padding: 16px 20px;
@@ -249,7 +257,11 @@
       .type-header {
         margin-bottom: 20px;
         padding: 20px 24px;
-        background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+        background: linear-gradient(
+          180deg,
+          var(--iron-navy),
+          var(--surface-elevated)
+        );
         border: 1px solid var(--octo-mint-30);
         border-radius: 4px 16px 4px 16px;
         position: relative;
@@ -277,7 +289,7 @@
           font-weight: 600;
           letter-spacing: 1px;
           text-transform: uppercase;
-          color: #ffffff;
+          color: var(--octo-text-color);
         }
 
         .type-metadata {
@@ -334,7 +346,11 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        background: linear-gradient(180deg, var(--iron-navy), var(--surface-elevated));
+        background: linear-gradient(
+          180deg,
+          var(--iron-navy),
+          var(--surface-elevated)
+        );
         border: 1px solid var(--octo-mint-30);
         border-radius: 4px 16px 4px 16px;
         padding: 20px;

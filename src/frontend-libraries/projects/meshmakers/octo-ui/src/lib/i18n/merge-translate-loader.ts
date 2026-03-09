@@ -1,9 +1,11 @@
 import { HttpClient } from '@angular/common/http';
-import { TranslateLoader, TranslationObject } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
+import { ConstantService } from '../runtime-browser/services/constant.service';
 
-const OCTO_UI_I18N_PREFIX = '/octo-ui/i18n/';
+export interface TranslateLoaderLike {
+  getTranslation(lang: string): Observable<Record<string, unknown>>;
+}
 
 /**
  * Merges translations from app loader (e.g. backend) with octo-ui translations loaded via HTTP.
@@ -11,14 +13,15 @@ const OCTO_UI_I18N_PREFIX = '/octo-ui/i18n/';
  * node_modules/@meshmakers/octo-ui/i18n to its assets (see README).
  */
 export function createMergedTranslateLoader(
-  appLoader: TranslateLoader,
-  http: HttpClient
-): TranslateLoader {
+  appLoader: TranslateLoaderLike,
+  http: HttpClient,
+  constants: ConstantService,
+): TranslateLoaderLike {
   return {
-    getTranslation(lang: string): Observable<TranslationObject> {
-      const octoUiUrl = `${OCTO_UI_I18N_PREFIX}${lang}.json`;
+    getTranslation(lang: string): Observable<Record<string, unknown>> {
+      const octoUiUrl = `${constants.OCTO_UI_I18N_PREFIX}${lang}.json`;
       const octoUiTranslations$ = http
-        .get<TranslationObject>(octoUiUrl)
+        .get<Record<string, unknown>>(octoUiUrl)
         .pipe(catchError(() => of({})));
 
       return appLoader.getTranslation(lang).pipe(
@@ -27,9 +30,9 @@ export function createMergedTranslateLoader(
             map((octoTranslations) => ({
               ...octoTranslations,
               ...appTranslations,
-            }))
-          )
-        )
+            })),
+          ),
+        ),
       );
     },
   };

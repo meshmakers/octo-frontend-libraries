@@ -23,6 +23,11 @@
     "@progress/kendo-svg-icons": "^4.5.0",
     "apollo-angular": "^13.0.0"
   },
+  "peerDependenciesMeta": {
+    "@ngx-translate/core": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "tslib": "^2.8.1"
   },

@@ -5,11 +5,11 @@ import { AppTranslateService } from './translate.service';
  * Translation pipe for runtime-browser.
  * Delegates to host app's TranslateService. Use createMergedTranslateLoader to merge library translations.
  */
-@Pipe({ name: 'appTranslate' })
+@Pipe({ name: 'appTranslate', pure: false })
 export class AppTranslatePipe implements PipeTransform {
-  private readonly translateService = inject(AppTranslateService);
+  private readonly appTranslateService = inject(AppTranslateService);
 
   transform(key: string): string {
-    return this.translateService.instant(key);
+    return this.appTranslateService.instant(key);
   }
 }

@@ -4,12 +4,6 @@
 
 @use "sass:color";
 
-$octo-cyan: #00a8dc;
-$octo-mint: #64ceb9;
-$bg-deep: #07172b;
-$bg-surface: #1f2e40;
-$border-color: rgba($octo-mint, 0.2);
-
 .entity-editor-container {
   display: flex;
   flex-direction: column;
@@ -49,7 +43,7 @@ $border-color: rgba($octo-mint, 0.2);
           }
 
           label {
-            color: $octo-mint;
+            color: var(--octo-mint);
             margin-bottom: 8px;
             text-transform: uppercase;
           }
@@ -61,12 +55,12 @@ $border-color: rgba($octo-mint, 0.2);
   .select-type-prompt {
     grid-column: span 2;
     text-transform: uppercase;
-    color: $octo-mint;
-    background-color: rgba($octo-mint, 0.2);
+    color: var(--octo-mint);
+    background-color: rgba(#{var(--octo-mint)}, 0.2);
     padding: 16px;
     border-radius: 8px;
     text-align: center;
-    border: 1px dashed $border-color;
+    border: 1px dashed rgba(#{var(--octo-mint)}, 0.2);
   }
 
   .entity-editor-actions {
