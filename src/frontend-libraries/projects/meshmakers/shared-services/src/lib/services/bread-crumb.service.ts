@@ -34,7 +34,7 @@ export class BreadCrumbService {
         for (const breadCrumbRouteItem of breadCrumbRouteItems) {
 
           let label = breadCrumbRouteItem.label;
-          let url = breadCrumbRouteItem.url;
+          let url = breadCrumbRouteItem.url ?? '';
 
           // We replace the route parameters with the actual values
           // Match all :paramName patterns in the URL
