@@ -11,6 +11,12 @@ export interface UnsavedChangesMessages {
   savePrompt?: string;
   /** Message when component does not support saving (default: "You have unsaved changes. Are you sure you want to leave? Your changes will be lost.") */
   discardPrompt?: string;
+  /** Label for the "Yes" button (default: "Yes") */
+  yesButton?: string;
+  /** Label for the "No" button (default: "No") */
+  noButton?: string;
+  /** Label for the "Cancel" button (default: "Cancel") */
+  cancelButton?: string;
 }
 
 /**

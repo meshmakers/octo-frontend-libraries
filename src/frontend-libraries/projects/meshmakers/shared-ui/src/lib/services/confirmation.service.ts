@@ -4,6 +4,7 @@ import {firstValueFrom} from 'rxjs';
 import {ConfirmationWindowComponent} from '../confirmation-window/confirmation-window.component';
 import {
   ButtonTypes,
+  ConfirmationButtonLabels,
   ConfirmationWindowData,
   ConfirmationWindowResult,
   DialogType,
@@ -13,9 +14,9 @@ import {
 export class ConfirmationService {
   private readonly dialogService = inject(DialogService);
 
-  public async showYesNoConfirmationDialog(title: string, message: string, cssClass?: string): Promise<boolean> {
+  public async showYesNoConfirmationDialog(title: string, message: string, cssClass?: string, buttonLabels?: ConfirmationButtonLabels): Promise<boolean> {
 
-    const dialogRef = this.openDialog(title, message, DialogType.YesNo, cssClass);
+    const dialogRef = this.openDialog(title, message, DialogType.YesNo, cssClass, buttonLabels);
 
     const result = await firstValueFrom(dialogRef.result);
     if (result instanceof ConfirmationWindowResult) {
@@ -25,9 +26,9 @@ export class ConfirmationService {
     }
   }
 
-  public async showYesNoCancelConfirmationDialog(title: string, message: string): Promise<ConfirmationWindowResult | undefined> {
+  public async showYesNoCancelConfirmationDialog(title: string, message: string, buttonLabels?: ConfirmationButtonLabels): Promise<ConfirmationWindowResult | undefined> {
 
-    const dialogRef = this.openDialog(title, message, DialogType.YesNoCancel);
+    const dialogRef = this.openDialog(title, message, DialogType.YesNoCancel, undefined, buttonLabels);
 
     const result = await firstValueFrom(dialogRef.result);
     if (result instanceof ConfirmationWindowResult) {
@@ -66,7 +67,7 @@ export class ConfirmationService {
     }
   }
 
-  private openDialog(title: string, message: string, dialogType: DialogType, cssClass?: string) {
+  private openDialog(title: string, message: string, dialogType: DialogType, cssClass?: string, buttonLabels?: ConfirmationButtonLabels) {
     const dialogRef: DialogRef = this.dialogService.open({
       title,
       content: ConfirmationWindowComponent,
@@ -77,8 +78,9 @@ export class ConfirmationService {
     component.data = {
       title,
       message,
-      dialogType: dialogType
-    } as ConfirmationWindowData
+      dialogType,
+      buttonLabels,
+    };
     return dialogRef;
   }
 }

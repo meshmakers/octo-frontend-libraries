@@ -43,25 +43,26 @@ export class ConfirmationWindowComponent extends DialogContentBase implements On
   ngOnInit(): void {
 
     if (this.data){
+      const labels = this.data.buttonLabels;
       if (this.data.dialogType === DialogType.OkCancel) {
-        this.button1Text = 'OK';
+        this.button1Text = labels?.ok ?? 'OK';
         this.button1Result = ButtonTypes.Ok;
-        this.button2Text = 'Cancel';
+        this.button2Text = labels?.cancel ?? 'Cancel';
         this.button2Result = ButtonTypes.Cancel;
       } else if (this.data.dialogType === DialogType.YesNoCancel) {
-        this.button1Text = 'Yes';
+        this.button1Text = labels?.yes ?? 'Yes';
         this.button1Result = ButtonTypes.Yes;
-        this.button2Text = 'No';
+        this.button2Text = labels?.no ?? 'No';
         this.button2Result = ButtonTypes.No;
-        this.button3Text = 'Cancel';
+        this.button3Text = labels?.cancel ?? 'Cancel';
         this.button3Result = ButtonTypes.Cancel;
       } else if (this.data.dialogType === DialogType.Ok) {
-        this.button1Text = 'OK';
+        this.button1Text = labels?.ok ?? 'OK';
         this.button1Result = ButtonTypes.Ok;
       } else {
-        this.button1Text = 'Yes';
+        this.button1Text = labels?.yes ?? 'Yes';
         this.button1Result = ButtonTypes.Yes;
-        this.button2Text = 'No';
+        this.button2Text = labels?.no ?? 'No';
         this.button2Result = ButtonTypes.No;
       }
     }

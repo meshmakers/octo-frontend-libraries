@@ -2,7 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {CanDeactivate} from '@angular/router';
 import {HasUnsavedChanges} from './unsaved-changes.interface';
 import {ConfirmationService} from '../services/confirmation.service';
-import {ButtonTypes} from '../models/confirmation';
+import {ButtonTypes, ConfirmationButtonLabels} from '../models/confirmation';
 
 /**
  * Guard that prevents navigation when a component has unsaved changes.
@@ -52,12 +52,15 @@ export class UnsavedChangesGuard implements CanDeactivate<HasUnsavedChanges> {
       ? component.unsavedChangesMessages()
       : undefined;
     const title = msgs?.title ?? 'Unsaved Changes';
+    const buttonLabels: ConfirmationButtonLabels | undefined = (msgs?.yesButton || msgs?.noButton || msgs?.cancelButton)
+      ? { yes: msgs?.yesButton, no: msgs?.noButton, cancel: msgs?.cancelButton }
+      : undefined;
 
     // Component has unsaved changes - ask user what to do
     if (typeof component.saveChanges === 'function') {
       // Component supports saving - show Yes/No/Cancel dialog
       const message = msgs?.savePrompt ?? 'You have unsaved changes. Do you want to save before leaving?';
-      const result = await this.confirmationService.showYesNoCancelConfirmationDialog(title, message);
+      const result = await this.confirmationService.showYesNoCancelConfirmationDialog(title, message, buttonLabels);
 
       if (result === undefined) {
         // Dialog was closed without selection - cancel navigation
@@ -85,7 +88,7 @@ export class UnsavedChangesGuard implements CanDeactivate<HasUnsavedChanges> {
     } else {
       // Component doesn't support saving - show simple Yes/No dialog
       const message = msgs?.discardPrompt ?? 'You have unsaved changes. Are you sure you want to leave? Your changes will be lost.';
-      const confirmed = await this.confirmationService.showYesNoConfirmationDialog(title, message);
+      const confirmed = await this.confirmationService.showYesNoConfirmationDialog(title, message, undefined, buttonLabels);
 
       return confirmed;
     }
