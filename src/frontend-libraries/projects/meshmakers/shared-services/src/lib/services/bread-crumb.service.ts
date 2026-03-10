@@ -33,8 +33,18 @@ export class BreadCrumbService {
 
         for (const breadCrumbRouteItem of breadCrumbRouteItems) {
 
+          if (!breadCrumbRouteItem.label) {
+            console.warn(`BreadCrumbService: breadcrumb item is missing a 'label' property on route '${child.snapshot.url.map(s => s.path).join('/')}'. Skipping item.`);
+            continue;
+          }
+
           let label = breadCrumbRouteItem.label;
           let url = breadCrumbRouteItem.url ?? '';
+
+          if (breadCrumbRouteItem.url === undefined || breadCrumbRouteItem.url === null) {
+            console.warn(`BreadCrumbService: breadcrumb item '${label}' is missing a 'url' property on route '${child.snapshot.url.map(s => s.path).join('/')}'. ` +
+              `Add 'url' to the breadcrumb route data, e.g. { label: '${label}', url: '${child.snapshot.url.map(s => s.path).join('/')}' }.`);
+          }
 
           // We replace the route parameters with the actual values
           // Match all :paramName patterns in the URL
