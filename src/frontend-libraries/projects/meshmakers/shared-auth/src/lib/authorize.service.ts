@@ -411,6 +411,17 @@ export class AuthorizeService {
   }
 
   /**
+   * Refreshes the access token and updates the allowed tenants signal.
+   * Call this after actions that change the user's tenant access (e.g., provisioning).
+   */
+  public async refreshAccessToken(): Promise<void> {
+    console.debug("AuthorizeService::refreshAccessToken::started");
+    await this.oauthService.refreshToken();
+    await this.loadUserAsync();
+    console.debug("AuthorizeService::refreshAccessToken::done");
+  }
+
+  /**
    * Initializes the authorization service with the specified options.
    */
   public async initialize(authorizeOptions: AuthorizeOptions): Promise<void> {
