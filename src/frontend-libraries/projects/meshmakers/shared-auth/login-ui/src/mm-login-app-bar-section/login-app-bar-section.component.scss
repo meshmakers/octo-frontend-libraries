@@ -81,6 +81,7 @@
     margin: 0;
   }
 
+  button.k-button-primary,
   button.k-button-solid-primary {
     background: linear-gradient(180deg, var(--mm-login-btn-primary-start, #1976d2), var(--mm-login-btn-primary-end, #1565c0));
     border: none;
@@ -91,10 +92,11 @@
     }
   }
 
-  a.k-button-solid {
+  a.k-button-solid,
+  a.k-button {
     background: rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.1);
     border: 1px solid rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.3);
-    color: var(--mm-login-accent, #1976d2);
+    color: var(--mm-login-text, #333333);
 
     &:hover {
       background: rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.2);
