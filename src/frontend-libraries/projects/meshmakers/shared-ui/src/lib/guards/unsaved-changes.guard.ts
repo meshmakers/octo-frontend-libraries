@@ -47,13 +47,17 @@ export class UnsavedChangesGuard implements CanDeactivate<HasUnsavedChanges> {
       return true;
     }
 
+    // Get optional translated messages from the component
+    const msgs = typeof component.unsavedChangesMessages === 'function'
+      ? component.unsavedChangesMessages()
+      : undefined;
+    const title = msgs?.title ?? 'Unsaved Changes';
+
     // Component has unsaved changes - ask user what to do
     if (typeof component.saveChanges === 'function') {
       // Component supports saving - show Yes/No/Cancel dialog
-      const result = await this.confirmationService.showYesNoCancelConfirmationDialog(
-        'Unsaved Changes',
-        'You have unsaved changes. Do you want to save before leaving?'
-      );
+      const message = msgs?.savePrompt ?? 'You have unsaved changes. Do you want to save before leaving?';
+      const result = await this.confirmationService.showYesNoCancelConfirmationDialog(title, message);
 
       if (result === undefined) {
         // Dialog was closed without selection - cancel navigation
@@ -80,10 +84,8 @@ export class UnsavedChangesGuard implements CanDeactivate<HasUnsavedChanges> {
       }
     } else {
       // Component doesn't support saving - show simple Yes/No dialog
-      const confirmed = await this.confirmationService.showYesNoConfirmationDialog(
-        'Unsaved Changes',
-        'You have unsaved changes. Are you sure you want to leave? Your changes will be lost.'
-      );
+      const message = msgs?.discardPrompt ?? 'You have unsaved changes. Are you sure you want to leave? Your changes will be lost.';
+      const confirmed = await this.confirmationService.showYesNoConfirmationDialog(title, message);
 
       return confirmed;
     }
