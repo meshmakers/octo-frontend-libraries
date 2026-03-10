@@ -2,6 +2,7 @@
   <!-- Title (no card mode) -->
   <div *ngIf="!config.showCard && title" class="mm-form-title-row mm-form-title-standalone">
     <h2 class="mm-form-title">{{ title }}</h2>
+    <ng-container *ngIf="titleExtra" [ngTemplateOutlet]="titleExtra.templateRef"></ng-container>
     <span *ngIf="config.hasChanges" class="mm-modified-badge">{{ unsavedChangesText }}</span>
   </div>
 
@@ -10,6 +11,7 @@
     <!-- Card header (only in card mode) -->
     <div *ngIf="config.showCard && title" class="mm-form-header">
       <h2 class="mm-form-title">{{ title }}</h2>
+      <ng-container *ngIf="titleExtra" [ngTemplateOutlet]="titleExtra.templateRef"></ng-container>
       <span *ngIf="config.hasChanges" class="mm-modified-badge">{{ unsavedChangesText }}</span>
     </div>
 

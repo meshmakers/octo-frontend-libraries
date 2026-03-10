@@ -1,6 +1,11 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, ContentChild, Directive, inject, Input, Output, EventEmitter, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup } from '@angular/forms';
+
+@Directive({ selector: '[mmFormTitleExtra]', standalone: true })
+export class FormTitleExtraDirective {
+  readonly templateRef = inject(TemplateRef<unknown>);
+}
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { SVGIcon, saveIcon, cancelIcon } from '@progress/kendo-svg-icons';
 import { HasUnsavedChanges, HAS_UNSAVED_CHANGES } from '../guards/unsaved-changes.interface';
@@ -87,6 +92,8 @@ export const DEFAULT_RESPONSIVE_COLSPAN: ResponsiveFormBreakPoint[] = [
   styleUrl: './base-form.component.scss'
 })
 export class BaseFormComponent implements HasUnsavedChanges {
+  @ContentChild(FormTitleExtraDirective) titleExtra?: FormTitleExtraDirective;
+
   @Input() form!: FormGroup;
   @Input() config: BaseFormConfig = {
     showCard: true,
