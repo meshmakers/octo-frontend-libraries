@@ -2,7 +2,7 @@
   <!-- Title (no card mode) -->
   <div *ngIf="!config.showCard && title" class="mm-form-title-row mm-form-title-standalone">
     <h2 class="mm-form-title">{{ title }}</h2>
-    <span *ngIf="config.hasChanges" class="mm-modified-badge">Unsaved Changes</span>
+    <span *ngIf="config.hasChanges" class="mm-modified-badge">{{ unsavedChangesText }}</span>
   </div>
 
   <!-- Main form wrapper - styled as card or plain based on CSS class -->
@@ -10,14 +10,14 @@
     <!-- Card header (only in card mode) -->
     <div *ngIf="config.showCard && title" class="mm-form-header">
       <h2 class="mm-form-title">{{ title }}</h2>
-      <span *ngIf="config.hasChanges" class="mm-modified-badge">Unsaved Changes</span>
+      <span *ngIf="config.hasChanges" class="mm-modified-badge">{{ unsavedChangesText }}</span>
     </div>
 
     <!-- Form body with content projection -->
     <div class="mm-form-body">
       <div *ngIf="config.isLoading && config.showLoadingOverlay" class="mm-loading-overlay">
         <div class="k-loader k-loader-lg"></div>
-        <p>Loading...</p>
+        <p>{{ loadingText }}</p>
       </div>
       <ng-content></ng-content>
     </div>
@@ -28,7 +28,7 @@
       <div class="mm-form-status">
         <span class="mm-status-indicator" [class.modified]="config.hasChanges">
           <span class="mm-status-dot"></span>
-          <span class="mm-status-text">{{ config.hasChanges ? 'MODIFIED' : 'READY' }}</span>
+          <span class="mm-status-text">{{ config.hasChanges ? modifiedText : readyText }}</span>
         </span>
       </div>
 

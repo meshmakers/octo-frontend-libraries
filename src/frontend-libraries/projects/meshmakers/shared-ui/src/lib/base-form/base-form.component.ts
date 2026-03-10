@@ -12,6 +12,39 @@ export interface ResponsiveFormBreakPoint {
   value: number;
 }
 
+/**
+ * Translatable messages for the base form.
+ * All properties are optional — English defaults are used as fallbacks.
+ */
+export interface BaseFormMessages {
+  /** Default title when isViewMode is true (default: 'View Details') */
+  viewTitle?: string;
+  /** Default title when isEditMode is true (default: 'Edit') */
+  editTitle?: string;
+  /** Default title for new items (default: 'New') */
+  newTitle?: string;
+  /** Save button text when saving is in progress (default: 'Saving...') */
+  savingText?: string;
+  /** Save button text in edit mode (default: 'Update') */
+  updateText?: string;
+  /** Save button text in create mode (default: 'Create') */
+  createText?: string;
+  /** Cancel button text in view mode (default: 'Back') */
+  backText?: string;
+  /** Cancel button text (default: 'Cancel') */
+  cancelText?: string;
+  /** Save button text (default: 'Save') */
+  saveText?: string;
+  /** Badge text for unsaved changes (default: 'Unsaved Changes') */
+  unsavedChangesText?: string;
+  /** Loading overlay text (default: 'Loading...') */
+  loadingText?: string;
+  /** Status text when form has changes (default: 'MODIFIED') */
+  modifiedText?: string;
+  /** Status text when form is clean (default: 'READY') */
+  readyText?: string;
+}
+
 export interface BaseFormConfig {
   title?: string;
   cardWidth?: string;
@@ -29,6 +62,11 @@ export interface BaseFormConfig {
    * When true, displays a "Modified" indicator in the header and footer.
    */
   hasChanges?: boolean;
+  /**
+   * Translatable messages for all static texts in the form.
+   * Allows consuming applications to provide localized strings.
+   */
+  messages?: BaseFormMessages;
 }
 
 // Default responsive breakpoint for 2-column to 1-column
@@ -66,19 +104,38 @@ export class BaseFormComponent implements HasUnsavedChanges {
 
   protected get title(): string {
     if (this.config.title) return this.config.title;
-    if (this.config.isViewMode) return 'View Details';
-    return this.config.isEditMode ? 'Edit' : 'New';
+    const msgs = this.config.messages;
+    if (this.config.isViewMode) return msgs?.viewTitle ?? 'View Details';
+    return this.config.isEditMode ? (msgs?.editTitle ?? 'Edit') : (msgs?.newTitle ?? 'New');
   }
 
   protected get saveButtonText(): string {
     if (this.config.saveButtonText) return this.config.saveButtonText;
-    if (this.config.isSaving) return 'Saving...';
-    return this.config.isEditMode ? 'Update' : 'Create';
+    const msgs = this.config.messages;
+    if (this.config.isSaving) return msgs?.savingText ?? 'Saving...';
+    return this.config.isEditMode ? (msgs?.updateText ?? 'Update') : (msgs?.createText ?? 'Create');
   }
 
   protected get cancelButtonText(): string {
     if (this.config.cancelButtonText) return this.config.cancelButtonText;
-    return this.config.isViewMode ? 'Back' : 'Cancel';
+    const msgs = this.config.messages;
+    return this.config.isViewMode ? (msgs?.backText ?? 'Back') : (msgs?.cancelText ?? 'Cancel');
+  }
+
+  protected get unsavedChangesText(): string {
+    return this.config.messages?.unsavedChangesText ?? 'Unsaved Changes';
+  }
+
+  protected get loadingText(): string {
+    return this.config.messages?.loadingText ?? 'Loading...';
+  }
+
+  protected get modifiedText(): string {
+    return this.config.messages?.modifiedText ?? 'MODIFIED';
+  }
+
+  protected get readyText(): string {
+    return this.config.messages?.readyText ?? 'READY';
   }
 
   protected get showSaveButton(): boolean {
