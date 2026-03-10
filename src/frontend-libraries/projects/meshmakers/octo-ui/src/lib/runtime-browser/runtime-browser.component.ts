@@ -55,66 +55,66 @@ type BrowserItem =
   template: `
     @if (translationsReady()) {
       <div class="runtime-browser-container">
-      <!-- LCARS Header -->
-      <div class="lcars-page-header">
-        <div class="lcars-header-accent"></div>
-        <div class="header-content">
-          <h1 class="page-title">
-            <span class="title-prefix">{{
-              RUNTIME_BROWSER_KEYS.TitlePrefix | appTranslate
-            }}</span>
-            <span class="title-main">{{
-              RUNTIME_BROWSER_KEYS.Title | appTranslate
-            }}</span>
-          </h1>
-          <div class="header-stats">
-            <div class="stat-badge">
-              <span class="badge-icon">&#9632;</span>
-              <span class="badge-label">{{
-                RUNTIME_BROWSER_KEYS.BadgeLabel | appTranslate
+        <!-- LCARS Header -->
+        <div class="lcars-page-header">
+          <div class="lcars-header-accent"></div>
+          <div class="header-content">
+            <h1 class="page-title">
+              <span class="title-prefix">{{
+                RUNTIME_BROWSER_KEYS.TitlePrefix | appTranslate
               }}</span>
+              <span class="title-main">{{
+                RUNTIME_BROWSER_KEYS.Title | appTranslate
+              }}</span>
+            </h1>
+            <div class="header-stats">
+              <div class="stat-badge">
+                <span class="badge-icon">&#9632;</span>
+                <span class="badge-label">{{
+                  RUNTIME_BROWSER_KEYS.BadgeLabel | appTranslate
+                }}</span>
+              </div>
             </div>
           </div>
+          <div class="lcars-header-line"></div>
         </div>
-        <div class="lcars-header-line"></div>
-      </div>
 
-      <!-- Main Content -->
-      <div class="lcars-content-panel">
-        <div class="panel-accent-top"></div>
-        <mm-base-tree-detail
-          #treeDetail
-          [treeDataSource]="dataSource"
-          [leftPaneSize]="'25%'"
-          [leftToolbarActions]="leftToolbarActions"
-          [rightToolbarActions]="rightToolbarActions"
-          (nodeSelected)="onNodeSelected($event)"
-          (nodeDropped)="onNodeDropped($event)"
-        >
-          <mm-runtime-browser-details
-            #detailsPanel
-            slot="detail-panel"
-            [selectedItem]="selectedItem"
-            (entitySaved)="refreshTreeAfterCreation($event || undefined)"
+        <!-- Main Content -->
+        <div class="lcars-content-panel">
+          <div class="panel-accent-top"></div>
+          <mm-base-tree-detail
+            #treeDetail
+            [treeDataSource]="dataSource"
+            [leftPaneSize]="'25%'"
+            [leftToolbarActions]="leftToolbarActions"
+            [rightToolbarActions]="rightToolbarActions"
+            (nodeSelected)="onNodeSelected($event)"
+            (nodeDropped)="onNodeDropped($event)"
           >
-          </mm-runtime-browser-details>
-        </mm-base-tree-detail>
-        <div class="panel-accent-bottom"></div>
-      </div>
-
-      <!-- LCARS Footer -->
-      <div class="lcars-footer">
-        <div class="footer-bar bar-1"></div>
-        <div class="footer-bar bar-2"></div>
-        <div class="footer-bar bar-3"></div>
-        <div class="footer-spacer"></div>
-        <div class="footer-indicator">
-          <span class="indicator-dot"></span>
-          <span class="indicator-text">{{
-            RUNTIME_BROWSER_KEYS.Ready | appTranslate
-          }}</span>
+            <mm-runtime-browser-details
+              #detailsPanel
+              slot="detail-panel"
+              [selectedItem]="selectedItem"
+              (entitySaved)="refreshTreeAfterCreation($event || undefined)"
+            >
+            </mm-runtime-browser-details>
+          </mm-base-tree-detail>
+          <div class="panel-accent-bottom"></div>
         </div>
-      </div>
+
+        <!-- LCARS Footer -->
+        <div class="lcars-footer">
+          <div class="footer-bar bar-1"></div>
+          <div class="footer-bar bar-2"></div>
+          <div class="footer-bar bar-3"></div>
+          <div class="footer-spacer"></div>
+          <div class="footer-indicator">
+            <span class="indicator-dot"></span>
+            <span class="indicator-text">{{
+              RUNTIME_BROWSER_KEYS.Ready | appTranslate
+            }}</span>
+          </div>
+        </div>
       </div>
     }
   `,

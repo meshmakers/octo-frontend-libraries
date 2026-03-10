@@ -34,21 +34,6 @@ export interface OctoUiTranslationConfig {
 }
 
 /**
- * Initializes octo-ui translations before app bootstrap.
- * Provide a language to override detection.
- */
-export function provideOctoUiTranslations(
-  config: OctoUiTranslationConfig = {},
-): EnvironmentProviders {
-  return makeEnvironmentProviders([
-    provideAppInitializer(() => {
-      const translateService = inject(AppTranslateService);
-      return translateService.initialize(config.language);
-    }),
-  ]);
-}
-
-/**
  * Provides OctoUi services using modern Angular provider functions.
  * This is the recommended approach for library providers.
  */
@@ -60,7 +45,6 @@ export function provideOctoUi(
       const translateService = inject(AppTranslateService);
       return translateService.initialize(config.language);
     }),
-    provideOctoUiTranslations(),
     provideOctoServices(),
     provideMmSharedUi(),
     provideMmSharedAuth(),
