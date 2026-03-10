@@ -27,15 +27,22 @@
   background: linear-gradient(180deg, var(--mm-login-bg-start, #f5f5f5), var(--mm-login-bg-end, #e8e8e8));
 }
 
-.user-avatar {
-  border: 2px solid rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.4);
-  box-shadow: 0 0 15px rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.3);
+// Avatar styling — override Kendo defaults (border-width: 0)
+:host ::ng-deep kendo-avatar.k-avatar {
+  background-color: rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.15) !important;
+  border: 1.5px solid rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.5) !important;
+  color: var(--mm-login-accent, #1976d2);
 
-  ::ng-deep .k-avatar-text {
+  .k-avatar-text {
     font-family: var(--mm-login-font, 'Roboto', sans-serif);
     font-weight: 600;
     text-transform: uppercase;
   }
+}
+
+// Large avatar in the popup
+.user-avatar {
+  box-shadow: 0 0 15px rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.3);
 }
 
 .user-name {
