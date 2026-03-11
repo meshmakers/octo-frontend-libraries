@@ -46,6 +46,7 @@
         <div class="toolbar-center">
           <mm-time-range-picker
             [config]="timeFilterConfig()?.pickerConfig ?? {}"
+            [labels]="timeRangeLabels()"
             [initialSelection]="initialTimeSelection()"
             (rangeChange)="onTimeRangeChange($event)"
             (selectionChange)="onTimeSelectionChange($event)">

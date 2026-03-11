@@ -39,7 +39,8 @@ import {
   TimeRangePickerComponent,
   TimeRange,
   TimeRangeUtils,
-  TimeRangeSelection as SharedTimeRangeSelection
+  TimeRangeSelection as SharedTimeRangeSelection,
+  TimeRangePickerLabels
 } from '@meshmakers/shared-ui';
 
 /**
@@ -116,6 +117,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly notFoundError = this._notFoundError.asReadonly();
   private readonly _isReadonly = signal(false);
   protected readonly isReadonly = this._isReadonly.asReadonly();
+  protected readonly timeRangeLabels = signal<TimeRangePickerLabels>({});
 
   // Computed link to MeshBoard page with tenant
   protected readonly meshBoardPageLink = computed(() => {
@@ -229,6 +231,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       const wellKnownName = this.route.snapshot.data['meshBoardWellKnownName'] as string | undefined;
       const readonly = this.route.snapshot.data['meshBoardReadonly'] as boolean | undefined;
       this._isReadonly.set(readonly === true);
+      const labels = this.route.snapshot.data['timeRangeLabels'] as TimeRangePickerLabels | undefined;
+      if (labels) this.timeRangeLabels.set(labels);
 
       if (rtIdFromRoute) {
         // Load specific MeshBoard from URL parameter
