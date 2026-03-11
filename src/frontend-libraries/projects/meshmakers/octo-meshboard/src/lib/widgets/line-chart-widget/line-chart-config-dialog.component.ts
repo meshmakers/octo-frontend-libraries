@@ -325,11 +325,13 @@ export interface LineChartConfigResult extends WidgetConfigResult {
     .form-row {
       display: flex;
       gap: 24px;
+      align-items: center;
     }
 
     .checkbox-field {
       flex-direction: row;
       align-items: center;
+      margin-bottom: 0;
     }
 
     .checkbox-field label {
