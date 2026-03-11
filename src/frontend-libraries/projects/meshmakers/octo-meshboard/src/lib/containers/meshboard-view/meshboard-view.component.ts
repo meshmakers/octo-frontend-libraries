@@ -78,6 +78,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Track the last known rtId to avoid unnecessary navigation
   private lastNavigatedRtId: string | null = null;
+  // Guard to prevent the effect from running during initial load
+  private initialLoadComplete = false;
 
   // Icons
   protected readonly gearIcon = gearIcon;
@@ -144,14 +146,16 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   });
 
   constructor() {
-    // Effect to sync URL when dashboard changes
+    // Effect to sync URL when dashboard changes (after initial load)
     effect(() => {
       const currentRtId = this.stateService.persistedMeshBoardId();
       if (currentRtId && currentRtId !== this.lastNavigatedRtId) {
         this.lastNavigatedRtId = currentRtId;
-        this.updateUrlWithRtId(currentRtId);
-        // Initialize time filter variables when switching to a different MeshBoard
-        this.initializeTimeFilterVariables();
+        if (this.initialLoadComplete) {
+          // Only update URL and time filter for post-init board switches (e.g. manager dialog)
+          this.updateUrlWithRtId(currentRtId);
+          this.initializeTimeFilterVariables();
+        }
       }
     });
 
@@ -180,19 +184,24 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   /**
    * Updates the URL to include the current MeshBoard rtId.
+   * Preserves existing query parameters.
    */
   private updateUrlWithRtId(rtId: string): void {
     const currentUrl = this.router.url;
     const hasRtIdParam = this.route.snapshot.paramMap.has('rtId');
 
+    // Split off query string to preserve it
+    const [pathPart, queryPart] = currentUrl.split('?');
+    const querySuffix = queryPart ? '?' + queryPart : '';
+
     if (hasRtIdParam) {
       // Replace the last URL segment (the old rtId) with the new one
-      const lastSlashIndex = currentUrl.lastIndexOf('/');
-      const newUrl = currentUrl.substring(0, lastSlashIndex + 1) + rtId;
-      this.router.navigateByUrl(newUrl, { replaceUrl: true });
+      const lastSlashIndex = pathPart.lastIndexOf('/');
+      const newPath = pathPart.substring(0, lastSlashIndex + 1) + rtId;
+      this.router.navigateByUrl(newPath + querySuffix, { replaceUrl: true });
     } else {
       // Append the rtId to the current URL
-      this.router.navigateByUrl(`${currentUrl}/${rtId}`, { replaceUrl: true });
+      this.router.navigateByUrl(`${pathPart}/${rtId}${querySuffix}`, { replaceUrl: true });
     }
   }
 
@@ -229,6 +238,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
       // Initialize time filter variables if enabled with stored selection
       this.initializeTimeFilterVariables();
+
+      // Mark initial load as complete so the effect can handle subsequent board switches
+      this.initialLoadComplete = true;
 
       // Update breadcrumb with MeshBoard name
       this.updateBreadcrumb();
@@ -608,26 +620,52 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   /**
    * Writes the time filter selection to URL query parameters.
+   * Only writes params relevant to the current type, clears all others.
    */
   private writeTimeFilterToUrl(selection: TimeRangeSelection): void {
-    const queryParams: Record<string, string | undefined> = {
+    // Start with all params cleared
+    const cleanParams: Record<string, string | null> = {
       tf_type: selection.type,
-      tf_year: selection.year?.toString(),
-      tf_quarter: selection.quarter?.toString(),
-      tf_month: selection.month?.toString(),
-      tf_day: selection.day?.toString(),
-      tf_hf: selection.hourFrom?.toString(),
-      tf_ht: selection.hourTo?.toString(),
-      tf_rv: selection.relativeValue?.toString(),
-      tf_ru: selection.relativeUnit,
-      tf_from: selection.customFrom,
-      tf_to: selection.customTo
+      tf_year: null,
+      tf_quarter: null,
+      tf_month: null,
+      tf_day: null,
+      tf_hf: null,
+      tf_ht: null,
+      tf_rv: null,
+      tf_ru: null,
+      tf_from: null,
+      tf_to: null
     };
 
-    // Remove undefined values (Angular sends "undefined" string otherwise)
-    const cleanParams: Record<string, string | null> = {};
-    for (const [key, value] of Object.entries(queryParams)) {
-      cleanParams[key] = value ?? null; // null removes the param
+    // Set only the params relevant to the current type
+    switch (selection.type) {
+      case 'year':
+        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
+        break;
+      case 'quarter':
+        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
+        if (selection.quarter != null) cleanParams['tf_quarter'] = selection.quarter.toString();
+        break;
+      case 'month':
+        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
+        if (selection.month != null) cleanParams['tf_month'] = selection.month.toString();
+        break;
+      case 'day':
+        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
+        if (selection.month != null) cleanParams['tf_month'] = selection.month.toString();
+        if (selection.day != null) cleanParams['tf_day'] = selection.day.toString();
+        if (selection.hourFrom != null) cleanParams['tf_hf'] = selection.hourFrom.toString();
+        if (selection.hourTo != null) cleanParams['tf_ht'] = selection.hourTo.toString();
+        break;
+      case 'relative':
+        if (selection.relativeValue != null) cleanParams['tf_rv'] = selection.relativeValue.toString();
+        if (selection.relativeUnit) cleanParams['tf_ru'] = selection.relativeUnit;
+        break;
+      case 'custom':
+        if (selection.customFrom) cleanParams['tf_from'] = selection.customFrom;
+        if (selection.customTo) cleanParams['tf_to'] = selection.customTo;
+        break;
     }
 
     this.router.navigate([], {
