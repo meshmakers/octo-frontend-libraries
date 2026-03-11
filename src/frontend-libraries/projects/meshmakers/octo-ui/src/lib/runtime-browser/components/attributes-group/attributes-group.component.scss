@@ -1,0 +1,84 @@
+.attributes-form-container {
+  ::ng-deep {
+    kendo-card {
+      kendo-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+    }
+
+    kendo-label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      label {
+        text-transform: uppercase;
+      }
+    }
+  }
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.record-array-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tab-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.record-actions-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background-color: var(--kendo-color-surface-alt, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--kendo-color-border, rgba(0, 0, 0, 0.1));
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.record-actions-description {
+  margin: 0;
+  font-size: 13px;
+  color: var(--kendo-color-subtle, rgba(0, 0, 0, 0.6));
+  line-height: 1.5;
+}
+
+.record-array-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  padding-top: 0;
+}
+
+.record-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  padding-top: 0;
+}
+
+.binary-linked-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.binary-linked-reference-hint {
+  font-size: 0.75rem;
+  color: var(--kendo-color-primary, #0f6dff);
+  font-style: italic;
+}

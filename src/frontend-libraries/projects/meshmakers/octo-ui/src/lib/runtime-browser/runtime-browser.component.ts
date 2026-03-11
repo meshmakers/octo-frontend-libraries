@@ -18,6 +18,7 @@ import { NotificationService } from '@progress/kendo-angular-notification';
 import {
   arrowRotateCwIcon,
   locationsIcon,
+  pencilIcon,
   plusIcon,
   xIcon,
 } from '@progress/kendo-svg-icons';
@@ -25,7 +26,10 @@ import { firstValueFrom } from 'rxjs';
 import { RUNTIME_BROWSER_KEYS } from '../../i18n/keys';
 import { AppTranslatePipe } from '../i18n/translate.pipe';
 import { AppTranslateService } from '../i18n/translate.service';
-import { RuntimeBrowserDetailsComponent } from './components/runtime-browser-details.component';
+import {
+  EntitySavedEvent,
+  RuntimeBrowserDetailsComponent,
+} from './components/runtime-browser-details.component';
 import { RuntimeBrowserDataSource } from './data-sources/runtime-browser-data-source.service';
 import { GetRuntimeEntityByIdDtoGQL } from './graphQL/getRuntimeEntityById';
 import {
@@ -95,7 +99,7 @@ type BrowserItem =
               #detailsPanel
               slot="detail-panel"
               [selectedItem]="selectedItem"
-              (entitySaved)="refreshTreeAfterCreation($event || undefined)"
+              (entitySaved)="onEntitySaved($event)"
             >
             </mm-runtime-browser-details>
           </mm-base-tree-detail>
@@ -135,6 +139,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   private isSelectedItemAnRtEntity = false;
   private isLoading = false;
   private isCreating = false;
+  private isEditing = false;
 
   language = input('en-GB');
   protected readonly translationsReady = signal(false);
@@ -179,6 +184,14 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         isDisabled: () => !this.isCreateButtonEnabled,
       },
       {
+        id: 'edit',
+        type: 'link',
+        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Edit),
+        svgIcon: pencilIcon,
+        onClick: async () => await this.onEdit(),
+        isDisabled: () => !this.isEditButtonEnabled,
+      },
+      {
         id: 'delete',
         type: 'link',
         text: this.translation.instant(RUNTIME_BROWSER_KEYS.Delete),
@@ -211,6 +224,9 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   }
   private get isDeleteButtonEnabled() {
     return !this.isLoading && this.isSelectedItemAnRtEntity;
+  }
+  private get isEditButtonEnabled() {
+    return !this.isLoading && this.isSelectedItemAnRtEntity && !this.isEditing;
   }
 
   constructor() {
@@ -782,6 +798,44 @@ export class RuntimeBrowserComponent implements AfterViewInit {
     }
   }
 
+  protected async onEdit(): Promise<void> {
+    // Anti-spam validation: prevent multiple clicks
+    if (this.isEditing) {
+      return;
+    }
+
+    try {
+      this.isEditing = true;
+
+      // Fetch available Construction Kit types from the API
+      const result = await firstValueFrom(this.ckTypesGQL.fetch());
+      const allTypes = result.data?.constructionKit?.types?.items || [];
+
+      const rtEntityDto = this.selectedItem as
+        | TreeItemDataTyped<RtEntityDto>
+        | null;
+      const rtCkTypeId = allTypes.find(
+        (type) => type!.rtCkTypeId === rtEntityDto?.item?.ckTypeId,
+      )?.ckTypeId?.fullName;
+
+      if (!rtCkTypeId) {
+        this._showWarningNotification(
+          this.translation.instant(
+            RUNTIME_BROWSER_KEYS.MissingRequiredIdentifiers,
+          ),
+        );
+        return;
+      }
+
+      // Transition the details panel into Edit Mode
+      this.detailsPanel?.enterEditMode(this.selectedItem, rtCkTypeId);
+    } catch (err) {
+      console.error('Failed to load types for editing:', err);
+    } finally {
+      this.isEditing = false;
+    }
+  }
+
   /**
    * Filters the list of types to find compatible types for entity creation.
    * For root-level creation, only allows Basic/Tree types.
@@ -849,16 +903,33 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   }
 
   /**
+   * Handles entitySaved from the details panel: refreshes the tree, then reloads the detail view
+   * when the save was an update so the user sees fresh data.
+   */
+  protected async onEntitySaved(event: EntitySavedEvent | void): Promise<void> {
+    const payload = event ?? undefined;
+    const parentInfo =
+      payload?.parentRtId != null
+        ? { parentRtId: payload.parentRtId }
+        : undefined;
+
+    await this.refreshTreeAfterCreation(parentInfo);
+
+    if (payload?.isUpdate === true) {
+      this.detailsPanel?.reloadCurrentEntityDetails();
+    }
+  }
+
+  /**
    * Refresh tree data after entity creation.
    * IMPORTANT: We use refreshTree() instead of refreshRuntimeEntities() because
    * refreshRuntimeEntities() only manipulates expanded keys but doesn't force data
    * reload from the data source. This causes stale data to persist in Kendo TreeView
    */
   protected async refreshTreeAfterCreation(parentInfo?: {
-    parentCkTypeId?: string;
     parentRtId?: string;
   }): Promise<void> {
-    if (parentInfo?.parentCkTypeId && parentInfo?.parentRtId) {
+    if (parentInfo?.parentRtId) {
       // Save expanded keys to restore after refresh
       const expandedKeys = this.treeDetail.getExpandedKeys();
       const keysToRestore = [...expandedKeys];

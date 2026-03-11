@@ -28,11 +28,17 @@ import { CkModelDto, CkTypeDto, RtEntityDto } from "../graphQL/globalTypes";
 import { RtEntityIdHelper } from "../models/rt-entity-id";
 import { RuntimeBrowserStateService } from "../services/runtime-browser-state.service";
 import { TypeHelperService } from "../services/type-helper.service";
+import {
+  CreateEditorComponent,
+  CreateInput,
+  CreateOutput,
+} from "./create-editor/create-editor-component";
 import { EntityDetailViewComponent } from "./entity-detail-view.component";
 import {
-  EntityCreationResult,
-  EntityEditorComponent,
-} from "./entity-editor/entity-editor-component";
+  UpdateEditorComponent,
+  UpdateInput,
+  UpdateOutput,
+} from "./update-editor/update-editor-component";
 
 // Extended type to handle both Runtime Entities and CK Models/Types
 type BrowserItem =
@@ -40,6 +46,14 @@ type BrowserItem =
   | CkModelDto
   | CkTypeDto
   | { isCkModelsRoot?: boolean; ckModelId?: string };
+
+/** Payload emitted when create or update finishes; parent uses it to refresh tree and optionally reload detail view. */
+export interface EntitySavedEvent {
+  parentCkTypeId?: string;
+  parentRtId?: string;
+  /** True when save was an update; parent should reload detail view after tree refresh. */
+  isUpdate?: boolean;
+}
 
 @Component({
   selector: "mm-runtime-browser-details",
@@ -51,18 +65,25 @@ type BrowserItem =
     EntityDetailViewComponent,
     ListViewComponent,
     CkTypeEntitiesDataSourceDirective,
-    EntityEditorComponent,
+    CreateEditorComponent,
+    UpdateEditorComponent,
   ],
   template: `
     <div class="runtime-browser-details">
       @if (isCreateModeEnabled) {
-        <mm-entity-editor-component
-          [availableCkTypes]="availableCkTypes"
-          [parent]="parent"
-          (cancelEdit)="isCreateModeEnabled = false"
-          (saveEdit)="onEntityCreationFinished($event)"
+        <mm-create-editor-component
+          [createInput]="createInput!"
+          (cancelRequested)="onCancel()"
+          (createOutput)="onEntityCreationFinished($event)"
         >
-        </mm-entity-editor-component>
+        </mm-create-editor-component>
+      } @else if (isUpdateModeEnabled) {
+        <mm-update-editor-component
+          [updateInput]="updateInput!"
+          (cancelRequested)="onCancel()"
+          (updateOutput)="onEntityUpdateFinished($event)"
+        >
+        </mm-update-editor-component>
       } @else {
         @if (!selectedItem) {
           <div class="no-selection">
@@ -199,10 +220,7 @@ export class RuntimeBrowserDetailsComponent
   implements OnChanges, AfterViewInit
 {
   @Input() selectedItem: TreeItemDataTyped<BrowserItem> | null = null;
-  @Output() entitySaved = new EventEmitter<{
-    parentCkTypeId?: string;
-    parentRtId?: string;
-  } | void>();
+  @Output() entitySaved = new EventEmitter<EntitySavedEvent | void>();
   @ViewChild("dir", { static: false })
   dataSourceDirective?: CkTypeEntitiesDataSourceDirective;
 
@@ -267,8 +285,9 @@ export class RuntimeBrowserDetailsComponent
   private pendingRtCkTypeId: string | null = null;
 
   protected isCreateModeEnabled = false;
-  protected parent: TreeItemDataTyped<BrowserItem> | null = null;
-  protected availableCkTypes: CkTypeDto[] = [];
+  protected isUpdateModeEnabled = false;
+  protected createInput: CreateInput | undefined = undefined;
+  protected updateInput: UpdateInput | undefined = undefined;
 
   ngAfterViewInit(): void {
     // If we have a pending CK type ID, set it now
@@ -478,27 +497,61 @@ export class RuntimeBrowserDetailsComponent
     parentNode: TreeItemDataTyped<BrowserItem> | null,
     allowedTypes: CkTypeDto[],
   ): void {
-    this.parent = parentNode;
-    this.availableCkTypes = allowedTypes;
+    const rtEntityDto = parentNode as TreeItemDataTyped<RtEntityDto>;
+
+    this.createInput = {
+      parent: {
+        ckTypeId: rtEntityDto?.item.ckTypeId,
+        rtId: rtEntityDto?.item.rtId,
+        name: parentNode?.text ?? "",
+      },
+      ckTypes: allowedTypes,
+    };
 
     // Toggle the UI state to show the creation form
     this.isCreateModeEnabled = true;
+    this.isUpdateModeEnabled = false;
+  }
+
+  public enterEditMode(
+    selectedItem: TreeItemDataTyped<BrowserItem> | null,
+    rtCkTypeId: string | undefined,
+  ): void {
+    const rtEntityDto = selectedItem as TreeItemDataTyped<RtEntityDto>;
+    const rtId = rtEntityDto?.item?.rtId ?? "";
+    const ckTypeId = rtEntityDto?.item?.ckTypeId;
+
+    if (!rtId || !ckTypeId || !rtCkTypeId) {
+      console.warn(
+        "Enter edit mode skipped: missing rtId, ckTypeId or rtCkTypeId.",
+        { rtId, ckTypeId, rtCkTypeId },
+      );
+      return;
+    }
+
+    const name = rtEntityDto?.text ?? "";
+    this.updateInput = {
+      name,
+      rtId,
+      rtCkTypeId,
+      ckTypeId,
+    };
+
+    this.isCreateModeEnabled = false;
+    this.isUpdateModeEnabled = true;
+    console.debug("Entered update mode with input:", this.updateInput);
   }
 
   /**
    * Handles the result of the save operation from the child component
    * @param result Object containing success status and new entity details
    */
-  public onEntityCreationFinished(result: EntityCreationResult): void {
+  public onEntityCreationFinished(result: CreateOutput): void {
     if (result.success) {
-      // Emit event with parent information for tree refresh
-      const parentItem = this.parent?.item;
-      if (parentItem && this.typeHelperService.isRuntimeEntity(parentItem)) {
-        const parentEntity = parentItem;
-        this.entitySaved.emit({
-          parentCkTypeId: parentEntity.ckTypeId,
-          parentRtId: parentEntity.rtId,
-        });
+      // Use the parent under which we created (from createInput), not the new entity's ID
+      const parentRtId = this.createInput?.parent?.rtId;
+      if (parentRtId) {
+        this.entitySaved.emit({ parentRtId });
       } else {
         // If parent is null or not a runtime entity (e.g., CK Type or Tree root),
         // emit without parent info to refresh entire tree
@@ -510,5 +563,35 @@ export class RuntimeBrowserDetailsComponent
     }
 
     this.isCreateModeEnabled = false;
+  }
+
+  /**
+   * Called when update editor saves. Emits so parent refreshes tree, then parent will call
+   * reloadCurrentEntityDetails() after refresh so the detail view shows fresh data.
+   */
+  public onEntityUpdateFinished(result: UpdateOutput): void {
+    if (result.success) {
+      this.entitySaved.emit({ isUpdate: true });
+    } else {
+      this.entitySaved.emit();
+    }
+    this.isUpdateModeEnabled = false;
+  }
+
+  /**
+   * Reloads full entity details for the currently selected item.
+   * Called by parent after tree refresh so the detail view shows data after create/update.
+   */
+  public reloadCurrentEntityDetails(): void {
+    this.loadFullEntityDetails();
+  }
+
+  onCancel() {
+    console.debug("Creation or update cancelled, resetting state.");
+
+    this.isCreateModeEnabled = false;
+    this.isUpdateModeEnabled = false;
+    this.createInput = undefined;
+    this.updateInput = undefined;
   }
 }

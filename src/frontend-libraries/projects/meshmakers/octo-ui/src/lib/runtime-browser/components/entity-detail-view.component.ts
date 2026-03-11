@@ -5,6 +5,7 @@ import {
   inject,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   ViewChild,
@@ -27,7 +28,8 @@ import {
   gearIcon,
   infoCircleIcon,
 } from "@progress/kendo-svg-icons";
-import { firstValueFrom } from "rxjs";
+import { firstValueFrom, Subject } from "rxjs";
+import { debounceTime, distinctUntilChanged, takeUntil } from "rxjs/operators";
 import { RUNTIME_BROWSER_KEYS } from "../../../i18n/keys";
 import { AppTranslatePipe } from "../../i18n/translate.pipe";
 import { AppTranslateService } from "../../i18n/translate.service";
@@ -338,7 +340,7 @@ interface DirectionOption {
   `,
   styleUrls: ["./entity-detail-view.component.scss"],
 })
-export class EntityDetailViewComponent implements OnChanges {
+export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   @Input() entity: RtEntityDto | null = null;
   @Input() loading = false;
   @Input() error: string | null = null;
@@ -401,10 +403,47 @@ export class EntityDetailViewComponent implements OnChanges {
   // Related Entity filter
   protected selectedRelatedRtId: string | null = null;
 
+  // Debounced filter subjects
+  private readonly destroy$ = new Subject<void>();
+  private readonly roleIdFilter$ = new Subject<string | null>();
+  private readonly relatedRtCkIdFilter$ = new Subject<string | null>();
+  private readonly relatedRtIdFilter$ = new Subject<string | null>();
+
+  constructor() {
+    this.roleIdFilter$
+      .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((roleId) => {
+        if (this.associationsDataSource && this.entity?.rtId && this.entity?.ckTypeId) {
+          this.associationsDataSource.setRoleId(roleId);
+        }
+      });
+
+    this.relatedRtCkIdFilter$
+      .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((relatedRtCkId) => {
+        if (this.associationsDataSource && this.entity?.rtId && this.entity?.ckTypeId) {
+          this.associationsDataSource.setRelatedRtCkId(relatedRtCkId);
+        }
+      });
+
+    this.relatedRtIdFilter$
+      .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((relatedRtId) => {
+        if (this.associationsDataSource && this.entity?.rtId && this.entity?.ckTypeId) {
+          this.associationsDataSource.setRelatedRtId(relatedRtId);
+        }
+      });
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["entity"] && this.entity) {
       this.updatePropertyGrid();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private updatePropertyGrid(): void {
@@ -458,35 +497,17 @@ export class EntityDetailViewComponent implements OnChanges {
 
   protected onRoleIdChange(roleId: string | null): void {
     this.selectedRoleId = roleId || null;
-    if (
-      this.associationsDataSource &&
-      this.entity?.rtId &&
-      this.entity?.ckTypeId
-    ) {
-      this.associationsDataSource.setRoleId(this.selectedRoleId);
-    }
+    this.roleIdFilter$.next(this.selectedRoleId);
   }
 
   protected onRelatedRtCkIdChange(relatedRtCkId: string | null): void {
     this.selectedRelatedRtCkId = relatedRtCkId || null;
-    if (
-      this.associationsDataSource &&
-      this.entity?.rtId &&
-      this.entity?.ckTypeId
-    ) {
-      this.associationsDataSource.setRelatedRtCkId(this.selectedRelatedRtCkId);
-    }
+    this.relatedRtCkIdFilter$.next(this.selectedRelatedRtCkId);
   }
 
   protected onRelatedRtIdChange(relatedRtId: string | null): void {
     this.selectedRelatedRtId = relatedRtId || null;
-    if (
-      this.associationsDataSource &&
-      this.entity?.rtId &&
-      this.entity?.ckTypeId
-    ) {
-      this.associationsDataSource.setRelatedRtId(this.selectedRelatedRtId);
-    }
+    this.relatedRtIdFilter$.next(this.selectedRelatedRtId);
   }
 
   protected onViewAssociationDetails = async (

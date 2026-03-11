@@ -65,10 +65,14 @@ export const RUNTIME_BROWSER_KEYS = {
   GotoEntity: 'RuntimeBrowser_GotoEntity',
   Refresh: 'RuntimeBrowser_Refresh',
   Create: 'RuntimeBrowser_Create',
+  Edit: 'RuntimeBrowser_Edit',
   Delete: 'RuntimeBrowser_Delete',
 
   // Entity editor
   CreateEntity: 'RuntimeBrowser_CreateEntity',
+  UpdateEntity: 'RuntimeBrowser_UpdateEntity',
+  Name: 'RuntimeBrowser_Name',
+  RuntimeCkTypeId: 'RuntimeBrowser_RuntimeCkTypeId',
   TargetLocation: 'RuntimeBrowser_TargetLocation',
   RootLevel: 'RuntimeBrowser_RootLevel',
   EntityType: 'RuntimeBrowser_EntityType',
@@ -94,6 +98,7 @@ export const RUNTIME_BROWSER_KEYS = {
   FailedToLoadDownloadInfo: 'RuntimeBrowser_FailedToLoadDownloadInfo',
   MissingRequiredIdentifiers: 'RuntimeBrowser_MissingRequiredIdentifiers',
   FailedToCreateEntity: 'RuntimeBrowser_FailedToCreateEntity',
+  FailedToUpdateEntity: 'RuntimeBrowser_FailedToUpdateEntity',
 
   // Goto dialog
   GoToEntityTitle: 'RuntimeBrowser_GoToEntityTitle',
