@@ -107,7 +107,7 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
             <ng-template kendoChartSeriesTooltipTemplate let-value="value" let-dataItem="dataItem">
               <div class="chart-tooltip">
                 <strong>{{ dataItem.date }}</strong> {{ dataItem.hour }}<br/>
-                Value: {{ formatValue(value) }}
+                Value: {{ formatValue(value?.value ?? value) }}
               </div>
             </ng-template>
           </kendo-chart-tooltip>
