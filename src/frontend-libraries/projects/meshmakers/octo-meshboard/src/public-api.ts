@@ -67,6 +67,10 @@ export { BarChartWidgetComponent } from './lib/widgets/bar-chart-widget/bar-char
 export { BarChartConfigDialogComponent } from './lib/widgets/bar-chart-widget/bar-chart-config-dialog.component';
 export type { BarChartConfigResult } from './lib/widgets/bar-chart-widget/bar-chart-config-dialog.component';
 
+export { LineChartWidgetComponent } from './lib/widgets/line-chart-widget/line-chart-widget.component';
+export { LineChartConfigDialogComponent } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
+export type { LineChartConfigResult } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
+
 export { HeatmapWidgetComponent } from './lib/widgets/heatmap-widget/heatmap-widget.component';
 export { HeatmapConfigDialogComponent } from './lib/widgets/heatmap-widget/heatmap-config-dialog.component';
 export type { HeatmapConfigResult } from './lib/widgets/heatmap-widget/heatmap-config-dialog.component';

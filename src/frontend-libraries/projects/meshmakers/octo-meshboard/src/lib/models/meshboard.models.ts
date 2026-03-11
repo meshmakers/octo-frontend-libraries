@@ -173,6 +173,7 @@ export type WidgetType =
   | 'gauge'
   | 'pieChart'
   | 'barChart'
+  | 'lineChart'
   | 'heatmap'
   | 'statsGrid'
   | 'statusIndicator'
@@ -448,6 +449,46 @@ export interface BarChartWidgetConfig extends WidgetConfig {
 }
 
 // ============================================================================
+// Line Chart Widget
+// ============================================================================
+
+/**
+ * Line chart sub-types
+ */
+export type LineChartType = 'line' | 'area';
+
+/**
+ * Line Chart Widget - displays time-series data as a multi-series line chart
+ * Supports dynamic series grouping and multiple Y-axes grouped by unit
+ *
+ * Typical use case: Query returns rows with a date field, a grouping field
+ * (e.g., OBIS code), a numeric value, and optionally a unit.
+ * Each unique group value becomes a separate line/series.
+ * When a unit field is configured, series are grouped by unit onto separate Y-axes.
+ */
+export interface LineChartWidgetConfig extends WidgetConfig {
+  type: 'lineChart';
+  /** Chart sub-type */
+  chartType: LineChartType;
+  /** Date/time field for X-axis categories */
+  categoryField: string;
+  /** Field whose unique values create separate lines/series */
+  seriesGroupField: string;
+  /** Numeric field for Y-axis values */
+  valueField: string;
+  /** Optional field containing the unit string (enables multi-axis by unit) */
+  unitField?: string;
+  /** Show the chart legend */
+  showLegend?: boolean;
+  /** Position of the legend */
+  legendPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Show data point markers on lines */
+  showMarkers?: boolean;
+  /** Field filters for data source */
+  filters?: WidgetFilterConfig[];
+}
+
+// ============================================================================
 // Heatmap Widget
 // ============================================================================
 
@@ -680,6 +721,7 @@ export type AnyWidgetConfig =
   | GaugeWidgetConfig
   | PieChartWidgetConfig
   | BarChartWidgetConfig
+  | LineChartWidgetConfig
   | HeatmapWidgetConfig
   | StatsGridWidgetConfig
   | StatusIndicatorWidgetConfig

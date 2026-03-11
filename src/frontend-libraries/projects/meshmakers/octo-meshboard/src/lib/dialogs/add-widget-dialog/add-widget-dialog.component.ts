@@ -18,6 +18,7 @@ import {
   gridIcon,
   clipboardMarkdownIcon,
   gearsIcon,
+  chartLineMarkersIcon,
   SVGIcon
 } from '@progress/kendo-svg-icons';
 
@@ -93,6 +94,8 @@ export class AddWidgetDialogComponent implements OnInit {
         return chartPieIcon;
       case 'barChart':
         return chartColumnStackedIcon;
+      case 'lineChart':
+        return chartLineMarkersIcon;
       case 'statsGrid':
         return gridLayoutIcon;
       case 'statusIndicator':
@@ -131,6 +134,8 @@ export class AddWidgetDialogComponent implements OnInit {
         return 'Display data distribution as a pie or donut chart';
       case 'barChart':
         return 'Display data as vertical or horizontal bars';
+      case 'lineChart':
+        return 'Display time-series data as a multi-series line chart with optional multiple Y-axes';
       case 'statsGrid':
         return 'Display multiple KPIs in a grid layout';
       case 'statusIndicator':

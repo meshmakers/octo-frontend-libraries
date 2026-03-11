@@ -15,6 +15,7 @@ import {
   GaugeWidgetConfig,
   PieChartWidgetConfig,
   BarChartWidgetConfig,
+  LineChartWidgetConfig,
   HeatmapWidgetConfig,
   StatsGridWidgetConfig,
   StatusIndicatorWidgetConfig,
@@ -33,6 +34,7 @@ import { TableWidgetComponent } from '../widgets/table-widget/table-widget.compo
 import { GaugeWidgetComponent } from '../widgets/gauge-widget/gauge-widget.component';
 import { PieChartWidgetComponent } from '../widgets/pie-chart-widget/pie-chart-widget.component';
 import { BarChartWidgetComponent } from '../widgets/bar-chart-widget/bar-chart-widget.component';
+import { LineChartWidgetComponent } from '../widgets/line-chart-widget/line-chart-widget.component';
 import { StatsGridWidgetComponent } from '../widgets/stats-grid-widget/stats-grid-widget.component';
 import { StatusIndicatorWidgetComponent } from '../widgets/status-indicator-widget/status-indicator-widget.component';
 import { ServiceHealthWidgetComponent } from '../widgets/service-health-widget/service-health-widget.component';
@@ -50,6 +52,7 @@ import { TableConfigDialogComponent, TableConfigResult } from '../widgets/table-
 import { GaugeConfigDialogComponent, GaugeConfigResult } from '../widgets/gauge-widget/gauge-config-dialog.component';
 import { PieChartConfigDialogComponent, PieChartConfigResult } from '../widgets/pie-chart-widget/pie-chart-config-dialog.component';
 import { BarChartConfigDialogComponent, BarChartConfigResult } from '../widgets/bar-chart-widget/bar-chart-config-dialog.component';
+import { LineChartConfigDialogComponent, LineChartConfigResult } from '../widgets/line-chart-widget/line-chart-config-dialog.component';
 import { StatsGridConfigDialogComponent, StatsGridConfigResult } from '../widgets/stats-grid-widget/stats-grid-config-dialog.component';
 import { StatusIndicatorConfigDialogComponent, StatusIndicatorConfigResult } from '../widgets/status-indicator-widget/status-indicator-config-dialog.component';
 import { ServiceHealthConfigDialogComponent, ServiceHealthConfigResult } from '../widgets/service-health-widget/service-health-config-dialog.component';
@@ -1048,6 +1051,118 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: (config['showLegend'] as boolean) ?? true,
         legendPosition: (config['legendPosition'] as BarChartWidgetConfig['legendPosition']) ?? 'right',
         showDataLabels: (config['showDataLabels'] as boolean) ?? false,
+        filters: config['filters'] as WidgetFilterConfig[] | undefined
+      };
+    }
+  });
+
+  // Line Chart Widget
+  registry.registerWidget<LineChartWidgetConfig, LineChartConfigResult>({
+    type: 'lineChart',
+    label: 'Line Chart',
+    component: LineChartWidgetComponent,
+    configDialogComponent: LineChartConfigDialogComponent,
+    configDialogSize: { width: 750, height: 650, minWidth: 550, minHeight: 450 },
+    configDialogTitle: 'Line Chart Configuration',
+    defaultSize: { colSpan: 3, rowSpan: 2 },
+    supportedDataSources: ['persistentQuery'],
+    getInitialConfig: (widget) => {
+      const lineWidget = widget as LineChartWidgetConfig;
+      const dataSource = lineWidget.dataSource;
+      const isPersistentQuery = dataSource.type === 'persistentQuery';
+
+      return {
+        initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
+        initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialChartType: lineWidget.chartType,
+        initialCategoryField: lineWidget.categoryField,
+        initialSeriesGroupField: lineWidget.seriesGroupField,
+        initialValueField: lineWidget.valueField,
+        initialUnitField: lineWidget.unitField,
+        initialShowLegend: lineWidget.showLegend,
+        initialLegendPosition: lineWidget.legendPosition,
+        initialShowMarkers: lineWidget.showMarkers,
+        initialFilters: lineWidget.filters
+      };
+    },
+    applyConfigResult: (widget, result) => {
+      const dataSource: PersistentQueryDataSource = {
+        type: 'persistentQuery',
+        queryRtId: result.queryRtId,
+        queryName: result.queryName
+      };
+
+      const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
+        attributePath: f.attributePath,
+        operator: String(f.operator),
+        comparisonValue: f.comparisonValue
+      }));
+
+      return {
+        ...widget,
+        dataSource,
+        chartType: result.chartType,
+        categoryField: result.categoryField,
+        seriesGroupField: result.seriesGroupField,
+        valueField: result.valueField,
+        unitField: result.unitField,
+        showLegend: result.showLegend,
+        legendPosition: result.legendPosition,
+        showMarkers: result.showMarkers,
+        filters
+      } as LineChartWidgetConfig;
+    },
+
+    createDefaultConfig: (base: BaseWidgetConfig): LineChartWidgetConfig => ({
+      ...base,
+      type: 'lineChart',
+      colSpan: 3,
+      rowSpan: 2,
+      dataSource: createDefaultPersistentQueryDataSource(),
+      chartType: 'line',
+      categoryField: '',
+      seriesGroupField: '',
+      valueField: '',
+      showLegend: true,
+      legendPosition: 'right',
+      showMarkers: false
+    }),
+
+    toPersistedConfig: (widget: LineChartWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'persistentQuery',
+      dataSourceRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+      config: {
+        chartType: widget.chartType,
+        categoryField: widget.categoryField,
+        seriesGroupField: widget.seriesGroupField,
+        valueField: widget.valueField,
+        unitField: widget.unitField,
+        showLegend: widget.showLegend,
+        legendPosition: widget.legendPosition,
+        showMarkers: widget.showMarkers,
+        queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
+        queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+        filters: widget.filters
+      }
+    }),
+
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): LineChartWidgetConfig => {
+      const config = parseConfig(data);
+      const dataSource = buildDataSourceFromPersisted(data, config) as PersistentQueryDataSource;
+
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'lineChart',
+        dataSource,
+        chartType: (config['chartType'] as LineChartWidgetConfig['chartType']) ?? 'line',
+        categoryField: (config['categoryField'] as string) ?? '',
+        seriesGroupField: (config['seriesGroupField'] as string) ?? '',
+        valueField: (config['valueField'] as string) ?? '',
+        unitField: config['unitField'] as string | undefined,
+        showLegend: (config['showLegend'] as boolean) ?? true,
+        legendPosition: (config['legendPosition'] as LineChartWidgetConfig['legendPosition']) ?? 'right',
+        showMarkers: (config['showMarkers'] as boolean) ?? false,
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
     }
