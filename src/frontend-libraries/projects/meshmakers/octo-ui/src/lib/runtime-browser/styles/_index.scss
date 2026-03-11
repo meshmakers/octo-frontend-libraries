@@ -10,6 +10,24 @@
 // LCARS DESIGN TOKENS
 // ----------------------------------------------------------------------------
 
+// Brand color palette (SCSS variables for reuse)
+$octo-mint: #8ca3a1;
+$neo-cyan: #7f97ad;
+$indigogo: #6e7f99;
+$toffee: #b8a184;
+$bubblegum: #b38f9f;
+$lilac-glow: #a3a0b6;
+$royal-violet: #8f85a8;
+$ash-blue: #9aa4b2;
+$iron-navy: #3b4657;
+$deep-sea: #1a2230;
+$surface-elevated: #243042;
+$octo-text-color: #ffffff;
+
+// Additional theme colors for Kendo variations
+$kendo-inverse: #3d3d3d;
+$kendo-success: #37b400;
+
 :root {
   // Typography
   --lcars-font-primary: "Montserrat", "Roboto", "Helvetica Neue", sans-serif;
@@ -17,18 +35,18 @@
   --lcars-border-color: #64ceb9;
 
   // Brand Colors as CSS Variables
-  --octo-mint: #8ca3a1;
-  --neo-cyan: #7f97ad;
-  --indigogo: #6e7f99;
-  --toffee: #b8a184;
-  --bubblegum: #b38f9f;
-  --lilac-glow: #a3a0b6;
-  --royal-violet: #8f85a8;
-  --ash-blue: #9aa4b2;
-  --iron-navy: #3b4657;
-  --deep-sea: #1a2230;
-  --surface-elevated: #243042;
-  --octo-text-color: #ffffff;
+  --octo-mint: #{$octo-mint};
+  --neo-cyan: #{$neo-cyan};
+  --indigogo: #{$indigogo};
+  --toffee: #{$toffee};
+  --bubblegum: #{$bubblegum};
+  --lilac-glow: #{$lilac-glow};
+  --royal-violet: #{$royal-violet};
+  --ash-blue: #{$ash-blue};
+  --iron-navy: #{$iron-navy};
+  --deep-sea: #{$deep-sea};
+  --surface-elevated: #{$surface-elevated};
+  --octo-text-color: #{$octo-text-color};
 
   // Derived colors for gradients/overlays (theme-aware)
   --octo-mint-05: color-mix(in srgb, var(--octo-mint) 5%, transparent);
@@ -166,84 +184,84 @@ $kendo-colors: () !default; // Inicjalizacja pustej mapy, jeśli nie istnieje
 $kendo-colors: map.merge(
   $kendo-colors,
   (
-    surface: #3b4657,
-    surface-alt: #243042,
-    app-surface: #07172b,
-    on-app-surface: #ffffff,
-    subtle: #9aa4b2,
+    surface: var(--iron-navy),
+    surface-alt: var(--surface-elevated),
+    app-surface: var(--deep-sea),
+    on-app-surface: var(--octo-text-color),
+    subtle: var(--ash-blue),
   )
 );
 
 // Generate color variations for all brand colors
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("base", #9aa4b2, "material")
+  k-generate-color-variations("base", $ash-blue, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("primary", #8ca3a1, "material")
+  k-generate-color-variations("primary", $octo-mint, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("secondary", #7f97ad, "material")
+  k-generate-color-variations("secondary", $neo-cyan, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("tertiary", #b8a184, "material")
+  k-generate-color-variations("tertiary", $toffee, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("light", #9aa4b2, "material")
+  k-generate-color-variations("light", $ash-blue, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("dark", #3b4657, "material")
+  k-generate-color-variations("dark", $iron-navy, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("inverse", #3d3d3d, "material")
+  k-generate-color-variations("inverse", $kendo-inverse, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("info", #6e7f99, "material")
+  k-generate-color-variations("info", $indigogo, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("success", #37b400, "material")
+  k-generate-color-variations("success", $kendo-success, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("warning", #b8a184, "material")
+  k-generate-color-variations("warning", $toffee, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("error", #b38f9f, "material")
+  k-generate-color-variations("error", $bubblegum, "material")
 );
 
 // Chart series colors (LCARS-inspired)
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-a", #8ca3a1, "material")
+  k-generate-color-variations("series-a", $octo-mint, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-b", #7f97ad, "material")
+  k-generate-color-variations("series-b", $neo-cyan, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-c", #a3a0b6, "material")
+  k-generate-color-variations("series-c", $lilac-glow, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-d", #8f85a8, "material")
+  k-generate-color-variations("series-d", $royal-violet, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-e", #b38f9f, "material")
+  k-generate-color-variations("series-e", $bubblegum, "material")
 );
 $kendo-colors: map.merge(
   $kendo-colors,
-  k-generate-color-variations("series-f", #b8a184, "material")
+  k-generate-color-variations("series-f", $toffee, "material")
 );
 
 @include kendo-theme--styles();
