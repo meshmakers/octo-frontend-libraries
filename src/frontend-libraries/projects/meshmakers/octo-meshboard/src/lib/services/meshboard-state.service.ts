@@ -326,7 +326,12 @@ export class MeshBoardStateService {
       gap: settings.gap,
       variables: settings.variables ?? config.variables,
       timeFilter: settings.timeFilter
-        ? { ...config.timeFilter, ...settings.timeFilter }
+        ? {
+            ...config.timeFilter,
+            ...settings.timeFilter,
+            // When a new defaultSelection is set, reset the stored selection to match
+            selection: settings.timeFilter.defaultSelection ?? config.timeFilter?.selection
+          }
         : config.timeFilter
     }));
 
