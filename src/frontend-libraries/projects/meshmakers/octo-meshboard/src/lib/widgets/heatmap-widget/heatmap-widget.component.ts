@@ -20,6 +20,8 @@ interface HeatmapDataItem {
   hour: string;
   /** Color intensity value */
   value: number;
+  /** Per-cell color (transparent for no-data) */
+  color: string;
 }
 
 /**
@@ -94,7 +96,7 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
               xField="date"
               yField="hour"
               field="value"
-              [color]="seriesColor()">
+              colorField="color">
             </kendo-chart-series-item>
           </kendo-chart-series>
 
@@ -169,6 +171,9 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
 
     .chart-tooltip {
       padding: 4px 8px;
+      color: #212529;
+      background: #fff;
+      border-radius: 4px;
     }
   `]
 })
@@ -194,19 +199,18 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
 
   readonly data = computed(() => this._heatmapData());
 
-  readonly seriesColor = computed(() => {
-    const scheme = this.config?.colorScheme ?? 'green';
-    const data = this._heatmapData();
-    if (data.length === 0) return '#66bb6a';
-
-    const values = data.map(d => d.value);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const ranges = COLOR_SCHEMES[scheme](min, max);
-
-    // Return the middle color as the base series color
-    return ranges[Math.floor(ranges.length / 2)]?.color ?? '#66bb6a';
-  });
+  /**
+   * Returns the color for a given value based on the color scheme ranges.
+   * Returns 'transparent' for zero/no-data values.
+   */
+  private getColorForValue(value: number, ranges: HeatmapColorRange[]): string {
+    if (value === 0) return 'transparent';
+    for (const range of ranges) {
+      if (value >= range.from && value < range.to) return range.color;
+    }
+    // Value at or above the last range
+    return ranges[ranges.length - 1]?.color ?? '#66bb6a';
+  }
 
   isNotConfigured(): boolean {
     const dataSource = this.config?.dataSource;
@@ -423,10 +427,11 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       for (let h = 0; h < 24; h++) {
         const values = hourMap.get(h);
         const value = values ? this.aggregate(values, aggregation) : 0;
-        heatmapData.push({ date, hour: hourLabels[h], value });
+        heatmapData.push({ date, hour: hourLabels[h], value, color: '' });
       }
     }
 
+    this.assignColors(heatmapData);
     this._heatmapData.set(heatmapData);
     this._xCategories.set(sortedDates);
     this._yCategories.set(yCategories);
@@ -502,14 +507,33 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
         for (let h = 0; h < 24; h++) {
           const values = hourMap?.get(h);
           const value = values ? this.aggregate(values, aggregation) : 0;
-          heatmapData.push({ date: xLabel, hour: hourLabels[h], value });
+          heatmapData.push({ date: xLabel, hour: hourLabels[h], value, color: '' });
         }
       }
     }
 
+    this.assignColors(heatmapData);
     this._heatmapData.set(heatmapData);
     this._xCategories.set(xCategories);
     this._yCategories.set(yCategories);
+  }
+
+  /**
+   * Assigns colors to heatmap data items based on value range and color scheme.
+   */
+  private assignColors(data: HeatmapDataItem[]): void {
+    const scheme = this.config?.colorScheme ?? 'green';
+    const nonZeroValues = data.filter(d => d.value !== 0).map(d => d.value);
+    if (nonZeroValues.length === 0) {
+      for (const item of data) item.color = 'transparent';
+      return;
+    }
+    const min = Math.min(...nonZeroValues);
+    const max = Math.max(...nonZeroValues);
+    const ranges = COLOR_SCHEMES[scheme](min, max);
+    for (const item of data) {
+      item.color = this.getColorForValue(item.value, ranges);
+    }
   }
 
   private aggregate(values: number[], aggregation: string): number {
