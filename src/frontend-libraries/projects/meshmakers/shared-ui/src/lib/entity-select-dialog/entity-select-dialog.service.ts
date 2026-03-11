@@ -37,6 +37,9 @@ export class EntitySelectDialogService {
       contentRef.instance.dataSource = dataSource;
       contentRef.instance.multiSelect = options.multiSelect ?? false;
       contentRef.instance.preSelectedEntities = options.selectedEntities ?? [];
+      if (options.messages) {
+        contentRef.instance.messages = options.messages;
+      }
     }
 
     const result = await firstValueFrom(windowRef.result);
