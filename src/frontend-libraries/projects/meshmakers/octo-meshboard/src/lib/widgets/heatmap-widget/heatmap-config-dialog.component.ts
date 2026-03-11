@@ -30,6 +30,9 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
   colorScheme: HeatmapColorScheme;
   showLegend: boolean;
   legendPosition: 'top' | 'bottom' | 'left' | 'right';
+  decimalPlaces?: number;
+  compactNumbers?: boolean;
+  valueMultiplier?: number;
   filters?: FieldFilterDto[];
 }
 
@@ -184,6 +187,42 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
               }
             </div>
           </div>
+
+          <div class="form-field">
+            <label>Decimal Places</label>
+            <kendo-numerictextbox
+              [(ngModel)]="form.decimalPlaces"
+              [min]="0"
+              [max]="6"
+              [step]="1"
+              [decimals]="0"
+              format="n0">
+            </kendo-numerictextbox>
+            <p class="field-hint">Number of decimal places for displayed values (0-6).</p>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field checkbox-field">
+              <label>
+                <input type="checkbox" [(ngModel)]="form.compactNumbers" kendoCheckBox />
+                Compact Numbers (SI: 32k, 1.5M, 3G)
+              </label>
+            </div>
+          </div>
+
+          @if (form.compactNumbers) {
+            <div class="form-field">
+              <label>Value Scale</label>
+              <kendo-dropdownlist
+                [data]="valueMultiplierOptions"
+                [textField]="'label'"
+                [valueField]="'value'"
+                [valuePrimitive]="true"
+                [(ngModel)]="form.valueMultiplier">
+              </kendo-dropdownlist>
+              <p class="field-hint">If values are already in thousands (k), select ×1000 so 13.000 displays as 13M.</p>
+            </div>
+          }
 
           <div class="form-row">
             <div class="form-field checkbox-field">
@@ -366,6 +405,9 @@ export class HeatmapConfigDialogComponent implements OnInit {
   @Input() initialColorScheme?: HeatmapColorScheme;
   @Input() initialShowLegend?: boolean;
   @Input() initialLegendPosition?: 'top' | 'bottom' | 'left' | 'right';
+  @Input() initialDecimalPlaces?: number;
+  @Input() initialCompactNumbers?: boolean;
+  @Input() initialValueMultiplier?: number;
   @Input() initialFilters?: WidgetFilterConfig[];
 
   // State
@@ -397,6 +439,13 @@ export class HeatmapConfigDialogComponent implements OnInit {
     { value: 'heat' as HeatmapColorScheme, label: 'Heat', previewColor: '#ff9800' }
   ];
 
+  // Value multiplier options
+  valueMultiplierOptions = [
+    { value: 1, label: 'As-is (×1)' },
+    { value: 1000, label: 'Values are in k (×1000)' },
+    { value: 1000000, label: 'Values are in M (×1000000)' }
+  ];
+
   // Legend position options
   legendPositions = [
     { value: 'top', label: 'Top' },
@@ -413,7 +462,10 @@ export class HeatmapConfigDialogComponent implements OnInit {
     aggregation: 'count' as HeatmapAggregation,
     colorScheme: 'green' as HeatmapColorScheme,
     showLegend: true,
-    legendPosition: 'bottom' as 'top' | 'bottom' | 'left' | 'right'
+    legendPosition: 'bottom' as 'top' | 'bottom' | 'left' | 'right',
+    decimalPlaces: 2,
+    compactNumbers: false,
+    valueMultiplier: 1
   };
 
   get isValid(): boolean {
@@ -436,6 +488,9 @@ export class HeatmapConfigDialogComponent implements OnInit {
     this.form.colorScheme = this.initialColorScheme ?? 'green';
     this.form.showLegend = this.initialShowLegend ?? true;
     this.form.legendPosition = this.initialLegendPosition ?? 'bottom';
+    this.form.decimalPlaces = this.initialDecimalPlaces ?? 2;
+    this.form.compactNumbers = this.initialCompactNumbers ?? false;
+    this.form.valueMultiplier = this.initialValueMultiplier ?? 1;
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -562,6 +617,9 @@ export class HeatmapConfigDialogComponent implements OnInit {
       colorScheme: this.form.colorScheme,
       showLegend: this.form.showLegend,
       legendPosition: this.form.legendPosition,
+      decimalPlaces: this.form.decimalPlaces,
+      compactNumbers: this.form.compactNumbers,
+      valueMultiplier: this.form.compactNumbers ? this.form.valueMultiplier : undefined,
       filters: filtersDto
     };
 

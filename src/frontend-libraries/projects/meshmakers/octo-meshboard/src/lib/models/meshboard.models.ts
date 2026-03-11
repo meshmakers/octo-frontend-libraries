@@ -529,6 +529,12 @@ export interface HeatmapWidgetConfig extends WidgetConfig {
   showLegend?: boolean;
   /** Position of the legend */
   legendPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Number of decimal places for displayed values (default: 2) */
+  decimalPlaces?: number;
+  /** Use compact notation for large numbers (e.g. 32k, 1.5M) */
+  compactNumbers?: boolean;
+  /** Multiplier applied before formatting (e.g. 1000 when values are in k, to display as M) */
+  valueMultiplier?: number;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
 }

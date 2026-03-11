@@ -97,6 +97,8 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
               yField="hour"
               field="value"
               colorField="color">
+              <kendo-chart-series-item-labels [content]="cellLabelContent">
+              </kendo-chart-series-item-labels>
             </kendo-chart-series-item>
           </kendo-chart-series>
 
@@ -250,16 +252,61 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
   }
 
   formatValue(value: number): string {
-    return value.toLocaleString('de-AT', {
+    const decimals = this.config.decimalPlaces ?? 2;
+    const multiplier = this.config.valueMultiplier ?? 1;
+    const displayValue = value * multiplier;
+
+    if (this.config.compactNumbers) {
+      return this.formatSI(displayValue, decimals);
+    }
+
+    return displayValue.toLocaleString('de-AT', {
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2
+      maximumFractionDigits: decimals
     });
   }
 
+  /**
+   * Formats a number using SI prefixes (k, M, G, T).
+   * E.g. 13600 → "13.6k", 13600000 → "13.6M"
+   */
+  private formatSI(value: number, decimals: number): string {
+    const abs = Math.abs(value);
+    const siPrefixes: [number, string][] = [
+      [1e12, 'T'],
+      [1e9, 'G'],
+      [1e6, 'M'],
+      [1e3, 'k']
+    ];
+
+    for (const [threshold, prefix] of siPrefixes) {
+      if (abs >= threshold) {
+        const scaled = value / threshold;
+        return scaled.toLocaleString('de-AT', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: decimals
+        }) + prefix;
+      }
+    }
+
+    return value.toLocaleString('de-AT', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: decimals
+    });
+  }
+
+  cellLabelContent = (e: { value: number }): string => {
+    if (e.value === 0) return '';
+    return this.formatValue(e.value);
+  };
+
   xLabelContent = (e: { value: string }): string => {
-    // Truncate date labels if needed
-    const maxLen = 10;
-    return e.value.length > maxLen ? e.value.substring(0, maxLen) : e.value;
+    // For sub-hour labels like "2026-03-08 00-15", shorten date part to "03-08 00-15"
+    const match = e.value.match(/^\d{4}-(\d{2}-\d{2})\s(.+)$/);
+    if (match) {
+      return `${match[1]} ${match[2]}`;
+    }
+    return e.value;
   };
 
   private async loadData(): Promise<void> {

@@ -1643,6 +1643,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialColorScheme: heatmapWidget.colorScheme,
         initialShowLegend: heatmapWidget.showLegend,
         initialLegendPosition: heatmapWidget.legendPosition,
+        initialDecimalPlaces: heatmapWidget.decimalPlaces,
+        initialCompactNumbers: heatmapWidget.compactNumbers,
+        initialValueMultiplier: heatmapWidget.valueMultiplier,
         initialFilters: heatmapWidget.filters
       };
     },
@@ -1669,6 +1672,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         colorScheme: result.colorScheme,
         showLegend: result.showLegend,
         legendPosition: result.legendPosition,
+        decimalPlaces: result.decimalPlaces,
+        compactNumbers: result.compactNumbers,
+        valueMultiplier: result.valueMultiplier,
         filters
       } as HeatmapWidgetConfig;
     },
@@ -1699,6 +1705,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         colorScheme: widget.colorScheme,
         showLegend: widget.showLegend,
         legendPosition: widget.legendPosition,
+        decimalPlaces: widget.decimalPlaces,
+        compactNumbers: widget.compactNumbers,
+        valueMultiplier: widget.valueMultiplier,
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
         filters: widget.filters
@@ -1722,6 +1731,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         colorScheme: (config['colorScheme'] as HeatmapWidgetConfig['colorScheme']) ?? 'green',
         showLegend: (config['showLegend'] as boolean) ?? true,
         legendPosition: (config['legendPosition'] as HeatmapWidgetConfig['legendPosition']) ?? 'bottom',
+        decimalPlaces: config['decimalPlaces'] as number | undefined,
+        compactNumbers: config['compactNumbers'] as boolean | undefined,
+        valueMultiplier: config['valueMultiplier'] as number | undefined,
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
     }
