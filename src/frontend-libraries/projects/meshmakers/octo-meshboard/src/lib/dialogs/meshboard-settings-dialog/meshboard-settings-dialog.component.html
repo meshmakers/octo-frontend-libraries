@@ -129,6 +129,17 @@
         Shows a time range picker in the toolbar. Sets $timeRangeFrom and $timeRangeTo variables.
       </kendo-formhint>
     </kendo-formfield>
+
+    @if (timeFilterEnabled) {
+      <kendo-formfield>
+        <kendo-label text="Default Selection"></kendo-label>
+        <mm-time-range-picker
+          [initialSelection]="initialDefaultSelection"
+          (selectionChange)="onDefaultSelectionChange($event)">
+        </mm-time-range-picker>
+        <kendo-formhint>Initial time filter shown when no URL parameters are set.</kendo-formhint>
+      </kendo-formfield>
+    }
   </form>
 
   <!-- Dialog Actions -->

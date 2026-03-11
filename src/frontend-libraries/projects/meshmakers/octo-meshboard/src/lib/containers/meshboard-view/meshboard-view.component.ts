@@ -131,9 +131,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly timeFilterConfig = computed(() => this.stateService.getTimeFilterConfig());
   private readonly _urlTimeSelection = signal<TimeRangeSelection | null>(null);
   protected readonly initialTimeSelection = computed(() => {
-    // URL selection takes precedence over stored selection
+    // Priority: URL selection > stored selection > default selection
     const urlSelection = this._urlTimeSelection();
-    const selection = urlSelection ?? this.timeFilterConfig()?.selection;
+    const config = this.timeFilterConfig();
+    const selection = urlSelection ?? config?.selection ?? config?.defaultSelection;
     if (!selection) return undefined;
     return {
       ...selection,
@@ -313,9 +314,22 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       return;
     }
 
-    // Fall back to stored selection
-    const selection = timeFilter.selection;
+    // Fall back to stored selection, then default selection
+    const selection = timeFilter.selection ?? timeFilter.defaultSelection;
     if (!selection) {
+      return;
+    }
+
+    // If using defaultSelection (no stored selection yet), apply it as the active selection
+    if (!timeFilter.selection && timeFilter.defaultSelection) {
+      this._urlTimeSelection.set(selection);
+      const sharedSelection = this.toSharedSelection(selection);
+      const showTime = timeFilter.pickerConfig?.showTime ?? false;
+      const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+      if (range) {
+        const rangeISO = TimeRangeUtils.toISO(range);
+        this.stateService.updateTimeFilterSelection(selection, rangeISO.from, rangeISO.to);
+      }
       return;
     }
 

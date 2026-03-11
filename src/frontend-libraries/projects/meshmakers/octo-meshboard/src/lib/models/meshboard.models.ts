@@ -788,7 +788,9 @@ export interface MeshBoardTimeFilterConfig {
   enabled: boolean;
   /** Configuration for the time range picker */
   pickerConfig?: TimeRangePickerConfig;
-  /** Current selection (for persistence) */
+  /** Default selection shown on initial load (configured in settings) */
+  defaultSelection?: TimeRangeSelection;
+  /** Current selection (for persistence of last-used state) */
   selection?: TimeRangeSelection;
 }
 

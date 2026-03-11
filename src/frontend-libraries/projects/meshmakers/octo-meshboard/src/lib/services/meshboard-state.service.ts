@@ -325,7 +325,9 @@ export class MeshBoardStateService {
       rowHeight: settings.rowHeight,
       gap: settings.gap,
       variables: settings.variables ?? config.variables,
-      timeFilter: settings.timeFilter ?? config.timeFilter
+      timeFilter: settings.timeFilter
+        ? { ...config.timeFilter, ...settings.timeFilter }
+        : config.timeFilter
     }));
 
     // If time filter is disabled, clear the time filter variables

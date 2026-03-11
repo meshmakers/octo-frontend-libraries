@@ -6,8 +6,12 @@ import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { InputsModule, CheckBoxModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { FormFieldModule } from '@progress/kendo-angular-inputs';
-import { MeshBoardVariable, MeshBoardTimeFilterConfig } from '../../models/meshboard.models';
+import { MeshBoardVariable, MeshBoardTimeFilterConfig, TimeRangeSelection } from '../../models/meshboard.models';
 import { VariablesEditorComponent } from '../../components/variables-editor/variables-editor.component';
+import {
+  TimeRangePickerComponent,
+  TimeRangeSelection as SharedTimeRangeSelection
+} from '@meshmakers/shared-ui';
 
 /**
  * Result returned when the dialog is closed with save action.
@@ -41,7 +45,8 @@ export class MeshBoardSettingsResult {
     CheckBoxModule,
     LabelModule,
     FormFieldModule,
-    VariablesEditorComponent
+    VariablesEditorComponent,
+    TimeRangePickerComponent
   ],
   templateUrl: './meshboard-settings-dialog.component.html',
   styleUrl: './meshboard-settings-dialog.component.scss'
@@ -58,6 +63,8 @@ export class MeshBoardSettingsDialogComponent {
   gap = 16;
   variables: MeshBoardVariable[] = [];
   timeFilterEnabled = false;
+  defaultSelection?: TimeRangeSelection;
+  initialDefaultSelection?: SharedTimeRangeSelection;
 
   // Validation
   get isValid(): boolean {
@@ -90,6 +97,33 @@ export class MeshBoardSettingsDialogComponent {
     this.gap = settings.gap;
     this.variables = settings.variables ? [...settings.variables] : [];
     this.timeFilterEnabled = settings.timeFilter?.enabled ?? false;
+    this.defaultSelection = settings.timeFilter?.defaultSelection;
+    if (this.defaultSelection) {
+      this.initialDefaultSelection = {
+        ...this.defaultSelection,
+        customFrom: this.defaultSelection.customFrom ? new Date(this.defaultSelection.customFrom) : undefined,
+        customTo: this.defaultSelection.customTo ? new Date(this.defaultSelection.customTo) : undefined
+      } as SharedTimeRangeSelection;
+    }
+  }
+
+  /**
+   * Handles default selection change from the time range picker.
+   */
+  onDefaultSelectionChange(sharedSelection: SharedTimeRangeSelection): void {
+    this.defaultSelection = {
+      type: sharedSelection.type,
+      year: sharedSelection.year,
+      quarter: sharedSelection.quarter,
+      month: sharedSelection.month,
+      day: sharedSelection.day,
+      hourFrom: sharedSelection.hourFrom,
+      hourTo: sharedSelection.hourTo,
+      relativeValue: sharedSelection.relativeValue,
+      relativeUnit: sharedSelection.relativeUnit,
+      customFrom: sharedSelection.customFrom?.toISOString(),
+      customTo: sharedSelection.customTo?.toISOString()
+    };
   }
 
   /**
@@ -101,7 +135,8 @@ export class MeshBoardSettingsDialogComponent {
     }
 
     const timeFilter: MeshBoardTimeFilterConfig = {
-      enabled: this.timeFilterEnabled
+      enabled: this.timeFilterEnabled,
+      defaultSelection: this.timeFilterEnabled ? this.defaultSelection : undefined
     };
 
     const result = new MeshBoardSettingsResult(
