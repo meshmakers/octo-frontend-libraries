@@ -26,11 +26,12 @@
   }
 
   // Hide Kendo's internal textField text in the closed dropdown value area,
-  // keeping only the icon visible from the value template
+  // keeping only the icon/text visible from the value template
   .status-filter-dropdown .k-input-value-text {
     font-size: 0;
 
-    .filter-status-item {
+    .filter-status-item,
+    > span {
       font-size: 14px;
     }
   }

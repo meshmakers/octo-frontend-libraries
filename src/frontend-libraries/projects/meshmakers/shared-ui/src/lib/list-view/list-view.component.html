@@ -118,6 +118,8 @@
                     <kendo-svg-icon [icon]="mapping.icon" [size]="'small'"></kendo-svg-icon>
                   </span>
                 </span>
+              } @else if (dataItem?.text) {
+                <span>{{ dataItem.text }}</span>
               }
             </ng-template>
             <ng-template kendoDropDownListItemTemplate let-dataItem>
