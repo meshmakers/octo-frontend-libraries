@@ -75,6 +75,37 @@
         </kendo-dropdownlist>
       </kendo-label>
     </div>
+
+    <!-- Hour From Selection (optional) -->
+    <div class="picker-field hour-from-field">
+      <kendo-label [text]="mergedLabels().hourFrom || 'From Hour'">
+        <kendo-dropdownlist
+          [data]="hourFromOptions()"
+          [value]="hourFrom()"
+          textField="label"
+          valueField="value"
+          [valuePrimitive]="true"
+          [defaultItem]="{ value: null, label: '—' }"
+          (valueChange)="onHourFromChange($event)">
+        </kendo-dropdownlist>
+      </kendo-label>
+    </div>
+
+    <!-- Hour To Selection (visible when hourFrom is set) -->
+    @if (hourFrom() !== null) {
+      <div class="picker-field hour-to-field">
+        <kendo-label [text]="mergedLabels().hourTo || 'To Hour'">
+          <kendo-dropdownlist
+            [data]="hourToOptions()"
+            [value]="hourTo()"
+            textField="label"
+            valueField="value"
+            [valuePrimitive]="true"
+            (valueChange)="onHourToChange($event)">
+          </kendo-dropdownlist>
+        </kendo-label>
+      </div>
+    }
   }
 
   <!-- Relative Time Selection -->

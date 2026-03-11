@@ -100,6 +100,8 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
   protected selectedDay = signal<number>(new Date().getDate());
   protected relativeValue = signal<number>(24);
   protected relativeUnit = signal<RelativeTimeUnit>('hours');
+  protected hourFrom = signal<number | null>(null);
+  protected hourTo = signal<number | null>(null);
   protected customFrom = signal<Date>(new Date());
   protected customTo = signal<Date>(new Date());
 
@@ -154,6 +156,25 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
     return options;
   });
 
+  protected hourFromOptions = computed(() => {
+    const options: TimeRangeOption<number>[] = [];
+    for (let h = 0; h <= 23; h++) {
+      options.push({ value: h, label: h.toString().padStart(2, '0') + ':00' });
+    }
+    return options;
+  });
+
+  protected hourToOptions = computed(() => {
+    const fromHour = this.hourFrom();
+    const minHour = fromHour !== null ? fromHour + 1 : 1;
+    const options: TimeRangeOption<number>[] = [];
+    for (let h = minHour; h <= 24; h++) {
+      const label = h === 24 ? '24:00' : h.toString().padStart(2, '0') + ':00';
+      options.push({ value: h, label });
+    }
+    return options;
+  });
+
   protected relativeUnitOptions = computed<TimeRangeOption<RelativeTimeUnit>[]>(() => [
     { value: 'hours', label: this.mergedLabels().unitHours || 'Hours' },
     { value: 'days', label: this.mergedLabels().unitDays || 'Days' },
@@ -169,6 +190,8 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
       quarter: this.selectedQuarter(),
       month: this.selectedMonth(),
       day: this.selectedDay(),
+      hourFrom: this.hourFrom() ?? undefined,
+      hourTo: this.hourTo() ?? undefined,
       relativeValue: this.relativeValue(),
       relativeUnit: this.relativeUnit(),
       customFrom: this.customFrom(),
@@ -242,6 +265,8 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
     if (selection.day !== undefined) {
       this.selectedDay.set(selection.day);
     }
+    this.hourFrom.set(selection.hourFrom ?? null);
+    this.hourTo.set(selection.hourTo ?? null);
     if (selection.relativeValue !== undefined) {
       this.relativeValue.set(selection.relativeValue);
     }
@@ -259,6 +284,10 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
   // Event handlers
   protected onTypeChange(type: TimeRangeType): void {
     this.selectedType.set(type);
+    if (type !== 'day') {
+      this.hourFrom.set(null);
+      this.hourTo.set(null);
+    }
     this.emitChange();
   }
 
@@ -284,6 +313,34 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
 
   protected onDayChange(day: number): void {
     this.selectedDay.set(day);
+    this.emitChange();
+  }
+
+  protected onHourFromChange(hour: number | null): void {
+    this.hourFrom.set(hour);
+    // If hourTo is less than or equal to hourFrom, adjust it
+    if (hour !== null && this.hourTo() !== null && this.hourTo()! <= hour) {
+      this.hourTo.set(hour + 1);
+    }
+    // If hourFrom is set but hourTo is not, default hourTo to hourFrom + 1
+    if (hour !== null && this.hourTo() === null) {
+      this.hourTo.set(hour + 1);
+    }
+    // If hourFrom is cleared, also clear hourTo
+    if (hour === null) {
+      this.hourTo.set(null);
+    }
+    this.emitChange();
+  }
+
+  protected onHourToChange(hour: number | null): void {
+    this.hourTo.set(hour);
+    this.emitChange();
+  }
+
+  protected clearHourFilter(): void {
+    this.hourFrom.set(null);
+    this.hourTo.set(null);
     this.emitChange();
   }
 
@@ -320,6 +377,8 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
       quarter: this.selectedQuarter(),
       month: this.selectedMonth(),
       day: this.selectedDay(),
+      hourFrom: this.hourFrom() ?? undefined,
+      hourTo: this.hourTo() ?? undefined,
       relativeValue: this.relativeValue(),
       relativeUnit: this.relativeUnit(),
       customFrom: this.customFrom(),

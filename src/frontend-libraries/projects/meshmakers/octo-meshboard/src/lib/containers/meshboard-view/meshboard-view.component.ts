@@ -129,11 +129,12 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   // Time Filter computed signals
   protected readonly isTimeFilterEnabled = computed(() => this.stateService.isTimeFilterEnabled());
   protected readonly timeFilterConfig = computed(() => this.stateService.getTimeFilterConfig());
+  private readonly _urlTimeSelection = signal<TimeRangeSelection | null>(null);
   protected readonly initialTimeSelection = computed(() => {
-    const selection = this.timeFilterConfig()?.selection;
+    // URL selection takes precedence over stored selection
+    const urlSelection = this._urlTimeSelection();
+    const selection = urlSelection ?? this.timeFilterConfig()?.selection;
     if (!selection) return undefined;
-    // Convert our TimeRangeSelection to shared-ui TimeRangeSelection
-    // Handle customFrom/customTo as Date objects
     return {
       ...selection,
       customFrom: selection.customFrom ? new Date(selection.customFrom) : undefined,
@@ -286,32 +287,58 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   }
 
   /**
-   * Initializes time filter variables based on the stored selection.
-   * Called after loading a MeshBoard to ensure time filter variables are set.
+   * Initializes time filter variables based on URL query params or stored selection.
+   * URL params take precedence over stored selection to support page reload.
    */
   private initializeTimeFilterVariables(): void {
     const timeFilter = this.stateService.getTimeFilterConfig();
-    if (!timeFilter?.enabled || !timeFilter.selection) {
+    if (!timeFilter?.enabled) {
       return;
     }
 
-    // Convert stored selection to shared-ui format for TimeRangeUtils
-    const sharedSelection: SharedTimeRangeSelection = {
-      ...timeFilter.selection,
-      customFrom: timeFilter.selection.customFrom ? new Date(timeFilter.selection.customFrom) : undefined,
-      customTo: timeFilter.selection.customTo ? new Date(timeFilter.selection.customTo) : undefined
-    };
+    // Check URL query params first (takes precedence over stored selection)
+    const urlSelection = this.readTimeFilterFromUrl();
 
-    // Calculate the current time range from the selection
+    if (urlSelection) {
+      // Signal the URL selection so the picker picks it up
+      this._urlTimeSelection.set(urlSelection);
+      // Update state so widgets use the URL-derived time range
+      const sharedSelection = this.toSharedSelection(urlSelection);
+      const showTime = timeFilter.pickerConfig?.showTime ?? false;
+      const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+      if (range) {
+        const rangeISO = TimeRangeUtils.toISO(range);
+        this.stateService.updateTimeFilterSelection(urlSelection, rangeISO.from, rangeISO.to);
+      }
+      return;
+    }
+
+    // Fall back to stored selection
+    const selection = timeFilter.selection;
+    if (!selection) {
+      return;
+    }
+
+    const sharedSelection = this.toSharedSelection(selection);
     const showTime = timeFilter.pickerConfig?.showTime ?? false;
     const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
     if (!range) {
       return;
     }
 
-    // Convert to ISO strings and set the variables
     const rangeISO = TimeRangeUtils.toISO(range);
     this.stateService.setTimeFilterVariables(rangeISO.from, rangeISO.to);
+  }
+
+  /**
+   * Converts a TimeRangeSelection to a SharedTimeRangeSelection.
+   */
+  private toSharedSelection(selection: TimeRangeSelection): SharedTimeRangeSelection {
+    return {
+      ...selection,
+      customFrom: selection.customFrom ? new Date(selection.customFrom) : undefined,
+      customTo: selection.customTo ? new Date(selection.customTo) : undefined
+    } as SharedTimeRangeSelection;
   }
 
   /**
@@ -525,7 +552,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   /**
    * Handles time selection change from the time range picker.
-   * Updates the time filter variables and persists the selection.
+   * Updates the time filter variables, persists the selection, and syncs to URL query params.
    */
   onTimeSelectionChange(sharedSelection: SharedTimeRangeSelection): void {
     // Convert shared-ui selection to our model
@@ -535,6 +562,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       quarter: sharedSelection.quarter,
       month: sharedSelection.month,
       day: sharedSelection.day,
+      hourFrom: sharedSelection.hourFrom,
+      hourTo: sharedSelection.hourTo,
       relativeValue: sharedSelection.relativeValue,
       relativeUnit: sharedSelection.relativeUnit,
       customFrom: sharedSelection.customFrom?.toISOString(),
@@ -558,6 +587,65 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
     // Update state with new selection and time range values
     this.stateService.updateTimeFilterSelection(selection, rangeISO.from, rangeISO.to);
+
+    // Sync selection to URL query parameters
+    this.writeTimeFilterToUrl(selection);
+  }
+
+  /**
+   * Writes the time filter selection to URL query parameters.
+   */
+  private writeTimeFilterToUrl(selection: TimeRangeSelection): void {
+    const queryParams: Record<string, string | undefined> = {
+      tf_type: selection.type,
+      tf_year: selection.year?.toString(),
+      tf_quarter: selection.quarter?.toString(),
+      tf_month: selection.month?.toString(),
+      tf_day: selection.day?.toString(),
+      tf_hf: selection.hourFrom?.toString(),
+      tf_ht: selection.hourTo?.toString(),
+      tf_rv: selection.relativeValue?.toString(),
+      tf_ru: selection.relativeUnit,
+      tf_from: selection.customFrom,
+      tf_to: selection.customTo
+    };
+
+    // Remove undefined values (Angular sends "undefined" string otherwise)
+    const cleanParams: Record<string, string | null> = {};
+    for (const [key, value] of Object.entries(queryParams)) {
+      cleanParams[key] = value ?? null; // null removes the param
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: cleanParams,
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  /**
+   * Reads the time filter selection from URL query parameters.
+   * Returns null if no time filter params are present.
+   */
+  private readTimeFilterFromUrl(): TimeRangeSelection | null {
+    const params = this.route.snapshot.queryParamMap;
+    const type = params.get('tf_type');
+    if (!type) return null;
+
+    return {
+      type: type as TimeRangeSelection['type'],
+      year: params.has('tf_year') ? Number(params.get('tf_year')) : undefined,
+      quarter: params.has('tf_quarter') ? Number(params.get('tf_quarter')) as TimeRangeSelection['quarter'] : undefined,
+      month: params.has('tf_month') ? Number(params.get('tf_month')) : undefined,
+      day: params.has('tf_day') ? Number(params.get('tf_day')) : undefined,
+      hourFrom: params.has('tf_hf') ? Number(params.get('tf_hf')) : undefined,
+      hourTo: params.has('tf_ht') ? Number(params.get('tf_ht')) : undefined,
+      relativeValue: params.has('tf_rv') ? Number(params.get('tf_rv')) : undefined,
+      relativeUnit: params.get('tf_ru') as TimeRangeSelection['relativeUnit'] ?? undefined,
+      customFrom: params.get('tf_from') ?? undefined,
+      customTo: params.get('tf_to') ?? undefined
+    };
   }
 
   /**
@@ -570,6 +658,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       a.quarter === b.quarter &&
       a.month === b.month &&
       a.day === b.day &&
+      a.hourFrom === b.hourFrom &&
+      a.hourTo === b.hourTo &&
       a.relativeValue === b.relativeValue &&
       a.relativeUnit === b.relativeUnit &&
       a.customFrom === b.customFrom &&

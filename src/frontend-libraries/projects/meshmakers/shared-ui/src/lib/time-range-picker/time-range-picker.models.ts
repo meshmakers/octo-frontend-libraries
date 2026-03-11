@@ -65,6 +65,10 @@ export interface TimeRangeSelection {
   month?: number;
   /** Day of month (1-31), used with 'day' type */
   day?: number;
+  /** Hour from (0-23), optional hour filter for 'day' type */
+  hourFrom?: number;
+  /** Hour to (1-24), optional hour filter for 'day' type. Exclusive upper bound. */
+  hourTo?: number;
   relativeValue?: number;
   relativeUnit?: RelativeTimeUnit;
   customFrom?: Date;
@@ -90,6 +94,8 @@ export interface TimeRangePickerLabels {
   day?: string;
   relativeValue?: string;
   relativeUnit?: string;
+  hourFrom?: string;
+  hourTo?: string;
   customFrom?: string;
   customTo?: string;
   // Type labels
@@ -122,6 +128,8 @@ export const DEFAULT_TIME_RANGE_LABELS: TimeRangePickerLabels = {
   day: 'Day',
   relativeValue: 'Last',
   relativeUnit: 'Unit',
+  hourFrom: 'From Hour',
+  hourTo: 'To Hour',
   customFrom: 'From',
   customTo: 'To',
   typeYear: 'Year',
@@ -181,11 +189,18 @@ export class TimeRangeUtils {
   /**
    * Calculate time range for a specific day.
    * Uses exclusive end boundary (start of next day) for correct LESS_THAN filtering.
+   * Optionally filters to a specific hour range within the day.
+   * @param hourFrom Start hour (0-23), defaults to 0
+   * @param hourTo End hour (1-24, exclusive), defaults to 24 (= next day 00:00)
    */
-  static getDayRange(year: number, month: number, day: number): TimeRange {
+  static getDayRange(year: number, month: number, day: number, hourFrom?: number, hourTo?: number): TimeRange {
+    const fromHour = hourFrom ?? 0;
+    const toHour = hourTo ?? 24;
     return {
-      from: new Date(Date.UTC(year, month, day, 0, 0, 0, 0)),
-      to: new Date(Date.UTC(year, month, day + 1, 0, 0, 0, 0))
+      from: new Date(Date.UTC(year, month, day, fromHour, 0, 0, 0)),
+      to: toHour === 24
+        ? new Date(Date.UTC(year, month, day + 1, 0, 0, 0, 0))
+        : new Date(Date.UTC(year, month, day, toHour, 0, 0, 0))
     };
   }
 
@@ -239,7 +254,7 @@ export class TimeRangeUtils {
         break;
       case 'day':
         if (selection.year && selection.month !== undefined && selection.day !== undefined) {
-          return this.getDayRange(selection.year, selection.month, selection.day);
+          return this.getDayRange(selection.year, selection.month, selection.day, selection.hourFrom, selection.hourTo);
         }
         break;
       case 'relative':

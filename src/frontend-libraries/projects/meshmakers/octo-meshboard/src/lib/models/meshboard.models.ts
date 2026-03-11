@@ -770,6 +770,10 @@ export interface TimeRangeSelection {
   month?: number;
   /** Day of month (1-31), used with 'day' type */
   day?: number;
+  /** Hour from (0-23), optional hour filter for 'day' type */
+  hourFrom?: number;
+  /** Hour to (1-24), optional hour filter for 'day' type. Exclusive upper bound. */
+  hourTo?: number;
   relativeValue?: number;
   relativeUnit?: RelativeTimeUnit;
   customFrom?: string;  // ISO string for persistence
