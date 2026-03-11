@@ -151,7 +151,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   /**
    * Handle property value changes from the property grid
    */
-  onPropertyChange(event: any): void {
+  onPropertyChange(event: unknown): void {
     console.debug('Property changed:', event);
     // TODO: Implement property change handling
     // This could be used to track modifications and enable save functionality

@@ -605,15 +605,15 @@ class BreadCrumbData implements BreadCrumbItem {
 
 ### Complete App Setup
 
-See `projects/template-app/src/app/app.config.ts` for a complete configuration example.
+See `projects/demo-app/src/app/app.config.ts` for a complete configuration example.
 
 ### Message Demo
 
-See `projects/template-app/src/app/tenants/demos/message/message-demo.component.ts` for all message types and usage patterns.
+See `projects/demo-app/src/app/tenants/demos/message/message-demo.component.ts` for all message types and usage patterns.
 
 ### Custom Navigation
 
-See `projects/template-app/src/app/services/my-command-settings.service.ts` for a comprehensive navigation configuration including:
+See `projects/demo-app/src/app/services/my-command-settings.service.ts` for a comprehensive navigation configuration including:
 
 - Static and dynamic links
 - Sections with children
@@ -623,4 +623,4 @@ See `projects/template-app/src/app/services/my-command-settings.service.ts` for 
 
 ### App Bar with Breadcrumbs
 
-See `projects/template-app/src/app/app.component.ts` for breadcrumb and menu integration.
+See `projects/demo-app/src/app/app.component.ts` for breadcrumb and menu integration.

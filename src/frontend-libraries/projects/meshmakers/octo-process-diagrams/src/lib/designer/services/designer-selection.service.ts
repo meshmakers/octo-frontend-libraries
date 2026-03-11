@@ -432,4 +432,12 @@ export class DesignerSelectionService {
   getSelectionRect(): SelectionRect | null {
     return this._selectionRect();
   }
+
+  /**
+   * Set the selection rectangle directly with proper bounds.
+   * Used when the caller has already computed the correct x, y, width, height.
+   */
+  setSelectionRect(rect: SelectionRect): void {
+    this._selectionRect.set(rect);
+  }
 }

@@ -93,9 +93,9 @@ export abstract class OctoGraphQlDataSource<TDto> extends DataSourceTyped<TDto |
     return sort;
   }
 
-  private static getOperatorAndValue(operator: FilterOperator, value: any): {
+  private static getOperatorAndValue(operator: FilterOperator, value: unknown): {
     operator: FieldFilterOperatorsDto,
-    value: any
+    value: unknown
   } {
 
     switch (operator) {

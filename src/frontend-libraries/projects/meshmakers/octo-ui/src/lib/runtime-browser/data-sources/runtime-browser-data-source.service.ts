@@ -58,6 +58,19 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   );
   private readonly updateTreeNodesDtoGQL = inject(UpdateTreeNodesDtoGQL);
   private readonly typeHelperService = inject(TypeHelperService);
+  private isCkModelsRoot(
+    item: BrowserItem,
+  ): item is { isCkModelsRoot?: boolean; ckModelId?: string } {
+    return !!item && 'isCkModelsRoot' in item;
+  }
+
+  private isCkModel(item: BrowserItem): item is CkModelDto {
+    return !!item && 'id' in item && !('rtId' in item) && !('ckTypeId' in item);
+  }
+
+  private isCkType(item: BrowserItem): item is CkTypeDto {
+    return !!item && 'ckTypeId' in item && !('rtId' in item) && !('id' in item);
+  }
 
   // Define metadata for different entity types and their hierarchical relationships
   private static readonly levelMetaData: LevelMetaData[] = [
@@ -94,22 +107,18 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     item: TreeItemDataTyped<BrowserItem>,
   ): Promise<TreeItemDataTyped<BrowserItem>[]> {
     // Handle CK Models root node
-    if ((item.item as any).isCkModelsRoot) {
+    if (this.isCkModelsRoot(item.item)) {
       return this.fetchCkModels();
     }
 
     // Handle CK Model node - fetch its types
-    if ((item.item as any).id && !(item.item as any).rtId) {
-      const modelId = (item.item as any).id.fullName;
+    if (this.isCkModel(item.item)) {
+      const modelId = item.item.id.fullName;
       return this.fetchCkTypes(modelId);
     }
 
     // Handle CK Type node - no children
-    if (
-      (item.item as any).ckTypeId &&
-      !(item.item as any).rtId &&
-      !(item.item as any).id
-    ) {
+    if (this.isCkType(item.item)) {
       return [];
     }
 
@@ -191,10 +200,10 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
 
             // Extract display name and description from attributes
             const nameValue = child.attributes?.items?.find(
-              (x: any) => x?.attributeName === 'name',
+              (x) => x?.attributeName === 'name',
             )?.value;
             const displayNameValue = child.attributes?.items?.find(
-              (x: any) => x?.attributeName === 'displayName',
+              (x) => x?.attributeName === 'displayName',
             )?.value;
 
             // Debug logging
@@ -214,7 +223,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
               child.ckTypeId ||
               'Unknown';
             const descValue = child.attributes?.items?.find(
-              (x: any) => x?.attributeName === 'description',
+              (x) => x?.attributeName === 'description',
             )?.value;
             const tooltip =
               (typeof descValue === 'string' ? descValue : null) ||
@@ -247,12 +256,13 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       const result = new Array<TreeItemDataTyped<BrowserItem>>();
 
       // Add CK Models root node
+      const ckModelsRoot: BrowserItem = { isCkModelsRoot: true };
       result.push(
         new TreeItemDataTyped<BrowserItem>(
           'ck-models-root',
           'CK Models',
           'Construction Kit Models',
-          { isCkModelsRoot: true } as any,
+          ckModelsRoot,
           folderOpenIcon,
           true, // expandable
         ),
@@ -500,7 +510,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
    * @returns true on successful delete, false on database error or if object is not a runtime entity.
    */
   public async deleteRtEntityAndChildren(
-    itemToDelete: TreeItemDataTyped<BrowserItem>,
+    itemToDelete: TreeItemDataTyped<unknown>,
   ): Promise<boolean> {
     const runtimeEntity = itemToDelete.item;
 
@@ -592,13 +602,14 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         if (!model) {
           continue;
         }
+        const modelItem = model as unknown as CkModelDto;
 
         result.push(
           new TreeItemDataTyped<BrowserItem>(
             `model:${model.id.fullName}`,
             model.id.fullName || 'Unknown Model',
             `Model: ${model.id.fullName} (${model.modelState || 'Unknown State'})`,
-            model as any,
+            modelItem,
             folderMoreIcon,
             true, // Models have types as children
           ),
@@ -630,6 +641,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
 
       for (const type of types) {
         if (!type) continue;
+        const typeItem = type as unknown as CkTypeDto;
 
         const isAbstract = type.isAbstract ? ' (Abstract)' : '';
         const isFinal = type.isFinal ? ' (Final)' : '';
@@ -639,7 +651,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
             `type:${type.ckTypeId.fullName}`,
             type.ckTypeId.fullName || 'Unknown Type',
             `Type: ${type.ckTypeId.fullName}${isAbstract}${isFinal}`,
-            type as any,
+            typeItem,
             gearIcon,
             false, // Types don't have children in this view
           ),

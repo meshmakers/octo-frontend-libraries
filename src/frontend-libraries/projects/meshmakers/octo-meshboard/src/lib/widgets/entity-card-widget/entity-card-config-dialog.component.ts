@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { CkTypeSelectorInputComponent } from '@meshmakers/octo-ui';
@@ -14,6 +14,7 @@ import {
   RuntimeEntitySelectDataSource,
   RuntimeEntityDialogDataSource
 } from '../../utils/runtime-entity-data-sources';
+import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 /**
  * Configuration result from the dialog
@@ -33,23 +34,17 @@ export interface EntityCardConfigResult {
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     CkTypeSelectorInputComponent,
-    EntitySelectInputComponent
+    EntitySelectInputComponent,
+    LoadingOverlayComponent
   ],
   template: `
-    <kendo-dialog
-      title="Entity Configuration"
-      [minWidth]="500"
-      [width]="600"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form" [class.loading]="isLoadingInitial">
-        @if (isLoadingInitial) {
-          <div class="loading-indicator">Loading...</div>
-        }
+        <mm-loading-overlay [loading]="isLoadingInitial" />
         <div class="form-field">
           <label>Runtime Entities</label>
           <mm-ck-type-selector-input
@@ -101,7 +96,7 @@ export interface EntityCardConfigResult {
         }
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -110,32 +105,33 @@ export interface EntityCardConfigResult {
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+    }
+
+    .config-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
     .config-form {
+      flex: 1;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 20px;
-      padding: 16px 0;
+      padding: 16px;
       position: relative;
     }
 
     .config-form.loading {
-      opacity: 0.7;
       pointer-events: none;
-    }
-
-    .loading-indicator {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 8px;
-      color: var(--kendo-color-primary, #0d6efd);
-      font-style: italic;
     }
 
     .form-field {
@@ -177,20 +173,26 @@ export interface EntityCardConfigResult {
       margin: 4px 0;
       font-size: 0.85rem;
     }
+
+    .action-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 16px;
+      border-top: 1px solid var(--kendo-color-border, #dee2e6);
+    }
   `]
 })
 export class EntityCardConfigDialogComponent implements OnInit {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
+  private readonly windowRef = inject(WindowRef);
 
   @ViewChild('ckTypeSelector') ckTypeSelectorInput?: CkTypeSelectorInputComponent;
   @ViewChild('entitySelector') entitySelectorInput?: EntitySelectInputComponent;
 
   @Input() initialCkTypeId?: string;
   @Input() initialRtId?: string;
-
-  @Output() save = new EventEmitter<EntityCardConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   selectedCkType: CkTypeSelectorItem | null = null;
   selectedEntity: RuntimeEntityItem | null = null;
@@ -305,7 +307,7 @@ export class EntityCardConfigDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.selectedCkType && this.selectedEntity) {
-      this.save.emit({
+      this.windowRef.close({
         ckTypeId: this.selectedCkType.rtCkTypeId,
         rtId: this.selectedEntity.rtId
       });
@@ -313,6 +315,6 @@ export class EntityCardConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 }

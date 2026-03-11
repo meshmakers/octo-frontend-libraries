@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlSegment } from '@angular/router';
+import { ActivatedRouteSnapshot, Route, Router, RouterStateSnapshot, UrlSegment } from '@angular/router';
 import {
   authorizeGuard,
   authorizeChildGuard,
@@ -176,7 +176,7 @@ describe('Functional Guards', () => {
       isAuthenticatedValue = true;
 
       const result = await TestBed.runInInjectionContext(() =>
-        authorizeMatchGuard({} as any, [] as UrlSegment[])
+        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[])
       );
 
       expect(result).toBeTrue();
@@ -186,7 +186,7 @@ describe('Functional Guards', () => {
       isAuthenticatedValue = false;
 
       const result = await TestBed.runInInjectionContext(() =>
-        authorizeMatchGuard({} as any, [] as UrlSegment[])
+        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[])
       );
 
       expect(result).toBeFalse();
@@ -196,7 +196,7 @@ describe('Functional Guards', () => {
       isAuthenticatedValue = false;
 
       await TestBed.runInInjectionContext(() =>
-        authorizeMatchGuard({} as any, [] as UrlSegment[])
+        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[])
       );
 
       expect(authServiceMock.login).toHaveBeenCalled();

@@ -4,7 +4,7 @@ import { CommandSettingsService } from './command-settings.service';
 
 describe('CommandSettingsService', () => {
   let service: CommandSettingsService;
-  let mockActivatedRoute: any;
+  let mockActivatedRoute: unknown;
 
   beforeEach(() => {
     mockActivatedRoute = {
@@ -29,7 +29,7 @@ describe('CommandSettingsService', () => {
   });
 
   it('should return navigateRelativeToRoute', () => {
-    expect(service.navigateRelativeToRoute).toBe(mockActivatedRoute);
+    expect(service.navigateRelativeToRoute).toBe(mockActivatedRoute as ActivatedRoute);
   });
 
   it('should return empty commandItems array', () => {

@@ -13,9 +13,12 @@ import { GetTreeNodesDtoGQL } from '../graphQL/getTreeNodes';
 import { GetTreesDtoGQL } from '../graphQL/getTrees';
 import {
   AssociationModOptionsDto,
+  CkModelDto,
+  CkTypeDto,
   GetCkModelByIdDtoGQL,
   GetCkTypesDtoGQL,
   GraphDirectionDto,
+  RtAssociationDto,
   RtEntityDto,
 } from '../graphQL/globalTypes';
 import { UpdateTreeNodesDtoGQL } from '../graphQL/updateTreeNodes';
@@ -23,6 +26,12 @@ import { TypeHelperService } from '../services/type-helper.service';
 import { RuntimeBrowserDataSource } from './runtime-browser-data-source.service';
 
 describe('RuntimeBrowserDataSource', () => {
+  type BrowserItem =
+    | RtEntityDto
+    | CkModelDto
+    | CkTypeDto
+    | { isCkModelsRoot?: boolean; ckModelId?: string };
+
   let service: RuntimeBrowserDataSource;
   let consoleErrorSpy: jasmine.Spy;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -348,7 +357,7 @@ describe('RuntimeBrowserDataSource', () => {
 
   describe('fetchChildren', () => {
     it('should fetch CK models when expanding CK Models root', async () => {
-      const ckModelsRoot = new TreeItemDataTyped<any>(
+      const ckModelsRoot = new TreeItemDataTyped<BrowserItem>(
         'ck-models-root',
         'CK Models',
         '',
@@ -366,11 +375,11 @@ describe('RuntimeBrowserDataSource', () => {
     });
 
     it('should fetch CK types when expanding a CK model', async () => {
-      const modelNode = new TreeItemDataTyped<any>(
+      const modelNode = new TreeItemDataTyped<BrowserItem>(
         'model:Basic',
         'Basic',
         '',
-        { id: { fullName: 'Basic' }, modelState: 'Released' },
+        { id: { fullName: 'Basic' }, modelState: 'Released' } as CkModelDto,
         fileIcon,
         true,
       );
@@ -384,11 +393,11 @@ describe('RuntimeBrowserDataSource', () => {
     });
 
     it('should return empty array for CK type nodes', async () => {
-      const typeNode = new TreeItemDataTyped<any>(
+      const typeNode = new TreeItemDataTyped<BrowserItem>(
         'type:Basic/Entity',
         'Basic/Entity',
         '',
-        { ckTypeId: 'Basic/Entity' },
+        { ckTypeId: 'Basic/Entity' } as CkTypeDto,
         fileIcon,
         false,
       );
@@ -399,11 +408,11 @@ describe('RuntimeBrowserDataSource', () => {
     });
 
     it('should return empty array for entity without rtId', async () => {
-      const invalidNode = new TreeItemDataTyped<any>(
+      const invalidNode = new TreeItemDataTyped<BrowserItem>(
         'invalid',
         'Invalid',
         '',
-        { ckTypeId: 'Test/Type' },
+        { ckTypeId: 'Test/Type' } as CkTypeDto,
         fileIcon,
         false,
       );
@@ -414,11 +423,11 @@ describe('RuntimeBrowserDataSource', () => {
     });
 
     it('should fetch tree children for runtime entities', async () => {
-      const treeNode = new TreeItemDataTyped<any>(
+      const treeNode = new TreeItemDataTyped<BrowserItem>(
         'Basic/Tree@tree-1',
         'Main Tree',
         '',
-        { rtId: 'tree-1', ckTypeId: 'Basic/Tree' },
+        { rtId: 'tree-1', ckTypeId: 'Basic/Tree' } as RtEntityDto,
         fileIcon,
         true,
       );
@@ -432,11 +441,11 @@ describe('RuntimeBrowserDataSource', () => {
     });
 
     it('should set expandable flag based on children count', async () => {
-      const treeNode = new TreeItemDataTyped<any>(
+      const treeNode = new TreeItemDataTyped<BrowserItem>(
         'Basic/Tree@tree-1',
         'Main Tree',
         '',
-        { rtId: 'tree-1', ckTypeId: 'Basic/Tree' },
+        { rtId: 'tree-1', ckTypeId: 'Basic/Tree' } as RtEntityDto,
         fileIcon,
         true,
       );
@@ -455,7 +464,7 @@ describe('RuntimeBrowserDataSource', () => {
         throwError(() => new Error('Error')),
       );
 
-      const ckModelsRoot = new TreeItemDataTyped<any>(
+      const ckModelsRoot = new TreeItemDataTyped<BrowserItem>(
         'ck-models-root',
         'CK Models',
         '',
@@ -474,11 +483,11 @@ describe('RuntimeBrowserDataSource', () => {
         throwError(() => new Error('Error')),
       );
 
-      const modelNode = new TreeItemDataTyped<any>(
+      const modelNode = new TreeItemDataTyped<BrowserItem>(
         'model:Basic',
         'Basic',
         '',
-        { id: { fullName: 'Basic' }, modelState: 'Released' },
+        { id: { fullName: 'Basic' }, modelState: 'Released' } as CkModelDto,
         fileIcon,
         true,
       );
@@ -495,7 +504,7 @@ describe('RuntimeBrowserDataSource', () => {
         }),
       );
 
-      const ckModelsRoot = new TreeItemDataTyped<any>(
+      const ckModelsRoot = new TreeItemDataTyped<BrowserItem>(
         'ck-models-root',
         'CK Models',
         '',
@@ -525,7 +534,7 @@ describe('RuntimeBrowserDataSource', () => {
         }),
       );
 
-      const ckModelsRoot = new TreeItemDataTyped<any>(
+      const ckModelsRoot = new TreeItemDataTyped<BrowserItem>(
         'ck-models-root',
         'CK Models',
         '',
@@ -623,7 +632,10 @@ describe('RuntimeBrowserDataSource', () => {
   describe('getRuntimeEntityParentData', () => {
     it('should return parent ckTypeId and rtId when association exists', async () => {
       spyOn(service, 'getParentChildAssociation').and.resolveTo([
-        { targetCkTypeId: 'Parent/Type', targetRtId: 'parent-123' } as any,
+        {
+          targetCkTypeId: 'Parent/Type',
+          targetRtId: 'parent-123',
+        } as RtAssociationDto,
       ]);
 
       const result = await service.getRuntimeEntityParentData(
@@ -663,14 +675,14 @@ describe('RuntimeBrowserDataSource', () => {
   });
 
   describe('deleteRtEntityAndChildren', () => {
-    let mockItemToDelete: TreeItemDataTyped<any>;
+    let mockItemToDelete: TreeItemDataTyped<BrowserItem>;
 
     beforeEach(() => {
-      mockItemToDelete = new TreeItemDataTyped<any>(
+      mockItemToDelete = new TreeItemDataTyped<BrowserItem>(
         'tree-1',
         'Tree Item',
         '',
-        { rtId: 'tree-1', ckTypeId: 'Basic/Tree' },
+        { rtId: 'tree-1', ckTypeId: 'Basic/Tree' } as RtEntityDto,
         fileIcon,
         false,
       );

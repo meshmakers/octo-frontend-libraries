@@ -22,12 +22,12 @@ describe('TypeHelperService', () => {
     });
 
     it('should return false if rtId is missing', () => {
-      const invalidEntity = { ckTypeId: 'Basic/Tree' } as any;
+      const invalidEntity = { ckTypeId: 'Basic/Tree' };
       expect(service.isRuntimeEntity(invalidEntity)).toBeFalsy();
     });
 
     it('should return false if ckTypeId is missing', () => {
-      const invalidEntity = { rtId: 'f276b0ca7d6e1ae55d295d2a' } as any;
+      const invalidEntity = { rtId: 'f276b0ca7d6e1ae55d295d2a' };
       expect(service.isRuntimeEntity(invalidEntity)).toBeFalsy();
     });
 
@@ -36,12 +36,12 @@ describe('TypeHelperService', () => {
     });
 
     it('should return false for null or undefined', () => {
-      expect(service.isRuntimeEntity(null as any)).toBeFalsy();
-      expect(service.isRuntimeEntity(undefined as any)).toBeFalsy();
+      expect(service.isRuntimeEntity(null)).toBeFalsy();
+      expect(service.isRuntimeEntity(undefined)).toBeFalsy();
     });
 
     it('should return false if properties are present but falsy (e.g., empty strings)', () => {
-      const emptyProps = { rtId: '', ckTypeId: '' } as any;
+      const emptyProps = { rtId: '', ckTypeId: '' };
       expect(service.isRuntimeEntity(emptyProps)).toBeFalsy();
     });
   });

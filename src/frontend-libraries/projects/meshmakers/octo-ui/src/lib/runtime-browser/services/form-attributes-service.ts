@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { GetCkAttributesDetailedDtoGQL } from '../graphQL/getCkAttributesDetailed';
 import { GetCkRecordDetailedDtoGQL } from '../graphQL/getCkRecordDetailed';
 import { AttributeField } from '../models/attribute-field';
+import { CkAttributeMetadata } from '../models/attribute-metadata';
 import { FormAttributesServiceMapper } from './form-attributes-mapper';
 
 @Injectable({
@@ -70,7 +71,9 @@ export class FormAttributesService {
   /**
    * Loads attributes for a CK type.
    */
-  private async getCkAttributesGQL(ckTypeId: string): Promise<any[]> {
+  private async getCkAttributesGQL(
+    ckTypeId: string,
+  ): Promise<CkAttributeMetadata[]> {
     try {
       const raw = await firstValueFrom(
         this.getCkAttributesDetailedGQL.fetch({
@@ -89,7 +92,9 @@ export class FormAttributesService {
   /**
    * Loads attributes for a CK record.
    */
-  private async getCkRecordAttributesGQL(ckRecordId: string): Promise<any[]> {
+  private async getCkRecordAttributesGQL(
+    ckRecordId: string,
+  ): Promise<CkAttributeMetadata[]> {
     try {
       const raw = await firstValueFrom(
         this.getCkRecordDetailedGQL.fetch({ variables: { ckId: ckRecordId } }),

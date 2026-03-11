@@ -1,5 +1,6 @@
-import { Injectable, Type, inject, Injector, EnvironmentInjector, createComponent, ApplicationRef } from '@angular/core';
+import { Injectable, Type, inject, Injector, EnvironmentInjector, ApplicationRef } from '@angular/core';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
+import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { AnyWidgetConfig, WidgetType, RuntimeEntityDataSource, DataSourceType } from '../models/meshboard.models';
 
 /**
@@ -60,17 +61,27 @@ export interface WidgetPersistenceData {
 }
 
 /**
+ * Size configuration for widget config dialogs opened via WindowService.
+ */
+export interface WidgetConfigDialogSize {
+  width: number;
+  height: number;
+  minWidth: number;
+  minHeight: number;
+}
+
+/**
  * Interface that config dialog components must implement.
- * Uses EventEmitters for save/cancelled events.
+ * Dialogs are opened via WindowService and use WindowRef.close() to return results.
  */
 export interface WidgetConfigDialog<TResult extends WidgetConfigResult = WidgetConfigResult> {
   // Initial values - set via inputs
   initialCkTypeId?: string;
   initialRtId?: string;
 
-  // Events - dialog emits these
-  save: Subject<TResult>;
-  cancelled: Subject<void>;
+  // Legacy events (optional - dialogs now use WindowRef.close() instead)
+  save?: Subject<TResult>;
+  cancelled?: Subject<void>;
 }
 
 /**
@@ -100,7 +111,13 @@ export interface WidgetRegistration<
   component: Type<unknown>;
 
   /** Config dialog component (optional - some widgets may not be configurable) */
-  configDialogComponent?: Type<WidgetConfigDialog<TResult>>;
+  configDialogComponent?: Type<unknown>;
+
+  /** Size configuration for the config dialog window */
+  configDialogSize?: WidgetConfigDialogSize;
+
+  /** Title for the config dialog window */
+  configDialogTitle?: string;
 
   /** Function to apply config result to widget config */
   applyConfigResult?: ConfigResultApplier<TWidget, TResult>;
@@ -164,8 +181,14 @@ export class WidgetRegistryService {
   private readonly injector = inject(Injector);
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly appRef = inject(ApplicationRef);
+  private readonly windowService = inject(WindowService);
+
+  private static scrollbarStylesInjected = false;
 
   private readonly registry = new Map<WidgetType, WidgetRegistration>();
+
+  /** Session-persisted dialog size: remembered when user resizes a config dialog */
+  private sessionDialogSize: { width: number; height: number } | null = null;
 
   /**
    * Registers a widget type with its components and handlers.
@@ -298,7 +321,7 @@ export class WidgetRegistryService {
   /**
    * Gets the config dialog component for a widget type.
    */
-  getConfigDialogComponent(type: WidgetType): Type<WidgetConfigDialog> | undefined {
+  getConfigDialogComponent(type: WidgetType): Type<unknown> | undefined {
     return this.registry.get(type)?.configDialogComponent;
   }
 
@@ -342,7 +365,7 @@ export class WidgetRegistryService {
 
   /**
    * Opens a config dialog for a widget and returns an Observable with the result.
-   * The dialog is created dynamically and destroyed after closing.
+   * Uses WindowService to create a resizable Kendo Window.
    */
   openConfigDialog(widget: AnyWidgetConfig): Observable<ConfigDialogResult> {
     return new Observable(subscriber => {
@@ -354,47 +377,74 @@ export class WidgetRegistryService {
         return;
       }
 
-      // Create the dialog component dynamically
-      const componentRef = createComponent(registration.configDialogComponent, {
-        environmentInjector: this.envInjector,
-        elementInjector: this.injector
+      const registeredSize = registration.configDialogSize ?? { width: 700, height: 600, minWidth: 550, minHeight: 450 };
+      const dialogTitle = registration.configDialogTitle ?? `${registration.label} Configuration`;
+
+      // Calculate responsive width: ~1/3 of viewport, clamped to min constraint
+      const responsiveWidth = Math.max(registeredSize.minWidth, Math.round(window.innerWidth / 3));
+
+      // Use session-persisted size if available, otherwise responsive width
+      const dialogSize = this.sessionDialogSize
+        ? { ...registeredSize, width: this.sessionDialogSize.width, height: this.sessionDialogSize.height }
+        : { ...registeredSize, width: responsiveWidth };
+
+      const windowRef: WindowRef = this.windowService.open({
+        content: registration.configDialogComponent,
+        title: dialogTitle,
+        width: dialogSize.width,
+        height: dialogSize.height,
+        minWidth: dialogSize.minWidth,
+        minHeight: dialogSize.minHeight,
+        resizable: true
       });
 
-      // Set initial values on the dialog component
+      // Ensure scrollbar styles are injected for macOS overlay scrollbar support.
+      // macOS hides scrollbars by default and only shows them during active scrolling.
+      // Defining ::-webkit-scrollbar pseudo-elements forces permanent visibility.
+      this.injectScrollbarStyles();
+
+      // Disable overflow on Kendo Window's content wrapper so our dialog's
+      // internal flex layout handles scrolling via .config-form { overflow-y: auto }.
+      const windowEl = windowRef.window.location.nativeElement;
+      const contentEl = windowEl.querySelector('.k-window-content');
+      if (contentEl instanceof HTMLElement) {
+        contentEl.style.overflow = 'hidden';
+      }
+
+      // Set initial values on the dialog component using Angular's setInput API.
+      // This properly registers inputs and triggers change detection,
+      // matching the behavior of the old ViewContainerRef.createComponent() pattern.
       const initialConfig = this.getInitialConfig(widget);
-      const instance = componentRef.instance as unknown as Record<string, unknown>;
-      Object.entries(initialConfig).forEach(([key, value]) => {
-        instance[key] = value;
+      if (windowRef.content) {
+        Object.entries(initialConfig).forEach(([key, value]) => {
+          windowRef.content.setInput(key, value);
+        });
+      }
+
+      const subscription = windowRef.result.subscribe({
+        next: (result) => {
+          // Persist dialog size for the session so user doesn't have to resize every time
+          const rect = windowEl.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            this.sessionDialogSize = { width: Math.round(rect.width), height: Math.round(rect.height) };
+          }
+
+          if (result instanceof WindowCloseResult) {
+            subscriber.next({ saved: false });
+          } else if (result && typeof result === 'object') {
+            subscriber.next({ saved: true, result: result as WidgetConfigResult });
+          } else {
+            subscriber.next({ saved: false });
+          }
+          subscriber.complete();
+        },
+        error: () => {
+          subscriber.next({ saved: false });
+          subscriber.complete();
+        }
       });
 
-      // Subscribe to dialog events
-      const saveSubscription = componentRef.instance.save.subscribe((result: WidgetConfigResult) => {
-        subscriber.next({ saved: true, result });
-        subscriber.complete();
-        cleanup();
-      });
-
-      const cancelSubscription = componentRef.instance.cancelled.subscribe(() => {
-        subscriber.next({ saved: false });
-        subscriber.complete();
-        cleanup();
-      });
-
-      // Attach to DOM
-      this.appRef.attachView(componentRef.hostView);
-      const domElement = (componentRef.hostView as unknown as { rootNodes: Node[] }).rootNodes[0];
-      document.body.appendChild(domElement);
-
-      // Cleanup function
-      const cleanup = () => {
-        saveSubscription.unsubscribe();
-        cancelSubscription.unsubscribe();
-        this.appRef.detachView(componentRef.hostView);
-        componentRef.destroy();
-      };
-
-      // Return cleanup on unsubscribe
-      return cleanup;
+      return () => subscription.unsubscribe();
     });
   }
 
@@ -423,5 +473,35 @@ export class WidgetRegistryService {
       return widget.dataSource.rtId;
     }
     return undefined;
+  }
+
+  /**
+   * Injects global CSS for permanent scrollbar visibility in config dialogs.
+   * macOS hides scrollbars by default (overlay scrollbar mode) and only shows
+   * them during active scrolling. Defining ::-webkit-scrollbar pseudo-elements
+   * overrides this behavior and makes scrollbars always visible.
+   */
+  private injectScrollbarStyles(): void {
+    if (WidgetRegistryService.scrollbarStylesInjected) return;
+
+    const style = document.createElement('style');
+    style.setAttribute('data-widget-config-scrollbar', '');
+    style.textContent = `
+      .k-window-content .config-form::-webkit-scrollbar {
+        width: 8px;
+      }
+      .k-window-content .config-form::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .k-window-content .config-form::-webkit-scrollbar-thumb {
+        background: rgba(128, 128, 128, 0.3);
+        border-radius: 4px;
+      }
+      .k-window-content .config-form::-webkit-scrollbar-thumb:hover {
+        background: rgba(128, 128, 128, 0.5);
+      }
+    `;
+    document.head.appendChild(style);
+    WidgetRegistryService.scrollbarStylesInjected = true;
   }
 }

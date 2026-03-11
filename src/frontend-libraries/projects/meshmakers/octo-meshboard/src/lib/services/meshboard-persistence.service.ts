@@ -72,13 +72,16 @@ export class MeshBoardPersistenceService {
   private readonly WIDGET_CK_TYPE_ID = 'System.UI/DashboardWidget';
 
   /**
-   * Separator used to encode variables in the description field.
+   * Marker used to encode variables in the description field.
    * Format: <description>\n---MESHBOARD_VARIABLES---\n<json>
    *
    * Note: This is a temporary solution until the backend schema is updated
    * to include a dedicated 'config' field for MeshBoard configuration.
+   *
+   * The marker is detected without relying on surrounding newlines because
+   * the backend may trim leading/trailing whitespace from the description field.
    */
-  private readonly VARIABLES_SEPARATOR = '\n---MESHBOARD_VARIABLES---\n';
+  private readonly VARIABLES_MARKER = '---MESHBOARD_VARIABLES---';
 
   /**
    * Fetches all available MeshBoards
@@ -462,7 +465,10 @@ export class MeshBoardPersistenceService {
       }
 
       const dataJson = JSON.stringify(data);
-      return `${description}${this.VARIABLES_SEPARATOR}${dataJson}`;
+      // Use newline before marker to separate from description text.
+      // Note: backend may trim leading newline if description is empty, so the
+      // decoder must handle the marker appearing at the start of the string.
+      return `${description}\n${this.VARIABLES_MARKER}\n${dataJson}`;
     } catch (error) {
       console.error('Failed to encode MeshBoard config data:', error);
       return description;
@@ -474,21 +480,28 @@ export class MeshBoardPersistenceService {
    * Returns the original description, parsed variables, and timeFilter config.
    *
    * Handles both legacy format (just variables array) and new format (object with variables and timeFilter).
+   * Robust against leading/trailing whitespace trimming by the backend.
    */
   private decodeVariablesFromDescription(rawDescription: string): {
     description: string;
     variables: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
   } {
-    if (!rawDescription.includes(this.VARIABLES_SEPARATOR)) {
+    // Use the marker without newlines for detection, since the backend may trim
+    // leading whitespace (removing the \n before the marker when description is empty).
+    const markerIndex = rawDescription.indexOf(this.VARIABLES_MARKER);
+    if (markerIndex === -1) {
       return { description: rawDescription, variables: [] };
     }
 
-    const parts = rawDescription.split(this.VARIABLES_SEPARATOR);
-    const description = parts[0];
+    // Extract description (everything before the marker, trimmed of trailing newlines)
+    const description = rawDescription.substring(0, markerIndex).replace(/\n+$/, '');
+
+    // Extract JSON (everything after the marker, trimmed of leading newlines)
+    const jsonPart = rawDescription.substring(markerIndex + this.VARIABLES_MARKER.length).replace(/^\n+/, '');
 
     try {
-      const parsed = JSON.parse(parts[1]);
+      const parsed = JSON.parse(jsonPart);
 
       // Handle legacy format: direct array of variables
       if (Array.isArray(parsed)) {
@@ -503,7 +516,7 @@ export class MeshBoardPersistenceService {
       };
     } catch (error) {
       console.error('Failed to decode MeshBoard config data:', error);
-      return { description: rawDescription, variables: [] };
+      return { description, variables: [] };
     }
   }
 }

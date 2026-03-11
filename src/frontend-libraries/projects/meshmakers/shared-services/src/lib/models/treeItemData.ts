@@ -8,7 +8,7 @@ export interface TreeItemData {
 
   get tooltip(): string;
 
-  get item(): any;
+  get item(): unknown;
 
   get svgIcon(): SVGIcon | null;
 

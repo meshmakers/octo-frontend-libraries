@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { FetchDataOptions, ListViewComponent } from '@meshmakers/shared-ui';
 import { of } from 'rxjs';
 import { GetRuntimeEntitiesByTypeDtoGQL } from '../graphQL/getRuntimeEntitiesByType';
+import { RtEntityDto } from '../graphQL/globalTypes';
 import { CkTypeEntitiesDataSourceDirective } from './ck-type-entities-data-source.directive';
 
 describe('CkTypeEntitiesDataSourceDirective', () => {
@@ -104,9 +105,11 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(result).toBeTruthy();
         expect(result?.data.length).toBe(2);
         expect(result?.totalCount).toBe(2);
-        expect((result?.data[0] as any).rtId).toBe('entity-1');
-        expect((result?.data[0] as any).ckTypeId).toBe('TestType');
-        expect((result?.data[1] as any).rtId).toBe('entity-2');
+        const first = result?.data[0] as RtEntityDto;
+        const second = result?.data[1] as RtEntityDto;
+        expect(first.rtId).toBe('entity-1');
+        expect(first.ckTypeId).toBe('TestType');
+        expect(second.rtId).toBe('entity-2');
         done();
       });
     });

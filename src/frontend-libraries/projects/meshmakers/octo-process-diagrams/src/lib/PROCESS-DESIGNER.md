@@ -926,56 +926,45 @@ onDockviewReady(event: DockviewReadyEvent): void {
 └───────────────┴───────────────────────────────┘
 ```
 
-### LCARS Theming (Refinery Studio)
+### Theming
 
-The library exports SCSS styles for LCARS-themed dockview panels:
+The library uses **neutral default colors** and CSS custom properties for theming. Host applications can override these variables to match their own theme.
 
-**Usage in consuming app (styles.scss):**
+**Important:** Do NOT hardcode theme-specific colors in the library. All colors must be defined via CSS custom properties with neutral defaults.
 
-```scss
-@use '@meshmakers/octo-process-diagrams/styles/dockview-lcars-theme' as dockview;
-@include dockview.lcars-theme();
-```
-
-**Theme CSS Variables:**
+**CSS Variable Overrides (in host app styles.scss):**
 
 ```scss
 mm-process-designer,
 mm-symbol-editor {
   // Panel backgrounds
-  --dv-background-color: #07172b;           // Deep Sea
-  --dv-pane-background-color: #1f2e40;      // Surface Elevated
-  --dv-tabs-and-actions-container-background-color: #394555;  // Iron Navy
+  --dv-background-color: <your-bg-color>;
+  --dv-pane-background-color: <your-pane-color>;
+  --dv-tabs-and-actions-container-background-color: <your-tab-bar-color>;
 
   // Active tab
-  --dv-activegroup-visiblepanel-tab-background-color: #1f2e40;
-  --dv-activegroup-visiblepanel-tab-color: #64ceb9;  // Octo Mint
-  --dv-tab-active-border-bottom: 2px solid #64ceb9;
+  --dv-activegroup-visiblepanel-tab-background-color: <your-active-tab-bg>;
+  --dv-activegroup-visiblepanel-tab-color: <your-accent-color>;
+  --dv-tab-active-border-bottom: 2px solid <your-accent-color>;
 
   // Inactive tab
-  --dv-inactivegroup-visiblepanel-tab-color: #9292a6;  // Ash Blue
+  --dv-inactivegroup-visiblepanel-tab-color: <your-muted-text-color>;
 
   // Drag overlay
-  --dv-drag-over-background-color: rgba(100, 206, 185, 0.15);
-  --dv-drag-over-border-color: #64ceb9;
+  --dv-drag-over-background-color: <your-overlay-color>;
+  --dv-drag-over-border-color: <your-accent-color>;
 
   // Resize sash
-  --dv-sash-color: rgba(100, 206, 185, 0.2);
-  --dv-sash-hover-color: #64ceb9;
+  --dv-sash-color: <your-divider-color>;
+  --dv-sash-hover-color: <your-accent-color>;
 }
 ```
 
-### CSS-Only Theme (Alternative)
+The library also exports an optional SCSS theme mixin for host apps that want a pre-built dark theme:
 
-For apps not using SCSS, apply CSS variables directly:
-
-```css
-mm-process-designer {
-  --dv-background-color: #07172b;
-  --dv-pane-background-color: #1f2e40;
-  --dv-activegroup-visiblepanel-tab-color: #64ceb9;
-  /* ... see _dockview-lcars-theme.scss for full list */
-}
+```scss
+@use '@meshmakers/octo-process-diagrams/styles/dockview-lcars-theme' as dockview;
+@include dockview.lcars-theme();
 ```
 
 ### Programmatic Panel Control
@@ -1038,8 +1027,9 @@ readonly panelComponents: Record<string, unknown> = {
    - [ ] Register in `setupPanelKeyboardShortcuts()`
    - [ ] Use Alt+N pattern (next available number)
 
-5. **Update LCARS Theme:**
-   - [ ] Add selector to `_dockview-lcars-theme.scss` if needed
+5. **Update Theme:**
+   - [ ] Ensure new panel uses CSS custom properties with neutral defaults
+   - [ ] Add selector to `_dockview-lcars-theme.scss` if needed (for host app theme mixin)
 
 6. **Documentation:**
    - [ ] Update panel table in this file

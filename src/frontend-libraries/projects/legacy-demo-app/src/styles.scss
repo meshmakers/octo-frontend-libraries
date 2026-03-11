@@ -1,0 +1,93 @@
+@use '@angular/material' as mat;
+@use './styles/octo-theme';
+@use "sass:string";
+
+@include mat.core();
+
+@mixin theme($theme) {
+
+  .octo-nav-header {
+    background-color: mat.get-theme-color($theme, primary-container);
+  }
+
+  .octo-detail-toolbar {
+    background-color: mat.get-theme-color($theme, secondary-container);
+  }
+
+  .primary-button {
+    @include mat.button-color($theme, $color-variant: primary);
+  }
+
+  .secondary-button {
+    @include mat.button-color($theme, $color-variant: secondary);
+  }
+
+  .mm-notification-bar-background {
+    background-color: mat.get-theme-color($theme, error);
+
+    span {
+      color: white;
+    }
+  }
+
+  .mm-notification-bar-button {
+    background-color: red;
+  }
+}
+
+html {
+  @include mat.all-component-themes(octo-theme.$light-theme);
+  @include mat.system-level-colors(octo-theme.$light-theme);
+  @include mat.system-level-typography(octo-theme.$light-theme);
+
+  @include theme(octo-theme.$light-theme);
+}
+
+
+/* for sidenav to take a whole page */
+html, body {
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+
+  --bs-body-bg: var(--sys-background);
+}
+
+body {
+
+  app-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    mat-sidenav-container {
+      height: 100%;
+    }
+  }
+
+  .mm-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    main {
+      flex: 1;
+    }
+
+    app-footer {
+    }
+  }
+}
+
+.mm-loading-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+
+  .mm-loading {
+    width: 80px;
+    height: 80px;
+  }
+}

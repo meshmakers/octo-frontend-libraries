@@ -425,65 +425,85 @@ export class RuntimeBrowserDetailsComponent
     return null;
   }
 
-  protected isCkModel(item: any): boolean {
-    return item && item.id && !item.rtId && !item.ckTypeId;
+  protected isCkModel(item: BrowserItem): item is CkModelDto {
+    return (
+      !!item &&
+      "id" in item &&
+      !("rtId" in item) &&
+      !("ckTypeId" in item)
+    );
   }
 
-  protected isCkType(item: any): boolean {
-    return item && item.ckTypeId && !item.rtId && !item.id;
+  protected isCkType(item: BrowserItem): item is CkTypeDto {
+    return (
+      !!item &&
+      "ckTypeId" in item &&
+      !("rtId" in item) &&
+      !("id" in item)
+    );
   }
 
-  protected isCkModelsRoot(item: any): boolean {
-    return item && item.isCkModelsRoot;
+  protected isCkModelsRoot(
+    item: BrowserItem,
+  ): item is { isCkModelsRoot?: boolean; ckModelId?: string } {
+    return !!item && "isCkModelsRoot" in item;
   }
 
   // Helper methods to get CK Model properties
-  protected getCkModelIdFullName(item: any): string {
-    return item?.id.fullName || "Unknown";
+  protected getCkModelIdFullName(item: BrowserItem): string {
+    if (!this.isCkModel(item)) return "Unknown";
+    return item.id.fullName || "Unknown";
   }
 
-  protected getCkModelIdName(item: any): string {
-    return item?.id.name || "Unknown";
+  protected getCkModelIdName(item: BrowserItem): string {
+    if (!this.isCkModel(item)) return "Unknown";
+    return item.id.name || "Unknown";
   }
 
-  protected getCkModelIdVersion(item: any): string {
-    return item?.id.version || "Unknown";
+  protected getCkModelIdVersion(item: BrowserItem): string {
+    if (!this.isCkModel(item)) return "Unknown";
+    return item.id.version || "Unknown";
   }
 
-  protected getCkModelIdSemanticName(item: any): string {
-    return item?.id.semanticVersionedFullName || "Unknown";
+  protected getCkModelIdSemanticName(item: BrowserItem): string {
+    if (!this.isCkModel(item)) return "Unknown";
+    return item.id.semanticVersionedFullName || "Unknown";
   }
 
-  protected getCkModelState(item: any): string {
-    return item?.modelState || "Unknown";
+  protected getCkModelState(item: BrowserItem): string {
+    if (!this.isCkModel(item)) return "Unknown";
+    return item.modelState || "Unknown";
   }
 
   // Helper methods to get CK Type properties
-  protected getCkTypeId(item: any): string {
-    return item?.ckTypeId.fullName || "Unknown";
+  protected getCkTypeId(item: BrowserItem): string {
+    if (!this.isCkType(item)) return "Unknown";
+    return item.ckTypeId.fullName || "Unknown";
   }
 
-  protected getRtCkTypeId(item: any): string {
-    return item?.rtCkTypeId || "Unknown";
+  protected getRtCkTypeId(item: BrowserItem): string {
+    if (!this.isCkType(item)) return "Unknown";
+    return item.rtCkTypeId || "Unknown";
   }
 
-  protected isCkTypeAbstract(item: any): boolean {
-    return item?.isAbstract === true;
+  protected isCkTypeAbstract(item: BrowserItem): boolean {
+    return this.isCkType(item) && item.isAbstract === true;
   }
 
-  protected isCkTypeFinal(item: any): boolean {
-    return item?.isFinal === true;
+  protected isCkTypeFinal(item: BrowserItem): boolean {
+    return this.isCkType(item) && item.isFinal === true;
   }
 
-  protected getCkTypeBaseType(item: any): string | null {
-    return item?.baseType?.ckTypeId.fullName || null;
+  protected getCkTypeBaseType(item: BrowserItem): string | null {
+    if (!this.isCkType(item)) return null;
+    return item.baseType?.ckTypeId.fullName || null;
   }
 
   protected onViewEntityDetails = async (
     eventArgs: CommandItemExecuteEventArgs,
   ): Promise<void> => {
     const entity = eventArgs.data;
-    if (entity?.rtId && entity?.ckTypeId) {
+    if (this.typeHelperService.isRuntimeEntity(entity)) {
       await this.navigateToEntity(entity.rtId, entity.ckTypeId);
     }
   };

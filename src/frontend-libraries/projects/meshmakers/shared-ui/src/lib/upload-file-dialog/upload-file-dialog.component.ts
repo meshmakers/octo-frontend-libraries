@@ -50,8 +50,9 @@ export class UploadFileDialogComponent extends DialogContentBase {
 
 
   // Handler for file input change
-  onFileChange(event: any): void {
-    const file = event.target.files[0] as File | null;
+  onFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
     this.uploadFile(file);
   }
 

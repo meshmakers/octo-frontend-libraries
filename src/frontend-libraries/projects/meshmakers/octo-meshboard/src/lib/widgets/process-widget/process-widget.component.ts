@@ -41,7 +41,11 @@ import type {
   TransformProperty,
   StyleClass,
   PrimitiveStyle,
-  AttributeAnimation
+  AttributeAnimation,
+  GroupPrimitive,
+  LinePrimitive,
+  RectanglePrimitive,
+  PolygonConfig
 } from '@meshmakers/octo-process-diagrams';
 import {
   SymbolLibraryService,
@@ -2024,8 +2028,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    */
   protected getPrimitiveTransform(primitive: PrimitiveBase): string {
     let transform = `translate(${primitive.position.x}, ${primitive.position.y})`;
-    if ((primitive as any).rotation) {
-      transform += ` rotate(${(primitive as any).rotation})`;
+    const rotation = (primitive as unknown as Record<string, unknown>)['rotation'];
+    if (rotation) {
+      transform += ` rotate(${rotation})`;
     }
     return transform;
   }
@@ -2222,8 +2227,8 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     let classStyle: PrimitiveStyle = {};
 
     // Check for style class reference
-    if ((primitive as any).styleClassId && styleClasses) {
-      const styleClass = styleClasses.find(c => c.id === (primitive as any).styleClassId);
+    if (primitive.styleClassId && styleClasses) {
+      const styleClass = styleClasses.find(c => c.id === primitive.styleClassId);
       if (styleClass) {
         classStyle = styleClass.style;
       }
@@ -2461,25 +2466,30 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
 
     // Build path data based on primitive type
     let pathData = '';
-    const config = (primitive as any).config;
 
     switch (primitive.type) {
-      case 'line':
-        pathData = `M ${config.start.x},${config.start.y} L ${config.end.x},${config.end.y}`;
+      case 'line': {
+        const lineConfig = (primitive as unknown as LinePrimitive).config;
+        pathData = `M ${lineConfig.start.x},${lineConfig.start.y} L ${lineConfig.end.x},${lineConfig.end.y}`;
         break;
+      }
 
-      case 'polyline':
-        if (config.points && config.points.length > 0) {
-          const points = config.points as { x: number; y: number }[];
+      case 'polyline': {
+        const polyConfig = (primitive as unknown as { config: PolygonConfig }).config;
+        if (polyConfig.points && polyConfig.points.length > 0) {
+          const points = polyConfig.points;
           pathData = 'M ' + points.map((p: { x: number; y: number }) =>
             `${p.x + (primitive.position?.x ?? 0)},${p.y + (primitive.position?.y ?? 0)}`
           ).join(' L ');
         }
         break;
+      }
 
-      case 'path':
-        pathData = config.d || '';
+      case 'path': {
+        const pathConfig = (primitive as unknown as { config: { d: string } }).config;
+        pathData = pathConfig.d || '';
         break;
+      }
 
       default:
         return '';
@@ -2510,8 +2520,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    * Checks if a primitive has a fillLevel set (for tank/battery visualization).
    */
   protected hasFillLevel(primitive: PrimitiveBase): boolean {
-    const config = (primitive as any).config;
-    return config?.fillLevel !== undefined && config.fillLevel >= 0 && config.fillLevel <= 1;
+    return primitive.fillLevel !== undefined && primitive.fillLevel >= 0 && primitive.fillLevel <= 1;
   }
 
   /**
@@ -2522,11 +2531,11 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     symbolInstance: SymbolInstance,
     styleClasses?: StyleClass[]
   ): SafeHtml {
-    const config = (primitive as any).config;
-    const fillLevel = config.fillLevel ?? 0;
-    const width = config.width ?? 100;
-    const height = config.height ?? 100;
-    const cornerRadius = config.cornerRadius ?? 0;
+    const rectConfig = (primitive as unknown as RectanglePrimitive).config;
+    const fillLevel = primitive.fillLevel ?? 0;
+    const width = rectConfig.width ?? 100;
+    const height = rectConfig.height ?? 100;
+    const cornerRadius = rectConfig.cornerRadius ?? 0;
 
     const clipId = `fill-clip-${symbolInstance.id}-${primitive.id}`;
     const shapeId = this.getSymbolShapeId(symbolInstance, primitive);
@@ -2584,7 +2593,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     const childIds = new Set<string>();
     for (const prim of allPrimitives) {
       if (prim.type === 'group') {
-        const groupConfig = (prim as any).config;
+        const groupConfig = (prim as unknown as GroupPrimitive).config;
         if (groupConfig?.childIds) {
           for (const childId of groupConfig.childIds) {
             childIds.add(childId);
@@ -2602,7 +2611,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    */
   protected getGroupChildPrimitives(symbolInstance: SymbolInstance, groupPrimitive: PrimitiveBase): PrimitiveBase[] {
     const allPrimitives = this.getSymbolPrimitives(symbolInstance);
-    const groupConfig = (groupPrimitive as any).config;
+    const groupConfig = (groupPrimitive as unknown as GroupPrimitive).config;
     const childIds = groupConfig?.childIds ?? [];
 
     // Return primitives that match the childIds, preserving order
@@ -2632,7 +2641,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    * converted to coordinates relative to the group's position.
    */
   protected getGroupChildLineCoords(child: PrimitiveBase, groupPrimitive: PrimitiveBase): { x1: number; y1: number; x2: number; y2: number } {
-    const config = (child as any).config;
+    const config = (child as unknown as LinePrimitive).config;
     const groupPos = groupPrimitive.position;
     return {
       x1: config.start.x - groupPos.x,
@@ -2646,7 +2655,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    * Gets polygon/polyline points adjusted for group offset.
    */
   protected getGroupChildPoints(child: PrimitiveBase, groupPrimitive: PrimitiveBase): string {
-    const config = (child as any).config;
+    const config = (child as unknown as { config: PolygonConfig }).config;
     const groupPos = groupPrimitive.position;
     const childPos = child.position;
     const points = config?.points ?? [];
@@ -2742,7 +2751,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    * Calculate bounding box for a group primitive based on its children
    */
   protected getGroupBounds(prim: PrimitiveBase): { x: number; y: number; width: number; height: number } {
-    const children = (prim as any).config?.children as PrimitiveBase[] | undefined;
+    const children = (prim as unknown as { config?: { children?: PrimitiveBase[] } }).config?.children;
     if (!children || children.length === 0) {
       return { x: prim.position.x, y: prim.position.y, width: 100, height: 100 };
     }
@@ -2774,22 +2783,24 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    */
   protected getPrimitiveBounds(prim: PrimitiveBase): { x: number; y: number; width: number; height: number } {
     const pos = prim.position;
-    const config = (prim as any).config;
+    const config = (prim as unknown as { config?: Record<string, unknown> }).config ?? {};
 
     switch (prim.type) {
       case 'rectangle':
-        return { x: pos.x, y: pos.y, width: config.width ?? 100, height: config.height ?? 100 };
+        return { x: pos.x, y: pos.y, width: (config['width'] as number) ?? 100, height: (config['height'] as number) ?? 100 };
       case 'ellipse':
-        return { x: pos.x, y: pos.y, width: (config.rx ?? 50) * 2, height: (config.ry ?? 50) * 2 };
+        return { x: pos.x, y: pos.y, width: ((config['rx'] as number) ?? 50) * 2, height: ((config['ry'] as number) ?? 50) * 2 };
       case 'line': {
-        const lineMinX = Math.min(config.start?.x ?? 0, config.end?.x ?? 0);
-        const lineMaxX = Math.max(config.start?.x ?? 0, config.end?.x ?? 0);
-        const lineMinY = Math.min(config.start?.y ?? 0, config.end?.y ?? 0);
-        const lineMaxY = Math.max(config.start?.y ?? 0, config.end?.y ?? 0);
+        const start = config['start'] as { x?: number; y?: number } | undefined;
+        const end = config['end'] as { x?: number; y?: number } | undefined;
+        const lineMinX = Math.min(start?.x ?? 0, end?.x ?? 0);
+        const lineMaxX = Math.max(start?.x ?? 0, end?.x ?? 0);
+        const lineMinY = Math.min(start?.y ?? 0, end?.y ?? 0);
+        const lineMaxY = Math.max(start?.y ?? 0, end?.y ?? 0);
         return { x: pos.x + lineMinX, y: pos.y + lineMinY, width: lineMaxX - lineMinX || 1, height: lineMaxY - lineMinY || 1 };
       }
       case 'text':
-        return { x: pos.x, y: pos.y, width: config.width ?? 100, height: config.fontSize ?? 14 };
+        return { x: pos.x, y: pos.y, width: (config['width'] as number) ?? 100, height: (config['fontSize'] as number) ?? 14 };
       case 'group':
         return this.getGroupBounds(prim);
       default:
@@ -3009,83 +3020,87 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     effectType: string,
     value: unknown
   ): PrimitiveBase {
-    const p = primitive as any;
+    // Use Record<string, unknown> for dynamic property access on cloned primitives
+    const p = primitive as unknown as Record<string, unknown>;
 
     switch (effectType) {
       case 'transform.rotation':
-        p.rotation = typeof value === 'number' ? value : 0;
+        p['rotation'] = typeof value === 'number' ? value : 0;
         break;
 
       case 'transform.offsetX':
         if (typeof value === 'number') {
-          p.position = { ...p.position, x: p.position.x + value };
+          primitive.position = { ...primitive.position, x: primitive.position.x + value };
         }
         break;
 
       case 'transform.offsetY':
         if (typeof value === 'number') {
-          p.position = { ...p.position, y: p.position.y + value };
+          primitive.position = { ...primitive.position, y: primitive.position.y + value };
         }
         break;
 
       case 'transform.scale':
         if (typeof value === 'number') {
-          p.scale = value;
+          p['scale'] = value;
         }
         break;
 
       case 'style.fill.color':
-        if (!p.style) p.style = {};
-        if (!p.style.fill) p.style.fill = {};
-        p.style.fill.color = String(value);
+        if (!primitive.style) primitive.style = {};
+        if (!primitive.style.fill) primitive.style.fill = {};
+        primitive.style.fill.color = String(value);
         break;
 
       case 'style.fill.opacity':
-        if (!p.style) p.style = {};
-        if (!p.style.fill) p.style.fill = {};
-        p.style.fill.opacity = typeof value === 'number' ? value : 1;
+        if (!primitive.style) primitive.style = {};
+        if (!primitive.style.fill) primitive.style.fill = {};
+        primitive.style.fill.opacity = typeof value === 'number' ? value : 1;
         break;
 
       case 'style.stroke.color':
-        if (!p.style) p.style = {};
-        if (!p.style.stroke) p.style.stroke = {};
-        p.style.stroke.color = String(value);
+        if (!primitive.style) primitive.style = {};
+        if (!primitive.style.stroke) primitive.style.stroke = {};
+        primitive.style.stroke.color = String(value);
         break;
 
       case 'style.stroke.opacity':
-        if (!p.style) p.style = {};
-        if (!p.style.stroke) p.style.stroke = {};
-        p.style.stroke.opacity = typeof value === 'number' ? value : 1;
+        if (!primitive.style) primitive.style = {};
+        if (!primitive.style.stroke) primitive.style.stroke = {};
+        primitive.style.stroke.opacity = typeof value === 'number' ? value : 1;
         break;
 
       case 'style.opacity':
-        if (!p.style) p.style = {};
-        p.style.opacity = typeof value === 'number' ? value : 1;
+        if (!primitive.style) primitive.style = {};
+        primitive.style.opacity = typeof value === 'number' ? value : 1;
         break;
 
       case 'visible':
-        p.visible = Boolean(value);
+        primitive.visible = Boolean(value);
         break;
 
       case 'fillLevel':
-        // fillLevel is stored in config for rendering
-        if (!p.config) p.config = {};
-        p.config.fillLevel = typeof value === 'number' ? Math.max(0, Math.min(1, value)) : 0;
+        // fillLevel is stored on the primitive base for rendering
+        primitive.fillLevel = typeof value === 'number' ? Math.max(0, Math.min(1, value)) : 0;
         break;
 
-      case 'dimension.width':
-        if (!p.config) p.config = {};
+      case 'dimension.width': {
+        const configW = p['config'] as Record<string, unknown> | undefined;
+        if (!configW) p['config'] = {};
         if (typeof value === 'number') {
-          p.config.width = value;
+          (p['config'] as Record<string, unknown>)['width'] = value;
         }
         break;
+      }
 
-      case 'dimension.height':
-        if (!p.config) p.config = {};
+      case 'dimension.height': {
+        const configH = p['config'] as Record<string, unknown> | undefined;
+        if (!configH) p['config'] = {};
         if (typeof value === 'number') {
-          p.config.height = value;
+          (p['config'] as Record<string, unknown>)['height'] = value;
         }
         break;
+      }
     }
 
     return primitive;

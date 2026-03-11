@@ -9,8 +9,8 @@ import { ListViewComponent } from './list-view.component';
 describe('MmTableComponent', () => {
   let component: ListViewComponent;
   let fixture: ComponentFixture<ListViewComponent>;
-  let mockRouter: any;
-  let mockCommandSettingsService: any;
+  let mockRouter: { navigate: jasmine.Spy };
+  let mockCommandSettingsService: { navigateRelativeToRoute: Record<string, unknown>; commandItems: unknown[] };
 
   beforeEach(async () => {
     mockRouter = {

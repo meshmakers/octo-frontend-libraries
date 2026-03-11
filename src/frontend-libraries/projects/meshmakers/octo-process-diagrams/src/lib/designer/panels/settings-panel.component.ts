@@ -2,7 +2,9 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputsModule, NumericTextBoxModule } from '@progress/kendo-angular-inputs';
-import { IDockviewPanelProps } from '../dockview/dockview.component';
+import { DockviewApi } from 'dockview-core';
+import { IDockviewPanelProps, DockviewPanelApi } from '../dockview/dockview.component';
+import { SymbolSettings } from '../process-designer.component';
 
 /**
  * Settings panel for symbol editing within dockview
@@ -139,19 +141,23 @@ import { IDockviewPanelProps } from '../dockview/dockview.component';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsPanelComponent implements IDockviewPanelProps {
-  api: any;
-  containerApi: any;
-  params: Record<string, any> = {};
+  api!: DockviewPanelApi;
+  containerApi!: DockviewApi;
+  params: Record<string, unknown> = {};
 
-  get settings(): any {
-    return this.params['settings']?.() ?? this.params['settings'];
+  get settings(): SymbolSettings | null {
+    const settingsParam = this.params['settings'];
+    if (typeof settingsParam === 'function') {
+      return (settingsParam as () => SymbolSettings | null)();
+    }
+    return settingsParam as SymbolSettings | null ?? null;
   }
 
-  get onSettingsChange(): ((key: string, value: any) => void) | undefined {
-    return this.params['onSettingsChange'];
+  get onSettingsChange(): ((key: string, value: string | number) => void) | undefined {
+    return this.params['onSettingsChange'] as ((key: string, value: string | number) => void) | undefined;
   }
 
-  onSettingChange(key: string, value: any): void {
+  onSettingChange(key: string, value: string | number): void {
     if (this.onSettingsChange) {
       this.onSettingsChange(key, value);
     }

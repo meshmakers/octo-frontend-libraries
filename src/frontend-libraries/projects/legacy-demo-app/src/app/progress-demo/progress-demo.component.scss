@@ -1,0 +1,51 @@
+.demo-container {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+
+  h1 {
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    margin-top: 32px;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    margin-bottom: 32px;
+    opacity: 0.7;
+
+    code {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  p {
+    opacity: 0.7;
+    margin-bottom: 16px;
+  }
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.status-text {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 14px;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 32px 0;
+}

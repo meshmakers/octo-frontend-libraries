@@ -1,5 +1,6 @@
-import { Directive, OnDestroy, OnInit, inject } from "@angular/core";
+import { ChangeDetectorRef, Directive, OnDestroy, OnInit, inject } from "@angular/core";
 import {DataBindingDirective, GridComponent} from "@progress/kendo-angular-grid";
+import {CompositeFilterDescriptor} from "@progress/kendo-data-query";
 import {Observable, of, Subscription} from "rxjs";
 import {DataSourceBase} from "../data-sources/data-source-base";
 
@@ -28,16 +29,21 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
 
   constructor() {
     const grid = inject(GridComponent);
+    const changeDetector = inject(ChangeDetectorRef);
 
-    super(grid);
+    super(grid, changeDetector);
     this._serviceSubscription = null;
     this._executeFilterSubscription = null;
     this._fetchAgainSubscription = null;
     this._refreshDataSubscription = null;
   }
 
-  public override async ngOnInit(): Promise<void> {
+  public override ngOnInit(): void {
     super.ngOnInit();
+
+    if (!this.dataSource) {
+      return;
+    }
 
     this._fetchAgainSubscription = this.dataSource.fetchAgainEvent.subscribe(() => {
       this._forceRefresh = true;
@@ -67,12 +73,22 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
 
   // noinspection JSUnusedGlobalSymbols
 
+  /**
+   * Triggers a rebind when the filter state changes programmatically.
+   * Syncs the grid's filter into the DataBindingDirective state before rebinding.
+   */
+  public notifyFilterChange(filter: CompositeFilterDescriptor): void {
+    this.state.filter = filter;
+    this.rebind();
+  }
+
   public override rebind(): void {
     try {
       if (!this.dataSource) {
         return;
       }
-      this.grid.loading = true;
+      // Only use dataSource.setLoading() (tracked via isLoading$ / isLoading signal).
+      // Do NOT set grid.loading directly — it triggers Kendo's internal loading overlay.
       this.dataSource.setLoading(true);
       const forceRefresh = this._forceRefresh;
       this._forceRefresh = false; // Reset for next call
@@ -83,21 +99,20 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
         forceRefresh
       }).subscribe({
         next: value => {
-          this.grid.loading = false;
           this.dataSource.setLoading(false);
           this.grid.data = {
-            data: value?.data || [],
+            data: (value?.data ?? []) as unknown[],
             total: value?.totalCount || 0
           }
           this.notifyDataChange();
         },
-        error: () => {
-          this.grid.loading = false;
+        error: (err) => {
+          console.error('[MmListViewDataBinding] fetchData error:', err);
           this.dataSource.setLoading(false);
         }
       });
-    } catch {
-      this.grid.loading = false;
+    } catch (e) {
+      console.error('[MmListViewDataBinding] rebind() caught error:', e);
       this.dataSource.setLoading(false);
     }
   }

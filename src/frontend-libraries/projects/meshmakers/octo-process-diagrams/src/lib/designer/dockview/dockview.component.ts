@@ -45,7 +45,7 @@ export interface DockviewReadyEvent {
 export interface DockviewPanelApi {
   readonly id: string;
   readonly title: string | undefined;
-  readonly params: Record<string, any>;
+  readonly params: Record<string, unknown>;
 }
 
 /**
@@ -54,7 +54,7 @@ export interface DockviewPanelApi {
 export interface IDockviewPanelProps {
   api: DockviewPanelApi;
   containerApi: DockviewApi;
-  params: Record<string, any>;
+  params: Record<string, unknown>;
 }
 
 /**
@@ -74,12 +74,12 @@ export class DockviewComponent implements OnInit, OnDestroy, OnChanges {
   private containerRef!: ElementRef<HTMLElement>;
 
   @Input() components!: Record<string, Type<IDockviewPanelProps>>;
-  @Input() tabComponents?: Record<string, Type<any>>;
-  @Input() watermarkComponent?: Type<any>;
-  @Input() defaultTabComponent?: Type<any>;
-  @Input() leftHeaderActionsComponent?: Type<any>;
-  @Input() rightHeaderActionsComponent?: Type<any>;
-  @Input() prefixHeaderActionsComponent?: Type<any>;
+  @Input() tabComponents?: Record<string, Type<unknown>>;
+  @Input() watermarkComponent?: Type<unknown>;
+  @Input() defaultTabComponent?: Type<unknown>;
+  @Input() leftHeaderActionsComponent?: Type<unknown>;
+  @Input() rightHeaderActionsComponent?: Type<unknown>;
+  @Input() prefixHeaderActionsComponent?: Type<unknown>;
 
   // Dockview core options (from DockviewOptions)
   @Input() className?: string;
@@ -93,7 +93,7 @@ export class DockviewComponent implements OnInit, OnDestroy, OnChanges {
   @Output() willDrop = new EventEmitter<DockviewWillDropEvent>();
 
   private dockviewApi?: DockviewApi;
-  private componentRefs = new Map<string, ComponentRef<any>>();
+  private componentRefs = new Map<string, ComponentRef<IDockviewPanelProps>>();
   private disposables: (() => void)[] = [];
 
   private readonly injector = inject(Injector);
@@ -180,7 +180,7 @@ export class DockviewComponent implements OnInit, OnDestroy, OnChanges {
     element.style.height = '100%';
     element.style.overflow = 'auto';
 
-    let componentRef: ComponentRef<any> | null = null;
+    let componentRef: ComponentRef<IDockviewPanelProps> | null = null;
 
     return {
       element,

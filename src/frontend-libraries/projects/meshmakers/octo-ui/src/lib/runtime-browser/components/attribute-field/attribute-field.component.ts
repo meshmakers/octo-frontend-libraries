@@ -59,7 +59,7 @@ export class AttributeFieldComponent {
 
   // ─── Optional inputs (display & behaviour) ──────────────────────────────────────────
   /** Value to restore on UNDO. If not set, UNDO resets to null. */
-  baselineValue = input<any>();
+  baselineValue = input<unknown>();
   fieldId = input<string>("");
   overrideLabelText = input<string>();
   showUndoButton = input(true);

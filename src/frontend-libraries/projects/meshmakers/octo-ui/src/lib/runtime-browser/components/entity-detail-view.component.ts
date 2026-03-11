@@ -38,6 +38,7 @@ import {
   PropertyConverterService,
   PropertyGridComponent,
   PropertyGridConfig,
+  PropertyChangeEvent,
   PropertyGridItem,
 } from "../../property-grid";
 import {
@@ -347,7 +348,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   @Input() showHeader = true;
 
   @Output() retry = new EventEmitter<void>();
-  @Output() propertyChange = new EventEmitter<any>();
+  @Output() propertyChange = new EventEmitter<PropertyChangeEvent>();
   @Output() navigateToEntity = new EventEmitter<{
     rtId: string;
     ckTypeId: string;
@@ -453,7 +454,8 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     }
 
     // Convert entity to property grid items using the converter service
-    this.propertyConverter.convertRtEntityToProperties(this.entity).subscribe({
+    const mappedEntity = this.toPropertyEntity(this.entity);
+    this.propertyConverter.convertRtEntityToProperties(mappedEntity).subscribe({
       next: (items: PropertyGridItem[]) => {
         this.propertyGridItems = items;
       },
@@ -462,6 +464,41 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
         this.propertyGridItems = [];
       },
     });
+  }
+
+  private toPropertyEntity(entity: RtEntityDto): {
+    rtId?: string;
+    ckTypeId?: string;
+    rtCreationDateTime?: string;
+    rtChangedDateTime?: string;
+    rtWellKnownName?: string;
+    attributes?: { items?: { attributeName?: string | null; value?: unknown }[] };
+  } {
+    const attributeItems = (entity.attributes?.items ?? []).filter(
+      (
+        item
+      ): item is { attributeName?: string | null; value?: unknown } =>
+        item != null
+    );
+    return {
+      rtId: entity.rtId,
+      ckTypeId: entity.ckTypeId,
+      rtCreationDateTime: this.normalizeDateValue(entity.rtCreationDateTime),
+      rtChangedDateTime: this.normalizeDateValue(entity.rtChangedDateTime),
+      rtWellKnownName: entity.rtWellKnownName ?? undefined,
+      attributes: attributeItems.length > 0 ? { items: attributeItems } : undefined
+    };
+  }
+
+  private normalizeDateValue(value: unknown): string | undefined {
+    if (typeof value === "string") {
+      return value;
+    }
+    if (value instanceof Date) {
+      const time = value.getTime();
+      return isNaN(time) ? undefined : value.toISOString();
+    }
+    return undefined;
   }
 
   protected onTabSelect(event: SelectEvent): void {

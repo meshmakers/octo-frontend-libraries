@@ -1,0 +1,38 @@
+<div class="table-demo-container">
+  <h1>Customer Table</h1>
+  <p>Loads <code>OctoSdkDemo/Customer</code> entities from the <code>meshtest</code> tenant via GraphQL with sorting, pagination, search, and action columns.</p>
+
+  <span class="last-action" *ngIf="lastAction">{{ lastAction }}</span>
+
+  <mm-octo-table
+    [dataSource]="customerDataSource"
+    [columns]="[
+      { dataKey: 'contact.firstName', displayName: 'First Name' },
+      { dataKey: 'contact.lastName', displayName: 'Last Name' },
+      { dataKey: 'contact.companyName', displayName: 'Company' },
+      { dataKey: 'customerStatus', displayName: 'Status' },
+      { dataKey: 'contact.address.cityTown', displayName: 'City' },
+      { dataKey: 'contact.address.nationalCode', displayName: 'Country' }
+    ]"
+    [actionColumns]="[
+      { actionId: 'view', displayText: 'View', iconName: 'visibility' }
+    ]"
+    [searchFilterColumns]="['contact.firstName', 'contact.lastName', 'contact.companyName', 'contact.address.cityTown']"
+    [currentId]="'rtId'"
+    [defaultSortColumn]="'contact.lastName'"
+    [selectedPageSize]="10"
+    [pageSizeOptions]="[5, 10, 20]"
+    (rowClicked)="onRowClicked($event)"
+    (actionColumnClick)="onActionColumnClick($event)"
+  ></mm-octo-table>
+
+  <div class="selected-row" *ngIf="selectedRow?.contact">
+    <h3>Selected Customer</h3>
+    <p>
+      <strong>{{ selectedRow?.contact?.firstName }} {{ selectedRow?.contact?.lastName }}</strong>
+      <span *ngIf="selectedRow?.contact?.companyName"> &mdash; {{ selectedRow?.contact?.companyName }}</span>
+    </p>
+    <p>{{ selectedRow?.contact?.address?.street }}, {{ selectedRow?.contact?.address?.zipcode }} {{ selectedRow?.contact?.address?.cityTown }}, {{ selectedRow?.contact?.address?.nationalCode }}</p>
+    <p>Status: {{ selectedRow?.customerStatus }} | RT ID: {{ selectedRow?.rtId }}</p>
+  </div>
+</div>

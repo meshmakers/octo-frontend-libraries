@@ -2,6 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { Observable, map, catchError, of } from "rxjs";
 import { AttributeMapperService } from "./attribute-mapper.service";
 import { Attribute } from "../models/attribute";
+import { CkAttributeMetadata } from "../models/attribute-metadata";
 import { GetCkAttributesDetailedDtoGQL } from "../graphQL/getCkAttributesDetailed";
 import { GetCkRecordDetailedDtoGQL } from "../graphQL/getCkRecordDetailed";
 import { GetRuntimeEntityByIdDtoGQL } from "../graphQL/getRuntimeEntityById";
@@ -61,26 +62,36 @@ export class AttributeDataService {
     });
   }
 
-  private fetchCkAttributes(ckTypeId: string): Observable<any[]> {
+  private fetchCkAttributes(ckTypeId: string): Observable<CkAttributeMetadata[]> {
     return this.getCkAttributesDetailedGQL
       .fetch({ variables: { ckId: ckTypeId } })
       .pipe(
         map(
           (res) =>
-            res.data?.constructionKit?.types?.items?.[0]?.attributes?.items ??
-            [],
+            (
+              res.data?.constructionKit?.types?.items?.[0]?.attributes?.items ??
+              []
+            ).filter(
+              (item): item is NonNullable<typeof item> => item != null,
+            ) as CkAttributeMetadata[],
         ),
       );
   }
 
-  private fetchCkRecordAttributes(ckRecordId: string): Observable<any[]> {
+  private fetchCkRecordAttributes(
+    ckRecordId: string,
+  ): Observable<CkAttributeMetadata[]> {
     return this.getCkRecordDetailedGQL
       .fetch({ variables: { ckId: ckRecordId } })
       .pipe(
         map(
           (res) =>
-            res.data?.constructionKit?.records?.items?.[0]?.attributes?.items ??
-            [],
+            (
+              res.data?.constructionKit?.records?.items?.[0]?.attributes?.items ??
+              []
+            ).filter(
+              (item): item is NonNullable<typeof item> => item != null,
+            ) as CkAttributeMetadata[],
         ),
       );
   }
@@ -89,13 +100,28 @@ export class AttributeDataService {
   private fetchRtEntityAttributes(
     rtId: string,
     ckTypeId: string,
-  ): Observable<any[]> {
+  ): Observable<RtEntityValuesResponse["initial"]> {
     return this.getRtEntityAttributesGQL
       .fetch({ variables: { rtId: rtId, ckTypeId: ckTypeId } })
       .pipe(
         map((res) => {
-          const items = res.data?.runtime?.runtimeEntities?.items;
-          return items?.[0]?.attributes?.items ?? [];
+          const items =
+            res.data?.runtime?.runtimeEntities?.items?.[0]?.attributes?.items ??
+            [];
+          return items
+            .filter(
+              (
+                item
+              ): item is {
+                attributeName?: string | null;
+                value?: unknown | null;
+              } =>
+                !!item?.attributeName,
+            )
+            .map((item) => ({
+              attributeName: item.attributeName ?? "",
+              value: item.value ?? null,
+            }));
         }),
       );
   }

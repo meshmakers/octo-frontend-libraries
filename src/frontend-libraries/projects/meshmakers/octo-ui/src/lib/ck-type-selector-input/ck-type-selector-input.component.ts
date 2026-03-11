@@ -7,7 +7,8 @@ import {
   EventEmitter,
   forwardRef,
   ViewChild,
-  inject
+  inject,
+  ElementRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -20,14 +21,25 @@ import {
   ValidationErrors,
   NG_VALIDATORS
 } from '@angular/forms';
-import { AutoCompleteModule, AutoCompleteComponent } from '@progress/kendo-angular-dropdowns';
+import { AutoCompleteModule, AutoCompleteComponent, PopupSettings } from '@progress/kendo-angular-dropdowns';
 import { LoaderModule } from '@progress/kendo-angular-indicators';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IconsModule, SVGIconModule } from '@progress/kendo-angular-icons';
 import { searchIcon } from '@progress/kendo-svg-icons';
-import { CkTypeSelectorService, CkTypeSelectorItem } from '@meshmakers/octo-services';
+import {
+  CkTypeSelectorService,
+  CkTypeSelectorItem,
+  CkTypeSelectorResult
+} from '@meshmakers/octo-services';
 import { Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap, tap, catchError } from 'rxjs/operators';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  tap,
+  catchError,
+  map
+} from 'rxjs/operators';
 import { of } from 'rxjs';
 import { CkTypeSelectorDialogService } from '../ck-type-selector-dialog/ck-type-selector-dialog.service';
 
@@ -66,6 +78,7 @@ import { CkTypeSelectorDialogService } from '../ck-type-selector-dialog/ck-type-
         [suggest]="true"
         [clearButton]="true"
         [filterable]="true"
+        [popupSettings]="popupSettings"
         (filterChange)="onFilterChange($event)"
         (valueChange)="onSelectionChange($event)"
         (blur)="onBlur()"
@@ -185,6 +198,7 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
   @Input() allowAbstract = false;
   @Input() dialogTitle = 'Select Construction Kit Type';
   @Input() advancedSearchLabel = 'Advanced Search...';
+  @Input() derivedFromRtCkTypeId?: string;
 
   private _disabled = false;
   @Input()
@@ -224,12 +238,16 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
   private onTouched: () => void = () => { /* noop */ };
 
   protected readonly searchIcon = searchIcon;
+  protected popupSettings: PopupSettings = { appendTo: 'root', popupClass: 'mm-ck-type-popup' };
 
+  private static popupStyleInjected = false;
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private readonly dialogService = inject(CkTypeSelectorDialogService, { optional: true });
+  private readonly elementRef = inject(ElementRef);
 
   ngOnInit(): void {
     this.setupSearch();
+    this.injectPopupStyles();
   }
 
   ngOnDestroy(): void {
@@ -344,31 +362,118 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
           this.isLoading = true;
           this.filteredTypes = [];
         }),
-        switchMap(filter =>
-          this.ckTypeSelectorService.getCkTypes({
-            ckModelIds: this.ckModelIds,
-            searchText: filter,
-            first: this.maxResults
-          }).pipe(
+        switchMap(filter => {
+          const source$ = this.derivedFromRtCkTypeId
+            ? this.getDerivedTypes(filter)
+            : this.ckTypeSelectorService.getCkTypes({
+                ckModelIds: this.ckModelIds,
+                searchText: filter,
+                first: this.maxResults
+              });
+          return source$.pipe(
             catchError(error => {
               console.error('CK type search error:', error);
               return of({ items: [], totalCount: 0 });
             })
-          )
-        )
-      ).subscribe(result => {
+          );
+        })
+      ).subscribe((result: CkTypeSelectorResult) => {
         this.isLoading = false;
 
         // Filter out abstract types if not allowed
         let items = result.items;
         if (!this.allowAbstract) {
-          items = items.filter(item => !item.isAbstract);
+          items = items.filter((item: CkTypeSelectorItem) => !item.isAbstract);
         }
 
-        this.filteredTypes = items.map(item => item.rtCkTypeId);
-        this.typeMap = new Map(items.map(item => [item.rtCkTypeId, item]));
+        this.filteredTypes = items.map((item: CkTypeSelectorItem) => item.rtCkTypeId);
+        this.typeMap = new Map(
+          items.map((item: CkTypeSelectorItem) => [item.rtCkTypeId, item])
+        );
       })
     );
+  }
+
+  private getDerivedTypes(filter: string) {
+    const derivedService = this.ckTypeSelectorService as {
+      getDerivedCkTypes?: (
+        rtCkTypeId: string,
+        options?: {
+          searchText?: string;
+          ignoreAbstractTypes?: boolean;
+          includeSelf?: boolean;
+        }
+      ) => import('rxjs').Observable<CkTypeSelectorResult>;
+    };
+
+    if (derivedService.getDerivedCkTypes) {
+      return derivedService.getDerivedCkTypes(this.derivedFromRtCkTypeId!, {
+        searchText: filter
+      });
+    }
+
+    return this.ckTypeSelectorService
+      .getCkTypes({
+        searchText: filter,
+        first: this.maxResults,
+        skip: 0
+      })
+      .pipe(
+        map(result =>
+          this.filterDerivedTypesFallback(result, this.derivedFromRtCkTypeId!)
+        )
+      );
+  }
+
+  private filterDerivedTypesFallback(
+    result: CkTypeSelectorResult,
+    baseRtCkTypeId: string
+  ): CkTypeSelectorResult {
+    const allowed = new Set<string>([baseRtCkTypeId]);
+    let changed = true;
+
+    while (changed) {
+      changed = false;
+      for (const item of result.items) {
+        if (
+          item.baseTypeRtCkTypeId &&
+          allowed.has(item.baseTypeRtCkTypeId) &&
+          !allowed.has(item.rtCkTypeId)
+        ) {
+          allowed.add(item.rtCkTypeId);
+          changed = true;
+        }
+      }
+    }
+
+    const items = result.items.filter(item =>
+      allowed.has(item.rtCkTypeId) && (this.allowAbstract || !item.isAbstract)
+    );
+
+    return { items, totalCount: items.length };
+  }
+
+  private injectPopupStyles(): void {
+    if (CkTypeSelectorInputComponent.popupStyleInjected) return;
+    const style = document.createElement('style');
+    style.setAttribute('data-mm-ck-type-popup', '');
+    style.textContent = `
+      .mm-ck-type-popup {
+        max-width: 500px !important;
+        min-width: 0 !important;
+      }
+      .mm-ck-type-popup .k-child-animation-container {
+        max-width: 500px !important;
+      }
+      .mm-ck-type-popup .k-list-item {
+        padding: 4px 12px !important;
+        min-height: 0 !important;
+        font-size: 13px !important;
+        line-height: 20px !important;
+      }
+    `;
+    document.head.appendChild(style);
+    CkTypeSelectorInputComponent.popupStyleInjected = true;
   }
 
   private selectCkType(ckType: CkTypeSelectorItem): void {
@@ -398,7 +503,8 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
       selectedCkTypeId: this.selectedCkType?.fullName,
       ckModelIds: this.ckModelIds,
       dialogTitle: this.dialogTitle,
-      allowAbstract: this.allowAbstract
+      allowAbstract: this.allowAbstract,
+      derivedFromRtCkTypeId: this.derivedFromRtCkTypeId
     });
 
     if (result.confirmed && result.selectedCkType) {

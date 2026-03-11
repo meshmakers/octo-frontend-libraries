@@ -14,9 +14,9 @@ describe('RuntimeBrowserStateService', () => {
   const createTreeItem = (
     id: string,
     text: string,
-    item: any,
-  ): TreeItemDataTyped<any> => {
-    return new TreeItemDataTyped<any>(id, text, '', item, fileIcon, false);
+    item: RtEntityDto,
+  ): TreeItemDataTyped<RtEntityDto> => {
+    return new TreeItemDataTyped<RtEntityDto>(id, text, '', item, fileIcon, false);
   };
 
   beforeEach(async () => {
@@ -37,10 +37,10 @@ describe('RuntimeBrowserStateService', () => {
 
   describe('saveState (deprecated)', () => {
     it('should save state with selected item', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',
@@ -56,14 +56,14 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should save state with parent path', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'child-1',
         ckTypeId: 'Test/Child',
-      };
-      const parentEntity: Partial<RtEntityDto> = {
+      } as RtEntityDto;
+      const parentEntity = {
         rtId: 'parent-1',
         ckTypeId: 'Test/Parent',
-      };
+      } as RtEntityDto;
 
       const childItem = createTreeItem('Test/Child@child-1', 'Child', rtEntity);
       const parentItem = createTreeItem(
@@ -80,10 +80,10 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should clear state when null item is passed', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',
@@ -100,10 +100,10 @@ describe('RuntimeBrowserStateService', () => {
 
   describe('saveStateWithKeys', () => {
     it('should save state with expanded keys', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',
@@ -120,10 +120,10 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should clear state when null item is passed', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',
@@ -144,10 +144,10 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should return saved state when valid', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',
@@ -174,17 +174,17 @@ describe('RuntimeBrowserStateService', () => {
       service.saveState(item);
 
       // Modify timestamp to be older than 5 minutes
-      const state = (service as any).currentState as BrowserState;
+      const state = (service as unknown as { currentState: BrowserState }).currentState;
       state.timestamp = Date.now() - 300001; // 5 minutes + 1 ms
 
       expect(service.getState()).toBeNull();
     });
 
     it('should clear expired state on access', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',
@@ -192,20 +192,22 @@ describe('RuntimeBrowserStateService', () => {
       );
 
       service.saveState(item);
-      const state = (service as any).currentState as BrowserState;
+      const state = (service as unknown as { currentState: BrowserState }).currentState;
       state.timestamp = Date.now() - 400000; // Expired
 
       service.getState(); // Should clear state
-      expect((service as any).currentState).toBeNull();
+      expect(
+        (service as unknown as { currentState: BrowserState | null }).currentState,
+      ).toBeNull();
     });
   });
 
   describe('clearState', () => {
     it('should clear the saved state', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',
@@ -222,10 +224,10 @@ describe('RuntimeBrowserStateService', () => {
 
   describe('isItemMatching', () => {
     it('should return true when item matches saved state', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',

@@ -13,7 +13,8 @@ import {
   xIcon,
   gridLayoutIcon,
   downloadIcon,
-  uploadIcon
+  uploadIcon,
+  copyIcon
 } from '@progress/kendo-svg-icons';
 import { AssetRepoService, JobManagementService, TENANT_ID_PROVIDER, TenantIdProvider } from '@meshmakers/octo-services';
 import { ImportStrategyDialogService } from '@meshmakers/shared-ui';
@@ -57,8 +58,8 @@ export class MeshBoardManagerDialogComponent implements OnInit {
   // Dashboard CK Type ID for export
   private readonly DASHBOARD_CK_TYPE_ID = 'System.UI/Dashboard';
 
-  // Separator used in description to encode variables (same as in persistence service)
-  private readonly VARIABLES_SEPARATOR = '\n---MESHBOARD_VARIABLES---\n';
+  // Marker used in description to encode variables (same as in persistence service)
+  private readonly VARIABLES_MARKER = '---MESHBOARD_VARIABLES---';
 
   /**
    * Gets the tenant ID provider from either external property or DI.
@@ -76,10 +77,12 @@ export class MeshBoardManagerDialogComponent implements OnInit {
   protected readonly gridLayoutIcon = gridLayoutIcon;
   protected readonly downloadIcon = downloadIcon;
   protected readonly uploadIcon = uploadIcon;
+  protected readonly copyIcon = copyIcon;
 
-  // Export/Import state
+  // Export/Import/Duplicate state
   protected readonly isExporting = signal(false);
   protected readonly isImporting = signal(false);
+  protected readonly isDuplicating = signal(false);
 
   // State - use computed to ensure reactivity
   protected readonly meshBoards = computed(() => this.stateService.availableMeshBoards());
@@ -90,6 +93,8 @@ export class MeshBoardManagerDialogComponent implements OnInit {
   protected readonly editingId = signal<string | null>(null);
   protected readonly editingName = signal('');
   protected readonly editingDescription = signal('');
+  /** Preserved encoded suffix (variables/timeFilter) from the raw description */
+  private editingEncodedSuffix = '';
 
   // Create new state
   protected readonly isCreating = signal(false);
@@ -132,10 +137,27 @@ export class MeshBoardManagerDialogComponent implements OnInit {
     if (!meshBoard.description) {
       return '';
     }
-    if (!meshBoard.description.includes(this.VARIABLES_SEPARATOR)) {
+    const markerIndex = meshBoard.description.indexOf(this.VARIABLES_MARKER);
+    if (markerIndex === -1) {
       return meshBoard.description;
     }
-    return meshBoard.description.split(this.VARIABLES_SEPARATOR)[0];
+    return meshBoard.description.substring(0, markerIndex).replace(/\n+$/, '');
+  }
+
+  /**
+   * Gets the encoded suffix (variables/timeFilter) from a MeshBoard's raw description.
+   * Returns the suffix including the marker and JSON, or empty string if none.
+   */
+  private getEncodedSuffix(meshBoard: PersistedMeshBoard): string {
+    if (!meshBoard.description) {
+      return '';
+    }
+    const markerIndex = meshBoard.description.indexOf(this.VARIABLES_MARKER);
+    if (markerIndex === -1) {
+      return '';
+    }
+    // Include a newline before the marker to separate from the user description
+    return '\n' + meshBoard.description.substring(markerIndex);
   }
 
   /**
@@ -171,6 +193,8 @@ export class MeshBoardManagerDialogComponent implements OnInit {
     this.editingName.set(meshBoard.name);
     // Use decoded description without the encoded variables/timeFilter
     this.editingDescription.set(this.getDisplayDescription(meshBoard));
+    // Preserve the encoded suffix so it can be re-appended on save
+    this.editingEncodedSuffix = this.getEncodedSuffix(meshBoard);
   }
 
   /**
@@ -180,10 +204,13 @@ export class MeshBoardManagerDialogComponent implements OnInit {
     this.editingId.set(null);
     this.editingName.set('');
     this.editingDescription.set('');
+    this.editingEncodedSuffix = '';
   }
 
   /**
    * Saves the edited MeshBoard.
+   * Re-appends the encoded variables/timeFilter suffix to the description
+   * so that variables and time filter settings are not lost on rename.
    */
   async saveEdit(): Promise<void> {
     const id = this.editingId();
@@ -193,10 +220,12 @@ export class MeshBoardManagerDialogComponent implements OnInit {
 
     this.isLoading.set(true);
     try {
+      // Re-append the encoded suffix to preserve variables/timeFilter
+      const description = this.editingDescription().trim() + this.editingEncodedSuffix;
       await this.stateService.renameMeshBoard(
         id,
         this.editingName().trim(),
-        this.editingDescription().trim()
+        description
       );
       this.cancelEdit();
     } catch (err) {
@@ -222,6 +251,20 @@ export class MeshBoardManagerDialogComponent implements OnInit {
       console.error('Error deleting MeshBoard:', err);
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  /**
+   * Duplicates a MeshBoard including all widgets, variables, and time filter settings.
+   */
+  async duplicate(meshBoard: PersistedMeshBoard): Promise<void> {
+    this.isDuplicating.set(true);
+    try {
+      await this.stateService.duplicateMeshBoard(meshBoard.rtId);
+    } catch (err) {
+      console.error('Error duplicating MeshBoard:', err);
+    } finally {
+      this.isDuplicating.set(false);
     }
   }
 

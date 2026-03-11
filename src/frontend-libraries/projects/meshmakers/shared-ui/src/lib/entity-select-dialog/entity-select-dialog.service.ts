@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { DialogService } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { firstValueFrom } from 'rxjs';
 import { EntitySelectDialogComponent } from './entity-select-dialog.component';
 import {
@@ -10,7 +10,7 @@ import {
 
 @Injectable()
 export class EntitySelectDialogService {
-  private readonly dialogService = inject(DialogService);
+  private readonly windowService = inject(WindowService);
 
   /**
    * Opens the entity select dialog
@@ -22,21 +22,33 @@ export class EntitySelectDialogService {
     dataSource: EntitySelectDialogDataSource<T>,
     options: EntitySelectDialogOptions<T>
   ): Promise<EntitySelectDialogResult<T> | null> {
-    const dialogRef = this.dialogService.open({
+    const windowRef = this.windowService.open({
       title: options.title,
       content: EntitySelectDialogComponent,
       width: options.width ?? 800,
-      height: options.height ?? 600
+      height: options.height ?? 600,
+      minWidth: 550,
+      minHeight: 400,
+      resizable: true
     });
 
-    const component = dialogRef.content.instance as EntitySelectDialogComponent<T>;
-    component.dataSource = dataSource;
-    component.multiSelect = options.multiSelect ?? false;
-    component.preSelectedEntities = options.selectedEntities ?? [];
+    const contentRef = windowRef.content as { instance?: EntitySelectDialogComponent<T> } | undefined;
+    if (contentRef?.instance) {
+      contentRef.instance.dataSource = dataSource;
+      contentRef.instance.multiSelect = options.multiSelect ?? false;
+      contentRef.instance.preSelectedEntities = options.selectedEntities ?? [];
+      if (options.messages) {
+        contentRef.instance.messages = options.messages;
+      }
+    }
 
-    const result = await firstValueFrom(dialogRef.result);
+    const result = await firstValueFrom(windowRef.result);
 
-    if (result instanceof Object && 'selectedEntities' in result) {
+    if (result instanceof WindowCloseResult) {
+      return null;
+    }
+
+    if (result && typeof result === 'object' && 'selectedEntities' in result) {
       return result as EntitySelectDialogResult<T>;
     }
 

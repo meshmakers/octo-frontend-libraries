@@ -1,8 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { Apollo } from 'apollo-angular';
 import { AttributeSelectorService } from './attribute-selector.service';
-import { GetCkTypeAvailableQueryColumnsDtoGQL } from '../graphQL/getCkTypeAvailableQueryColumns';
+import { GetCkTypeAvailableQueryColumnsDtoGQL, GetCkTypeAvailableQueryColumnsQueryDto } from '../graphQL/getCkTypeAvailableQueryColumns';
 import { AttributeValueTypeDto } from '../graphQL/globalTypes';
+
+type MockQueryResult = Apollo.QueryResult<GetCkTypeAvailableQueryColumnsQueryDto>;
 
 describe('AttributeSelectorService', () => {
   let service: AttributeSelectorService;
@@ -41,7 +44,7 @@ describe('AttributeSelectorService', () => {
     },
     loading: false,
     networkStatus: 7
-  } as any;
+  } as unknown as MockQueryResult;
 
   beforeEach(() => {
     getCkTypeAvailableQueryColumnsGQLMock = jasmine.createSpyObj('GetCkTypeAvailableQueryColumnsDtoGQL', ['fetch']);
@@ -79,7 +82,11 @@ describe('AttributeSelectorService', () => {
           rtCkId: 'TestModel/Customer',
           filter: undefined,
           first: 1000,
-          after: undefined
+          after: undefined,
+          attributeValueType: undefined,
+          searchTerm: undefined,
+          includeNavigationProperties: undefined,
+          maxDepth: undefined
         },
         fetchPolicy: 'network-only'
       });
@@ -89,7 +96,7 @@ describe('AttributeSelectorService', () => {
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(() => {
-        const callArgs = getCkTypeAvailableQueryColumnsGQLMock.fetch.calls.mostRecent().args[0] as any;
+        const callArgs = getCkTypeAvailableQueryColumnsGQLMock.fetch.calls.mostRecent().args[0];
         expect(callArgs.variables.first).toBe(1000);
         done();
       });
@@ -99,7 +106,7 @@ describe('AttributeSelectorService', () => {
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer', 'name').subscribe(() => {
-        const callArgs = getCkTypeAvailableQueryColumnsGQLMock.fetch.calls.mostRecent().args[0] as any;
+        const callArgs = getCkTypeAvailableQueryColumnsGQLMock.fetch.calls.mostRecent().args[0];
         expect(callArgs.variables.filter).toBe('name');
         done();
       });
@@ -109,7 +116,7 @@ describe('AttributeSelectorService', () => {
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer', undefined, 50, 'cursor1').subscribe(() => {
-        const callArgs = getCkTypeAvailableQueryColumnsGQLMock.fetch.calls.mostRecent().args[0] as any;
+        const callArgs = getCkTypeAvailableQueryColumnsGQLMock.fetch.calls.mostRecent().args[0];
         expect(callArgs.variables.first).toBe(50);
         expect(callArgs.variables.after).toBe('cursor1');
         done();
@@ -130,7 +137,7 @@ describe('AttributeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockQueryResult;
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(emptyResponse));
 
       service.getAvailableAttributes('NonExistent/Type').subscribe(result => {
@@ -148,7 +155,7 @@ describe('AttributeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockQueryResult;
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(nullCkResponse));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(result => {
@@ -191,7 +198,7 @@ describe('AttributeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockQueryResult;
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(responseWithNulls));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(result => {
@@ -220,7 +227,7 @@ describe('AttributeSelectorService', () => {
         },
         loading: false,
         networkStatus: 7
-      } as any;
+      } as unknown as MockQueryResult;
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(noColumnsResponse));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(result => {

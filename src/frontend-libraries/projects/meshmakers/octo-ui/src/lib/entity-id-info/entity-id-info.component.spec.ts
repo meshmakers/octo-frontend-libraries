@@ -2,11 +2,28 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
+import { SVGIcon } from '@progress/kendo-svg-icons';
 import { NotificationDisplayService } from '@meshmakers/shared-ui';
 import { EntityIdInfoComponent } from './entity-id-info.component';
 
+/** Mirrors the CopyOption interface from the component for test access */
+interface CopyOption {
+  label: string;
+  value: string;
+  displayText: string;
+}
+
+/** Interface exposing protected/private members of EntityIdInfoComponent for testing */
+interface EntityIdInfoTestAccess {
+  copyIcon: SVGIcon;
+  copyOptions: CopyOption[];
+  truncateValue(value: string, maxLength: number): string;
+  copyToClipboard(option: CopyOption): Promise<void>;
+}
+
 describe('EntityIdInfoComponent', () => {
   let component: EntityIdInfoComponent;
+  let testAccess: EntityIdInfoTestAccess;
   let fixture: ComponentFixture<EntityIdInfoComponent>;
   let notificationServiceMock: jasmine.SpyObj<NotificationDisplayService>;
 
@@ -31,6 +48,7 @@ describe('EntityIdInfoComponent', () => {
 
     fixture = TestBed.createComponent(EntityIdInfoComponent);
     component = fixture.componentInstance;
+    testAccess = component as unknown as EntityIdInfoTestAccess;
   });
 
   describe('Component creation', () => {
@@ -45,7 +63,7 @@ describe('EntityIdInfoComponent', () => {
       component.rtId = mockRtId;
       component.rtCkTypeId = mockRtCkTypeId;
       fixture.detectChanges();
-      expect((component as any).copyIcon).toBeDefined();
+      expect(testAccess.copyIcon).toBeDefined();
     });
   });
 
@@ -78,47 +96,47 @@ describe('EntityIdInfoComponent', () => {
     });
 
     it('should generate 4 copy options', () => {
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options.length).toBe(4);
     });
 
     it('should have RtId option as first', () => {
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options[0].label).toBe('RtId');
       expect(options[0].value).toBe(mockRtId);
     });
 
     it('should have CkTypeId option as second', () => {
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options[1].label).toBe('CkTypeId');
     });
 
     it('should have RtCkTypeId option as third', () => {
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options[2].label).toBe('RtCkTypeId');
       expect(options[2].value).toBe(mockRtCkTypeId);
     });
 
     it('should have RtEntityId option as fourth', () => {
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options[3].label).toBe('RtEntityId');
       expect(options[3].value).toBe(`${mockRtCkTypeId}@${mockRtId}`);
     });
 
     it('should use ckTypeId for CkTypeId option when provided', () => {
       component.ckTypeId = mockCkTypeId;
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options[1].value).toBe(mockCkTypeId);
     });
 
     it('should fallback to rtCkTypeId for CkTypeId option when ckTypeId not provided', () => {
       component.ckTypeId = undefined;
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options[1].value).toBe(mockRtCkTypeId);
     });
 
     it('should generate correct RtEntityId format', () => {
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       const rtEntityId = options[3].value;
       expect(rtEntityId).toBe('System.Communication/EdgeAdapter@65d5c447b420da3fb12381bc');
     });
@@ -132,38 +150,38 @@ describe('EntityIdInfoComponent', () => {
     });
 
     it('should not truncate short values', () => {
-      const result = (component as any).truncateValue('short', 24);
+      const result = testAccess.truncateValue('short', 24);
       expect(result).toBe('short');
     });
 
     it('should truncate values longer than maxLength', () => {
       const longValue = 'this-is-a-very-long-value-that-should-be-truncated';
-      const result = (component as any).truncateValue(longValue, 24);
+      const result = testAccess.truncateValue(longValue, 24);
       expect(result.length).toBe(24);
       expect(result.endsWith('...')).toBeTrue();
     });
 
     it('should truncate at exactly maxLength including ellipsis', () => {
       const longValue = 'abcdefghijklmnopqrstuvwxyz';
-      const result = (component as any).truncateValue(longValue, 10);
+      const result = testAccess.truncateValue(longValue, 10);
       expect(result).toBe('abcdefg...');
       expect(result.length).toBe(10);
     });
 
     it('should return original value when length equals maxLength', () => {
       const exactValue = 'exactly24characters!!!!!';
-      const result = (component as any).truncateValue(exactValue, 24);
+      const result = testAccess.truncateValue(exactValue, 24);
       expect(result).toBe(exactValue);
     });
 
     it('should truncate RtId display text correctly', () => {
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       // RtId is 24 chars, which equals maxLength, so no truncation
       expect(options[0].displayText).toBe(mockRtId);
     });
 
     it('should truncate long RtEntityId display text', () => {
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       const rtEntityId = `${mockRtCkTypeId}@${mockRtId}`;
       // RtEntityId is longer than 40 chars, so should be truncated
       if (rtEntityId.length > 40) {
@@ -185,63 +203,63 @@ describe('EntityIdInfoComponent', () => {
     });
 
     it('should copy RtId to clipboard', async () => {
-      const options = (component as any).copyOptions;
-      await (component as any).copyToClipboard(options[0]);
+      const options = testAccess.copyOptions;
+      await testAccess.copyToClipboard(options[0]);
 
       expect(clipboardSpy).toHaveBeenCalledWith(mockRtId);
     });
 
     it('should copy CkTypeId to clipboard', async () => {
       component.ckTypeId = mockCkTypeId;
-      const options = (component as any).copyOptions;
-      await (component as any).copyToClipboard(options[1]);
+      const options = testAccess.copyOptions;
+      await testAccess.copyToClipboard(options[1]);
 
       expect(clipboardSpy).toHaveBeenCalledWith(mockCkTypeId);
     });
 
     it('should copy RtCkTypeId to clipboard', async () => {
-      const options = (component as any).copyOptions;
-      await (component as any).copyToClipboard(options[2]);
+      const options = testAccess.copyOptions;
+      await testAccess.copyToClipboard(options[2]);
 
       expect(clipboardSpy).toHaveBeenCalledWith(mockRtCkTypeId);
     });
 
     it('should copy RtEntityId to clipboard', async () => {
-      const options = (component as any).copyOptions;
-      await (component as any).copyToClipboard(options[3]);
+      const options = testAccess.copyOptions;
+      await testAccess.copyToClipboard(options[3]);
 
       const expectedRtEntityId = `${mockRtCkTypeId}@${mockRtId}`;
       expect(clipboardSpy).toHaveBeenCalledWith(expectedRtEntityId);
     });
 
     it('should show success notification after copy', async () => {
-      const options = (component as any).copyOptions;
-      await (component as any).copyToClipboard(options[0]);
+      const options = testAccess.copyOptions;
+      await testAccess.copyToClipboard(options[0]);
 
       expect(notificationServiceMock.showSuccess).toHaveBeenCalledWith('RtId copied', 2000);
     });
 
     it('should show correct label in success notification for each option', async () => {
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
 
-      await (component as any).copyToClipboard(options[0]);
+      await testAccess.copyToClipboard(options[0]);
       expect(notificationServiceMock.showSuccess).toHaveBeenCalledWith('RtId copied', 2000);
 
-      await (component as any).copyToClipboard(options[1]);
+      await testAccess.copyToClipboard(options[1]);
       expect(notificationServiceMock.showSuccess).toHaveBeenCalledWith('CkTypeId copied', 2000);
 
-      await (component as any).copyToClipboard(options[2]);
+      await testAccess.copyToClipboard(options[2]);
       expect(notificationServiceMock.showSuccess).toHaveBeenCalledWith('RtCkTypeId copied', 2000);
 
-      await (component as any).copyToClipboard(options[3]);
+      await testAccess.copyToClipboard(options[3]);
       expect(notificationServiceMock.showSuccess).toHaveBeenCalledWith('RtEntityId copied', 2000);
     });
 
     it('should show error notification when clipboard fails', async () => {
       clipboardSpy.and.returnValue(Promise.reject(new Error('Clipboard error')));
 
-      const options = (component as any).copyOptions;
-      await (component as any).copyToClipboard(options[0]);
+      const options = testAccess.copyOptions;
+      await testAccess.copyToClipboard(options[0]);
 
       expect(notificationServiceMock.showError).toHaveBeenCalledWith('Failed to copy to clipboard');
     });
@@ -251,8 +269,8 @@ describe('EntityIdInfoComponent', () => {
       const error = new Error('Clipboard error');
       clipboardSpy.and.returnValue(Promise.reject(error));
 
-      const options = (component as any).copyOptions;
-      await (component as any).copyToClipboard(options[0]);
+      const options = testAccess.copyOptions;
+      await testAccess.copyToClipboard(options[0]);
 
       expect(consoleSpy).toHaveBeenCalledWith('Failed to copy to clipboard:', error);
     });
@@ -282,7 +300,7 @@ describe('EntityIdInfoComponent', () => {
       component.rtCkTypeId = mockRtCkTypeId;
       fixture.detectChanges();
 
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options[0].value).toBe('');
       expect(options[3].value).toBe(`${mockRtCkTypeId}@`);
     });
@@ -292,7 +310,7 @@ describe('EntityIdInfoComponent', () => {
       component.rtCkTypeId = '';
       fixture.detectChanges();
 
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options[2].value).toBe('');
       expect(options[3].value).toBe(`@${mockRtId}`);
     });
@@ -302,7 +320,7 @@ describe('EntityIdInfoComponent', () => {
       component.rtCkTypeId = 'Namespace/Type~With~Tilde';
       fixture.detectChanges();
 
-      const options = (component as any).copyOptions;
+      const options = testAccess.copyOptions;
       expect(options[0].value).toBe('id-with-special_chars.123');
       expect(options[2].value).toBe('Namespace/Type~With~Tilde');
     });

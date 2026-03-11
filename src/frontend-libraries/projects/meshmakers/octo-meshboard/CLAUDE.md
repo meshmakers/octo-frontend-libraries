@@ -17,6 +17,15 @@ npm test -- --project=@meshmakers/octo-meshboard --watch=false
 npm run lint:octo-meshboard
 ```
 
+## Documentation and Testing Standards
+
+- **All developer documentation must be written in English**
+- **Every code change must include updated documentation** — update README.md, CLAUDE.md, or inline docs when adding, modifying, or removing features
+- **Unit tests and integration tests must be executed** after every code change
+- **Existing tests must be updated** when the behavior of tested code changes
+- **New tests must be added** when new features, components, or services are implemented
+- Never commit code with failing tests
+
 ## Project Structure
 
 ```
@@ -299,7 +308,7 @@ interface AggregationQuery {
 | `statusIndicator` | Traffic light status | serviceCall, aggregation |
 | `serviceHealth` | Backend service health | serviceCall |
 | `process` | Process diagram (HMI) | - |
-| `markdown` | Static markdown content with LCARS styling | static |
+| `markdown` | Static markdown content with themed styling | static |
 
 ### Widget Configuration Interface
 
@@ -319,7 +328,7 @@ interface BaseWidgetConfig {
 
 ### Markdown Widget
 
-The Markdown Widget displays static markdown content with LCARS-themed styling. It supports variable interpolation for dynamic content.
+The Markdown Widget displays static markdown content with customizable styling via CSS variables. It supports variable interpolation for dynamic content.
 
 **Configuration Interface:**
 
@@ -335,19 +344,12 @@ interface MarkdownWidgetConfig extends BaseWidgetConfig {
 
 **Features:**
 - Full GitHub Flavored Markdown (GFM) support via `ngx-markdown`
-- LCARS-themed rendering with Octo brand colors
+- Themed rendering via CSS custom properties (neutral defaults, customizable by host app)
 - Variable interpolation using `$variableName` or `${variableName}` syntax
 - Configurable padding and text alignment
 - Edit/Preview toggle in configuration dialog
 
-**LCARS Theme Styling:**
-- Headings: Octo Mint (#64ceb9)
-- Links: Neo Cyan (#00a8dc)
-- Body text: Light gray (#c8d0d8)
-- Bold text: White (#ffffff)
-- Italic text: Neo Cyan (#00a8dc)
-- Blockquotes: Royal Violet border (#6c4da8)
-- Code blocks: Iron Navy background (#394555)
+**Styling Note:** The markdown prose styles should use CSS custom properties with neutral defaults. Host applications can override these to match their theme. Avoid hardcoding theme-specific colors in the library.
 
 **Required Provider:**
 Applications using the Markdown Widget must include `provideMarkdown()` from `ngx-markdown`:

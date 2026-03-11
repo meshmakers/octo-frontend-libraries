@@ -58,7 +58,7 @@ export class SharedEditor {
 
     const hasBinaryFiles =
       entities?.some((e) =>
-        e?.item?.attributes?.some((attr: any) => {
+        e?.item?.attributes?.some((attr) => {
           if (attr?.value instanceof File) return true;
           if (Array.isArray(attr?.value) && attr?.value[0] instanceof File)
             return true;

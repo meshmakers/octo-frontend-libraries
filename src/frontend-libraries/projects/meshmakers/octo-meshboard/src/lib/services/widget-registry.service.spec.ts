@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
+import { WindowService } from '@progress/kendo-angular-dialog';
 import {
   WidgetRegistryService,
   WidgetRegistration,
@@ -66,8 +66,6 @@ describe('WidgetRegistryService', () => {
   class MockConfigDialog implements WidgetConfigDialog {
     initialCkTypeId?: string;
     initialRtId?: string;
-    save = new Subject<WidgetConfigResult>();
-    cancelled = new Subject<void>();
   }
 
   // Helper to create a KPI widget registration
@@ -75,8 +73,10 @@ describe('WidgetRegistryService', () => {
     return {
       type: 'kpi',
       label: 'KPI Widget',
-      component: MockConfigDialog as unknown as any,
-      configDialogComponent: MockConfigDialog as unknown as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
+      component: MockConfigDialog as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
+      configDialogComponent: MockConfigDialog as any,
       defaultSize: { colSpan: 2, rowSpan: 1 },
       supportedDataSources: ['runtimeEntity', 'persistentQuery', 'static'],
       createDefaultConfig: (baseConfig: BaseWidgetConfig): KpiWidgetConfig => ({
@@ -128,7 +128,8 @@ describe('WidgetRegistryService', () => {
     return {
       type: 'gauge',
       label: 'Gauge Widget',
-      component: MockConfigDialog as unknown as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
+      component: MockConfigDialog as any,
       // No configDialogComponent - intentionally
       defaultSize: { colSpan: 2, rowSpan: 2 },
       createDefaultConfig: (baseConfig: BaseWidgetConfig): GaugeWidgetConfig => ({
@@ -159,7 +160,13 @@ describe('WidgetRegistryService', () => {
   }
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    const mockWindowService = jasmine.createSpyObj('WindowService', ['open']);
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: WindowService, useValue: mockWindowService }
+      ]
+    });
     service = TestBed.inject(WidgetRegistryService);
   });
 

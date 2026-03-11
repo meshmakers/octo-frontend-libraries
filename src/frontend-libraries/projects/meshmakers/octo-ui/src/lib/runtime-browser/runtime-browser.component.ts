@@ -20,6 +20,7 @@ import {
   locationsIcon,
   pencilIcon,
   plusIcon,
+  SVGIcon,
   xIcon,
 } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
@@ -39,7 +40,10 @@ import {
   RtEntityDto,
 } from './graphQL/globalTypes';
 import { RtEntityIdHelper } from './models/rt-entity-id';
-import { RuntimeBrowserStateService } from './services/runtime-browser-state.service';
+import {
+  BrowserState,
+  RuntimeBrowserStateService,
+} from './services/runtime-browser-state.service';
 import { TypeHelperService } from './services/type-helper.service';
 
 // Extended type to handle both Runtime Entities and CK Models/Types
@@ -351,12 +355,12 @@ export class RuntimeBrowserComponent implements AfterViewInit {
     }
   }
 
-  protected onNodeSelected(treeItem: any): void {
+  protected onNodeSelected(treeItem: TreeItemDataTyped<unknown>): void {
     console.debug('Runtime Browser - Node selected:', treeItem);
-    this.selectedItem = treeItem;
+    this.selectedItem = treeItem as TreeItemDataTyped<BrowserItem>;
 
     // Save the state using the expanded keys from the tree (no recursive search needed)
-    this.saveStateFromExpandedKeys(treeItem);
+    this.saveStateFromExpandedKeys(this.selectedItem);
   }
 
   /**
@@ -379,7 +383,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
    *
    * @param event Metadata of the drag and drop operation.
    */
-  protected async onNodeDropped(event: NodeDroppedEvent<BrowserItem>) {
+  protected async onNodeDropped(event: NodeDroppedEvent<unknown>) {
     console.debug('Runtime Browser - Node dropped:', event);
 
     if (!event.destinationItem) {
@@ -487,7 +491,8 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       }
 
       // select item afterwards to better track drag / drop
-      this.selectedItem = event.sourceItem.dataItem;
+      this.selectedItem = event.sourceItem
+        .dataItem as TreeItemDataTyped<BrowserItem>;
     } catch (error: unknown) {
       console.error(
         'Error updating tree node parent after drag-and-drop:',
@@ -518,50 +523,71 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   /**
    * Generate a unique key for a tree item (same logic as in TreeComponent)
    */
-  private getItemKey(dataItem: TreeItemDataTyped<BrowserItem> | any): string {
-    // Handle different input types
-    let data: any;
-
-    if (dataItem?.item) {
-      // TreeItemDataTyped case
-      data = dataItem.item as any;
-    } else if (dataItem?.selectedItemData) {
-      // Saved state case
-      data = dataItem.selectedItemData as any;
-    } else {
-      // Direct data case
-      data = dataItem as any;
-    }
+  private getItemKey(
+    dataItem: TreeItemDataTyped<BrowserItem> | BrowserState | BrowserItem,
+  ): string {
+    const data = this.extractBrowserItem(dataItem);
 
     // For runtime entities
-    if (data?.rtId && data?.ckTypeId) {
-      return `${data.ckTypeId}@${data.rtId}`;
+    if (data && 'rtId' in data && 'ckTypeId' in data) {
+      return `${String(data.ckTypeId)}@${String(data.rtId)}`;
     }
 
     // For CK Models
-    if (data?.id) {
-      return `model:${data.id}`;
+    if (data && 'id' in data && !('rtId' in data) && !('ckTypeId' in data)) {
+      return `model:${String(data.id)}`;
     }
 
     // For CK Types
-    if (data?.ckTypeId && !data?.rtId) {
-      return `type:${data.ckTypeId}`;
+    if (data && 'ckTypeId' in data && !('rtId' in data) && !('id' in data)) {
+      return `type:${String(data.ckTypeId)}`;
     }
 
     // For special nodes
-    if (data?.isCkModelsRoot) {
+    if (data && 'isCkModelsRoot' in data && data.isCkModelsRoot) {
       return 'ck-models-root';
     }
 
     // Fallback to text
-    return dataItem?.text || dataItem?.selectedItemText || JSON.stringify(data);
+    return this.getItemText(dataItem) ?? JSON.stringify(data ?? null);
+  }
+
+  private extractBrowserItem(
+    dataItem: TreeItemDataTyped<BrowserItem> | BrowserState | BrowserItem,
+  ): BrowserItem | null {
+    if (dataItem && typeof dataItem === 'object') {
+      if ('item' in dataItem) {
+        return (dataItem as TreeItemDataTyped<BrowserItem>).item;
+      }
+      if ('selectedItemData' in dataItem) {
+        return (dataItem as BrowserState).selectedItemData;
+      }
+    }
+    return dataItem as BrowserItem;
+  }
+
+  private getItemText(
+    dataItem: TreeItemDataTyped<BrowserItem> | BrowserState | BrowserItem,
+  ): string | undefined {
+    if (dataItem && typeof dataItem === 'object') {
+      if ('text' in dataItem && typeof dataItem.text === 'string') {
+        return dataItem.text;
+      }
+      if (
+        'selectedItemText' in dataItem &&
+        typeof dataItem.selectedItemText === 'string'
+      ) {
+        return dataItem.selectedItemText;
+      }
+    }
+    return undefined;
   }
 
   /**
    * Create a TreeItemDataTyped from saved state data
    */
   private createTreeItemFromSavedState(
-    savedState: any,
+    savedState: BrowserState,
   ): TreeItemDataTyped<BrowserItem> | null {
     try {
       const data = savedState.selectedItemData;
@@ -579,7 +605,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         text,
         text, // Use text as tooltip
         data,
-        null as any, // SVG icon - not critical for restoration
+        null as unknown as SVGIcon, // SVG icon - not critical for restoration
         false, // expandable - not critical for restoration
       );
     } catch (error: unknown) {
@@ -781,7 +807,9 @@ export class RuntimeBrowserComponent implements AfterViewInit {
 
       // Fetch available Construction Kit types from the API
       const result = await firstValueFrom(this.ckTypesGQL.fetch());
-      const allTypes = result.data?.constructionKit?.types?.items || [];
+      const allTypes = (
+        result.data?.constructionKit?.types?.items ?? []
+      ).filter((type): type is CkTypeDto => type != null);
       const isRootLevel = !this.selectedItem;
       const filteredTypes = this.getCompatibleTreeTypes(allTypes, isRootLevel);
 
@@ -809,11 +837,12 @@ export class RuntimeBrowserComponent implements AfterViewInit {
 
       // Fetch available Construction Kit types from the API
       const result = await firstValueFrom(this.ckTypesGQL.fetch());
-      const allTypes = result.data?.constructionKit?.types?.items || [];
+      const allTypes = (
+        result.data?.constructionKit?.types?.items ?? []
+      ).filter((type): type is CkTypeDto => type != null);
 
-      const rtEntityDto = this.selectedItem as
-        | TreeItemDataTyped<RtEntityDto>
-        | null;
+      const rtEntityDto = this
+        .selectedItem as TreeItemDataTyped<RtEntityDto> | null;
       const rtCkTypeId = allTypes.find(
         (type) => type!.rtCkTypeId === rtEntityDto?.item?.ckTypeId,
       )?.ckTypeId?.fullName;
@@ -845,7 +874,10 @@ export class RuntimeBrowserComponent implements AfterViewInit {
    * @param isRootLevel - If true, only Basic/Tree types are allowed
    * @returns Filtered list of compatible types
    */
-  private getCompatibleTreeTypes(types: any[], isRootLevel = false): any[] {
+  private getCompatibleTreeTypes(
+    types: CkTypeDto[],
+    isRootLevel = false,
+  ): CkTypeDto[] {
     // For root-level creation, only allow Basic/Tree types
     if (isRootLevel) {
       return types.filter((type) => {
@@ -873,7 +905,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   /**
    * Checks if a specific type or its base type belongs to the TreeNode hierarchy
    */
-  private isTreeNodeType(type: any): boolean {
+  private isTreeNodeType(type: CkTypeDto): boolean {
     const typeFullName = type?.ckTypeId?.fullName || '';
     const baseTypeFullName = type?.baseType?.ckTypeId?.fullName || '';
 

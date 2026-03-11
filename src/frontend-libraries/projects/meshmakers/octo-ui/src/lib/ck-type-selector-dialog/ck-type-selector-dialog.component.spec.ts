@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
-import { DialogRef, DialogModule } from '@progress/kendo-angular-dialog';
+import { WindowRef, WindowModule } from '@progress/kendo-angular-dialog';
 import { GridModule, SelectionEvent, PageChangeEvent } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
@@ -17,11 +17,18 @@ import {
   CkTypeSelectorDialogResult
 } from './ck-type-selector-dialog.component';
 
+interface MockWindowContent {
+  instance: {
+    data: CkTypeSelectorDialogData | Record<string, unknown> | null;
+  };
+}
+
 describe('CkTypeSelectorDialogComponent', () => {
   let component: CkTypeSelectorDialogComponent;
   let fixture: ComponentFixture<CkTypeSelectorDialogComponent>;
   let ckTypeSelectorServiceMock: jasmine.SpyObj<CkTypeSelectorService>;
-  let dialogRefMock: jasmine.SpyObj<DialogRef>;
+  let windowRefMock: jasmine.SpyObj<WindowRef>;
+  let windowContent: MockWindowContent;
 
   const mockCkTypes: CkTypeSelectorItem[] = [
     {
@@ -77,12 +84,13 @@ describe('CkTypeSelectorDialogComponent', () => {
       totalCount: mockCkTypes.length
     }));
 
-    dialogRefMock = jasmine.createSpyObj('DialogRef', ['close']);
-    (dialogRefMock as any).content = {
+    windowRefMock = jasmine.createSpyObj('WindowRef', ['close']);
+    windowContent = {
       instance: {
         data: { ...mockDialogData }
       }
     };
+    (windowRefMock as unknown as Record<string, unknown>)['content'] = windowContent;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -94,17 +102,18 @@ describe('CkTypeSelectorDialogComponent', () => {
         DropDownsModule,
         IconsModule,
         LoaderModule,
-        DialogModule
+        WindowModule
       ],
       providers: [
         provideNoopAnimations(),
         { provide: CkTypeSelectorService, useValue: ckTypeSelectorServiceMock },
-        { provide: DialogRef, useValue: dialogRefMock }
+        { provide: WindowRef, useValue: windowRefMock }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
     component = fixture.componentInstance;
+    component.data = { ...mockDialogData };
   });
 
   describe('Component creation', () => {
@@ -139,19 +148,19 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should use default dialog title when not provided', () => {
-      (dialogRefMock as any).content.instance.data = {};
+      component.data = {};
       fixture.detectChanges();
       expect(component.dialogTitle).toBe('Select Construction Kit Type');
     });
 
     it('should set allowAbstract from dialog data', () => {
-      (dialogRefMock as any).content.instance.data = { allowAbstract: true };
+      component.data = { allowAbstract: true };
       fixture.detectChanges();
       expect(component.allowAbstract).toBeTrue();
     });
 
     it('should set selectedKeys from dialog data', () => {
-      (dialogRefMock as any).content.instance.data = {
+      component.data = {
         selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
       };
       fixture.detectChanges();
@@ -190,12 +199,12 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should handle null dialog data', () => {
-      (dialogRefMock as any).content = { instance: { data: null } };
+      component.data = undefined;
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
     it('should restore selection if item exists in loaded data', () => {
-      (dialogRefMock as any).content.instance.data = {
+      component.data = {
         selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
       };
       fixture.detectChanges();
@@ -272,11 +281,11 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should use initial ckModelIds when no model selected', () => {
-      (dialogRefMock as any).content.instance.data = {
-        ckModelIds: ['OctoSdkDemo-1.0.0']
-      };
       fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
       component = fixture.componentInstance;
+      component.data = {
+        ckModelIds: ['OctoSdkDemo-1.0.0']
+      };
       ckTypeSelectorServiceMock.getCkTypes.calls.reset();
       fixture.detectChanges();
 
@@ -413,22 +422,22 @@ describe('CkTypeSelectorDialogComponent', () => {
       component.selectedType = mockCkTypes[0];
       component.onConfirm();
 
-      expect(dialogRefMock.close).toHaveBeenCalled();
-      const result = (dialogRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as CkTypeSelectorDialogResult;
+      expect(windowRefMock.close).toHaveBeenCalled();
+      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as CkTypeSelectorDialogResult;
       expect(result.selectedCkType).toBe(mockCkTypes[0]);
     });
 
     it('should not close dialog when no selection', () => {
       component.selectedType = null;
       component.onConfirm();
-      expect(dialogRefMock.close).not.toHaveBeenCalled();
+      expect(windowRefMock.close).not.toHaveBeenCalled();
     });
 
     it('should include all type properties in result', () => {
       component.selectedType = mockCkTypes[0];
       component.onConfirm();
 
-      const result = (dialogRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as CkTypeSelectorDialogResult;
+      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as CkTypeSelectorDialogResult;
       expect(result.selectedCkType.fullName).toBe('OctoSdkDemo-1.0.0/Customer-1');
       expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
       expect(result.selectedCkType.description).toBe('Customer entity');
@@ -442,13 +451,13 @@ describe('CkTypeSelectorDialogComponent', () => {
 
     it('should close dialog without result', () => {
       component.onCancel();
-      expect(dialogRefMock.close).toHaveBeenCalledWith();
+      expect(windowRefMock.close).toHaveBeenCalledWith();
     });
 
     it('should close dialog without result even with selection', () => {
       component.selectedType = mockCkTypes[0];
       component.onCancel();
-      expect(dialogRefMock.close).toHaveBeenCalledWith();
+      expect(windowRefMock.close).toHaveBeenCalledWith();
     });
   });
 
@@ -566,7 +575,7 @@ describe('CkTypeSelectorDialogComponent', () => {
       // Confirm
       component.onConfirm();
 
-      const result = (dialogRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as CkTypeSelectorDialogResult;
+      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as CkTypeSelectorDialogResult;
       expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
     });
 
@@ -598,12 +607,11 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should handle pre-selected type that exists in initial load', () => {
-      (dialogRefMock as any).content.instance.data = {
-        selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
-      };
-
       fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
       component = fixture.componentInstance;
+      component.data = {
+        selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
+      };
       fixture.detectChanges();
 
       expect(component.selectedType).toBeTruthy();

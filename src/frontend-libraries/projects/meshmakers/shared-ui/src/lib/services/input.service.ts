@@ -24,7 +24,7 @@ export class InputService {
 
     const result = await firstValueFrom(dialogRef.result);
     if (result instanceof InputDialogResult) {
-      return result.newValue
+      return result.newValue as string;
     }
 
     return null;

@@ -58,10 +58,12 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
         </div>
       } @else {
         <kendo-chart class="chart-container">
+          <kendo-chart-plot-area [margin]="plotAreaMargin()"></kendo-chart-plot-area>
           <kendo-chart-category-axis>
             <kendo-chart-category-axis-item [categories]="categories()">
               <kendo-chart-category-axis-item-labels
-                [rotation]="labelRotation()">
+                [rotation]="labelRotation()"
+                [content]="categoryLabelContent">
               </kendo-chart-category-axis-item-labels>
             </kendo-chart-category-axis-item>
           </kendo-chart-category-axis>
@@ -224,6 +226,19 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const categoryCount = this._categories().length;
     return isColumn && categoryCount > 5 ? -45 : 0;
   });
+
+  /** Extra margin so long category axis labels are not clipped. */
+  readonly plotAreaMargin = computed(() => {
+    const isBar = this.kendoChartType() === 'bar';
+    // Horizontal bar charts need more left margin for category labels on the Y-axis
+    return isBar ? { top: 0, right: 0, bottom: 0, left: 10 } : { top: 0, right: 0, bottom: 0, left: 0 };
+  });
+
+  /** Truncates long category axis labels to prevent overflow. */
+  categoryLabelContent = (e: { value: string }): string => {
+    const maxLen = 18;
+    return e.value.length > maxLen ? e.value.substring(0, maxLen) + '...' : e.value;
+  };
 
   ngOnInit(): void {
     this.loadData();

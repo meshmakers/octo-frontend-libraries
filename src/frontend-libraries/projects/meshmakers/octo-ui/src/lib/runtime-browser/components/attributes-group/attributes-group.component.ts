@@ -354,6 +354,9 @@ export class AttributesGroupComponent {
   private dataService = inject(AttributeDataService);
   protected recognition = inject(AttributeRecognitionService);
   private mapper = inject(AttributeMapperService);
+  private isRecordValue(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  }
 
   // ─── Inputs (public API for parent / template) ─────────────────────────────────────
   ckId = input.required<string>();
@@ -365,7 +368,7 @@ export class AttributesGroupComponent {
   protected attributes = computed(() => this.attributesResource.value() ?? []);
   private selectedIndices = new Map<string, number>();
   private loadedRecords = new Map<string, boolean>();
-  private baselineValues = new Map<string, any>();
+  private baselineValues = new Map<string, unknown>();
   protected readonly binaryRestrictions = { maxFileSize: 16 * 1024 * 1024 };
 
   /** Label and tooltip for BINARY when value was restored from base64 (content is real; file name is a placeholder). */
@@ -470,12 +473,16 @@ export class AttributesGroupComponent {
   }
 
   // ─── Form structure: create control per attribute type, set baseline for UNDO ───────
-  private initializeControl(form: FormGroup, attr: Attribute, initialValue: any) {
+  private initializeControl(
+    form: FormGroup,
+    attr: Attribute,
+    initialValue: unknown,
+  ) {
     let control: AbstractControl;
 
     if (this.recognition.isRecordArray(attr.attributeValueType)) {
       const initialArray = Array.isArray(initialValue) ? initialValue : [];
-      const formArray = new FormArray<FormGroup<any>>(
+      const formArray = new FormArray<FormGroup>(
         [],
         attr.isOptional ? [] : [Validators.required],
       );
@@ -494,13 +501,14 @@ export class AttributesGroupComponent {
         longitudeValidators.unshift(Validators.required);
         latitudeValidators.unshift(Validators.required);
       }
+      const geoValue = this.isRecordValue(initialValue) ? initialValue : {};
       const geoGroup = new FormGroup({
         longitude: new FormControl(
-          initialValue?.longitude ?? null,
+          geoValue["longitude"] ?? null,
           longitudeValidators,
         ),
         latitude: new FormControl(
-          initialValue?.latitude ?? null,
+          geoValue["latitude"] ?? null,
           latitudeValidators,
         ),
       });
@@ -523,17 +531,17 @@ export class AttributesGroupComponent {
     }
   }
 
-  private setBaselineForAttr(attr: Attribute, value: any): void {
+  private setBaselineForAttr(attr: Attribute, value: unknown): void {
     const key = attr.attributeName;
     if (this.recognition.isGeoSpatialPoint(attr.attributeValueType)) {
-      const v = value && typeof value === "object" ? value : {};
+      const v = this.isRecordValue(value) ? value : {};
       this.baselineValues.set(
         key + ".longitude",
-        this.cloneForBaseline(v?.longitude ?? null),
+        this.cloneForBaseline(v["longitude"] ?? null),
       );
       this.baselineValues.set(
         key + ".latitude",
-        this.cloneForBaseline(v?.latitude ?? null),
+        this.cloneForBaseline(v["latitude"] ?? null),
       );
     } else if (
       !this.recognition.isRecord(attr.attributeValueType) &&
@@ -543,21 +551,21 @@ export class AttributesGroupComponent {
     }
   }
 
-  private cloneForBaseline(v: any): any {
+  private cloneForBaseline(v: unknown): unknown {
     if (v === null || v === undefined) return v;
     if (v instanceof Date) return new Date(v.getTime());
     if (typeof v === "object" && v instanceof File) return v;
     if (Array.isArray(v)) return v.map((x) => this.cloneForBaseline(x));
-    if (typeof v === "object") {
-      const out: Record<string, any> = {};
+    if (this.isRecordValue(v)) {
+      const out: Record<string, unknown> = {};
       for (const k of Object.keys(v))
-        out[k] = this.cloneForBaseline((v as Record<string, any>)[k]);
+        out[k] = this.cloneForBaseline(v[k]);
       return out;
     }
     return v;
   }
 
-  getBaselineValue(controlKey: string): any {
+  getBaselineValue(controlKey: string): unknown {
     return this.baselineValues.has(controlKey)
       ? this.baselineValues.get(controlKey)
       : undefined;
@@ -568,15 +576,15 @@ export class AttributesGroupComponent {
   }
 
   // ─── Value / empty checks (for effect: when to patch vs skip) ──────────────────────
-  private isDefaultEmptyValue(value: any, type: string): boolean {
+  private isDefaultEmptyValue(value: unknown, type: string): boolean {
     if (value === null || value === undefined) return true;
     if (this.recognition.isRecordArray(type) || this.recognition.isRecord(type))
       return Array.isArray(value)
         ? value.length === 0
-        : Object.keys(value || {}).length === 0;
+        : !this.isRecordValue(value) || Object.keys(value).length === 0;
     if (this.recognition.isGeoSpatialPoint(type)) {
-      const v = value as { longitude?: number | null; latitude?: number | null };
-      return v?.longitude == null && v?.latitude == null;
+      const v = this.isRecordValue(value) ? value : {};
+      return v["longitude"] == null && v["latitude"] == null;
     }
     if (this.recognition.isArray(type)) return Array.isArray(value) && value.length === 0;
     return false;
@@ -708,8 +716,8 @@ export class AttributesGroupComponent {
       const item = raw[index]?.attributes ?? EMPTY_INITIAL_VALUES;
       return Array.isArray(item) ? item : EMPTY_INITIAL_VALUES;
     }
-    if (raw && Array.isArray(raw.attributes)) {
-      return raw.attributes;
+    if (this.isRecordValue(raw) && Array.isArray(raw["attributes"])) {
+      return raw["attributes"];
     }
     if (raw !== undefined && raw !== null && Array.isArray(raw)) {
       return raw;
@@ -721,7 +729,7 @@ export class AttributesGroupComponent {
 // ─── Exported types (used by attribute-data-service and parent components) ───────────
 export interface RawInitialValue {
   attributeName: string;
-  value: any;
+  value: unknown;
   __typename?: string;
 }
 

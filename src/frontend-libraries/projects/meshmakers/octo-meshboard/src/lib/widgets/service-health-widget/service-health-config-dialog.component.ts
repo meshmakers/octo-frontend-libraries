@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -28,17 +28,12 @@ interface ServiceTypeOption {
   imports: [
     CommonModule,
     FormsModule,
-    DialogsModule,
     ButtonsModule,
     InputsModule,
     DropDownsModule
   ],
   template: `
-    <kendo-dialog
-      title="Service Health Configuration"
-      [minWidth]="450"
-      [width]="500"
-      (close)="onCancel()">
+    <div class="config-container">
 
       <div class="config-form">
         <!-- Service Type Selection -->
@@ -102,7 +97,7 @@ interface ServiceTypeOption {
         </div>
       </div>
 
-      <kendo-dialog-actions>
+      <div class="action-bar">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -111,15 +106,21 @@ interface ServiceTypeOption {
           (click)="onSave()">
           Save
         </button>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      </div>
+    </div>
   `,
   styles: [`
+    :host { display: block; height: 100%; }
+    .config-container { display: flex; flex-direction: column; height: 100%; }
+    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
+
     .config-form {
       display: flex;
       flex-direction: column;
       gap: 20px;
-      padding: 16px 0;
+      padding: 16px;
+      flex: 1;
+      overflow-y: auto;
     }
 
     .form-field {
@@ -164,14 +165,13 @@ interface ServiceTypeOption {
   `]
 })
 export class ServiceHealthConfigDialogComponent implements OnInit {
+  private readonly windowRef = inject(WindowRef);
+
   @Input() initialServiceType?: ServiceCallDataSource['serviceType'];
   @Input() initialCustomEndpoint?: string;
   @Input() initialShowPulse?: boolean;
   @Input() initialNavigateOnClick?: boolean;
   @Input() initialDetailRoute?: string;
-
-  @Output() save = new EventEmitter<ServiceHealthConfigResult>();
-  @Output() cancelled = new EventEmitter<void>();
 
   serviceTypeOptions: ServiceTypeOption[] = [
     { value: 'identity', label: 'Identity Service' },
@@ -213,7 +213,7 @@ export class ServiceHealthConfigDialogComponent implements OnInit {
   }
 
   onSave(): void {
-    this.save.emit({
+    this.windowRef.close({
       ckTypeId: '',
       serviceType: this.form.serviceType,
       customEndpoint: this.form.serviceType === 'custom' ? this.form.customEndpoint : undefined,
@@ -224,6 +224,6 @@ export class ServiceHealthConfigDialogComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.windowRef.close();
   }
 }

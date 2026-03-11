@@ -44,6 +44,28 @@
   }
 }
 
+// Source entity attributes
+.entity-attributes {
+  padding: 4px 12px 8px;
+  border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
+
+  .attribute-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    font-size: 0.8125rem;
+  }
+
+  .attribute-name {
+    color: var(--kendo-color-subtle, #6c757d);
+  }
+
+  .attribute-value {
+    font-weight: 500;
+    color: var(--kendo-color-on-surface, #212529);
+  }
+}
+
 // Associations Container
 .associations-container {
   flex: 1;
@@ -135,10 +157,17 @@
   overflow-y: auto;
 }
 
+// Target entry (item + attributes sub-list)
+.target-entry {
+  & + .target-entry {
+    border-top: 1px solid var(--kendo-color-border, #dee2e6);
+  }
+}
+
 .target-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   padding: 6px 12px 6px 40px;
   cursor: pointer;
   font-size: 0.8125rem;
@@ -151,6 +180,7 @@
   .target-id {
     font-family: monospace;
     color: var(--kendo-color-on-surface, #212529);
+    flex-shrink: 0;
   }
 
   .target-type-hint {
@@ -159,8 +189,37 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 150px;
+    min-width: 0;
+    flex-shrink: 1;
   }
+}
+
+// Target attributes sub-list
+.target-attributes {
+  padding: 2px 12px 6px 56px;
+
+  .target-attr-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1px 0;
+    font-size: 0.75rem;
+  }
+
+  .target-attr-name {
+    color: var(--kendo-color-subtle, #6c757d);
+  }
+
+  .target-attr-value {
+    color: var(--kendo-color-on-surface, #212529);
+    font-weight: 500;
+  }
+}
+
+.target-loading {
+  padding: 6px 12px 6px 40px;
+  font-size: 0.75rem;
+  color: var(--kendo-color-subtle, #6c757d);
+  font-style: italic;
 }
 
 // Summary Footer

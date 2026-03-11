@@ -1,6 +1,7 @@
 import { Component, EventEmitter, inject, Input, Output } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { CkTypeDto, RtEntityInputDto } from "@meshmakers/octo-services";
+import { TreeItemDataTyped } from "@meshmakers/shared-services";
 import { KENDO_BUTTONS } from "@progress/kendo-angular-buttons";
 import { KENDO_DATEINPUTS } from "@progress/kendo-angular-dateinputs";
 import { KENDO_DROPDOWNS } from "@progress/kendo-angular-dropdowns";
@@ -13,9 +14,26 @@ import { RUNTIME_BROWSER_KEYS } from "../../../../i18n/keys";
 import { AppTranslatePipe } from "../../../i18n/translate.pipe";
 import { AppTranslateService } from "../../../i18n/translate.service";
 import { CreateEntitiesDtoGQL } from "../../graphQL/createEntities";
-import { FormAttributesServiceMapper } from "../../services/form-attributes-mapper";
+import {
+  FormAttributesServiceMapper,
+  RtEntityAttributeInput,
+} from "../../services/form-attributes-mapper";
 import { FormAttributesService } from "../../services/form-attributes-service";
 import { AttributesForm } from "../attributes-form/attributes-form";
+
+type ParentTreeItem = TreeItemDataTyped<{ ckTypeId?: string; rtId?: string }>;
+
+interface EntityInput {
+  ckTypeId: string;
+  attributes: RtEntityAttributeInput[];
+  associations?: {
+    roleName: string;
+    targets: {
+      modOption: string;
+      target: { ckTypeId: string; rtId: string };
+    }[];
+  };
+}
 
 @Component({
   selector: "mm-entity-editor-component",
@@ -105,7 +123,7 @@ export class EntityEditorComponent {
   private readonly formAttributesMapper = inject(FormAttributesServiceMapper);
 
   // Inputs
-  @Input() parent: any | null = null;
+  @Input() parent: ParentTreeItem | null = null;
   @Input() availableCkTypes: CkTypeDto[] = [];
 
   // Form
@@ -132,7 +150,7 @@ export class EntityEditorComponent {
 
   // Events
   @Output() cancelEdit = new EventEmitter<void>();
-  @Output() saveEdit = new EventEmitter<any>();
+  @Output() saveEdit = new EventEmitter<EntityCreationResult>();
 
   /**
    * Builds and submits a create-entity mutation from the form state.
@@ -216,8 +234,11 @@ export class EntityEditorComponent {
   /**
    * Builds the entity object with type, attributes, and optional parent association.
    */
-  private buildEntityObject(ckTypeId: string, attributes: any[]): any {
-    const entity: any = {
+  private buildEntityObject(
+    ckTypeId: string,
+    attributes: RtEntityAttributeInput[],
+  ): EntityInput {
+    const entity: EntityInput = {
       ckTypeId,
       attributes,
     };
@@ -247,8 +268,13 @@ export class EntityEditorComponent {
   /**
    * Prepares mutation options with variables and optional multipart context.
    */
-  private prepareMutationOptions(entityInput: RtEntityInputDto): any {
-    const mutationOptions: any = {
+  private prepareMutationOptions(
+    entityInput: RtEntityInputDto,
+  ): { variables: { entities: RtEntityInputDto[] }; context?: { useMultipart: boolean } } {
+    const mutationOptions: {
+      variables: { entities: RtEntityInputDto[] };
+      context?: { useMultipart: boolean };
+    } = {
       variables: { entities: [entityInput] },
     };
 

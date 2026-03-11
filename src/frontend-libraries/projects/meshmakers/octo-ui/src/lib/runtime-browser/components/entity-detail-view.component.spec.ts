@@ -5,6 +5,10 @@ import { PropertyConverterService } from "@meshmakers/octo-ui";
 import { SelectEvent } from "@progress/kendo-angular-layout";
 import { NotificationService } from "@progress/kendo-angular-notification";
 import { of } from "rxjs";
+import {
+  AttributeValueTypeDto,
+  PropertyGridItem,
+} from "../../property-grid";
 import { GetBinaryInfoDtoGQL } from "../graphQL/getBinaryInfo";
 import { RtEntityDto } from "../graphQL/globalTypes";
 import { EntityDetailViewComponent } from "./entity-detail-view.component";
@@ -94,9 +98,19 @@ describe("EntityDetailViewComponent", () => {
 
     it("should return correct count when properties exist", () => {
       component.propertyGridItems = [
-        { name: "prop1", value: "val1", type: "string" },
-        { name: "prop2", value: "val2", type: "string" },
-      ] as any[];
+        {
+          id: "prop1",
+          name: "prop1",
+          value: "val1",
+          type: AttributeValueTypeDto.StringDto,
+        },
+        {
+          id: "prop2",
+          name: "prop2",
+          value: "val2",
+          type: AttributeValueTypeDto.StringDto,
+        },
+      ] as PropertyGridItem[];
       expect(component.getPropertyCount()).toBe(2);
     });
   });
@@ -114,7 +128,7 @@ describe("EntityDetailViewComponent", () => {
 
     it("should return 0 when associations.definitions is undefined", () => {
       component.entity = createMockEntity({
-        associations: {} as any,
+        associations: {} as RtEntityDto["associations"],
       });
       expect(component.getAssociationCount()).toBe(0);
     });
@@ -125,8 +139,8 @@ describe("EntityDetailViewComponent", () => {
           definitions: {
             totalCount: 5,
           },
-        },
-      } as any);
+        } as RtEntityDto["associations"],
+      });
       expect(component.getAssociationCount()).toBe(5);
     });
 
@@ -136,8 +150,8 @@ describe("EntityDetailViewComponent", () => {
           definitions: {
             totalCount: 1234,
           },
-        },
-      } as any);
+        } as RtEntityDto["associations"],
+      });
       expect(component.getAssociationCount()).toBe(1234);
     });
   });
@@ -149,8 +163,8 @@ describe("EntityDetailViewComponent", () => {
     });
 
     it("should load associations when Associations tab is selected", fakeAsync(() => {
-      const loadAssociationsSpy = spyOn<any>(
-        component,
+      const loadAssociationsSpy = spyOn(
+        component as unknown as { loadAssociations: () => void },
         "loadAssociations",
       ).and.callThrough();
 
@@ -161,8 +175,8 @@ describe("EntityDetailViewComponent", () => {
     }));
 
     it("should load associations every time Associations tab is selected (regression test for disappearing data)", fakeAsync(() => {
-      const loadAssociationsSpy = spyOn<any>(
-        component,
+      const loadAssociationsSpy = spyOn(
+        component as unknown as { loadAssociations: () => void },
         "loadAssociations",
       ).and.callThrough();
 
@@ -184,8 +198,8 @@ describe("EntityDetailViewComponent", () => {
     }));
 
     it("should not load associations when Attributes tab is selected", fakeAsync(() => {
-      const loadAssociationsSpy = spyOn<any>(
-        component,
+      const loadAssociationsSpy = spyOn(
+        component as unknown as { loadAssociations: () => void },
         "loadAssociations",
       ).and.callThrough();
 
@@ -204,8 +218,13 @@ describe("EntityDetailViewComponent", () => {
 
     it("should return true when properties exist", () => {
       component.propertyGridItems = [
-        { name: "test", value: "val", type: "string" },
-      ] as any[];
+        {
+          id: "test",
+          name: "test",
+          value: "val",
+          type: AttributeValueTypeDto.StringDto,
+        },
+      ] as PropertyGridItem[];
       expect(component.hasProperties()).toBeTrue();
     });
   });

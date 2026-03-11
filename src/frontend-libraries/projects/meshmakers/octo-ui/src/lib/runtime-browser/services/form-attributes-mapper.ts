@@ -7,20 +7,27 @@ import {
   AbstractControl,
 } from '@angular/forms';
 import { AttributeField } from '../models/attribute-field';
+import { CkAttributeMetadata } from '../models/attribute-metadata';
 
 export interface RtEntityAttributeInput {
   attributeName: string;
-  value: any;
+  value: unknown;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class FormAttributesServiceMapper {
+  private isRecordValue(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
   /**
    * Builds a form attribute definition with a configured control.
    */
-  mapToFormAttribute(attr: any, initialValue?: any): AttributeField {
+  mapToFormAttribute(
+    attr: CkAttributeMetadata,
+    initialValue?: unknown,
+  ): AttributeField {
     const attribute: AttributeField = {
       id: this.getId(attr),
       attributeName: attr?.attributeName ?? '',
@@ -28,7 +35,7 @@ export class FormAttributesServiceMapper {
       graphqlPath: attr?.graphqlPath ?? '',
       isOptional: attr?.isOptional ?? false,
       enumOptions: this.getEnumOptions(attr),
-      control: null as any,
+      control: null as unknown as AbstractControl,
     };
 
     attribute.control = this.createControl(attribute);
@@ -43,7 +50,7 @@ export class FormAttributesServiceMapper {
   /**
    * Maps CK metadata to a stable identifier.
    */
-  private getId(attr: any): any {
+  private getId(attr: CkAttributeMetadata): AttributeField['id'] {
     if (this.isEnum(attr)) {
       return {
         ckId: attr?.attribute?.ckEnum?.ckEnumId?.fullName,
@@ -65,11 +72,13 @@ export class FormAttributesServiceMapper {
   /**
    * Builds enum options for select inputs.
    */
-  private getEnumOptions(attr: any): any[] {
+  private getEnumOptions(
+    attr: CkAttributeMetadata,
+  ): { key: string; name: string }[] {
     if (this.isEnum(attr)) {
-      const result = attr?.attribute?.ckEnum?.values?.map((value: any) => ({
-        key: value.key,
-        name: value.name,
+      const result = attr?.attribute?.ckEnum?.values?.map((value) => ({
+        key: value?.key != null ? String(value.key) : '',
+        name: value?.name ?? '',
       }));
       return result ?? [];
     }
@@ -106,16 +115,12 @@ export class FormAttributesServiceMapper {
    * According to OctoMesh documentation: Record and RecordArray are passed as nested objects/arrays.
    */
   async mapFormValueToGraphQLAttributes(
-    formValue: any,
+    formValue: unknown,
     attributesMetadata?: AttributeField[],
   ): Promise<RtEntityAttributeInput[]> {
     const result: RtEntityAttributeInput[] = [];
 
-    if (
-      !formValue ||
-      typeof formValue !== 'object' ||
-      Array.isArray(formValue)
-    ) {
+    if (!this.isRecordValue(formValue)) {
       return result;
     }
 
@@ -182,9 +187,9 @@ export class FormAttributesServiceMapper {
    * According to OctoMesh documentation: Record and RecordArray are passed as nested objects/arrays.
    */
   private async processAttributeValue(
-    value: any,
+    value: unknown,
     attributeType?: string,
-  ): Promise<any> {
+  ): Promise<unknown> {
     switch (attributeType) {
       case 'RECORD':
         return value;
@@ -227,7 +232,7 @@ export class FormAttributesServiceMapper {
   /**
    * Normalizes File values from different control shapes.
    */
-  private getFileFromValue(value: any): File | null {
+  private getFileFromValue(value: unknown): File | null {
     if (Array.isArray(value) && value.length > 0 && value[0] instanceof File) {
       return value[0];
     }
@@ -240,8 +245,8 @@ export class FormAttributesServiceMapper {
   /**
    * Converts a GeoJSON-like point control to GraphQL-friendly shape.
    */
-  private convertGeospatialPointToGeoJSON(point: any): any {
-    if (point && typeof point === 'object' && point.type === 'Point') {
+  private convertGeospatialPointToGeoJSON(point: unknown): unknown {
+    if (this.isRecordValue(point) && point.type === 'Point') {
       return {
         type: 'Point',
         coordinates: [point.longitude, point.latitude],
@@ -253,7 +258,7 @@ export class FormAttributesServiceMapper {
   /**
    * Converts a TimeSpan control value to seconds.
    */
-  private convertTimeSpanToSeconds(value: any): number {
+  private convertTimeSpanToSeconds(value: unknown): number {
     if (value instanceof Date) {
       const hours = value.getHours();
       const minutes = value.getMinutes();
@@ -285,12 +290,14 @@ export class FormAttributesServiceMapper {
   /**
    * Converts supported binary representations into byte arrays.
    */
-  private async convertBinaryToByteArray(value: any): Promise<number[] | any> {
+  private async convertBinaryToByteArray(
+    value: unknown,
+  ): Promise<number[] | unknown> {
     if (
       Array.isArray(value) &&
       (value.length === 0 || typeof value[0] === 'number')
     ) {
-      return value;
+      return value as number[];
     }
 
     const fileValue = this.getFileFromValue(value);
@@ -346,8 +353,8 @@ export class FormAttributesServiceMapper {
   /**
    * Checks if a RECORD value is empty (empty object or object with all empty values).
    */
-  private isValueEmpty(value: any): boolean {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+  private isValueEmpty(value: unknown): boolean {
+    if (!this.isRecordValue(value)) {
       return true;
     }
 
@@ -363,9 +370,7 @@ export class FormAttributesServiceMapper {
         val === null ||
         val === undefined ||
         val === '' ||
-        (typeof val === 'object' &&
-          !Array.isArray(val) &&
-          Object.keys(val).length === 0) ||
+        (this.isRecordValue(val) && Object.keys(val).length === 0) ||
         (Array.isArray(val) && val.length === 0)
       );
     });

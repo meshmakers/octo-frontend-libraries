@@ -1,0 +1,86 @@
+<div class="demo-container">
+  <h1>Confirmation Dialogs</h1>
+  <p class="subtitle">Demonstrates all four dialog types provided by <code>ConfirmationService</code></p>
+
+  <div class="card-grid">
+    <mat-card>
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="material-symbols-outlined card-icon">help</mat-icon>
+        <mat-card-title>Yes / No</mat-card-title>
+        <mat-card-subtitle>Simple boolean confirmation</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Returns <code>true</code> for Yes, <code>false</code> for No.</p>
+        <div class="result-display" *ngIf="yesNoResult">
+          Last result: <strong>{{ yesNoResult }}</strong>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" (click)="showYesNo()">
+          <mat-icon class="material-symbols-outlined">open_in_new</mat-icon>
+          Open Dialog
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="material-symbols-outlined card-icon">quiz</mat-icon>
+        <mat-card-title>Yes / No / Cancel</mat-card-title>
+        <mat-card-subtitle>Three-way confirmation with cancel</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Returns a <code>ConfirmationWindowResult</code> with the button type.</p>
+        <div class="result-display" *ngIf="yesNoCancelResult">
+          Last result: <strong>{{ yesNoCancelResult }}</strong>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" (click)="showYesNoCancel()">
+          <mat-icon class="material-symbols-outlined">open_in_new</mat-icon>
+          Open Dialog
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="material-symbols-outlined card-icon">warning</mat-icon>
+        <mat-card-title>OK / Cancel</mat-card-title>
+        <mat-card-subtitle>Confirmation with cancel option</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Returns <code>true</code> for OK, <code>false</code> for Cancel.</p>
+        <div class="result-display" *ngIf="okCancelResult">
+          Last result: <strong>{{ okCancelResult }}</strong>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" (click)="showOkCancel()">
+          <mat-icon class="material-symbols-outlined">open_in_new</mat-icon>
+          Open Dialog
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="material-symbols-outlined card-icon">info</mat-icon>
+        <mat-card-title>OK Only</mat-card-title>
+        <mat-card-subtitle>Informational acknowledgment</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Returns <code>true</code> when OK is clicked.</p>
+        <div class="result-display" *ngIf="okResult">
+          Last result: <strong>{{ okResult }}</strong>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" (click)="showOk()">
+          <mat-icon class="material-symbols-outlined">open_in_new</mat-icon>
+          Open Dialog
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

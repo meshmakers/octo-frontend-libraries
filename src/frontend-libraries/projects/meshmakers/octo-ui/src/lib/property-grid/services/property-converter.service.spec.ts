@@ -52,7 +52,7 @@ describe('PropertyConverterService', () => {
 
   describe('convertRtEntityAttributes', () => {
     it('should return empty array for null attributes', (done) => {
-      service.convertRtEntityAttributes(null as any, 'TestType').subscribe(result => {
+      service.convertRtEntityAttributes(null, 'TestType').subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
@@ -148,9 +148,9 @@ describe('PropertyConverterService', () => {
     });
 
     it('should return empty array for non-object types', () => {
-      expect(service.convertObjectToProperties('string')).toEqual([]);
-      expect(service.convertObjectToProperties(123)).toEqual([]);
-      expect(service.convertObjectToProperties(true)).toEqual([]);
+      expect(service.convertObjectToProperties('string' as never)).toEqual([]);
+      expect(service.convertObjectToProperties(123 as never)).toEqual([]);
+      expect(service.convertObjectToProperties(true as never)).toEqual([]);
     });
 
     it('should convert simple object properties', () => {
@@ -274,7 +274,7 @@ describe('PropertyConverterService', () => {
     });
 
     it('should return empty array for non-object record', (done) => {
-      service.convertRtRecordToProperties('string' as any).subscribe(result => {
+      service.convertRtRecordToProperties('string' as never).subscribe(result => {
         expect(result).toEqual([]);
         done();
       });

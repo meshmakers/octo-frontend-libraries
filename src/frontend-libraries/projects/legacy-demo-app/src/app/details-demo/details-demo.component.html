@@ -1,0 +1,100 @@
+<div class="demo-container">
+  <h1>Details & Validation</h1>
+  <p class="subtitle">Extends <code>AbstractDetailsComponent</code> with <code>CommonValidators</code> for form validation</p>
+
+  <div class="demo-layout">
+    <div class="form-section">
+      <div class="action-bar">
+        <button mat-flat-button color="primary" (click)="simulateLoad()" [disabled]="loading">
+          <mat-icon class="material-symbols-outlined">download</mat-icon>
+          Simulate Load
+        </button>
+        <button mat-stroked-button (click)="resetForm()" [disabled]="loading">
+          <mat-icon class="material-symbols-outlined">restart_alt</mat-icon>
+          Reset
+        </button>
+      </div>
+
+      <form [formGroup]="ownerForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" placeholder="Full name">
+          <mat-error *ngIf="hasError('name', 'required')">Name is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" placeholder="user@example.com">
+          <mat-error *ngIf="hasError('email', 'required')">Email is required</mat-error>
+          <mat-error *ngIf="hasError('email', 'email')">Must be a valid email</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="phone" placeholder="+49 170 1234567">
+          <mat-hint>Uses CommonValidators.phoneNumber()</mat-hint>
+          <mat-error *ngIf="hasError('phone', 'required')">Phone is required</mat-error>
+          <mat-error *ngIf="hasError('phone', 'pattern')">Invalid phone format</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Website</mat-label>
+          <input matInput formControlName="website" placeholder="https://example.com">
+          <mat-hint>Uses CommonValidators.httpUri()</mat-hint>
+          <mat-error *ngIf="hasError('website', 'pattern')">Must be a valid HTTP(S) URL</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput formControlName="password" type="password">
+          <mat-error *ngIf="hasError('password', 'required')">Password is required</mat-error>
+          <mat-error *ngIf="hasError('password', 'minlength')">Minimum 8 characters</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Confirm Password</mat-label>
+          <input matInput formControlName="confirmPassword" type="password">
+          <mat-hint>Uses CommonValidators.ensureSameValue('password')</mat-hint>
+          <mat-error *ngIf="hasError('confirmPassword', 'required')">Confirmation is required</mat-error>
+          <mat-error *ngIf="hasError('confirmPassword', 'notSame')">Passwords do not match</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Role</mat-label>
+          <mat-select formControlName="role">
+            <mat-option value="user">User</mat-option>
+            <mat-option value="editor">Editor</mat-option>
+            <mat-option value="admin">Admin</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Notes</mat-label>
+          <textarea matInput formControlName="notes" rows="3"></textarea>
+          <mat-hint>Uses CommonValidators.conditionalRequired - required when role is "admin"</mat-hint>
+          <mat-error *ngIf="hasError('notes', 'required')">Notes required for admin role</mat-error>
+        </mat-form-field>
+      </form>
+    </div>
+
+    <div class="state-panel">
+      <h3>Component State</h3>
+      <div class="state-item">
+        <span class="state-label">loading</span>
+        <span class="state-value" [class.active]="loading">{{ loading }}</span>
+      </div>
+      <div class="state-item">
+        <span class="state-label">isLoaded</span>
+        <span class="state-value" [class.active]="isLoaded">{{ isLoaded }}</span>
+      </div>
+      <div class="state-item">
+        <span class="state-label">entity</span>
+        <pre class="state-value entity-json">{{ entity | json }}</pre>
+      </div>
+      <div class="state-item">
+        <span class="state-label">form valid</span>
+        <span class="state-value" [class.active]="ownerForm.valid">{{ ownerForm.valid }}</span>
+      </div>
+    </div>
+  </div>
+</div>

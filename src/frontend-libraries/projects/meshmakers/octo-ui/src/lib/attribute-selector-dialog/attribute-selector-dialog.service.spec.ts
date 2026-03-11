@@ -1,40 +1,50 @@
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
-import { DialogService, DialogRef } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { AttributeSelectorDialogService } from './attribute-selector-dialog.service';
 import { AttributeSelectorDialogComponent, AttributeSelectorDialogResult } from './attribute-selector-dialog.component';
 import { AttributeItem } from '@meshmakers/octo-services';
 
+interface MockComponentInstance {
+  data?: {
+    rtCkTypeId: string;
+    selectedAttributes?: string[];
+    dialogTitle?: string;
+    singleSelect?: boolean;
+  };
+}
+
 describe('AttributeSelectorDialogService', () => {
   let service: AttributeSelectorDialogService;
-  let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogResultSubject: Subject<any>;
-  let mockDialogRef: Partial<DialogRef>;
-  let mockComponentInstance: any;
+  let windowServiceMock: jasmine.SpyObj<WindowService>;
+  let windowResultSubject: Subject<AttributeSelectorDialogResult | WindowCloseResult | Record<string, unknown> | string | undefined>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockWindowRef: Record<string, any>;
+  let mockComponentInstance: MockComponentInstance;
 
   const mockAttributes: AttributeItem[] = [
-    { attributePath: 'name', attributeValueType: 'STRING' },
-    { attributePath: 'age', attributeValueType: 'INT' }
+    { attributePath: 'name', attributeValueType: 'STRING', description: 'The name' },
+    { attributePath: 'age', attributeValueType: 'INT', description: null }
   ];
 
   beforeEach(() => {
-    dialogResultSubject = new Subject<any>();
+    windowResultSubject = new Subject();
     mockComponentInstance = {};
 
-    mockDialogRef = {
-      result: dialogResultSubject.asObservable(),
+    mockWindowRef = {
+      result: windowResultSubject.asObservable(),
       content: {
         instance: mockComponentInstance
-      } as any
+      } as unknown as WindowRef['content']
     };
 
-    dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
-    dialogServiceMock.open.and.returnValue(mockDialogRef as DialogRef);
+    windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
+    windowServiceMock.open.and.returnValue(mockWindowRef as WindowRef);
 
     TestBed.configureTestingModule({
       providers: [
         AttributeSelectorDialogService,
-        { provide: DialogService, useValue: dialogServiceMock }
+        { provide: WindowService, useValue: windowServiceMock }
       ]
     });
 
@@ -46,21 +56,41 @@ describe('AttributeSelectorDialogService', () => {
   });
 
   describe('openAttributeSelector', () => {
-    it('should open dialog with correct configuration', async () => {
+    it('should open window with correct configuration', async () => {
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
       // Emit result
-      dialogResultSubject.next({ selectedAttributes: [] });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
 
       await resultPromise;
 
-      expect(dialogServiceMock.open).toHaveBeenCalledWith({
+      expect(windowServiceMock.open).toHaveBeenCalledWith({
         content: AttributeSelectorDialogComponent,
-        width: 900,
+        width: 1000,
         height: 700,
-        minWidth: 800,
+        minWidth: 850,
         minHeight: 650,
+        resizable: true,
+        title: 'Select Attributes'
+      });
+    });
+
+    it('should use smaller dimensions for singleSelect mode', async () => {
+      const resultPromise = service.openAttributeSelector('TestType/Entity', undefined, undefined, true);
+
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
+
+      await resultPromise;
+
+      expect(windowServiceMock.open).toHaveBeenCalledWith({
+        content: AttributeSelectorDialogComponent,
+        width: 550,
+        height: 650,
+        minWidth: 450,
+        minHeight: 550,
+        resizable: true,
         title: 'Select Attributes'
       });
     });
@@ -68,12 +98,12 @@ describe('AttributeSelectorDialogService', () => {
     it('should use custom dialog title when provided', async () => {
       const resultPromise = service.openAttributeSelector('TestType/Entity', undefined, 'Custom Title');
 
-      dialogResultSubject.next({ selectedAttributes: [] });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
 
       await resultPromise;
 
-      expect(dialogServiceMock.open).toHaveBeenCalledWith(
+      expect(windowServiceMock.open).toHaveBeenCalledWith(
         jasmine.objectContaining({
           title: 'Custom Title'
         })
@@ -84,15 +114,16 @@ describe('AttributeSelectorDialogService', () => {
       const selectedAttrs = ['name', 'age'];
       const resultPromise = service.openAttributeSelector('TestType/Entity', selectedAttrs, 'My Title');
 
-      dialogResultSubject.next({ selectedAttributes: [] });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
 
       await resultPromise;
 
       expect(mockComponentInstance.data).toEqual({
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: selectedAttrs,
-        dialogTitle: 'My Title'
+        dialogTitle: 'My Title',
+        singleSelect: undefined
       });
     });
 
@@ -103,8 +134,8 @@ describe('AttributeSelectorDialogService', () => {
 
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
-      dialogResultSubject.next(dialogResult);
-      dialogResultSubject.complete();
+      windowResultSubject.next(dialogResult);
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -112,12 +143,24 @@ describe('AttributeSelectorDialogService', () => {
       expect(result.selectedAttributes).toEqual(mockAttributes);
     });
 
+    it('should return confirmed=false when WindowCloseResult (X button)', async () => {
+      const resultPromise = service.openAttributeSelector('TestType/Entity');
+
+      windowResultSubject.next(new WindowCloseResult());
+      windowResultSubject.complete();
+
+      const result = await resultPromise;
+
+      expect(result.confirmed).toBe(false);
+      expect(result.selectedAttributes).toEqual([]);
+    });
+
     it('should return confirmed=false with empty array when user cancels', async () => {
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
       // Simulate cancel (undefined result)
-      dialogResultSubject.next(undefined);
-      dialogResultSubject.complete();
+      windowResultSubject.next(undefined);
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -128,8 +171,8 @@ describe('AttributeSelectorDialogService', () => {
     it('should return confirmed=false with empty array when result is not an object', async () => {
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
-      dialogResultSubject.next('invalid');
-      dialogResultSubject.complete();
+      windowResultSubject.next('invalid');
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -140,8 +183,8 @@ describe('AttributeSelectorDialogService', () => {
     it('should return confirmed=false with empty array when result has no selectedAttributes property', async () => {
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
-      dialogResultSubject.next({ someOtherProperty: 'value' });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ someOtherProperty: 'value' });
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -149,11 +192,11 @@ describe('AttributeSelectorDialogService', () => {
       expect(result.selectedAttributes).toEqual([]);
     });
 
-    it('should return confirmed=false with empty array when dialog throws error', async () => {
+    it('should return confirmed=false with empty array when window throws error', async () => {
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
       // Simulate error (e.g., ESC key pressed)
-      dialogResultSubject.error(new Error('Dialog closed'));
+      windowResultSubject.error(new Error('Window closed'));
 
       const result = await resultPromise;
 
@@ -161,13 +204,13 @@ describe('AttributeSelectorDialogService', () => {
       expect(result.selectedAttributes).toEqual([]);
     });
 
-    it('should handle dialog without content instance', async () => {
-      mockDialogRef.content = null as any;
+    it('should handle window without content instance', async () => {
+      mockWindowRef['content'] = null as unknown as WindowRef['content'];
 
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
-      dialogResultSubject.next({ selectedAttributes: mockAttributes });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: mockAttributes });
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -177,8 +220,8 @@ describe('AttributeSelectorDialogService', () => {
     it('should handle empty selectedAttributes array', async () => {
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
-      dialogResultSubject.next({ selectedAttributes: [] });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
 
       const result = await resultPromise;
 
@@ -189,16 +232,32 @@ describe('AttributeSelectorDialogService', () => {
     it('should work without optional parameters', async () => {
       const resultPromise = service.openAttributeSelector('TestType/Entity');
 
-      dialogResultSubject.next({ selectedAttributes: mockAttributes });
-      dialogResultSubject.complete();
+      windowResultSubject.next({ selectedAttributes: mockAttributes });
+      windowResultSubject.complete();
 
       await resultPromise;
 
       expect(mockComponentInstance.data).toEqual({
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: undefined,
-        dialogTitle: undefined
+        dialogTitle: undefined,
+        singleSelect: undefined
       });
+    });
+
+    it('should set resizable to true', async () => {
+      const resultPromise = service.openAttributeSelector('TestType/Entity');
+
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
+
+      await resultPromise;
+
+      expect(windowServiceMock.open).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          resizable: true
+        })
+      );
     });
   });
 });

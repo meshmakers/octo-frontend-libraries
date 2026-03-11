@@ -108,6 +108,15 @@
                   }
                   <button
                     kendoButton
+                    [svgIcon]="copyIcon"
+                    (click)="duplicate(item); $event.stopPropagation()"
+                    [disabled]="isLoading() || isDuplicating()"
+                    fillMode="flat"
+                    size="small"
+                    title="Duplicate">
+                  </button>
+                  <button
+                    kendoButton
                     [svgIcon]="pencilIcon"
                     (click)="startEdit(item); $event.stopPropagation()"
                     [disabled]="isLoading()"

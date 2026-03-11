@@ -13,6 +13,8 @@ Angular library providing services for interacting with OctoMesh backend APIs. I
   - [IdentityService](#identityservice)
   - [BotService](#botservice)
   - [JobManagementService](#jobmanagementservice)
+  - [CommunicationService](#communicationservice)
+  - [TusUploadService](#tusuploadservice)
 - [GraphQL Services](#graphql-services)
   - [CkTypeSelectorService](#cktypeselectorservice)
   - [CkTypeAttributeService](#cktypeattributeservice)
@@ -39,6 +41,8 @@ import {
   IdentityService,
   BotService,
   JobManagementService,
+  CommunicationService,
+  TusUploadService,
 
   // GraphQL Services
   CkTypeSelectorService,
@@ -374,6 +378,7 @@ async loadClients(): Promise<void> {
 | `removeRoleFromUser(userName, roleName)` | `Promise<void>` | Remove role |
 | `resetPassword(userName, password)` | `Promise<any>` | Reset password |
 | `generatePassword()` | `Promise<GeneratedPasswordDto \| null>` | Generate password |
+| `mergeUsers(targetUserName, sourceUserName)` | `Promise<void>` | Merge source user into target user |
 
 **Role Management:**
 
@@ -494,6 +499,142 @@ export class ExportComponent {
 
 ---
 
+### CommunicationService
+
+Manages adapter deployment, pipeline execution, and pipeline debugging via the Communication Controller API.
+
+```typescript
+import { CommunicationService } from '@meshmakers/octo-services';
+
+@Component({ ... })
+export class PipelineComponent {
+  private readonly communicationService = inject(CommunicationService);
+
+  async deployAndExecute(tenantId: string, pipelineRtId: string): Promise<void> {
+    // Deploy a data pipeline
+    await this.communicationService.deployDataPipeline(tenantId, pipelineRtId);
+
+    // Execute it manually
+    const result = await this.communicationService.executePipeline(tenantId, pipelineRtId);
+
+    // Check execution history
+    const executions = await this.communicationService.getPipelineExecutions(
+      tenantId, pipelineRtId, 'MyModel/MyPipeline', 0, 10
+    );
+  }
+}
+```
+
+#### Methods
+
+**Trigger Deployment:**
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `deployTrigger(tenantId)` | `Promise<void>` | Deploy all data pipeline triggers |
+
+**Adapter Configuration:**
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `deployAdapterConfigurationUpdate(tenantId, adapterRtId, adapterCkTypeId)` | `Promise<void>` | Deploy adapter config update |
+
+**Pool-Level Adapter Management:**
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `deployAllAdaptersOfPool(tenantId, poolRtId)` | `Promise<void>` | Deploy all adapters of a pool |
+| `undeployAllAdaptersOfPool(tenantId, poolRtId)` | `Promise<void>` | Undeploy all adapters of a pool |
+
+**Individual Adapter Management:**
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `deployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | `Promise<void>` | Deploy single adapter |
+| `undeployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | `Promise<void>` | Undeploy single adapter |
+
+**Pipeline Execution:**
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `executePipeline(tenantId, dataPipelineRtId)` | `Promise<PipelineExecutionDataDto \| null>` | Execute pipeline manually |
+
+**Pipeline Deployment:**
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, pipelineDefinition)` | `Promise<void>` | Deploy pipeline definition |
+| `deployDataPipeline(tenantId, dataPipelineRtId)` | `Promise<void>` | Deploy data pipeline |
+| `undeployDataPipeline(tenantId, dataPipelineRtId)` | `Promise<void>` | Undeploy data pipeline |
+| `getPipelineStatus(tenantId, pipelineRtId, pipelineCkTypeId)` | `Promise<DeploymentResultDto \| null>` | Get deployment status |
+| `getPipelineSchema(tenantId, adapterRtId, adapterCkTypeId)` | `Promise<Record<string, unknown> \| null>` | Get JSON Schema for adapter |
+
+**Pipeline Debugging:**
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getPipelineExecutions(tenantId, pipelineRtId, pipelineCkTypeId, skip, take)` | `Promise<PipelineExecutionDataDto[]>` | Get execution history |
+| `getLatestPipelineExecution(tenantId, pipelineRtId, pipelineCkTypeId)` | `Promise<PipelineExecutionDataDto \| null>` | Get latest execution |
+| `getPipelineExecutionDebugPointNodes(tenantId, pipelineRtId, pipelineCkTypeId, executionId)` | `Promise<DebugPointNode[] \| null>` | Get debug point tree |
+| `getDebugPoint(tenantId, pipelineRtId, pipelineCkTypeId, executionId, nodeId)` | `Promise<DebugPointDataDto \| null>` | Get data at debug point |
+
+---
+
+### TusUploadService
+
+Resumable file uploads using the [TUS protocol](https://tus.io/). Used for uploading large database dump files for repository restore operations.
+
+```typescript
+import { TusUploadService, TusUploadOptions } from '@meshmakers/octo-services';
+
+@Component({ ... })
+export class RestoreComponent {
+  private readonly tusUploadService = inject(TusUploadService);
+
+  async uploadAndRestore(file: File, tenantId: string, dbName: string): Promise<void> {
+    const result = await this.tusUploadService.startUpload({
+      file,
+      tenantId,
+      databaseName: dbName,
+      onProgress: (bytesUploaded, bytesTotal) => {
+        const percentage = (bytesUploaded / bytesTotal * 100).toFixed(1);
+        console.log(`Upload progress: ${percentage}%`);
+      }
+    });
+
+    console.log('Restore job started:', result.jobId);
+  }
+}
+```
+
+#### TusUploadOptions
+
+```typescript
+interface TusUploadOptions {
+  file: File;                      // File to upload
+  tenantId: string;                // Target tenant
+  databaseName: string;            // Target database name
+  oldDatabaseName?: string;        // Original database name (for rename)
+  onProgress?: (bytesUploaded: number, bytesTotal: number) => void;
+}
+```
+
+#### TusUploadResult
+
+```typescript
+interface TusUploadResult {
+  jobId: string;                   // Job ID for tracking restore progress
+}
+```
+
+**Features:**
+- Chunk size: 50 MB
+- Automatic retries with backoff (0s, 1s, 3s, 5s, 10s)
+- Automatic Bearer token injection
+- Returns job ID for tracking via `JobManagementService.waitForJob()`
+
+---
+
 ## GraphQL Services
 
 ### CkTypeSelectorService
@@ -533,8 +674,25 @@ export class TypeSelectorComponent implements OnInit {
         }
       });
   }
+
+  getDerivedTypes(baseTypeId: string): void {
+    this.ckTypeSelectorService.getDerivedCkTypes(baseTypeId, {
+      searchText: '',
+      ignoreAbstractTypes: true
+    }).subscribe(result => {
+      console.log('Derived types:', result.items);
+    });
+  }
 }
 ```
+
+#### Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getCkTypes(options?)` | `Observable<{items, totalCount}>` | Query types with filtering and pagination |
+| `getCkTypeByRtCkTypeId(rtCkTypeId)` | `Observable<CkTypeSelectorItem \| null>` | Get single type by runtime ID |
+| `getDerivedCkTypes(rtCkTypeId, options)` | `Observable<{items, totalCount}>` | Get derived types of a base type |
 
 #### CkTypeSelectorItem Interface
 
@@ -747,24 +905,34 @@ interface ClientDto {
 
 ```typescript
 interface JobDto {
-  id?: string;
-  tenantId?: string;
-  status?: 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Deleted';
-  progress?: number;
-  message?: string;
-  fileName?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  id: string;
+  createdAt: Date | null;
+  stateChangedAt: Date | null;
+  status: string | null;       // 'Pending' | 'Running' | 'Succeeded' | 'Failed' | 'Deleted'
+  reason: string | null;
+  errorMessage: string | null;
 }
 ```
 
 ### HealthCheck
 
 ```typescript
+enum HealthStatus {
+  Unhealthy = 'Unhealthy',
+  Degraded = 'Degraded',
+  Healthy = 'Healthy'
+}
+
+interface HealthCheckResult {
+  title: string;
+  data: Map<string, any> | null;
+  description: string | null;
+  status: HealthStatus;
+}
+
 interface HealthCheck {
-  status: 'Healthy' | 'Unhealthy' | 'Degraded';
-  totalDuration: string;
-  entries?: Record<string, HealthCheckEntry>;
+  status: HealthStatus;
+  results: HealthCheckResult[];
 }
 ```
 

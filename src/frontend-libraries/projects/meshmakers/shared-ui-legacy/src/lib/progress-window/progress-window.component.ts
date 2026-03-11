@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, AfterViewInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, AfterViewInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -55,6 +55,7 @@ export interface ProgressWindowData {
 export class ProgressWindowComponent implements AfterViewInit, OnDestroy {
   private readonly dialogRef = inject<MatDialogRef<ProgressWindowComponent>>(MatDialogRef);
   private readonly data = inject<ProgressWindowData>(MAT_DIALOG_DATA);
+  private readonly cdr = inject(ChangeDetectorRef);
   private progressSubscription?: Subscription;
 
   isDeterminate: boolean;
@@ -72,6 +73,7 @@ export class ProgressWindowComponent implements AfterViewInit, OnDestroy {
       this.progressSubscription = this.data.progress.subscribe((value: ProgressValue) => {
         this.statusText = value.statusText;
         this.progressPercent = value.progressValue;
+        this.cdr.detectChanges();
       });
     }
   }

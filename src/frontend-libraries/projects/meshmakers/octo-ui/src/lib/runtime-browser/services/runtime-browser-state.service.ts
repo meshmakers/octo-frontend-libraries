@@ -12,7 +12,7 @@ type BrowserItem =
 export interface BrowserState {
   selectedItemId: string;
   selectedItemText: string;
-  selectedItemData: any;
+  selectedItemData: BrowserItem;
   parentPath: TreeItemDataTyped<BrowserItem>[]; // Full path from root to parent (deprecated)
   expandedKeys: string[]; // IDs of expanded nodes (parent path)
   timestamp: number;
@@ -123,25 +123,33 @@ export class RuntimeBrowserStateService {
    * Get unique identifier for a tree item
    */
   private getItemId(item: TreeItemDataTyped<BrowserItem>): string {
-    const itemData = item.item as any;
+    const itemData = item.item;
 
     // Runtime entity
-    if (itemData?.rtId && itemData?.ckTypeId) {
-      return `${itemData.ckTypeId}@${itemData.rtId}`;
+    if ('rtId' in itemData && 'ckTypeId' in itemData) {
+      return `${String(itemData.ckTypeId)}@${String(itemData.rtId)}`;
     }
 
     // CK Model
-    if (itemData?.id && !itemData?.rtId && !itemData?.ckTypeId) {
-      return `ck-model:${itemData.id}`;
+    if (
+      'id' in itemData &&
+      !('rtId' in itemData) &&
+      !('ckTypeId' in itemData)
+    ) {
+      return `ck-model:${String(itemData.id)}`;
     }
 
     // CK Type
-    if (itemData?.ckTypeId && !itemData?.rtId && !itemData?.id) {
-      return `ck-type:${itemData.ckTypeId}`;
+    if (
+      'ckTypeId' in itemData &&
+      !('rtId' in itemData) &&
+      !('id' in itemData)
+    ) {
+      return `ck-type:${String(itemData.ckTypeId)}`;
     }
 
     // CK Models root
-    if (itemData?.isCkModelsRoot) {
+    if ('isCkModelsRoot' in itemData && itemData.isCkModelsRoot) {
       return 'ck-models-root';
     }
 

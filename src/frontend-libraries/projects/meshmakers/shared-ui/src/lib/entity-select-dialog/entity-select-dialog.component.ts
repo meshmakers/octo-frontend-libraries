@@ -1,6 +1,6 @@
 import { Component, Input, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DialogContentBase, DialogRef, DialogModule } from '@progress/kendo-angular-dialog';
+import { WindowRef, WindowModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import {
   GridComponent,
@@ -9,12 +9,18 @@ import {
   SelectableSettings,
   SelectionEvent,
   PageChangeEvent,
-  CheckboxColumnComponent
+  CheckboxColumnComponent,
+  CustomMessagesComponent
 } from '@progress/kendo-angular-grid';
 import { TextBoxComponent } from '@progress/kendo-angular-inputs';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
-import { EntitySelectDialogDataSource, EntitySelectDialogResult } from './entity-select-dialog-data-source';
+import {
+  EntitySelectDialogDataSource,
+  EntitySelectDialogResult,
+  EntitySelectDialogMessages,
+  DEFAULT_ENTITY_SELECT_DIALOG_MESSAGES
+} from './entity-select-dialog-data-source';
 import { TableColumn } from '../list-view/list-view.model';
 import { PascalCasePipe } from '../pipes/pascal-case.pipe';
 
@@ -24,10 +30,11 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
   imports: [
     CommonModule,
     ButtonsModule,
-    DialogModule,
+    WindowModule,
     GridComponent,
     ColumnComponent,
     CheckboxColumnComponent,
+    CustomMessagesComponent,
     TextBoxComponent,
     PascalCasePipe
   ],
@@ -36,9 +43,9 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       <div class="search-toolbar">
         <kendo-textbox
           [style.width.px]="250"
-          placeholder="Search..."
+          [placeholder]="_messages.searchPlaceholder"
           [value]="searchValue"
-          (valueChange)="onSearchChange($event)">
+          (valueChange)="onSearchChange($event ?? '')">
         </kendo-textbox>
       </div>
 
@@ -52,6 +59,17 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
         (pageChange)="onPageChange($event)"
         (selectionChange)="onSelectionChange($event)"
         class="entity-grid">
+
+        <kendo-grid-messages
+          [pagerItemsPerPage]="_messages.pagerItemsPerPage"
+          [pagerOf]="_messages.pagerOf"
+          [pagerItems]="_messages.pagerItems"
+          [pagerPage]="_messages.pagerPage"
+          [pagerFirstPage]="_messages.pagerFirstPage"
+          [pagerLastPage]="_messages.pagerLastPage"
+          [pagerPreviousPage]="_messages.pagerPreviousPage"
+          [pagerNextPage]="_messages.pagerNextPage"
+        ></kendo-grid-messages>
 
         <kendo-grid-checkbox-column
           [width]="40"
@@ -67,31 +85,38 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       </kendo-grid>
 
       <div class="selection-info" *ngIf="selectedEntities.length > 0">
-        {{ selectedEntities.length }} selected
+        {{ selectedEntities.length }} {{ _messages.selectedSuffix }}
+      </div>
+
+      <div class="dialog-actions">
+        <button kendoButton (click)="onCancel()">{{ _messages.cancelButton }}</button>
+        <button kendoButton
+                themeColor="primary"
+                [disabled]="selectedEntities.length === 0"
+                (click)="onConfirm()">
+          {{ _messages.confirmButton }}
+        </button>
       </div>
     </div>
-
-    <kendo-dialog-actions>
-      <button kendoButton (click)="onCancel()">Cancel</button>
-      <button kendoButton
-              themeColor="primary"
-              [disabled]="selectedEntities.length === 0"
-              (click)="onConfirm()">
-        OK
-      </button>
-    </kendo-dialog-actions>
   `,
   styles: [`
-    .entity-select-dialog-content {
+    :host {
       display: flex;
       flex-direction: column;
       height: 100%;
-      min-height: 400px;
+    }
+
+    .entity-select-dialog-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      padding: 16px 20px;
       box-sizing: border-box;
+      gap: 12px;
     }
 
     .search-toolbar {
-      padding: 8px 0 16px 0;
       flex-shrink: 0;
     }
 
@@ -107,10 +132,17 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       color: var(--kendo-color-subtle);
       flex-shrink: 0;
     }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
   `]
 })
-export class EntitySelectDialogComponent<T> extends DialogContentBase implements OnInit, OnDestroy {
-  private readonly dialogRef: DialogRef;
+export class EntitySelectDialogComponent<T> implements OnInit, OnDestroy {
+  private readonly windowRef = inject(WindowRef);
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -118,10 +150,16 @@ export class EntitySelectDialogComponent<T> extends DialogContentBase implements
   @Input() multiSelect = false;
   @Input() preSelectedEntities: T[] = [];
 
+  _messages: EntitySelectDialogMessages = {...DEFAULT_ENTITY_SELECT_DIALOG_MESSAGES};
+
+  @Input() set messages(value: Partial<EntitySelectDialogMessages>) {
+    this._messages = {...DEFAULT_ENTITY_SELECT_DIALOG_MESSAGES, ...value};
+  }
+
   columns: TableColumn[] = [];
   gridData: { data: T[]; total: number } = { data: [], total: 0 };
   selectedEntities: T[] = [];
-  selectedKeys: any[] = [];
+  selectedKeys: string[] = [];
   isLoading = false;
   searchValue = '';
   pageSize = 10;
@@ -141,12 +179,6 @@ export class EntitySelectDialogComponent<T> extends DialogContentBase implements
       mode: this.multiSelect ? 'multiple' : 'single',
       checkboxOnly: true
     };
-  }
-
-  constructor() {
-    const dialogRef = inject(DialogRef);
-    super(dialogRef);
-    this.dialogRef = dialogRef;
   }
 
   ngOnInit(): void {
@@ -264,10 +296,10 @@ export class EntitySelectDialogComponent<T> extends DialogContentBase implements
     const result: EntitySelectDialogResult<T> = {
       selectedEntities: this.selectedEntities
     };
-    this.dialogRef.close(result);
+    this.windowRef.close(result);
   }
 
   onCancel(): void {
-    this.dialogRef.close(null);
+    this.windowRef.close();
   }
 }

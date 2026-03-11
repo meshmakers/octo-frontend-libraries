@@ -1,3 +1,5 @@
+import { AttributeEnumOption } from './attribute-metadata';
+
 export interface Attribute {
   id: {
     ckId: string;
@@ -6,6 +8,6 @@ export interface Attribute {
   attributeName: string;
   attributeValueType: string;
   isOptional: boolean;
-  enumOptions?: any[] | null;
-  value?: any;
+  enumOptions?: AttributeEnumOption[] | null;
+  value?: unknown;
 }

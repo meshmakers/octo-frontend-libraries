@@ -6,9 +6,9 @@ import { CommandOptions } from '../options/commandOptions';
 
 describe('CommandService', () => {
   let service: CommandService;
-  let mockRouter: any;
-  let mockCommandSettingsService: any;
-  let mockCommandOptions: any;
+  let mockRouter: unknown;
+  let mockCommandSettingsService: unknown;
+  let mockCommandOptions: unknown;
 
   beforeEach(() => {
     mockRouter = {

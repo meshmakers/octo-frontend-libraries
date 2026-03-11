@@ -32,6 +32,7 @@ module.exports = tseslint.config(
     // Ignore unsupported lint rules for generated GraphQL files
     files: ["**/src/lib/runtime-browser/graphQL/**/*.ts"],
     rules: {
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-indexed-object-style": "off",
