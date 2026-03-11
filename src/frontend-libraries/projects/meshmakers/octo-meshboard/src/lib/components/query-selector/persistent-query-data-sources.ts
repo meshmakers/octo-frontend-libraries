@@ -7,6 +7,7 @@ import {
   DialogFetchResult,
   ColumnDefinition
 } from '@meshmakers/shared-ui';
+import { FieldFilterOperatorsDto } from '@meshmakers/octo-services';
 import { GetSystemPersistentQueriesDtoGQL } from '../../graphQL/getSystemPersistentQueries';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
 
@@ -22,7 +23,7 @@ export class PersistentQueryAutocompleteDataSource implements EntitySelectDataSo
       this.gql.fetch({
         variables: {
           first: take,
-          searchFilter: { searchTerm: filter, language: 'de' }
+          fieldFilters: filter ? [{ attributePath: 'name', operator: FieldFilterOperatorsDto.LikeDto, comparisonValue: filter }] : undefined
         }
       })
     );
@@ -72,7 +73,7 @@ export class PersistentQueryDialogDataSource implements EntitySelectDialogDataSo
         variables: {
           first: options.take,
           after: options.skip > 0 ? btoa(`arrayconnection:${options.skip - 1}`) : undefined,
-          searchFilter: options.textSearch ? { searchTerm: options.textSearch, language: 'de' } : undefined
+          fieldFilters: options.textSearch ? [{ attributePath: 'name', operator: FieldFilterOperatorsDto.LikeDto, comparisonValue: options.textSearch }] : undefined
         }
       })
     ).pipe(
