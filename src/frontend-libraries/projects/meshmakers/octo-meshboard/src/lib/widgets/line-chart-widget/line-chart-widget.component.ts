@@ -57,6 +57,7 @@ interface ValueAxisConfig {
             <kendo-chart-category-axis-item [categories]="categories()">
               <kendo-chart-category-axis-item-labels
                 [rotation]="labelRotation()"
+                [step]="labelStep()"
                 [content]="categoryLabelContent">
               </kendo-chart-category-axis-item-labels>
             </kendo-chart-category-axis-item>
@@ -188,7 +189,19 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   readonly labelRotation = computed(() => {
     const categoryCount = this._categories().length;
-    return categoryCount > 8 ? -45 : 0;
+    return categoryCount > 5 ? -45 : 0;
+  });
+
+  /**
+   * Step for category axis labels to avoid overcrowding.
+   * Shows every Nth label depending on total count.
+   */
+  readonly labelStep = computed(() => {
+    const count = this._categories().length;
+    if (count <= 10) return 1;
+    if (count <= 30) return Math.ceil(count / 10);
+    if (count <= 100) return Math.ceil(count / 15);
+    return Math.ceil(count / 20);
   });
 
   isNotConfigured(): boolean {
@@ -370,7 +383,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const sortedCategoryEntries = Array.from(allCategories.entries())
       .sort((a, b) => a[1].getTime() - b[1].getTime());
 
-    const categories = sortedCategoryEntries.map(([, date]) => this.formatDate(date));
+    // Detect if we need time precision (multiple data points per day)
+    const dateOnlySet = new Set(sortedCategoryEntries.map(([, date]) => date.toLocaleDateString('de-AT')));
+    const needsTime = dateOnlySet.size < sortedCategoryEntries.length;
+
+    const categories = sortedCategoryEntries.map(([, date]) =>
+      needsTime ? this.formatDateTime(date) : this.formatDate(date)
+    );
     const categoryKeys = sortedCategoryEntries.map(([key]) => key);
     const seriesGroups = Array.from(allSeriesGroups);
 
@@ -411,7 +430,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   }
 
   /**
-   * Formats a date for display on the category axis.
+   * Formats a date for display on the category axis (date only).
    */
   private formatDate(date: Date): string {
     if (isNaN(date.getTime())) return '?';
@@ -419,6 +438,20 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
+    });
+  }
+
+  /**
+   * Formats a date with time for display on the category axis.
+   */
+  private formatDateTime(date: Date): string {
+    if (isNaN(date.getTime())) return '?';
+    return date.toLocaleDateString('de-AT', {
+      day: '2-digit',
+      month: '2-digit'
+    }) + ' ' + date.toLocaleTimeString('de-AT', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   }
 
