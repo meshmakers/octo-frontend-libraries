@@ -454,8 +454,9 @@ export class AppComponent {
 | Output | Type | Description |
 |--------|------|-------------|
 | `tenantSelected` | `EventEmitter<string>` | Emits tenant ID when user selects a different tenant |
+| `refreshRequested` | `EventEmitter<void>` | Emits when user clicks the refresh button in the popup header |
 
-**Visual behavior:** Badge button showing tenant name + icon. Click opens a Kendo popup listing allowed tenants. Current tenant is highlighted. Clicking a different tenant emits event and closes popup. Escape/outside-click closes popup.
+**Visual behavior:** Badge button showing tenant name + icon. Click opens a Kendo popup listing allowed tenants. Current tenant is highlighted. Clicking a different tenant emits event and closes popup. Escape/outside-click closes popup. The popup header includes a refresh button (spinning arrow icon) that emits `refreshRequested` — host applications use this to refresh the access token and update `allowed_tenants`.
 
 **LCARS theming:** The component uses Kendo CSS variables for theme-neutral styling. Refinery Studio applies LCARS overrides via `::ng-deep mm-tenant-switcher { ... }` in `app.component.scss`.
 

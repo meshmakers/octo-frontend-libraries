@@ -112,18 +112,18 @@ Checks health status of backend services.
 
 ### AssetRepoService
 
-Manages tenants and model import/export.
+Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVIDER` (injected as `optional: true`) to resolve the current tenant ID for tenant management API requests. Falls back to `'octosystem'` when the provider is not available or returns `null`. Tenant API URLs follow the pattern `{assetServices}{tenantId}/v1/tenants`.
 
-**Tenant Management:**
+**Tenant Management (child tenants of the current tenant):**
 
 | Method | Description |
 |--------|-------------|
-| `getTenants(skip, take)` | List tenants with pagination |
-| `getTenantDetails(tenantId)` | Get tenant details |
-| `createTenant(tenantDto)` | Create a new tenant |
-| `attachTenant(tenantDto)` | Attach existing database as tenant |
-| `detachTenant(tenantId)` | Detach tenant (keep database) |
-| `deleteTenant(tenantId)` | Delete tenant and database |
+| `getTenants(skip, take)` | List child tenants with pagination |
+| `getTenantDetails(childTenantId)` | Get child tenant details |
+| `createTenant(tenantDto)` | Create a new child tenant |
+| `attachTenant(tenantDto)` | Attach existing database as child tenant |
+| `detachTenant(childTenantId)` | Detach child tenant (keep database) |
+| `deleteTenant(childTenantId)` | Delete child tenant and database |
 
 **Model Import/Export:**
 

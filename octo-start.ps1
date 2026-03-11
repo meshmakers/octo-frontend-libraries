@@ -59,6 +59,12 @@ try {
     # Map configuration to Angular configuration name
     $ngConfiguration = if ($configuration -eq "Release") { "production" } else { "development" }
 
+    # Use the central logFiles directory (needed when run inside Start-Job where there is no console)
+    $logsPath = Join-Path (Split-Path $scriptPath -Parent) "logFiles"
+    if (!(Test-Path $logsPath)) {
+        New-Item -ItemType Directory -Force -Path $logsPath | Out-Null
+    }
+
     # Start demo-app on port 4201
     Write-Host "Starting demo-app on https://localhost:4201" -ForegroundColor Cyan
     if ($npxPrefix) {
@@ -70,7 +76,9 @@ try {
         -ArgumentList $demoArgs `
         -WorkingDirectory $frontendLibsPath `
         -PassThru `
-        -NoNewWindow
+        -NoNewWindow `
+        -RedirectStandardOutput (Join-Path $logsPath "demo-app.log") `
+        -RedirectStandardError (Join-Path $logsPath "demo-app-error.log")
     $processes += $demoProc
 
     # Start legacy-demo-app on port 4202
@@ -84,7 +92,9 @@ try {
         -ArgumentList $legacyArgs `
         -WorkingDirectory $frontendLibsPath `
         -PassThru `
-        -NoNewWindow
+        -NoNewWindow `
+        -RedirectStandardOutput (Join-Path $logsPath "legacy-demo-app.log") `
+        -RedirectStandardError (Join-Path $logsPath "legacy-demo-app-error.log")
     $processes += $legacyProc
 
     Write-Host ""

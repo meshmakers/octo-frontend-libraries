@@ -1,6 +1,7 @@
 import {HttpClient, HttpParams} from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {CONFIGURATION_SERVICE} from './configuration.service';
+import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 import {TenantDto} from '../shared/tenantDto';
 import {firstValueFrom} from 'rxjs';
 import {ImportModelResponseDto} from '../shared/importModelResponseDto';
@@ -14,14 +15,24 @@ import {ImportStrategyDto} from '../shared/importStrategyDto';
 export class AssetRepoService {
   private readonly httpClient = inject(HttpClient);
   private readonly configurationService = inject(CONFIGURATION_SERVICE);
+  private readonly tenantIdProvider: TenantIdProvider | null = inject(TENANT_ID_PROVIDER, {optional: true});
 
+  private async getTenantApiBaseUrl(): Promise<string | null> {
+    if (!this.configurationService.config?.assetServices) return null;
+    let tenantId = 'octosystem';
+    if (this.tenantIdProvider) {
+      tenantId = await this.tenantIdProvider() ?? 'octosystem';
+    }
+    return `${this.configurationService.config.assetServices}${tenantId}/v1/tenants`;
+  }
 
   public async getTenants(skip: number, take: number): Promise<PagedResultDto<TenantDto> | null> {
     const params = new HttpParams().set('skip', '' + skip.toString()).set('take', '' + take.toString());
 
-    if (this.configurationService.config?.assetServices) {
+    const baseUrl = await this.getTenantApiBaseUrl();
+    if (baseUrl) {
       const r = await firstValueFrom(this.httpClient
-        .get<PagedResultDto<TenantDto>>(this.configurationService.config.assetServices + 'system/v1/tenants', {
+        .get<PagedResultDto<TenantDto>>(baseUrl, {
           params,
           observe: 'response'
         }));
@@ -30,10 +41,11 @@ export class AssetRepoService {
     return null;
   }
 
-  public async getTenantDetails(tenantId: string): Promise<TenantDto | null> {
-    if (this.configurationService.config?.assetServices) {
+  public async getTenantDetails(childTenantId: string): Promise<TenantDto | null> {
+    const baseUrl = await this.getTenantApiBaseUrl();
+    if (baseUrl) {
       const r = await firstValueFrom(this.httpClient
-        .get<TenantDto>(this.configurationService.config.assetServices + `system/v1/tenants/${tenantId}`, {
+        .get<TenantDto>(`${baseUrl}/${childTenantId}`, {
           observe: 'response'
         }));
       return r.body;
@@ -42,10 +54,11 @@ export class AssetRepoService {
   }
 
   public async createTenant(tenantDto: TenantDto): Promise<void> {
-    const params = new HttpParams().set('tenantId', tenantDto.tenantId).set('databaseName', tenantDto.database);
+    const params = new HttpParams().set('childTenantId', tenantDto.tenantId).set('databaseName', tenantDto.database);
 
-    if (this.configurationService.config?.assetServices) {
-      await firstValueFrom(this.httpClient.post<void>(this.configurationService.config.assetServices + 'system/v1/tenants', null, {
+    const baseUrl = await this.getTenantApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(this.httpClient.post<void>(baseUrl, null, {
         params,
         observe: 'response'
       }));
@@ -53,32 +66,35 @@ export class AssetRepoService {
   }
 
   public async attachTenant(dataSourceDto: TenantDto): Promise<void> {
-    const params = new HttpParams().set('tenantId', dataSourceDto.tenantId).set('databaseName', dataSourceDto.database);
+    const params = new HttpParams().set('childTenantId', dataSourceDto.tenantId).set('databaseName', dataSourceDto.database);
 
-    if (this.configurationService.config?.assetServices) {
-      await firstValueFrom(this.httpClient.post<void>(this.configurationService.config.assetServices + 'system/v1/tenants/attach', null, {
+    const baseUrl = await this.getTenantApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(this.httpClient.post<void>(`${baseUrl}/attach`, null, {
         params,
         observe: 'response'
       }));
     }
   }
 
-  public async detachTenant(tenantId: string): Promise<void> {
-    const params = new HttpParams().set('tenantId', tenantId);
+  public async detachTenant(childTenantId: string): Promise<void> {
+    const params = new HttpParams().set('childTenantId', childTenantId);
 
-    if (this.configurationService.config?.assetServices) {
-      await firstValueFrom(this.httpClient.post<void>(this.configurationService.config.assetServices + 'system/v1/tenants/detach', null, {
+    const baseUrl = await this.getTenantApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(this.httpClient.post<void>(`${baseUrl}/detach`, null, {
         params,
         observe: 'response'
       }));
     }
   }
 
-  public async deleteTenant(tenantId: string): Promise<void> {
-    const params = new HttpParams().set('tenantId', tenantId);
+  public async deleteTenant(childTenantId: string): Promise<void> {
+    const params = new HttpParams().set('childTenantId', childTenantId);
 
-    if (this.configurationService.config?.assetServices) {
-      await firstValueFrom(this.httpClient.delete<void>(this.configurationService.config.assetServices + 'system/v1/tenants', {
+    const baseUrl = await this.getTenantApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(this.httpClient.delete<void>(baseUrl, {
         params,
         observe: 'response'
       }));

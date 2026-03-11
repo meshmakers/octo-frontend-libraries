@@ -8,12 +8,17 @@ import {
   ViewChild
 } from '@angular/core';
 import { PopupComponent } from '@progress/kendo-angular-popup';
+import { ButtonComponent } from '@progress/kendo-angular-buttons';
+import { SVGIconComponent } from '@progress/kendo-angular-icons';
+import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
 
 @Component({
   selector: 'mm-tenant-switcher',
   standalone: true,
   imports: [
-    PopupComponent
+    PopupComponent,
+    ButtonComponent,
+    SVGIconComponent
   ],
   template: `
     @if (currentTenantId) {
@@ -29,7 +34,16 @@ import { PopupComponent } from '@progress/kendo-angular-popup';
         <kendo-popup #popupContent [anchor]="badgeEl"
                      (anchorViewportLeave)="showPopup = false">
           <div class="tenant-popup">
-            <div class="tenant-popup-header">Switch Tenant</div>
+            <div class="tenant-popup-header">
+              <span>Switch Tenant</span>
+              <button kendoButton fillMode="flat" size="small" class="refresh-btn"
+                      [disabled]="isRefreshing"
+                      title="Refresh tenant list"
+                      (click)="onRefresh($event)">
+                <kendo-svgicon [icon]="refreshIcon" size="small"
+                               [class.spinning]="isRefreshing"></kendo-svgicon>
+              </button>
+            </div>
             <ul class="tenant-list">
               @for (tenant of allowedTenants; track tenant) {
                 <li class="tenant-list-item" [class.active]="tenant === currentTenantId"
@@ -116,6 +130,9 @@ import { PopupComponent } from '@progress/kendo-angular-popup';
     }
 
     .tenant-popup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding: 8px 16px;
       font-size: 0.75rem;
       font-weight: 600;
@@ -124,6 +141,20 @@ import { PopupComponent } from '@progress/kendo-angular-popup';
       color: var(--kendo-color-subtle, #666);
       border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
       margin-bottom: 4px;
+    }
+
+    .refresh-btn {
+      padding: 2px;
+      min-width: unset;
+    }
+
+    .spinning {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     .tenant-list {
@@ -172,6 +203,10 @@ export class TenantSwitcherComponent {
   @Input() isDenied = false;
 
   @Output() tenantSelected = new EventEmitter<string>();
+  @Output() refreshRequested = new EventEmitter<void>();
+
+  protected readonly refreshIcon = arrowRotateCwIcon;
+  protected isRefreshing = false;
 
   @ViewChild('badgeEl', { read: ElementRef })
   private anchor: ElementRef | null = null;
@@ -206,6 +241,16 @@ export class TenantSwitcherComponent {
       this.tenantSelected.emit(tenantId);
     }
     this.showPopup = false;
+  }
+
+  onRefresh(event: MouseEvent): void {
+    event.stopPropagation();
+    if (!this.isRefreshing) {
+      this.isRefreshing = true;
+      this.refreshRequested.emit();
+      // Reset spinning after a short delay to give visual feedback
+      setTimeout(() => this.isRefreshing = false, 1500);
+    }
   }
 
   private contains(target: EventTarget | null): boolean {
