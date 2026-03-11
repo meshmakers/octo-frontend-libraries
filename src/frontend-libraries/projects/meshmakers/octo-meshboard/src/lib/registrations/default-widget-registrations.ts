@@ -15,6 +15,7 @@ import {
   GaugeWidgetConfig,
   PieChartWidgetConfig,
   BarChartWidgetConfig,
+  HeatmapWidgetConfig,
   StatsGridWidgetConfig,
   StatusIndicatorWidgetConfig,
   ServiceHealthWidgetConfig,
@@ -37,6 +38,7 @@ import { StatusIndicatorWidgetComponent } from '../widgets/status-indicator-widg
 import { ServiceHealthWidgetComponent } from '../widgets/service-health-widget/service-health-widget.component';
 import { WidgetGroupComponent } from '../widgets/widget-group/widget-group.component';
 import { MarkdownWidgetComponent } from '../widgets/markdown-widget/markdown-widget.component';
+import { HeatmapWidgetComponent } from '../widgets/heatmap-widget/heatmap-widget.component';
 // Note: ProcessWidget registration moved to process-widget-registration.ts for lazy loading
 // Use provideProcessWidget() or registerProcessWidget() to enable Process Diagram widgets
 
@@ -53,6 +55,7 @@ import { StatusIndicatorConfigDialogComponent, StatusIndicatorConfigResult } fro
 import { ServiceHealthConfigDialogComponent, ServiceHealthConfigResult } from '../widgets/service-health-widget/service-health-config-dialog.component';
 import { WidgetGroupConfigDialogComponent, WidgetGroupConfigResult } from '../widgets/widget-group/widget-group-config-dialog.component';
 import { MarkdownConfigDialogComponent, MarkdownConfigResult } from '../widgets/markdown-widget/markdown-config-dialog.component';
+import { HeatmapConfigDialogComponent, HeatmapConfigResult } from '../widgets/heatmap-widget/heatmap-config-dialog.component';
 
 /**
  * Helper to extract data source info from widget config
@@ -1496,6 +1499,115 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         resolveVariables: (config['resolveVariables'] as boolean) ?? true,
         padding: config['padding'] as string | undefined,
         textAlign: config['textAlign'] as MarkdownWidgetConfig['textAlign']
+      };
+    }
+  });
+
+  // Heatmap Widget
+  registry.registerWidget<HeatmapWidgetConfig, HeatmapConfigResult>({
+    type: 'heatmap',
+    label: 'Heatmap',
+    component: HeatmapWidgetComponent,
+    configDialogComponent: HeatmapConfigDialogComponent,
+    configDialogSize: { width: 750, height: 650, minWidth: 550, minHeight: 450 },
+    configDialogTitle: 'Heatmap Configuration',
+    defaultSize: { colSpan: 3, rowSpan: 2 },
+    supportedDataSources: ['persistentQuery'],
+    getInitialConfig: (widget) => {
+      const heatmapWidget = widget as HeatmapWidgetConfig;
+      const dataSource = heatmapWidget.dataSource;
+      const isPersistentQuery = dataSource.type === 'persistentQuery';
+
+      return {
+        initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
+        initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialDateField: heatmapWidget.dateField,
+        initialDateEndField: heatmapWidget.dateEndField,
+        initialValueField: heatmapWidget.valueField,
+        initialAggregation: heatmapWidget.aggregation,
+        initialColorScheme: heatmapWidget.colorScheme,
+        initialShowLegend: heatmapWidget.showLegend,
+        initialLegendPosition: heatmapWidget.legendPosition,
+        initialFilters: heatmapWidget.filters
+      };
+    },
+    applyConfigResult: (widget, result) => {
+      const dataSource: PersistentQueryDataSource = {
+        type: 'persistentQuery',
+        queryRtId: result.queryRtId,
+        queryName: result.queryName
+      };
+
+      const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
+        attributePath: f.attributePath,
+        operator: String(f.operator),
+        comparisonValue: f.comparisonValue
+      }));
+
+      return {
+        ...widget,
+        dataSource,
+        dateField: result.dateField,
+        dateEndField: result.dateEndField,
+        valueField: result.valueField,
+        aggregation: result.aggregation,
+        colorScheme: result.colorScheme,
+        showLegend: result.showLegend,
+        legendPosition: result.legendPosition,
+        filters
+      } as HeatmapWidgetConfig;
+    },
+
+    // SOLID: Factory function
+    createDefaultConfig: (base: BaseWidgetConfig): HeatmapWidgetConfig => ({
+      ...base,
+      type: 'heatmap',
+      colSpan: 3,
+      rowSpan: 2,
+      dataSource: createDefaultPersistentQueryDataSource(),
+      dateField: '',
+      aggregation: 'count',
+      colorScheme: 'green',
+      showLegend: true,
+      legendPosition: 'bottom'
+    }),
+
+    // SOLID: Serialization for persistence
+    toPersistedConfig: (widget: HeatmapWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'persistentQuery',
+      dataSourceRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+      config: {
+        dateField: widget.dateField,
+        dateEndField: widget.dateEndField,
+        valueField: widget.valueField,
+        aggregation: widget.aggregation,
+        colorScheme: widget.colorScheme,
+        showLegend: widget.showLegend,
+        legendPosition: widget.legendPosition,
+        queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
+        queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+        filters: widget.filters
+      }
+    }),
+
+    // SOLID: Deserialization from persistence
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): HeatmapWidgetConfig => {
+      const config = parseConfig(data);
+      const dataSource = buildDataSourceFromPersisted(data, config) as PersistentQueryDataSource;
+
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'heatmap',
+        dataSource,
+        dateField: (config['dateField'] as string) ?? '',
+        dateEndField: config['dateEndField'] as string | undefined,
+        valueField: config['valueField'] as string | undefined,
+        aggregation: (config['aggregation'] as HeatmapWidgetConfig['aggregation']) ?? 'count',
+        colorScheme: (config['colorScheme'] as HeatmapWidgetConfig['colorScheme']) ?? 'green',
+        showLegend: (config['showLegend'] as boolean) ?? true,
+        legendPosition: (config['legendPosition'] as HeatmapWidgetConfig['legendPosition']) ?? 'bottom',
+        filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
     }
   });

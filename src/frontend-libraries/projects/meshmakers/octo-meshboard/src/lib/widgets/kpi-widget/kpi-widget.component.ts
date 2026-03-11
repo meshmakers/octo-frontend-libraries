@@ -283,7 +283,6 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         this.executeRuntimeQueryGQL.fetch({
           variables: {
             rtId: dataSource.queryRtId,
-            first: 100,
             fieldFilter
           }
         }).pipe(

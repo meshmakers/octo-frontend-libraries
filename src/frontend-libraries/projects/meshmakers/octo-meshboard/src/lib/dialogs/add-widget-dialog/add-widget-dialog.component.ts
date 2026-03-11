@@ -15,6 +15,9 @@ import {
   gridLayoutIcon,
   checkCircleIcon,
   copyIcon,
+  gridIcon,
+  clipboardMarkdownIcon,
+  gearsIcon,
   SVGIcon
 } from '@progress/kendo-svg-icons';
 
@@ -96,10 +99,14 @@ export class AddWidgetDialogComponent implements OnInit {
         return checkCircleIcon;
       case 'serviceHealth':
         return heartIcon;
+      case 'heatmap':
+        return gridIcon;
       case 'widgetGroup':
         return copyIcon;
+      case 'markdown':
+        return clipboardMarkdownIcon;
       case 'process':
-        return chartLineIcon;
+        return gearsIcon;
       default:
         return chartLineIcon;
     }
@@ -132,6 +139,10 @@ export class AddWidgetDialogComponent implements OnInit {
         return 'Display service health status with pulse animation';
       case 'widgetGroup':
         return 'Display a repeating group of child widgets from a query or CK type';
+      case 'heatmap':
+        return 'Visualize data density or availability over time as a heatmap grid';
+      case 'markdown':
+        return 'Display formatted text content with Markdown syntax';
       case 'process':
         return 'Display and interact with process diagrams and HMI graphics';
       default:

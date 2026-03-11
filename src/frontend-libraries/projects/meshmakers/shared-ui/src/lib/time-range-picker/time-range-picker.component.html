@@ -13,8 +13,8 @@
     </kendo-label>
   </div>
 
-  <!-- Year Selection (for year, quarter, month types) -->
-  @if (isType('year') || isType('quarter') || isType('month')) {
+  <!-- Year Selection (for year, quarter, month, day types) -->
+  @if (isType('year') || isType('quarter') || isType('month') || isType('day')) {
     <div class="picker-field year-field">
       <kendo-label [text]="mergedLabels().year || 'Year'">
         <kendo-dropdownlist
@@ -46,7 +46,7 @@
   }
 
   <!-- Month Selection -->
-  @if (isType('month')) {
+  @if (isType('month') || isType('day')) {
     <div class="picker-field month-field">
       <kendo-label [text]="mergedLabels().month || 'Month'">
         <kendo-dropdownlist
@@ -56,6 +56,22 @@
           valueField="value"
           [valuePrimitive]="true"
           (valueChange)="onMonthChange($event)">
+        </kendo-dropdownlist>
+      </kendo-label>
+    </div>
+  }
+
+  <!-- Day Selection -->
+  @if (isType('day')) {
+    <div class="picker-field day-field">
+      <kendo-label [text]="mergedLabels().day || 'Day'">
+        <kendo-dropdownlist
+          [data]="dayOptions()"
+          [value]="selectedDay()"
+          textField="label"
+          valueField="value"
+          [valuePrimitive]="true"
+          (valueChange)="onDayChange($event)">
         </kendo-dropdownlist>
       </kendo-label>
     </div>

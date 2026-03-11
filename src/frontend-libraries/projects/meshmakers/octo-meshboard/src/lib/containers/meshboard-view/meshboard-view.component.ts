@@ -1,10 +1,10 @@
 import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
 import { TileLayoutModule, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { DialogService, DialogModule } from '@progress/kendo-angular-dialog';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { filter, firstValueFrom, Subscription } from 'rxjs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import {
   gearIcon,
@@ -30,6 +30,7 @@ import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-wi
 import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
 import { EditWidgetDialogComponent, WidgetPositionUpdate } from '../../dialogs/edit-widget-dialog/edit-widget-dialog.component';
 import { TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
+import { BreadCrumbService } from '@meshmakers/shared-services';
 import {
   HasUnsavedChanges,
   HAS_UNSAVED_CHANGES,
@@ -73,6 +74,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private readonly route = inject(ActivatedRoute);
   protected readonly gridService = inject(MeshBoardGridService);
   private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
+  private readonly breadCrumbService = inject(BreadCrumbService, { optional: true });
 
   // Track the last known rtId to avoid unnecessary navigation
   private lastNavigatedRtId: string | null = null;
@@ -94,6 +96,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Config dialog state
   private configDialogSubscription: Subscription | null = null;
+  private navigationSubscription: Subscription | null = null;
 
   // State signals
   protected readonly config = this.stateService.meshBoardConfig;
@@ -149,6 +152,28 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
         this.initializeTimeFilterVariables();
       }
     });
+
+    // Update breadcrumb after each navigation (BreadCrumbService recreates items on NavigationEnd)
+    if (this.breadCrumbService) {
+      this.navigationSubscription = this.router.events
+        .pipe(filter(event => event instanceof NavigationEnd))
+        .subscribe(() => {
+          const name = this.config().name;
+          if (name) {
+            this.breadCrumbService!.updateBreadcrumbLabels({ name });
+          }
+        });
+    }
+  }
+
+  /**
+   * Updates the breadcrumb with the current MeshBoard name.
+   */
+  private updateBreadcrumb(): void {
+    const name = this.config().name;
+    if (name && this.breadCrumbService) {
+      this.breadCrumbService.updateBreadcrumbLabels({ name });
+    }
   }
 
   /**
@@ -203,6 +228,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       // Initialize time filter variables if enabled with stored selection
       this.initializeTimeFilterVariables();
 
+      // Update breadcrumb with MeshBoard name
+      this.updateBreadcrumb();
+
       this._isInitialized.set(true);
     } catch (err) {
       console.error('Error initializing MeshBoard view:', err);
@@ -234,6 +262,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   ngOnDestroy(): void {
     this.closeConfigDialog();
+    this.navigationSubscription?.unsubscribe();
   }
 
   /**
@@ -274,7 +303,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     };
 
     // Calculate the current time range from the selection
-    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection);
+    const showTime = timeFilter.pickerConfig?.showTime ?? false;
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
     if (!range) {
       return;
     }
@@ -504,6 +534,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       year: sharedSelection.year,
       quarter: sharedSelection.quarter,
       month: sharedSelection.month,
+      day: sharedSelection.day,
       relativeValue: sharedSelection.relativeValue,
       relativeUnit: sharedSelection.relativeUnit,
       customFrom: sharedSelection.customFrom?.toISOString(),
@@ -518,7 +549,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     }
 
     // Calculate the time range from the selection
-    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection);
+    const showTime = this.stateService.getTimeFilterConfig()?.pickerConfig?.showTime ?? false;
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
     if (!range) return;
 
     // Convert to ISO strings
@@ -537,6 +569,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       a.year === b.year &&
       a.quarter === b.quarter &&
       a.month === b.month &&
+      a.day === b.day &&
       a.relativeValue === b.relativeValue &&
       a.relativeUnit === b.relativeUnit &&
       a.customFrom === b.customFrom &&

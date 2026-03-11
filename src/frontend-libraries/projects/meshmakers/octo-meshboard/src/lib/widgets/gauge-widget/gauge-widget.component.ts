@@ -465,7 +465,6 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
         this.executeRuntimeQueryGQL.fetch({
           variables: {
             rtId: dataSource.queryRtId,
-            first: 100,
             fieldFilter
           }
         }).pipe(

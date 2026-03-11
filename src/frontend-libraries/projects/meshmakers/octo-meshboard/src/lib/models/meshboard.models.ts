@@ -173,6 +173,7 @@ export type WidgetType =
   | 'gauge'
   | 'pieChart'
   | 'barChart'
+  | 'heatmap'
   | 'statsGrid'
   | 'statusIndicator'
   | 'serviceHealth'
@@ -447,6 +448,51 @@ export interface BarChartWidgetConfig extends WidgetConfig {
 }
 
 // ============================================================================
+// Heatmap Widget
+// ============================================================================
+
+/**
+ * Color scheme options for heatmap
+ */
+export type HeatmapColorScheme = 'green' | 'redGreen' | 'blue' | 'heat';
+
+/**
+ * Client-side aggregation function for simple queries
+ */
+export type HeatmapAggregation = 'count' | 'sum' | 'avg';
+
+
+/**
+ * Heatmap Widget - displays data availability or density as a heatmap
+ * X-axis: Date (day), Y-axis: Time slot (hour or 15-min interval), Color: aggregated value
+ *
+ * Supports three query modes:
+ * 1. Simple query: Client-side aggregation (count/sum/avg) of raw rows into time slots
+ * 2. Aggregation query: Pre-aggregated single values per time slot
+ * 3. Grouped aggregation query: Pre-aggregated values grouped by time fields
+ */
+export interface HeatmapWidgetConfig extends WidgetConfig {
+  type: 'heatmap';
+  /** Field containing the datetime value (used to derive day and time slot) */
+  dateField: string;
+  /** Optional end-of-interval field (e.g. timeRange.to). When set, the interval width is auto-detected
+   *  and sub-hour columns are shown (e.g. 00-15, 15-30, 30-45, 45-60 for 15-min data). */
+  dateEndField?: string;
+  /** Field containing the numeric value to aggregate (for sum/avg) */
+  valueField?: string;
+  /** Client-side aggregation function for simple queries */
+  aggregation: HeatmapAggregation;
+  /** Color scheme for the heatmap */
+  colorScheme: HeatmapColorScheme;
+  /** Show the chart legend */
+  showLegend?: boolean;
+  /** Position of the legend */
+  legendPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Field filters for data source */
+  filters?: WidgetFilterConfig[];
+}
+
+// ============================================================================
 // Stats Grid Widget
 // ============================================================================
 
@@ -634,6 +680,7 @@ export type AnyWidgetConfig =
   | GaugeWidgetConfig
   | PieChartWidgetConfig
   | BarChartWidgetConfig
+  | HeatmapWidgetConfig
   | StatsGridWidgetConfig
   | StatusIndicatorWidgetConfig
   | ServiceHealthWidgetConfig
@@ -683,7 +730,7 @@ export interface MeshBoardVariable {
 /**
  * Supported time range types for the time filter
  */
-export type TimeRangeType = 'year' | 'quarter' | 'month' | 'relative' | 'custom';
+export type TimeRangeType = 'year' | 'quarter' | 'month' | 'day' | 'relative' | 'custom';
 
 /**
  * Time units for relative time ranges
@@ -721,6 +768,8 @@ export interface TimeRangeSelection {
   year?: number;
   quarter?: Quarter;
   month?: number;
+  /** Day of month (1-31), used with 'day' type */
+  day?: number;
   relativeValue?: number;
   relativeUnit?: RelativeTimeUnit;
   customFrom?: string;  // ISO string for persistence
