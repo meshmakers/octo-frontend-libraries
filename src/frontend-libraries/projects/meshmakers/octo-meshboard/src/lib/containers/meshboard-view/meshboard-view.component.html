@@ -50,6 +50,16 @@
             (rangeChange)="onTimeRangeChange($event)"
             (selectionChange)="onTimeSelectionChange($event)">
           </mm-time-range-picker>
+          @if (canResetTimeFilter()) {
+            <button
+              kendoButton
+              [svgIcon]="undoIcon"
+              (click)="resetTimeFilterToDefault()"
+              title="Reset to default time filter"
+              fillMode="flat"
+              size="small">
+            </button>
+          }
         </div>
       }
 

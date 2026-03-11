@@ -15,7 +15,8 @@ import {
   xIcon,
   linkIcon,
   trashIcon,
-  gridLayoutIcon
+  gridLayoutIcon,
+  undoIcon
 } from '@progress/kendo-svg-icons';
 
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -91,6 +92,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly linkIcon = linkIcon;
   protected readonly trashIcon = trashIcon;
   protected readonly gridLayoutIcon = gridLayoutIcon;
+  protected readonly undoIcon = undoIcon;
 
   // Edit widget dialog state
   protected showEditWidgetDialog = false;
@@ -143,6 +145,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       customFrom: selection.customFrom ? new Date(selection.customFrom) : undefined,
       customTo: selection.customTo ? new Date(selection.customTo) : undefined
     } as SharedTimeRangeSelection;
+  });
+
+  /**
+   * Whether the time filter can be reset to the default selection.
+   * True when a default selection is configured and the stored selection differs from it.
+   */
+  protected readonly canResetTimeFilter = computed(() => {
+    const config = this.timeFilterConfig();
+    if (!config?.enabled || !config.defaultSelection) return false;
+    if (!config.selection) return false;
+    return !this.isSelectionEqual(config.selection, config.defaultSelection);
   });
 
   constructor() {
@@ -616,6 +629,26 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
     // Sync selection to URL query parameters
     this.writeTimeFilterToUrl(selection);
+  }
+
+  /**
+   * Resets the time filter to the configured default selection.
+   * Clears the stored selection and applies the default.
+   */
+  resetTimeFilterToDefault(): void {
+    const config = this.timeFilterConfig();
+    if (!config?.defaultSelection) return;
+
+    const defaultSel = config.defaultSelection;
+    const sharedSelection = this.toSharedSelection(defaultSel);
+    const showTime = config.pickerConfig?.showTime ?? false;
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+    if (!range) return;
+
+    const rangeISO = TimeRangeUtils.toISO(range);
+    this.stateService.updateTimeFilterSelection(defaultSel, rangeISO.from, rangeISO.to);
+    this._urlTimeSelection.set(defaultSel);
+    this.writeTimeFilterToUrl(defaultSel);
   }
 
   /**
