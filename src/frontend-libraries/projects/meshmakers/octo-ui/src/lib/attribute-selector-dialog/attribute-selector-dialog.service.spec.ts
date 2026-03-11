@@ -11,6 +11,7 @@ interface MockComponentInstance {
     selectedAttributes?: string[];
     dialogTitle?: string;
     singleSelect?: boolean;
+    additionalAttributes?: AttributeItem[];
   };
 }
 
@@ -123,7 +124,8 @@ describe('AttributeSelectorDialogService', () => {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: selectedAttrs,
         dialogTitle: 'My Title',
-        singleSelect: undefined
+        singleSelect: undefined,
+        additionalAttributes: undefined
       });
     });
 
@@ -241,7 +243,8 @@ describe('AttributeSelectorDialogService', () => {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: undefined,
         dialogTitle: undefined,
-        singleSelect: undefined
+        singleSelect: undefined,
+        additionalAttributes: undefined
       });
     });
 

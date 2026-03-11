@@ -19,6 +19,8 @@ export interface AttributeSelectorDialogData {
   singleSelect?: boolean;
   includeNavigationProperties?: boolean;
   maxDepth?: number;
+  /** Additional virtual attributes to include in the available list (e.g., Timestamp for stream data queries) */
+  additionalAttributes?: AttributeItem[];
 }
 
 export interface AttributeSelectorDialogResult {
@@ -342,6 +344,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
   public dialogTitle = 'Select Attributes';
   public rtCkTypeId!: string;
   public singleSelect = false;
+  private additionalAttributes: AttributeItem[] = [];
   public searchText = '';
   public selectedSingleKey: string[] = [];
   public selectedValueTypeFilter: AttributeValueTypeDto | null = null;
@@ -381,6 +384,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
       this.singleSelect = this.data.singleSelect ?? false;
       this.includeNavigationProperties = this.data.includeNavigationProperties ?? true;
       this.maxDepth = this.data.maxDepth ?? null;
+      this.additionalAttributes = this.data.additionalAttributes ?? [];
 
       if (this.data.selectedAttributes && this.data.selectedAttributes.length > 0) {
         if (this.singleSelect) {
@@ -414,7 +418,19 @@ export class AttributeSelectorDialogComponent implements OnInit {
     ).subscribe(result => {
       // Filter out already selected attributes
       const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
-      this.availableAttributes = result.items.filter(item => !selectedPaths.has(item.attributePath));
+
+      // Include additional virtual attributes (e.g., Timestamp for stream data), filtered by search/type
+      const filteredAdditional = this.additionalAttributes.filter(attr => {
+        if (selectedPaths.has(attr.attributePath)) return false;
+        if (searchTerm && !attr.attributePath.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+        if (this.selectedValueTypeFilter && attr.attributeValueType !== this.selectedValueTypeFilter) return false;
+        return true;
+      });
+
+      this.availableAttributes = [
+        ...filteredAdditional,
+        ...result.items.filter(item => !selectedPaths.has(item.attributePath))
+      ];
       this.updateAvailableGrid();
     });
   }
@@ -422,8 +438,11 @@ export class AttributeSelectorDialogComponent implements OnInit {
   private loadInitialSelectedAttributes(attributePaths: string[]): void {
     // Load all attributes to get the details for selected ones
     this.attributeService.getAvailableAttributes(this.rtCkTypeId).subscribe(result => {
-      // Create a map for quick lookup
+      // Create a map for quick lookup, including additional virtual attributes
       const attributeMap = new Map(result.items.map(item => [item.attributePath, item]));
+      for (const attr of this.additionalAttributes) {
+        attributeMap.set(attr.attributePath, attr);
+      }
 
       // Preserve the order from attributePaths
       this.selectedAttributes = attributePaths
@@ -434,7 +453,10 @@ export class AttributeSelectorDialogComponent implements OnInit {
 
       // Filter out selected from available
       const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
-      this.availableAttributes = result.items.filter(item => !selectedPaths.has(item.attributePath));
+      this.availableAttributes = [
+        ...this.additionalAttributes.filter(attr => !selectedPaths.has(attr.attributePath)),
+        ...result.items.filter(item => !selectedPaths.has(item.attributePath))
+      ];
       this.updateAvailableGrid();
     });
   }

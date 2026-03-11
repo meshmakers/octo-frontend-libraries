@@ -23,19 +23,22 @@ export class AttributeSelectorDialogService {
    * @param selectedAttributes Optional array of pre-selected attribute paths
    * @param dialogTitle Optional custom dialog title
    * @param singleSelect Optional flag for single-select mode
+   * @param additionalAttributes Optional virtual attributes to include (e.g., Timestamp for stream data)
    * @returns Promise that resolves with the result containing selected attributes and confirmation status
    */
   public async openAttributeSelector(
     rtCkTypeId: string,
     selectedAttributes?: string[],
     dialogTitle?: string,
-    singleSelect?: boolean
+    singleSelect?: boolean,
+    additionalAttributes?: AttributeItem[]
   ): Promise<AttributeSelectorResult> {
     const data: AttributeSelectorDialogData = {
       rtCkTypeId,
       selectedAttributes,
       dialogTitle,
-      singleSelect
+      singleSelect,
+      additionalAttributes
     };
 
     const windowRef: WindowRef = this.windowService.open({
