@@ -1,20 +1,18 @@
 .entity-selector-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
 .entity-selector-item {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
 
-  .selector-label {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--kendo-color-on-app-surface, #424242);
-    white-space: nowrap;
+  kendo-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 
   mm-entity-select-input {

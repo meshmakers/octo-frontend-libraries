@@ -66,6 +66,9 @@
 
       <!-- Entity Selectors -->
       @if (hasEntitySelectors()) {
+        @if (isTimeFilterEnabled()) {
+          <div class="toolbar-separator"></div>
+        }
         <div class="toolbar-entity-selectors">
           <mm-entity-selector-toolbar
             [entitySelectors]="entitySelectorsConfig()"
@@ -75,6 +78,9 @@
         </div>
       }
 
+      @if (isTimeFilterEnabled() || hasEntitySelectors()) {
+        <div class="toolbar-separator"></div>
+      }
       <div class="toolbar-right mm-toolbar-actions">
         @if (!isReadonly()) {
           <!-- Manager Button (icon only) -->

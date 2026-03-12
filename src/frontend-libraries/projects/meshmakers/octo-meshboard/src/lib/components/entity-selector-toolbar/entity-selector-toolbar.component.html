@@ -2,15 +2,17 @@
   @for (selector of entitySelectors; track selector.id) {
     @if (selector.showInToolbar !== false) {
     <div class="entity-selector-item">
-      <label class="selector-label">{{ selector.label }}</label>
-      <mm-entity-select-input
-        [dataSource]="getDataSource(selector)"
-        [dialogDataSource]="getDialogDataSource(selector)"
-        [placeholder]="'Select ' + selector.label + '...'"
-        [dialogTitle]="'Select ' + selector.label"
-        (entitySelected)="onEntitySelected(selector.id, $event)"
-        (entityCleared)="onEntityCleared(selector.id)">
-      </mm-entity-select-input>
+      <kendo-label [text]="selector.label">
+        <mm-entity-select-input
+          [dataSource]="getDataSource(selector)"
+          [dialogDataSource]="getDialogDataSource(selector)"
+          [initialDisplayValue]="selector.selectedDisplayName"
+          [placeholder]="'Select ' + selector.label + '...'"
+          [dialogTitle]="'Select ' + selector.label"
+          (entitySelected)="onEntitySelected(selector.id, $event)"
+          (entityCleared)="onEntityCleared(selector.id)">
+        </mm-entity-select-input>
+      </kendo-label>
     </div>
     }
   }

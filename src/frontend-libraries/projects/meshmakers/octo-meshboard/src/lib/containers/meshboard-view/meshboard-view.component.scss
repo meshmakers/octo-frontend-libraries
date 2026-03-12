@@ -133,7 +133,7 @@
 .meshboard-toolbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   padding: 1rem 1.5rem;
   background-color: var(--kendo-color-surface-alt, white);
   border-bottom: 1px solid var(--kendo-color-border, #e0e0e0);
@@ -146,6 +146,7 @@
     gap: 1rem;
     flex: 1;
     min-width: 0;
+    align-self: center;
 
     .meshboard-title {
       margin: 0;
@@ -169,7 +170,7 @@
   .toolbar-center {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
     flex-shrink: 0;
 
     mm-time-range-picker {
@@ -182,9 +183,16 @@
     }
   }
 
+  .toolbar-separator {
+    width: 1px;
+    align-self: stretch;
+    background-color: var(--kendo-color-border, #e0e0e0);
+    flex-shrink: 0;
+  }
+
   .toolbar-entity-selectors {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     flex-shrink: 0;
   }
 

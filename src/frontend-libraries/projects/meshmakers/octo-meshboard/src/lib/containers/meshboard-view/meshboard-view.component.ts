@@ -1071,8 +1071,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
         ?? selector.defaultRtId;
 
       if (rtId) {
-        this.stateService.updateEntitySelectorSelection(selector.id, rtId);
-        await this.resolveEntitySelectorVariables(selector, rtId);
+        const displayName = await this.resolveEntitySelectorVariables(selector, rtId);
+        this.stateService.updateEntitySelectorSelection(selector.id, rtId, displayName);
       }
     }
   }
@@ -1080,7 +1080,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   /**
    * Resolves variables for an entity selector by fetching entity attributes.
    */
-  private async resolveEntitySelectorVariables(selector: EntitySelectorConfig, rtId: string): Promise<void> {
+  private async resolveEntitySelectorVariables(selector: EntitySelectorConfig, rtId: string): Promise<string | undefined> {
     try {
       const entity = await firstValueFrom(
         this.dataService.fetchRuntimeEntity({
@@ -1092,7 +1092,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
       if (!entity) {
         console.warn(`Entity not found for selector '${selector.id}': ${rtId}`);
-        return;
+        return undefined;
       }
 
       const values = selector.attributeMappings.map(mapping => {
@@ -1107,8 +1107,11 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       });
 
       this.stateService.setEntitySelectorVariables(selector.id, values);
+
+      return entity.rtWellKnownName || entity.rtId;
     } catch (error) {
       console.error(`Error resolving entity selector '${selector.id}':`, error);
+      return undefined;
     }
   }
 

@@ -112,6 +112,7 @@ import {EntitySelectDialogService} from '../entity-select-dialog/entity-select-d
       <button *ngIf="dialogDataSource"
               kendoButton
               type="button"
+              fillMode="flat"
               [svgIcon]="searchIcon"
               [disabled]="disabled"
               [title]="advancedSearchLabel || _messages.advancedSearchLabel"
@@ -217,6 +218,13 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   @Input() maxResults = 50;
   @Input() debounceMs = 300;
   @Input() prefix = '';
+
+  // Initial display value (e.g. when restoring a previously selected entity by name)
+  @Input() set initialDisplayValue(value: string | undefined) {
+    if (value && !this.selectedEntity) {
+      this.searchFormControl.setValue(value, { emitEvent: false });
+    }
+  }
 
   // Dialog inputs
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component accepts any entity type

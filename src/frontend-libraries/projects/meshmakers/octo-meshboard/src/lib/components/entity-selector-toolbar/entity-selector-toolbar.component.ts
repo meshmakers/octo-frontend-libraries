@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { KENDO_LABELS } from '@progress/kendo-angular-label';
 import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
 import { RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource, RuntimeEntityItem } from '../../utils/runtime-entity-data-sources';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
@@ -29,6 +30,7 @@ export interface EntitySelectorClearEvent {
   standalone: true,
   imports: [
     CommonModule,
+    KENDO_LABELS,
     EntitySelectInputComponent
   ],
   templateUrl: './entity-selector-toolbar.component.html',
