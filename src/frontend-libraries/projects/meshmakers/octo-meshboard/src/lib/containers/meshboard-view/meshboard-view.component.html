@@ -189,6 +189,15 @@
                     </button>
                     <button
                       kendoButton
+                      [svgIcon]="copyIcon"
+                      (click)="duplicateWidget(widget)"
+                      fillMode="flat"
+                      size="small"
+                      class="duplicate-widget-btn"
+                      title="Duplicate widget">
+                    </button>
+                    <button
+                      kendoButton
                       [svgIcon]="trashIcon"
                       (click)="removeWidget(widget.id)"
                       fillMode="flat"

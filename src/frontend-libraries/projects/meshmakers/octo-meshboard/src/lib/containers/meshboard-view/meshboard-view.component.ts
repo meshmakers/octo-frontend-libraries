@@ -16,7 +16,8 @@ import {
   linkIcon,
   trashIcon,
   gridLayoutIcon,
-  undoIcon
+  undoIcon,
+  copyIcon
 } from '@progress/kendo-svg-icons';
 
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -94,6 +95,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly trashIcon = trashIcon;
   protected readonly gridLayoutIcon = gridLayoutIcon;
   protected readonly undoIcon = undoIcon;
+  protected readonly copyIcon = copyIcon;
 
   // Edit widget dialog state
   protected showEditWidgetDialog = false;
@@ -754,6 +756,33 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       a.customFrom === b.customFrom &&
       a.customTo === b.customTo
     );
+  }
+
+  /**
+   * Duplicates a widget with all its settings.
+   * Creates a deep copy with a new ID and places it in the next free position.
+   */
+  duplicateWidget(widget: AnyWidgetConfig): void {
+    const config = this.stateService.getConfig();
+    const newId = this.widgetFactory.generateId();
+    const position = this.findFreePosition(config.widgets, config.columns, {
+      colSpan: widget.colSpan,
+      rowSpan: widget.rowSpan
+    });
+
+    const duplicate: AnyWidgetConfig = JSON.parse(JSON.stringify(widget));
+    duplicate.id = newId;
+    duplicate.rtId = undefined;
+    duplicate.col = position.col;
+    duplicate.row = position.row;
+    duplicate.title = `${widget.title} (Copy)`;
+
+    this.stateService.addWidget(duplicate);
+
+    // Enter edit mode if not already in it
+    if (!this.isEditMode()) {
+      this.editModeService.enterEditMode(this.stateService.getConfig());
+    }
   }
 
   /**
