@@ -22,6 +22,10 @@ export interface AttributeSortSelectorDialogData {
   ckTypeId: string;
   selectedAttributes?: AttributeSortItem[];
   dialogTitle?: string;
+  /** When set, controls whether navigation properties are included in the attribute list */
+  includeNavigationProperties?: boolean;
+  /** When true, hides the navigation property controls (if they were to be added) */
+  hideNavigationControls?: boolean;
 }
 
 export interface AttributeSortSelectorDialogResult {
@@ -303,6 +307,7 @@ export class AttributeSortSelectorDialogComponent implements OnInit {
   // Dialog data
   public data!: AttributeSortSelectorDialogData;
   public ckTypeId!: string;
+  public includeNavigationProperties: boolean | undefined = undefined;
   public searchText = '';
   public currentSortOrder: 'standard' | 'ascending' | 'descending' = 'standard';
   public selectedValueTypeFilter: AttributeValueTypeDto | null = null;
@@ -353,6 +358,7 @@ export class AttributeSortSelectorDialogComponent implements OnInit {
     if (this.data) {
       this.ckTypeId = this.data.ckTypeId;
       this.dialogTitle = this.data.dialogTitle || 'Select Attributes with Sort Order';
+      this.includeNavigationProperties = this.data.includeNavigationProperties;
 
       if (this.data.selectedAttributes && this.data.selectedAttributes.length > 0) {
         this.selectedAttributes = [...this.data.selectedAttributes];
@@ -376,7 +382,9 @@ export class AttributeSortSelectorDialogComponent implements OnInit {
     this.attributeService.getAvailableAttributes(
       this.ckTypeId, undefined, undefined, undefined,
       this.selectedValueTypeFilter || undefined,
-      searchTerm || undefined
+      searchTerm || undefined,
+      this.includeNavigationProperties,
+      undefined
     ).subscribe(result => {
       // Filter out already selected attributes
       const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));

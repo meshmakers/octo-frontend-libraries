@@ -21,6 +21,8 @@ export interface AttributeSelectorDialogData {
   maxDepth?: number;
   /** Additional virtual attributes to include in the available list (e.g., Timestamp for stream data queries) */
   additionalAttributes?: AttributeItem[];
+  /** When true, hides the navigation properties checkbox and max depth controls */
+  hideNavigationControls?: boolean;
 }
 
 export interface AttributeSelectorDialogResult {
@@ -68,23 +70,25 @@ interface ValueTypeFilterOption {
         </kendo-dropdownlist>
       </div>
 
-      <div class="options-container">
-        <input type="checkbox" kendoCheckBox
-          [(ngModel)]="includeNavigationProperties"
-          (ngModelChange)="onNavigationPropertiesChange()" />
-        <label class="option-label">Include Navigation Properties</label>
+      @if (!hideNavigationControls) {
+        <div class="options-container">
+          <input type="checkbox" kendoCheckBox
+            [(ngModel)]="includeNavigationProperties"
+            (ngModelChange)="onNavigationPropertiesChange()" />
+          <label class="option-label">Include Navigation Properties</label>
 
-        <kendo-numerictextbox
-          [(ngModel)]="maxDepth"
-          [min]="1" [max]="5" [step]="1" [format]="'n0'"
-          [placeholder]="'Depth'"
-          [spinners]="true"
-          [disabled]="!includeNavigationProperties"
-          (valueChange)="onMaxDepthChange($event)"
-          class="depth-input">
-        </kendo-numerictextbox>
-        <label class="option-label">Max Depth</label>
-      </div>
+          <kendo-numerictextbox
+            [(ngModel)]="maxDepth"
+            [min]="1" [max]="5" [step]="1" [format]="'n0'"
+            [placeholder]="'Depth'"
+            [spinners]="true"
+            [disabled]="!includeNavigationProperties"
+            (valueChange)="onMaxDepthChange($event)"
+            class="depth-input">
+          </kendo-numerictextbox>
+          <label class="option-label">Max Depth</label>
+        </div>
+      }
 
       <div class="lists-container" *ngIf="!singleSelect">
         <div class="list-section">
@@ -350,6 +354,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
   public selectedValueTypeFilter: AttributeValueTypeDto | null = null;
   public includeNavigationProperties = true;
   public maxDepth: number | null = null;
+  public hideNavigationControls = false;
 
   public availableAttributes: AttributeItem[] = [];
   public selectedAttributes: AttributeItem[] = [];
@@ -385,6 +390,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
       this.includeNavigationProperties = this.data.includeNavigationProperties ?? true;
       this.maxDepth = this.data.maxDepth ?? null;
       this.additionalAttributes = this.data.additionalAttributes ?? [];
+      this.hideNavigationControls = this.data.hideNavigationControls ?? false;
 
       if (this.data.selectedAttributes && this.data.selectedAttributes.length > 0) {
         if (this.singleSelect) {

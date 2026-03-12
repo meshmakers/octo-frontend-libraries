@@ -58,7 +58,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
   ],
   template: `
     <div class="field-filter-editor">
-      @if (ckTypeId) {
+      @if (ckTypeId && !hideNavigationProperties) {
         <div class="attribute-options">
           <label class="inline-checkbox">
             <input type="checkbox" kendoCheckBox
@@ -494,6 +494,13 @@ export class FieldFilterEditorComponent implements OnChanges {
    */
   @Input() public ckTypeId?: string;
 
+  /**
+   * When true, hides the "Include Navigation Properties" checkbox and Max Depth controls,
+   * and forces attribute loading without navigation properties.
+   * Used for stream data queries which don't support navigation properties.
+   */
+  @Input() public hideNavigationProperties = false;
+
   /** Enable variable mode - allows using variables instead of literal values */
   @Input() public enableVariables = false;
 
@@ -527,6 +534,15 @@ export class FieldFilterEditorComponent implements OnChanges {
     // Self-load attributes when ckTypeId changes
     if (changes?.['ckTypeId'] && this.ckTypeId) {
       this.loadAttributesFromCkType();
+    }
+
+    // When hideNavigationProperties changes to true, reset nav props and reload
+    if (changes?.['hideNavigationProperties'] && this.hideNavigationProperties) {
+      this.includeNavigationProperties = false;
+      this.maxDepth = null;
+      if (this.ckTypeId) {
+        this.loadAttributesFromCkType();
+      }
     }
 
     this.filteredAttributeList = [...this.availableAttributes];
@@ -576,6 +592,7 @@ export class FieldFilterEditorComponent implements OnChanges {
     if (!this.ckTypeId || !this.attributeService) return;
 
     this.isLoadingAttributes = true;
+    const includeNavProps = this.hideNavigationProperties ? false : this.includeNavigationProperties;
     try {
       const result = await firstValueFrom(
         this.attributeService.getAvailableAttributes(
@@ -585,7 +602,7 @@ export class FieldFilterEditorComponent implements OnChanges {
           undefined, // after
           undefined, // attributeValueType
           undefined, // searchTerm
-          this.includeNavigationProperties,
+          includeNavProps,
           this.maxDepth ?? undefined
         )
       );

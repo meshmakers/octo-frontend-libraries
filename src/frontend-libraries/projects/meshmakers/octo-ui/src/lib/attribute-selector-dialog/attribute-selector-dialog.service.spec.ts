@@ -12,6 +12,9 @@ interface MockComponentInstance {
     dialogTitle?: string;
     singleSelect?: boolean;
     additionalAttributes?: AttributeItem[];
+    includeNavigationProperties?: boolean;
+    maxDepth?: number;
+    hideNavigationControls?: boolean;
   };
 }
 
@@ -125,7 +128,10 @@ describe('AttributeSelectorDialogService', () => {
         selectedAttributes: selectedAttrs,
         dialogTitle: 'My Title',
         singleSelect: undefined,
-        additionalAttributes: undefined
+        additionalAttributes: undefined,
+        includeNavigationProperties: undefined,
+        maxDepth: undefined,
+        hideNavigationControls: undefined
       });
     });
 
@@ -244,8 +250,29 @@ describe('AttributeSelectorDialogService', () => {
         selectedAttributes: undefined,
         dialogTitle: undefined,
         singleSelect: undefined,
-        additionalAttributes: undefined
+        additionalAttributes: undefined,
+        includeNavigationProperties: undefined,
+        maxDepth: undefined,
+        hideNavigationControls: undefined
       });
+    });
+
+    it('should pass new optional params to dialog component', async () => {
+      const resultPromise = service.openAttributeSelector(
+        'TestType/Entity', undefined, undefined, undefined, undefined,
+        false, 2, true
+      );
+
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
+
+      await resultPromise;
+
+      expect(mockComponentInstance.data).toEqual(jasmine.objectContaining({
+        includeNavigationProperties: false,
+        maxDepth: 2,
+        hideNavigationControls: true
+      }));
     });
 
     it('should set resizable to true', async () => {

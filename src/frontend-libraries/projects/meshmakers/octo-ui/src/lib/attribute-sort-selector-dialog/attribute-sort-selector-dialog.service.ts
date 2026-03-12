@@ -22,17 +22,23 @@ export class AttributeSortSelectorDialogService {
    * @param ckTypeId The CkType ID to fetch attributes for
    * @param selectedAttributes Optional array of pre-selected attributes with sort orders
    * @param dialogTitle Optional custom dialog title
+   * @param includeNavigationProperties Optional flag to control navigation property inclusion
+   * @param hideNavigationControls Optional flag to hide the navigation property controls
    * @returns Promise that resolves with the result containing selected attributes with sort orders and confirmation status
    */
   public async openAttributeSortSelector(
     ckTypeId: string,
     selectedAttributes?: AttributeSortItem[],
-    dialogTitle?: string
+    dialogTitle?: string,
+    includeNavigationProperties?: boolean,
+    hideNavigationControls?: boolean
   ): Promise<AttributeSortSelectorResult> {
     const data: AttributeSortSelectorDialogData = {
       ckTypeId,
       selectedAttributes,
-      dialogTitle
+      dialogTitle,
+      includeNavigationProperties,
+      hideNavigationControls
     };
 
     const windowRef: WindowRef = this.windowService.open({
