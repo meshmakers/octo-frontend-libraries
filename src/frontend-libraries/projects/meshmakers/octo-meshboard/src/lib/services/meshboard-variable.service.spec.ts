@@ -500,6 +500,94 @@ describe('MeshBoardVariableService', () => {
     });
   });
 
+  describe('mapAttributeTypeToVariableType', () => {
+    it('should map IntegerDto to number', () => {
+      expect(service.mapAttributeTypeToVariableType('IntegerDto')).toBe('number');
+    });
+
+    it('should map DoubleDto to number', () => {
+      expect(service.mapAttributeTypeToVariableType('DoubleDto')).toBe('number');
+    });
+
+    it('should map LongDto to number', () => {
+      expect(service.mapAttributeTypeToVariableType('LongDto')).toBe('number');
+    });
+
+    it('should map INTEGER to number', () => {
+      expect(service.mapAttributeTypeToVariableType('INTEGER')).toBe('number');
+    });
+
+    it('should map DOUBLE to number', () => {
+      expect(service.mapAttributeTypeToVariableType('DOUBLE')).toBe('number');
+    });
+
+    it('should map INTEGER_64 to number', () => {
+      expect(service.mapAttributeTypeToVariableType('INTEGER_64')).toBe('number');
+    });
+
+    it('should map BooleanDto to boolean', () => {
+      expect(service.mapAttributeTypeToVariableType('BooleanDto')).toBe('boolean');
+    });
+
+    it('should map BOOLEAN to boolean', () => {
+      expect(service.mapAttributeTypeToVariableType('BOOLEAN')).toBe('boolean');
+    });
+
+    it('should map DateTimeDto to datetime', () => {
+      expect(service.mapAttributeTypeToVariableType('DateTimeDto')).toBe('datetime');
+    });
+
+    it('should map DateTimeOffsetDto to datetime', () => {
+      expect(service.mapAttributeTypeToVariableType('DateTimeOffsetDto')).toBe('datetime');
+    });
+
+    it('should map DATE_TIME to datetime', () => {
+      expect(service.mapAttributeTypeToVariableType('DATE_TIME')).toBe('datetime');
+    });
+
+    it('should map DATE_TIME_OFFSET to datetime', () => {
+      expect(service.mapAttributeTypeToVariableType('DATE_TIME_OFFSET')).toBe('datetime');
+    });
+
+    it('should map DateDto to date', () => {
+      expect(service.mapAttributeTypeToVariableType('DateDto')).toBe('date');
+    });
+
+    it('should map DATE to date', () => {
+      expect(service.mapAttributeTypeToVariableType('DATE')).toBe('date');
+    });
+
+    it('should map StringDto to string', () => {
+      expect(service.mapAttributeTypeToVariableType('StringDto')).toBe('string');
+    });
+
+    it('should map EnumDto to string', () => {
+      expect(service.mapAttributeTypeToVariableType('EnumDto')).toBe('string');
+    });
+
+    it('should map unknown type to string', () => {
+      expect(service.mapAttributeTypeToVariableType('SomethingUnknown')).toBe('string');
+    });
+  });
+
+  describe('attributePathToVariableName', () => {
+    it('should return single segment unchanged', () => {
+      expect(service.attributePathToVariableName('temperature')).toBe('temperature');
+    });
+
+    it('should convert two segments to camelCase', () => {
+      expect(service.attributePathToVariableName('contact.firstName')).toBe('contactFirstName');
+    });
+
+    it('should convert three segments to camelCase', () => {
+      expect(service.attributePathToVariableName('contact.address.cityTown')).toBe('contactAddressCityTown');
+    });
+
+    it('should preserve already camelCase single segment', () => {
+      expect(service.attributePathToVariableName('myValue')).toBe('myValue');
+    });
+  });
+
   describe('integration scenarios', () => {
     it('should handle complex filter resolution with multiple variables', () => {
       const filters: WidgetFilterConfig[] = [

@@ -1,13 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogRef, DialogModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { InputsModule, CheckBoxModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { FormFieldModule } from '@progress/kendo-angular-inputs';
-import { MeshBoardVariable, MeshBoardTimeFilterConfig, TimeRangeSelection } from '../../models/meshboard.models';
+import { TabStripModule } from '@progress/kendo-angular-layout';
+import { MeshBoardVariable, MeshBoardTimeFilterConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
 import { VariablesEditorComponent } from '../../components/variables-editor/variables-editor.component';
+import { EntitySelectorEditorComponent } from '../../components/entity-selector-editor/entity-selector-editor.component';
 import {
   TimeRangePickerComponent,
   TimeRangeSelection as SharedTimeRangeSelection
@@ -25,7 +27,8 @@ export class MeshBoardSettingsResult {
     public gap: number,
     public variables: MeshBoardVariable[],
     public timeFilter?: MeshBoardTimeFilterConfig,
-    public rtWellKnownName?: string
+    public rtWellKnownName?: string,
+    public entitySelectors?: EntitySelectorConfig[]
   ) {}
 }
 
@@ -40,19 +43,20 @@ export class MeshBoardSettingsResult {
     CommonModule,
     FormsModule,
     ButtonModule,
-    DialogModule,
     InputsModule,
     CheckBoxModule,
     LabelModule,
     FormFieldModule,
+    TabStripModule,
     VariablesEditorComponent,
+    EntitySelectorEditorComponent,
     TimeRangePickerComponent
   ],
   templateUrl: './meshboard-settings-dialog.component.html',
   styleUrl: './meshboard-settings-dialog.component.scss'
 })
 export class MeshBoardSettingsDialogComponent {
-  private readonly dialogRef = inject(DialogRef);
+  private readonly windowRef = inject(WindowRef);
 
   // Form fields
   name = '';
@@ -62,9 +66,17 @@ export class MeshBoardSettingsDialogComponent {
   rowHeight = 200;
   gap = 16;
   variables: MeshBoardVariable[] = [];
+  entitySelectors: EntitySelectorConfig[] = [];
   timeFilterEnabled = false;
   defaultSelection?: TimeRangeSelection;
   initialDefaultSelection?: SharedTimeRangeSelection;
+
+  /** Static and time filter variable names for duplicate detection in entity selector editor */
+  get staticVariableNames(): string[] {
+    return this.variables
+      .filter(v => v.source === 'static' || v.source === 'timeFilter')
+      .map(v => v.name);
+  }
 
   // Validation
   get isValid(): boolean {
@@ -88,6 +100,7 @@ export class MeshBoardSettingsDialogComponent {
     gap: number;
     variables?: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
+    entitySelectors?: EntitySelectorConfig[];
   }): void {
     this.name = settings.name;
     this.description = settings.description;
@@ -96,6 +109,7 @@ export class MeshBoardSettingsDialogComponent {
     this.rowHeight = settings.rowHeight;
     this.gap = settings.gap;
     this.variables = settings.variables ? [...settings.variables] : [];
+    this.entitySelectors = settings.entitySelectors ? settings.entitySelectors.map(es => ({ ...es })) : [];
     this.timeFilterEnabled = settings.timeFilter?.enabled ?? false;
     this.defaultSelection = settings.timeFilter?.defaultSelection;
     if (this.defaultSelection) {
@@ -147,16 +161,17 @@ export class MeshBoardSettingsDialogComponent {
       this.gap,
       this.variables,
       timeFilter,
-      this.rtWellKnownName.trim() || undefined
+      this.rtWellKnownName.trim() || undefined,
+      this.entitySelectors.length > 0 ? this.entitySelectors : undefined
     );
 
-    this.dialogRef.close(result);
+    this.windowRef.close(result);
   }
 
   /**
    * Cancels and closes the dialog.
    */
   cancel(): void {
-    this.dialogRef.close();
+    this.windowRef.close();
   }
 }

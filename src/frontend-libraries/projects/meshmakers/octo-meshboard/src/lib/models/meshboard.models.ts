@@ -38,11 +38,11 @@ export interface RuntimeEntityDataSource extends WidgetDataSource {
 }
 
 /**
- * Static data source for demo/testing
+ * Static data source for demo/testing or variable-based display
  */
 export interface StaticDataSource extends WidgetDataSource {
   type: 'static';
-  data: unknown;
+  data?: unknown;
 }
 
 /**
@@ -241,7 +241,7 @@ export type KpiQueryMode = 'simpleCount' | 'aggregation' | 'groupedAggregation';
 
 /**
  * KPI/Statistics Widget - displays a single value with label
- * Supports both runtime entity data sources and persistent queries
+ * Supports runtime entity data sources, persistent queries, and static/variable values
  */
 export interface KpiWidgetConfig extends WidgetConfig {
   type: 'kpi';
@@ -262,6 +262,8 @@ export interface KpiWidgetConfig extends WidgetConfig {
   queryCategoryValue?: string;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
+  /** Static value or variable expression (e.g., '${variableName}') for static data source */
+  staticValue?: string;
 }
 
 /**
@@ -748,7 +750,7 @@ export type MeshBoardVariableType = 'string' | 'number' | 'boolean' | 'date' | '
 /**
  * Source of the variable value (extensible for future dynamic variables)
  */
-export type MeshBoardVariableSource = 'static' | 'timeFilter';
+export type MeshBoardVariableSource = 'static' | 'timeFilter' | 'entitySelector';
 // Future: 'url' | 'user' | 'expression'
 
 /**
@@ -769,6 +771,17 @@ export interface MeshBoardVariable {
   value: string;
   /** Default value if no value is set */
   defaultValue?: string;
+  /** Which entity selector generated this variable (for entitySelector source) */
+  entitySelectorId?: string;
+}
+
+/**
+ * Error from resolving a runtime entity variable
+ */
+export interface VariableResolutionError {
+  variableName: string;
+  message: string;
+  timestamp: Date;
 }
 
 // ============================================================================
@@ -843,6 +856,45 @@ export interface MeshBoardTimeFilterConfig {
 }
 
 // ============================================================================
+// Entity Selector Types
+// ============================================================================
+
+/**
+ * Maps an entity attribute to a MeshBoard variable.
+ */
+export interface EntitySelectorAttributeMapping {
+  /** Attribute path on the entity (e.g., "contact.firstName") */
+  attributePath: string;
+  /** Variable name to populate (without $ prefix) */
+  variableName: string;
+  /** Attribute value type for variable type mapping */
+  attributeValueType?: string;
+}
+
+/**
+ * Configuration for a single entity selector in the MeshBoard toolbar.
+ * Each selector is bound to a CK type and populates variables from the selected entity.
+ */
+export interface EntitySelectorConfig {
+  /** Stable ID for URL params (e.g., "mp") */
+  id: string;
+  /** Toolbar label (e.g., "Metering Point") */
+  label: string;
+  /** CK type to select from (rtCkTypeId) */
+  ckTypeId: string;
+  /** Maps entity attributes to MeshBoard variables */
+  attributeMappings: EntitySelectorAttributeMapping[];
+  /** Whether to show the selector in the toolbar (default: true) */
+  showInToolbar?: boolean;
+  /** Optional pre-selected entity rtId */
+  defaultRtId?: string;
+  /** Current selection (transient, not persisted) */
+  selectedRtId?: string;
+  /** Display name of the currently selected entity */
+  selectedDisplayName?: string;
+}
+
+// ============================================================================
 // MeshBoard Configuration
 // ============================================================================
 
@@ -862,6 +914,8 @@ export interface MeshBoardConfig {
   variables?: MeshBoardVariable[];
   /** Optional time filter configuration */
   timeFilter?: MeshBoardTimeFilterConfig;
+  /** Entity selector configurations for the toolbar */
+  entitySelectors?: EntitySelectorConfig[];
   widgets: AnyWidgetConfig[];
 }
 

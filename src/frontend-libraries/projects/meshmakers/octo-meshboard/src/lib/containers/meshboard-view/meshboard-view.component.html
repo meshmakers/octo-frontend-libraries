@@ -64,6 +64,17 @@
         </div>
       }
 
+      <!-- Entity Selectors -->
+      @if (hasEntitySelectors()) {
+        <div class="toolbar-entity-selectors">
+          <mm-entity-selector-toolbar
+            [entitySelectors]="entitySelectorsConfig()"
+            (entitySelected)="onEntitySelectorSelected($event)"
+            (entityCleared)="onEntitySelectorCleared($event)">
+          </mm-entity-selector-toolbar>
+        </div>
+      }
+
       <div class="toolbar-right">
         @if (!isReadonly()) {
           <!-- Manager Button (icon only) -->
@@ -141,6 +152,16 @@
         }
       </div>
     </div>
+
+    <!-- Variable Resolution Errors -->
+    @if (variableResolutionErrors().length > 0) {
+      <div class="variable-resolution-errors">
+        <strong>Variable resolution errors:</strong>
+        @for (error of variableResolutionErrors(); track error.variableName) {
+          <span class="error-item">{{ error.variableName }}: {{ error.message }}</span>
+        }
+      </div>
+    }
 
     <!-- MeshBoard Grid -->
     @if (hasWidgets()) {

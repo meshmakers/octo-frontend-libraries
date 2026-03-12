@@ -30,7 +30,7 @@ npm run lint:octo-meshboard
 
 ```
 src/lib/
-├── components/               # Shared components (VariablesEditor)
+├── components/               # Shared components (VariablesEditor, EntitySelectorEditor, EntitySelectorToolbar)
 ├── containers/               # Main container components
 │   └── meshboard-view/       # MeshBoard view component
 ├── dialogs/                  # Dialog components
@@ -108,6 +108,11 @@ export class MyComponent {
 | `removeWidget(id)` | `void` | Remove widget |
 | `getVariables()` | `MeshBoardVariable[]` | Get all variables |
 | `setVariableValue(name, value)` | `void` | Set variable value |
+| `getEntitySelectors()` | `EntitySelectorConfig[]` | Get configured entity selectors |
+| `getEntitySelector(selectorId)` | `EntitySelectorConfig \| undefined` | Get specific selector |
+| `updateEntitySelectorSelection(selectorId, rtId, displayName?)` | `void` | Update selector selection |
+| `setEntitySelectorVariables(selectorId, values[])` | `void` | Set variables from entity selection |
+| `clearEntitySelectorVariables(selectorId)` | `void` | Clear variables for a selector |
 
 ### MeshBoardGridService
 
@@ -174,6 +179,8 @@ const resolved2 = service.resolveVariables('ID: ${customerId}', variables);
 | `parseVariables(text)` | `string[]` | Extract variable names from text |
 | `validateVariableName(name)` | `boolean` | Check if name is valid |
 | `convertToFieldFilterDto(filters, variables)` | `FieldFilterDto[]` | Convert filters with variable resolution |
+| `mapAttributeTypeToVariableType(attrType)` | `MeshBoardVariableType` | Map CK attribute type to variable type |
+| `attributePathToVariableName(path)` | `string` | Convert attribute path to camelCase variable name |
 
 ### MeshBoardDataService
 
@@ -397,16 +404,21 @@ MeshBoards support variables for dynamic content:
 ```typescript
 interface MeshBoardVariable {
   name: string;
-  type: 'string' | 'number' | 'date' | 'boolean';
-  source: 'static' | 'queryParam' | 'timeFilter';
-  value?: unknown;
-  defaultValue?: unknown;
+  type: 'string' | 'number' | 'date' | 'boolean' | 'datetime';
+  source: 'static' | 'timeFilter' | 'entitySelector';
+  value: string;
+  defaultValue?: string;
+  entitySelectorId?: string;     // Which entity selector generated this variable
 }
 ```
 
+**Variable Sources:**
+- `static` - User-defined value
+- `timeFilter` - Auto-generated from time range picker
+- `entitySelector` - Auto-generated from entity selector selections (toolbar or fixed)
+
 **Usage in Widget Configs:**
-- `$variableName` - Simple syntax
-- `${variableName}` - Bracket syntax (for embedded use)
+- `${variableName}` - Bracket syntax (recommended)
 
 **Example:**
 ```typescript
@@ -416,6 +428,91 @@ interface MeshBoardVariable {
 // In filter config
 { attributePath: 'customerId', comparisonValue: '$customerId', operator: 'eq' }
 ```
+
+---
+
+## Entity Selectors
+
+Entity selectors populate MeshBoard variables from a selected entity's attributes. They come in two modes:
+
+- **Toolbar mode** (`showInToolbar: true`, default): Users select an entity from a dropdown in the toolbar
+- **Fixed mode** (`showInToolbar: false`): Variables are resolved from a pre-configured default entity (no UI)
+
+This unified mechanism replaces both the old "runtime entity variables" and the toolbar entity selector concepts.
+
+### Configuration
+
+Entity selectors are configured in the MeshBoard Settings Dialog (4th tab "Entity Selectors"):
+
+```typescript
+interface EntitySelectorConfig {
+  id: string;                  // Stable ID for URL params (e.g., "mp")
+  label: string;               // Display label (e.g., "Metering Point")
+  ckTypeId: string;            // CK type to select from
+  attributeMappings: EntitySelectorAttributeMapping[];
+  showInToolbar?: boolean;     // Show in toolbar (default: true). If false, uses defaultRtId
+  defaultRtId?: string;       // Pre-selected entity (required when showInToolbar=false)
+  selectedRtId?: string;      // Current selection (transient, not persisted)
+  selectedDisplayName?: string; // Current display name (transient)
+}
+
+interface EntitySelectorAttributeMapping {
+  attributePath: string;       // Attribute path on the entity
+  variableName: string;        // Variable name to populate (e.g., "meteringPointName")
+  attributeValueType?: string; // Attribute value type
+}
+```
+
+### URL Parameters
+
+Entity selector selections are synced to URL query parameters for bookmarkability and sharing:
+
+```
+?es_<selectorId>=<rtId>
+```
+
+Example: `?es_mp=rt-123&es_anlage=rt-456`
+
+### External Embedding via Route Data
+
+When embedding a MeshBoard in another application, entity selectors can be pre-populated via route data:
+
+```typescript
+{
+  path: 'dashboard/:id',
+  component: MeshBoardViewComponent,
+  data: {
+    entitySelectors: {
+      mp: 'rt-123',        // selectorId: rtId
+      anlage: 'rt-456'
+    }
+  }
+}
+```
+
+**Priority order:** route data > URL params > defaultRtId > selectedRtId
+
+### State Service Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getEntitySelectors()` | `EntitySelectorConfig[]` | Get all configured entity selectors |
+| `getEntitySelector(selectorId)` | `EntitySelectorConfig \| undefined` | Get specific selector by ID |
+| `updateEntitySelectors(selectors)` | `void` | Bulk update selector configs |
+| `updateEntitySelectorSelection(selectorId, rtId, displayName?)` | `void` | Update one selector's selection |
+| `setEntitySelectorVariables(selectorId, values[])` | `void` | Create/replace variables for a selector |
+| `clearEntitySelectorVariables(selectorId)` | `void` | Remove variables for a selector |
+
+### Components
+
+| Component | Selector | Description |
+|-----------|----------|-------------|
+| `EntitySelectorEditorComponent` | `mm-entity-selector-editor` | Settings editor for managing selectors |
+| `EntitySelectorToolbarComponent` | `mm-entity-selector-toolbar` | Toolbar rendering entity select dropdowns |
+
+### Persistence
+
+Entity selector configs are persisted in the MeshBoard description field alongside variables and time filter config. Transient fields (`selectedRtId`, `selectedDisplayName`) are stripped before persisting. Variables with `source: 'entitySelector'` are derived at runtime and not persisted.
 
 ---
 
@@ -506,7 +603,7 @@ ng test @meshmakers/octo-meshboard --no-watch --browsers=ChromeHeadless
 Current test files:
 - `meshboard-grid.service.spec.ts` - Grid collision detection (39 tests)
 - `meshboard-variable.service.spec.ts` - Variable resolution (67 tests)
-- `meshboard-state.service.spec.ts` - State management (65 tests)
+- `meshboard-state.service.spec.ts` - State management (71 tests, includes entity selector management)
 - `meshboard-data.service.spec.ts` - Data fetching (32 tests)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions (61 tests)

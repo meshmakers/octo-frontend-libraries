@@ -13,7 +13,9 @@ export interface AttributeSelectorResult {
   selectedAttributes: AttributeItem[];
 }
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class AttributeSelectorDialogService {
   private readonly windowService = inject(WindowService);
 

@@ -116,6 +116,11 @@ export {
 } from './lib/registrations/default-widget-registrations';
 export type { MeshBoardOptions, WidgetRegistration, TenantIdProvider } from './lib/registrations/default-widget-registrations';
 
+// Entity Selector Components
+export { EntitySelectorEditorComponent } from './lib/components/entity-selector-editor/entity-selector-editor.component';
+export { EntitySelectorToolbarComponent } from './lib/components/entity-selector-toolbar/entity-selector-toolbar.component';
+export type { EntitySelectorEvent, EntitySelectorClearEvent } from './lib/components/entity-selector-toolbar/entity-selector-toolbar.component';
+
 // Container Components
 export { MeshBoardViewComponent } from './lib/containers/meshboard-view/meshboard-view.component';
 

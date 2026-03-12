@@ -12,6 +12,11 @@
       font-size: 14px;
       color: var(--kendo-color-on-app-surface, #424242);
     }
+
+    .header-actions {
+      display: flex;
+      gap: 4px;
+    }
   }
 
   .variables-list {
@@ -21,7 +26,7 @@
 
     .list-header {
       display: grid;
-      grid-template-columns: 1fr 120px 1fr 1fr 40px;
+      grid-template-columns: 160px 1fr 80px;
       gap: 0.5rem;
       padding: 0.5rem 0.75rem;
       background: var(--kendo-color-surface, #f5f5f5);
@@ -33,7 +38,7 @@
 
     .variable-row {
       display: grid;
-      grid-template-columns: 1fr 120px 1fr 1fr 40px;
+      grid-template-columns: 160px 1fr 80px;
       gap: 0.5rem;
       padding: 0.5rem 0.75rem;
       align-items: start;
@@ -43,24 +48,50 @@
         border-bottom: none;
       }
 
-      .col-name,
-      .col-type,
-      .col-value,
-      .col-default {
+      .col-name {
         display: flex;
         flex-direction: column;
         gap: 2px;
       }
 
+      .col-config {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
       .col-actions {
         display: flex;
         justify-content: center;
+        gap: 2px;
         padding-top: 2px;
       }
 
       .error-text {
         font-size: 11px;
         color: var(--kendo-color-error, #f44336);
+      }
+
+      // Static variable config
+      .static-config-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: start;
+
+        .type-dropdown {
+          width: 110px;
+          flex-shrink: 0;
+        }
+
+        .value-input {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .default-input {
+          width: 120px;
+          flex-shrink: 0;
+        }
       }
     }
   }

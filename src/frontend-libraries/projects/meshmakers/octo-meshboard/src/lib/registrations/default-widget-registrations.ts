@@ -107,6 +107,10 @@ function buildDataSourceFromPersisted(data: PersistedWidgetData, config: Record<
     };
   }
 
+  if (data.dataSourceType === 'static') {
+    return { type: 'static' };
+  }
+
   return {
     type: 'runtimeEntity',
     ckTypeId: data.dataSourceCkTypeId ?? undefined,
@@ -208,10 +212,13 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     configDialogSize: { width: 750, height: 700, minWidth: 550, minHeight: 500 },
     configDialogTitle: 'KPI Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
-    supportedDataSources: ['runtimeEntity', 'persistentQuery'],
+    supportedDataSources: ['runtimeEntity', 'persistentQuery', 'static'],
     getInitialConfig: (widget) => {
       const kpiWidget = widget as KpiWidgetConfig;
       const isPersistentQuery = kpiWidget.dataSource.type === 'persistentQuery';
+
+      const isStatic = kpiWidget.dataSource.type === 'static';
+      const dataSourceType = isPersistentQuery ? 'persistentQuery' : isStatic ? 'static' : 'runtimeEntity';
 
       return {
         // Runtime entity fields
@@ -220,13 +227,15 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialValueAttribute: kpiWidget.valueAttribute,
         initialLabelAttribute: kpiWidget.labelAttribute,
         // Persistent query fields
-        initialDataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
+        initialDataSourceType: dataSourceType,
         initialQueryRtId: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryMode: kpiWidget.queryMode,
         initialQueryValueField: kpiWidget.queryValueField,
         initialQueryCategoryField: kpiWidget.queryCategoryField,
         initialQueryCategoryValue: kpiWidget.queryCategoryValue,
+        // Static fields
+        initialStaticValue: kpiWidget.staticValue,
         // Display options
         initialPrefix: kpiWidget.prefix,
         initialSuffix: kpiWidget.suffix,
@@ -243,7 +252,23 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         comparisonValue: f.comparisonValue
       }));
 
-      if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
+      if (result.dataSourceType === 'static') {
+        return {
+          ...widget,
+          dataSource: { type: 'static' as const },
+          valueAttribute: '',
+          staticValue: result.staticValue,
+          labelAttribute: undefined,
+          queryMode: undefined,
+          queryValueField: undefined,
+          queryCategoryField: undefined,
+          queryCategoryValue: undefined,
+          prefix: result.prefix,
+          suffix: result.suffix,
+          trend: result.trend,
+          filters: undefined
+        };
+      } else if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
         // Create PersistentQueryDataSource
         const dataSource: PersistentQueryDataSource = {
           type: 'persistentQuery',
@@ -254,7 +279,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         return {
           ...widget,
           dataSource,
-          valueAttribute: '', // Not used for persistent queries
+          valueAttribute: '',
+          staticValue: undefined,
           queryMode: result.queryMode,
           queryValueField: result.queryValueField,
           queryCategoryField: result.queryCategoryField,
@@ -271,6 +297,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           dataSource: createDataSource(result, false),
           valueAttribute: result.valueAttribute,
           labelAttribute: result.labelAttribute,
+          staticValue: undefined,
           queryMode: undefined,
           queryValueField: undefined,
           queryCategoryField: undefined,
@@ -296,8 +323,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     // SOLID: Serialization for persistence
     toPersistedConfig: (widget: KpiWidgetConfig): WidgetPersistenceData => {
       const isPersistentQuery = widget.dataSource.type === 'persistentQuery';
+      const isStatic = widget.dataSource.type === 'static';
+      const dataSourceType = isPersistentQuery ? 'persistentQuery' : isStatic ? 'static' : 'runtimeEntity';
       return {
-        dataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
+        dataSourceType,
         dataSourceCkTypeId: widget.dataSource.type === 'runtimeEntity' ? widget.dataSource.ckTypeId : undefined,
         dataSourceRtId: isPersistentQuery
           ? (widget.dataSource as PersistentQueryDataSource).queryRtId
@@ -309,6 +338,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           suffix: widget.suffix,
           icon: widget.icon,
           trend: widget.trend,
+          staticValue: widget.staticValue,
           queryMode: widget.queryMode,
           queryValueField: widget.queryValueField,
           queryCategoryField: widget.queryCategoryField,
@@ -326,6 +356,21 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): KpiWidgetConfig => {
       const config = parseConfig(data);
       const dataSource = buildDataSourceFromPersisted(data, config);
+
+      if (dataSource.type === 'static') {
+        return {
+          ...base,
+          rtId: data.rtId,
+          type: 'kpi',
+          dataSource,
+          valueAttribute: '',
+          staticValue: config['staticValue'] as string | undefined,
+          prefix: config['prefix'] as string | undefined,
+          suffix: config['suffix'] as string | undefined,
+          icon: config['icon'] as string | undefined,
+          trend: config['trend'] as KpiWidgetConfig['trend']
+        };
+      }
 
       if (dataSource.type === 'persistentQuery') {
         return {

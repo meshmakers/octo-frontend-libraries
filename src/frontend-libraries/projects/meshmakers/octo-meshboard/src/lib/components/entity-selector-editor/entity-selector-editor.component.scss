@@ -1,0 +1,206 @@
+.entity-selector-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.selector-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.selector-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--kendo-color-surface-alt, #fafafa);
+  border: 1px solid var(--kendo-color-border, #e0e0e0);
+  border-radius: 4px;
+
+  .selector-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .selector-label {
+    font-weight: 500;
+    color: var(--kendo-color-on-app-surface, #424242);
+  }
+
+  .selector-mode {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--kendo-color-info, #0288d1);
+  }
+
+  .selector-ck-type {
+    font-size: 0.8rem;
+    color: var(--kendo-color-subtle, #757575);
+    font-family: 'Consolas', 'Monaco', monospace;
+  }
+
+  .selector-mappings {
+    font-size: 0.8rem;
+    color: var(--kendo-color-primary, #3f51b5);
+    font-family: 'Consolas', 'Monaco', monospace;
+  }
+
+  .selector-actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .remove-btn {
+    color: var(--kendo-color-error, #f44336);
+  }
+}
+
+.empty-state {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--kendo-color-subtle, #757575);
+  font-size: 0.875rem;
+}
+
+.add-button-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .field-label {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--kendo-color-on-app-surface, #424242);
+  }
+
+  .field-hint {
+    font-size: 0.75rem;
+    color: var(--kendo-color-subtle, #757575);
+  }
+
+  .field-error {
+    font-size: 0.75rem;
+    color: var(--kendo-color-error, #f44336);
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .checkbox-label {
+      margin: 0;
+      cursor: pointer;
+    }
+  }
+}
+
+.mappings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: var(--kendo-color-surface-alt, #fafafa);
+  border: 1px solid var(--kendo-color-border, #e0e0e0);
+  border-radius: 4px;
+}
+
+.mappings-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--kendo-color-subtle, #757575);
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--kendo-color-border, #e0e0e0);
+
+  .mappings-header-attr {
+    min-width: 150px;
+  }
+
+  .mappings-header-var {
+    // account for arrow + $ prefix
+    margin-left: 1.75rem;
+  }
+}
+
+.mapping-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+
+  .mapping-path {
+    font-size: 0.8rem;
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: var(--kendo-color-subtle, #757575);
+    min-width: 150px;
+    padding-top: 5px;
+  }
+
+  .mapping-arrow {
+    color: var(--kendo-color-subtle, #757575);
+    flex-shrink: 0;
+    padding-top: 5px;
+  }
+
+  .mapping-var-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .mapping-var-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .mapping-var-prefix {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--kendo-color-primary, #3f51b5);
+    padding-right: 2px;
+    flex-shrink: 0;
+  }
+
+  .mapping-var-input {
+    flex: 1;
+
+    &.invalid {
+      ::ng-deep .k-input {
+        border-color: var(--kendo-color-error, #f44336);
+      }
+    }
+  }
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--kendo-color-border, #e0e0e0);
+}

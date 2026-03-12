@@ -77,6 +77,47 @@ export class MeshBoardVariableService {
   }
 
   /**
+   * Maps a CK attribute value type to a MeshBoard variable type.
+   */
+  mapAttributeTypeToVariableType(attributeValueType: string): MeshBoardVariableType {
+    switch (attributeValueType) {
+      case 'IntegerDto':
+      case 'DoubleDto':
+      case 'LongDto':
+      case 'INTEGER':
+      case 'DOUBLE':
+      case 'INTEGER_64':
+        return 'number';
+      case 'BooleanDto':
+      case 'BOOLEAN':
+        return 'boolean';
+      case 'DateTimeDto':
+      case 'DateTimeOffsetDto':
+      case 'DATE_TIME':
+      case 'DATE_TIME_OFFSET':
+        return 'datetime';
+      case 'DateDto':
+      case 'DATE':
+        return 'date';
+      default:
+        return 'string';
+    }
+  }
+
+  /**
+   * Generates a camelCase variable name from an attribute path.
+   * e.g., "contact.firstName" -> "contactFirstName"
+   */
+  attributePathToVariableName(attributePath: string): string {
+    const parts = attributePath.split('.');
+    return parts
+      .map((part, index) =>
+        index === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)
+      )
+      .join('');
+  }
+
+  /**
    * Parses a value string to the correct JavaScript type.
    * @param value The string value to parse
    * @param type The target type

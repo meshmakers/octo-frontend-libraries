@@ -58,7 +58,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return !dataSource.queryRtId;
     }
     if (dataSource.type === 'static') {
-      return false; // Static data is always "configured"
+      return false;
     }
     return false;
   }
@@ -67,10 +67,15 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     const data = this._data();
     if (!data) return '-';
 
-    // For persistent queries, look for _queryValue; otherwise use configured valueAttribute
-    const attributeName = this.config?.dataSource?.type === 'persistentQuery'
-      ? '_queryValue'
-      : this.config?.valueAttribute;
+    // Determine attribute name based on data source type
+    let attributeName: string | undefined;
+    if (this.config?.dataSource?.type === 'persistentQuery') {
+      attributeName = '_queryValue';
+    } else if (this.config?.dataSource?.type === 'static') {
+      attributeName = '_staticValue';
+    } else {
+      attributeName = this.config?.valueAttribute;
+    }
 
     // First check for system properties (direct properties on RuntimeEntityData)
     const systemValue = this.getSystemPropertyValue(data, attributeName);
@@ -194,8 +199,18 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     const dataSource = this.config?.dataSource;
 
     if (dataSource.type === 'static') {
-      const staticData = dataSource.data as RuntimeEntityData;
-      this._data.set(staticData);
+      // Resolve static value with variable substitution
+      const staticValue = this.config.staticValue ?? '';
+      const variables = this.stateService.getVariables();
+      const resolvedValue = this.variableService.resolveVariables(staticValue, variables);
+
+      const staticEntity: RuntimeEntityData = {
+        rtId: 'static-entity',
+        ckTypeId: 'system.static',
+        attributes: [{ attributeName: '_staticValue', value: resolvedValue }],
+        associations: []
+      };
+      this._data.set(staticEntity);
       this._error.set(null);
       return;
     }

@@ -1,0 +1,36 @@
+query getEntitiesByCkType(
+  $ckTypeId: String!
+  $rtId: OctoObjectId
+  $after: String
+  $first: Int
+  $searchFilter: SearchFilter
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+) {
+  runtime {
+    runtimeEntities(
+      ckId: $ckTypeId
+      rtId: $rtId
+      after: $after
+      first: $first
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+    ) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        rtCreationDateTime
+        rtChangedDateTime
+        attributes(resolveEnumValuesToNames: true) {
+          items {
+            attributeName
+            value
+          }
+        }
+      }
+    }
+  }
+}
