@@ -132,6 +132,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly notFoundError = this._notFoundError.asReadonly();
   private readonly _isReadonly = signal(false);
   protected readonly isReadonly = this._isReadonly.asReadonly();
+  private readonly _hideEntitySelectors = signal(false);
+  protected readonly hideEntitySelectors = this._hideEntitySelectors.asReadonly();
   protected readonly timeRangeLabels = signal<TimeRangePickerLabels>({});
 
   // Computed link to MeshBoard page with tenant
@@ -167,9 +169,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   // Entity Selector computed signals
   protected readonly entitySelectorsConfig = computed(() => this.stateService.getEntitySelectors());
   protected readonly hasEntitySelectors = computed(() =>
-    this.entitySelectorsConfig()?.some(es => es.showInToolbar !== false) ?? false
+    !this.hideEntitySelectors() && (this.entitySelectorsConfig()?.some(es => es.showInToolbar !== false) ?? false)
   );
   protected readonly unselectedToolbarSelectors = computed(() => {
+    if (this.hideEntitySelectors()) return [];
     const selectors = this.entitySelectorsConfig() ?? [];
     return selectors.filter(es => es.showInToolbar !== false && !es.selectedRtId);
   });
@@ -256,6 +259,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       const wellKnownName = this.route.snapshot.data['meshBoardWellKnownName'] as string | undefined;
       const readonly = this.route.snapshot.data['meshBoardReadonly'] as boolean | undefined;
       this._isReadonly.set(readonly === true);
+      const hideEntitySelectors = this.route.snapshot.data['meshBoardHideEntitySelectors'] as boolean | undefined;
+      this._hideEntitySelectors.set(hideEntitySelectors === true);
       const labels = this.route.snapshot.data['timeRangeLabels'] as TimeRangePickerLabels | undefined;
       if (labels) this.timeRangeLabels.set(labels);
 
@@ -620,6 +625,40 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Refreshes all widget data.
    */
   async refresh(): Promise<void> {
+    this.stateService.triggerRefresh();
+  }
+
+  /**
+   * Programmatically sets an entity selector value from outside the component.
+   * Use this when the host application controls entity selection (e.g., with meshBoardHideEntitySelectors).
+   * Resolves entity attributes, sets variables, and refreshes widgets.
+   */
+  async setEntitySelector(selectorId: string, rtId: string, displayName?: string): Promise<void> {
+    const selector = this.stateService.getEntitySelector(selectorId);
+    if (!selector) {
+      console.warn(`Entity selector '${selectorId}' not found`);
+      return;
+    }
+
+    // Update selection state
+    this.stateService.updateEntitySelectorSelection(selectorId, rtId, displayName);
+
+    // Fetch entity and set variables from attribute mappings
+    const resolvedName = await this.resolveEntitySelectorVariables(selector, rtId);
+    if (resolvedName && !displayName) {
+      this.stateService.updateEntitySelectorSelection(selectorId, rtId, resolvedName);
+    }
+
+    // Refresh widgets
+    this.stateService.triggerRefresh();
+  }
+
+  /**
+   * Programmatically clears an entity selector value from outside the component.
+   */
+  clearEntitySelector(selectorId: string): void {
+    this.stateService.updateEntitySelectorSelection(selectorId, undefined);
+    this.stateService.clearEntitySelectorVariables(selectorId);
     this.stateService.triggerRefresh();
   }
 
