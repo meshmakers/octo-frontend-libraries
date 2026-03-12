@@ -168,7 +168,8 @@
         <div class="tab-content">
           <mm-entity-selector-editor
             [(entitySelectors)]="entitySelectors"
-            [existingVariableNames]="staticVariableNames">
+            [existingVariableNames]="staticVariableNames"
+            (editingStateChange)="entitySelectorEditing = $event">
           </mm-entity-selector-editor>
         </div>
       </ng-template>
@@ -176,16 +177,18 @@
   </kendo-tabstrip>
 
   <!-- Dialog Actions -->
-  <div class="dialog-actions">
-    <button kendoButton (click)="cancel()" fillMode="flat">
-      Cancel
-    </button>
-    <button
-      kendoButton
-      (click)="save()"
-      [disabled]="!isValid"
-      themeColor="primary">
-      Save
-    </button>
-  </div>
+  @if (!entitySelectorEditing) {
+    <div class="dialog-actions mm-dialog-actions">
+      <button kendoButton (click)="cancel()" fillMode="flat">
+        Cancel
+      </button>
+      <button
+        kendoButton
+        (click)="save()"
+        [disabled]="!isValid"
+        themeColor="primary">
+        Save
+      </button>
+    </div>
+  }
 </div>

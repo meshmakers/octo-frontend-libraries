@@ -523,7 +523,7 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
         </kendo-tabstrip>
       </div>
 
-      <div class="action-bar">
+      <div class="action-bar mm-dialog-actions">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton

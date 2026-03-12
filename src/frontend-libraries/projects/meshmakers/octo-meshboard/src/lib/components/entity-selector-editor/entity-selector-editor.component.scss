@@ -1,7 +1,7 @@
 .entity-selector-editor {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .selector-list {
@@ -73,20 +73,36 @@
   justify-content: flex-start;
 }
 
+.edit-panel {
+  border: 1px solid var(--kendo-color-border, #e0e0e0);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.edit-panel-header {
+  padding: 0.625rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--kendo-color-on-primary, #ffffff);
+  background: var(--kendo-color-primary, #3f51b5);
+}
+
 .edit-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
+  padding: 1.25rem;
 
   .form-field {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.5rem;
   }
 
   .field-label {
     font-weight: 500;
     font-size: 0.875rem;
+    text-transform: uppercase;
     color: var(--kendo-color-on-app-surface, #424242);
   }
 

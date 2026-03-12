@@ -67,6 +67,7 @@ export class MeshBoardSettingsDialogComponent {
   gap = 16;
   variables: MeshBoardVariable[] = [];
   entitySelectors: EntitySelectorConfig[] = [];
+  entitySelectorEditing = false;
   timeFilterEnabled = false;
   defaultSelection?: TimeRangeSelection;
   initialDefaultSelection?: SharedTimeRangeSelection;

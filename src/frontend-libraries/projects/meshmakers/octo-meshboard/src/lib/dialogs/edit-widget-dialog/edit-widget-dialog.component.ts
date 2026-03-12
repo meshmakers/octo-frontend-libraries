@@ -96,7 +96,7 @@ export interface WidgetPositionUpdate {
         }
       </div>
 
-      <kendo-dialog-actions>
+      <kendo-dialog-actions class="mm-dialog-actions">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton

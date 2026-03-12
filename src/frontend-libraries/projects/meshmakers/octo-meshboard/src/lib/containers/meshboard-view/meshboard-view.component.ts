@@ -47,7 +47,8 @@ import {
   TimeRange,
   TimeRangeUtils,
   TimeRangeSelection as SharedTimeRangeSelection,
-  TimeRangePickerLabels
+  TimeRangePickerLabels,
+  WindowStateService
 } from '@meshmakers/shared-ui';
 
 /**
@@ -82,6 +83,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private readonly dataService = inject(MeshBoardDataService);
   private readonly dialogService = inject(DialogService);
   private readonly windowService = inject(WindowService);
+  private readonly windowStateService = inject(WindowStateService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   protected readonly gridService = inject(MeshBoardGridService);
@@ -433,15 +435,19 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Opens the settings dialog.
    */
   async openSettings(): Promise<void> {
+    const size = this.windowStateService.resolveWindowSize('meshboard-settings', { width: 1000, height: 750 });
+
     const windowRef = this.windowService.open({
       content: MeshBoardSettingsDialogComponent,
       title: 'MeshBoard Settings',
-      width: 700,
-      height: 650,
-      minWidth: 500,
-      minHeight: 450,
+      width: size.width,
+      height: size.height,
+      minWidth: 850,
+      minHeight: 550,
       resizable: true
     });
+
+    this.windowStateService.applyModalBehavior('meshboard-settings', windowRef);
 
     const contentRef = windowRef.content as { instance?: MeshBoardSettingsDialogComponent } | undefined;
     if (contentRef?.instance) {

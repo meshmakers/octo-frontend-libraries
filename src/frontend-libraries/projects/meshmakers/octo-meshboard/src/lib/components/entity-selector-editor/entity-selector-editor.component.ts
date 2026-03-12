@@ -48,6 +48,8 @@ export class EntitySelectorEditorComponent {
   /** Existing variable names from other sources (static variables, other selectors) for duplicate detection */
   @Input() existingVariableNames: string[] = [];
   @Output() entitySelectorsChange = new EventEmitter<EntitySelectorConfig[]>();
+  /** Emits true when entering edit mode, false when leaving — allows parent to hide its own buttons */
+  @Output() editingStateChange = new EventEmitter<boolean>();
 
   protected readonly plusIcon = plusIcon;
   protected readonly trashIcon = trashIcon;
@@ -83,6 +85,7 @@ export class EntitySelectorEditorComponent {
     this.defaultEntityDataSource = null;
     this.defaultEntityDialogDataSource = null;
     this.isEditing = true;
+    this.editingStateChange.emit(true);
   }
 
   /**
@@ -106,6 +109,7 @@ export class EntitySelectorEditorComponent {
     this.editDefaultRtId = selector.defaultRtId ?? '';
     this.updateDefaultEntityDataSources();
     this.isEditing = true;
+    this.editingStateChange.emit(true);
   }
 
   /**
@@ -204,6 +208,7 @@ export class EntitySelectorEditorComponent {
 
     this.isEditing = false;
     this.editingIndex = null;
+    this.editingStateChange.emit(false);
     this.emitChange();
   }
 
@@ -213,6 +218,7 @@ export class EntitySelectorEditorComponent {
   cancelEdit(): void {
     this.isEditing = false;
     this.editingIndex = null;
+    this.editingStateChange.emit(false);
   }
 
   /**

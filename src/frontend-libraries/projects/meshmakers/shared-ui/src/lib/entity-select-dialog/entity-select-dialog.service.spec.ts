@@ -16,7 +16,12 @@ describe('EntitySelectDialogService', () => {
   let mockDataSource: EntitySelectDialogDataSource<string>;
 
   beforeEach(() => {
+    sessionStorage.clear();
     resultSubject = new Subject<EntitySelectDialogResult<string> | WindowCloseResult>();
+
+    const mockNativeElement = {
+      getBoundingClientRect: () => ({ width: 800, height: 600, x: 0, y: 0, top: 0, left: 0, right: 800, bottom: 600, toJSON: () => ({}) })
+    };
 
     mockWindowRef = {
       result: resultSubject.asObservable(),
@@ -28,7 +33,7 @@ describe('EntitySelectDialogService', () => {
         }
       } as unknown as WindowRef['content'],
       close: jasmine.createSpy('close'),
-      window: undefined as unknown as WindowRef['window']
+      window: { location: { nativeElement: mockNativeElement } } as unknown as WindowRef['window']
     };
 
     windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);

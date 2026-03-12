@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { firstValueFrom } from 'rxjs';
+import { WindowStateService } from '@meshmakers/shared-ui';
 import {
   AttributeSelectorDialogComponent,
   AttributeSelectorDialogData,
@@ -18,6 +19,7 @@ export interface AttributeSelectorResult {
 })
 export class AttributeSelectorDialogService {
   private readonly windowService = inject(WindowService);
+  private readonly windowStateService = inject(WindowStateService);
 
   /**
    * Opens the attribute selector dialog
@@ -40,15 +42,22 @@ export class AttributeSelectorDialogService {
       singleSelect
     };
 
+    const dialogKey = singleSelect ? 'attribute-selector-single' : 'attribute-selector';
+    const defaultWidth = singleSelect ? 550 : 1000;
+    const defaultHeight = singleSelect ? 650 : 700;
+    const size = this.windowStateService.resolveWindowSize(dialogKey, { width: defaultWidth, height: defaultHeight });
+
     const windowRef: WindowRef = this.windowService.open({
       content: AttributeSelectorDialogComponent,
-      width: singleSelect ? 550 : 1000,
-      height: singleSelect ? 650 : 700,
+      width: size.width,
+      height: size.height,
       minWidth: singleSelect ? 450 : 850,
       minHeight: singleSelect ? 550 : 650,
       resizable: true,
       title: dialogTitle || 'Select Attributes'
     });
+
+    this.windowStateService.applyModalBehavior(dialogKey, windowRef);
 
     // Pass data to the component
     const contentRef = windowRef.content as { instance?: AttributeSelectorDialogComponent } | undefined;
@@ -60,7 +69,6 @@ export class AttributeSelectorDialogService {
       const result = await firstValueFrom(windowRef.result);
 
       if (result instanceof WindowCloseResult) {
-        // User closed the window via X button
         return {
           confirmed: false,
           selectedAttributes: []
@@ -68,21 +76,18 @@ export class AttributeSelectorDialogService {
       }
 
       if (result && typeof result === 'object' && 'selectedAttributes' in result) {
-        // User clicked OK and we have a result
         const dialogResult = result as AttributeSelectorDialogResult;
         return {
           confirmed: true,
           selectedAttributes: dialogResult.selectedAttributes
         };
       } else {
-        // User clicked Cancel or closed dialog
         return {
           confirmed: false,
           selectedAttributes: []
         };
       }
     } catch {
-      // Dialog was closed without result (e.g., ESC key, X button)
       return {
         confirmed: false,
         selectedAttributes: []

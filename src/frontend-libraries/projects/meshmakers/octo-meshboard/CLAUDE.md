@@ -631,6 +631,71 @@ Located in `src/lib/graphQL/`:
 
 ---
 
+## Theming / CSS Hooks for Host Applications
+
+The MeshBoard library uses **neutral, theme-agnostic defaults**. Host applications can style all buttons consistently using standardized CSS classes exposed by the library.
+
+### Standard CSS Classes
+
+| CSS Class | Applied To | Purpose |
+|-----------|-----------|---------|
+| `mm-dialog-actions` | All dialog footer button containers (Save/Cancel) | Style dialog action buttons |
+| `mm-toolbar-actions` | MeshBoard toolbar button area | Style toolbar buttons |
+
+These classes are present on **every** dialog and toolbar in the library, providing a single CSS hook for consistent theming.
+
+### Button Patterns
+
+All MeshBoard buttons follow these Kendo conventions:
+
+| Button Role | Kendo Attributes | Kendo CSS Class |
+|-------------|------------------|-----------------|
+| Primary action (Save, Add, Create) | `themeColor="primary"` | `.k-button-solid-primary` |
+| Secondary action (Cancel, Close) | `fillMode="flat"` | `.k-button-flat` |
+| Icon button (edit, delete, gear) | `fillMode="flat"` + `[svgIcon]` | `.k-button-flat` |
+| Toggle button (mode selector) | `[fillMode]="condition ? 'solid' : 'outline'"` | `.k-button-solid` / `.k-button-outline` |
+
+### Host App Styling Example
+
+```scss
+// Style all MeshBoard dialog buttons (inside Kendo Windows)
+.k-window-content .mm-dialog-actions .k-button {
+  // Your button base styles here
+}
+
+// Style primary action buttons specifically
+.k-window-content .mm-dialog-actions .k-button-solid-primary {
+  background: linear-gradient(180deg, rgba($accent, 0.3), rgba($accent, 0.15));
+  border: 1px solid rgba($accent, 0.5);
+  color: #ffffff;
+}
+
+// Style secondary/cancel buttons
+.k-window-content .mm-dialog-actions .k-button-flat {
+  background: transparent;
+  border: 1px solid rgba($accent, 0.3);
+  color: $accent;
+}
+
+// Style MeshBoard toolbar buttons
+.mm-toolbar-actions .k-button {
+  // Your toolbar button styles
+}
+```
+
+### Legacy CSS Classes (backward compatible)
+
+The original class names remain for backward compatibility:
+
+| Legacy Class | Standard Class |
+|-------------|----------------|
+| `action-bar` | `mm-dialog-actions` |
+| `dialog-actions` | `mm-dialog-actions` |
+| `edit-actions` | `mm-dialog-actions` |
+| `toolbar-right` | `mm-toolbar-actions` |
+
+---
+
 ## Dependencies
 
 - `@angular/core` - Angular framework

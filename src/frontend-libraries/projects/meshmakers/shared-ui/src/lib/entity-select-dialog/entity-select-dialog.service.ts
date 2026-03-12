@@ -7,10 +7,12 @@ import {
   EntitySelectDialogOptions,
   EntitySelectDialogResult
 } from './entity-select-dialog-data-source';
+import { WindowStateService } from '../services/window-state.service';
 
 @Injectable()
 export class EntitySelectDialogService {
   private readonly windowService = inject(WindowService);
+  private readonly windowStateService = inject(WindowStateService);
 
   /**
    * Opens the entity select dialog
@@ -22,15 +24,21 @@ export class EntitySelectDialogService {
     dataSource: EntitySelectDialogDataSource<T>,
     options: EntitySelectDialogOptions<T>
   ): Promise<EntitySelectDialogResult<T> | null> {
+    const defaultWidth = options.width ?? 800;
+    const defaultHeight = options.height ?? 600;
+    const size = this.windowStateService.resolveWindowSize('entity-select', { width: defaultWidth, height: defaultHeight });
+
     const windowRef = this.windowService.open({
       title: options.title,
       content: EntitySelectDialogComponent,
-      width: options.width ?? 800,
-      height: options.height ?? 600,
+      width: size.width,
+      height: size.height,
       minWidth: 550,
       minHeight: 400,
       resizable: true
     });
+
+    this.windowStateService.applyModalBehavior('entity-select', windowRef);
 
     const contentRef = windowRef.content as { instance?: EntitySelectDialogComponent<T> } | undefined;
     if (contentRef?.instance) {

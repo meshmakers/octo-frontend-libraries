@@ -75,7 +75,7 @@
         </div>
       }
 
-      <div class="toolbar-right">
+      <div class="toolbar-right mm-toolbar-actions">
         @if (!isReadonly()) {
           <!-- Manager Button (icon only) -->
           <button
@@ -131,7 +131,6 @@
             [svgIcon]="plusIcon"
             (click)="openAddWidget()"
             title="Add Widget"
-            fillMode="flat"
             themeColor="primary">
             Add Widget
           </button>
@@ -144,7 +143,6 @@
               (click)="save()"
               [disabled]="isSaving()"
               title="Save MeshBoard"
-              fillMode="solid"
               themeColor="primary">
               {{ isSaving() ? 'Saving...' : 'Save' }}
             </button>

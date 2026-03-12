@@ -28,6 +28,7 @@ describe('AttributeSelectorDialogService', () => {
   ];
 
   beforeEach(() => {
+    sessionStorage.clear();
     windowResultSubject = new Subject();
     mockComponentInstance = {};
 
@@ -35,7 +36,17 @@ describe('AttributeSelectorDialogService', () => {
       result: windowResultSubject.asObservable(),
       content: {
         instance: mockComponentInstance
-      } as unknown as WindowRef['content']
+      } as unknown as WindowRef['content'],
+      window: {
+        location: {
+          nativeElement: {
+            getBoundingClientRect: () => ({
+              width: 800, height: 600, x: 0, y: 0, top: 0, left: 0, right: 800, bottom: 600,
+              toJSON: () => ({})
+            })
+          }
+        }
+      }
     };
 
     windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);

@@ -44,14 +44,17 @@
         kendoButton
         [svgIcon]="plusIcon"
         (click)="addSelector()"
-        fillMode="flat"
         themeColor="primary">
         Add Entity Selector
       </button>
     </div>
   } @else {
     <!-- Edit Form -->
-    <div class="edit-form">
+    <div class="edit-panel">
+      <div class="edit-panel-header">
+        {{ editingIndex !== null ? 'Edit Entity Selector' : 'New Entity Selector' }}
+      </div>
+      <div class="edit-form">
       <div class="form-field">
         <label class="field-label">ID *</label>
         <kendo-textbox
@@ -172,7 +175,7 @@
         </span>
       </div>
 
-      <div class="edit-actions">
+      <div class="edit-actions mm-dialog-actions">
         <button kendoButton (click)="cancelEdit()" fillMode="flat">
           Cancel
         </button>
@@ -183,6 +186,7 @@
           themeColor="primary">
           {{ editingIndex !== null ? 'Update' : 'Add' }}
         </button>
+      </div>
       </div>
     </div>
   }
