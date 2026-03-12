@@ -35,6 +35,16 @@ export class MeshBoardVariableService {
   }
 
   /**
+   * Checks whether a string contains unresolved variable placeholders.
+   * @param value The string to check
+   * @returns true if the string contains ${variableName} or $variableName patterns
+   */
+  hasUnresolvedVariables(value: string): boolean {
+    if (!value) return false;
+    return /\$\{[^}]+\}|\$[a-zA-Z_]\w*/.test(value);
+  }
+
+  /**
    * Resolves variables in filter comparison values.
    * @param filters The filters with potential variable placeholders
    * @param variables The variables to resolve from

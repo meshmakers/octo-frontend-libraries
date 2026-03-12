@@ -641,4 +641,35 @@ describe('MeshBoardVariableService', () => {
       expect(result![0].comparisonValue).toBe('prefix_12345_suffix');
     });
   });
+
+  describe('hasUnresolvedVariables', () => {
+    it('should return false for empty string', () => {
+      expect(service.hasUnresolvedVariables('')).toBeFalse();
+    });
+
+    it('should return false for null/undefined', () => {
+      expect(service.hasUnresolvedVariables(null as unknown as string)).toBeFalse();
+      expect(service.hasUnresolvedVariables(undefined as unknown as string)).toBeFalse();
+    });
+
+    it('should return false for plain text', () => {
+      expect(service.hasUnresolvedVariables('Hello World')).toBeFalse();
+      expect(service.hasUnresolvedVariables('42')).toBeFalse();
+    });
+
+    it('should detect ${variableName} syntax', () => {
+      expect(service.hasUnresolvedVariables('${meteringPointNumber}')).toBeTrue();
+      expect(service.hasUnresolvedVariables('Value: ${count}')).toBeTrue();
+    });
+
+    it('should detect $variableName syntax', () => {
+      expect(service.hasUnresolvedVariables('$meteringPointNumber')).toBeTrue();
+      expect(service.hasUnresolvedVariables('Value: $count')).toBeTrue();
+    });
+
+    it('should return false for dollar amounts', () => {
+      expect(service.hasUnresolvedVariables('$100')).toBeFalse();
+      expect(service.hasUnresolvedVariables('Price: $50.00')).toBeFalse();
+    });
+  });
 });

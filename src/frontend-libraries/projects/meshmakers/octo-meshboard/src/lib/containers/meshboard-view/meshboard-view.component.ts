@@ -17,7 +17,8 @@ import {
   trashIcon,
   gridLayoutIcon,
   undoIcon,
-  copyIcon
+  copyIcon,
+  infoCircleIcon
 } from '@progress/kendo-svg-icons';
 
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -107,6 +108,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly gridLayoutIcon = gridLayoutIcon;
   protected readonly undoIcon = undoIcon;
   protected readonly copyIcon = copyIcon;
+  protected readonly infoCircleIcon = infoCircleIcon;
 
   // Edit widget dialog state
   protected showEditWidgetDialog = false;
@@ -167,6 +169,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly hasEntitySelectors = computed(() =>
     this.entitySelectorsConfig()?.some(es => es.showInToolbar !== false) ?? false
   );
+  protected readonly unselectedToolbarSelectors = computed(() => {
+    const selectors = this.entitySelectorsConfig() ?? [];
+    return selectors.filter(es => es.showInToolbar !== false && !es.selectedRtId);
+  });
 
   /**
    * Whether the time filter can be reset to the default selection.

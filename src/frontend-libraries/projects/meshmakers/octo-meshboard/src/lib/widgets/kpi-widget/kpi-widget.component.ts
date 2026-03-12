@@ -120,6 +120,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   /**
    * Formats a value for display in the KPI widget.
    * Numbers are formatted with locale, strings are displayed as-is.
+   * Unresolved variable placeholders (e.g. ${variableName}) are shown as '-'.
    */
   private formatDisplayValue(value: unknown): string {
     // Handle null/undefined/string "null"
@@ -127,11 +128,22 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return '-';
     }
 
-    const numValue = typeof value === 'number' ? value : parseFloat(String(value));
+    // Handle unresolved variable placeholders
+    const strValue = String(value);
+    if (this.variableService.hasUnresolvedVariables(strValue)) {
+      return '-';
+    }
+
+    // Handle empty string
+    if (strValue === '') {
+      return '-';
+    }
+
+    const numValue = typeof value === 'number' ? value : parseFloat(strValue);
 
     if (isNaN(numValue)) {
       // Not a number, return as string
-      return String(value);
+      return strValue;
     }
 
     return numValue.toLocaleString('de-AT', {

@@ -151,6 +151,20 @@
       </div>
     </div>
 
+    <!-- Entity Selector Hint -->
+    @if (unselectedToolbarSelectors().length > 0) {
+      <div class="entity-selector-hint">
+        <kendo-svg-icon [icon]="infoCircleIcon" size="medium"></kendo-svg-icon>
+        <span>
+          Please select
+          @for (selector of unselectedToolbarSelectors(); track selector.id; let last = $last) {
+            <strong>{{ selector.label }}</strong>@if (!last) {, }
+          }
+          to display dashboard data.
+        </span>
+      </div>
+    }
+
     <!-- Variable Resolution Errors -->
     @if (variableResolutionErrors().length > 0) {
       <div class="variable-resolution-errors">

@@ -25,6 +25,24 @@
   width: 100%;
 }
 
+// Entity selector hint
+.entity-selector-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  background: color-mix(in srgb, var(--kendo-color-info, #2196f3) 10%, var(--kendo-color-surface-alt, #fafafa));
+  border: 1px solid color-mix(in srgb, var(--kendo-color-info, #2196f3) 40%, transparent);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--kendo-color-on-app-surface, #424242);
+
+  strong {
+    color: var(--kendo-color-info, #2196f3);
+  }
+}
+
 // Variable resolution errors
 .variable-resolution-errors {
   display: flex;
