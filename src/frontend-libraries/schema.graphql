@@ -830,7 +830,7 @@ interface SystemCommunicationPipelineInterface {
   ): SystemCommunicationTag_TaggedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System-2.0.4/Configuration-1'"
+"Interface for runtime entities of construction kit type 'System-2.0.5/Configuration-1'"
 interface SystemConfigurationInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -943,7 +943,7 @@ interface SystemConfigurationInterface {
   ): SystemCommunicationPipeline_UsedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System-2.0.4/Entity-1'"
+"Interface for runtime entities of construction kit type 'System-2.0.5/Entity-1'"
 interface SystemEntityInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -1232,7 +1232,7 @@ interface SystemIdentityResourceInterface {
   ): SystemCommunicationTag_TaggedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System-2.0.4/PersistentQuery-1'"
+"Interface for runtime entities of construction kit type 'System-2.0.5/PersistentQuery-1'"
 interface SystemPersistentQueryInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -17713,7 +17713,7 @@ type SystemAggregationQueryColumn {
   constructionKitType: CkType
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/AggregationRtQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.5/AggregationRtQuery-1'"
 type SystemAggregationRtQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -17886,7 +17886,7 @@ type SystemAttributeSearchFilter {
   searchValue: String!
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/AutoIncrement-1'"
+"Runtime entities of construction kit type 'System-2.0.5/AutoIncrement-1'"
 type SystemAutoIncrement implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -22514,7 +22514,7 @@ type SystemCommunicationUiThemeColors {
   tertiaryColor: String!
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/Configuration-1'"
+"Runtime entities of construction kit type 'System-2.0.5/Configuration-1'"
 type SystemConfiguration implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -22709,7 +22709,7 @@ type SystemConfiguration_IsUsingUnionEdge {
   node: SystemConfiguration_IsUsingUnion
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/Entity-1'"
+"Runtime entities of construction kit type 'System-2.0.5/Entity-1'"
 type SystemEntity {
   associations(
     "Only return edges after the specified cursor."
@@ -22964,7 +22964,7 @@ type SystemFieldFilter {
   operator: SystemFieldFilterOperator!
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/GroupingAggregationRtQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.5/GroupingAggregationRtQuery-1'"
 type SystemGroupingAggregationRtQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -26208,7 +26208,7 @@ type SystemIdentityUserUpdateMessage {
   items: [SystemIdentityUserUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/MigrationHistory-1'"
+"Runtime entities of construction kit type 'System-2.0.5/MigrationHistory-1'"
 type SystemMigrationHistory implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -27043,7 +27043,7 @@ type SystemNotificationStatefulEventUpdateMessage {
   items: [SystemNotificationStatefulEventUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/PersistentQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.5/PersistentQuery-1'"
 type SystemPersistentQuery implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -27198,7 +27198,7 @@ type SystemPersistentQueryUpdateMessage {
   items: [SystemPersistentQueryUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/Query-1'"
+"Runtime entities of construction kit type 'System-2.0.5/Query-1'"
 type SystemQuery implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -28474,7 +28474,7 @@ type SystemReportingFolder_ParentUnionEdge {
   node: SystemReportingFolder_ParentUnion
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/SimpleRtQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.5/SimpleRtQuery-1'"
 type SystemSimpleRtQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -28648,7 +28648,7 @@ type SystemSortOrderItem {
   sortOrder: SystemSortOrders!
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/StreamDataSimpleQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.5/StreamDataSimpleQuery-1'"
 type SystemStreamDataSimpleQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -28702,7 +28702,6 @@ type SystemStreamDataSimpleQuery implements SystemEntityInterface & SystemPersis
   name: String!
   navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String!
-  queryMode: SystemStreamDataQueryModes
   relatesFrom(
     "Only return edges after the specified cursor."
     after: String,
@@ -28818,7 +28817,7 @@ type SystemStreamDataSimpleQueryUpdateMessage {
   items: [SystemStreamDataSimpleQueryUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/Tenant-1'"
+"Runtime entities of construction kit type 'System-2.0.5/Tenant-1'"
 type SystemTenant implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -28937,7 +28936,7 @@ type SystemTenant implements SystemEntityInterface {
   tenantId: String!
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/TenantConfiguration-1'"
+"Runtime entities of construction kit type 'System-2.0.5/TenantConfiguration-1'"
 type SystemTenantConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -29140,7 +29139,7 @@ type SystemTenantEdge {
   node: SystemTenant
 }
 
-"Runtime entities of construction kit type 'System-2.0.4/TenantModeConfiguration-1'"
+"Runtime entities of construction kit type 'System-2.0.5/TenantModeConfiguration-1'"
 type SystemTenantModeConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -32030,14 +32029,6 @@ enum SystemSortOrders {
   DESCENDING
 }
 
-"Runtime entities of construction kit enum 'System/StreamDataQueryModes'"
-enum SystemStreamDataQueryModes {
-  "Returns raw values in the requested time range."
-  DEFAULT
-  "Downsamples the values to the requested number of points."
-  DOWNSAMPLING
-}
-
 "Enum of valid update types"
 enum UpdateType {
   DELETE
@@ -34802,7 +34793,6 @@ input SystemStreamDataSimpleQueryInput {
   name: String
   navigationFilterMode: SystemNavigationFilterModes
   queryCkTypeId: String
-  queryMode: SystemStreamDataQueryModes
   relatesFrom: [RtAssociationInput]
   relatesTo: [RtAssociationInput]
   rtBlueprintAppliedAt: DateTime
