@@ -19,13 +19,14 @@ import { ListViewComponent } from "@meshmakers/shared-ui";
 import { ButtonModule } from "@progress/kendo-angular-buttons";
 import { SVGIconModule } from "@progress/kendo-angular-icons";
 import { eyeIcon } from "@progress/kendo-svg-icons";
-import { RUNTIME_BROWSER_KEYS } from "../../../i18n/keys";
-import { AppTranslatePipe } from "../../i18n/translate.pipe";
-import { AppTranslateService } from "../../i18n/translate.service";
 import { CkTypeEntitiesDataSourceDirective } from "../data-sources/ck-type-entities-data-source.directive";
 import { EntityDetailDataSource } from "../data-sources/entity-detail-data-source.service";
 import { CkModelDto, CkTypeDto, RtEntityDto } from "../graphQL/globalTypes";
 import { RtEntityIdHelper } from "../models/rt-entity-id";
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from "../runtime-browser.model";
 import { RuntimeBrowserStateService } from "../services/runtime-browser-state.service";
 import { TypeHelperService } from "../services/type-helper.service";
 import {
@@ -61,7 +62,6 @@ export interface EntitySavedEvent {
     CommonModule,
     ButtonModule,
     SVGIconModule,
-    AppTranslatePipe,
     EntityDetailViewComponent,
     ListViewComponent,
     CkTypeEntitiesDataSourceDirective,
@@ -73,6 +73,7 @@ export interface EntitySavedEvent {
       @if (isCreateModeEnabled) {
         <mm-create-editor-component
           [createInput]="createInput!"
+          [messages]="_messages"
           (cancelRequested)="onCancel()"
           (createOutput)="onEntityCreationFinished($event)"
         >
@@ -80,6 +81,7 @@ export interface EntitySavedEvent {
       } @else if (isUpdateModeEnabled) {
         <mm-update-editor-component
           [updateInput]="updateInput!"
+          [messages]="_messages"
           (cancelRequested)="onCancel()"
           (updateOutput)="onEntityUpdateFinished($event)"
         >
@@ -91,8 +93,8 @@ export interface EntitySavedEvent {
               <div class="placeholder-icon">
                 <span class="k-icon k-i-information"></span>
               </div>
-              <h3>{{ RUNTIME_BROWSER_KEYS.Title | appTranslate }}</h3>
-              <p>{{ RUNTIME_BROWSER_KEYS.SelectItem | appTranslate }}</p>
+              <h3>{{ _messages.title }}</h3>
+              <p>{{ _messages.selectItem }}</p>
             </div>
           </div>
         }
@@ -104,6 +106,7 @@ export interface EntitySavedEvent {
                 [entity]="getEntityForDisplay()"
                 [loading]="loading"
                 [error]="error"
+                [messages]="_messages"
                 (retry)="loadFullEntityDetails()"
                 (navigateToEntity)="
                   navigateToEntity($event.rtId, $event.ckTypeId)
@@ -113,67 +116,63 @@ export interface EntitySavedEvent {
             } @else if (isCkModel(selectedItem.item)) {
               <div class="ck-model-details">
                 <h3>
-                  {{ RUNTIME_BROWSER_KEYS.ConstructionKitModel | appTranslate }}
+                  {{ _messages.constructionKitModel }}
                 </h3>
                 <p>
                   <strong
-                    >{{ RUNTIME_BROWSER_KEYS.FullName | appTranslate }}:</strong
+                    >{{ _messages.fullName }}:</strong
                   >
                   {{ getCkModelIdFullName(selectedItem.item) }}
                 </p>
                 <p>
                   <strong
-                    >{{
-                      RUNTIME_BROWSER_KEYS.SemanticName | appTranslate
-                    }}:</strong
+                    >{{ _messages.semanticName }}:</strong
                   >
                   {{ getCkModelIdSemanticName(selectedItem.item) }}
                 </p>
                 <p>
                   <strong
-                    >{{
-                      RUNTIME_BROWSER_KEYS.ModelName | appTranslate
-                    }}:</strong
+                    >{{ _messages.modelName }}:</strong
                   >
                   {{ getCkModelIdName(selectedItem.item) }}
                 </p>
                 <p>
                   <strong
-                    >{{ RUNTIME_BROWSER_KEYS.Version | appTranslate }}:</strong
+                    >{{ _messages.version }}:</strong
                   >
                   {{ getCkModelIdVersion(selectedItem.item) }}
                 </p>
                 <p>
                   <strong
-                    >{{ RUNTIME_BROWSER_KEYS.State | appTranslate }}:</strong
+                    >{{ _messages.state }}:</strong
                   >
                   {{ getCkModelState(selectedItem.item) }}
                 </p>
                 <p class="info-text">
-                  {{ RUNTIME_BROWSER_KEYS.SelectTypeFromTree | appTranslate }}
+                  {{ _messages.selectTypeFromTree }}
                 </p>
               </div>
             } @else if (isCkType(selectedItem.item)) {
               <div class="ck-type-details">
                 <div class="type-header">
                   <h3>
-                    {{ RUNTIME_BROWSER_KEYS.Type | appTranslate }}:
+                    {{ _messages.type }}:
                     {{ getCkTypeId(selectedItem.item) }}
                   </h3>
                   <div class="type-metadata">
                     @if (isCkTypeAbstract(selectedItem.item)) {
                       <span class="badge abstract">{{
-                        RUNTIME_BROWSER_KEYS.Abstract | appTranslate
+                        _messages.abstract
                       }}</span>
                     }
                     @if (isCkTypeFinal(selectedItem.item)) {
                       <span class="badge final">{{
-                        RUNTIME_BROWSER_KEYS.Final | appTranslate
+                        _messages.final
                       }}</span>
                     }
                     @if (getCkTypeBaseType(selectedItem.item)) {
                       <span class="base-type"
-                        >{{ RUNTIME_BROWSER_KEYS.Base | appTranslate }}:
+                        >{{ _messages.base }}:
                         {{ getCkTypeBaseType(selectedItem.item) }}</span
                       >
                     }
@@ -182,7 +181,7 @@ export interface EntitySavedEvent {
 
                 <div class="entities-table">
                   <h4>
-                    {{ RUNTIME_BROWSER_KEYS.RuntimeEntities | appTranslate }}
+                    {{ _messages.runtimeEntities }}
                   </h4>
                   <mm-list-view
                     mmCkTypeEntitiesDataSource
@@ -200,12 +199,10 @@ export interface EntitySavedEvent {
             } @else if (isCkModelsRoot(selectedItem.item)) {
               <div class="ck-models-root">
                 <h3>
-                  {{
-                    RUNTIME_BROWSER_KEYS.ConstructionKitModels | appTranslate
-                  }}
+                  {{ _messages.constructionKitModels }}
                 </h3>
                 <p class="info-text">
-                  {{ RUNTIME_BROWSER_KEYS.BrowseModelsAndTypes | appTranslate }}
+                  {{ _messages.browseModelsAndTypes }}
                 </p>
               </div>
             }
@@ -220,6 +217,12 @@ export class RuntimeBrowserDetailsComponent
   implements OnChanges, AfterViewInit
 {
   @Input() selectedItem: TreeItemDataTyped<BrowserItem> | null = null;
+  @Input() set messages(value: Partial<RuntimeBrowserMessages>) {
+    this._messages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES, ...value };
+  }
+  protected _messages: RuntimeBrowserMessages = {
+    ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  };
   @Output() entitySaved = new EventEmitter<EntitySavedEvent | void>();
   @ViewChild("dir", { static: false })
   dataSourceDirective?: CkTypeEntitiesDataSourceDirective;
@@ -230,9 +233,6 @@ export class RuntimeBrowserDetailsComponent
   private readonly stateService = inject(RuntimeBrowserStateService);
 
   protected readonly typeHelperService = inject(TypeHelperService);
-  protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
-  private readonly translation = inject(AppTranslateService);
-
   protected readonly detailsIcon = eyeIcon;
   protected fullEntity: RtEntityDto | null = null;
 
@@ -240,30 +240,28 @@ export class RuntimeBrowserDetailsComponent
     return [
       {
         field: "rtId",
-        displayName: this.translation.instant(RUNTIME_BROWSER_KEYS.RuntimeId),
+        displayName: this._messages.runtimeId,
         dataType: "text" as const,
       },
       {
         field: "ckTypeId",
-        displayName: this.translation.instant(RUNTIME_BROWSER_KEYS.TypeId),
+        displayName: this._messages.typeId,
         dataType: "text" as const,
       },
       {
         field: "rtWellKnownName",
-        displayName: this.translation.instant(
-          RUNTIME_BROWSER_KEYS.WellKnownName,
-        ),
+        displayName: this._messages.wellKnownName,
         dataType: "text" as const,
       },
       {
         field: "rtCreationDateTime",
-        displayName: this.translation.instant(RUNTIME_BROWSER_KEYS.Created),
+        displayName: this._messages.created,
         format: "short" as const,
         dataType: "iso8601" as const,
       },
       {
         field: "rtChangedDateTime",
-        displayName: this.translation.instant(RUNTIME_BROWSER_KEYS.Modified),
+        displayName: this._messages.modified,
         format: "short" as const,
         dataType: "iso8601" as const,
       },
@@ -274,7 +272,7 @@ export class RuntimeBrowserDetailsComponent
     return {
       id: "view",
       type: "link" as const,
-      text: this.translation.instant(RUNTIME_BROWSER_KEYS.ViewDetails),
+      text: this._messages.viewDetails,
       svgIcon: this.detailsIcon,
       onClick: this.onViewEntityDetails,
     };
@@ -361,15 +359,11 @@ export class RuntimeBrowserDetailsComponent
       );
 
       if (!this.fullEntity) {
-        this.error = this.translation.instant(
-          RUNTIME_BROWSER_KEYS.CouldNotLoadEntityDetails,
-        );
+        this.error = this._messages.couldNotLoadEntityDetails;
       }
     } catch (error) {
       console.error("Failed to load full entity details:", error);
-      this.error = this.translation.instant(
-        RUNTIME_BROWSER_KEYS.FailedToLoadEntityDetails,
-      );
+      this.error = this._messages.failedToLoadEntityDetails;
       // Fall back to the basic entity data
       this.fullEntity = runtimeEntity;
     } finally {

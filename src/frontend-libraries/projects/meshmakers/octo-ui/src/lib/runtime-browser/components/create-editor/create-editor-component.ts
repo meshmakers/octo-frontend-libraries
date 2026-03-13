@@ -20,9 +20,6 @@ import { KENDO_INPUTS } from "@progress/kendo-angular-inputs";
 import { KENDO_LABEL } from "@progress/kendo-angular-label";
 import { CardModule } from "@progress/kendo-angular-layout";
 import { firstValueFrom, of, startWith, switchMap } from "rxjs";
-import { RUNTIME_BROWSER_KEYS } from "../../../../i18n/keys";
-import { AppTranslatePipe } from "../../../i18n/translate.pipe";
-import { AppTranslateService } from "../../../i18n/translate.service";
 import { CreateEntitiesDtoGQL } from "../../graphQL/createEntities";
 import { CkTypeDto } from "../../graphQL/globalTypes";
 import { Attribute } from "../../models/attribute";
@@ -31,13 +28,16 @@ import { AttributeDataService } from "../../services/attribute-data.service";
 import { AttributeMapperService } from "../../services/attribute-mapper.service";
 import { AttributesGroupComponent } from "../attributes-group/attributes-group.component";
 import { SharedEditor } from "../shared-editor/shared-editor";
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from "../../runtime-browser.model";
 
 @Component({
   selector: "mm-create-editor-component",
   imports: [
     ReactiveFormsModule,
     CardModule,
-    AppTranslatePipe,
     KENDO_INPUTS,
     KENDO_LABEL,
     KENDO_BUTTONS,
@@ -50,32 +50,30 @@ import { SharedEditor } from "../shared-editor/shared-editor";
       <kendo-card class="basic-info-card">
         <kendo-card-header>
           <h3 class="title">
-            {{ RUNTIME_BROWSER_KEYS.CreateEntity | appTranslate }}
+            {{ resolvedMessages().createEntity }}
           </h3>
         </kendo-card-header>
         <kendo-card-body>
           <div class="info-item">
-            <label>{{
-              RUNTIME_BROWSER_KEYS.TargetLocation | appTranslate
-            }}</label>
+            <label>{{ resolvedMessages().targetLocation }}</label>
             <kendo-textbox
               [disabled]="true"
               [value]="
                 createInput()!.parent!.name ||
-                (RUNTIME_BROWSER_KEYS.RootLevel | appTranslate)
+                resolvedMessages().rootLevel
               "
             ></kendo-textbox>
           </div>
 
           <div class="info-item">
-            <label>{{ RUNTIME_BROWSER_KEYS.EntityType | appTranslate }}</label>
+            <label>{{ resolvedMessages().entityType }}</label>
             <kendo-dropdownlist
               [data]="createInput()!.ckTypes || []"
               textField="rtCkTypeId"
               valueField="rtCkTypeId"
               [valuePrimitive]="false"
               [attr.placeholder]="
-                RUNTIME_BROWSER_KEYS.SelectType | appTranslate
+                resolvedMessages().selectType
               "
               (valueChange)="onTypeChange($event)"
             >
@@ -93,7 +91,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
           />
         } @else {
           <p class="select-type-prompt">
-            {{ RUNTIME_BROWSER_KEYS.SelectTypePrompt | appTranslate }}
+            {{ resolvedMessages().selectTypePrompt }}
           </p>
         }
       </div>
@@ -104,14 +102,14 @@ import { SharedEditor } from "../shared-editor/shared-editor";
           (click)="onCreate()"
           [disabled]="!isCreateButtonEnabled()"
         >
-          {{ RUNTIME_BROWSER_KEYS.Save | appTranslate }}
+          {{ resolvedMessages().save }}
         </button>
         <button
           kendoButton
           [disabled]="!isCancelButtonEnabled()"
           (click)="cancelRequested.emit()"
         >
-          {{ RUNTIME_BROWSER_KEYS.Cancel | appTranslate }}
+          {{ resolvedMessages().cancel }}
         </button>
       </div>
     </div>
@@ -126,6 +124,11 @@ import { SharedEditor } from "../shared-editor/shared-editor";
 export class CreateEditorComponent {
   // Inputs
   createInput = input.required<CreateInput>();
+  messages = input<Partial<RuntimeBrowserMessages>>({});
+  protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(() => ({
+    ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
+    ...this.messages(),
+  }));
   // Outputs
   createOutput = output<CreateOutput>();
   cancelRequested = output<void>();
@@ -144,9 +147,6 @@ export class CreateEditorComponent {
   private readonly mapperService = inject(AttributeMapperService);
   private readonly coordinatorService = inject(AttributeCoordinatorService);
   private readonly sharedEditor = inject(SharedEditor);
-  private readonly translation = inject(AppTranslateService);
-
-  protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
 
   isCreateButtonEnabled = computed(() => {
     const status = this.formStatusSignal();
@@ -231,7 +231,7 @@ export class CreateEditorComponent {
 
       if (!this.hasValidMappedAttributes(mappedAttributes)) {
         this.sharedEditor.showErrorNotification(
-          this.translation.instant(RUNTIME_BROWSER_KEYS.FailedToCreateEntity),
+          this.resolvedMessages().failedToCreateEntity,
         );
         return;
       }
@@ -251,13 +251,13 @@ export class CreateEditorComponent {
         });
       } else {
         this.sharedEditor.showErrorNotification(
-          this.translation.instant(RUNTIME_BROWSER_KEYS.FailedToCreateEntity),
+          this.resolvedMessages().failedToCreateEntity,
         );
       }
     } catch (error) {
       console.error("Error saving entity:", error);
       this.sharedEditor.showErrorNotification(
-        this.translation.instant(RUNTIME_BROWSER_KEYS.FailedToCreateEntity),
+        this.resolvedMessages().failedToCreateEntity,
       );
     } finally {
       this.isCreating.set(false);

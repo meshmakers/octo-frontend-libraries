@@ -17,9 +17,6 @@ import { KENDO_INPUTS } from "@progress/kendo-angular-inputs";
 import { KENDO_LABEL } from "@progress/kendo-angular-label";
 import { CardModule } from "@progress/kendo-angular-layout";
 import { firstValueFrom, of, startWith, switchMap } from "rxjs";
-import { RUNTIME_BROWSER_KEYS } from "../../../../i18n/keys";
-import { AppTranslatePipe } from "../../../i18n/translate.pipe";
-import { AppTranslateService } from "../../../i18n/translate.service";
 import { UpdateRuntimeEntitiesDtoGQL } from "../../graphQL/updateRuntimeEntities";
 import { Attribute } from "../../models/attribute";
 import { AttributeCoordinatorService } from "../../services/attribute-coordinator.service";
@@ -27,13 +24,16 @@ import { AttributeDataService } from "../../services/attribute-data.service";
 import { AttributeMapperService } from "../../services/attribute-mapper.service";
 import { AttributesGroupComponent } from "../attributes-group/attributes-group.component";
 import { SharedEditor } from "../shared-editor/shared-editor";
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from "../../runtime-browser.model";
 
 @Component({
   selector: "mm-update-editor-component",
   imports: [
     ReactiveFormsModule,
     CardModule,
-    AppTranslatePipe,
     KENDO_INPUTS,
     KENDO_LABEL,
     KENDO_BUTTONS,
@@ -46,12 +46,12 @@ import { SharedEditor } from "../shared-editor/shared-editor";
       <kendo-card class="basic-info-card">
         <kendo-card-header>
           <h3 class="title">
-            {{ RUNTIME_BROWSER_KEYS.UpdateEntity | appTranslate }}
+            {{ resolvedMessages().updateEntity }}
           </h3>
         </kendo-card-header>
         <kendo-card-body>
           <div class="info-item">
-            <label>{{ RUNTIME_BROWSER_KEYS.Name | appTranslate }}</label>
+            <label>{{ resolvedMessages().name }}</label>
             <kendo-textbox
               [disabled]="true"
               [value]="updateInput()!.name"
@@ -59,9 +59,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
           </div>
 
           <div class="info-item">
-            <label>{{
-              RUNTIME_BROWSER_KEYS.RuntimeCkTypeId | appTranslate
-            }}</label>
+            <label>{{ resolvedMessages().runtimeCkTypeId }}</label>
             <kendo-textbox
               [disabled]="true"
               [value]="updateInput()!.rtCkTypeId"
@@ -69,7 +67,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
           </div>
 
           <div class="info-item">
-            <label>{{ RUNTIME_BROWSER_KEYS.TypeId | appTranslate }}</label>
+            <label>{{ resolvedMessages().typeId }}</label>
             <kendo-textbox
               [disabled]="true"
               [value]="updateInput()!.ckTypeId!"
@@ -77,7 +75,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
           </div>
 
           <div class="info-item">
-            <label>{{ RUNTIME_BROWSER_KEYS.RuntimeId | appTranslate }}</label>
+            <label>{{ resolvedMessages().runtimeId }}</label>
             <kendo-textbox
               [disabled]="true"
               [value]="updateInput()!.rtId"
@@ -96,7 +94,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
           />
         } @else {
           <div class="loading-shimmer">
-            {{ RUNTIME_BROWSER_KEYS.LoadingEntityDetails | appTranslate }}
+            {{ resolvedMessages().loadingEntityDetails }}
           </div>
         }
       </div>
@@ -107,14 +105,14 @@ import { SharedEditor } from "../shared-editor/shared-editor";
           (click)="onUpdate()"
           [disabled]="!isUpdateButtonEnabled()"
         >
-          {{ RUNTIME_BROWSER_KEYS.Save | appTranslate }}
+          {{ resolvedMessages().save }}
         </button>
         <button
           kendoButton
           [disabled]="!isCancelButtonEnabled()"
           (click)="cancelRequested.emit()"
         >
-          {{ RUNTIME_BROWSER_KEYS.Cancel | appTranslate }}
+          {{ resolvedMessages().cancel }}
         </button>
       </div>
     </div>
@@ -129,6 +127,11 @@ import { SharedEditor } from "../shared-editor/shared-editor";
 export class UpdateEditorComponent {
   // Inputs
   updateInput = input.required<UpdateInput>();
+  messages = input<Partial<RuntimeBrowserMessages>>({});
+  protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(() => ({
+    ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
+    ...this.messages(),
+  }));
   // Outputs
   updateOutput = output<UpdateOutput>();
   cancelRequested = output<void>();
@@ -149,8 +152,6 @@ export class UpdateEditorComponent {
   private readonly mapperService = inject(AttributeMapperService);
   private readonly coordinatorService = inject(AttributeCoordinatorService);
   private readonly sharedEditor = inject(SharedEditor);
-  private readonly translation = inject(AppTranslateService);
-  protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
 
   private dataLoaded = computed(() => !!this.entityData());
 
@@ -273,7 +274,7 @@ export class UpdateEditorComponent {
 
       if (!this.hasValidMappedAttributes(mappedAttributes)) {
         this.sharedEditor.showErrorNotification(
-          this.translation.instant(RUNTIME_BROWSER_KEYS.FailedToUpdateEntity),
+          this.resolvedMessages().failedToUpdateEntity,
         );
         return;
       }
@@ -299,13 +300,13 @@ export class UpdateEditorComponent {
         });
       } else {
         this.sharedEditor.showErrorNotification(
-          this.translation.instant(RUNTIME_BROWSER_KEYS.FailedToUpdateEntity),
+          this.resolvedMessages().failedToUpdateEntity,
         );
       }
     } catch (error) {
       console.error("Error updating entity:", error);
       this.sharedEditor.showErrorNotification(
-        this.translation.instant(RUNTIME_BROWSER_KEYS.FailedToUpdateEntity),
+        this.resolvedMessages().failedToUpdateEntity,
       );
     } finally {
       this.isUpdating.set(false);

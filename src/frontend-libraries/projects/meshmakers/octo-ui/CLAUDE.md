@@ -35,6 +35,13 @@ src/lib/
     └── services/                 # Property converter service
 ```
 
+## Runtime Browser Localization
+
+`RuntimeBrowserComponent` does not load translations internally. Host applications must supply
+`RuntimeBrowserMessages` via the `messages` input. Use
+`DEFAULT_RUNTIME_BROWSER_MESSAGES` for English defaults or build translated values using the
+app's translation system.
+
 ## Documentation and Testing Standards
 
 - **All developer documentation must be written in English**

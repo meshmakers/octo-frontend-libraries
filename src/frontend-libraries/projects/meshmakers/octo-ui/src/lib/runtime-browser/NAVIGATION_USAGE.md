@@ -95,3 +95,9 @@ The function handles several error cases:
 - GraphQL query failures
 
 All errors are logged to the console for debugging.
+
+## Localization
+
+`RuntimeBrowserComponent` expects UI strings via the `messages` input. Provide a
+`RuntimeBrowserMessages` object from your app’s translation system, or pass
+`DEFAULT_RUNTIME_BROWSER_MESSAGES` for English defaults.

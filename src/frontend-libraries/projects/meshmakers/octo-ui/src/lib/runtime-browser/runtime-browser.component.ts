@@ -1,10 +1,9 @@
 import {
   AfterViewInit,
   Component,
-  effect,
+  computed,
   inject,
   input,
-  signal,
   ViewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -24,9 +23,6 @@ import {
   xIcon,
 } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
-import { RUNTIME_BROWSER_KEYS } from '../../i18n/keys';
-import { AppTranslatePipe } from '../i18n/translate.pipe';
-import { AppTranslateService } from '../i18n/translate.service';
 import {
   EntitySavedEvent,
   RuntimeBrowserDetailsComponent,
@@ -45,6 +41,10 @@ import {
   RuntimeBrowserStateService,
 } from './services/runtime-browser-state.service';
 import { TypeHelperService } from './services/type-helper.service';
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from './runtime-browser.model';
 
 // Extended type to handle both Runtime Entities and CK Models/Types
 type BrowserItem =
@@ -58,73 +58,63 @@ type BrowserItem =
   imports: [
     BaseTreeDetailComponent,
     RuntimeBrowserDetailsComponent,
-    AppTranslatePipe,
   ],
   template: `
-    @if (translationsReady()) {
-      <div class="runtime-browser-container">
-        <!-- LCARS Header -->
-        <div class="lcars-page-header">
-          <div class="lcars-header-accent"></div>
-          <div class="header-content">
-            <h1 class="page-title">
-              <span class="title-prefix">{{
-                RUNTIME_BROWSER_KEYS.TitlePrefix | appTranslate
-              }}</span>
-              <span class="title-main">{{
-                RUNTIME_BROWSER_KEYS.Title | appTranslate
-              }}</span>
-            </h1>
-            <div class="header-stats">
-              <div class="stat-badge">
-                <span class="badge-icon">&#9632;</span>
-                <span class="badge-label">{{
-                  RUNTIME_BROWSER_KEYS.BadgeLabel | appTranslate
-                }}</span>
-              </div>
+    <div class="runtime-browser-container">
+      <!-- LCARS Header -->
+      <div class="lcars-page-header">
+        <div class="lcars-header-accent"></div>
+        <div class="header-content">
+          <h1 class="page-title">
+            <span class="title-prefix">{{ resolvedMessages().titlePrefix }}</span>
+            <span class="title-main">{{ resolvedMessages().title }}</span>
+          </h1>
+          <div class="header-stats">
+            <div class="stat-badge">
+              <span class="badge-icon">&#9632;</span>
+              <span class="badge-label">{{ resolvedMessages().badgeLabel }}</span>
             </div>
           </div>
-          <div class="lcars-header-line"></div>
         </div>
+        <div class="lcars-header-line"></div>
+      </div>
 
-        <!-- Main Content -->
-        <div class="lcars-content-panel">
-          <div class="panel-accent-top"></div>
-          <mm-base-tree-detail
-            #treeDetail
-            [treeDataSource]="dataSource"
-            [leftPaneSize]="'25%'"
-            [leftToolbarActions]="leftToolbarActions"
-            [rightToolbarActions]="rightToolbarActions"
-            (nodeSelected)="onNodeSelected($event)"
-            (nodeDropped)="onNodeDropped($event)"
+      <!-- Main Content -->
+      <div class="lcars-content-panel">
+        <div class="panel-accent-top"></div>
+        <mm-base-tree-detail
+          #treeDetail
+          [treeDataSource]="dataSource"
+          [leftPaneSize]="'25%'"
+          [leftToolbarActions]="leftToolbarActions"
+          [rightToolbarActions]="rightToolbarActions"
+          (nodeSelected)="onNodeSelected($event)"
+          (nodeDropped)="onNodeDropped($event)"
+        >
+          <mm-runtime-browser-details
+            #detailsPanel
+            slot="detail-panel"
+            [selectedItem]="selectedItem"
+            [messages]="resolvedMessages()"
+            (entitySaved)="onEntitySaved($event)"
           >
-            <mm-runtime-browser-details
-              #detailsPanel
-              slot="detail-panel"
-              [selectedItem]="selectedItem"
-              (entitySaved)="onEntitySaved($event)"
-            >
-            </mm-runtime-browser-details>
-          </mm-base-tree-detail>
-          <div class="panel-accent-bottom"></div>
-        </div>
+          </mm-runtime-browser-details>
+        </mm-base-tree-detail>
+        <div class="panel-accent-bottom"></div>
+      </div>
 
-        <!-- LCARS Footer -->
-        <div class="lcars-footer">
-          <div class="footer-bar bar-1"></div>
-          <div class="footer-bar bar-2"></div>
-          <div class="footer-bar bar-3"></div>
-          <div class="footer-spacer"></div>
-          <div class="footer-indicator">
-            <span class="indicator-dot"></span>
-            <span class="indicator-text">{{
-              RUNTIME_BROWSER_KEYS.Ready | appTranslate
-            }}</span>
-          </div>
+      <!-- LCARS Footer -->
+      <div class="lcars-footer">
+        <div class="footer-bar bar-1"></div>
+        <div class="footer-bar bar-2"></div>
+        <div class="footer-bar bar-3"></div>
+        <div class="footer-spacer"></div>
+        <div class="footer-indicator">
+          <span class="indicator-dot"></span>
+          <span class="indicator-text">{{ resolvedMessages().ready }}</span>
         </div>
       </div>
-    }
+    </div>
   `,
   styleUrls: ['./runtime-browser.component.scss'],
 })
@@ -138,30 +128,31 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   private readonly stateService = inject(RuntimeBrowserStateService);
   private readonly typeHelperService = inject(TypeHelperService);
   private readonly notificationService = inject(NotificationService);
-  private readonly appTranslateService = inject(AppTranslateService);
 
   private isSelectedItemAnRtEntity = false;
   private isLoading = false;
   private isCreating = false;
   private isEditing = false;
 
-  language = input('en-GB');
-  protected readonly translationsReady = signal(false);
+  messages = input<Partial<RuntimeBrowserMessages>>({});
+  protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(() => ({
+    ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
+    ...this.messages(),
+  }));
 
   @ViewChild('treeDetail', { static: false })
   treeDetail!: BaseTreeDetailComponent<BrowserItem>;
   @ViewChild('detailsPanel', { static: false })
   detailsPanel!: RuntimeBrowserDetailsComponent;
   // Define toolbar actions
-  protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
-  private readonly translation = inject(AppTranslateService);
 
   protected get leftToolbarActions(): CommandItem[] {
+    const messages = this.resolvedMessages();
     return [
       {
         id: 'goto-entity',
         type: 'link',
-        text: this.translation.instant(RUNTIME_BROWSER_KEYS.GotoEntity),
+        text: messages.goToEntity,
         svgIcon: locationsIcon,
         onClick: async () => await this.onGotoEntity(),
         isDisabled: () => !this.isGoToEntityButtonEnabled,
@@ -170,11 +161,12 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   }
 
   protected get rightToolbarActions(): CommandItem[] {
+    const messages = this.resolvedMessages();
     return [
       {
         id: 'refresh',
         type: 'link',
-        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Refresh),
+        text: messages.refresh,
         svgIcon: arrowRotateCwIcon,
         onClick: async () => await this.onRefresh(),
         isDisabled: () => !this.isRefreshButtonEnabled,
@@ -182,7 +174,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       {
         id: 'create',
         type: 'link',
-        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Create),
+        text: messages.create,
         svgIcon: plusIcon,
         onClick: async () => await this.onCreate(),
         isDisabled: () => !this.isCreateButtonEnabled,
@@ -190,7 +182,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       {
         id: 'edit',
         type: 'link',
-        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Edit),
+        text: messages.edit,
         svgIcon: pencilIcon,
         onClick: async () => await this.onEdit(),
         isDisabled: () => !this.isEditButtonEnabled,
@@ -198,7 +190,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       {
         id: 'delete',
         type: 'link',
-        text: this.translation.instant(RUNTIME_BROWSER_KEYS.Delete),
+        text: messages.delete,
         svgIcon: xIcon,
         onClick: async () => await this.onDelete(),
         isDisabled: () => !this.isDeleteButtonEnabled,
@@ -231,23 +223,6 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   }
   private get isEditButtonEnabled() {
     return !this.isLoading && this.isSelectedItemAnRtEntity && !this.isEditing;
-  }
-
-  constructor() {
-    effect(() => {
-      void this.loadTranslations(this.language());
-    });
-  }
-
-  private async loadTranslations(language: string): Promise<void> {
-    this.translationsReady.set(false);
-    try {
-      await this.appTranslateService.initialize(language);
-    } catch (error: unknown) {
-      console.error('Failed to load translations:', error);
-    } finally {
-      this.translationsReady.set(true);
-    }
   }
 
   ngAfterViewInit(): void {
@@ -619,11 +594,12 @@ export class RuntimeBrowserComponent implements AfterViewInit {
    */
   protected async onGotoEntity(): Promise<void> {
     try {
+      const messages = this.resolvedMessages();
       const entityIdentifier = await this.inputService.showInputDialog(
-        this.translation.instant(RUNTIME_BROWSER_KEYS.GoToEntityTitle),
-        this.translation.instant(RUNTIME_BROWSER_KEYS.GoToEntityPrompt),
+        messages.goToEntityTitle,
+        messages.goToEntityPrompt,
         'ckTypeId@rtId',
-        this.translation.instant(RUNTIME_BROWSER_KEYS.Go),
+        messages.go,
       );
 
       if (entityIdentifier) {
@@ -849,9 +825,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
 
       if (!rtCkTypeId) {
         this._showWarningNotification(
-          this.translation.instant(
-            RUNTIME_BROWSER_KEYS.MissingRequiredIdentifiers,
-          ),
+          this.resolvedMessages().missingRequiredIdentifiers,
         );
         return;
       }

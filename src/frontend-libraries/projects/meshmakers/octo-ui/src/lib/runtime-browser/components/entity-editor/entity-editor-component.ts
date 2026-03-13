@@ -10,9 +10,6 @@ import { KENDO_LABEL } from "@progress/kendo-angular-label";
 import { CardModule } from "@progress/kendo-angular-layout";
 import { NotificationService } from "@progress/kendo-angular-notification";
 import { firstValueFrom } from "rxjs";
-import { RUNTIME_BROWSER_KEYS } from "../../../../i18n/keys";
-import { AppTranslatePipe } from "../../../i18n/translate.pipe";
-import { AppTranslateService } from "../../../i18n/translate.service";
 import { CreateEntitiesDtoGQL } from "../../graphQL/createEntities";
 import {
   FormAttributesServiceMapper,
@@ -20,6 +17,10 @@ import {
 } from "../../services/form-attributes-mapper";
 import { FormAttributesService } from "../../services/form-attributes-service";
 import { AttributesForm } from "../attributes-form/attributes-form";
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from "../../runtime-browser.model";
 
 type ParentTreeItem = TreeItemDataTyped<{ ckTypeId?: string; rtId?: string }>;
 
@@ -41,7 +42,6 @@ interface EntityInput {
   imports: [
     ReactiveFormsModule,
     CardModule,
-    AppTranslatePipe,
     AttributesForm,
     KENDO_INPUTS,
     KENDO_LABEL,
@@ -54,30 +54,28 @@ interface EntityInput {
       <kendo-card class="basic-info-card">
         <kendo-card-header>
           <h3 class="title">
-            {{ RUNTIME_BROWSER_KEYS.CreateEntity | appTranslate }}
+            {{ _messages.createEntity }}
           </h3>
         </kendo-card-header>
         <kendo-card-body>
           <div class="info-item">
-            <label>{{
-              RUNTIME_BROWSER_KEYS.TargetLocation | appTranslate
-            }}</label>
+            <label>{{ _messages.targetLocation }}</label>
             <kendo-textbox
               [disabled]="true"
               [value]="
-                parent?.text || (RUNTIME_BROWSER_KEYS.RootLevel | appTranslate)
+                parent?.text || _messages.rootLevel
               "
             ></kendo-textbox>
           </div>
 
           <div class="info-item">
-            <label>{{ RUNTIME_BROWSER_KEYS.EntityType | appTranslate }}</label>
+            <label>{{ _messages.entityType }}</label>
             <kendo-dropdownlist
               [data]="availableCkTypes"
               textField="rtCkTypeId"
               valueField="rtCkTypeId"
               [valuePrimitive]="false"
-              placeholder="Select Type..."
+              [attr.placeholder]="_messages.selectType"
               (valueChange)="onTypeChange($event)"
             >
             </kendo-dropdownlist>
@@ -95,7 +93,7 @@ interface EntityInput {
           </mm-attributes-form>
         } @else {
           <p class="select-type-prompt">
-            {{ RUNTIME_BROWSER_KEYS.SelectTypePrompt | appTranslate }}
+            {{ _messages.selectTypePrompt }}
           </p>
         }
       </div>
@@ -106,10 +104,10 @@ interface EntityInput {
           [disabled]="!isSaveButtonEnabled"
           (click)="onSave()"
         >
-          {{ RUNTIME_BROWSER_KEYS.Save | appTranslate }}
+          {{ _messages.save }}
         </button>
         <button kendoButton [disabled]="isSaving" (click)="cancelEdit.emit()">
-          {{ RUNTIME_BROWSER_KEYS.Cancel | appTranslate }}
+          {{ _messages.cancel }}
         </button>
       </div>
     </div>
@@ -125,6 +123,9 @@ export class EntityEditorComponent {
   // Inputs
   @Input() parent: ParentTreeItem | null = null;
   @Input() availableCkTypes: CkTypeDto[] = [];
+  @Input() set messages(value: Partial<RuntimeBrowserMessages>) {
+    this._messages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES, ...value };
+  }
 
   // Form
   protected mainForm: FormGroup | null = null;
@@ -135,8 +136,9 @@ export class EntityEditorComponent {
 
   // Services
   private readonly notificationService = inject(NotificationService);
-  private readonly translation = inject(AppTranslateService);
-  protected readonly RUNTIME_BROWSER_KEYS = RUNTIME_BROWSER_KEYS;
+  protected _messages: RuntimeBrowserMessages = {
+    ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  };
 
   // State
   protected isSaving = false;
@@ -170,9 +172,7 @@ export class EntityEditorComponent {
     if (!newNodeRtCkTypeId) {
       console.error("Missing required identifiers to create an entity.");
       this.showErrorNotification(
-        this.translation.instant(
-          RUNTIME_BROWSER_KEYS.MissingRequiredIdentifiers,
-        ),
+        this._messages.missingRequiredIdentifiers,
       );
       return;
     }
@@ -219,7 +219,7 @@ export class EntityEditorComponent {
     } catch (error) {
       console.error("Error creating entity:", error);
       this.showErrorNotification(
-        this.translation.instant(RUNTIME_BROWSER_KEYS.FailedToCreateEntity),
+        this._messages.failedToCreateEntity,
       );
       this.saveEdit.emit({
         success: false,
