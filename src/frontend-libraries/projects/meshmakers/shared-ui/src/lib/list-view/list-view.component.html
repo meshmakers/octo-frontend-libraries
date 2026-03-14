@@ -138,13 +138,13 @@
         } @else {
           @switch (getFilterType(column)) {
             @case ('numeric') {
-              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-numeric-filter-cell>
+              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" operator="eq"></kendo-grid-numeric-filter-cell>
             }
             @case ('boolean') {
               <kendo-grid-boolean-filter-cell [column]="gridColumn" [filter]="filter"></kendo-grid-boolean-filter-cell>
             }
             @case ('date') {
-              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-date-filter-cell>
+              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" operator="eq"></kendo-grid-date-filter-cell>
             }
             @default {
               <kendo-grid-string-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-string-filter-cell>
@@ -182,6 +182,9 @@
               <code class="cron-expression">{{ getValue(dataItem, column) }}</code>
               <span class="cron-description">{{ getCronHumanReadable(getValue(dataItem, column)) }}</span>
             </span>
+          }
+          @case ('numeric') {
+            {{ $any(getValue(dataItem, column)) | number:column.format }}
           }
           @default {
             {{ getValue(dataItem, column) }}

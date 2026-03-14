@@ -18,7 +18,7 @@ import {
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
 import {ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
-import {DatePipe} from '@angular/common';
+import {DatePipe, DecimalPipe} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent} from '@progress/kendo-angular-inputs';
 import {fileExcelIcon, filePdfIcon, filterIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
@@ -59,6 +59,7 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     CheckBoxComponent,
     SeparatorComponent,
     DatePipe,
+    DecimalPipe,
     BytesToSizePipe,
     SVGIconModule,
     CustomMessagesComponent,

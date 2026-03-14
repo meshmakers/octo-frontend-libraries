@@ -32,15 +32,6 @@ try {
         exit 1
     }
 
-    # On Windows, run npx via cmd.exe to handle .cmd/.ps1 wrappers correctly
-    if ($IsWindows -or (-not ($IsMacOS -or $IsLinux))) {
-        $procFilePath = "cmd.exe"
-        $npxPrefix = "/c npx"
-    } else {
-        $procFilePath = (Get-Command npx).Source
-        $npxPrefix = ""
-    }
-
     # Kill any leftover processes on our ports
     foreach ($port in @(4201, 4202)) {
         $existingPid = $null
@@ -54,78 +45,90 @@ try {
         }
     }
 
-    $processes = @()
-
     # Map configuration to Angular configuration name
     $ngConfiguration = if ($configuration -eq "Release") { "production" } else { "development" }
 
-    # Start demo-app on port 4201
+    $npxPath = (Get-Command npx).Source
+
+    # Start demo-app and legacy-demo-app using System.Diagnostics.Process
+    # This works correctly both standalone and when called from Start-Job (no console/terminal required)
+    function Start-NgServe($project, $port) {
+        $psi = [System.Diagnostics.ProcessStartInfo]::new()
+        $psi.FileName = $npxPath
+        $psi.Arguments = "ng serve $project --port $port --configuration $ngConfiguration"
+        $psi.WorkingDirectory = $frontendLibsPath
+        $psi.UseShellExecute = $false
+        $psi.RedirectStandardOutput = $true
+        $psi.RedirectStandardError = $true
+        $psi.CreateNoWindow = $true
+
+        $proc = [System.Diagnostics.Process]::new()
+        $proc.StartInfo = $psi
+        $proc.Start() | Out-Null
+
+        return $proc
+    }
+
     Write-Host "Starting demo-app on https://localhost:4201" -ForegroundColor Cyan
-    if ($npxPrefix) {
-        $demoArgs = "$npxPrefix ng serve demo-app --port 4201 --configuration $ngConfiguration"
-    } else {
-        $demoArgs = "ng serve demo-app --port 4201 --configuration $ngConfiguration"
-    }
-    $demoProc = Start-Process -FilePath $procFilePath `
-        -ArgumentList $demoArgs `
-        -WorkingDirectory $frontendLibsPath `
-        -PassThru `
-        -NoNewWindow
-    $processes += $demoProc
-
-    # Start legacy-demo-app on port 4202
     Write-Host "Starting legacy-demo-app on https://localhost:4202" -ForegroundColor Cyan
-    if ($npxPrefix) {
-        $legacyArgs = "$npxPrefix ng serve legacy-demo-app --port 4202 --configuration $ngConfiguration"
-    } else {
-        $legacyArgs = "ng serve legacy-demo-app --port 4202 --configuration $ngConfiguration"
-    }
-    $legacyProc = Start-Process -FilePath $procFilePath `
-        -ArgumentList $legacyArgs `
-        -WorkingDirectory $frontendLibsPath `
-        -PassThru `
-        -NoNewWindow
-    $processes += $legacyProc
 
-    Write-Host ""
-    Write-Host "Both servers are running. Press Ctrl+C to stop." -ForegroundColor Green
-    Write-Host "  demo-app:        https://localhost:4201" -ForegroundColor Cyan
-    Write-Host "  legacy-demo-app: https://localhost:4202" -ForegroundColor Cyan
-    Write-Host ""
+    $demoProc = Start-NgServe "demo-app" 4201
+    $legacyProc = Start-NgServe "legacy-demo-app" 4202
 
-    # Wait until Ctrl+C or a process exits
+    $processes = @($demoProc, $legacyProc)
+    $projectNames = @("demo-app", "legacy-demo-app")
+
     try {
         while ($true) {
-            foreach ($proc in $processes) {
-                if ($proc.HasExited) {
-                    Write-Host "Process $($proc.Id) exited with code $($proc.ExitCode)" -ForegroundColor Yellow
+            # Read and forward stdout/stderr from both processes
+            for ($i = 0; $i -lt $processes.Count; $i++) {
+                $proc = $processes[$i]
+                $name = $projectNames[$i]
+
+                if ($proc.StandardOutput -and !$proc.StandardOutput.EndOfStream) {
+                    while ($proc.StandardOutput.Peek() -ge 0) {
+                        $line = $proc.StandardOutput.ReadLine()
+                        if ($line) { Write-Output "[$name] $line" }
+                    }
+                }
+                if ($proc.StandardError -and !$proc.StandardError.EndOfStream) {
+                    while ($proc.StandardError.Peek() -ge 0) {
+                        $line = $proc.StandardError.ReadLine()
+                        if ($line) { Write-Output "[$name] $line" }
+                    }
                 }
             }
-            if ($processes | Where-Object { $_.HasExited } | Measure-Object | Where-Object { $_.Count -eq $processes.Count }) {
+
+            # Check if all processes have exited
+            $allExited = $true
+            foreach ($proc in $processes) {
+                if (-not $proc.HasExited) {
+                    $allExited = $false
+                }
+            }
+            if ($allExited) {
                 Write-Host "All processes have exited." -ForegroundColor Yellow
                 break
             }
-            Start-Sleep -Seconds 2
+
+            Start-Sleep -Milliseconds 500
         }
     }
     catch {
-        # Ctrl+C pressed
+        # Ctrl+C or error
     }
     finally {
         Write-Host "Stopping servers..." -ForegroundColor Yellow
         foreach ($proc in $processes) {
             if (-not $proc.HasExited) {
-                # Kill the process tree (ng serve spawns child node processes)
                 if ($IsMacOS -or $IsLinux) {
-                    # On Unix, kill the process group to catch children
+                    # Kill the process tree
                     kill -- -$($proc.Id) 2>$null
-                    # Fallback: kill the process directly
                     if (-not $proc.HasExited) {
                         $proc.Kill($true)
                     }
                 }
                 else {
-                    # On Windows, taskkill /T kills the process tree
                     taskkill /PID $proc.Id /T /F 2>$null | Out-Null
                 }
             }
