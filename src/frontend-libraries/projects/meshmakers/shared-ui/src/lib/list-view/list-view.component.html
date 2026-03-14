@@ -24,7 +24,17 @@
       @if (commandItem) {
         @switch (commandItem.type) {
           @case ('link') {
-            @if (commandItem.svgIcon) {
+            @if (commandItem.children && commandItem.children.length > 0) {
+              <kendo-dropdownbutton
+                [data]="commandItem.children"
+                [svgIcon]="$any(commandItem.svgIcon)"
+                [disabled]="getIsDisabled(commandItem) || isLoading()"
+                [textField]="'text'"
+                themeColor="primary"
+                (itemClick)="onToolbarDropdownItemClick($event)">
+                {{ commandItem.text }}
+              </kendo-dropdownbutton>
+            } @else if (commandItem.svgIcon) {
               <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
                       [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
@@ -58,7 +68,17 @@
       @if (commandItem) {
         @switch (commandItem.type) {
           @case ('link') {
-            @if (commandItem.svgIcon) {
+            @if (commandItem.children && commandItem.children.length > 0) {
+              <kendo-dropdownbutton
+                [data]="commandItem.children"
+                [svgIcon]="$any(commandItem.svgIcon)"
+                [disabled]="getIsDisabled(commandItem) || isLoading()"
+                [textField]="'text'"
+                themeColor="primary"
+                (itemClick)="onToolbarDropdownItemClick($event)">
+                {{ commandItem.text }}
+              </kendo-dropdownbutton>
+            } @else if (commandItem.svgIcon) {
               <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
                       [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}

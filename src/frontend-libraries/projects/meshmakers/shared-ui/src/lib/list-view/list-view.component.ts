@@ -24,7 +24,7 @@ import {SeparatorComponent, CheckBoxComponent} from '@progress/kendo-angular-inp
 import {fileExcelIcon, filePdfIcon, filterIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
-import {ButtonComponent} from '@progress/kendo-angular-buttons';
+import {ButtonComponent, DropDownButtonComponent} from '@progress/kendo-angular-buttons';
 import {SVGIconModule} from '@progress/kendo-angular-icons';
 import {
   ContextMenuComponent, ContextMenuPopupEvent,
@@ -51,6 +51,7 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     ExcelModule,
     PDFModule,
     ButtonComponent,
+    DropDownButtonComponent,
     CommandColumnComponent,
     CellTemplateDirective,
     ContextMenuComponent,
@@ -459,6 +460,14 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       await this.navigateAsync(commandItem, this._selectedRows[0]);
     } else {
       await this.navigateAsync(commandItem, this._selectedRows);
+    }
+  }
+
+  protected async onToolbarDropdownItemClick(childItem: CommandItem): Promise<void> {
+    if (this._selectedRows.length === 1) {
+      await this.navigateAsync(childItem, this._selectedRows[0]);
+    } else {
+      await this.navigateAsync(childItem, this._selectedRows);
     }
   }
 
