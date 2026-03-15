@@ -1,4 +1,5 @@
 @use "sass:map";
+@use "sass:math";
 @use "@progress/kendo-theme-material/scss/index.scss" as *;
 
 // ============================================================================
@@ -47,6 +48,7 @@ $kendo-success: #37b400;
   --deep-sea: #{$deep-sea};
   --surface-elevated: #{$surface-elevated};
   --octo-text-color: #{$octo-text-color};
+  --kendo-success: #{$kendo-success};
 
   // Derived colors for gradients/overlays (theme-aware)
   --octo-mint-05: color-mix(in srgb, var(--octo-mint) 5%, transparent);
@@ -168,10 +170,11 @@ $kendo-success: #37b400;
   --mm-cron-code-bg: var(--deep-sea-80);
   --mm-cron-code-text: var(--octo-mint);
   --mm-cron-text-secondary: var(--ash-blue);
+  --mm-cron-success: var(--kendo-success);
 }
 
 @function rgba($color, $alpha) {
-  @return color-mix(in srgb, #{$color} #{percentage($alpha)}, transparent);
+  @return color-mix(in srgb, #{$color} #{math.percentage($alpha)}, transparent);
 }
 
 // ----------------------------------------------------------------------------
@@ -4665,7 +4668,6 @@ mm-cron-builder {
   --mm-cron-tab-active-bg: #{rgba(#{var(--octo-mint)}, 0.15)};
   --mm-cron-tab-active-border: #{var(--octo-mint)};
   --mm-cron-error: #{var(--bubblegum)};
-  --mm-cron-success: #37b400;
   --mm-cron-code-bg: #{var(--deep-sea)};
   --mm-cron-code-text: #{var(--octo-mint)};
   --mm-cron-shadow:

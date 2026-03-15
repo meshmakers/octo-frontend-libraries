@@ -1,0 +1,7 @@
+:host {
+  display: block;
+
+  ::ng-deep .browser-container {
+    @import "../../../../../../meshmakers/octo-ui/src/styles/_index";
+  }
+}

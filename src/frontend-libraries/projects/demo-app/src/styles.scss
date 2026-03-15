@@ -1,8 +1,25 @@
 /* Kendo UI Theme */
 @use "@progress/kendo-theme-default/dist/all.scss";
 
+:root {
+  --octo-mint: #007dc5 !important;
+  --neo-cyan: #5ac4be !important;
+  --indigogo: #0b5c92 !important;
+  --toffee: #f59e0b !important;
+  --bubblegum: #ef4444 !important;
+  --lilac-glow: #8b5cf6 !important;
+  --royal-violet: #7c3aed !important;
+  --ash-blue: #64748b !important;
+  --iron-navy: #e2e8f0 !important;
+  --deep-sea: #ffffff !important;
+  --surface-elevated: #f1f5f9 !important;
+  --octo-text-color: #000000 !important;
+  --mm-cron-success: #37b400 !important;
+}
+
 /* Global styles */
-html, body {
+html,
+body {
   margin: 0;
   height: 100%;
   overflow: hidden;
@@ -114,4 +131,3 @@ app-tenant {
   display: flex !important;
   flex-direction: column !important;
 }
-

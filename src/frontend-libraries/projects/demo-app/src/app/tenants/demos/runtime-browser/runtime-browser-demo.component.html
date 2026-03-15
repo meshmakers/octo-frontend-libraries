@@ -1,0 +1,84 @@
+<div class="runtime-browser-demo">
+  <kendo-card class="demo-card" width="100%">
+    <kendo-card-header>
+      <div class="card-header">
+        <h2>Runtime Browser Demo</h2>
+      </div>
+    </kendo-card-header>
+
+    <kendo-card-body>
+      <div class="description">
+        <h3>Description</h3>
+
+        <p>
+          The Field Filter Editor component allows you to create and manage
+          multiple field filters for querying data. Each filter consists of an
+          attribute path, an operator, and a comparison value. The input field
+          type adapts based on the attribute's data type (text, number, boolean,
+          datetime).
+        </p>
+
+        <h3>Usage</h3>
+
+        <h4>Themes</h4>
+
+        <p>
+          The component does support custom themes. In order to use custom look &
+          feel adjusted to CI of the file, you can overwrite following CSS
+          variables at the root of your application:
+        </p>
+
+        <pre>
+          <code>{{ themeCssVariables }}</code>
+        </pre>
+
+        <h5>Internationalization</h5>
+
+        <p>
+          The component does support internationalization. In order to use
+          internationalization using
+          <a href="https://www.npmjs.com/package/@ngx-translate/core"
+            >@ngx-translate</a
+          >
+          library. The library must be provided by the host app. Also, the library
+          must be initialized in Angular configuration:
+        </p>
+
+        <pre>
+          <code>{{ i18nProvidersExample }}</code>
+        </pre>
+
+        <p>
+          After that, the component can be used with the
+          <code>language</code> input (or en-GB by default):
+        </p>
+
+        <pre>
+          <code>{{ runtimeBrowserUsageExample }}</code>
+        </pre>
+
+        <p>
+          If above conditions were not met, component does fallback to default
+          language: <code>en-GB</code>.
+        </p>
+
+        <p>
+          In order to get any translations (including default), you need to update
+          **angular.json** file to include the translations for the host app:
+        </p>
+
+        <pre>
+          <code>{{ angularJsonTranslationsAssets }}</code>
+        </pre>
+      </div>
+    </kendo-card-body>
+
+    <kendo-card-body>
+      <div class="demo-content">
+        <div class="browser-container">
+          <mm-runtime-browser></mm-runtime-browser>
+        </div>
+      </div>
+    </kendo-card-body>
+  </kendo-card>
+</div>
