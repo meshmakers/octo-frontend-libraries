@@ -90,6 +90,7 @@
     "@progress/kendo-licensing": "^1.8.0",
     "@progress/kendo-svg-icons": "^4.5.0",
     "@progress/kendo-theme-default": "^12.3.0",
+    "@progress/kendo-theme-material": "^12.3.0",
     "angular-oauth2-oidc": "^20.0.2",
     "apollo-angular": "^13.0.0",
     "cron-parser": "^5.5.0",
