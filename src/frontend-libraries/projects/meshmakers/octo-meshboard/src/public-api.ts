@@ -67,6 +67,14 @@ export { BarChartWidgetComponent } from './lib/widgets/bar-chart-widget/bar-char
 export { BarChartConfigDialogComponent } from './lib/widgets/bar-chart-widget/bar-chart-config-dialog.component';
 export type { BarChartConfigResult } from './lib/widgets/bar-chart-widget/bar-chart-config-dialog.component';
 
+export { LineChartWidgetComponent } from './lib/widgets/line-chart-widget/line-chart-widget.component';
+export { LineChartConfigDialogComponent } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
+export type { LineChartConfigResult } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
+
+export { HeatmapWidgetComponent } from './lib/widgets/heatmap-widget/heatmap-widget.component';
+export { HeatmapConfigDialogComponent } from './lib/widgets/heatmap-widget/heatmap-config-dialog.component';
+export type { HeatmapConfigResult } from './lib/widgets/heatmap-widget/heatmap-config-dialog.component';
+
 export { StatsGridWidgetComponent } from './lib/widgets/stats-grid-widget/stats-grid-widget.component';
 export { StatsGridConfigDialogComponent } from './lib/widgets/stats-grid-widget/stats-grid-config-dialog.component';
 export type { StatsGridConfigResult } from './lib/widgets/stats-grid-widget/stats-grid-config-dialog.component';
@@ -107,6 +115,11 @@ export {
   MESHBOARD_TENANT_ID_PROVIDER  // @deprecated - use TENANT_ID_PROVIDER from @meshmakers/octo-services
 } from './lib/registrations/default-widget-registrations';
 export type { MeshBoardOptions, WidgetRegistration, TenantIdProvider } from './lib/registrations/default-widget-registrations';
+
+// Entity Selector Components
+export { EntitySelectorEditorComponent } from './lib/components/entity-selector-editor/entity-selector-editor.component';
+export { EntitySelectorToolbarComponent } from './lib/components/entity-selector-toolbar/entity-selector-toolbar.component';
+export type { EntitySelectorEvent, EntitySelectorClearEvent } from './lib/components/entity-selector-toolbar/entity-selector-toolbar.component';
 
 // Container Components
 export { MeshBoardViewComponent } from './lib/containers/meshboard-view/meshboard-view.component';

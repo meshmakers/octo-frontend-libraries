@@ -23,7 +23,7 @@ import { QuerySelectorComponent } from '../../components/query-selector/query-se
 /**
  * Data source type for KPI
  */
-export type KpiDataSourceType = 'runtimeEntity' | 'persistentQuery';
+export type KpiDataSourceType = 'runtimeEntity' | 'persistentQuery' | 'static';
 
 /**
  * Configuration result from the KPI dialog
@@ -42,6 +42,8 @@ export interface KpiConfigResult extends WidgetConfigResult {
   queryValueField?: string;
   queryCategoryField?: string;
   queryCategoryValue?: string;
+  // Static fields
+  staticValue?: string;
   // Display options
   prefix?: string;
   suffix?: string;
@@ -97,6 +99,13 @@ interface TrendOption {
               [themeColor]="dataSourceType === 'persistentQuery' ? 'primary' : 'base'"
               (click)="onDataSourceTypeChange('persistentQuery')">
               Query
+            </button>
+            <button
+              kendoButton
+              [fillMode]="dataSourceType === 'static' ? 'solid' : 'outline'"
+              [themeColor]="dataSourceType === 'static' ? 'primary' : 'base'"
+              (click)="onDataSourceTypeChange('static')">
+              Static
             </button>
           </div>
         </div>
@@ -358,6 +367,20 @@ interface TrendOption {
           }
         }
 
+        <!-- ============================================================ -->
+        <!-- STATIC DATA SOURCE -->
+        <!-- ============================================================ -->
+        @if (dataSourceType === 'static') {
+          <div class="form-field">
+            <label>Value <span class="required">*</span></label>
+            <kendo-textbox
+              [(ngModel)]="form.staticValue"
+              placeholder="e.g., Fixed text or a variable reference">
+            </kendo-textbox>
+            <p class="field-hint">Enter a static value or reference a MeshBoard variable using <code>{{variableSyntaxHint}}</code> syntax.</p>
+          </div>
+        }
+
         <!-- Display Options -->
         <div class="form-section">
           <h4>Display Options</h4>
@@ -407,7 +430,7 @@ interface TrendOption {
         }
       </div>
 
-      <div class="action-bar">
+      <div class="action-bar mm-dialog-actions">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton
@@ -597,6 +620,9 @@ export class KpiConfigDialogComponent implements OnInit {
   @Input() initialQueryCategoryField?: string;
   @Input() initialQueryCategoryValue?: string;
 
+  // Initial values for static
+  @Input() initialStaticValue?: string;
+
   // Initial values for filters
   @Input() initialFilters?: WidgetFilterConfig[];
 
@@ -638,8 +664,12 @@ export class KpiConfigDialogComponent implements OnInit {
     // Query-specific form fields
     queryValueField: '',
     queryCategoryField: '',
-    queryCategoryValue: ''
+    queryCategoryValue: '',
+    // Static form fields
+    staticValue: ''
   };
+
+  readonly variableSyntaxHint = '${variableName}';
 
   trendOptions: TrendOption[] = [
     { value: undefined, label: 'None' },
@@ -655,6 +685,9 @@ export class KpiConfigDialogComponent implements OnInit {
   ];
 
   get isValid(): boolean {
+    if (this.dataSourceType === 'static') {
+      return (this.form.staticValue?.trim() ?? '') !== '';
+    }
     if (this.dataSourceType === 'persistentQuery') {
       if (!this.selectedPersistentQuery) return false;
       if (this.queryMode === 'simpleCount') return true;
@@ -689,6 +722,7 @@ export class KpiConfigDialogComponent implements OnInit {
     this.form.queryValueField = this.initialQueryValueField || '';
     this.form.queryCategoryField = this.initialQueryCategoryField || '';
     this.form.queryCategoryValue = this.initialQueryCategoryValue || '';
+    this.form.staticValue = this.initialStaticValue || '';
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -870,6 +904,19 @@ export class KpiConfigDialogComponent implements OnInit {
           comparisonValue: f.comparisonValue
         }))
       : undefined;
+
+    if (this.dataSourceType === 'static') {
+      this.windowRef.close({
+        dataSourceType: 'static',
+        ckTypeId: '',
+        valueAttribute: '',
+        staticValue: this.form.staticValue,
+        prefix: this.form.prefix || undefined,
+        suffix: this.form.suffix || undefined,
+        trend: this.form.trend
+      });
+      return;
+    }
 
     if (this.dataSourceType === 'persistentQuery' && this.selectedPersistentQuery) {
       this.windowRef.close({

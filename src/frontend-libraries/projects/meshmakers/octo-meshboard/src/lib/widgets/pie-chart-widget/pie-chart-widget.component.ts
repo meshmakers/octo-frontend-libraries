@@ -284,7 +284,6 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
       this.executeRuntimeQueryGQL.fetch({
         variables: {
           rtId: dataSource.queryRtId,
-          first: 100, // Limit for pie chart
           fieldFilter
         }
       }).pipe(

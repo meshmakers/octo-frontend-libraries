@@ -136,8 +136,8 @@ describe('CkTypeSelectorDialogComponent', () => {
       expect(component.dialogTitle).toBe('Select Construction Kit Type');
     });
 
-    it('should have allowAbstract default to false', () => {
-      expect(component.allowAbstract).toBeFalse();
+    it('should have allowAbstract default to true', () => {
+      expect(component.allowAbstract).toBeTrue();
     });
   });
 

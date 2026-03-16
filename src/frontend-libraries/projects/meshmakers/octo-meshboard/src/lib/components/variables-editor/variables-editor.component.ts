@@ -17,7 +17,7 @@ interface VariableTypeOption {
 
 /**
  * Component for editing MeshBoard variables.
- * Allows adding, editing, and removing variables with type-specific input controls.
+ * Allows adding, editing, and removing static variables with type-specific input controls.
  */
 @Component({
   selector: 'mm-variables-editor',
@@ -57,11 +57,8 @@ export class VariablesEditorComponent {
 
   protected readonly booleanOptions = ['true', 'false'];
 
-  // For tracking edit state of date values
-  private dateValues = new Map<string, Date | null>();
-
   /**
-   * Adds a new variable with default values.
+   * Adds a new static variable with default values.
    */
   addVariable(): void {
     const name = this.variableService.generateUniqueName('variable', this.variables);
@@ -83,7 +80,6 @@ export class VariablesEditorComponent {
    * Handles variable name change.
    */
   onNameChange(index: number, name: string): void {
-    // Validate and sanitize name
     const sanitized = name.replace(/[^a-zA-Z0-9_]/g, '');
     this.variables = this.variables.map((v, i) =>
       i === index ? { ...v, name: sanitized } : v
@@ -93,7 +89,6 @@ export class VariablesEditorComponent {
 
   /**
    * Handles variable type change.
-   * Resets the value to the default for the new type.
    */
   onTypeChange(index: number, type: MeshBoardVariableType): void {
     const defaultVar = this.variableService.createDefaultVariable(

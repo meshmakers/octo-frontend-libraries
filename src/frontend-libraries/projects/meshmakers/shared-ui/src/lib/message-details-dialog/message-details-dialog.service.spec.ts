@@ -11,13 +11,18 @@ describe('MessageDetailsDialogService', () => {
   let windowRefMock: jasmine.SpyObj<WindowRef>;
 
   beforeEach(() => {
+    const mockNativeElement = {
+      getBoundingClientRect: () => ({ width: 900, height: 600, x: 0, y: 0, top: 0, left: 0, right: 900, bottom: 600, toJSON: () => ({}) })
+    };
+
     windowRefMock = jasmine.createSpyObj('WindowRef', ['close'], {
       result: new Subject().asObservable(),
       content: {
         instance: {
           data: null
         }
-      }
+      },
+      window: { location: { nativeElement: mockNativeElement } }
     });
 
     windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);

@@ -6,8 +6,11 @@ import {
   MeshBoardConfig,
   AnyWidgetConfig,
   MeshBoardVariable,
+  MeshBoardVariableSource,
   MeshBoardTimeFilterConfig,
-  TimeRangeSelection
+  TimeRangeSelection,
+  VariableResolutionError,
+  EntitySelectorConfig
 } from '../models/meshboard.models';
 
 /** The CK model required for the MeshBoard feature */
@@ -34,6 +37,7 @@ export class MeshBoardStateService {
   private readonly _availableMeshBoards = signal<PersistedMeshBoard[]>([]);
   private readonly _isLoading = signal(false);
   private readonly _isModelAvailable = signal<boolean | null>(null);
+  private readonly _variableResolutionErrors = signal<VariableResolutionError[]>([]);
 
   // Public computed signals
   readonly meshBoardConfig = computed(() => this._meshBoardConfig());
@@ -45,6 +49,7 @@ export class MeshBoardStateService {
   readonly isLoading = computed(() => this._isLoading());
   readonly widgets = computed(() => this._meshBoardConfig().widgets);
   readonly isModelAvailable = computed(() => this._isModelAvailable());
+  readonly variableResolutionErrors = computed(() => this._variableResolutionErrors());
 
   // Deprecated aliases for backward compatibility
   /** @deprecated Use meshBoardConfig instead */
@@ -315,6 +320,7 @@ export class MeshBoardStateService {
     gap: number;
     variables?: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
+    entitySelectors?: EntitySelectorConfig[];
   }): void {
     this.updateConfig(config => ({
       ...config,
@@ -325,7 +331,15 @@ export class MeshBoardStateService {
       rowHeight: settings.rowHeight,
       gap: settings.gap,
       variables: settings.variables ?? config.variables,
-      timeFilter: settings.timeFilter ?? config.timeFilter
+      timeFilter: settings.timeFilter
+        ? {
+            ...config.timeFilter,
+            ...settings.timeFilter,
+            // When a new defaultSelection is set, reset the stored selection to match
+            selection: settings.timeFilter.defaultSelection ?? config.timeFilter?.selection
+          }
+        : config.timeFilter,
+      entitySelectors: settings.entitySelectors ?? config.entitySelectors
     }));
 
     // If time filter is disabled, clear the time filter variables
@@ -346,6 +360,7 @@ export class MeshBoardStateService {
     gap: number;
     variables: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
+    entitySelectors?: EntitySelectorConfig[];
   } {
     const config = this._meshBoardConfig();
     return {
@@ -356,7 +371,8 @@ export class MeshBoardStateService {
       rowHeight: config.rowHeight,
       gap: config.gap,
       variables: config.variables ?? [],
-      timeFilter: config.timeFilter
+      timeFilter: config.timeFilter,
+      entitySelectors: config.entitySelectors
     };
   }
 
@@ -608,6 +624,80 @@ export class MeshBoardStateService {
    */
   clearTimeFilterVariables(): void {
     const currentVars = this.getVariables().filter(v => v.source !== 'timeFilter');
+    this.updateVariables(currentVars);
+  }
+
+  // ============================================================================
+  // Entity Selector Management
+  // ============================================================================
+
+  /**
+   * Gets all entity selector configurations.
+   */
+  getEntitySelectors(): EntitySelectorConfig[] {
+    return this._meshBoardConfig().entitySelectors ?? [];
+  }
+
+  /**
+   * Gets a specific entity selector by ID.
+   */
+  getEntitySelector(selectorId: string): EntitySelectorConfig | undefined {
+    return this.getEntitySelectors().find(es => es.id === selectorId);
+  }
+
+  /**
+   * Updates all entity selector configurations.
+   */
+  updateEntitySelectors(selectors: EntitySelectorConfig[]): void {
+    this.updateConfig(config => ({
+      ...config,
+      entitySelectors: selectors
+    }));
+  }
+
+  /**
+   * Updates the selection state for a specific entity selector.
+   */
+  updateEntitySelectorSelection(selectorId: string, rtId: string | undefined, displayName?: string): void {
+    this.updateConfig(config => ({
+      ...config,
+      entitySelectors: (config.entitySelectors ?? []).map(es =>
+        es.id === selectorId
+          ? { ...es, selectedRtId: rtId, selectedDisplayName: displayName }
+          : es
+      )
+    }));
+  }
+
+  /**
+   * Sets entity selector variables for a given selector.
+   * Removes existing variables for this selector and adds new ones.
+   */
+  setEntitySelectorVariables(selectorId: string, values: { name: string; value: string; type?: string }[]): void {
+    // Remove existing variables for this selector
+    const currentVars = this.getVariables().filter(v =>
+      !(v.source === 'entitySelector' && v.entitySelectorId === selectorId)
+    );
+
+    // Create new variables
+    const selectorVars: MeshBoardVariable[] = values.map(v => ({
+      name: v.name,
+      type: (v.type ?? 'string') as MeshBoardVariable['type'],
+      source: 'entitySelector' as MeshBoardVariableSource,
+      value: v.value,
+      entitySelectorId: selectorId
+    }));
+
+    this.updateVariables([...currentVars, ...selectorVars]);
+  }
+
+  /**
+   * Clears entity selector variables for a given selector.
+   */
+  clearEntitySelectorVariables(selectorId: string): void {
+    const currentVars = this.getVariables().filter(v =>
+      !(v.source === 'entitySelector' && v.entitySelectorId === selectorId)
+    );
     this.updateVariables(currentVars);
   }
 }

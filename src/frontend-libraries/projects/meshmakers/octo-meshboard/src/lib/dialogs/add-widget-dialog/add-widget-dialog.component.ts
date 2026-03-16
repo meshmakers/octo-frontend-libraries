@@ -15,6 +15,10 @@ import {
   gridLayoutIcon,
   checkCircleIcon,
   copyIcon,
+  gridIcon,
+  clipboardMarkdownIcon,
+  gearsIcon,
+  chartLineMarkersIcon,
   SVGIcon
 } from '@progress/kendo-svg-icons';
 
@@ -90,16 +94,22 @@ export class AddWidgetDialogComponent implements OnInit {
         return chartPieIcon;
       case 'barChart':
         return chartColumnStackedIcon;
+      case 'lineChart':
+        return chartLineMarkersIcon;
       case 'statsGrid':
         return gridLayoutIcon;
       case 'statusIndicator':
         return checkCircleIcon;
       case 'serviceHealth':
         return heartIcon;
+      case 'heatmap':
+        return gridIcon;
       case 'widgetGroup':
         return copyIcon;
+      case 'markdown':
+        return clipboardMarkdownIcon;
       case 'process':
-        return chartLineIcon;
+        return gearsIcon;
       default:
         return chartLineIcon;
     }
@@ -124,6 +134,8 @@ export class AddWidgetDialogComponent implements OnInit {
         return 'Display data distribution as a pie or donut chart';
       case 'barChart':
         return 'Display data as vertical or horizontal bars';
+      case 'lineChart':
+        return 'Display time-series data as a multi-series line chart with optional multiple Y-axes';
       case 'statsGrid':
         return 'Display multiple KPIs in a grid layout';
       case 'statusIndicator':
@@ -132,6 +144,10 @@ export class AddWidgetDialogComponent implements OnInit {
         return 'Display service health status with pulse animation';
       case 'widgetGroup':
         return 'Display a repeating group of child widgets from a query or CK type';
+      case 'heatmap':
+        return 'Visualize data density or availability over time as a heatmap grid';
+      case 'markdown':
+        return 'Display formatted text content with Markdown syntax';
       case 'process':
         return 'Display and interact with process diagrams and HMI graphics';
       default:

@@ -255,7 +255,7 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
   protected readonly filterClearIcon = filterClearIcon;
 
   public dialogTitle = 'Select Construction Kit Type';
-  public allowAbstract = false;
+  public allowAbstract = true;
 
   public searchText = '';
   public selectedModel: string | null = null;
@@ -283,7 +283,7 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.data) {
       this.dialogTitle = this.data.dialogTitle || 'Select Construction Kit Type';
-      this.allowAbstract = this.data.allowAbstract ?? false;
+      this.allowAbstract = this.data.allowAbstract ?? true;
       this.initialCkModelIds = this.data.ckModelIds;
       this.derivedFromRtCkTypeId = this.data.derivedFromRtCkTypeId;
 

@@ -46,14 +46,42 @@
         <div class="toolbar-center">
           <mm-time-range-picker
             [config]="timeFilterConfig()?.pickerConfig ?? {}"
+            [labels]="timeRangeLabels()"
             [initialSelection]="initialTimeSelection()"
             (rangeChange)="onTimeRangeChange($event)"
             (selectionChange)="onTimeSelectionChange($event)">
           </mm-time-range-picker>
+          @if (canResetTimeFilter()) {
+            <button
+              kendoButton
+              [svgIcon]="undoIcon"
+              (click)="resetTimeFilterToDefault()"
+              title="Reset to default time filter"
+              fillMode="flat"
+              size="small">
+            </button>
+          }
         </div>
       }
 
-      <div class="toolbar-right">
+      <!-- Entity Selectors -->
+      @if (hasEntitySelectors()) {
+        @if (isTimeFilterEnabled()) {
+          <div class="toolbar-separator"></div>
+        }
+        <div class="toolbar-entity-selectors">
+          <mm-entity-selector-toolbar
+            [entitySelectors]="entitySelectorsConfig()"
+            (entitySelected)="onEntitySelectorSelected($event)"
+            (entityCleared)="onEntitySelectorCleared($event)">
+          </mm-entity-selector-toolbar>
+        </div>
+      }
+
+      @if (isTimeFilterEnabled() || hasEntitySelectors()) {
+        <div class="toolbar-separator"></div>
+      }
+      <div class="toolbar-right mm-toolbar-actions">
         @if (!isReadonly()) {
           <!-- Manager Button (icon only) -->
           <button
@@ -109,7 +137,6 @@
             [svgIcon]="plusIcon"
             (click)="openAddWidget()"
             title="Add Widget"
-            fillMode="flat"
             themeColor="primary">
             Add Widget
           </button>
@@ -122,7 +149,6 @@
               (click)="save()"
               [disabled]="isSaving()"
               title="Save MeshBoard"
-              fillMode="solid"
               themeColor="primary">
               {{ isSaving() ? 'Saving...' : 'Save' }}
             </button>
@@ -130,6 +156,30 @@
         }
       </div>
     </div>
+
+    <!-- Entity Selector Hint -->
+    @if (unselectedToolbarSelectors().length > 0) {
+      <div class="entity-selector-hint">
+        <kendo-svg-icon [icon]="infoCircleIcon" size="medium"></kendo-svg-icon>
+        <span>
+          Please select
+          @for (selector of unselectedToolbarSelectors(); track selector.id; let last = $last) {
+            <strong>{{ selector.label }}</strong>@if (!last) {, }
+          }
+          to display dashboard data.
+        </span>
+      </div>
+    }
+
+    <!-- Variable Resolution Errors -->
+    @if (variableResolutionErrors().length > 0) {
+      <div class="variable-resolution-errors">
+        <strong>Variable resolution errors:</strong>
+        @for (error of variableResolutionErrors(); track error.variableName) {
+          <span class="error-item">{{ error.variableName }}: {{ error.message }}</span>
+        }
+      </div>
+    }
 
     <!-- MeshBoard Grid -->
     @if (hasWidgets()) {
@@ -175,6 +225,15 @@
                       size="small"
                       class="edit-widget-btn"
                       title="Edit position">
+                    </button>
+                    <button
+                      kendoButton
+                      [svgIcon]="copyIcon"
+                      (click)="duplicateWidget(widget)"
+                      fillMode="flat"
+                      size="small"
+                      class="duplicate-widget-btn"
+                      title="Duplicate widget">
                     </button>
                     <button
                       kendoButton

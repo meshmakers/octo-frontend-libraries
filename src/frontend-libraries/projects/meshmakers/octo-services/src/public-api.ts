@@ -70,6 +70,12 @@ export * from './lib/services/tus-upload.service';
 // Tenant provider (for tenant-specific operations)
 export * from './lib/services/tenant-provider';
 
+// GraphQL query for runtime entities by CK type
+export * from './lib/graphQL/getEntitiesByCkType';
+
+// Data sources for entity selection
+export * from './lib/data-sources/runtime-entity-data-sources';
+
 // Backward-compatible re-exports for legacy apps (energy-community, office-integration)
 export * from './lib/compat/octo-services-module';
 export * from './lib/compat/asset-repo-graph-ql-data-source';

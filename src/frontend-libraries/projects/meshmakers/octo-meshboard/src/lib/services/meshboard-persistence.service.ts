@@ -7,7 +7,7 @@ import { CreateDashboardWidgetDtoGQL } from '../graphQL/createDashboardWidget';
 import { UpdateDashboardWidgetDtoGQL } from '../graphQL/updateDashboardWidget';
 import { DeleteEntitiesDtoGQL } from '../graphQL/deleteEntities';
 import { GetDashboardWithWidgetsDtoGQL } from '../graphQL/getDashboardWithWidgets';
-import { MeshBoardConfig, AnyWidgetConfig, MeshBoardVariable, MeshBoardTimeFilterConfig } from '../models/meshboard.models';
+import { MeshBoardConfig, AnyWidgetConfig, MeshBoardVariable, MeshBoardTimeFilterConfig, EntitySelectorConfig } from '../models/meshboard.models';
 import { AssociationModOptionsDto, DeleteStrategiesDto, RtAssociationInputDto, SystemUiDashboardWidgetInputDto } from '../graphQL/globalTypes';
 import { WidgetRegistryService, PersistedWidgetData } from './widget-registry.service';
 
@@ -155,11 +155,12 @@ export class MeshBoardPersistenceService {
    * Creates a new MeshBoard with its widgets
    */
   async createMeshBoard(config: MeshBoardConfig): Promise<string> {
-    // Encode variables and timeFilter in description field (temporary until backend adds config field)
+    // Encode variables, timeFilter, and entitySelectors in description field (temporary until backend adds config field)
     const encodedDescription = this.encodeVariablesInDescription(
       config.description ?? '',
       config.variables,
-      config.timeFilter
+      config.timeFilter,
+      config.entitySelectors
     );
 
     const dashboardInput: Record<string, unknown> = {
@@ -206,11 +207,12 @@ export class MeshBoardPersistenceService {
   async updateMeshBoard(rtId: string, config: MeshBoardConfig, existingWidgetRtIds: string[] = []): Promise<UpdateDashboardResult> {
     const result: UpdateDashboardResult = { createdWidgets: [] };
 
-    // Encode variables and timeFilter in description field (temporary until backend adds config field)
+    // Encode variables, timeFilter, and entitySelectors in description field (temporary until backend adds config field)
     const encodedDescription = this.encodeVariablesInDescription(
       config.description ?? '',
       config.variables,
-      config.timeFilter
+      config.timeFilter,
+      config.entitySelectors
     );
 
     const dashboardItem: Record<string, unknown> = {
@@ -291,8 +293,8 @@ export class MeshBoardPersistenceService {
    * Converts a persisted MeshBoard to MeshBoardConfig
    */
   toMeshBoardConfig(meshBoard: PersistedMeshBoard, widgets: PersistedWidget[]): MeshBoardConfig {
-    // Decode variables and timeFilter from description field (temporary until backend adds config field)
-    const { description, variables, timeFilter } = this.decodeVariablesFromDescription(meshBoard.description);
+    // Decode variables, timeFilter, and entitySelectors from description field (temporary until backend adds config field)
+    const { description, variables, timeFilter, entitySelectors } = this.decodeVariablesFromDescription(meshBoard.description);
 
     return {
       id: meshBoard.rtId,
@@ -304,6 +306,7 @@ export class MeshBoardPersistenceService {
       gap: meshBoard.gap,
       variables,
       timeFilter,
+      entitySelectors,
       widgets: widgets.map(w => this.toWidgetConfig(w))
     };
   }
@@ -443,18 +446,24 @@ export class MeshBoardPersistenceService {
   private encodeVariablesInDescription(
     description: string,
     variables?: MeshBoardVariable[],
-    timeFilter?: MeshBoardTimeFilterConfig
+    timeFilter?: MeshBoardTimeFilterConfig,
+    entitySelectors?: EntitySelectorConfig[]
   ): string {
-    // Filter out timeFilter variables (they are derived, not persisted directly)
-    const staticVariables = variables?.filter(v => v.source !== 'timeFilter');
+    // Filter out timeFilter and entitySelector variables (they are derived, not persisted directly)
+    const staticVariables = variables?.filter(v => v.source !== 'timeFilter' && v.source !== 'entitySelector');
 
     // Check if there's anything to encode
-    if ((!staticVariables || staticVariables.length === 0) && !timeFilter?.enabled) {
+    const hasEntitySelectors = entitySelectors && entitySelectors.length > 0;
+    if ((!staticVariables || staticVariables.length === 0) && !timeFilter?.enabled && !hasEntitySelectors) {
       return description;
     }
 
     try {
-      const data: { variables?: MeshBoardVariable[]; timeFilter?: MeshBoardTimeFilterConfig } = {};
+      const data: {
+        variables?: MeshBoardVariable[];
+        timeFilter?: MeshBoardTimeFilterConfig;
+        entitySelectors?: EntitySelectorConfig[];
+      } = {};
 
       if (staticVariables && staticVariables.length > 0) {
         data.variables = staticVariables;
@@ -462,6 +471,18 @@ export class MeshBoardPersistenceService {
 
       if (timeFilter?.enabled) {
         data.timeFilter = timeFilter;
+      }
+
+      if (hasEntitySelectors) {
+        // Strip transient fields before persisting
+        data.entitySelectors = entitySelectors!.map(es => ({
+          id: es.id,
+          label: es.label,
+          ckTypeId: es.ckTypeId,
+          attributeMappings: es.attributeMappings,
+          showInToolbar: es.showInToolbar,
+          defaultRtId: es.defaultRtId
+        }));
       }
 
       const dataJson = JSON.stringify(data);
@@ -486,6 +507,7 @@ export class MeshBoardPersistenceService {
     description: string;
     variables: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
+    entitySelectors?: EntitySelectorConfig[];
   } {
     // Use the marker without newlines for detection, since the backend may trim
     // leading whitespace (removing the \n before the marker when description is empty).
@@ -508,11 +530,12 @@ export class MeshBoardPersistenceService {
         return { description, variables: parsed as MeshBoardVariable[] };
       }
 
-      // New format: object with variables and timeFilter
+      // New format: object with variables, timeFilter, and entitySelectors
       return {
         description,
         variables: parsed.variables ?? [],
-        timeFilter: parsed.timeFilter
+        timeFilter: parsed.timeFilter,
+        entitySelectors: parsed.entitySelectors
       };
     } catch (error) {
       console.error('Failed to decode MeshBoard config data:', error);

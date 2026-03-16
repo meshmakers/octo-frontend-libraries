@@ -15,6 +15,8 @@ import {
   GaugeWidgetConfig,
   PieChartWidgetConfig,
   BarChartWidgetConfig,
+  LineChartWidgetConfig,
+  HeatmapWidgetConfig,
   StatsGridWidgetConfig,
   StatusIndicatorWidgetConfig,
   ServiceHealthWidgetConfig,
@@ -32,11 +34,13 @@ import { TableWidgetComponent } from '../widgets/table-widget/table-widget.compo
 import { GaugeWidgetComponent } from '../widgets/gauge-widget/gauge-widget.component';
 import { PieChartWidgetComponent } from '../widgets/pie-chart-widget/pie-chart-widget.component';
 import { BarChartWidgetComponent } from '../widgets/bar-chart-widget/bar-chart-widget.component';
+import { LineChartWidgetComponent } from '../widgets/line-chart-widget/line-chart-widget.component';
 import { StatsGridWidgetComponent } from '../widgets/stats-grid-widget/stats-grid-widget.component';
 import { StatusIndicatorWidgetComponent } from '../widgets/status-indicator-widget/status-indicator-widget.component';
 import { ServiceHealthWidgetComponent } from '../widgets/service-health-widget/service-health-widget.component';
 import { WidgetGroupComponent } from '../widgets/widget-group/widget-group.component';
 import { MarkdownWidgetComponent } from '../widgets/markdown-widget/markdown-widget.component';
+import { HeatmapWidgetComponent } from '../widgets/heatmap-widget/heatmap-widget.component';
 // Note: ProcessWidget registration moved to process-widget-registration.ts for lazy loading
 // Use provideProcessWidget() or registerProcessWidget() to enable Process Diagram widgets
 
@@ -48,11 +52,13 @@ import { TableConfigDialogComponent, TableConfigResult } from '../widgets/table-
 import { GaugeConfigDialogComponent, GaugeConfigResult } from '../widgets/gauge-widget/gauge-config-dialog.component';
 import { PieChartConfigDialogComponent, PieChartConfigResult } from '../widgets/pie-chart-widget/pie-chart-config-dialog.component';
 import { BarChartConfigDialogComponent, BarChartConfigResult } from '../widgets/bar-chart-widget/bar-chart-config-dialog.component';
+import { LineChartConfigDialogComponent, LineChartConfigResult } from '../widgets/line-chart-widget/line-chart-config-dialog.component';
 import { StatsGridConfigDialogComponent, StatsGridConfigResult } from '../widgets/stats-grid-widget/stats-grid-config-dialog.component';
 import { StatusIndicatorConfigDialogComponent, StatusIndicatorConfigResult } from '../widgets/status-indicator-widget/status-indicator-config-dialog.component';
 import { ServiceHealthConfigDialogComponent, ServiceHealthConfigResult } from '../widgets/service-health-widget/service-health-config-dialog.component';
 import { WidgetGroupConfigDialogComponent, WidgetGroupConfigResult } from '../widgets/widget-group/widget-group-config-dialog.component';
 import { MarkdownConfigDialogComponent, MarkdownConfigResult } from '../widgets/markdown-widget/markdown-config-dialog.component';
+import { HeatmapConfigDialogComponent, HeatmapConfigResult } from '../widgets/heatmap-widget/heatmap-config-dialog.component';
 
 /**
  * Helper to extract data source info from widget config
@@ -99,6 +105,10 @@ function buildDataSourceFromPersisted(data: PersistedWidgetData, config: Record<
       queryRtId: data.dataSourceRtId ?? (config['queryRtId'] as string) ?? '',
       queryName: config['queryName'] as string | undefined
     };
+  }
+
+  if (data.dataSourceType === 'static') {
+    return { type: 'static' };
   }
 
   return {
@@ -202,10 +212,13 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     configDialogSize: { width: 750, height: 700, minWidth: 550, minHeight: 500 },
     configDialogTitle: 'KPI Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
-    supportedDataSources: ['runtimeEntity', 'persistentQuery'],
+    supportedDataSources: ['runtimeEntity', 'persistentQuery', 'static'],
     getInitialConfig: (widget) => {
       const kpiWidget = widget as KpiWidgetConfig;
       const isPersistentQuery = kpiWidget.dataSource.type === 'persistentQuery';
+
+      const isStatic = kpiWidget.dataSource.type === 'static';
+      const dataSourceType = isPersistentQuery ? 'persistentQuery' : isStatic ? 'static' : 'runtimeEntity';
 
       return {
         // Runtime entity fields
@@ -214,13 +227,15 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialValueAttribute: kpiWidget.valueAttribute,
         initialLabelAttribute: kpiWidget.labelAttribute,
         // Persistent query fields
-        initialDataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
+        initialDataSourceType: dataSourceType,
         initialQueryRtId: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryMode: kpiWidget.queryMode,
         initialQueryValueField: kpiWidget.queryValueField,
         initialQueryCategoryField: kpiWidget.queryCategoryField,
         initialQueryCategoryValue: kpiWidget.queryCategoryValue,
+        // Static fields
+        initialStaticValue: kpiWidget.staticValue,
         // Display options
         initialPrefix: kpiWidget.prefix,
         initialSuffix: kpiWidget.suffix,
@@ -237,7 +252,23 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         comparisonValue: f.comparisonValue
       }));
 
-      if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
+      if (result.dataSourceType === 'static') {
+        return {
+          ...widget,
+          dataSource: { type: 'static' as const },
+          valueAttribute: '',
+          staticValue: result.staticValue,
+          labelAttribute: undefined,
+          queryMode: undefined,
+          queryValueField: undefined,
+          queryCategoryField: undefined,
+          queryCategoryValue: undefined,
+          prefix: result.prefix,
+          suffix: result.suffix,
+          trend: result.trend,
+          filters: undefined
+        };
+      } else if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
         // Create PersistentQueryDataSource
         const dataSource: PersistentQueryDataSource = {
           type: 'persistentQuery',
@@ -248,7 +279,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         return {
           ...widget,
           dataSource,
-          valueAttribute: '', // Not used for persistent queries
+          valueAttribute: '',
+          staticValue: undefined,
           queryMode: result.queryMode,
           queryValueField: result.queryValueField,
           queryCategoryField: result.queryCategoryField,
@@ -265,6 +297,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           dataSource: createDataSource(result, false),
           valueAttribute: result.valueAttribute,
           labelAttribute: result.labelAttribute,
+          staticValue: undefined,
           queryMode: undefined,
           queryValueField: undefined,
           queryCategoryField: undefined,
@@ -290,8 +323,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     // SOLID: Serialization for persistence
     toPersistedConfig: (widget: KpiWidgetConfig): WidgetPersistenceData => {
       const isPersistentQuery = widget.dataSource.type === 'persistentQuery';
+      const isStatic = widget.dataSource.type === 'static';
+      const dataSourceType = isPersistentQuery ? 'persistentQuery' : isStatic ? 'static' : 'runtimeEntity';
       return {
-        dataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
+        dataSourceType,
         dataSourceCkTypeId: widget.dataSource.type === 'runtimeEntity' ? widget.dataSource.ckTypeId : undefined,
         dataSourceRtId: isPersistentQuery
           ? (widget.dataSource as PersistentQueryDataSource).queryRtId
@@ -303,6 +338,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           suffix: widget.suffix,
           icon: widget.icon,
           trend: widget.trend,
+          staticValue: widget.staticValue,
           queryMode: widget.queryMode,
           queryValueField: widget.queryValueField,
           queryCategoryField: widget.queryCategoryField,
@@ -320,6 +356,21 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): KpiWidgetConfig => {
       const config = parseConfig(data);
       const dataSource = buildDataSourceFromPersisted(data, config);
+
+      if (dataSource.type === 'static') {
+        return {
+          ...base,
+          rtId: data.rtId,
+          type: 'kpi',
+          dataSource,
+          valueAttribute: '',
+          staticValue: config['staticValue'] as string | undefined,
+          prefix: config['prefix'] as string | undefined,
+          suffix: config['suffix'] as string | undefined,
+          icon: config['icon'] as string | undefined,
+          trend: config['trend'] as KpiWidgetConfig['trend']
+        };
+      }
 
       if (dataSource.type === 'persistentQuery') {
         return {
@@ -1050,6 +1101,118 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     }
   });
 
+  // Line Chart Widget
+  registry.registerWidget<LineChartWidgetConfig, LineChartConfigResult>({
+    type: 'lineChart',
+    label: 'Line Chart',
+    component: LineChartWidgetComponent,
+    configDialogComponent: LineChartConfigDialogComponent,
+    configDialogSize: { width: 750, height: 650, minWidth: 550, minHeight: 450 },
+    configDialogTitle: 'Line Chart Configuration',
+    defaultSize: { colSpan: 3, rowSpan: 2 },
+    supportedDataSources: ['persistentQuery'],
+    getInitialConfig: (widget) => {
+      const lineWidget = widget as LineChartWidgetConfig;
+      const dataSource = lineWidget.dataSource;
+      const isPersistentQuery = dataSource.type === 'persistentQuery';
+
+      return {
+        initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
+        initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialChartType: lineWidget.chartType,
+        initialCategoryField: lineWidget.categoryField,
+        initialSeriesGroupField: lineWidget.seriesGroupField,
+        initialValueField: lineWidget.valueField,
+        initialUnitField: lineWidget.unitField,
+        initialShowLegend: lineWidget.showLegend,
+        initialLegendPosition: lineWidget.legendPosition,
+        initialShowMarkers: lineWidget.showMarkers,
+        initialFilters: lineWidget.filters
+      };
+    },
+    applyConfigResult: (widget, result) => {
+      const dataSource: PersistentQueryDataSource = {
+        type: 'persistentQuery',
+        queryRtId: result.queryRtId,
+        queryName: result.queryName
+      };
+
+      const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
+        attributePath: f.attributePath,
+        operator: String(f.operator),
+        comparisonValue: f.comparisonValue
+      }));
+
+      return {
+        ...widget,
+        dataSource,
+        chartType: result.chartType,
+        categoryField: result.categoryField,
+        seriesGroupField: result.seriesGroupField,
+        valueField: result.valueField,
+        unitField: result.unitField,
+        showLegend: result.showLegend,
+        legendPosition: result.legendPosition,
+        showMarkers: result.showMarkers,
+        filters
+      } as LineChartWidgetConfig;
+    },
+
+    createDefaultConfig: (base: BaseWidgetConfig): LineChartWidgetConfig => ({
+      ...base,
+      type: 'lineChart',
+      colSpan: 3,
+      rowSpan: 2,
+      dataSource: createDefaultPersistentQueryDataSource(),
+      chartType: 'line',
+      categoryField: '',
+      seriesGroupField: '',
+      valueField: '',
+      showLegend: true,
+      legendPosition: 'right',
+      showMarkers: false
+    }),
+
+    toPersistedConfig: (widget: LineChartWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'persistentQuery',
+      dataSourceRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+      config: {
+        chartType: widget.chartType,
+        categoryField: widget.categoryField,
+        seriesGroupField: widget.seriesGroupField,
+        valueField: widget.valueField,
+        unitField: widget.unitField,
+        showLegend: widget.showLegend,
+        legendPosition: widget.legendPosition,
+        showMarkers: widget.showMarkers,
+        queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
+        queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+        filters: widget.filters
+      }
+    }),
+
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): LineChartWidgetConfig => {
+      const config = parseConfig(data);
+      const dataSource = buildDataSourceFromPersisted(data, config) as PersistentQueryDataSource;
+
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'lineChart',
+        dataSource,
+        chartType: (config['chartType'] as LineChartWidgetConfig['chartType']) ?? 'line',
+        categoryField: (config['categoryField'] as string) ?? '',
+        seriesGroupField: (config['seriesGroupField'] as string) ?? '',
+        valueField: (config['valueField'] as string) ?? '',
+        unitField: config['unitField'] as string | undefined,
+        showLegend: (config['showLegend'] as boolean) ?? true,
+        legendPosition: (config['legendPosition'] as LineChartWidgetConfig['legendPosition']) ?? 'right',
+        showMarkers: (config['showMarkers'] as boolean) ?? false,
+        filters: config['filters'] as WidgetFilterConfig[] | undefined
+      };
+    }
+  });
+
   // Stats Grid Widget
   registry.registerWidget<StatsGridWidgetConfig, StatsGridConfigResult>({
     type: 'statsGrid',
@@ -1496,6 +1659,127 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         resolveVariables: (config['resolveVariables'] as boolean) ?? true,
         padding: config['padding'] as string | undefined,
         textAlign: config['textAlign'] as MarkdownWidgetConfig['textAlign']
+      };
+    }
+  });
+
+  // Heatmap Widget
+  registry.registerWidget<HeatmapWidgetConfig, HeatmapConfigResult>({
+    type: 'heatmap',
+    label: 'Heatmap',
+    component: HeatmapWidgetComponent,
+    configDialogComponent: HeatmapConfigDialogComponent,
+    configDialogSize: { width: 750, height: 650, minWidth: 550, minHeight: 450 },
+    configDialogTitle: 'Heatmap Configuration',
+    defaultSize: { colSpan: 3, rowSpan: 2 },
+    supportedDataSources: ['persistentQuery'],
+    getInitialConfig: (widget) => {
+      const heatmapWidget = widget as HeatmapWidgetConfig;
+      const dataSource = heatmapWidget.dataSource;
+      const isPersistentQuery = dataSource.type === 'persistentQuery';
+
+      return {
+        initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
+        initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialDateField: heatmapWidget.dateField,
+        initialDateEndField: heatmapWidget.dateEndField,
+        initialValueField: heatmapWidget.valueField,
+        initialAggregation: heatmapWidget.aggregation,
+        initialColorScheme: heatmapWidget.colorScheme,
+        initialShowLegend: heatmapWidget.showLegend,
+        initialLegendPosition: heatmapWidget.legendPosition,
+        initialDecimalPlaces: heatmapWidget.decimalPlaces,
+        initialCompactNumbers: heatmapWidget.compactNumbers,
+        initialValueMultiplier: heatmapWidget.valueMultiplier,
+        initialFilters: heatmapWidget.filters
+      };
+    },
+    applyConfigResult: (widget, result) => {
+      const dataSource: PersistentQueryDataSource = {
+        type: 'persistentQuery',
+        queryRtId: result.queryRtId,
+        queryName: result.queryName
+      };
+
+      const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
+        attributePath: f.attributePath,
+        operator: String(f.operator),
+        comparisonValue: f.comparisonValue
+      }));
+
+      return {
+        ...widget,
+        dataSource,
+        dateField: result.dateField,
+        dateEndField: result.dateEndField,
+        valueField: result.valueField,
+        aggregation: result.aggregation,
+        colorScheme: result.colorScheme,
+        showLegend: result.showLegend,
+        legendPosition: result.legendPosition,
+        decimalPlaces: result.decimalPlaces,
+        compactNumbers: result.compactNumbers,
+        valueMultiplier: result.valueMultiplier,
+        filters
+      } as HeatmapWidgetConfig;
+    },
+
+    // SOLID: Factory function
+    createDefaultConfig: (base: BaseWidgetConfig): HeatmapWidgetConfig => ({
+      ...base,
+      type: 'heatmap',
+      colSpan: 3,
+      rowSpan: 2,
+      dataSource: createDefaultPersistentQueryDataSource(),
+      dateField: '',
+      aggregation: 'count',
+      colorScheme: 'green',
+      showLegend: true,
+      legendPosition: 'bottom'
+    }),
+
+    // SOLID: Serialization for persistence
+    toPersistedConfig: (widget: HeatmapWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'persistentQuery',
+      dataSourceRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+      config: {
+        dateField: widget.dateField,
+        dateEndField: widget.dateEndField,
+        valueField: widget.valueField,
+        aggregation: widget.aggregation,
+        colorScheme: widget.colorScheme,
+        showLegend: widget.showLegend,
+        legendPosition: widget.legendPosition,
+        decimalPlaces: widget.decimalPlaces,
+        compactNumbers: widget.compactNumbers,
+        valueMultiplier: widget.valueMultiplier,
+        queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
+        queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+        filters: widget.filters
+      }
+    }),
+
+    // SOLID: Deserialization from persistence
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): HeatmapWidgetConfig => {
+      const config = parseConfig(data);
+      const dataSource = buildDataSourceFromPersisted(data, config) as PersistentQueryDataSource;
+
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'heatmap',
+        dataSource,
+        dateField: (config['dateField'] as string) ?? '',
+        dateEndField: config['dateEndField'] as string | undefined,
+        valueField: config['valueField'] as string | undefined,
+        aggregation: (config['aggregation'] as HeatmapWidgetConfig['aggregation']) ?? 'count',
+        colorScheme: (config['colorScheme'] as HeatmapWidgetConfig['colorScheme']) ?? 'green',
+        showLegend: (config['showLegend'] as boolean) ?? true,
+        legendPosition: (config['legendPosition'] as HeatmapWidgetConfig['legendPosition']) ?? 'bottom',
+        decimalPlaces: config['decimalPlaces'] as number | undefined,
+        compactNumbers: config['compactNumbers'] as boolean | undefined,
+        valueMultiplier: config['valueMultiplier'] as number | undefined,
+        filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
     }
   });

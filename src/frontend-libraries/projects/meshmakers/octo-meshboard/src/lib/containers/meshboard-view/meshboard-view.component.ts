@@ -1,10 +1,10 @@
 import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
 import { TileLayoutModule, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
-import { DialogService, DialogModule } from '@progress/kendo-angular-dialog';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { DialogService, DialogModule, WindowService, WindowCloseResult } from '@progress/kendo-angular-dialog';
+import { filter, firstValueFrom, Subscription } from 'rxjs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import {
   gearIcon,
@@ -15,21 +15,31 @@ import {
   xIcon,
   linkIcon,
   trashIcon,
-  gridLayoutIcon
+  gridLayoutIcon,
+  undoIcon,
+  copyIcon,
+  infoCircleIcon
 } from '@progress/kendo-svg-icons';
 
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { EditModeStateService } from '../../services/edit-mode-state.service';
 import { WidgetFactoryService } from '../../services/widget-factory.service';
 import { WidgetRegistryService } from '../../services/widget-registry.service';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
-import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection } from '../../models/meshboard.models';
+import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
+import {
+  EntitySelectorToolbarComponent,
+  EntitySelectorEvent,
+  EntitySelectorClearEvent
+} from '../../components/entity-selector-toolbar/entity-selector-toolbar.component';
 import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-widget-dialog.component';
 import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
 import { EditWidgetDialogComponent, WidgetPositionUpdate } from '../../dialogs/edit-widget-dialog/edit-widget-dialog.component';
 import { TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
+import { BreadCrumbService } from '@meshmakers/shared-services';
 import {
   HasUnsavedChanges,
   HAS_UNSAVED_CHANGES,
@@ -37,7 +47,9 @@ import {
   TimeRangePickerComponent,
   TimeRange,
   TimeRangeUtils,
-  TimeRangeSelection as SharedTimeRangeSelection
+  TimeRangeSelection as SharedTimeRangeSelection,
+  TimeRangePickerLabels,
+  WindowStateService
 } from '@meshmakers/shared-ui';
 
 /**
@@ -55,7 +67,8 @@ import {
     DialogModule,
     SVGIconModule,
     EditWidgetDialogComponent,
-    TimeRangePickerComponent
+    TimeRangePickerComponent,
+    EntitySelectorToolbarComponent
   ],
   hostDirectives: [UnsavedChangesDirective],
   providers: [{ provide: HAS_UNSAVED_CHANGES, useExisting: MeshBoardViewComponent }],
@@ -64,18 +77,24 @@ import {
 })
 export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChanges {
   private readonly stateService = inject(MeshBoardStateService);
+  private readonly variableService = inject(MeshBoardVariableService);
   private readonly editModeService = inject(EditModeStateService);
   private readonly widgetFactory = inject(WidgetFactoryService);
   private readonly widgetRegistry = inject(WidgetRegistryService);
   private readonly dataService = inject(MeshBoardDataService);
   private readonly dialogService = inject(DialogService);
+  private readonly windowService = inject(WindowService);
+  private readonly windowStateService = inject(WindowStateService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   protected readonly gridService = inject(MeshBoardGridService);
   private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
+  private readonly breadCrumbService = inject(BreadCrumbService, { optional: true });
 
   // Track the last known rtId to avoid unnecessary navigation
   private lastNavigatedRtId: string | null = null;
+  // Guard to prevent the effect from running during initial load
+  private initialLoadComplete = false;
 
   // Icons
   protected readonly gearIcon = gearIcon;
@@ -87,6 +106,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly linkIcon = linkIcon;
   protected readonly trashIcon = trashIcon;
   protected readonly gridLayoutIcon = gridLayoutIcon;
+  protected readonly undoIcon = undoIcon;
+  protected readonly copyIcon = copyIcon;
+  protected readonly infoCircleIcon = infoCircleIcon;
 
   // Edit widget dialog state
   protected showEditWidgetDialog = false;
@@ -94,6 +116,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Config dialog state
   private configDialogSubscription: Subscription | null = null;
+  private navigationSubscription: Subscription | null = null;
 
   // State signals
   protected readonly config = this.stateService.meshBoardConfig;
@@ -109,6 +132,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly notFoundError = this._notFoundError.asReadonly();
   private readonly _isReadonly = signal(false);
   protected readonly isReadonly = this._isReadonly.asReadonly();
+  private readonly _hideEntitySelectors = signal(false);
+  protected readonly hideEntitySelectors = this._hideEntitySelectors.asReadonly();
+  protected readonly timeRangeLabels = signal<TimeRangePickerLabels>({});
 
   // Computed link to MeshBoard page with tenant
   protected readonly meshBoardPageLink = computed(() => {
@@ -126,11 +152,13 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   // Time Filter computed signals
   protected readonly isTimeFilterEnabled = computed(() => this.stateService.isTimeFilterEnabled());
   protected readonly timeFilterConfig = computed(() => this.stateService.getTimeFilterConfig());
+  private readonly _urlTimeSelection = signal<TimeRangeSelection | null>(null);
   protected readonly initialTimeSelection = computed(() => {
-    const selection = this.timeFilterConfig()?.selection;
+    // Priority: URL selection > stored selection > default selection
+    const urlSelection = this._urlTimeSelection();
+    const config = this.timeFilterConfig();
+    const selection = urlSelection ?? config?.selection ?? config?.defaultSelection;
     if (!selection) return undefined;
-    // Convert our TimeRangeSelection to shared-ui TimeRangeSelection
-    // Handle customFrom/customTo as Date objects
     return {
       ...selection,
       customFrom: selection.customFrom ? new Date(selection.customFrom) : undefined,
@@ -138,34 +166,85 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     } as SharedTimeRangeSelection;
   });
 
+  // Entity Selector computed signals
+  protected readonly entitySelectorsConfig = computed(() => this.stateService.getEntitySelectors());
+  protected readonly hasEntitySelectors = computed(() =>
+    !this.hideEntitySelectors() && (this.entitySelectorsConfig()?.some(es => es.showInToolbar !== false) ?? false)
+  );
+  protected readonly unselectedToolbarSelectors = computed(() => {
+    if (this.hideEntitySelectors()) return [];
+    const selectors = this.entitySelectorsConfig() ?? [];
+    return selectors.filter(es => es.showInToolbar !== false && !es.selectedRtId);
+  });
+
+  /**
+   * Whether the time filter can be reset to the default selection.
+   * True when a default selection is configured and the stored selection differs from it.
+   */
+  protected readonly canResetTimeFilter = computed(() => {
+    const config = this.timeFilterConfig();
+    if (!config?.enabled || !config.defaultSelection) return false;
+    if (!config.selection) return false;
+    return !this.isSelectionEqual(config.selection, config.defaultSelection);
+  });
+
   constructor() {
-    // Effect to sync URL when dashboard changes
+    // Effect to sync URL when dashboard changes (after initial load)
     effect(() => {
       const currentRtId = this.stateService.persistedMeshBoardId();
       if (currentRtId && currentRtId !== this.lastNavigatedRtId) {
         this.lastNavigatedRtId = currentRtId;
-        this.updateUrlWithRtId(currentRtId);
-        // Initialize time filter variables when switching to a different MeshBoard
-        this.initializeTimeFilterVariables();
+        if (this.initialLoadComplete) {
+          // Only update URL and time filter for post-init board switches (e.g. manager dialog)
+          this.updateUrlWithRtId(currentRtId);
+          this.initializeTimeFilterVariables();
+        }
       }
     });
+
+    // Update breadcrumb after each navigation (BreadCrumbService recreates items on NavigationEnd)
+    if (this.breadCrumbService) {
+      this.navigationSubscription = this.router.events
+        .pipe(filter(event => event instanceof NavigationEnd))
+        .subscribe(() => {
+          const name = this.config().name;
+          if (name) {
+            this.breadCrumbService!.updateBreadcrumbLabels({ name });
+          }
+        });
+    }
+  }
+
+  /**
+   * Updates the breadcrumb with the current MeshBoard name.
+   */
+  private updateBreadcrumb(): void {
+    const name = this.config().name;
+    if (name && this.breadCrumbService) {
+      this.breadCrumbService.updateBreadcrumbLabels({ name });
+    }
   }
 
   /**
    * Updates the URL to include the current MeshBoard rtId.
+   * Preserves existing query parameters.
    */
   private updateUrlWithRtId(rtId: string): void {
     const currentUrl = this.router.url;
     const hasRtIdParam = this.route.snapshot.paramMap.has('rtId');
 
+    // Split off query string to preserve it
+    const [pathPart, queryPart] = currentUrl.split('?');
+    const querySuffix = queryPart ? '?' + queryPart : '';
+
     if (hasRtIdParam) {
       // Replace the last URL segment (the old rtId) with the new one
-      const lastSlashIndex = currentUrl.lastIndexOf('/');
-      const newUrl = currentUrl.substring(0, lastSlashIndex + 1) + rtId;
-      this.router.navigateByUrl(newUrl, { replaceUrl: true });
+      const lastSlashIndex = pathPart.lastIndexOf('/');
+      const newPath = pathPart.substring(0, lastSlashIndex + 1) + rtId;
+      this.router.navigateByUrl(newPath + querySuffix, { replaceUrl: true });
     } else {
       // Append the rtId to the current URL
-      this.router.navigateByUrl(`${currentUrl}/${rtId}`, { replaceUrl: true });
+      this.router.navigateByUrl(`${pathPart}/${rtId}${querySuffix}`, { replaceUrl: true });
     }
   }
 
@@ -180,6 +259,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       const wellKnownName = this.route.snapshot.data['meshBoardWellKnownName'] as string | undefined;
       const readonly = this.route.snapshot.data['meshBoardReadonly'] as boolean | undefined;
       this._isReadonly.set(readonly === true);
+      const hideEntitySelectors = this.route.snapshot.data['meshBoardHideEntitySelectors'] as boolean | undefined;
+      this._hideEntitySelectors.set(hideEntitySelectors === true);
+      const labels = this.route.snapshot.data['timeRangeLabels'] as TimeRangePickerLabels | undefined;
+      if (labels) this.timeRangeLabels.set(labels);
 
       if (rtIdFromRoute) {
         // Load specific MeshBoard from URL parameter
@@ -202,6 +285,15 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
       // Initialize time filter variables if enabled with stored selection
       this.initializeTimeFilterVariables();
+
+      // Initialize entity selectors from URL params, route data, or defaults
+      await this.initializeEntitySelectors();
+
+      // Mark initial load as complete so the effect can handle subsequent board switches
+      this.initialLoadComplete = true;
+
+      // Update breadcrumb with MeshBoard name
+      this.updateBreadcrumb();
 
       this._isInitialized.set(true);
     } catch (err) {
@@ -234,6 +326,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   ngOnDestroy(): void {
     this.closeConfigDialog();
+    this.navigationSubscription?.unsubscribe();
   }
 
   /**
@@ -257,31 +350,71 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   }
 
   /**
-   * Initializes time filter variables based on the stored selection.
-   * Called after loading a MeshBoard to ensure time filter variables are set.
+   * Initializes time filter variables based on URL query params or stored selection.
+   * URL params take precedence over stored selection to support page reload.
    */
   private initializeTimeFilterVariables(): void {
     const timeFilter = this.stateService.getTimeFilterConfig();
-    if (!timeFilter?.enabled || !timeFilter.selection) {
+    if (!timeFilter?.enabled) {
       return;
     }
 
-    // Convert stored selection to shared-ui format for TimeRangeUtils
-    const sharedSelection: SharedTimeRangeSelection = {
-      ...timeFilter.selection,
-      customFrom: timeFilter.selection.customFrom ? new Date(timeFilter.selection.customFrom) : undefined,
-      customTo: timeFilter.selection.customTo ? new Date(timeFilter.selection.customTo) : undefined
-    };
+    // Check URL query params first (takes precedence over stored selection)
+    const urlSelection = this.readTimeFilterFromUrl();
 
-    // Calculate the current time range from the selection
-    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection);
+    if (urlSelection) {
+      // Signal the URL selection so the picker picks it up
+      this._urlTimeSelection.set(urlSelection);
+      // Update state so widgets use the URL-derived time range
+      const sharedSelection = this.toSharedSelection(urlSelection);
+      const showTime = timeFilter.pickerConfig?.showTime ?? false;
+      const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+      if (range) {
+        const rangeISO = TimeRangeUtils.toISO(range);
+        this.stateService.updateTimeFilterSelection(urlSelection, rangeISO.from, rangeISO.to);
+      }
+      return;
+    }
+
+    // Fall back to stored selection, then default selection
+    const selection = timeFilter.selection ?? timeFilter.defaultSelection;
+    if (!selection) {
+      return;
+    }
+
+    // If using defaultSelection (no stored selection yet), apply it as the active selection
+    if (!timeFilter.selection && timeFilter.defaultSelection) {
+      this._urlTimeSelection.set(selection);
+      const sharedSelection = this.toSharedSelection(selection);
+      const showTime = timeFilter.pickerConfig?.showTime ?? false;
+      const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+      if (range) {
+        const rangeISO = TimeRangeUtils.toISO(range);
+        this.stateService.updateTimeFilterSelection(selection, rangeISO.from, rangeISO.to);
+      }
+      return;
+    }
+
+    const sharedSelection = this.toSharedSelection(selection);
+    const showTime = timeFilter.pickerConfig?.showTime ?? false;
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
     if (!range) {
       return;
     }
 
-    // Convert to ISO strings and set the variables
     const rangeISO = TimeRangeUtils.toISO(range);
     this.stateService.setTimeFilterVariables(rangeISO.from, rangeISO.to);
+  }
+
+  /**
+   * Converts a TimeRangeSelection to a SharedTimeRangeSelection.
+   */
+  private toSharedSelection(selection: TimeRangeSelection): SharedTimeRangeSelection {
+    return {
+      ...selection,
+      customFrom: selection.customFrom ? new Date(selection.customFrom) : undefined,
+      customTo: selection.customTo ? new Date(selection.customTo) : undefined
+    } as SharedTimeRangeSelection;
   }
 
   /**
@@ -313,24 +446,39 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Opens the settings dialog.
    */
   async openSettings(): Promise<void> {
-    const dialogRef = this.dialogService.open({
+    const size = this.windowStateService.resolveWindowSize('meshboard-settings', { width: 1000, height: 750 });
+
+    const windowRef = this.windowService.open({
       content: MeshBoardSettingsDialogComponent,
       title: 'MeshBoard Settings',
-      width: 500,
-      height: 600,
-      maxHeight: '80vh'
+      width: size.width,
+      height: size.height,
+      minWidth: 850,
+      minHeight: 550,
+      resizable: true
     });
 
-    const instance = dialogRef.content.instance as MeshBoardSettingsDialogComponent;
-    const currentSettings = this.stateService.getCurrentSettings();
-    instance.setInitialValues(currentSettings);
+    this.windowStateService.applyModalBehavior('meshboard-settings', windowRef);
+
+    const contentRef = windowRef.content as { instance?: MeshBoardSettingsDialogComponent } | undefined;
+    if (contentRef?.instance) {
+      const currentSettings = this.stateService.getCurrentSettings();
+      contentRef.instance.setInitialValues(currentSettings);
+    }
 
     try {
-      // Use firstValueFrom to properly await the Observable
-      const result = await firstValueFrom(dialogRef.result);
+      const result = await firstValueFrom(windowRef.result);
 
-      if (result instanceof MeshBoardSettingsResult) {
-        this.stateService.updateSettings(result);
+      if (result instanceof WindowCloseResult) {
+        return;
+      }
+
+      if (result && typeof result === 'object' && 'name' in result && 'columns' in result) {
+        const settingsResult = result as MeshBoardSettingsResult;
+        this.stateService.updateSettings({
+          ...settingsResult,
+          entitySelectors: settingsResult.entitySelectors
+        });
 
         // Enter edit mode if not already in it
         if (!this.isEditMode()) {
@@ -338,7 +486,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
         }
       }
     } catch {
-      // Dialog was closed without action
+      // Window was closed without action
     }
   }
 
@@ -476,9 +624,46 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   /**
    * Refreshes all widget data.
    */
-  refresh(): void {
+  async refresh(): Promise<void> {
     this.stateService.triggerRefresh();
   }
+
+  /**
+   * Programmatically sets an entity selector value from outside the component.
+   * Use this when the host application controls entity selection (e.g., with meshBoardHideEntitySelectors).
+   * Resolves entity attributes, sets variables, and refreshes widgets.
+   */
+  async setEntitySelector(selectorId: string, rtId: string, displayName?: string): Promise<void> {
+    const selector = this.stateService.getEntitySelector(selectorId);
+    if (!selector) {
+      console.warn(`Entity selector '${selectorId}' not found`);
+      return;
+    }
+
+    // Update selection state
+    this.stateService.updateEntitySelectorSelection(selectorId, rtId, displayName);
+
+    // Fetch entity and set variables from attribute mappings
+    const resolvedName = await this.resolveEntitySelectorVariables(selector, rtId);
+    if (resolvedName && !displayName) {
+      this.stateService.updateEntitySelectorSelection(selectorId, rtId, resolvedName);
+    }
+
+    // Refresh widgets
+    this.stateService.triggerRefresh();
+  }
+
+  /**
+   * Programmatically clears an entity selector value from outside the component.
+   */
+  clearEntitySelector(selectorId: string): void {
+    this.stateService.updateEntitySelectorSelection(selectorId, undefined);
+    this.stateService.clearEntitySelectorVariables(selectorId);
+    this.stateService.triggerRefresh();
+  }
+
+  /** Resolution errors for runtime entity variables */
+  readonly variableResolutionErrors = this.stateService.variableResolutionErrors;
 
   // ============================================================================
   // Time Filter Event Handlers
@@ -486,24 +671,28 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   /**
    * Handles time range change from the time range picker.
-   * Triggers a refresh of all widgets to apply the new filter.
+   * No-op: refresh is triggered by onTimeSelectionChange to ensure variables are updated first.
    */
   onTimeRangeChange(_range: TimeRange): void {
-    // Trigger widget refresh when time range changes
-    this.refresh();
+    // Intentionally empty — refresh is handled in onTimeSelectionChange
+    // to avoid a race condition where widgets refresh before the new
+    // time filter variables ($timeRangeFrom/$timeRangeTo) are set.
   }
 
   /**
    * Handles time selection change from the time range picker.
-   * Updates the time filter variables and persists the selection.
+   * Updates the time filter variables, persists the selection, syncs to URL, and triggers refresh.
    */
-  onTimeSelectionChange(sharedSelection: SharedTimeRangeSelection): void {
+  async onTimeSelectionChange(sharedSelection: SharedTimeRangeSelection): Promise<void> {
     // Convert shared-ui selection to our model
     const selection: TimeRangeSelection = {
       type: sharedSelection.type,
       year: sharedSelection.year,
       quarter: sharedSelection.quarter,
       month: sharedSelection.month,
+      day: sharedSelection.day,
+      hourFrom: sharedSelection.hourFrom,
+      hourTo: sharedSelection.hourTo,
       relativeValue: sharedSelection.relativeValue,
       relativeUnit: sharedSelection.relativeUnit,
       customFrom: sharedSelection.customFrom?.toISOString(),
@@ -518,14 +707,126 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     }
 
     // Calculate the time range from the selection
-    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection);
+    const showTime = this.stateService.getTimeFilterConfig()?.pickerConfig?.showTime ?? false;
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
     if (!range) return;
 
     // Convert to ISO strings
     const rangeISO = TimeRangeUtils.toISO(range);
 
-    // Update state with new selection and time range values
+    // Update state with new selection and time range values (sets variables first)
     this.stateService.updateTimeFilterSelection(selection, rangeISO.from, rangeISO.to);
+
+    // Sync selection to URL query parameters and update the URL signal
+    // so that the initialTimeSelection computed reflects the new state
+    // (otherwise the stale URL selection keeps overriding the picker)
+    this._urlTimeSelection.set(selection);
+    this.writeTimeFilterToUrl(selection);
+
+    // Refresh widgets now that variables are up to date
+    await this.refresh();
+  }
+
+  /**
+   * Resets the time filter to the configured default selection.
+   * Clears the stored selection and applies the default.
+   */
+  resetTimeFilterToDefault(): void {
+    const config = this.timeFilterConfig();
+    if (!config?.defaultSelection) return;
+
+    const defaultSel = config.defaultSelection;
+    const sharedSelection = this.toSharedSelection(defaultSel);
+    const showTime = config.pickerConfig?.showTime ?? false;
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+    if (!range) return;
+
+    const rangeISO = TimeRangeUtils.toISO(range);
+    this.stateService.updateTimeFilterSelection(defaultSel, rangeISO.from, rangeISO.to);
+    this._urlTimeSelection.set(defaultSel);
+    this.writeTimeFilterToUrl(defaultSel);
+  }
+
+  /**
+   * Writes the time filter selection to URL query parameters.
+   * Only writes params relevant to the current type, clears all others.
+   */
+  private writeTimeFilterToUrl(selection: TimeRangeSelection): void {
+    // Start with all params cleared
+    const cleanParams: Record<string, string | null> = {
+      tf_type: selection.type,
+      tf_year: null,
+      tf_quarter: null,
+      tf_month: null,
+      tf_day: null,
+      tf_hf: null,
+      tf_ht: null,
+      tf_rv: null,
+      tf_ru: null,
+      tf_from: null,
+      tf_to: null
+    };
+
+    // Set only the params relevant to the current type
+    switch (selection.type) {
+      case 'year':
+        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
+        break;
+      case 'quarter':
+        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
+        if (selection.quarter != null) cleanParams['tf_quarter'] = selection.quarter.toString();
+        break;
+      case 'month':
+        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
+        if (selection.month != null) cleanParams['tf_month'] = selection.month.toString();
+        break;
+      case 'day':
+        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
+        if (selection.month != null) cleanParams['tf_month'] = selection.month.toString();
+        if (selection.day != null) cleanParams['tf_day'] = selection.day.toString();
+        if (selection.hourFrom != null) cleanParams['tf_hf'] = selection.hourFrom.toString();
+        if (selection.hourTo != null) cleanParams['tf_ht'] = selection.hourTo.toString();
+        break;
+      case 'relative':
+        if (selection.relativeValue != null) cleanParams['tf_rv'] = selection.relativeValue.toString();
+        if (selection.relativeUnit) cleanParams['tf_ru'] = selection.relativeUnit;
+        break;
+      case 'custom':
+        if (selection.customFrom) cleanParams['tf_from'] = selection.customFrom;
+        if (selection.customTo) cleanParams['tf_to'] = selection.customTo;
+        break;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: cleanParams,
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  /**
+   * Reads the time filter selection from URL query parameters.
+   * Returns null if no time filter params are present.
+   */
+  private readTimeFilterFromUrl(): TimeRangeSelection | null {
+    const params = this.route.snapshot.queryParamMap;
+    const type = params.get('tf_type');
+    if (!type) return null;
+
+    return {
+      type: type as TimeRangeSelection['type'],
+      year: params.has('tf_year') ? Number(params.get('tf_year')) : undefined,
+      quarter: params.has('tf_quarter') ? Number(params.get('tf_quarter')) as TimeRangeSelection['quarter'] : undefined,
+      month: params.has('tf_month') ? Number(params.get('tf_month')) : undefined,
+      day: params.has('tf_day') ? Number(params.get('tf_day')) : undefined,
+      hourFrom: params.has('tf_hf') ? Number(params.get('tf_hf')) : undefined,
+      hourTo: params.has('tf_ht') ? Number(params.get('tf_ht')) : undefined,
+      relativeValue: params.has('tf_rv') ? Number(params.get('tf_rv')) : undefined,
+      relativeUnit: params.get('tf_ru') as TimeRangeSelection['relativeUnit'] ?? undefined,
+      customFrom: params.get('tf_from') ?? undefined,
+      customTo: params.get('tf_to') ?? undefined
+    };
   }
 
   /**
@@ -537,11 +838,41 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       a.year === b.year &&
       a.quarter === b.quarter &&
       a.month === b.month &&
+      a.day === b.day &&
+      a.hourFrom === b.hourFrom &&
+      a.hourTo === b.hourTo &&
       a.relativeValue === b.relativeValue &&
       a.relativeUnit === b.relativeUnit &&
       a.customFrom === b.customFrom &&
       a.customTo === b.customTo
     );
+  }
+
+  /**
+   * Duplicates a widget with all its settings.
+   * Creates a deep copy with a new ID and places it in the next free position.
+   */
+  duplicateWidget(widget: AnyWidgetConfig): void {
+    const config = this.stateService.getConfig();
+    const newId = this.widgetFactory.generateId();
+    const position = this.findFreePosition(config.widgets, config.columns, {
+      colSpan: widget.colSpan,
+      rowSpan: widget.rowSpan
+    });
+
+    const duplicate: AnyWidgetConfig = JSON.parse(JSON.stringify(widget));
+    duplicate.id = newId;
+    duplicate.rtId = undefined;
+    duplicate.col = position.col;
+    duplicate.row = position.row;
+    duplicate.title = `${widget.title} (Copy)`;
+
+    this.stateService.addWidget(duplicate);
+
+    // Enter edit mode if not already in it
+    if (!this.isEditMode()) {
+      this.editModeService.enterEditMode(this.stateService.getConfig());
+    }
   }
 
   /**
@@ -712,6 +1043,156 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   closeEditWidgetDialog(): void {
     this.showEditWidgetDialog = false;
     this.editingWidget = null;
+  }
+
+  // ============================================================================
+  // Entity Selector Event Handlers
+  // ============================================================================
+
+  /**
+   * Handles entity selection from the entity selector toolbar.
+   * Fetches entity attributes, sets variables, syncs to URL, and refreshes widgets.
+   */
+  async onEntitySelectorSelected(event: EntitySelectorEvent): Promise<void> {
+    const { selectorId, entity } = event;
+    const selector = this.stateService.getEntitySelector(selectorId);
+    if (!selector) return;
+
+    // Update selector selection state
+    this.stateService.updateEntitySelectorSelection(selectorId, entity.rtId, entity.displayName);
+
+    // Fetch entity and set variables from attribute mappings
+    await this.resolveEntitySelectorVariables(selector, entity.rtId);
+
+    // Sync to URL
+    this.writeEntitySelectorsToUrl();
+
+    // Refresh widgets
+    this.stateService.triggerRefresh();
+  }
+
+  /**
+   * Handles entity cleared from the entity selector toolbar.
+   * Clears variables, syncs URL, and refreshes widgets.
+   */
+  async onEntitySelectorCleared(event: EntitySelectorClearEvent): Promise<void> {
+    const { selectorId } = event;
+
+    // Clear selection state
+    this.stateService.updateEntitySelectorSelection(selectorId, undefined);
+
+    // Clear variables for this selector
+    this.stateService.clearEntitySelectorVariables(selectorId);
+
+    // Sync to URL
+    this.writeEntitySelectorsToUrl();
+
+    // Refresh widgets
+    this.stateService.triggerRefresh();
+  }
+
+  /**
+   * Initializes entity selectors from URL params, route data, or defaults.
+   */
+  private async initializeEntitySelectors(): Promise<void> {
+    const selectors = this.stateService.getEntitySelectors();
+    if (selectors.length === 0) return;
+
+    // Read URL params
+    const urlSelections = this.readEntitySelectorsFromUrl();
+    // Read route data
+    const routeData = this.route.snapshot.data['entitySelectors'] as Record<string, string> | undefined;
+
+    for (const selector of selectors) {
+      // Priority: route data > URL params > defaultRtId
+      const rtId = routeData?.[selector.id]
+        ?? urlSelections.get(selector.id)
+        ?? selector.defaultRtId;
+
+      if (rtId) {
+        const displayName = await this.resolveEntitySelectorVariables(selector, rtId);
+        this.stateService.updateEntitySelectorSelection(selector.id, rtId, displayName);
+      }
+    }
+  }
+
+  /**
+   * Resolves variables for an entity selector by fetching entity attributes.
+   */
+  private async resolveEntitySelectorVariables(selector: EntitySelectorConfig, rtId: string): Promise<string | undefined> {
+    try {
+      const entity = await firstValueFrom(
+        this.dataService.fetchRuntimeEntity({
+          type: 'runtimeEntity',
+          ckTypeId: selector.ckTypeId,
+          rtId
+        })
+      );
+
+      if (!entity) {
+        console.warn(`Entity not found for selector '${selector.id}': ${rtId}`);
+        return undefined;
+      }
+
+      const values = selector.attributeMappings.map(mapping => {
+        const attr = entity.attributes.find(a => a.attributeName === mapping.attributePath);
+        return {
+          name: mapping.variableName,
+          value: attr ? String(attr.value ?? '') : '',
+          type: mapping.attributeValueType
+            ? this.variableService.mapAttributeTypeToVariableType(mapping.attributeValueType)
+            : 'string'
+        };
+      });
+
+      this.stateService.setEntitySelectorVariables(selector.id, values);
+
+      return entity.rtWellKnownName || entity.rtId;
+    } catch (error) {
+      console.error(`Error resolving entity selector '${selector.id}':`, error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Writes entity selector selections to URL query parameters.
+   * Format: es_<selectorId>=<rtId>
+   */
+  private writeEntitySelectorsToUrl(): void {
+    const selectors = this.stateService.getEntitySelectors();
+    const params: Record<string, string | null> = {};
+
+    for (const selector of selectors) {
+      params[`es_${selector.id}`] = selector.selectedRtId ?? null;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: params,
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  /**
+   * Reads entity selector selections from URL query parameters.
+   * Returns a map of selectorId -> rtId.
+   */
+  private readEntitySelectorsFromUrl(): Map<string, string> {
+    const params = this.route.snapshot.queryParamMap;
+    const result = new Map<string, string>();
+
+    for (const key of params.keys) {
+      if (key.startsWith('es_')) {
+        const selectorId = key.substring(3);
+        const value = params.get(key);
+        if (value) {
+          result.set(selectorId, value);
+        }
+      }
+    }
+
+    return result;
   }
 
   // === HasUnsavedChanges interface implementation ===

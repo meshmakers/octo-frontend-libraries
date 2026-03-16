@@ -186,7 +186,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
 
       tick(300);
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestCkType', undefined, undefined, undefined, undefined, 'test'
+        'TestCkType', undefined, undefined, undefined, undefined, 'test', undefined, undefined
       );
     }));
 
@@ -223,7 +223,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
 
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledTimes(1);
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestCkType', undefined, undefined, undefined, undefined, 'test2'
+        'TestCkType', undefined, undefined, undefined, undefined, 'test2', undefined, undefined
       );
     }));
   });
@@ -240,7 +240,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       component.onValueTypeFilterChange(component.selectedValueTypeFilter);
 
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestCkType', undefined, undefined, undefined, 'STRING', undefined
+        'TestCkType', undefined, undefined, undefined, 'STRING', undefined, undefined, undefined
       );
     });
   });

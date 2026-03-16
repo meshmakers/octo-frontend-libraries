@@ -24,7 +24,17 @@
       @if (commandItem) {
         @switch (commandItem.type) {
           @case ('link') {
-            @if (commandItem.svgIcon) {
+            @if (commandItem.children && commandItem.children.length > 0) {
+              <kendo-dropdownbutton
+                [data]="commandItem.children"
+                [svgIcon]="$any(commandItem.svgIcon)"
+                [disabled]="getIsDisabled(commandItem) || isLoading()"
+                [textField]="'text'"
+                themeColor="primary"
+                (itemClick)="onToolbarDropdownItemClick($event)">
+                {{ commandItem.text }}
+              </kendo-dropdownbutton>
+            } @else if (commandItem.svgIcon) {
               <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
                       [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
@@ -58,7 +68,17 @@
       @if (commandItem) {
         @switch (commandItem.type) {
           @case ('link') {
-            @if (commandItem.svgIcon) {
+            @if (commandItem.children && commandItem.children.length > 0) {
+              <kendo-dropdownbutton
+                [data]="commandItem.children"
+                [svgIcon]="$any(commandItem.svgIcon)"
+                [disabled]="getIsDisabled(commandItem) || isLoading()"
+                [textField]="'text'"
+                themeColor="primary"
+                (itemClick)="onToolbarDropdownItemClick($event)">
+                {{ commandItem.text }}
+              </kendo-dropdownbutton>
+            } @else if (commandItem.svgIcon) {
               <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
                       [disabled]="getIsDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
@@ -118,6 +138,8 @@
                     <kendo-svg-icon [icon]="mapping.icon" [size]="'small'"></kendo-svg-icon>
                   </span>
                 </span>
+              } @else if (dataItem?.text) {
+                <span>{{ dataItem.text }}</span>
               }
             </ng-template>
             <ng-template kendoDropDownListItemTemplate let-dataItem>
@@ -136,13 +158,13 @@
         } @else {
           @switch (getFilterType(column)) {
             @case ('numeric') {
-              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-numeric-filter-cell>
+              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" operator="eq"></kendo-grid-numeric-filter-cell>
             }
             @case ('boolean') {
               <kendo-grid-boolean-filter-cell [column]="gridColumn" [filter]="filter"></kendo-grid-boolean-filter-cell>
             }
             @case ('date') {
-              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-date-filter-cell>
+              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" operator="eq"></kendo-grid-date-filter-cell>
             }
             @default {
               <kendo-grid-string-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-string-filter-cell>
@@ -180,6 +202,9 @@
               <code class="cron-expression">{{ getValue(dataItem, column) }}</code>
               <span class="cron-description">{{ getCronHumanReadable(getValue(dataItem, column)) }}</span>
             </span>
+          }
+          @case ('numeric') {
+            {{ $any(getValue(dataItem, column)) | number:column.format }}
           }
           @default {
             {{ getValue(dataItem, column) }}

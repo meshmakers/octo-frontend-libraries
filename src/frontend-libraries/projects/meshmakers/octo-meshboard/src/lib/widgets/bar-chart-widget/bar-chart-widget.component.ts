@@ -307,7 +307,6 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
         this.executeRuntimeQueryGQL.fetch({
           variables: {
             rtId: queryDataSource.queryRtId,
-            first: 100, // Limit for bar chart
             fieldFilter
           }
         }).pipe(

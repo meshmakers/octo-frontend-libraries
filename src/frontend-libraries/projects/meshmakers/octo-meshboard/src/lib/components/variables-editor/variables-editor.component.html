@@ -1,23 +1,22 @@
 <div class="variables-editor">
   <div class="variables-header">
     <span class="section-title">Variables</span>
-    <button
-      kendoButton
-      (click)="addVariable()"
-      [svgIcon]="plusIcon"
-      fillMode="flat"
-      themeColor="primary">
-      Add Variable
-    </button>
+    <div class="header-actions">
+      <button
+        kendoButton
+        (click)="addVariable()"
+        [svgIcon]="plusIcon"
+        themeColor="primary">
+        Add Variable
+      </button>
+    </div>
   </div>
 
   @if (variables.length > 0) {
     <div class="variables-list">
       <div class="list-header">
         <span class="col-name">Name</span>
-        <span class="col-type">Type</span>
-        <span class="col-value">Value</span>
-        <span class="col-default">Default</span>
+        <span class="col-config">Configuration</span>
         <span class="col-actions"></span>
       </div>
 
@@ -39,72 +38,70 @@
             }
           </div>
 
-          <!-- Type -->
-          <div class="col-type">
-            <kendo-dropdownlist
-              [data]="typeOptions"
-              [value]="getTypeOption(variable)"
-              (valueChange)="onTypeChange(i, $event.value)"
-              textField="label"
-              valueField="value"
-              [style.width.%]="100">
-            </kendo-dropdownlist>
-          </div>
-
-          <!-- Value (type-specific) -->
-          <div class="col-value">
-            @switch (variable.type) {
-              @case ('number') {
-                <kendo-numerictextbox
-                  [value]="getNumberValue(variable)"
-                  (valueChange)="onNumberValueChange(i, $event)"
-                  [style.width.%]="100">
-                </kendo-numerictextbox>
-              }
-              @case ('boolean') {
+          <!-- Configuration (type-specific) -->
+          <div class="col-config">
+            <div class="static-config">
+              <div class="static-config-row">
                 <kendo-dropdownlist
-                  [data]="booleanOptions"
-                  [value]="variable.value"
-                  (valueChange)="onValueChange(i, $event)"
-                  [style.width.%]="100">
+                  [data]="typeOptions"
+                  [value]="getTypeOption(variable)"
+                  (valueChange)="onTypeChange(i, $event.value)"
+                  textField="label"
+                  valueField="value"
+                  class="type-dropdown">
                 </kendo-dropdownlist>
-              }
-              @case ('date') {
-                <kendo-datepicker
-                  [value]="getDateValue(variable)"
-                  (valueChange)="onDateValueChange(i, $event)"
-                  [style.width.%]="100">
-                </kendo-datepicker>
-              }
-              @case ('datetime') {
-                <kendo-datetimepicker
-                  [value]="getDateValue(variable)"
-                  (valueChange)="onDateValueChange(i, $event)"
-                  [style.width.%]="100">
-                </kendo-datetimepicker>
-              }
-              @default {
+
+                @switch (variable.type) {
+                  @case ('number') {
+                    <kendo-numerictextbox
+                      [value]="getNumberValue(variable)"
+                      (valueChange)="onNumberValueChange(i, $event)"
+                      class="value-input">
+                    </kendo-numerictextbox>
+                  }
+                  @case ('boolean') {
+                    <kendo-dropdownlist
+                      [data]="booleanOptions"
+                      [value]="variable.value"
+                      (valueChange)="onValueChange(i, $event)"
+                      class="value-input">
+                    </kendo-dropdownlist>
+                  }
+                  @case ('date') {
+                    <kendo-datepicker
+                      [value]="getDateValue(variable)"
+                      (valueChange)="onDateValueChange(i, $event)"
+                      class="value-input">
+                    </kendo-datepicker>
+                  }
+                  @case ('datetime') {
+                    <kendo-datetimepicker
+                      [value]="getDateValue(variable)"
+                      (valueChange)="onDateValueChange(i, $event)"
+                      class="value-input">
+                    </kendo-datetimepicker>
+                  }
+                  @default {
+                    <kendo-textbox
+                      [value]="variable.value"
+                      (valueChange)="onValueChange(i, $event)"
+                      placeholder="Value"
+                      class="value-input">
+                    </kendo-textbox>
+                  }
+                }
+
                 <kendo-textbox
-                  [value]="variable.value"
-                  (valueChange)="onValueChange(i, $event)"
-                  placeholder="Value"
-                  [style.width.%]="100">
+                  [value]="variable.defaultValue ?? ''"
+                  (valueChange)="onDefaultValueChange(i, $event)"
+                  placeholder="Default"
+                  class="default-input">
                 </kendo-textbox>
-              }
-            }
+              </div>
+            </div>
           </div>
 
-          <!-- Default Value -->
-          <div class="col-default">
-            <kendo-textbox
-              [value]="variable.defaultValue ?? ''"
-              (valueChange)="onDefaultValueChange(i, $event)"
-              placeholder="Default"
-              [style.width.%]="100">
-            </kendo-textbox>
-          </div>
-
-          <!-- Remove Button -->
+          <!-- Actions -->
           <div class="col-actions">
             <button
               kendoButton
@@ -121,11 +118,11 @@
   } @else {
     <div class="empty-state">
       <p>No variables defined.</p>
-      <p class="hint">Click "Add Variable" to create one.</p>
+      <p class="hint">Click "Add Variable" to create one. Use Entity Selectors for entity-based variables.</p>
     </div>
   }
 
   <div class="usage-hint">
-    <strong>Usage:</strong> Reference variables in filter values as <code>$variableName</code>
+    <strong>Usage:</strong> Reference variables in filter values as <code>{{ '${variableName}' }}</code>
   </div>
 </div>
