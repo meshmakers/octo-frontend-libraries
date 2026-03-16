@@ -531,18 +531,15 @@ export class FieldFilterEditorComponent implements OnChanges {
   public selectedKeys: number[] = [];
 
   ngOnChanges(changes?: SimpleChanges): void {
-    // Self-load attributes when ckTypeId changes
-    if (changes?.['ckTypeId'] && this.ckTypeId) {
-      this.loadAttributesFromCkType();
-    }
-
-    // When hideNavigationProperties changes to true, reset nav props and reload
+    // When hideNavigationProperties changes to true, reset nav props
     if (changes?.['hideNavigationProperties'] && this.hideNavigationProperties) {
       this.includeNavigationProperties = false;
       this.maxDepth = null;
-      if (this.ckTypeId) {
-        this.loadAttributesFromCkType();
-      }
+    }
+
+    // Reload attributes when ckTypeId or hideNavigationProperties changes
+    if ((changes?.['ckTypeId'] || changes?.['hideNavigationProperties']) && this.ckTypeId) {
+      this.loadAttributesFromCkType();
     }
 
     this.filteredAttributeList = [...this.availableAttributes];
