@@ -11,6 +11,10 @@ interface MockComponentInstance {
     selectedAttributes?: string[];
     dialogTitle?: string;
     singleSelect?: boolean;
+    additionalAttributes?: AttributeItem[];
+    includeNavigationProperties?: boolean;
+    maxDepth?: number;
+    hideNavigationControls?: boolean;
   };
 }
 
@@ -134,7 +138,11 @@ describe('AttributeSelectorDialogService', () => {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: selectedAttrs,
         dialogTitle: 'My Title',
-        singleSelect: undefined
+        singleSelect: undefined,
+        additionalAttributes: undefined,
+        includeNavigationProperties: undefined,
+        maxDepth: undefined,
+        hideNavigationControls: undefined
       });
     });
 
@@ -252,8 +260,30 @@ describe('AttributeSelectorDialogService', () => {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: undefined,
         dialogTitle: undefined,
-        singleSelect: undefined
+        singleSelect: undefined,
+        additionalAttributes: undefined,
+        includeNavigationProperties: undefined,
+        maxDepth: undefined,
+        hideNavigationControls: undefined
       });
+    });
+
+    it('should pass new optional params to dialog component', async () => {
+      const resultPromise = service.openAttributeSelector(
+        'TestType/Entity', undefined, undefined, undefined, undefined,
+        false, 2, true
+      );
+
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
+
+      await resultPromise;
+
+      expect(mockComponentInstance.data).toEqual(jasmine.objectContaining({
+        includeNavigationProperties: false,
+        maxDepth: 2,
+        hideNavigationControls: true
+      }));
     });
 
     it('should set resizable to true', async () => {

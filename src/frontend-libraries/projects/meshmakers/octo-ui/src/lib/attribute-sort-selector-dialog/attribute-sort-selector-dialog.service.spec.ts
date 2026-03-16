@@ -13,6 +13,8 @@ interface MockComponentInstance {
     ckTypeId: string;
     selectedAttributes?: AttributeSortItem[];
     dialogTitle?: string;
+    includeNavigationProperties?: boolean;
+    hideNavigationControls?: boolean;
   };
 }
 
@@ -114,7 +116,9 @@ describe('AttributeSortSelectorDialogService', () => {
       expect(mockComponentInstance.data).toEqual({
         ckTypeId: 'TestType/Entity',
         selectedAttributes: mockSortAttributes,
-        dialogTitle: 'Custom Title'
+        dialogTitle: 'Custom Title',
+        includeNavigationProperties: undefined,
+        hideNavigationControls: undefined
       });
     });
 
@@ -241,7 +245,9 @@ describe('AttributeSortSelectorDialogService', () => {
       expect(mockComponentInstance.data).toEqual({
         ckTypeId: 'TestType/Entity',
         selectedAttributes: undefined,
-        dialogTitle: undefined
+        dialogTitle: undefined,
+        includeNavigationProperties: undefined,
+        hideNavigationControls: undefined
       });
     });
 
@@ -262,6 +268,22 @@ describe('AttributeSortSelectorDialogService', () => {
       expect(result.selectedAttributes[0].sortOrder).toBe('standard');
       expect(result.selectedAttributes[1].sortOrder).toBe('ascending');
       expect(result.selectedAttributes[2].sortOrder).toBe('descending');
+    });
+
+    it('should pass new optional params to dialog component', async () => {
+      const resultPromise = service.openAttributeSortSelector(
+        'TestType/Entity', undefined, undefined, false, true
+      );
+
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
+
+      await resultPromise;
+
+      expect(mockComponentInstance.data).toEqual(jasmine.objectContaining({
+        includeNavigationProperties: false,
+        hideNavigationControls: true
+      }));
     });
 
     it('should set resizable to true', async () => {

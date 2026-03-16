@@ -27,19 +27,31 @@ export class AttributeSelectorDialogService {
    * @param selectedAttributes Optional array of pre-selected attribute paths
    * @param dialogTitle Optional custom dialog title
    * @param singleSelect Optional flag for single-select mode
+   * @param additionalAttributes Optional virtual attributes to include (e.g., Timestamp for stream data)
+   * @param includeNavigationProperties Optional flag to control navigation property inclusion
+   * @param maxDepth Optional max depth for navigation properties
+   * @param hideNavigationControls Optional flag to hide the navigation property controls in the dialog
    * @returns Promise that resolves with the result containing selected attributes and confirmation status
    */
   public async openAttributeSelector(
     rtCkTypeId: string,
     selectedAttributes?: string[],
     dialogTitle?: string,
-    singleSelect?: boolean
+    singleSelect?: boolean,
+    additionalAttributes?: AttributeItem[],
+    includeNavigationProperties?: boolean,
+    maxDepth?: number,
+    hideNavigationControls?: boolean
   ): Promise<AttributeSelectorResult> {
     const data: AttributeSelectorDialogData = {
       rtCkTypeId,
       selectedAttributes,
       dialogTitle,
-      singleSelect
+      singleSelect,
+      additionalAttributes,
+      includeNavigationProperties,
+      maxDepth,
+      hideNavigationControls
     };
 
     const dialogKey = singleSelect ? 'attribute-selector-single' : 'attribute-selector';
