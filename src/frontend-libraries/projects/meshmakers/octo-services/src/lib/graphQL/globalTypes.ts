@@ -17258,6 +17258,7 @@ export type StreamDataModelQueryStreamDataQueryArgsDto = {
   arg?: InputMaybe<StreamDataArgumentsDto>;
   first?: InputMaybe<Scalars['Int']['input']>;
   rtId: Scalars['OctoObjectId']['input'];
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
 };
 
 /** A single row in a persisted stream data query result. */

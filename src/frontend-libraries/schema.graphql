@@ -17667,7 +17667,9 @@ type StreamDataModelQuery {
     "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
     first: Int,
     "The persisted stream data query runtime id."
-    rtId: OctoObjectId!
+    rtId: OctoObjectId!,
+    "Sort order for items"
+    sortOrder: [Sort]
   ): StreamDataQueryRowDtoConnection
 }
 
