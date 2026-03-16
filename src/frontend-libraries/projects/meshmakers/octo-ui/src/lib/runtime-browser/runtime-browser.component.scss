@@ -1,9 +1,7 @@
 // ============================================================================
-// RUNTIME BROWSER - Component-specific styles
-// Common LCARS styles are in global styles.scss
+// RUNTIME BROWSER - Component-specific styles (self-contained)
+// Kendo theme and dockview overrides are scoped to this component via :host
 // ============================================================================
-
-// LCARS Color Variables come from global CSS custom properties
 
 // Container
 .runtime-browser-container {
@@ -11,7 +9,6 @@
   flex-direction: column;
   height: 100%;
   padding: 16px;
-  background: linear-gradient(180deg, var(--deep-sea-95), var(--deep-sea));
   gap: 16px;
 }
 

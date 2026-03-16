@@ -37,14 +37,14 @@ import {
 } from './graphQL/globalTypes';
 import { RtEntityIdHelper } from './models/rt-entity-id';
 import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from './runtime-browser.model';
+import {
   BrowserState,
   RuntimeBrowserStateService,
 } from './services/runtime-browser-state.service';
 import { TypeHelperService } from './services/type-helper.service';
-import {
-  DEFAULT_RUNTIME_BROWSER_MESSAGES,
-  RuntimeBrowserMessages,
-} from './runtime-browser.model';
 
 // Extended type to handle both Runtime Entities and CK Models/Types
 type BrowserItem =
@@ -55,24 +55,25 @@ type BrowserItem =
 
 @Component({
   selector: 'mm-runtime-browser',
-  imports: [
-    BaseTreeDetailComponent,
-    RuntimeBrowserDetailsComponent,
-  ],
+  imports: [BaseTreeDetailComponent, RuntimeBrowserDetailsComponent],
   template: `
-    <div class="runtime-browser-container">
+    <div class="runtime-browser-container kendo-theme-provider">
       <!-- LCARS Header -->
       <div class="lcars-page-header">
         <div class="lcars-header-accent"></div>
         <div class="header-content">
           <h1 class="page-title">
-            <span class="title-prefix">{{ resolvedMessages().titlePrefix }}</span>
+            <span class="title-prefix">{{
+              resolvedMessages().titlePrefix
+            }}</span>
             <span class="title-main">{{ resolvedMessages().title }}</span>
           </h1>
           <div class="header-stats">
             <div class="stat-badge">
               <span class="badge-icon">&#9632;</span>
-              <span class="badge-label">{{ resolvedMessages().badgeLabel }}</span>
+              <span class="badge-label">{{
+                resolvedMessages().badgeLabel
+              }}</span>
             </div>
           </div>
         </div>
@@ -135,10 +136,12 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   private isEditing = false;
 
   messages = input<Partial<RuntimeBrowserMessages>>({});
-  protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(() => ({
-    ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
-    ...this.messages(),
-  }));
+  protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(
+    () => ({
+      ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
+      ...this.messages(),
+    }),
+  );
 
   @ViewChild('treeDetail', { static: false })
   treeDetail!: BaseTreeDetailComponent<BrowserItem>;
