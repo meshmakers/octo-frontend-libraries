@@ -97,8 +97,11 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
   protected selectedYear = signal<number>(new Date().getFullYear());
   protected selectedQuarter = signal<Quarter>(TimeRangeUtils.getCurrentQuarter());
   protected selectedMonth = signal<number>(new Date().getMonth());
+  protected selectedDay = signal<number>(new Date().getDate());
   protected relativeValue = signal<number>(24);
   protected relativeUnit = signal<RelativeTimeUnit>('hours');
+  protected hourFrom = signal<number | null>(null);
+  protected hourTo = signal<number | null>(null);
   protected customFrom = signal<Date>(new Date());
   protected customTo = signal<Date>(new Date());
 
@@ -114,6 +117,7 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
       { value: 'year', label: this.mergedLabels().typeYear || 'Year' },
       { value: 'quarter', label: this.mergedLabels().typeQuarter || 'Quarter' },
       { value: 'month', label: this.mergedLabels().typeMonth || 'Month' },
+      { value: 'day', label: this.mergedLabels().typeDay || 'Day' },
       { value: 'relative', label: this.mergedLabels().typeRelative || 'Relative' },
       { value: 'custom', label: this.mergedLabels().typeCustom || 'Custom' }
     ];
@@ -140,6 +144,37 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
     TimeRangeUtils.generateMonthOptions()
   );
 
+  protected dayOptions = computed(() => {
+    const year = this.selectedYear();
+    const month = this.selectedMonth();
+    // Get number of days in the selected month
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const options: TimeRangeOption<number>[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      options.push({ value: d, label: d.toString() });
+    }
+    return options;
+  });
+
+  protected hourFromOptions = computed(() => {
+    const options: TimeRangeOption<number>[] = [];
+    for (let h = 0; h <= 23; h++) {
+      options.push({ value: h, label: h.toString().padStart(2, '0') + ':00' });
+    }
+    return options;
+  });
+
+  protected hourToOptions = computed(() => {
+    const fromHour = this.hourFrom();
+    const minHour = fromHour !== null ? fromHour + 1 : 1;
+    const options: TimeRangeOption<number>[] = [];
+    for (let h = minHour; h <= 24; h++) {
+      const label = h === 24 ? '24:00' : h.toString().padStart(2, '0') + ':00';
+      options.push({ value: h, label });
+    }
+    return options;
+  });
+
   protected relativeUnitOptions = computed<TimeRangeOption<RelativeTimeUnit>[]>(() => [
     { value: 'hours', label: this.mergedLabels().unitHours || 'Hours' },
     { value: 'days', label: this.mergedLabels().unitDays || 'Days' },
@@ -154,12 +189,15 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
       year: this.selectedYear(),
       quarter: this.selectedQuarter(),
       month: this.selectedMonth(),
+      day: this.selectedDay(),
+      hourFrom: this.hourFrom() ?? undefined,
+      hourTo: this.hourTo() ?? undefined,
       relativeValue: this.relativeValue(),
       relativeUnit: this.relativeUnit(),
       customFrom: this.customFrom(),
       customTo: this.customTo()
     };
-    return TimeRangeUtils.getTimeRangeFromSelection(selection);
+    return TimeRangeUtils.getTimeRangeFromSelection(selection, this.config.showTime ?? false);
   });
 
   // Min/Max dates for custom picker
@@ -193,6 +231,7 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
 
     this.selectedYear.set(currentYear);
     this.selectedMonth.set(currentMonth);
+    this.selectedDay.set(new Date().getDate());
     this.selectedQuarter.set(TimeRangeUtils.getCurrentQuarter());
     this.relativeValue.set(this.config.defaultRelativeValue ?? 24);
     this.relativeUnit.set(this.config.defaultRelativeUnit ?? 'hours');
@@ -223,6 +262,11 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
     if (selection.month !== undefined) {
       this.selectedMonth.set(selection.month);
     }
+    if (selection.day !== undefined) {
+      this.selectedDay.set(selection.day);
+    }
+    this.hourFrom.set(selection.hourFrom ?? null);
+    this.hourTo.set(selection.hourTo ?? null);
     if (selection.relativeValue !== undefined) {
       this.relativeValue.set(selection.relativeValue);
     }
@@ -240,6 +284,10 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
   // Event handlers
   protected onTypeChange(type: TimeRangeType): void {
     this.selectedType.set(type);
+    if (type !== 'day') {
+      this.hourFrom.set(null);
+      this.hourTo.set(null);
+    }
     this.emitChange();
   }
 
@@ -255,6 +303,44 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
 
   protected onMonthChange(month: number): void {
     this.selectedMonth.set(month);
+    // Clamp day to valid range for the new month
+    const daysInMonth = new Date(this.selectedYear(), month + 1, 0).getDate();
+    if (this.selectedDay() > daysInMonth) {
+      this.selectedDay.set(daysInMonth);
+    }
+    this.emitChange();
+  }
+
+  protected onDayChange(day: number): void {
+    this.selectedDay.set(day);
+    this.emitChange();
+  }
+
+  protected onHourFromChange(hour: number | null): void {
+    this.hourFrom.set(hour);
+    // If hourTo is less than or equal to hourFrom, adjust it
+    if (hour !== null && this.hourTo() !== null && this.hourTo()! <= hour) {
+      this.hourTo.set(hour + 1);
+    }
+    // If hourFrom is set but hourTo is not, default hourTo to hourFrom + 1
+    if (hour !== null && this.hourTo() === null) {
+      this.hourTo.set(hour + 1);
+    }
+    // If hourFrom is cleared, also clear hourTo
+    if (hour === null) {
+      this.hourTo.set(null);
+    }
+    this.emitChange();
+  }
+
+  protected onHourToChange(hour: number | null): void {
+    this.hourTo.set(hour);
+    this.emitChange();
+  }
+
+  protected clearHourFilter(): void {
+    this.hourFrom.set(null);
+    this.hourTo.set(null);
     this.emitChange();
   }
 
@@ -290,6 +376,9 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
       year: this.selectedYear(),
       quarter: this.selectedQuarter(),
       month: this.selectedMonth(),
+      day: this.selectedDay(),
+      hourFrom: this.hourFrom() ?? undefined,
+      hourTo: this.hourTo() ?? undefined,
       relativeValue: this.relativeValue(),
       relativeUnit: this.relativeUnit(),
       customFrom: this.customFrom(),

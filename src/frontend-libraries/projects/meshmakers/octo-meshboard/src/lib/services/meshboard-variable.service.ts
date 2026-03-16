@@ -35,6 +35,16 @@ export class MeshBoardVariableService {
   }
 
   /**
+   * Checks whether a string contains unresolved variable placeholders.
+   * @param value The string to check
+   * @returns true if the string contains ${variableName} or $variableName patterns
+   */
+  hasUnresolvedVariables(value: string): boolean {
+    if (!value) return false;
+    return /\$\{[^}]+\}|\$[a-zA-Z_]\w*/.test(value);
+  }
+
+  /**
    * Resolves variables in filter comparison values.
    * @param filters The filters with potential variable placeholders
    * @param variables The variables to resolve from
@@ -74,6 +84,47 @@ export class MeshBoardVariableService {
       operator: f.operator as FieldFilterOperatorsDto,
       comparisonValue: f.comparisonValue
     }));
+  }
+
+  /**
+   * Maps a CK attribute value type to a MeshBoard variable type.
+   */
+  mapAttributeTypeToVariableType(attributeValueType: string): MeshBoardVariableType {
+    switch (attributeValueType) {
+      case 'IntegerDto':
+      case 'DoubleDto':
+      case 'LongDto':
+      case 'INTEGER':
+      case 'DOUBLE':
+      case 'INTEGER_64':
+        return 'number';
+      case 'BooleanDto':
+      case 'BOOLEAN':
+        return 'boolean';
+      case 'DateTimeDto':
+      case 'DateTimeOffsetDto':
+      case 'DATE_TIME':
+      case 'DATE_TIME_OFFSET':
+        return 'datetime';
+      case 'DateDto':
+      case 'DATE':
+        return 'date';
+      default:
+        return 'string';
+    }
+  }
+
+  /**
+   * Generates a camelCase variable name from an attribute path.
+   * e.g., "contact.firstName" -> "contactFirstName"
+   */
+  attributePathToVariableName(attributePath: string): string {
+    const parts = attributePath.split('.');
+    return parts
+      .map((part, index) =>
+        index === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)
+      )
+      .join('');
   }
 
   /**

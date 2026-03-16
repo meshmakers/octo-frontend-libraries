@@ -25,6 +25,51 @@
   width: 100%;
 }
 
+// Entity selector hint
+.entity-selector-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  background: color-mix(in srgb, var(--kendo-color-info, #2196f3) 10%, var(--kendo-color-surface-alt, #fafafa));
+  border: 1px solid color-mix(in srgb, var(--kendo-color-info, #2196f3) 40%, transparent);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--kendo-color-on-app-surface, #424242);
+
+  strong {
+    color: var(--kendo-color-info, #2196f3);
+  }
+}
+
+// Variable resolution errors
+.variable-resolution-errors {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-bottom: 8px;
+  background: color-mix(in srgb, var(--kendo-color-error, #f44336) 10%, var(--kendo-color-surface-alt, #fafafa));
+  border: 1px solid var(--kendo-color-error, #f44336);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--kendo-color-on-app-surface, #424242);
+
+  strong {
+    color: var(--kendo-color-error, #f44336);
+  }
+
+  .error-item {
+    padding: 2px 8px;
+    background: color-mix(in srgb, var(--kendo-color-error, #f44336) 8%, transparent);
+    border-radius: 3px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+  }
+}
+
 // Model unavailable state
 .model-unavailable {
   display: flex;
@@ -88,7 +133,7 @@
 .meshboard-toolbar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   padding: 1rem 1.5rem;
   background-color: var(--kendo-color-surface-alt, white);
   border-bottom: 1px solid var(--kendo-color-border, #e0e0e0);
@@ -101,6 +146,7 @@
     gap: 1rem;
     flex: 1;
     min-width: 0;
+    align-self: center;
 
     .meshboard-title {
       margin: 0;
@@ -124,7 +170,7 @@
   .toolbar-center {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
     flex-shrink: 0;
 
     mm-time-range-picker {
@@ -135,6 +181,19 @@
         }
       }
     }
+  }
+
+  .toolbar-separator {
+    width: 1px;
+    align-self: stretch;
+    background-color: var(--kendo-color-border, #e0e0e0);
+    flex-shrink: 0;
+  }
+
+  .toolbar-entity-selectors {
+    display: flex;
+    align-items: flex-end;
+    flex-shrink: 0;
   }
 
   .toolbar-right {

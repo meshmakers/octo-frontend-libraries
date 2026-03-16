@@ -822,4 +822,192 @@ describe('MeshBoardStateService', () => {
       expect(service.availableDashboards).toBe(service.availableMeshBoards);
     });
   });
+
+  // ============================================================================
+  // Entity Selector Management
+  // ============================================================================
+
+  describe('Entity Selector Management', () => {
+    it('should return empty array when no entity selectors configured', () => {
+      expect(service.getEntitySelectors()).toEqual([]);
+    });
+
+    it('should return entity selectors from config', () => {
+      const selectors = [
+        {
+          id: 'mp',
+          label: 'Metering Point',
+          ckTypeId: 'Energy/MeteringPoint',
+          attributeMappings: [
+            { attributePath: 'name', variableName: 'mpName' }
+          ]
+        }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+      expect(service.getEntitySelectors()).toEqual(selectors);
+    });
+
+    it('should get specific entity selector by ID', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] },
+        { id: 'plant', label: 'Plant', ckTypeId: 'Energy/Plant', attributeMappings: [] }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+
+      expect(service.getEntitySelector('mp')?.label).toBe('Metering Point');
+      expect(service.getEntitySelector('plant')?.label).toBe('Plant');
+      expect(service.getEntitySelector('nonexistent')).toBeUndefined();
+    });
+
+    it('should update entity selectors', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
+      ];
+      service.updateEntitySelectors(selectors);
+      expect(service.getEntitySelectors()).toEqual(selectors);
+    });
+
+    it('should update entity selector selection', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+
+      service.updateEntitySelectorSelection('mp', 'rt-123', 'Test Entity');
+
+      const updated = service.getEntitySelector('mp');
+      expect(updated?.selectedRtId).toBe('rt-123');
+      expect(updated?.selectedDisplayName).toBe('Test Entity');
+    });
+
+    it('should clear entity selector selection', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [], selectedRtId: 'rt-123' }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+
+      service.updateEntitySelectorSelection('mp', undefined);
+
+      const updated = service.getEntitySelector('mp');
+      expect(updated?.selectedRtId).toBeUndefined();
+    });
+
+    it('should set entity selector variables', () => {
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'Test MP', type: 'string' },
+        { name: 'mpNumber', value: '42', type: 'number' }
+      ]);
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(2);
+      expect(vars[0].name).toBe('mpName');
+      expect(vars[0].value).toBe('Test MP');
+      expect(vars[0].source).toBe('entitySelector');
+      expect(vars[0].entitySelectorId).toBe('mp');
+      expect(vars[1].name).toBe('mpNumber');
+      expect(vars[1].value).toBe('42');
+    });
+
+    it('should replace entity selector variables on re-selection', () => {
+      // Set initial variables
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'Old MP' }
+      ]);
+      expect(service.getVariables().length).toBe(1);
+
+      // Set new variables for same selector
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'New MP' },
+        { name: 'mpCity', value: 'Vienna' }
+      ]);
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(2);
+      expect(vars.find(v => v.name === 'mpName')?.value).toBe('New MP');
+      expect(vars.find(v => v.name === 'mpCity')?.value).toBe('Vienna');
+    });
+
+    it('should not affect variables from other selectors', () => {
+      // Set variables for two different selectors
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'MP 1' }
+      ]);
+      service.setEntitySelectorVariables('plant', [
+        { name: 'plantName', value: 'Plant 1' }
+      ]);
+
+      expect(service.getVariables().length).toBe(2);
+
+      // Update only mp
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'MP 2' }
+      ]);
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(2);
+      expect(vars.find(v => v.name === 'mpName')?.value).toBe('MP 2');
+      expect(vars.find(v => v.name === 'plantName')?.value).toBe('Plant 1');
+    });
+
+    it('should clear entity selector variables', () => {
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'Test MP' }
+      ]);
+      service.setEntitySelectorVariables('plant', [
+        { name: 'plantName', value: 'Test Plant' }
+      ]);
+
+      service.clearEntitySelectorVariables('mp');
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(1);
+      expect(vars[0].name).toBe('plantName');
+    });
+
+    it('should not affect static variables when setting entity selector variables', () => {
+      // Add a static variable first
+      service.addVariable({
+        name: 'staticVar',
+        type: 'string',
+        source: 'static',
+        value: 'hello'
+      });
+
+      // Set entity selector variables
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'Test MP' }
+      ]);
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(2);
+      expect(vars.find(v => v.name === 'staticVar')?.value).toBe('hello');
+      expect(vars.find(v => v.name === 'mpName')?.value).toBe('Test MP');
+    });
+
+    it('should include entitySelectors in getCurrentSettings', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+
+      const settings = service.getCurrentSettings();
+      expect(settings.entitySelectors).toEqual(selectors);
+    });
+
+    it('should update entitySelectors via updateSettings', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
+      ];
+      service.updateSettings({
+        name: 'Test',
+        description: '',
+        columns: 6,
+        rowHeight: 200,
+        gap: 16,
+        entitySelectors: selectors
+      });
+
+      expect(service.getEntitySelectors()).toEqual(selectors);
+    });
+  });
 });

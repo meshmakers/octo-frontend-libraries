@@ -85,7 +85,7 @@ describe('CkTypeSelectorInputComponent', () => {
       expect(component.minSearchLength).toBe(2);
       expect(component.maxResults).toBe(50);
       expect(component.debounceMs).toBe(300);
-      expect(component.allowAbstract).toBeFalse();
+      expect(component.allowAbstract).toBeTrue();
       expect(component.dialogTitle).toBe('Select Construction Kit Type');
       expect(component.advancedSearchLabel).toBe('Advanced Search...');
     });

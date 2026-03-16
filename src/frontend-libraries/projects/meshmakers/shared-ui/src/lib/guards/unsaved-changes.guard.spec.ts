@@ -83,7 +83,8 @@ describe('UnsavedChangesGuard', () => {
 
       expect(confirmationServiceMock.showYesNoCancelConfirmationDialog).toHaveBeenCalledWith(
         'Unsaved Changes',
-        'You have unsaved changes. Do you want to save before leaving?'
+        'You have unsaved changes. Do you want to save before leaving?',
+        undefined
       );
       expect(saveChangesSpy).toHaveBeenCalled();
       expect(result).toBeTrue();
@@ -154,7 +155,9 @@ describe('UnsavedChangesGuard', () => {
 
       expect(confirmationServiceMock.showYesNoConfirmationDialog).toHaveBeenCalledWith(
         'Unsaved Changes',
-        'You have unsaved changes. Are you sure you want to leave? Your changes will be lost.'
+        'You have unsaved changes. Are you sure you want to leave? Your changes will be lost.',
+        undefined,
+        undefined
       );
       expect(result).toBeTrue();
     });

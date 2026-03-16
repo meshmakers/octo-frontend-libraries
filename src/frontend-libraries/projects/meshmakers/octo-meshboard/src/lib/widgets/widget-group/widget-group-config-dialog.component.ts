@@ -378,7 +378,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
         </div>
       </div>
 
-      <div class="action-bar">
+      <div class="action-bar mm-dialog-actions">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
           kendoButton

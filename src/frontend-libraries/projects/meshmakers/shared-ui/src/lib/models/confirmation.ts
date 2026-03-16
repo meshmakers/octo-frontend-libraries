@@ -12,10 +12,18 @@ export enum DialogType {
   Ok = 3
 }
 
+export interface ConfirmationButtonLabels {
+  yes?: string;
+  no?: string;
+  ok?: string;
+  cancel?: string;
+}
+
 export interface ConfirmationWindowData {
   title: string;
   message: string;
   dialogType: DialogType;
+  buttonLabels?: ConfirmationButtonLabels;
 }
 
 export class ConfirmationWindowResult {

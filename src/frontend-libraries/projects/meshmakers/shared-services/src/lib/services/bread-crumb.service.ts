@@ -33,30 +33,51 @@ export class BreadCrumbService {
 
         for (const breadCrumbRouteItem of breadCrumbRouteItems) {
 
-          let label = breadCrumbRouteItem.label;
-          let url = breadCrumbRouteItem.url;
+          if (!breadCrumbRouteItem || typeof breadCrumbRouteItem !== 'object') {
+            console.warn('BreadCrumbService: invalid breadcrumb item encountered. Skipping.');
+            continue;
+          }
+
+          if (breadCrumbRouteItem.label === undefined || breadCrumbRouteItem.label === null) {
+            const routePath = child.snapshot.url?.map(s => s.path).join('/') ?? '';
+            console.warn(`BreadCrumbService: breadcrumb item is missing a 'label' property on route '${routePath}'. Skipping item.`);
+            continue;
+          }
+
+          let label = String(breadCrumbRouteItem.label);
+          let url = String(breadCrumbRouteItem.url ?? '');
+
+          if (breadCrumbRouteItem.url === undefined || breadCrumbRouteItem.url === null) {
+            const routePath = child.snapshot.url?.map(s => s.path).join('/') ?? '';
+            console.warn(`BreadCrumbService: breadcrumb item '${label}' is missing a 'url' property on route '${routePath}'. ` +
+              `Add 'url' to the breadcrumb route data, e.g. { label: '${label}', url: '${routePath}' }.`);
+          }
 
           // We replace the route parameters with the actual values
           // Match all :paramName patterns in the URL
-          const paramMatches = url.match(/:([a-zA-Z0-9_]+)/g);
-          if (paramMatches) {
-            for (const match of paramMatches) {
-              const paramName = match.substring(1); // Remove leading ':'
-              const paramValue = child.snapshot.params[paramName] as string;
-              if (paramValue) {
-                url = url.replace(match, paramValue);
+          if (url) {
+            const paramMatches = url.match(/:([a-zA-Z0-9_]+)/g);
+            if (paramMatches) {
+              for (const match of paramMatches) {
+                const paramName = match.substring(1); // Remove leading ':'
+                const paramValue = child.snapshot.params[paramName] as string;
+                if (paramValue) {
+                  url = url.replace(match, paramValue);
+                }
               }
             }
           }
 
           // We replace the label parameters with the actual values from route (use updateBreadcrumbLabels to update the labels with data)
-          // noinspection RegExpDuplicateCharacterInClass
-          const labelParams = label.match(/[^{{]+(?=}})/g);
-          if (labelParams) {
-            for (const labelParam of labelParams) {
-              const routerParamID = child.snapshot.params[labelParam] as string;
-              if (routerParamID) {
-                label = label.replace('{{' + labelParam + '}}', routerParamID);
+          if (label) {
+            // noinspection RegExpDuplicateCharacterInClass
+            const labelParams = label.match(/[^{{]+(?=}})/g);
+            if (labelParams) {
+              for (const labelParam of labelParams) {
+                const routerParamID = child.snapshot.params[labelParam] as string;
+                if (routerParamID) {
+                  label = label.replace('{{' + labelParam + '}}', routerParamID);
+                }
               }
             }
           }
@@ -85,6 +106,9 @@ export class BreadCrumbService {
 
     const list = await firstValueFrom(this._breadCrumbItems);
     for (const breadCrumbDataItem of list) {
+      if (!breadCrumbDataItem.labelTemplate) {
+        continue;
+      }
       // noinspection RegExpDuplicateCharacterInClass
       const labelParams = breadCrumbDataItem.labelTemplate.match(/[^{{]+(?=}})/g);
       if (labelParams) {

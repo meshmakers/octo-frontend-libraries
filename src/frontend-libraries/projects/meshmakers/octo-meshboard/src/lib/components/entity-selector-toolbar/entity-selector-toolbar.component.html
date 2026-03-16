@@ -1,0 +1,19 @@
+<div class="entity-selector-toolbar">
+  @for (selector of entitySelectors; track selector.id) {
+    @if (selector.showInToolbar !== false) {
+    <div class="entity-selector-item">
+      <kendo-label [text]="selector.label">
+        <mm-entity-select-input
+          [dataSource]="getDataSource(selector)"
+          [dialogDataSource]="getDialogDataSource(selector)"
+          [initialDisplayValue]="selector.selectedDisplayName"
+          [placeholder]="'Select ' + selector.label + '...'"
+          [dialogTitle]="'Select ' + selector.label"
+          (entitySelected)="onEntitySelected(selector.id, $event)"
+          (entityCleared)="onEntityCleared(selector.id)">
+        </mm-entity-select-input>
+      </kendo-label>
+    </div>
+    }
+  }
+</div>

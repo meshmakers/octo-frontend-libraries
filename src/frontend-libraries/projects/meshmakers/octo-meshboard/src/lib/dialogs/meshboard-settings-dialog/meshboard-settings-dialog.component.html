@@ -1,147 +1,194 @@
 <div class="meshboard-settings-dialog">
-  <form class="settings-form">
-    <!-- Name Field -->
-    <kendo-formfield>
-      <kendo-label [for]="nameInput" text="Name *"></kendo-label>
-      <kendo-textbox
-        #nameInput
-        [(ngModel)]="name"
-        name="name"
-        placeholder="Enter MeshBoard name"
-        required>
-      </kendo-textbox>
-      @if (name.trim().length === 0) {
-        <kendo-formerror>Name is required</kendo-formerror>
-      }
-    </kendo-formfield>
+  <kendo-tabstrip [animate]="false">
+    <!-- General Tab -->
+    <kendo-tabstrip-tab [title]="'General'" [selected]="true">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <form class="settings-form">
+            <!-- Name Field -->
+            <kendo-formfield>
+              <kendo-label [for]="nameInput" text="Name *"></kendo-label>
+              <kendo-textbox
+                #nameInput
+                [(ngModel)]="name"
+                name="name"
+                placeholder="Enter MeshBoard name"
+                required>
+              </kendo-textbox>
+              @if (name.trim().length === 0) {
+                <kendo-formerror>Name is required</kendo-formerror>
+              }
+            </kendo-formfield>
 
-    <!-- Description Field -->
-    <kendo-formfield>
-      <kendo-label [for]="descriptionInput" text="Description"></kendo-label>
-      <kendo-textarea
-        #descriptionInput
-        [(ngModel)]="description"
-        name="description"
-        placeholder="Enter MeshBoard description (optional)"
-        [rows]="3">
-      </kendo-textarea>
-    </kendo-formfield>
+            <!-- Description Field -->
+            <kendo-formfield>
+              <kendo-label [for]="descriptionInput" text="Description"></kendo-label>
+              <kendo-textarea
+                #descriptionInput
+                [(ngModel)]="description"
+                name="description"
+                placeholder="Enter MeshBoard description (optional)"
+                [rows]="3">
+              </kendo-textarea>
+            </kendo-formfield>
 
-    <!-- Well-Known Name Field -->
-    <kendo-formfield>
-      <kendo-label [for]="wellKnownNameInput" text="Well-Known Name"></kendo-label>
-      <kendo-textbox
-        #wellKnownNameInput
-        [(ngModel)]="rtWellKnownName"
-        name="rtWellKnownName"
-        placeholder="e.g., cockpit, dashboard-main">
-      </kendo-textbox>
-      <kendo-formhint>Unique identifier for routing. Use lowercase with hyphens (e.g., 'cockpit', 'sales-dashboard').</kendo-formhint>
-    </kendo-formfield>
+            <!-- Well-Known Name Field -->
+            <kendo-formfield>
+              <kendo-label [for]="wellKnownNameInput" text="Well-Known Name"></kendo-label>
+              <kendo-textbox
+                #wellKnownNameInput
+                [(ngModel)]="rtWellKnownName"
+                name="rtWellKnownName"
+                placeholder="e.g., cockpit, dashboard-main">
+              </kendo-textbox>
+              <kendo-formhint>Unique identifier for routing. Use lowercase with hyphens (e.g., 'cockpit', 'sales-dashboard').</kendo-formhint>
+            </kendo-formfield>
 
-    <!-- Layout Settings -->
-    <div class="section-title">Layout Settings</div>
+            <!-- Layout Settings -->
+            <div class="section-title">Layout Settings</div>
 
-    <!-- Columns Field -->
-    <kendo-formfield>
-      <kendo-label [for]="columnsInput" text="Columns *"></kendo-label>
-      <kendo-numerictextbox
-        #columnsInput
-        [(ngModel)]="columns"
-        name="columns"
-        [min]="1"
-        [max]="12"
-        [decimals]="0"
-        [format]="'n0'"
-        [spinners]="true"
-        required>
-      </kendo-numerictextbox>
-      <kendo-formhint>Number of columns in the grid (1-12)</kendo-formhint>
-      @if (columns < 1 || columns > 12) {
-        <kendo-formerror>Columns must be between 1 and 12</kendo-formerror>
-      }
-    </kendo-formfield>
+            <!-- Columns Field -->
+            <kendo-formfield>
+              <kendo-label [for]="columnsInput" text="Columns *"></kendo-label>
+              <kendo-numerictextbox
+                #columnsInput
+                [(ngModel)]="columns"
+                name="columns"
+                [min]="1"
+                [max]="12"
+                [decimals]="0"
+                [format]="'n0'"
+                [spinners]="true"
+                required>
+              </kendo-numerictextbox>
+              <kendo-formhint>Number of columns in the grid (1-12)</kendo-formhint>
+              @if (columns < 1 || columns > 12) {
+                <kendo-formerror>Columns must be between 1 and 12</kendo-formerror>
+              }
+            </kendo-formfield>
 
-    <!-- Row Height Field -->
-    <kendo-formfield>
-      <kendo-label [for]="rowHeightInput" text="Row Height *"></kendo-label>
-      <kendo-numerictextbox
-        #rowHeightInput
-        [(ngModel)]="rowHeight"
-        name="rowHeight"
-        [min]="100"
-        [max]="1000"
-        [decimals]="0"
-        [format]="'n0'"
-        [spinners]="true"
-        required>
-      </kendo-numerictextbox>
-      <kendo-formhint>Height of each row in pixels (100-1000)</kendo-formhint>
-      @if (rowHeight < 100 || rowHeight > 1000) {
-        <kendo-formerror>Row height must be between 100 and 1000</kendo-formerror>
-      }
-    </kendo-formfield>
+            <!-- Row Height Field -->
+            <kendo-formfield>
+              <kendo-label [for]="rowHeightInput" text="Row Height *"></kendo-label>
+              <kendo-numerictextbox
+                #rowHeightInput
+                [(ngModel)]="rowHeight"
+                name="rowHeight"
+                [min]="100"
+                [max]="1000"
+                [decimals]="0"
+                [format]="'n0'"
+                [spinners]="true"
+                required>
+              </kendo-numerictextbox>
+              <kendo-formhint>Height of each row in pixels (100-1000)</kendo-formhint>
+              @if (rowHeight < 100 || rowHeight > 1000) {
+                <kendo-formerror>Row height must be between 100 and 1000</kendo-formerror>
+              }
+            </kendo-formfield>
 
-    <!-- Gap Field -->
-    <kendo-formfield>
-      <kendo-label [for]="gapInput" text="Gap *"></kendo-label>
-      <kendo-numerictextbox
-        #gapInput
-        [(ngModel)]="gap"
-        name="gap"
-        [min]="0"
-        [max]="100"
-        [decimals]="0"
-        [format]="'n0'"
-        [spinners]="true"
-        required>
-      </kendo-numerictextbox>
-      <kendo-formhint>Space between widgets in pixels (0-100)</kendo-formhint>
-      @if (gap < 0 || gap > 100) {
-        <kendo-formerror>Gap must be between 0 and 100</kendo-formerror>
-      }
-    </kendo-formfield>
+            <!-- Gap Field -->
+            <kendo-formfield>
+              <kendo-label [for]="gapInput" text="Gap *"></kendo-label>
+              <kendo-numerictextbox
+                #gapInput
+                [(ngModel)]="gap"
+                name="gap"
+                [min]="0"
+                [max]="100"
+                [decimals]="0"
+                [format]="'n0'"
+                [spinners]="true"
+                required>
+              </kendo-numerictextbox>
+              <kendo-formhint>Space between widgets in pixels (0-100)</kendo-formhint>
+              @if (gap < 0 || gap > 100) {
+                <kendo-formerror>Gap must be between 0 and 100</kendo-formerror>
+              }
+            </kendo-formfield>
+          </form>
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
 
-    <!-- Variables Section -->
-    <mm-variables-editor
-      [(variables)]="variables">
-    </mm-variables-editor>
+    <!-- Variables Tab -->
+    <kendo-tabstrip-tab [title]="'Variables'">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <mm-variables-editor
+            [(variables)]="variables">
+          </mm-variables-editor>
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
 
-    <!-- Time Filter Section -->
-    <div class="section-title">Time Filter</div>
+    <!-- Time Filter Tab -->
+    <kendo-tabstrip-tab [title]="'Time Filter'">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <form class="settings-form">
+            <kendo-formfield>
+              <div class="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  kendoCheckBox
+                  #timeFilterCheckbox
+                  [(ngModel)]="timeFilterEnabled"
+                  name="timeFilterEnabled"
+                  id="timeFilterEnabled"/>
+                <kendo-label
+                  [for]="timeFilterCheckbox"
+                  text="Enable Time Filter"
+                  class="checkbox-label">
+                </kendo-label>
+              </div>
+              <kendo-formhint>
+                Shows a time range picker in the toolbar. Sets $timeRangeFrom and $timeRangeTo variables.
+              </kendo-formhint>
+            </kendo-formfield>
 
-    <kendo-formfield>
-      <div class="checkbox-wrapper">
-        <input
-          type="checkbox"
-          kendoCheckBox
-          #timeFilterCheckbox
-          [(ngModel)]="timeFilterEnabled"
-          name="timeFilterEnabled"
-          id="timeFilterEnabled"/>
-        <kendo-label
-          [for]="timeFilterCheckbox"
-          text="Enable Time Filter"
-          class="checkbox-label">
-        </kendo-label>
-      </div>
-      <kendo-formhint>
-        Shows a time range picker in the toolbar. Sets $timeRangeFrom and $timeRangeTo variables.
-      </kendo-formhint>
-    </kendo-formfield>
-  </form>
+            @if (timeFilterEnabled) {
+              <kendo-formfield>
+                <kendo-label text="Default Selection"></kendo-label>
+                <mm-time-range-picker
+                  [initialSelection]="initialDefaultSelection"
+                  (selectionChange)="onDefaultSelectionChange($event)">
+                </mm-time-range-picker>
+                <kendo-formhint>Initial time filter shown when no URL parameters are set. Note: User-selected filters override this default. Use the reset button in the toolbar to revert to the default.</kendo-formhint>
+              </kendo-formfield>
+            }
+          </form>
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
+
+    <!-- Entity Selectors Tab -->
+    <kendo-tabstrip-tab [title]="'Entity Selectors'">
+      <ng-template kendoTabContent>
+        <div class="tab-content">
+          <mm-entity-selector-editor
+            [(entitySelectors)]="entitySelectors"
+            [existingVariableNames]="staticVariableNames"
+            (editingStateChange)="entitySelectorEditing = $event">
+          </mm-entity-selector-editor>
+        </div>
+      </ng-template>
+    </kendo-tabstrip-tab>
+  </kendo-tabstrip>
 
   <!-- Dialog Actions -->
-  <kendo-dialog-actions>
-    <button kendoButton (click)="cancel()" fillMode="flat">
-      Cancel
-    </button>
-    <button
-      kendoButton
-      (click)="save()"
-      [disabled]="!isValid"
-      themeColor="primary">
-      Save
-    </button>
-  </kendo-dialog-actions>
+  @if (!entitySelectorEditing) {
+    <div class="dialog-actions mm-dialog-actions">
+      <button kendoButton (click)="cancel()" fillMode="flat">
+        Cancel
+      </button>
+      <button
+        kendoButton
+        (click)="save()"
+        [disabled]="!isValid"
+        themeColor="primary">
+        Save
+      </button>
+    </div>
+  }
 </div>

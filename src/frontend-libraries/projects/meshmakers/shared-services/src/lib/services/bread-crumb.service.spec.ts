@@ -9,6 +9,7 @@ interface MockRoute {
   snapshot: {
     data: Record<string, unknown>;
     params: Record<string, string>;
+    url: { path: string }[];
   };
   children: MockRoute[];
 }
@@ -23,7 +24,8 @@ describe('BreadCrumbService', () => {
     return {
       snapshot: {
         data: breadcrumb ? { breadcrumb } : {},
-        params
+        params,
+        url: []
       },
       children
     };
