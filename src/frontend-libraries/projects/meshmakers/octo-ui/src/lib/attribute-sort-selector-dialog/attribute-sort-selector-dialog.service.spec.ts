@@ -15,6 +15,7 @@ interface MockComponentInstance {
     dialogTitle?: string;
     includeNavigationProperties?: boolean;
     hideNavigationControls?: boolean;
+    attributePaths?: string[];
   };
 }
 
@@ -118,7 +119,8 @@ describe('AttributeSortSelectorDialogService', () => {
         selectedAttributes: mockSortAttributes,
         dialogTitle: 'Custom Title',
         includeNavigationProperties: undefined,
-        hideNavigationControls: undefined
+        hideNavigationControls: undefined,
+        attributePaths: undefined
       });
     });
 
@@ -247,7 +249,8 @@ describe('AttributeSortSelectorDialogService', () => {
         selectedAttributes: undefined,
         dialogTitle: undefined,
         includeNavigationProperties: undefined,
-        hideNavigationControls: undefined
+        hideNavigationControls: undefined,
+        attributePaths: undefined
       });
     });
 

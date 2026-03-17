@@ -23,6 +23,8 @@ export interface AttributeSelectorDialogData {
   additionalAttributes?: AttributeItem[];
   /** When true, hides the navigation properties checkbox and max depth controls */
   hideNavigationControls?: boolean;
+  /** When set, restricts the available attributes to only these attribute paths (filtered client-side after fetching) */
+  attributePaths?: string[];
 }
 
 export interface AttributeSelectorDialogResult {
@@ -355,6 +357,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
   public includeNavigationProperties = true;
   public maxDepth: number | null = null;
   public hideNavigationControls = false;
+  private attributePathsSet: Set<string> | null = null;
 
   public availableAttributes: AttributeItem[] = [];
   public selectedAttributes: AttributeItem[] = [];
@@ -391,6 +394,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
       this.maxDepth = this.data.maxDepth ?? null;
       this.additionalAttributes = this.data.additionalAttributes ?? [];
       this.hideNavigationControls = this.data.hideNavigationControls ?? false;
+      this.attributePathsSet = this.data.attributePaths ? new Set(this.data.attributePaths) : null;
 
       if (this.data.selectedAttributes && this.data.selectedAttributes.length > 0) {
         if (this.singleSelect) {
@@ -425,6 +429,11 @@ export class AttributeSelectorDialogComponent implements OnInit {
       // Filter out already selected attributes
       const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
 
+      // Apply client-side attribute path restriction if set (additionalAttributes bypass this filter intentionally)
+      const filteredItems = this.attributePathsSet
+        ? result.items.filter(item => this.attributePathsSet!.has(item.attributePath))
+        : result.items;
+
       // Include additional virtual attributes (e.g., Timestamp for stream data), filtered by search/type
       const filteredAdditional = this.additionalAttributes.filter(attr => {
         if (selectedPaths.has(attr.attributePath)) return false;
@@ -435,7 +444,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
 
       this.availableAttributes = [
         ...filteredAdditional,
-        ...result.items.filter(item => !selectedPaths.has(item.attributePath))
+        ...filteredItems.filter(item => !selectedPaths.has(item.attributePath))
       ];
       this.updateAvailableGrid();
     });

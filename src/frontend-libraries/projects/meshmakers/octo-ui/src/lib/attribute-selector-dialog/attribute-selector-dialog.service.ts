@@ -41,7 +41,8 @@ export class AttributeSelectorDialogService {
     additionalAttributes?: AttributeItem[],
     includeNavigationProperties?: boolean,
     maxDepth?: number,
-    hideNavigationControls?: boolean
+    hideNavigationControls?: boolean,
+    attributePaths?: string[]
   ): Promise<AttributeSelectorResult> {
     const data: AttributeSelectorDialogData = {
       rtCkTypeId,
@@ -51,7 +52,8 @@ export class AttributeSelectorDialogService {
       additionalAttributes,
       includeNavigationProperties,
       maxDepth,
-      hideNavigationControls
+      hideNavigationControls,
+      attributePaths
     };
 
     const dialogKey = singleSelect ? 'attribute-selector-single' : 'attribute-selector';

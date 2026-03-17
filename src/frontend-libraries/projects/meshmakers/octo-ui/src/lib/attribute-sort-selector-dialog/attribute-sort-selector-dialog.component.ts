@@ -26,6 +26,8 @@ export interface AttributeSortSelectorDialogData {
   includeNavigationProperties?: boolean;
   /** When true, hides the navigation property controls (if they were to be added) */
   hideNavigationControls?: boolean;
+  /** When set, restricts the available attributes to only these attribute paths (filtered client-side after fetching) */
+  attributePaths?: string[];
 }
 
 export interface AttributeSortSelectorDialogResult {
@@ -308,6 +310,7 @@ export class AttributeSortSelectorDialogComponent implements OnInit {
   public data!: AttributeSortSelectorDialogData;
   public ckTypeId!: string;
   public includeNavigationProperties: boolean | undefined = undefined;
+  private attributePathsSet: Set<string> | null = null;
   public searchText = '';
   public currentSortOrder: 'standard' | 'ascending' | 'descending' = 'standard';
   public selectedValueTypeFilter: AttributeValueTypeDto | null = null;
@@ -359,6 +362,7 @@ export class AttributeSortSelectorDialogComponent implements OnInit {
       this.ckTypeId = this.data.ckTypeId;
       this.dialogTitle = this.data.dialogTitle || 'Select Attributes with Sort Order';
       this.includeNavigationProperties = this.data.includeNavigationProperties;
+      this.attributePathsSet = this.data.attributePaths ? new Set(this.data.attributePaths) : null;
 
       if (this.data.selectedAttributes && this.data.selectedAttributes.length > 0) {
         this.selectedAttributes = [...this.data.selectedAttributes];
@@ -388,7 +392,13 @@ export class AttributeSortSelectorDialogComponent implements OnInit {
     ).subscribe(result => {
       // Filter out already selected attributes
       const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
-      this.availableAttributes = result.items.filter(item => !selectedPaths.has(item.attributePath));
+
+      // Apply client-side attribute path restriction if set
+      const filteredItems = this.attributePathsSet
+        ? result.items.filter(item => this.attributePathsSet!.has(item.attributePath))
+        : result.items;
+
+      this.availableAttributes = filteredItems.filter(item => !selectedPaths.has(item.attributePath));
       this.updateAvailableGrid();
     });
   }

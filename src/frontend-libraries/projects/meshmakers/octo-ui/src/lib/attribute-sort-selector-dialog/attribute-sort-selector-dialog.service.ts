@@ -33,14 +33,16 @@ export class AttributeSortSelectorDialogService {
     selectedAttributes?: AttributeSortItem[],
     dialogTitle?: string,
     includeNavigationProperties?: boolean,
-    hideNavigationControls?: boolean
+    hideNavigationControls?: boolean,
+    attributePaths?: string[]
   ): Promise<AttributeSortSelectorResult> {
     const data: AttributeSortSelectorDialogData = {
       ckTypeId,
       selectedAttributes,
       dialogTitle,
       includeNavigationProperties,
-      hideNavigationControls
+      hideNavigationControls,
+      attributePaths
     };
 
     const size = this.windowStateService.resolveWindowSize('attribute-sort-selector', { width: 1200, height: 750 });

@@ -729,4 +729,53 @@ describe('AttributeSortSelectorDialogComponent', () => {
       isEditedColumn: () => false
     } as CellClickEvent;
   }
+
+  // =========================================================================
+  // Attribute Paths Filtering
+  // =========================================================================
+
+  describe('Attribute Paths Filtering', () => {
+    it('should filter available attributes by attributePaths when set', () => {
+      component.data = {
+        ckTypeId: 'TestCkType',
+        attributePaths: ['name', 'age']
+      };
+      fixture.detectChanges();
+
+      expect(component.availableAttributes.length).toBe(2);
+      const paths = component.availableAttributes.map(a => a.attributePath);
+      expect(paths).toContain('name');
+      expect(paths).toContain('age');
+      expect(paths).not.toContain('email');
+    });
+
+    it('should show all attributes when attributePaths is not set', () => {
+      component.data = { ckTypeId: 'TestCkType' };
+      fixture.detectChanges();
+
+      expect(component.availableAttributes.length).toBe(5);
+    });
+
+    it('should apply attributePaths filter when searching', fakeAsync(() => {
+      component.data = {
+        ckTypeId: 'TestCkType',
+        attributePaths: ['name', 'age']
+      };
+      fixture.detectChanges();
+
+      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.and.returnValue(of({
+        items: [...mockAttributes],
+        totalCount: mockAttributes.length
+      }));
+
+      component.onSearchChange('na');
+      tick(300);
+
+      // Backend returns all, client filters to allowed paths only
+      const paths = component.availableAttributes.map(a => a.attributePath);
+      expect(paths).not.toContain('email');
+      expect(paths).not.toContain('createdAt');
+    }));
+  });
 });
