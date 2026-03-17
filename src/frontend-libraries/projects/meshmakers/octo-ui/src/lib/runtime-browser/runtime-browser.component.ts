@@ -727,26 +727,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         return;
       }
 
-      // Get tenant ID from parent route parameters
-      let currentRoute: ActivatedRoute | null = this.route;
-      let tenantId: string | null = null;
-
-      // Walk up the route tree to find tenantId
-      while (currentRoute) {
-        tenantId = currentRoute.snapshot.paramMap.get('tenantId');
-        if (tenantId) {
-          break;
-        }
-        currentRoute = currentRoute.parent;
-      }
-
-      if (!tenantId) {
-        console.error('Tenant ID not found in route hierarchy');
-        return;
-      }
-
-      // Navigate to entity detail route using Base64 encoded identifier
-      // Parse the identifier to validate format
+      // Navigate to entity detail route using relative path (works across apps)
       if (!RtEntityIdHelper.isValidFormat(entityIdentifier)) {
         console.error(
           'Invalid entity identifier format. Expected "ckTypeId@rtId"',
@@ -754,17 +735,11 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         return;
       }
 
-      // Encode the identifier for URL safety
       const encodedId = RtEntityIdHelper.encodeFromString(entityIdentifier);
 
-      await this.router.navigate([
-        '/',
-        tenantId,
-        'repository',
-        'browser',
-        'entity',
-        encodedId,
-      ]);
+      await this.router.navigate(['entity', encodedId], {
+        relativeTo: this.route,
+      });
 
       console.debug(`Navigating to entity details: ${entityIdentifier}`);
     } catch (error: unknown) {

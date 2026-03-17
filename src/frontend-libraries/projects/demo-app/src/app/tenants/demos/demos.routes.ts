@@ -224,10 +224,8 @@ export const routes: Routes = [
   },
   {
     path: 'runtime-browser',
-    loadComponent: () =>
-      import('./runtime-browser/runtime-browser-demo.component').then(
-        (m) => m.RuntimeBrowserDemoComponent,
-      ),
+    loadChildren: () =>
+      import('./runtime-browser/runtime-browser.routes').then((m) => m.routes),
     data: {
       breadcrumb: [
         {
