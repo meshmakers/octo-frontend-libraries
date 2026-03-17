@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "sass:map";
 @use "sass:math";
 // Slim Kendo theme: import only modules needed for runtime-browser components
@@ -129,13 +130,19 @@ $kendo-success: #37b400;
   --octo-mint-20: color-mix(in srgb, var(--octo-mint) 20%, transparent);
   --octo-mint-25: color-mix(in srgb, var(--octo-mint) 25%, transparent);
   --octo-mint-30: color-mix(in srgb, var(--octo-mint) 30%, transparent);
+  --octo-mint-35: color-mix(in srgb, var(--octo-mint) 35%, transparent);
   --octo-mint-40: color-mix(in srgb, var(--octo-mint) 40%, transparent);
   --octo-mint-45: color-mix(in srgb, var(--octo-mint) 45%, transparent);
   --octo-mint-50: color-mix(in srgb, var(--octo-mint) 50%, transparent);
+  --octo-mint-60: color-mix(in srgb, var(--octo-mint) 60%, transparent);
   --octo-mint-80: color-mix(in srgb, var(--octo-mint) 80%, transparent);
+  --octo-mint-dark-10: color-mix(in srgb, var(--octo-mint), black 10%);
+  --octo-mint-light-5: color-mix(in srgb, var(--octo-mint), white 5%);
+  --octo-mint-light-10: color-mix(in srgb, var(--octo-mint), white 10%);
 
   --bubblegum-05: color-mix(in srgb, var(--bubblegum) 5%, transparent);
   --bubblegum-10: color-mix(in srgb, var(--bubblegum) 10%, transparent);
+  --bubblegum-15: color-mix(in srgb, var(--bubblegum) 15%, transparent);
   --bubblegum-20: color-mix(in srgb, var(--bubblegum) 20%, transparent);
   --bubblegum-30: color-mix(in srgb, var(--bubblegum) 30%, transparent);
   --bubblegum-40: color-mix(in srgb, var(--bubblegum) 40%, transparent);
@@ -144,33 +151,52 @@ $kendo-success: #37b400;
 
   --toffee-15: color-mix(in srgb, var(--toffee) 15%, transparent);
   --toffee-30: color-mix(in srgb, var(--toffee) 30%, transparent);
+  --toffee-40: color-mix(in srgb, var(--toffee) 40%, transparent);
   --toffee-50: color-mix(in srgb, var(--toffee) 50%, transparent);
 
   --royal-violet-15: color-mix(in srgb, var(--royal-violet) 15%, transparent);
   --royal-violet-30: color-mix(in srgb, var(--royal-violet) 30%, transparent);
+  --royal-violet-40: color-mix(in srgb, var(--royal-violet) 40%, transparent);
   --royal-violet-50: color-mix(in srgb, var(--royal-violet) 50%, transparent);
   --royal-violet-light-20: color-mix(in srgb, var(--royal-violet), white 20%);
 
   --neo-cyan-05: color-mix(in srgb, var(--neo-cyan) 5%, transparent);
   --neo-cyan-10: color-mix(in srgb, var(--neo-cyan) 10%, transparent);
   --neo-cyan-30: color-mix(in srgb, var(--neo-cyan) 30%, transparent);
+  --neo-cyan-40: color-mix(in srgb, var(--neo-cyan) 40%, transparent);
+  --neo-cyan-dark-10: color-mix(in srgb, var(--neo-cyan), black 10%);
 
   --iron-navy-60: color-mix(in srgb, var(--iron-navy) 60%, transparent);
   --iron-navy-80: color-mix(in srgb, var(--iron-navy) 80%, transparent);
   --iron-navy-50: color-mix(in srgb, var(--iron-navy) 50%, transparent);
   --iron-navy-70: color-mix(in srgb, var(--iron-navy) 70%, transparent);
+  --iron-navy-dark-5: color-mix(in srgb, var(--iron-navy), black 5%);
+
   --deep-sea-40: color-mix(in srgb, var(--deep-sea) 40%, transparent);
   --deep-sea-50: color-mix(in srgb, var(--deep-sea) 50%, transparent);
   --deep-sea-60: color-mix(in srgb, var(--deep-sea) 60%, transparent);
   --deep-sea-80: color-mix(in srgb, var(--deep-sea) 80%, transparent);
   --deep-sea-90: color-mix(in srgb, var(--deep-sea) 90%, transparent);
   --deep-sea-95: color-mix(in srgb, var(--deep-sea) 95%, transparent);
+
   --ash-blue-10: color-mix(in srgb, var(--ash-blue) 10%, transparent);
   --ash-blue-15: color-mix(in srgb, var(--ash-blue) 15%, transparent);
   --ash-blue-20: color-mix(in srgb, var(--ash-blue) 20%, transparent);
   --ash-blue-30: color-mix(in srgb, var(--ash-blue) 30%, transparent);
   --ash-blue-50: color-mix(in srgb, var(--ash-blue) 50%, transparent);
   --ash-blue-70: color-mix(in srgb, var(--ash-blue) 70%, transparent);
+  --ash-blue-80: color-mix(in srgb, var(--ash-blue) 80%, transparent);
+
+  --surface-elevated-40: color-mix(
+    in srgb,
+    var(--surface-elevated) 40%,
+    transparent
+  );
+  --surface-elevated-50: color-mix(
+    in srgb,
+    var(--surface-elevated) 50%,
+    transparent
+  );
   --surface-elevated-90: color-mix(
     in srgb,
     var(--surface-elevated) 90%,
@@ -186,14 +212,6 @@ $kendo-success: #37b400;
     var(--surface-elevated) 80%,
     transparent
   );
-
-  --octo-mint-dark-10: color-mix(in srgb, var(--octo-mint), black 10%);
-  --octo-mint-light-5: color-mix(in srgb, var(--octo-mint), white 5%);
-  --octo-mint-light-10: color-mix(in srgb, var(--octo-mint), white 10%);
-  --neo-cyan-dark-10: color-mix(in srgb, var(--neo-cyan), black 10%);
-  --iron-navy-dark-5: color-mix(in srgb, var(--iron-navy), black 5%);
-  --neo-cyan-40: color-mix(in srgb, var(--neo-cyan) 40%, transparent);
-  --royal-violet-40: color-mix(in srgb, var(--royal-violet) 40%, transparent);
 
   // LCARS-specific design tokens
   --lcars-glow-primary: 0 0 10px var(--octo-mint-40);
@@ -248,8 +266,6 @@ $kendo-success: #37b400;
 // ----------------------------------------------------------------------------
 // KENDO THEME COLOR CONFIGURATION
 // ----------------------------------------------------------------------------
-
-$kendo-colors: () !default; // Inicjalizacja pustej mapy, jeśli nie istnieje
 
 // Surface colors
 $kendo-colors: map.merge(
@@ -400,10 +416,6 @@ $kendo-colors: map.merge(
 @include kendo-grid--styles();
 @include kendo-filter--styles();
 
-@function rgba($color, $alpha) {
-  @return color-mix(in srgb, #{$color} #{math.percentage($alpha)}, transparent);
-}
-
 // LCARS Button Mixin - shared button styles for toolbars and dialogs
 @mixin lcars-button {
   background: linear-gradient(180deg, var(--octo-mint-15), var(--octo-mint-05));
@@ -534,7 +546,7 @@ $kendo-colors: map.merge(
     background-color: var(--iron-navy) !important;
     border: 1px solid var(--octo-mint-30) !important;
     box-shadow:
-      0 4px 20px rgba(#000, 0.4),
+      0 4px 20px rgba(0, 0, 0, 0.4),
       0 0 15px var(--octo-mint-10) !important;
   }
 
@@ -762,7 +774,7 @@ $kendo-colors: map.merge(
       &:hover {
         background: var(--octo-mint-15) !important;
         border-color: var(--octo-mint-40) !important;
-        box-shadow: 0 2px 8px rgba(#000, 0.2) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
       }
 
       .element-preview {
@@ -1029,8 +1041,8 @@ $kendo-colors: map.merge(
 
       // Delete button with red/pink accent on hover
       .k-button:last-child:hover {
-        color: var(--pink) !important;
-        background: rgba(var(--pink), 0.1) !important;
+        color: #ec658f !important;
+        background: var(--bubblegum-10) !important;
       }
     }
 
@@ -1147,7 +1159,7 @@ $kendo-colors: map.merge(
       border-radius: 8px !important;
 
       &:hover {
-        box-shadow: 0 2px 8px rgba(#000, 0.3) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
       }
 
       &.editing {
@@ -1480,21 +1492,21 @@ $kendo-colors: map.merge(
 
     // Error state
     .error {
-      color: var(--pink) !important;
+      color: #ec658f !important;
     }
 
     .error-icon {
-      background: rgba(var(--pink), 0.2) !important;
-      color: var(--pink) !important;
+      background: rgba(236, 101, 143, 0.2) !important;
+      color: #ec658f !important;
     }
 
     .retry-btn {
       background: transparent !important;
-      border: 1px solid var(--pink) !important;
-      color: var(--pink) !important;
+      border: 1px solid #ec658f !important;
+      color: #ec658f !important;
 
       &:hover {
-        background: rgba(var(--pink), 0.1) !important;
+        background: var(--bubblegum-10) !important;
       }
     }
 
@@ -1679,7 +1691,7 @@ $kendo-colors: map.merge(
       }
 
       .preview-output.error .output-value {
-        color: var(--pink) !important;
+        color: #ec658f !important;
       }
     }
 
@@ -1922,33 +1934,33 @@ $kendo-colors: map.merge(
   mm-symbol-editor,
   mm-symbol-editor-page {
     // Override designer CSS variables for LCARS theme
-    --designer-bg: #{var(--deep-sea)} !important;
-    --designer-surface: var(--surface-elevated) !important;
-    --designer-surface-alt: var(--iron-navy) !important;
-    --designer-border: rgba(var(--lcars-border-color), 0.2) !important;
+    --designer-bg: #{$deep-sea} !important;
+    --designer-surface: #{$surface-elevated} !important;
+    --designer-surface-alt: #{$iron-navy} !important;
+    --designer-border: rgba(100, 206, 185, 0.2) !important;
     --designer-text: #ffffff !important;
-    --designer-text-muted: var(--ash-blue) !important;
-    --designer-accent: var(--octo-mint) !important;
-    --designer-accent-secondary: var(--neo-cyan) !important;
-    --designer-canvas-bg: var(--surface-elevated) !important;
-    --designer-hover-bg: rgba(var(--lcars-border-color), 0.1) !important;
+    --designer-text-muted: #{$ash-blue} !important;
+    --designer-accent: #{$octo-mint} !important;
+    --designer-accent-secondary: #{$neo-cyan} !important;
+    --designer-canvas-bg: #{$surface-elevated} !important;
+    --designer-hover-bg: rgba(100, 206, 185, 0.1) !important;
 
     // Canvas-specific colors (SVG canvas fill and grid)
-    --designer-canvas-color: var(--iron-navy) !important;
-    --designer-grid-color: rgba(var(--lcars-border-color), 0.15) !important;
+    --designer-canvas-color: #{$iron-navy} !important;
+    --designer-grid-color: rgba(100, 206, 185, 0.15) !important;
 
     // Editor-specific variables (inherited from designer)
-    --editor-bg: #{var(--deep-sea)} !important;
-    --editor-surface: var(--surface-elevated) !important;
-    --editor-surface-alt: var(--iron-navy) !important;
-    --editor-border: rgba(var(--lcars-border-color), 0.2) !important;
+    --editor-bg: #{$deep-sea} !important;
+    --editor-surface: #{$surface-elevated} !important;
+    --editor-surface-alt: #{$iron-navy} !important;
+    --editor-border: rgba(100, 206, 185, 0.2) !important;
     --editor-text: #ffffff !important;
-    --editor-text-muted: var(--ash-blue) !important;
-    --editor-accent: var(--octo-mint) !important;
-    --editor-hover-bg: rgba(var(--lcars-border-color), 0.1) !important;
+    --editor-text-muted: #{$ash-blue} !important;
+    --editor-accent: #{$octo-mint} !important;
+    --editor-hover-bg: rgba(100, 206, 185, 0.1) !important;
 
     // Force backgrounds directly on elements
-    background: #{var(--deep-sea)} !important;
+    background: #{$deep-sea} !important;
   }
 
   // Force LCARS styling on process designer internal elements
@@ -1956,60 +1968,60 @@ $kendo-colors: map.merge(
     mm-process-designer,
     mm-symbol-editor {
       .process-designer {
-        background: #{var(--deep-sea)} !important;
+        background: #{$deep-sea} !important;
       }
 
       .designer-canvas-container {
-        background: var(--surface-elevated) !important;
+        background: #{$surface-elevated} !important;
       }
 
       // Canvas SVG background - LCARS dark theme
       .canvas-background {
-        fill: var(--iron-navy) !important;
+        fill: #{$iron-navy} !important;
       }
 
       // Grid lines - subtle mint-colored grid
       .designer-grid-line {
-        stroke: rgba(var(--lcars-border-color), 0.15) !important;
+        stroke: rgba(100, 206, 185, 0.15) !important;
       }
 
       .designer-sidebar,
       .designer-inspector-container {
-        background: var(--surface-elevated) !important;
-        border-color: rgba(var(--lcars-border-color), 0.2) !important;
+        background: #{$surface-elevated} !important;
+        border-color: rgba(100, 206, 185, 0.2) !important;
       }
 
       .sidebar-tab {
-        background: var(--iron-navy) !important;
-        color: var(--ash-blue) !important;
+        background: #{$iron-navy} !important;
+        color: #{$ash-blue} !important;
 
         &.active {
-          background: var(--surface-elevated) !important;
-          color: var(--octo-mint) !important;
-          border-bottom-color: var(--octo-mint) !important;
+          background: #{$surface-elevated} !important;
+          color: #{$octo-mint} !important;
+          border-bottom-color: #{$octo-mint} !important;
         }
       }
 
       .designer-statusbar {
-        background: var(--iron-navy) !important;
-        border-color: rgba(var(--lcars-border-color), 0.2) !important;
-        color: var(--ash-blue) !important;
+        background: #{$iron-navy} !important;
+        border-color: rgba(100, 206, 185, 0.2) !important;
+        color: #{$ash-blue} !important;
       }
 
       .dockview-panels-container {
-        background: var(--surface-elevated) !important;
-        border-color: rgba(var(--lcars-border-color), 0.2) !important;
+        background: #{$surface-elevated} !important;
+        border-color: rgba(100, 206, 185, 0.2) !important;
       }
     }
 
     mm-symbol-editor-page {
       .symbol-editor-page-container {
-        background: #{var(--deep-sea)} !important;
+        background: #{$deep-sea} !important;
       }
 
       .editor-header {
-        background: var(--iron-navy) !important;
-        border-color: rgba(var(--lcars-border-color), 0.2) !important;
+        background: #{$iron-navy} !important;
+        border-color: rgba(100, 206, 185, 0.2) !important;
       }
 
       .symbol-title {
@@ -2017,24 +2029,24 @@ $kendo-colors: map.merge(
       }
 
       .library-name {
-        color: var(--ash-blue) !important;
+        color: #{$ash-blue} !important;
       }
     }
 
     // Symbol editor container
     mm-symbol-editor {
       .symbol-editor-container {
-        background: #{var(--deep-sea)} !important;
+        background: #{$deep-sea} !important;
       }
 
       .properties-panel {
-        background: var(--surface-elevated) !important;
-        border-color: rgba(var(--lcars-border-color), 0.2) !important;
+        background: #{$surface-elevated} !important;
+        border-color: rgba(100, 206, 185, 0.2) !important;
       }
 
       .panel-header {
-        background: var(--iron-navy) !important;
-        border-color: rgba(var(--lcars-border-color), 0.2) !important;
+        background: #{$iron-navy} !important;
+        border-color: rgba(100, 206, 185, 0.2) !important;
       }
 
       .panel-title {
@@ -2042,13 +2054,13 @@ $kendo-colors: map.merge(
       }
 
       .panel-collapsed {
-        background: var(--iron-navy) !important;
-        border-color: rgba(var(--lcars-border-color), 0.2) !important;
+        background: #{$iron-navy} !important;
+        border-color: rgba(100, 206, 185, 0.2) !important;
       }
 
       .collapsed-label,
       .collapsed-icon {
-        color: var(--ash-blue) !important;
+        color: #{$ash-blue} !important;
       }
     }
   }
@@ -2060,32 +2072,32 @@ $kendo-colors: map.merge(
   // ----------------------------------------------------------------------------
   mm-process-widget {
     // Override CSS variables used by the process widget
-    --process-bg: var(--iron-navy);
-    --process-canvas-bg: var(--iron-navy);
+    --process-bg: #{$iron-navy};
+    --process-canvas-bg: #{$iron-navy};
 
     .process-widget {
-      background-color: var(--iron-navy) !important;
+      background-color: #{$iron-navy} !important;
     }
 
     .diagram-container {
-      background-color: var(--iron-navy) !important;
+      background-color: #{$iron-navy} !important;
     }
 
     .loading-overlay {
-      color: var(--ash-blue) !important;
+      color: #{$ash-blue} !important;
     }
 
     .loading-spinner {
-      border-color: rgba(var(--lcars-border-color), 0.2) !important;
-      border-top-color: var(--octo-mint) !important;
+      border-color: rgba(100, 206, 185, 0.2) !important;
+      border-top-color: #{$octo-mint} !important;
     }
 
     .error-container {
-      color: var(--bubblegum) !important;
+      color: #{$bubblegum} !important;
     }
 
     .no-config {
-      color: var(--ash-blue) !important;
+      color: #{$ash-blue} !important;
     }
   }
 
@@ -2172,11 +2184,11 @@ $kendo-colors: map.merge(
     background: linear-gradient(
       180deg,
       var(--iron-navy),
-      var(--iron-navy-dark-5)
+      color.adjust($iron-navy, $lightness: -5%)
     ) !important;
     border-bottom: 1px solid var(--octo-mint-30);
     box-shadow:
-      0 2px 8px rgba(#000, 0.3),
+      0 2px 8px rgba(0, 0, 0, 0.3),
       0 0 20px var(--octo-mint-10);
   }
 
@@ -2228,7 +2240,7 @@ $kendo-colors: map.merge(
       background: linear-gradient(
         180deg,
         var(--neo-cyan),
-        var(--neo-cyan-dark-10)
+        color.adjust($neo-cyan, $lightness: -10%)
       );
 
       &:hover {
@@ -2670,11 +2682,7 @@ $kendo-colors: map.merge(
 
       .card-content {
         .config-summary {
-          color: color-mix(
-            in srgb,
-            var(--octo-text-color) 90%,
-            transparent
-          ) !important;
+          color: rgba(#ffffff, 0.9) !important;
         }
       }
 
@@ -2809,7 +2817,7 @@ $kendo-colors: map.merge(
     border: 1px solid var(--octo-mint-30);
     border-radius: var(--lcars-radius-md);
     box-shadow:
-      0 8px 32px rgba(#000, 0.4),
+      0 8px 32px rgba(0, 0, 0, 0.4),
       0 0 20px var(--octo-mint-10);
 
     .k-list-item {
@@ -2835,7 +2843,7 @@ $kendo-colors: map.merge(
     border: 1px solid var(--octo-mint-30);
     border-radius: var(--lcars-radius-lg);
     box-shadow:
-      0 16px 64px rgba(#000, 0.5),
+      0 16px 64px rgba(0, 0, 0, 0.5),
       0 0 40px var(--octo-mint-15);
     overflow: hidden;
 
@@ -2976,9 +2984,13 @@ $kendo-colors: map.merge(
   }
 
   // Widget config dialog buttons (inside window content) - LCARS style
+  // MeshBoard library exposes `mm-dialog-actions` on all dialog button containers
+  // and `mm-toolbar-actions` on toolbar button areas for consistent host-app styling.
   .k-window-content {
-    // Action bars (Cancel/Save), form toolbars (Add Filter), and all dialog buttons
+    // Standard MeshBoard dialog actions + legacy class names for backward compat
+    .mm-dialog-actions .k-button,
     .action-bar .k-button,
+    .dialog-actions .k-button,
     .toolbar .k-button,
     .dialog-button.k-button {
       @include lcars-button;
@@ -3009,7 +3021,7 @@ $kendo-colors: map.merge(
   .mm-dialog-danger .k-dialog {
     border-color: var(--bubblegum-50);
     box-shadow:
-      0 16px 64px rgba(#000, 0.5),
+      0 16px 64px rgba(0, 0, 0, 0.5),
       0 0 40px var(--bubblegum-20);
 
     .k-dialog-titlebar {
@@ -3159,7 +3171,7 @@ $kendo-colors: map.merge(
     border: 1px solid var(--octo-mint-40);
     border-radius: var(--lcars-radius-sm);
     box-shadow:
-      0 4px 16px rgba(#000, 0.3),
+      0 4px 16px rgba(0, 0, 0, 0.3),
       var(--lcars-glow-primary);
   }
 
@@ -3185,7 +3197,7 @@ $kendo-colors: map.merge(
       background: linear-gradient(
         180deg,
         var(--octo-mint),
-        var(--octo-mint-dark-10)
+        color.adjust($octo-mint, $lightness: -10%)
       );
     }
   }
@@ -3344,7 +3356,7 @@ $kendo-colors: map.merge(
     }
 
     &::-webkit-scrollbar-thumb {
-      background: color-mix(in srgb, var(--ash-blue) 80%, transparent);
+      background: var(--ash-blue-80);
       border-radius: 4px;
       border: 1px solid var(--octo-mint-30);
 
@@ -3389,7 +3401,7 @@ $kendo-colors: map.merge(
 
   .octo-full {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     height: 100%;
     width: 100%;
     overflow: hidden;
@@ -3416,7 +3428,7 @@ $kendo-colors: map.merge(
     border: 1px solid var(--octo-mint-20);
 
     &:hover {
-      background: linear-gradient(180deg, $ash-blue, $octo-mint);
+      background: linear-gradient(180deg, var(--ash-blue), var(--octo-mint));
     }
   }
 
@@ -3433,14 +3445,14 @@ $kendo-colors: map.merge(
   // ----------------------------------------------------------------------------
 
   mm-login-app-bar-section {
-    --mm-login-bg-start: var(--iron-navy);
-    --mm-login-bg-end: var(--surface-elevated);
-    --mm-login-accent: var(--octo-mint);
+    --mm-login-bg-start: #{$iron-navy};
+    --mm-login-bg-end: #{$surface-elevated};
+    --mm-login-accent: #{$octo-mint};
     --mm-login-accent-rgb: 100, 206, 185;
     --mm-login-text: #ffffff;
-    --mm-login-btn-primary-start: var(--octo-mint);
-    --mm-login-btn-primary-end: #{var(--octo-mint-dark-10)};
-    --mm-login-btn-primary-text: #{var(--deep-sea)};
+    --mm-login-btn-primary-start: #{$octo-mint};
+    --mm-login-btn-primary-end: #{color.adjust($octo-mint, $lightness: -10%)};
+    --mm-login-btn-primary-text: #{$deep-sea};
     --mm-login-font: var(--lcars-font-primary);
   }
 
@@ -3450,21 +3462,21 @@ $kendo-colors: map.merge(
     border: 1px solid var(--octo-mint-30) !important;
     border-radius: 8px !important;
     box-shadow:
-      0 8px 32px rgba(#000, 0.4),
+      0 8px 32px rgba(0, 0, 0, 0.4),
       0 0 20px var(--octo-mint-10) !important;
     // Allow scrolling in dropdowns - do NOT use overflow: hidden
 
     // Login popup content — rendered in body, so CSS variables from
     // mm-login-app-bar-section :host don't cascade here. Style directly.
     > .content {
-      --mm-login-bg-start: var(--iron-navy);
-      --mm-login-bg-end: var(--surface-elevated);
-      --mm-login-accent: var(--octo-mint);
+      --mm-login-bg-start: #{$iron-navy};
+      --mm-login-bg-end: #{$surface-elevated};
+      --mm-login-accent: #{$octo-mint};
       --mm-login-accent-rgb: 100, 206, 185;
       --mm-login-text: #ffffff;
-      --mm-login-btn-primary-start: var(--octo-mint);
-      --mm-login-btn-primary-end: #{var(--octo-mint-dark-10)};
-      --mm-login-btn-primary-text: #{var(--deep-sea)};
+      --mm-login-btn-primary-start: #{$octo-mint};
+      --mm-login-btn-primary-end: #{color.adjust($octo-mint, $lightness: -10%)};
+      --mm-login-btn-primary-text: #{$deep-sea};
       --mm-login-font: var(--lcars-font-primary);
 
       background: linear-gradient(
@@ -3510,7 +3522,7 @@ $kendo-colors: map.merge(
           background: linear-gradient(
             180deg,
             var(--octo-mint),
-            var(--octo-mint-dark-10)
+            color.adjust($octo-mint, $lightness: -10%)
           ) !important;
           border: none !important;
           color: var(--deep-sea) !important;
@@ -3518,7 +3530,7 @@ $kendo-colors: map.merge(
           &:hover {
             background: linear-gradient(
               180deg,
-              var(--octo-mint-light-5),
+              color.adjust($octo-mint, $lightness: 5%),
               var(--octo-mint)
             ) !important;
             box-shadow: 0 0 15px var(--octo-mint-50) !important;
@@ -3548,7 +3560,7 @@ $kendo-colors: map.merge(
     border: 1px solid var(--octo-mint-30);
     border-radius: 8px;
     box-shadow:
-      0 8px 32px rgba(#000, 0.5),
+      0 8px 32px rgba(0, 0, 0, 0.5),
       0 0 20px var(--octo-mint-15);
     padding: 8px 0;
     min-width: 180px;
@@ -3857,16 +3869,16 @@ $kendo-colors: map.merge(
     display: flex;
     flex-direction: column;
     position: relative;
-    background: var(--surface-elevated-60);
+    background: var(--surface-elevated-40);
     border: 1px solid var(--octo-mint-20);
     border-radius: 8px;
     overflow: hidden;
     min-height: 0;
 
     &:hover {
-      border-color: color-mix(in srgb, var(--octo-mint) 35%, transparent);
+      border-color: var(--octo-mint-35);
       box-shadow:
-        0 4px 30px rgba(#000, 0.3),
+        0 4px 30px rgba(0, 0, 0, 0.3),
         0 0 30px var(--octo-mint-08);
     }
 
@@ -3931,7 +3943,7 @@ $kendo-colors: map.merge(
     &.bar-3 {
       width: 24px;
       background: var(--toffee);
-      box-shadow: 0 0 8px color-mix(in srgb, var(--toffee) 40%, transparent);
+      box-shadow: 0 0 8px var(--toffee-40);
     }
   }
 
@@ -3944,16 +3956,16 @@ $kendo-colors: map.merge(
     align-items: center;
     gap: 8px;
     padding: 4px 12px;
-    background: rgba(var(--kendo-success), 0.1);
-    border: 1px solid rgba(var(--kendo-success), 0.3);
+    background: rgba(55, 180, 0, 0.1);
+    border: 1px solid rgba(55, 180, 0, 0.3);
     border-radius: 4px;
 
     .indicator-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--kendo-success);
-      box-shadow: 0 0 10px rgba(var(--kendo-success), 0.6);
+      background: #37b400;
+      box-shadow: 0 0 10px rgba(55, 180, 0, 0.6);
       animation: lcars-pulse 2s ease-in-out infinite;
     }
 
@@ -3962,7 +3974,7 @@ $kendo-colors: map.merge(
       font-size: 0.7rem;
       font-weight: 600;
       letter-spacing: 2px;
-      color: var(--kendo-success);
+      color: #37b400;
       text-transform: uppercase;
     }
   }
@@ -4059,17 +4071,17 @@ $kendo-colors: map.merge(
   // ============================================================================
   .mm-base-form-container {
     // Override form CSS custom properties for LCARS theme
-    --mm-form-bg: rgba(#1f2e40, 0.6);
-    --mm-form-bg-alt: rgba(#1f2e40, 0.8);
+    --mm-form-bg: rgba(31, 46, 64, 0.6);
+    --mm-form-bg-alt: rgba(31, 46, 64, 0.8);
     --mm-form-border: var(--octo-mint-20);
     --mm-form-border-subtle: var(--octo-mint-15);
     --mm-form-text: #ffffff;
     --mm-form-text-subtle: var(--ash-blue);
     --mm-form-text-label: var(--ash-blue);
     --mm-form-accent: var(--octo-mint);
-    --mm-form-error: var(--pink);
-    --mm-form-shadow: 0 4px 20px rgba(#000, 0.3);
-    --mm-form-overlay-bg: rgba(#07172b, 0.95);
+    --mm-form-error: #ec658f;
+    --mm-form-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --mm-form-overlay-bg: rgba(7, 23, 43, 0.95);
 
     background: linear-gradient(180deg, var(--deep-sea-95), var(--deep-sea));
 
@@ -4125,43 +4137,39 @@ $kendo-colors: map.merge(
   mm-markdown-widget,
   mm-markdown-config-dialog {
     --mm-prose-text: #c8d0d8;
-    --mm-prose-heading: var(--octo-mint);
-    --mm-prose-link: var(--neo-cyan);
-    --mm-prose-link-hover: var(--octo-mint);
-    --mm-prose-code-bg: var(--octo-mint-10);
-    --mm-prose-code-text: var(--octo-mint);
-    --mm-prose-pre-bg: var(--iron-navy);
-    --mm-prose-pre-border: var(--octo-mint-20);
-    --mm-prose-blockquote-border: var(--royal-violet);
-    --mm-prose-blockquote-bg: var(--royal-violet-15);
-    --mm-prose-table-header-bg: var(--iron-navy);
-    --mm-prose-table-header-text: var(--octo-mint);
-    --mm-prose-table-border: var(--octo-mint-20);
-    --mm-prose-table-row-even: color-mix(
-      in srgb,
-      var(--surface-elevated) 30%,
-      transparent
-    );
+    --mm-prose-heading: #{$octo-mint};
+    --mm-prose-link: #{$neo-cyan};
+    --mm-prose-link-hover: #{$octo-mint};
+    --mm-prose-code-bg: rgba(#{$octo-mint}, 0.1);
+    --mm-prose-code-text: #{$octo-mint};
+    --mm-prose-pre-bg: #{$iron-navy};
+    --mm-prose-pre-border: rgba(#{$octo-mint}, 0.2);
+    --mm-prose-blockquote-border: #{$royal-violet};
+    --mm-prose-blockquote-bg: rgba(#{$royal-violet}, 0.1);
+    --mm-prose-table-header-bg: #{$iron-navy};
+    --mm-prose-table-header-text: #{$octo-mint};
+    --mm-prose-table-border: rgba(#{$octo-mint}, 0.2);
+    --mm-prose-table-row-even: rgba(#{$surface-elevated}, 0.3);
     --mm-prose-strong: #ffffff;
-    --mm-prose-em: var(--neo-cyan);
-    --mm-prose-marker-ul: var(--octo-mint);
-    --mm-prose-marker-ol: var(--neo-cyan);
-    --mm-prose-hr-start: var(--octo-mint);
-    --mm-prose-hr-end: var(--neo-cyan);
-    --mm-prose-img-border: var(--octo-mint-20);
+    --mm-prose-em: #{$neo-cyan};
+    --mm-prose-marker-ul: #{$octo-mint};
+    --mm-prose-marker-ol: #{$neo-cyan};
+    --mm-prose-hr-start: #{$octo-mint};
+    --mm-prose-hr-end: #{$neo-cyan};
+    --mm-prose-img-border: rgba(#{$octo-mint}, 0.2);
     --mm-prose-font: var(--lcars-font-primary);
   }
 
   mm-markdown-config-dialog {
-    --mm-prose-editor-bg: var(--surface-elevated);
+    --mm-prose-editor-bg: #{$surface-elevated};
     --mm-prose-editor-text: #c8d0d8;
     --mm-prose-editor-placeholder: #6b7a8c;
-    --mm-prose-editor-border: var(--octo-mint-30);
-    --mm-prose-preview-border: var(--octo-mint-30);
-    --mm-prose-form-bg: var(--iron-navy);
-    --mm-prose-form-border: var(--octo-mint-20);
+    --mm-prose-editor-border: rgba(#{$octo-mint}, 0.3);
+    --mm-prose-preview-border: rgba(#{$octo-mint}, 0.3);
+    --mm-prose-form-bg: #{$iron-navy};
+    --mm-prose-form-border: rgba(#{$octo-mint}, 0.2);
     --mm-prose-label-text: #c8d0d8;
-    --mm-prose-hint-text: var(--ash-blue);
+    --mm-prose-hint-text: #{$ash-blue};
   }
 
   // ============================================================================
@@ -4194,7 +4202,7 @@ $kendo-colors: map.merge(
         border: 1px solid var(--octo-mint-30);
         border-radius: 8px;
         box-shadow:
-          0 8px 32px rgba(#000, 0.4),
+          0 8px 32px rgba(0, 0, 0, 0.4),
           0 0 20px var(--octo-mint-10);
 
         &::before {
@@ -4245,7 +4253,7 @@ $kendo-colors: map.merge(
       var(--surface-elevated)
     ) !important;
     border-bottom: 2px solid var(--octo-mint-30) !important;
-    box-shadow: 0 2px 8px rgba(#000, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
     .toolbar-left {
       .meshboard-title {
@@ -4260,7 +4268,8 @@ $kendo-colors: map.merge(
       }
     }
 
-    .toolbar-right {
+    .toolbar-right,
+    .mm-toolbar-actions {
       .k-button {
         @include lcars-button;
       }
@@ -4274,7 +4283,7 @@ $kendo-colors: map.merge(
       border: 1px solid var(--octo-mint-20);
       border-radius: 12px;
       padding: 3rem;
-      box-shadow: 0 4px 20px rgba(#000, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 
       kendo-svg-icon {
         color: var(--octo-mint) !important;
@@ -4314,7 +4323,7 @@ $kendo-colors: map.merge(
       &:hover {
         border-color: var(--octo-mint-40) !important;
         box-shadow:
-          0 4px 20px rgba(#000, 0.3),
+          0 4px 20px rgba(0, 0, 0, 0.3),
           0 0 15px var(--octo-mint-10);
       }
 
@@ -4364,11 +4373,7 @@ $kendo-colors: map.merge(
               color: var(--bubblegum) !important;
 
               &:hover {
-                background: color-mix(
-                  in srgb,
-                  var(--bubblegum) 15%,
-                  transparent
-                );
+                background: var(--bubblegum-15);
               }
             }
           }
@@ -4443,11 +4448,7 @@ $kendo-colors: map.merge(
       }
 
       &.trend-down {
-        background: color-mix(
-          in srgb,
-          var(--bubblegum) 15%,
-          transparent
-        ) !important;
+        background: var(--bubblegum-15) !important;
         color: var(--bubblegum) !important;
       }
 
@@ -4480,40 +4481,38 @@ $kendo-colors: map.merge(
 
   // Stats Grid Widget - LCARS theme via CSS variable overrides
   mm-stats-grid-widget {
-    --mm-stat-mint-bg: var(--octo-mint-10);
-    --mm-stat-mint-border: var(--octo-mint);
-    --mm-stat-mint-text: var(--octo-mint);
-    --mm-stat-mint-glow: 0 0 15px var(--octo-mint-40);
+    --mm-stat-mint-bg: rgba(#{$octo-mint}, 0.1);
+    --mm-stat-mint-border: #{$octo-mint};
+    --mm-stat-mint-text: #{$octo-mint};
+    --mm-stat-mint-glow: 0 0 15px rgba(#{$octo-mint}, 0.4);
 
-    --mm-stat-cyan-bg: var(--neo-cyan-10);
-    --mm-stat-cyan-border: var(--neo-cyan);
-    --mm-stat-cyan-text: var(--neo-cyan);
-    --mm-stat-cyan-glow: 0 0 15px var(--neo-cyan-40);
+    --mm-stat-cyan-bg: rgba(#{$neo-cyan}, 0.1);
+    --mm-stat-cyan-border: #{$neo-cyan};
+    --mm-stat-cyan-text: #{$neo-cyan};
+    --mm-stat-cyan-glow: 0 0 15px rgba(#{$neo-cyan}, 0.4);
 
-    --mm-stat-violet-bg: var(--royal-violet-15);
-    --mm-stat-violet-border: var(--royal-violet);
-    --mm-stat-violet-text: var(--lilac-glow);
-    --mm-stat-violet-glow: 0 0 15px var(--royal-violet-40);
+    --mm-stat-violet-bg: rgba(#{$royal-violet}, 0.1);
+    --mm-stat-violet-border: #{$royal-violet};
+    --mm-stat-violet-text: #{$lilac-glow};
+    --mm-stat-violet-glow: 0 0 15px rgba(#{$royal-violet}, 0.4);
 
-    --mm-stat-toffee-bg: var(--toffee-15);
-    --mm-stat-toffee-border: var(--toffee);
-    --mm-stat-toffee-text: var(--toffee);
-    --mm-stat-toffee-glow: 0 0 15px
-      color-mix(in srgb, var(--toffee) 40%, transparent);
+    --mm-stat-toffee-bg: rgba(#{$toffee}, 0.1);
+    --mm-stat-toffee-border: #{$toffee};
+    --mm-stat-toffee-text: #{$toffee};
+    --mm-stat-toffee-glow: 0 0 15px rgba(#{$toffee}, 0.4);
 
-    --mm-stat-lilac-bg: color-mix(in srgb, var(--lilac-glow) 10%, transparent);
-    --mm-stat-lilac-border: var(--lilac-glow);
-    --mm-stat-lilac-text: var(--lilac-glow);
-    --mm-stat-lilac-glow: 0 0 15px
-      color-mix(in srgb, var(--lilac-glow) 40%, transparent);
+    --mm-stat-lilac-bg: rgba(#{$lilac-glow}, 0.1);
+    --mm-stat-lilac-border: #{$lilac-glow};
+    --mm-stat-lilac-text: #{$lilac-glow};
+    --mm-stat-lilac-glow: 0 0 15px rgba(#{$lilac-glow}, 0.4);
 
-    --mm-stat-bubblegum-bg: var(--bubblegum-10);
-    --mm-stat-bubblegum-border: var(--bubblegum);
-    --mm-stat-bubblegum-text: var(--bubblegum);
-    --mm-stat-bubblegum-glow: 0 0 15px var(--bubblegum-40);
+    --mm-stat-bubblegum-bg: rgba(#{$bubblegum}, 0.1);
+    --mm-stat-bubblegum-border: #{$bubblegum};
+    --mm-stat-bubblegum-text: #{$bubblegum};
+    --mm-stat-bubblegum-glow: 0 0 15px rgba(#{$bubblegum}, 0.4);
 
-    --mm-stat-default-bg: var(--ash-blue-10);
-    --mm-stat-default-border: var(--ash-blue);
+    --mm-stat-default-bg: rgba(#{$ash-blue}, 0.1);
+    --mm-stat-default-border: #{$ash-blue};
     --mm-stat-default-text: #ffffff;
     --mm-stat-default-glow: none;
   }
@@ -4521,13 +4520,13 @@ $kendo-colors: map.merge(
   // Additional stats-grid LCARS styling (hover, fonts, labels)
   .stats-grid {
     .stat-card {
-      background: var(--surface-elevated-60) !important;
+      background: var(--surface-elevated-40) !important;
       border: 1px solid var(--octo-mint-15);
       border-radius: 8px;
 
       &:hover {
         box-shadow:
-          0 4px 16px rgba(#000, 0.3),
+          0 4px 16px rgba(0, 0, 0, 0.3),
           0 0 10px var(--octo-mint-15);
         border-color: var(--octo-mint-30);
       }
@@ -4549,13 +4548,13 @@ $kendo-colors: map.merge(
 
   // Service Health Widget
   .service-health {
-    background: var(--surface-elevated-60) !important;
+    background: var(--surface-elevated-40) !important;
     border: 1px solid var(--octo-mint-15);
 
     &.clickable:hover {
       background: var(--surface-elevated-60) !important;
       box-shadow:
-        0 2px 12px rgba(#000, 0.3),
+        0 2px 12px rgba(0, 0, 0, 0.3),
         0 0 10px var(--octo-mint-10);
       border-color: var(--octo-mint-30);
     }
@@ -4563,8 +4562,7 @@ $kendo-colors: map.merge(
     &.healthy {
       .health-dot {
         background: var(--octo-mint) !important;
-        box-shadow: 0 0 12px
-          color-mix(in srgb, var(--octo-mint) 60%, transparent);
+        box-shadow: 0 0 12px var(--octo-mint-60);
       }
 
       .pulse-ring.pulse-active {
@@ -4621,11 +4619,7 @@ $kendo-colors: map.merge(
       border-bottom: 2px solid var(--octo-mint);
 
       .entity-stereotype {
-        color: color-mix(
-          in srgb,
-          var(--octo-text-color) 80%,
-          transparent
-        ) !important;
+        color: rgba(#ffffff, 0.8) !important;
       }
 
       .entity-name {
@@ -4669,11 +4663,11 @@ $kendo-colors: map.merge(
   .status-indicator {
     .status-badge {
       font-family: var(--lcars-font-primary);
-      box-shadow: 0 0 15px rgba(#000, 0.3);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
     }
 
     .status-text {
-      text-shadow: 0 1px 3px rgba(#000, 0.3);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     }
 
     .status-error {
@@ -4766,7 +4760,7 @@ $kendo-colors: map.merge(
     }
 
     .create-form {
-      background: var(--surface-elevated-60) !important;
+      background: var(--surface-elevated-50) !important;
       border-color: var(--octo-mint-20) !important;
 
       .form-title {
@@ -5046,19 +5040,19 @@ $kendo-colors: map.merge(
     --mm-cron-bg: #{var(--surface-elevated-60)};
     --mm-cron-border: #{var(--octo-mint-20)};
     --mm-cron-border-radius: 8px;
-    --mm-cron-text: var(--octo-text-color);
-    --mm-cron-text-secondary: var(--ash-blue);
-    --mm-cron-accent: var(--octo-mint);
-    --mm-cron-accent-hover: var(--octo-mint-light-10);
+    --mm-cron-text: #ffffff;
+    --mm-cron-text-secondary: #{$ash-blue};
+    --mm-cron-accent: #{$octo-mint};
+    --mm-cron-accent-hover: #{color.adjust($octo-mint, $lightness: 10%)};
     --mm-cron-preview-bg: #{var(--deep-sea-80)};
     --mm-cron-tab-active-bg: #{var(--octo-mint-15)};
-    --mm-cron-tab-active-border: var(--octo-mint);
-    --mm-cron-error: var(--bubblegum);
-    --mm-cron-success: var(--kendo-success);
-    --mm-cron-code-bg: #{var(--deep-sea)};
-    --mm-cron-code-text: var(--octo-mint);
+    --mm-cron-tab-active-border: #{$octo-mint};
+    --mm-cron-error: #{$bubblegum};
+    --mm-cron-success: #37b400;
+    --mm-cron-code-bg: #{$deep-sea};
+    --mm-cron-code-text: #{$octo-mint};
     --mm-cron-shadow:
-      0 4px 20px rgba(#000, 0.3), 0 0 20px #{var(--octo-mint-08)};
+      0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px #{var(--octo-mint-08)};
     --mm-cron-font-family: var(--lcars-font-primary);
     --mm-cron-font-mono: var(--lcars-font-mono);
 
@@ -5072,15 +5066,15 @@ $kendo-colors: map.merge(
       &:hover:not(.disabled) {
         border-color: var(--octo-mint-40);
         box-shadow:
-          0 4px 30px rgba(#000, 0.3),
-          0 0 25px color-mix(in srgb, var(--octo-mint) 12%, transparent);
+          0 4px 30px rgba(0, 0, 0, 0.3),
+          0 0 25px var(--octo-mint-10);
       }
     }
 
     // Expression display with LCARS glow
     .expression-value {
       border: 1px solid var(--octo-mint-30);
-      box-shadow: inset 0 0 10px rgba(#000, 0.3);
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
 
       &:not(.invalid) {
         text-shadow: 0 0 8px var(--octo-mint-50);
@@ -5235,8 +5229,8 @@ $kendo-colors: map.merge(
 
     // Copy button success state
     .copy-button.copied {
-      color: var(--kendo-success) !important;
-      text-shadow: 0 0 8px rgba(var(--kendo-success), 0.5);
+      color: #37b400 !important;
+      text-shadow: 0 0 8px rgba(55, 180, 0, 0.5);
     }
 
     // Labels
@@ -5254,6 +5248,7 @@ $kendo-colors: map.merge(
   // Kendo adds .k-pdf-export class during PDF generation
   // =============================================================================
   .k-pdf-export {
+    --octo-text-color: #000;
     // Reset all backgrounds and colors to simple black and white
     &.k-grid,
     .k-grid,
@@ -5267,12 +5262,12 @@ $kendo-colors: map.merge(
       background-color: #fff !important;
       background-image: none !important;
       color: var(--octo-text-color) !important;
-      border-color: var(--octo-text-color) !important;
+      border-color: #000 !important;
     }
 
     &.k-grid,
     .k-grid {
-      border: 1px solid var(--octo-text-color) !important;
+      border: 1px solid #000 !important;
       border-collapse: collapse !important;
       font-family: Arial, sans-serif !important;
       font-size: 8px !important;
@@ -5296,7 +5291,7 @@ $kendo-colors: map.merge(
       background-color: #e0e0e0 !important;
       background-image: none !important;
       color: var(--octo-text-color) !important;
-      border: 1px solid var(--octo-text-color) !important;
+      border: 1px solid #000 !important;
       font-weight: bold !important;
       font-size: 8px !important;
       padding: 4px 6px !important;
@@ -5318,7 +5313,7 @@ $kendo-colors: map.merge(
       background-color: #fff !important;
       background-image: none !important;
       color: var(--octo-text-color) !important;
-      border: 1px solid var(--octo-text-color) !important;
+      border: 1px solid #000 !important;
       font-size: 8px !important;
       padding: 4px 6px !important;
       vertical-align: middle !important;
