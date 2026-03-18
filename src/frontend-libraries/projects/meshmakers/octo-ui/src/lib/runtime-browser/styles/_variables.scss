@@ -1,0 +1,196 @@
+// ============================================================================
+// RUNTIME BROWSER - Design Tokens (Kendo-independent)
+// LCARS-inspired theme variables. Use with Kendo when host imports Kendo theme.
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// LCARS DESIGN TOKENS - Brand color palette (SCSS variables for reuse)
+// ----------------------------------------------------------------------------
+$octo-mint: #8ca3a1;
+$neo-cyan: #7f97ad;
+$indigogo: #6e7f99;
+$toffee: #b8a184;
+$bubblegum: #b38f9f;
+$lilac-glow: #a3a0b6;
+$royal-violet: #8f85a8;
+$ash-blue: #9aa4b2;
+$iron-navy: #3b4657;
+$deep-sea: #1a2230;
+$surface-elevated: #243042;
+$octo-text-color: #ffffff;
+$lcars-border-color: #64ceb9;
+$pink: #ec658f;
+
+// Additional theme colors (used when Kendo theme is applied)
+$kendo-inverse: #3d3d3d;
+$kendo-success: #37b400;
+
+/// Applies CSS custom properties for the LCARS theme.
+/// Include this on :host or a container (e.g. .kendo-theme-provider).
+/// When Kendo is imported by the host, these variables override Kendo's defaults.
+@mixin variables {
+  // Typography
+  --lcars-font-primary: "Montserrat", "Roboto", "Helvetica Neue", sans-serif;
+  --lcars-font-mono: "Roboto Mono", "Consolas", monospace;
+  --lcars-border-color: #{$lcars-border-color};
+
+  --pink: #{$pink};
+
+  // Brand Colors as CSS Variables
+  --octo-mint: #{$octo-mint};
+  --neo-cyan: #{$neo-cyan};
+  --indigogo: #{$indigogo};
+  --toffee: #{$toffee};
+  --bubblegum: #{$bubblegum};
+  --lilac-glow: #{$lilac-glow};
+  --royal-violet: #{$royal-violet};
+  --ash-blue: #{$ash-blue};
+  --iron-navy: #{$iron-navy};
+  --deep-sea: #{$deep-sea};
+  --surface-elevated: #{$surface-elevated};
+  --octo-text-color: #{$octo-text-color};
+  --kendo-success: #{$kendo-success};
+
+  // Kendo variable overrides - applied when Kendo is imported by host
+  --kendo-color-primary: var(--octo-mint);
+  --kendo-color-primary-on-surface: var(--octo-mint);
+  --kendo-color-app-surface: var(--deep-sea);
+  --kendo-color-on-app-surface: var(--octo-text-color);
+  font-family: var(--lcars-font-primary);
+
+  // Derived colors for gradients/overlays (theme-aware)
+  --octo-mint-05: color-mix(in srgb, var(--octo-mint) 5%, transparent);
+  --octo-mint-03: color-mix(in srgb, var(--octo-mint) 3%, transparent);
+  --octo-mint-08: color-mix(in srgb, var(--octo-mint) 8%, transparent);
+  --octo-mint-10: color-mix(in srgb, var(--octo-mint) 10%, transparent);
+  --octo-mint-15: color-mix(in srgb, var(--octo-mint) 15%, transparent);
+  --octo-mint-20: color-mix(in srgb, var(--octo-mint) 20%, transparent);
+  --octo-mint-25: color-mix(in srgb, var(--octo-mint) 25%, transparent);
+  --octo-mint-30: color-mix(in srgb, var(--octo-mint) 30%, transparent);
+  --octo-mint-35: color-mix(in srgb, var(--octo-mint) 35%, transparent);
+  --octo-mint-40: color-mix(in srgb, var(--octo-mint) 40%, transparent);
+  --octo-mint-45: color-mix(in srgb, var(--octo-mint) 45%, transparent);
+  --octo-mint-50: color-mix(in srgb, var(--octo-mint) 50%, transparent);
+  --octo-mint-60: color-mix(in srgb, var(--octo-mint) 60%, transparent);
+  --octo-mint-80: color-mix(in srgb, var(--octo-mint) 80%, transparent);
+  --octo-mint-dark-10: color-mix(in srgb, var(--octo-mint), black 10%);
+  --octo-mint-light-5: color-mix(in srgb, var(--octo-mint), white 5%);
+  --octo-mint-light-10: color-mix(in srgb, var(--octo-mint), white 10%);
+
+  --bubblegum-05: color-mix(in srgb, var(--bubblegum) 5%, transparent);
+  --bubblegum-10: color-mix(in srgb, var(--bubblegum) 10%, transparent);
+  --bubblegum-15: color-mix(in srgb, var(--bubblegum) 15%, transparent);
+  --bubblegum-20: color-mix(in srgb, var(--bubblegum) 20%, transparent);
+  --bubblegum-30: color-mix(in srgb, var(--bubblegum) 30%, transparent);
+  --bubblegum-40: color-mix(in srgb, var(--bubblegum) 40%, transparent);
+  --bubblegum-50: color-mix(in srgb, var(--bubblegum) 50%, transparent);
+  --bubblegum-60: color-mix(in srgb, var(--bubblegum) 60%, transparent);
+
+  --toffee-15: color-mix(in srgb, var(--toffee) 15%, transparent);
+  --toffee-30: color-mix(in srgb, var(--toffee) 30%, transparent);
+  --toffee-40: color-mix(in srgb, var(--toffee) 40%, transparent);
+  --toffee-50: color-mix(in srgb, var(--toffee) 50%, transparent);
+
+  --royal-violet-15: color-mix(in srgb, var(--royal-violet) 15%, transparent);
+  --royal-violet-30: color-mix(in srgb, var(--royal-violet) 30%, transparent);
+  --royal-violet-40: color-mix(in srgb, var(--royal-violet) 40%, transparent);
+  --royal-violet-50: color-mix(in srgb, var(--royal-violet) 50%, transparent);
+  --royal-violet-light-20: color-mix(in srgb, var(--royal-violet), white 20%);
+
+  --neo-cyan-05: color-mix(in srgb, var(--neo-cyan) 5%, transparent);
+  --neo-cyan-10: color-mix(in srgb, var(--neo-cyan) 10%, transparent);
+  --neo-cyan-30: color-mix(in srgb, var(--neo-cyan) 30%, transparent);
+  --neo-cyan-40: color-mix(in srgb, var(--neo-cyan) 40%, transparent);
+  --neo-cyan-dark-10: color-mix(in srgb, var(--neo-cyan), black 10%);
+
+  --iron-navy-60: color-mix(in srgb, var(--iron-navy) 60%, transparent);
+  --iron-navy-80: color-mix(in srgb, var(--iron-navy) 80%, transparent);
+  --iron-navy-50: color-mix(in srgb, var(--iron-navy) 50%, transparent);
+  --iron-navy-70: color-mix(in srgb, var(--iron-navy) 70%, transparent);
+  --iron-navy-dark-5: color-mix(in srgb, var(--iron-navy), black 5%);
+
+  --deep-sea-40: color-mix(in srgb, var(--deep-sea) 40%, transparent);
+  --deep-sea-50: color-mix(in srgb, var(--deep-sea) 50%, transparent);
+  --deep-sea-60: color-mix(in srgb, var(--deep-sea) 60%, transparent);
+  --deep-sea-80: color-mix(in srgb, var(--deep-sea) 80%, transparent);
+  --deep-sea-90: color-mix(in srgb, var(--deep-sea) 90%, transparent);
+  --deep-sea-95: color-mix(in srgb, var(--deep-sea) 95%, transparent);
+
+  --ash-blue-10: color-mix(in srgb, var(--ash-blue) 10%, transparent);
+  --ash-blue-15: color-mix(in srgb, var(--ash-blue) 15%, transparent);
+  --ash-blue-20: color-mix(in srgb, var(--ash-blue) 20%, transparent);
+  --ash-blue-30: color-mix(in srgb, var(--ash-blue) 30%, transparent);
+  --ash-blue-50: color-mix(in srgb, var(--ash-blue) 50%, transparent);
+  --ash-blue-70: color-mix(in srgb, var(--ash-blue) 70%, transparent);
+  --ash-blue-80: color-mix(in srgb, var(--ash-blue) 80%, transparent);
+
+  --surface-elevated-40: color-mix(
+    in srgb,
+    var(--surface-elevated) 40%,
+    transparent
+  );
+  --surface-elevated-50: color-mix(
+    in srgb,
+    var(--surface-elevated) 50%,
+    transparent
+  );
+  --surface-elevated-90: color-mix(
+    in srgb,
+    var(--surface-elevated) 90%,
+    transparent
+  );
+  --surface-elevated-60: color-mix(
+    in srgb,
+    var(--surface-elevated) 60%,
+    transparent
+  );
+  --surface-elevated-80: color-mix(
+    in srgb,
+    var(--surface-elevated) 80%,
+    transparent
+  );
+
+  // LCARS-specific design tokens
+  --lcars-glow-primary: 0 0 10px var(--octo-mint-40);
+  --lcars-glow-cyan: 0 0 10px var(--neo-cyan-40);
+  --lcars-glow-violet: 0 0 10px var(--royal-violet-40);
+  --lcars-glow-pink: 0 0 10px var(--bubblegum-40);
+
+  // LCARS Border Radius (asymmetric is characteristic)
+  --lcars-radius-sm: 4px;
+  --lcars-radius-md: 8px;
+  --lcars-radius-lg: 16px;
+  --lcars-radius-xl: 24px;
+  --lcars-radius-pill: 50px;
+
+  // Panel styling
+  --lcars-panel-border: 1px solid var(--octo-mint-20);
+  --lcars-panel-bg: var(--surface-elevated-60);
+
+  // Transitions
+  --lcars-transition-fast: 150ms ease;
+  --lcars-transition-normal: 250ms ease;
+
+  // Designer/Symbol Editor Panel Variables (LCARS theme)
+  --designer-panel-bg: var(--surface-elevated);
+  --designer-panel-bg-elevated: var(--iron-navy);
+  --designer-panel-border: var(--octo-mint-20);
+  --designer-panel-text: var(--octo-text-color);
+  --designer-panel-text-secondary: var(--ash-blue);
+  --designer-panel-text-muted: color-mix(
+    in srgb,
+    var(--ash-blue) 70%,
+    transparent
+  );
+  --designer-panel-accent: var(--octo-mint);
+  --designer-panel-accent-hover-bg: var(--octo-mint-15);
+  --designer-panel-input-bg: var(--deep-sea);
+  --designer-panel-delete-hover-bg: var(--bubblegum-20);
+  --designer-panel-delete-color: var(--bubblegum);
+
+  // Cron Expression Cell Variables (LCARS theme for list view)
+  --mm-cron-code-bg: var(--deep-sea-80);
+  --mm-cron-code-text: var(--octo-mint);
+  --mm-cron-text-secondary: var(--ash-blue);
+  --mm-cron-success: var(--kendo-success);
+}

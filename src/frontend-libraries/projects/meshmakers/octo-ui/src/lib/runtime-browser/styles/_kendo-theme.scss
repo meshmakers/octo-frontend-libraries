@@ -1,0 +1,224 @@
+// ============================================================================
+// RUNTIME BROWSER - Kendo Theme Integration (optional)
+// Import this ONLY when your app does NOT already import a Kendo theme.
+// When Kendo is already imported, use _index.scss (base) - it applies
+// CSS variable overrides that work with the host's Kendo theme.
+// ============================================================================
+
+@use "sass:map";
+@use "variables" as vars;
+
+// Slim Kendo theme: import only modules needed for runtime-browser components
+@use "@progress/kendo-theme-material/scss/core/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/typography/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/icons/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/messagebox/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/draggable/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/list/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/listgroup/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/action-buttons/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/overlay/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/popup/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/ripple/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/table/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/virtual-scroller/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/no-data/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/suggestion/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/bubble/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/column-menu/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/badge/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/chip/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/loader/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/skeleton/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/tooltip/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/forms/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/validator/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/floating-label/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/button/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/input/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/textbox/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/textarea/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/checkbox/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/listbox/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/progressbar/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/radio/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/calendar/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/timeselector/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/autocomplete/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/dateinput/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/datepicker/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/timepicker/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/datetimepicker/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/dropdownlist/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/multiselect/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/numerictextbox/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/upload/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/dropzone/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/menu/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/toolbar/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/window/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/dialog/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/drawer/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/notification/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/pager/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/tabstrip/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/treeview/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/card/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/expansion-panel/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/splitter/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/tilelayout/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/gridlayout/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/stacklayout/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/adaptive/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/grid/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/filter/_index.scss" as *;
+@use "@progress/kendo-theme-material/scss/utils/_index.scss" as *;
+
+// ----------------------------------------------------------------------------
+// KENDO THEME COLOR CONFIGURATION (LCARS palette)
+// ----------------------------------------------------------------------------
+$kendo-colors: map.merge(
+  $kendo-colors,
+  (
+    primary: var(--octo-mint),
+    surface: var(--iron-navy),
+    surface-alt: var(--surface-elevated),
+    app-surface: var(--deep-sea),
+    on-app-surface: var(--octo-text-color),
+    subtle: var(--ash-blue),
+  )
+);
+
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("base", vars.$ash-blue, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("primary", vars.$octo-mint, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("secondary", vars.$neo-cyan, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("tertiary", vars.$toffee, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("light", vars.$ash-blue, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("dark", vars.$iron-navy, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("inverse", vars.$kendo-inverse, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("info", vars.$indigogo, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("success", vars.$kendo-success, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("warning", vars.$toffee, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("error", vars.$bubblegum, "material")
+);
+
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("series-a", vars.$octo-mint, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("series-b", vars.$neo-cyan, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("series-c", vars.$lilac-glow, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("series-d", vars.$royal-violet, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("series-e", vars.$bubblegum, "material")
+);
+$kendo-colors: map.merge(
+  $kendo-colors,
+  k-generate-color-variations("series-f", vars.$toffee, "material")
+);
+
+// Include Kendo component styles
+@include core-styles();
+@include kendo-typography--styles();
+@include kendo-icon--styles();
+@include kendo-messagebox--styles();
+@include kendo-draggable--styles();
+@include kendo-list--styles();
+@include kendo-listgroup--styles();
+@include kendo-action-buttons--styles();
+@include kendo-overlay--styles();
+@include kendo-popup--styles();
+@include kendo-ripple--styles();
+@include kendo-table--styles();
+@include kendo-virtual-scroller--styles();
+@include kendo-no-data--styles();
+@include kendo-suggestion--styles();
+@include kendo-bubble--styles();
+@include kendo-column-menu--styles();
+@include kendo-badge--styles();
+@include kendo-chip--styles();
+@include kendo-loader--styles();
+@include kendo-skeleton--styles();
+@include kendo-tooltip--styles();
+@include kendo-form--styles();
+@include kendo-validator--styles();
+@include kendo-floating-label--styles();
+@include kendo-button--styles();
+@include kendo-input--styles();
+@include kendo-textbox--styles();
+@include kendo-textarea--styles();
+@include kendo-checkbox--styles();
+@include kendo-listbox--styles();
+@include kendo-progressbar--styles();
+@include kendo-radio--styles();
+@include kendo-calendar--styles();
+@include kendo-time-selector--styles();
+@include kendo-autocomplete--styles();
+@include kendo-date-input--styles();
+@include kendo-date-picker--styles();
+@include kendo-time-picker--styles();
+@include kendo-date-time-picker--styles();
+@include kendo-dropdown-list--styles();
+@include kendo-multiselect--styles();
+@include kendo-numeric-textbox--styles();
+@include kendo-upload--styles();
+@include kendo-dropzone--styles();
+@include kendo-menu--styles();
+@include kendo-toolbar--styles();
+@include kendo-window--styles();
+@include kendo-dialog--styles();
+@include kendo-drawer--styles();
+@include kendo-notification--styles();
+@include kendo-pager--styles();
+@include kendo-tabstrip--styles();
+@include kendo-treeview--styles();
+@include kendo-card--styles();
+@include kendo-expander--styles();
+@include kendo-splitter--styles();
+@include kendo-tile-layout--styles();
+@include kendo-grid-layout--styles();
+@include kendo-stack-layout--styles();
+@include kendo-grid--styles();
+@include kendo-filter--styles();

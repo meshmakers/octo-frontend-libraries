@@ -1,0 +1,8 @@
+// ============================================================================
+// RUNTIME BROWSER - Styles WITH Kendo Theme (for apps that don't import Kendo)
+// Use this entry point when your app does NOT already import a Kendo theme.
+// When Kendo is already imported, use _index.scss instead.
+// ============================================================================
+
+@use "../lib/runtime-browser/styles/kendo-theme";
+@forward "../lib/runtime-browser/styles/index";
