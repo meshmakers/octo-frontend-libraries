@@ -1,13 +1,19 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DialogRef, DialogModule } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { InputsModule, CheckBoxModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { FormFieldModule } from '@progress/kendo-angular-inputs';
-import { MeshBoardVariable, MeshBoardTimeFilterConfig } from '../../models/meshboard.models';
+import { TabStripModule } from '@progress/kendo-angular-layout';
+import { MeshBoardVariable, MeshBoardTimeFilterConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
 import { VariablesEditorComponent } from '../../components/variables-editor/variables-editor.component';
+import { EntitySelectorEditorComponent } from '../../components/entity-selector-editor/entity-selector-editor.component';
+import {
+  TimeRangePickerComponent,
+  TimeRangeSelection as SharedTimeRangeSelection
+} from '@meshmakers/shared-ui';
 
 /**
  * Result returned when the dialog is closed with save action.
@@ -21,7 +27,8 @@ export class MeshBoardSettingsResult {
     public gap: number,
     public variables: MeshBoardVariable[],
     public timeFilter?: MeshBoardTimeFilterConfig,
-    public rtWellKnownName?: string
+    public rtWellKnownName?: string,
+    public entitySelectors?: EntitySelectorConfig[]
   ) {}
 }
 
@@ -36,18 +43,20 @@ export class MeshBoardSettingsResult {
     CommonModule,
     FormsModule,
     ButtonModule,
-    DialogModule,
     InputsModule,
     CheckBoxModule,
     LabelModule,
     FormFieldModule,
-    VariablesEditorComponent
+    TabStripModule,
+    VariablesEditorComponent,
+    EntitySelectorEditorComponent,
+    TimeRangePickerComponent
   ],
   templateUrl: './meshboard-settings-dialog.component.html',
   styleUrl: './meshboard-settings-dialog.component.scss'
 })
 export class MeshBoardSettingsDialogComponent {
-  private readonly dialogRef = inject(DialogRef);
+  private readonly windowRef = inject(WindowRef);
 
   // Form fields
   name = '';
@@ -57,7 +66,18 @@ export class MeshBoardSettingsDialogComponent {
   rowHeight = 200;
   gap = 16;
   variables: MeshBoardVariable[] = [];
+  entitySelectors: EntitySelectorConfig[] = [];
+  entitySelectorEditing = false;
   timeFilterEnabled = false;
+  defaultSelection?: TimeRangeSelection;
+  initialDefaultSelection?: SharedTimeRangeSelection;
+
+  /** Static and time filter variable names for duplicate detection in entity selector editor */
+  get staticVariableNames(): string[] {
+    return this.variables
+      .filter(v => v.source === 'static' || v.source === 'timeFilter')
+      .map(v => v.name);
+  }
 
   // Validation
   get isValid(): boolean {
@@ -81,6 +101,7 @@ export class MeshBoardSettingsDialogComponent {
     gap: number;
     variables?: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
+    entitySelectors?: EntitySelectorConfig[];
   }): void {
     this.name = settings.name;
     this.description = settings.description;
@@ -89,7 +110,35 @@ export class MeshBoardSettingsDialogComponent {
     this.rowHeight = settings.rowHeight;
     this.gap = settings.gap;
     this.variables = settings.variables ? [...settings.variables] : [];
+    this.entitySelectors = settings.entitySelectors ? settings.entitySelectors.map(es => ({ ...es })) : [];
     this.timeFilterEnabled = settings.timeFilter?.enabled ?? false;
+    this.defaultSelection = settings.timeFilter?.defaultSelection;
+    if (this.defaultSelection) {
+      this.initialDefaultSelection = {
+        ...this.defaultSelection,
+        customFrom: this.defaultSelection.customFrom ? new Date(this.defaultSelection.customFrom) : undefined,
+        customTo: this.defaultSelection.customTo ? new Date(this.defaultSelection.customTo) : undefined
+      } as SharedTimeRangeSelection;
+    }
+  }
+
+  /**
+   * Handles default selection change from the time range picker.
+   */
+  onDefaultSelectionChange(sharedSelection: SharedTimeRangeSelection): void {
+    this.defaultSelection = {
+      type: sharedSelection.type,
+      year: sharedSelection.year,
+      quarter: sharedSelection.quarter,
+      month: sharedSelection.month,
+      day: sharedSelection.day,
+      hourFrom: sharedSelection.hourFrom,
+      hourTo: sharedSelection.hourTo,
+      relativeValue: sharedSelection.relativeValue,
+      relativeUnit: sharedSelection.relativeUnit,
+      customFrom: sharedSelection.customFrom?.toISOString(),
+      customTo: sharedSelection.customTo?.toISOString()
+    };
   }
 
   /**
@@ -101,7 +150,8 @@ export class MeshBoardSettingsDialogComponent {
     }
 
     const timeFilter: MeshBoardTimeFilterConfig = {
-      enabled: this.timeFilterEnabled
+      enabled: this.timeFilterEnabled,
+      defaultSelection: this.timeFilterEnabled ? this.defaultSelection : undefined
     };
 
     const result = new MeshBoardSettingsResult(
@@ -112,16 +162,17 @@ export class MeshBoardSettingsDialogComponent {
       this.gap,
       this.variables,
       timeFilter,
-      this.rtWellKnownName.trim() || undefined
+      this.rtWellKnownName.trim() || undefined,
+      this.entitySelectors.length > 0 ? this.entitySelectors : undefined
     );
 
-    this.dialogRef.close(result);
+    this.windowRef.close(result);
   }
 
   /**
    * Cancels and closes the dialog.
    */
   cancel(): void {
-    this.dialogRef.close();
+    this.windowRef.close();
   }
 }

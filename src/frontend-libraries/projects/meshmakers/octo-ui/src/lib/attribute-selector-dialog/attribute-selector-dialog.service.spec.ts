@@ -11,6 +11,11 @@ interface MockComponentInstance {
     selectedAttributes?: string[];
     dialogTitle?: string;
     singleSelect?: boolean;
+    additionalAttributes?: AttributeItem[];
+    includeNavigationProperties?: boolean;
+    maxDepth?: number;
+    hideNavigationControls?: boolean;
+    attributePaths?: string[];
   };
 }
 
@@ -28,6 +33,7 @@ describe('AttributeSelectorDialogService', () => {
   ];
 
   beforeEach(() => {
+    sessionStorage.clear();
     windowResultSubject = new Subject();
     mockComponentInstance = {};
 
@@ -35,7 +41,17 @@ describe('AttributeSelectorDialogService', () => {
       result: windowResultSubject.asObservable(),
       content: {
         instance: mockComponentInstance
-      } as unknown as WindowRef['content']
+      } as unknown as WindowRef['content'],
+      window: {
+        location: {
+          nativeElement: {
+            getBoundingClientRect: () => ({
+              width: 800, height: 600, x: 0, y: 0, top: 0, left: 0, right: 800, bottom: 600,
+              toJSON: () => ({})
+            })
+          }
+        }
+      }
     };
 
     windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
@@ -123,7 +139,12 @@ describe('AttributeSelectorDialogService', () => {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: selectedAttrs,
         dialogTitle: 'My Title',
-        singleSelect: undefined
+        singleSelect: undefined,
+        additionalAttributes: undefined,
+        includeNavigationProperties: undefined,
+        maxDepth: undefined,
+        hideNavigationControls: undefined,
+        attributePaths: undefined
       });
     });
 
@@ -241,8 +262,31 @@ describe('AttributeSelectorDialogService', () => {
         rtCkTypeId: 'TestType/Entity',
         selectedAttributes: undefined,
         dialogTitle: undefined,
-        singleSelect: undefined
+        singleSelect: undefined,
+        additionalAttributes: undefined,
+        includeNavigationProperties: undefined,
+        maxDepth: undefined,
+        hideNavigationControls: undefined,
+        attributePaths: undefined
       });
+    });
+
+    it('should pass new optional params to dialog component', async () => {
+      const resultPromise = service.openAttributeSelector(
+        'TestType/Entity', undefined, undefined, undefined, undefined,
+        false, 2, true
+      );
+
+      windowResultSubject.next({ selectedAttributes: [] });
+      windowResultSubject.complete();
+
+      await resultPromise;
+
+      expect(mockComponentInstance.data).toEqual(jasmine.objectContaining({
+        includeNavigationProperties: false,
+        maxDepth: 2,
+        hideNavigationControls: true
+      }));
     });
 
     it('should set resizable to true', async () => {

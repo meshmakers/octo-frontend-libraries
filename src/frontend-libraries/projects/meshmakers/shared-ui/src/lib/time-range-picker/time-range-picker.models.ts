@@ -1,7 +1,7 @@
 /**
  * The type of time range selection
  */
-export type TimeRangeType = 'year' | 'quarter' | 'month' | 'relative' | 'custom';
+export type TimeRangeType = 'year' | 'quarter' | 'month' | 'day' | 'relative' | 'custom';
 
 /**
  * The unit for relative time calculations
@@ -63,6 +63,12 @@ export interface TimeRangeSelection {
   year?: number;
   quarter?: Quarter;
   month?: number;
+  /** Day of month (1-31), used with 'day' type */
+  day?: number;
+  /** Hour from (0-23), optional hour filter for 'day' type */
+  hourFrom?: number;
+  /** Hour to (1-24), optional hour filter for 'day' type. Exclusive upper bound. */
+  hourTo?: number;
   relativeValue?: number;
   relativeUnit?: RelativeTimeUnit;
   customFrom?: Date;
@@ -85,14 +91,18 @@ export interface TimeRangePickerLabels {
   year?: string;
   quarter?: string;
   month?: string;
+  day?: string;
   relativeValue?: string;
   relativeUnit?: string;
+  hourFrom?: string;
+  hourTo?: string;
   customFrom?: string;
   customTo?: string;
   // Type labels
   typeYear?: string;
   typeQuarter?: string;
   typeMonth?: string;
+  typeDay?: string;
   typeRelative?: string;
   typeCustom?: string;
   // Relative unit labels
@@ -115,13 +125,17 @@ export const DEFAULT_TIME_RANGE_LABELS: TimeRangePickerLabels = {
   year: 'Year',
   quarter: 'Quarter',
   month: 'Month',
+  day: 'Day',
   relativeValue: 'Last',
   relativeUnit: 'Unit',
+  hourFrom: 'From Hour',
+  hourTo: 'To Hour',
   customFrom: 'From',
   customTo: 'To',
   typeYear: 'Year',
   typeQuarter: 'Quarter',
   typeMonth: 'Month',
+  typeDay: 'Day',
   typeRelative: 'Relative',
   typeCustom: 'Custom',
   unitHours: 'Hours',
@@ -173,6 +187,24 @@ export class TimeRangeUtils {
   }
 
   /**
+   * Calculate time range for a specific day.
+   * Uses exclusive end boundary (start of next day) for correct LESS_THAN filtering.
+   * Optionally filters to a specific hour range within the day.
+   * @param hourFrom Start hour (0-23), defaults to 0
+   * @param hourTo End hour (1-24, exclusive), defaults to 24 (= next day 00:00)
+   */
+  static getDayRange(year: number, month: number, day: number, hourFrom?: number, hourTo?: number): TimeRange {
+    const fromHour = hourFrom ?? 0;
+    const toHour = hourTo ?? 24;
+    return {
+      from: new Date(Date.UTC(year, month, day, fromHour, 0, 0, 0)),
+      to: toHour === 24
+        ? new Date(Date.UTC(year, month, day + 1, 0, 0, 0, 0))
+        : new Date(Date.UTC(year, month, day, toHour, 0, 0, 0))
+    };
+  }
+
+  /**
    * Calculate time range relative to now
    */
   static getRelativeRange(value: number, unit: RelativeTimeUnit): TimeRange {
@@ -198,9 +230,12 @@ export class TimeRangeUtils {
   }
 
   /**
-   * Calculate time range from selection
+   * Calculate time range from selection.
+   * @param selection The current selection state
+   * @param showTime If false (default), custom date ranges are normalized to full-day boundaries
+   *                 with exclusive end (from: 00:00:00 UTC, to: start of next day 00:00:00 UTC)
    */
-  static getTimeRangeFromSelection(selection: TimeRangeSelection): TimeRange | null {
+  static getTimeRangeFromSelection(selection: TimeRangeSelection, showTime = false): TimeRange | null {
     switch (selection.type) {
       case 'year':
         if (selection.year) {
@@ -217,6 +252,11 @@ export class TimeRangeUtils {
           return this.getMonthRange(selection.year, selection.month);
         }
         break;
+      case 'day':
+        if (selection.year && selection.month !== undefined && selection.day !== undefined) {
+          return this.getDayRange(selection.year, selection.month, selection.day, selection.hourFrom, selection.hourTo);
+        }
+        break;
       case 'relative':
         if (selection.relativeValue && selection.relativeUnit) {
           return this.getRelativeRange(selection.relativeValue, selection.relativeUnit);
@@ -224,10 +264,20 @@ export class TimeRangeUtils {
         break;
       case 'custom':
         if (selection.customFrom && selection.customTo) {
-          return {
-            from: selection.customFrom,
-            to: selection.customTo
-          };
+          if (showTime) {
+            // Keep the user-selected time as-is
+            return {
+              from: selection.customFrom,
+              to: selection.customTo
+            };
+          }
+          // Normalize to full-day boundaries in UTC (exclusive end, like year/quarter/month)
+          const from = new Date(selection.customFrom);
+          from.setUTCHours(0, 0, 0, 0);
+          const to = new Date(selection.customTo);
+          to.setUTCHours(0, 0, 0, 0);
+          to.setUTCDate(to.getUTCDate() + 1);
+          return { from, to };
         }
         break;
     }

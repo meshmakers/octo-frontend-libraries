@@ -1,0 +1,193 @@
+<div class="entity-selector-editor">
+  @if (!isEditing) {
+    <!-- Selector List -->
+    <div class="selector-list">
+      @for (selector of entitySelectors; track selector.id; let i = $index) {
+        <div class="selector-item">
+          <div class="selector-info">
+            <span class="selector-label">{{ selector.label }}</span>
+            <span class="selector-mode">{{ getModeLabel(selector) }}</span>
+            <span class="selector-ck-type">{{ selector.ckTypeId }}</span>
+            <span class="selector-mappings">{{ getMappingSummary(selector) }}</span>
+          </div>
+          <div class="selector-actions">
+            <button
+              kendoButton
+              [svgIcon]="pencilIcon"
+              (click)="editSelector(i)"
+              fillMode="flat"
+              size="small"
+              title="Edit selector">
+            </button>
+            <button
+              kendoButton
+              [svgIcon]="trashIcon"
+              (click)="removeSelector(i)"
+              fillMode="flat"
+              size="small"
+              title="Remove selector"
+              class="remove-btn">
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (entitySelectors.length === 0) {
+        <div class="empty-state">
+          No entity selectors configured. Add one to enable entity-based variables.
+        </div>
+      }
+    </div>
+
+    <div class="add-button-row">
+      <button
+        kendoButton
+        [svgIcon]="plusIcon"
+        (click)="addSelector()"
+        themeColor="primary">
+        Add Entity Selector
+      </button>
+    </div>
+  } @else {
+    <!-- Edit Form -->
+    <div class="edit-panel">
+      <div class="edit-panel-header">
+        {{ editingIndex !== null ? 'Edit Entity Selector' : 'New Entity Selector' }}
+      </div>
+      <div class="edit-form">
+      <div class="form-field">
+        <label class="field-label">ID *</label>
+        <kendo-textbox
+          [(ngModel)]="editId"
+          placeholder="e.g., mp"
+          [readonly]="editingIndex !== null">
+        </kendo-textbox>
+        @if (isDuplicateId(editId, editingIndex)) {
+          <span class="field-error">ID must be unique</span>
+        }
+        <span class="field-hint">Used in URL parameters (es_&lt;id&gt;=&lt;rtId&gt;)</span>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Label *</label>
+        <kendo-textbox
+          [(ngModel)]="editLabel"
+          placeholder="e.g., Metering Point">
+        </kendo-textbox>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">CK Type *</label>
+        <mm-ck-type-selector-input
+          [ngModel]="editCkTypeItem"
+          [placeholder]="'Select CK type...'"
+          (ckTypeSelected)="onCkTypeSelected($event)"
+          (ckTypeCleared)="onCkTypeCleared()">
+        </mm-ck-type-selector-input>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Attribute Mappings *</label>
+        <button
+          kendoButton
+          (click)="selectAttributes()"
+          [disabled]="!editCkTypeId"
+          fillMode="outline"
+          size="small">
+          Select Attributes...
+        </button>
+
+        @if (editMappings.length > 0) {
+          <div class="mappings-list">
+            <div class="mappings-header">
+              <span class="mappings-header-attr">Attribute</span>
+              <span class="mappings-header-var">Variable Name</span>
+            </div>
+            @for (mapping of editMappings; track mapping.attributePath; let j = $index) {
+              <div class="mapping-item">
+                <span class="mapping-path">{{ mapping.attributePath }}</span>
+                <span class="mapping-arrow">&rarr;</span>
+                <div class="mapping-var-field">
+                  <div class="mapping-var-input-wrapper">
+                    <span class="mapping-var-prefix">$</span>
+                    <kendo-textbox
+                      [(ngModel)]="mapping.variableName"
+                      size="small"
+                      class="mapping-var-input"
+                      placeholder="variableName"
+                      [class.invalid]="getVariableNameError(mapping)">
+                    </kendo-textbox>
+                  </div>
+                  @if (getVariableNameError(mapping); as error) {
+                    <span class="field-error">{{ error }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-field">
+        <div class="checkbox-row">
+          <input
+            type="checkbox"
+            kendoCheckBox
+            [(ngModel)]="editShowInToolbar"
+            id="showInToolbar" />
+          <label class="field-label checkbox-label" for="showInToolbar">Show in Toolbar</label>
+        </div>
+        <span class="field-hint">
+          @if (editShowInToolbar) {
+            Users can select an entity from a dropdown in the toolbar.
+          } @else {
+            Hidden selector — variables are resolved from the default entity below.
+          }
+        </span>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Default Entity{{ !editShowInToolbar ? ' *' : '' }}</label>
+        @if (defaultEntityDataSource) {
+          <mm-entity-select-input
+            [dataSource]="defaultEntityDataSource"
+            [dialogDataSource]="defaultEntityDialogDataSource!"
+            [placeholder]="'Select default entity...'"
+            [dialogTitle]="'Select Default ' + editLabel"
+            (entitySelected)="onDefaultEntitySelected($event)"
+            (entityCleared)="onDefaultEntityCleared()">
+          </mm-entity-select-input>
+        } @else {
+          <span class="field-hint">Select a CK type first to pick a default entity.</span>
+        }
+        @if (editDefaultRtId) {
+          <span class="field-hint">Selected: {{ editDefaultRtId }}</span>
+        }
+        @if (!editShowInToolbar && !editDefaultRtId) {
+          <span class="field-error">A default entity is required when not shown in toolbar.</span>
+        }
+        <span class="field-hint">
+          @if (editShowInToolbar) {
+            Optional — pre-selected entity when the MeshBoard loads.
+          } @else {
+            This entity's attributes will be used to populate the variables.
+          }
+        </span>
+      </div>
+
+      <div class="edit-actions mm-dialog-actions">
+        <button kendoButton (click)="cancelEdit()" fillMode="flat">
+          Cancel
+        </button>
+        <button
+          kendoButton
+          (click)="saveEdit()"
+          [disabled]="!isEditValid()"
+          themeColor="primary">
+          {{ editingIndex !== null ? 'Update' : 'Add' }}
+        </button>
+      </div>
+      </div>
+    </div>
+  }
+</div>

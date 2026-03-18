@@ -1,31 +1,36 @@
 import { Injectable, inject } from '@angular/core';
-import { DialogService, DialogRef } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowRef } from '@progress/kendo-angular-dialog';
 import { MessageDetailsDialogComponent, MessageDetailsDialogData } from './message-details-dialog.component';
+import { WindowStateService } from '../services/window-state.service';
 
 @Injectable()
 export class MessageDetailsDialogService {
-  private readonly dialogService = inject(DialogService);
+  private readonly windowService = inject(WindowService);
+  private readonly windowStateService = inject(WindowStateService);
 
   /**
-   * Opens a modal dialog to show message details with copy-to-clipboard functionality
+   * Opens a resizable window to show message details with copy-to-clipboard functionality
    */
-  showDetailsDialog(data: MessageDetailsDialogData): DialogRef {
-    const dialogRef = this.dialogService.open({
+  showDetailsDialog(data: MessageDetailsDialogData): WindowRef {
+    const size = this.windowStateService.resolveWindowSize('message-details', { width: 900, height: 600 });
+
+    const windowRef = this.windowService.open({
       content: MessageDetailsDialogComponent,
-      actions: [], // Actions are handled by the component itself
-      minWidth: 700,
-      maxWidth: 900,
-      width: '70%',
+      title: data.title,
+      width: size.width,
+      height: size.height,
+      minWidth: 500,
       minHeight: 400,
-      maxHeight: '80vh',
-      height: '60vh'
+      resizable: true,
     });
 
-    // Pass data to the component instance
-    if (dialogRef.content.instance) {
-      dialogRef.content.instance.data = data;
+    this.windowStateService.applyModalBehavior('message-details', windowRef);
+
+    const contentRef = windowRef.content as { instance?: MessageDetailsDialogComponent } | undefined;
+    if (contentRef?.instance) {
+      contentRef.instance.data = data;
     }
 
-    return dialogRef;
+    return windowRef;
   }
 }

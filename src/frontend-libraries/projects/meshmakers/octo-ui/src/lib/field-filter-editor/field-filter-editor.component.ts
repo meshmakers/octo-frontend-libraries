@@ -58,7 +58,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
   ],
   template: `
     <div class="field-filter-editor">
-      @if (ckTypeId) {
+      @if (ckTypeId && !hideNavigationProperties) {
         <div class="attribute-options">
           <label class="inline-checkbox">
             <input type="checkbox" kendoCheckBox
@@ -494,6 +494,19 @@ export class FieldFilterEditorComponent implements OnChanges {
    */
   @Input() public ckTypeId?: string;
 
+  /**
+   * When true, hides the "Include Navigation Properties" checkbox and Max Depth controls,
+   * and forces attribute loading without navigation properties.
+   * Used for stream data queries which don't support navigation properties.
+   */
+  @Input() public hideNavigationProperties = false;
+
+  /**
+   * When set, restricts the available attributes to only these attribute paths (filtered client-side after fetching).
+   * Used for stream data queries to show only stream-data-enabled attributes.
+   */
+  @Input() public attributePaths?: string[];
+
   /** Enable variable mode - allows using variables instead of literal values */
   @Input() public enableVariables = false;
 
@@ -524,8 +537,14 @@ export class FieldFilterEditorComponent implements OnChanges {
   public selectedKeys: number[] = [];
 
   ngOnChanges(changes?: SimpleChanges): void {
-    // Self-load attributes when ckTypeId changes
-    if (changes?.['ckTypeId'] && this.ckTypeId) {
+    // When hideNavigationProperties changes to true, reset nav props
+    if (changes?.['hideNavigationProperties'] && this.hideNavigationProperties) {
+      this.includeNavigationProperties = false;
+      this.maxDepth = null;
+    }
+
+    // Reload attributes when ckTypeId, hideNavigationProperties, or attributePaths changes
+    if ((changes?.['ckTypeId'] || changes?.['hideNavigationProperties'] || changes?.['attributePaths']) && this.ckTypeId) {
       this.loadAttributesFromCkType();
     }
 
@@ -576,6 +595,7 @@ export class FieldFilterEditorComponent implements OnChanges {
     if (!this.ckTypeId || !this.attributeService) return;
 
     this.isLoadingAttributes = true;
+    const includeNavProps = this.hideNavigationProperties ? false : this.includeNavigationProperties;
     try {
       const result = await firstValueFrom(
         this.attributeService.getAvailableAttributes(
@@ -585,11 +605,15 @@ export class FieldFilterEditorComponent implements OnChanges {
           undefined, // after
           undefined, // attributeValueType
           undefined, // searchTerm
-          this.includeNavigationProperties,
+          includeNavProps,
           this.maxDepth ?? undefined
         )
       );
-      this.availableAttributes = result.items;
+      // Apply client-side attribute path restriction if set
+      const allowedPathsSet = this.attributePaths ? new Set(this.attributePaths) : null;
+      this.availableAttributes = allowedPathsSet
+        ? result.items.filter(item => allowedPathsSet.has(item.attributePath))
+        : result.items;
       this.filteredAttributeList = [...this.availableAttributes];
       this.buildAttributeTypeMap();
     } catch (error) {

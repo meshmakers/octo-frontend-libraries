@@ -9,12 +9,18 @@ import {
   SelectableSettings,
   SelectionEvent,
   PageChangeEvent,
-  CheckboxColumnComponent
+  CheckboxColumnComponent,
+  CustomMessagesComponent
 } from '@progress/kendo-angular-grid';
 import { TextBoxComponent } from '@progress/kendo-angular-inputs';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
-import { EntitySelectDialogDataSource, EntitySelectDialogResult } from './entity-select-dialog-data-source';
+import {
+  EntitySelectDialogDataSource,
+  EntitySelectDialogResult,
+  EntitySelectDialogMessages,
+  DEFAULT_ENTITY_SELECT_DIALOG_MESSAGES
+} from './entity-select-dialog-data-source';
 import { TableColumn } from '../list-view/list-view.model';
 import { PascalCasePipe } from '../pipes/pascal-case.pipe';
 
@@ -28,6 +34,7 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
     GridComponent,
     ColumnComponent,
     CheckboxColumnComponent,
+    CustomMessagesComponent,
     TextBoxComponent,
     PascalCasePipe
   ],
@@ -36,9 +43,9 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       <div class="search-toolbar">
         <kendo-textbox
           [style.width.px]="250"
-          placeholder="Search..."
+          [placeholder]="_messages.searchPlaceholder"
           [value]="searchValue"
-          (valueChange)="onSearchChange($event)">
+          (valueChange)="onSearchChange($event ?? '')">
         </kendo-textbox>
       </div>
 
@@ -52,6 +59,17 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
         (pageChange)="onPageChange($event)"
         (selectionChange)="onSelectionChange($event)"
         class="entity-grid">
+
+        <kendo-grid-messages
+          [pagerItemsPerPage]="_messages.pagerItemsPerPage"
+          [pagerOf]="_messages.pagerOf"
+          [pagerItems]="_messages.pagerItems"
+          [pagerPage]="_messages.pagerPage"
+          [pagerFirstPage]="_messages.pagerFirstPage"
+          [pagerLastPage]="_messages.pagerLastPage"
+          [pagerPreviousPage]="_messages.pagerPreviousPage"
+          [pagerNextPage]="_messages.pagerNextPage"
+        ></kendo-grid-messages>
 
         <kendo-grid-checkbox-column
           [width]="40"
@@ -67,16 +85,16 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       </kendo-grid>
 
       <div class="selection-info" *ngIf="selectedEntities.length > 0">
-        {{ selectedEntities.length }} selected
+        {{ selectedEntities.length }} {{ _messages.selectedSuffix }}
       </div>
 
       <div class="dialog-actions">
-        <button kendoButton (click)="onCancel()">Cancel</button>
+        <button kendoButton (click)="onCancel()">{{ _messages.cancelButton }}</button>
         <button kendoButton
                 themeColor="primary"
                 [disabled]="selectedEntities.length === 0"
                 (click)="onConfirm()">
-          OK
+          {{ _messages.confirmButton }}
         </button>
       </div>
     </div>
@@ -131,6 +149,12 @@ export class EntitySelectDialogComponent<T> implements OnInit, OnDestroy {
   @Input() dataSource!: EntitySelectDialogDataSource<T>;
   @Input() multiSelect = false;
   @Input() preSelectedEntities: T[] = [];
+
+  _messages: EntitySelectDialogMessages = {...DEFAULT_ENTITY_SELECT_DIALOG_MESSAGES};
+
+  @Input() set messages(value: Partial<EntitySelectDialogMessages>) {
+    this._messages = {...DEFAULT_ENTITY_SELECT_DIALOG_MESSAGES, ...value};
+  }
 
   columns: TableColumn[] = [];
   gridData: { data: T[]; total: number } = { data: [], total: 0 };

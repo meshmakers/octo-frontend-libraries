@@ -184,7 +184,7 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
   @Input() maxResults = 50;
   @Input() debounceMs = 300;
   @Input() ckModelIds?: string[];
-  @Input() allowAbstract = false;
+  @Input() allowAbstract = true;
   @Input() dialogTitle = 'Select Construction Kit Type';
   @Input() advancedSearchLabel = 'Advanced Search...';
   @Input() derivedFromRtCkTypeId?: string;
@@ -249,6 +249,11 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
     if (value !== this.selectedCkType) {
       this.selectedCkType = value;
       if (value) {
+        // Ensure the value is in the data list so the autocomplete can display it
+        if (!this.typeMap.has(value.rtCkTypeId)) {
+          this.typeMap.set(value.rtCkTypeId, value);
+          this.filteredTypes = [value.rtCkTypeId];
+        }
         this.searchFormControl.setValue(value.rtCkTypeId, { emitEvent: false });
       } else {
         this.searchFormControl.setValue('', { emitEvent: false });

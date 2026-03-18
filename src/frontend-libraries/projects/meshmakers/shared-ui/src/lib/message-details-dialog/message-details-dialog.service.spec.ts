@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
+import { WindowService, WindowRef } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
 
 import { MessageDetailsDialogService } from './message-details-dialog.service';
@@ -7,26 +7,31 @@ import { MessageDetailsDialogData } from './message-details-dialog.component';
 
 describe('MessageDetailsDialogService', () => {
   let service: MessageDetailsDialogService;
-  let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogRefMock: jasmine.SpyObj<DialogRef>;
+  let windowServiceMock: jasmine.SpyObj<WindowService>;
+  let windowRefMock: jasmine.SpyObj<WindowRef>;
 
   beforeEach(() => {
-    dialogRefMock = jasmine.createSpyObj('DialogRef', ['close'], {
+    const mockNativeElement = {
+      getBoundingClientRect: () => ({ width: 900, height: 600, x: 0, y: 0, top: 0, left: 0, right: 900, bottom: 600, toJSON: () => ({}) })
+    };
+
+    windowRefMock = jasmine.createSpyObj('WindowRef', ['close'], {
       result: new Subject().asObservable(),
       content: {
         instance: {
           data: null
         }
-      }
+      },
+      window: { location: { nativeElement: mockNativeElement } }
     });
 
-    dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
-    dialogServiceMock.open.and.returnValue(dialogRefMock);
+    windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
+    windowServiceMock.open.and.returnValue(windowRefMock);
 
     TestBed.configureTestingModule({
       providers: [
         MessageDetailsDialogService,
-        { provide: DialogService, useValue: dialogServiceMock }
+        { provide: WindowService, useValue: windowServiceMock }
       ]
     });
     service = TestBed.inject(MessageDetailsDialogService);
@@ -37,7 +42,7 @@ describe('MessageDetailsDialogService', () => {
   });
 
   describe('showDetailsDialog', () => {
-    it('should open dialog with MessageDetailsDialogComponent', () => {
+    it('should open window with MessageDetailsDialogComponent', () => {
       const data: MessageDetailsDialogData = {
         title: 'Test Title',
         details: 'Test details',
@@ -46,7 +51,7 @@ describe('MessageDetailsDialogService', () => {
 
       service.showDetailsDialog(data);
 
-      expect(dialogServiceMock.open).toHaveBeenCalled();
+      expect(windowServiceMock.open).toHaveBeenCalled();
     });
 
     it('should pass data to component instance', () => {
@@ -58,11 +63,11 @@ describe('MessageDetailsDialogService', () => {
 
       service.showDetailsDialog(data);
 
-      const component = dialogRefMock.content.instance;
+      const component = windowRefMock.content.instance;
       expect(component.data).toEqual(data);
     });
 
-    it('should return DialogRef', () => {
+    it('should return WindowRef', () => {
       const data: MessageDetailsDialogData = {
         title: 'Test Title',
         details: 'Test details',
@@ -71,10 +76,10 @@ describe('MessageDetailsDialogService', () => {
 
       const result = service.showDetailsDialog(data);
 
-      expect(result).toBe(dialogRefMock);
+      expect(result).toBe(windowRefMock);
     });
 
-    it('should open dialog with appropriate dimensions', () => {
+    it('should open window with resizable enabled and correct dimensions', () => {
       const data: MessageDetailsDialogData = {
         title: 'Test Title',
         details: 'Test details',
@@ -83,10 +88,23 @@ describe('MessageDetailsDialogService', () => {
 
       service.showDetailsDialog(data);
 
-      const openCall = dialogServiceMock.open.calls.mostRecent().args[0];
-      expect(openCall.minWidth).toBe(700);
-      expect(openCall.maxWidth).toBe(900);
-      expect(openCall.width).toBe('70%');
+      const openCall = windowServiceMock.open.calls.mostRecent().args[0];
+      expect(openCall.minWidth).toBe(500);
+      expect(openCall.width).toBe(900);
+      expect(openCall.resizable).toBe(true);
+    });
+
+    it('should set title from data directly', () => {
+      const data: MessageDetailsDialogData = {
+        title: 'Test Title',
+        details: 'Test details',
+        level: 'error'
+      };
+
+      service.showDetailsDialog(data);
+
+      const openCall = windowServiceMock.open.calls.mostRecent().args[0];
+      expect(openCall.title).toBe('Test Title');
     });
   });
 });

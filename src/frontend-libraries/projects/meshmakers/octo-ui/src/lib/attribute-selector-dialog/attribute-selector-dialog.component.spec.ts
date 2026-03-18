@@ -633,4 +633,95 @@ describe('AttributeSelectorDialogComponent', () => {
       expect(nameAttr?.description).toBe('The name field');
     }));
   });
+
+  // =========================================================================
+  // Attribute Paths Filtering
+  // =========================================================================
+
+  describe('Attribute Paths Filtering', () => {
+    it('should filter available attributes by attributePaths when set', fakeAsync(() => {
+      component.data = {
+        rtCkTypeId: 'TestType/Entity',
+        attributePaths: ['name', 'age']
+      };
+      component.ngOnInit();
+      tick(300);
+
+      expect(component.availableAttributes.length).toBe(2);
+      const paths = component.availableAttributes.map(a => a.attributePath);
+      expect(paths).toContain('name');
+      expect(paths).toContain('age');
+      expect(paths).not.toContain('email');
+      expect(paths).not.toContain('createdAt');
+      expect(paths).not.toContain('isActive');
+    }));
+
+    it('should show all attributes when attributePaths is not set', fakeAsync(() => {
+      component.data = { rtCkTypeId: 'TestType/Entity' };
+      component.ngOnInit();
+      tick(300);
+
+      expect(component.availableAttributes.length).toBe(5);
+    }));
+
+    it('should still include additionalAttributes even when attributePaths is set', fakeAsync(() => {
+      const additionalAttr: AttributeItem = {
+        attributePath: 'timestamp',
+        attributeValueType: 'DATE_TIME',
+        description: 'Virtual timestamp'
+      };
+      component.data = {
+        rtCkTypeId: 'TestType/Entity',
+        attributePaths: ['name'],
+        additionalAttributes: [additionalAttr]
+      };
+      component.ngOnInit();
+      tick(300);
+
+      const paths = component.availableAttributes.map(a => a.attributePath);
+      expect(paths).toContain('timestamp');
+      expect(paths).toContain('name');
+      expect(paths).not.toContain('email');
+    }));
+
+    it('should apply attributePaths filter together with search', fakeAsync(() => {
+      component.data = {
+        rtCkTypeId: 'TestType/Entity',
+        attributePaths: ['name', 'age', 'email']
+      };
+      component.ngOnInit();
+      tick(300);
+
+      // Simulate search returning only matching items
+      attributeServiceMock.getAvailableAttributes.and.returnValue(of({
+        items: [{ attributePath: 'name', attributeValueType: 'STRING', description: 'The name field' }],
+        totalCount: 1
+      }));
+
+      component.onSearchChange('name');
+      tick(300);
+
+      // Should be filtered by both search (server) and attributePaths (client)
+      expect(component.availableAttributes.length).toBe(1);
+      expect(component.availableAttributes[0].attributePath).toBe('name');
+    }));
+
+    it('should correctly filter pre-selected attributes with attributePaths', fakeAsync(() => {
+      component.data = {
+        rtCkTypeId: 'TestType/Entity',
+        attributePaths: ['name', 'age', 'email'],
+        selectedAttributes: ['name']
+      };
+      component.ngOnInit();
+      tick(300);
+
+      // name should be selected, age and email available (not createdAt/isActive)
+      expect(component.selectedAttributes.length).toBe(1);
+      expect(component.selectedAttributes[0].attributePath).toBe('name');
+      expect(component.availableAttributes.length).toBe(2);
+      const availablePaths = component.availableAttributes.map(a => a.attributePath);
+      expect(availablePaths).toContain('age');
+      expect(availablePaths).toContain('email');
+    }));
+  });
 });

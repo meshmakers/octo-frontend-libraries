@@ -16,6 +16,27 @@
   }
 }
 
+// Filter dropdown styles — use ::ng-deep because Kendo renders
+// the dropdown popup outside the component's DOM (as an overlay)
+:host ::ng-deep {
+  .filter-status-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  // Hide Kendo's internal textField text in the closed dropdown value area,
+  // keeping only the icon/text visible from the value template
+  .status-filter-dropdown .k-input-value-text {
+    font-size: 0;
+
+    .filter-status-item,
+    > span {
+      font-size: 14px;
+    }
+  }
+}
+
 .cron-expression-cell {
   display: flex;
   flex-direction: column;

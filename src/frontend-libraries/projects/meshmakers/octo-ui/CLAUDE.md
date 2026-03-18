@@ -381,7 +381,7 @@ export class MyComponent {
 | `maxResults` | `number` | `50` | Max autocomplete results |
 | `debounceMs` | `number` | `300` | Search debounce delay |
 | `ckModelIds` | `string[]` | `undefined` | Filter by models |
-| `allowAbstract` | `boolean` | `false` | Allow abstract types |
+| `allowAbstract` | `boolean` | `true` | Allow abstract types |
 | `dialogTitle` | `string` | `'Select Construction Kit Type'` | Dialog title |
 | `disabled` | `boolean` | `false` | Disable input |
 | `required` | `boolean` | `false` | Required validation |

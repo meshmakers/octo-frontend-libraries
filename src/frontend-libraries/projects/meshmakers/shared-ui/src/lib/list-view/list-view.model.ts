@@ -54,6 +54,18 @@ export interface TableColumn {
    * Set to false to disable sorting for computed or client-side-only columns.
    */
   sortable?: boolean;
+  /**
+   * Whether filtering is enabled for this column.
+   * When not set, defaults to true (filterable).
+   * Set to false to hide the filter cell for this column when row filtering is active.
+   */
+  filterable?: boolean;
+  /**
+   * Dropdown filter options for the row filter.
+   * When set, the column's row filter renders a dropdown instead of a text input.
+   * Each option has a display text and a value used for filtering.
+   */
+  filterOptions?: { text: string; value: string }[];
 }
 
 export type ColumnDefinition =
@@ -61,3 +73,66 @@ export type ColumnDefinition =
   | TableColumn;
 
 export type ContextMenuType = 'contextMenu' | 'actionMenu';
+
+/**
+ * Translatable messages for the ListViewComponent.
+ * Pass translated strings to override the English defaults.
+ */
+export interface ListViewMessages {
+  /** Search input placeholder. Default: "Search in all columns..." */
+  searchPlaceholder: string;
+  /** Tooltip for "Show Row Filter" button. Default: "Show Row Filter" */
+  showRowFilter: string;
+  /** Tooltip for "Export to Excel" button. Default: "Export to Excel" */
+  exportToExcel: string;
+  /** Tooltip for "Export to PDF" button. Default: "Export to PDF" */
+  exportToPdf: string;
+  /** Tooltip for "Refresh Data" button. Default: "Refresh Data" */
+  refreshData: string;
+  /** Title for the actions command column. Default: "Actions" */
+  actionsColumnTitle: string;
+  /** PDF footer page template. Default: "Page {pageNum} of {totalPages}" */
+  pdfPageTemplate: string;
+
+  // Kendo Grid pager messages
+  /** Pager: text after page size selector. Default: "items per page" */
+  pagerItemsPerPage: string;
+  /** Pager: "of" text between page number and total. Default: "of" */
+  pagerOf: string;
+  /** Pager: text after total count. Default: "items" */
+  pagerItems: string;
+  /** Pager: text before page input. Default: "Page" */
+  pagerPage: string;
+  /** Pager: first page button tooltip. Default: "Go to the first page" */
+  pagerFirstPage: string;
+  /** Pager: last page button tooltip. Default: "Go to the last page" */
+  pagerLastPage: string;
+  /** Pager: previous page button tooltip. Default: "Go to the previous page" */
+  pagerPreviousPage: string;
+  /** Pager: next page button tooltip. Default: "Go to the next page" */
+  pagerNextPage: string;
+  /** Grid: no records message. Default: "No records available." */
+  noRecords: string;
+}
+
+/**
+ * Default English messages for the ListViewComponent.
+ */
+export const DEFAULT_LIST_VIEW_MESSAGES: ListViewMessages = {
+  searchPlaceholder: 'Search in all columns...',
+  showRowFilter: 'Show Row Filter',
+  exportToExcel: 'Export to Excel',
+  exportToPdf: 'Export to PDF',
+  refreshData: 'Refresh Data',
+  actionsColumnTitle: 'Actions',
+  pdfPageTemplate: 'Page {pageNum} of {totalPages}',
+  pagerItemsPerPage: 'items per page',
+  pagerOf: 'of',
+  pagerItems: 'items',
+  pagerPage: 'Page',
+  pagerFirstPage: 'Go to the first page',
+  pagerLastPage: 'Go to the last page',
+  pagerPreviousPage: 'Go to the previous page',
+  pagerNextPage: 'Go to the next page',
+  noRecords: 'No records available.',
+};

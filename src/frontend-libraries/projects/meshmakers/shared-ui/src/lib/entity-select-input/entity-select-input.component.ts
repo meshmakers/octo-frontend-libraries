@@ -29,7 +29,12 @@ import {xIcon, searchIcon} from '@progress/kendo-svg-icons';
 import {EntitySelectDataSource} from '@meshmakers/shared-services';
 import {Subject, of} from 'rxjs';
 import {debounceTime, distinctUntilChanged, switchMap, tap, catchError} from 'rxjs/operators';
-import {EntitySelectDialogDataSource} from '../entity-select-dialog/entity-select-dialog-data-source';
+import {
+  EntitySelectDialogDataSource,
+  EntitySelectInputMessages,
+  DEFAULT_ENTITY_SELECT_INPUT_MESSAGES,
+  EntitySelectDialogMessages
+} from '../entity-select-dialog/entity-select-dialog-data-source';
 import {EntitySelectDialogService} from '../entity-select-dialog/entity-select-dialog.service';
 
 @Component({
@@ -64,7 +69,7 @@ import {EntitySelectDialogService} from '../entity-select-dialog/entity-select-d
         [data]="filteredEntities"
         [loading]="isLoading"
         [disabled]="disabled"
-        [placeholder]="placeholder"
+        [placeholder]="placeholder || _messages.placeholder"
         [suggest]="true"
         [clearButton]="true"
         [filterable]="true"
@@ -85,10 +90,10 @@ import {EntitySelectDialogService} from '../entity-select-dialog/entity-select-d
         <ng-template kendoAutoCompleteNoDataTemplate>
           <div class="no-data-message">
             <span *ngIf="!isLoading && searchFormControl.value && searchFormControl.value.length >= minSearchLength">
-              No entities found for "{{ searchFormControl.value }}"
+              {{ formatMessage(_messages.noEntitiesFound, searchFormControl.value) }}
             </span>
             <span *ngIf="!isLoading && (!searchFormControl.value || searchFormControl.value.length < minSearchLength)">
-              Type at least {{ minSearchLength }} characters to search...
+              {{ formatMessage(_messages.minCharactersHint, minSearchLength) }}
             </span>
           </div>
         </ng-template>
@@ -97,7 +102,7 @@ import {EntitySelectDialogService} from '../entity-select-dialog/entity-select-d
         <ng-template kendoAutoCompleteFooterTemplate *ngIf="dialogDataSource">
           <div class="advanced-search-footer" (click)="openAdvancedSearch($event)">
             <kendo-svg-icon [icon]="searchIcon" size="small"></kendo-svg-icon>
-            <span>{{ advancedSearchLabel }}</span>
+            <span>{{ advancedSearchLabel || _messages.advancedSearchLabel }}</span>
           </div>
         </ng-template>
 
@@ -107,9 +112,10 @@ import {EntitySelectDialogService} from '../entity-select-dialog/entity-select-d
       <button *ngIf="dialogDataSource"
               kendoButton
               type="button"
+              fillMode="flat"
               [svgIcon]="searchIcon"
               [disabled]="disabled"
-              [title]="advancedSearchLabel"
+              [title]="advancedSearchLabel || _messages.advancedSearchLabel"
               class="dialog-button"
               (click)="openAdvancedSearch()">
       </button>
@@ -207,18 +213,35 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   // Inputs
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component accepts any entity type
   @Input() dataSource!: EntitySelectDataSource<any>;
-  @Input() placeholder = 'Select an entity...';
+  @Input() placeholder = '';
   @Input() minSearchLength = 3;
   @Input() maxResults = 50;
   @Input() debounceMs = 300;
   @Input() prefix = '';
 
+  // Initial display value (e.g. when restoring a previously selected entity by name)
+  @Input() set initialDisplayValue(value: string | undefined) {
+    if (value && !this.selectedEntity) {
+      this.searchFormControl.setValue(value, { emitEvent: false });
+    }
+  }
+
   // Dialog inputs
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generic component accepts any entity type
   @Input() dialogDataSource?: EntitySelectDialogDataSource<any>;
-  @Input() dialogTitle = 'Select Entity';
+  @Input() dialogTitle = '';
   @Input() multiSelect = false;
-  @Input() advancedSearchLabel = 'Advanced Search...';
+  @Input() advancedSearchLabel = '';
+
+  // Dialog messages (passed through to the dialog component)
+  @Input() dialogMessages?: Partial<EntitySelectDialogMessages>;
+
+  // Messages
+  _messages: EntitySelectInputMessages = {...DEFAULT_ENTITY_SELECT_INPUT_MESSAGES};
+
+  @Input() set messages(value: Partial<EntitySelectInputMessages>) {
+    this._messages = {...DEFAULT_ENTITY_SELECT_INPUT_MESSAGES, ...value};
+  }
 
   private _disabled = false;
   @Input()
@@ -272,6 +295,10 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   // Injected dependencies
   private elRef = inject(ElementRef);
   private dialogService = inject(EntitySelectDialogService, { optional: true });
+
+  formatMessage(template: string, ...args: unknown[]): string {
+    return template.replace(/\{(\d+)\}/g, (_, index) => String(args[+index] ?? ''));
+  }
 
   ngOnInit(): void {
     this.setupSearch();
@@ -461,9 +488,10 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
     this.autocomplete.toggle(false);
 
     const result = await this.dialogService.open(this.dialogDataSource, {
-      title: this.dialogTitle,
+      title: this.dialogTitle || this._messages.dialogTitle,
       multiSelect: this.multiSelect,
-      selectedEntities: this.selectedEntity ? [this.selectedEntity] : []
+      selectedEntities: this.selectedEntity ? [this.selectedEntity] : [],
+      messages: this.dialogMessages,
     });
 
     if (result && result.selectedEntities.length > 0) {
@@ -475,7 +503,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
           this.selectEntity(result.selectedEntities[0]);
         } else {
           // Multiple selected - update display to show count
-          const displayText = `${result.selectedEntities.length} selected`;
+          const displayText = `${result.selectedEntities.length} ${this._messages.selectedSuffix}`;
           this.searchFormControl.setValue(displayText, {emitEvent: false});
           this.selectedEntity = result.selectedEntities;
           this.onChange(result.selectedEntities);

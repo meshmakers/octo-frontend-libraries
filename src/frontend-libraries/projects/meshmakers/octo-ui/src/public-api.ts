@@ -9,6 +9,7 @@ import { provideMmSharedAuth } from "@meshmakers/shared-auth";
 import { AttributeSortSelectorDialogService } from './lib/attribute-sort-selector-dialog';
 import { PropertyConverterService } from './lib/property-grid';
 import { CkTypeSelectorDialogService } from './lib/ck-type-selector-dialog';
+import { RuntimeEntityVariableDialogService } from './lib/runtime-entity-variable-dialog';
 
 export * from './lib/data-sources/octo-graph-ql-data-source';
 export * from './lib/data-sources/octo-graph-ql-hierarchy-data-source';
@@ -21,6 +22,7 @@ export * from './lib/field-filter-editor';
 export * from './lib/entity-id-info';
 export * from './lib/octo-loader';
 export * from './lib/tenant-switcher';
+export * from './lib/runtime-entity-variable-dialog';
 
 /**
  * Provides OctoUi services using modern Angular provider functions.
@@ -33,6 +35,7 @@ export function provideOctoUi(): EnvironmentProviders {
     provideMmSharedAuth(),
     AttributeSortSelectorDialogService,
     PropertyConverterService,
-    CkTypeSelectorDialogService
+    CkTypeSelectorDialogService,
+    RuntimeEntityVariableDialogService
   ]);
 }

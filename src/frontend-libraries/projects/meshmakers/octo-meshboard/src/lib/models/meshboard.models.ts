@@ -38,11 +38,11 @@ export interface RuntimeEntityDataSource extends WidgetDataSource {
 }
 
 /**
- * Static data source for demo/testing
+ * Static data source for demo/testing or variable-based display
  */
 export interface StaticDataSource extends WidgetDataSource {
   type: 'static';
-  data: unknown;
+  data?: unknown;
 }
 
 /**
@@ -173,6 +173,8 @@ export type WidgetType =
   | 'gauge'
   | 'pieChart'
   | 'barChart'
+  | 'lineChart'
+  | 'heatmap'
   | 'statsGrid'
   | 'statusIndicator'
   | 'serviceHealth'
@@ -239,7 +241,7 @@ export type KpiQueryMode = 'simpleCount' | 'aggregation' | 'groupedAggregation';
 
 /**
  * KPI/Statistics Widget - displays a single value with label
- * Supports both runtime entity data sources and persistent queries
+ * Supports runtime entity data sources, persistent queries, and static/variable values
  */
 export interface KpiWidgetConfig extends WidgetConfig {
   type: 'kpi';
@@ -260,6 +262,8 @@ export interface KpiWidgetConfig extends WidgetConfig {
   queryCategoryValue?: string;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
+  /** Static value or variable expression (e.g., '${variableName}') for static data source */
+  staticValue?: string;
 }
 
 /**
@@ -442,6 +446,97 @@ export interface BarChartWidgetConfig extends WidgetConfig {
   legendPosition?: 'top' | 'bottom' | 'left' | 'right';
   /** Show data labels on bars */
   showDataLabels?: boolean;
+  /** Field filters for data source */
+  filters?: WidgetFilterConfig[];
+}
+
+// ============================================================================
+// Line Chart Widget
+// ============================================================================
+
+/**
+ * Line chart sub-types
+ */
+export type LineChartType = 'line' | 'area';
+
+/**
+ * Line Chart Widget - displays time-series data as a multi-series line chart
+ * Supports dynamic series grouping and multiple Y-axes grouped by unit
+ *
+ * Typical use case: Query returns rows with a date field, a grouping field
+ * (e.g., OBIS code), a numeric value, and optionally a unit.
+ * Each unique group value becomes a separate line/series.
+ * When a unit field is configured, series are grouped by unit onto separate Y-axes.
+ */
+export interface LineChartWidgetConfig extends WidgetConfig {
+  type: 'lineChart';
+  /** Chart sub-type */
+  chartType: LineChartType;
+  /** Date/time field for X-axis categories */
+  categoryField: string;
+  /** Field whose unique values create separate lines/series */
+  seriesGroupField: string;
+  /** Numeric field for Y-axis values */
+  valueField: string;
+  /** Optional field containing the unit string (enables multi-axis by unit) */
+  unitField?: string;
+  /** Show the chart legend */
+  showLegend?: boolean;
+  /** Position of the legend */
+  legendPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Show data point markers on lines */
+  showMarkers?: boolean;
+  /** Field filters for data source */
+  filters?: WidgetFilterConfig[];
+}
+
+// ============================================================================
+// Heatmap Widget
+// ============================================================================
+
+/**
+ * Color scheme options for heatmap
+ */
+export type HeatmapColorScheme = 'green' | 'redGreen' | 'blue' | 'heat';
+
+/**
+ * Client-side aggregation function for simple queries
+ */
+export type HeatmapAggregation = 'count' | 'sum' | 'avg';
+
+
+/**
+ * Heatmap Widget - displays data availability or density as a heatmap
+ * X-axis: Date (day), Y-axis: Time slot (hour or 15-min interval), Color: aggregated value
+ *
+ * Supports three query modes:
+ * 1. Simple query: Client-side aggregation (count/sum/avg) of raw rows into time slots
+ * 2. Aggregation query: Pre-aggregated single values per time slot
+ * 3. Grouped aggregation query: Pre-aggregated values grouped by time fields
+ */
+export interface HeatmapWidgetConfig extends WidgetConfig {
+  type: 'heatmap';
+  /** Field containing the datetime value (used to derive day and time slot) */
+  dateField: string;
+  /** Optional end-of-interval field (e.g. timeRange.to). When set, the interval width is auto-detected
+   *  and sub-hour columns are shown (e.g. 00-15, 15-30, 30-45, 45-60 for 15-min data). */
+  dateEndField?: string;
+  /** Field containing the numeric value to aggregate (for sum/avg) */
+  valueField?: string;
+  /** Client-side aggregation function for simple queries */
+  aggregation: HeatmapAggregation;
+  /** Color scheme for the heatmap */
+  colorScheme: HeatmapColorScheme;
+  /** Show the chart legend */
+  showLegend?: boolean;
+  /** Position of the legend */
+  legendPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Number of decimal places for displayed values (default: 2) */
+  decimalPlaces?: number;
+  /** Use compact notation for large numbers (e.g. 32k, 1.5M) */
+  compactNumbers?: boolean;
+  /** Multiplier applied before formatting (e.g. 1000 when values are in k, to display as M) */
+  valueMultiplier?: number;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
 }
@@ -634,6 +729,8 @@ export type AnyWidgetConfig =
   | GaugeWidgetConfig
   | PieChartWidgetConfig
   | BarChartWidgetConfig
+  | LineChartWidgetConfig
+  | HeatmapWidgetConfig
   | StatsGridWidgetConfig
   | StatusIndicatorWidgetConfig
   | ServiceHealthWidgetConfig
@@ -653,7 +750,7 @@ export type MeshBoardVariableType = 'string' | 'number' | 'boolean' | 'date' | '
 /**
  * Source of the variable value (extensible for future dynamic variables)
  */
-export type MeshBoardVariableSource = 'static' | 'timeFilter';
+export type MeshBoardVariableSource = 'static' | 'timeFilter' | 'entitySelector';
 // Future: 'url' | 'user' | 'expression'
 
 /**
@@ -674,6 +771,17 @@ export interface MeshBoardVariable {
   value: string;
   /** Default value if no value is set */
   defaultValue?: string;
+  /** Which entity selector generated this variable (for entitySelector source) */
+  entitySelectorId?: string;
+}
+
+/**
+ * Error from resolving a runtime entity variable
+ */
+export interface VariableResolutionError {
+  variableName: string;
+  message: string;
+  timestamp: Date;
 }
 
 // ============================================================================
@@ -683,7 +791,7 @@ export interface MeshBoardVariable {
 /**
  * Supported time range types for the time filter
  */
-export type TimeRangeType = 'year' | 'quarter' | 'month' | 'relative' | 'custom';
+export type TimeRangeType = 'year' | 'quarter' | 'month' | 'day' | 'relative' | 'custom';
 
 /**
  * Time units for relative time ranges
@@ -721,6 +829,12 @@ export interface TimeRangeSelection {
   year?: number;
   quarter?: Quarter;
   month?: number;
+  /** Day of month (1-31), used with 'day' type */
+  day?: number;
+  /** Hour from (0-23), optional hour filter for 'day' type */
+  hourFrom?: number;
+  /** Hour to (1-24), optional hour filter for 'day' type. Exclusive upper bound. */
+  hourTo?: number;
   relativeValue?: number;
   relativeUnit?: RelativeTimeUnit;
   customFrom?: string;  // ISO string for persistence
@@ -735,8 +849,49 @@ export interface MeshBoardTimeFilterConfig {
   enabled: boolean;
   /** Configuration for the time range picker */
   pickerConfig?: TimeRangePickerConfig;
-  /** Current selection (for persistence) */
+  /** Default selection shown on initial load (configured in settings) */
+  defaultSelection?: TimeRangeSelection;
+  /** Current selection (for persistence of last-used state) */
   selection?: TimeRangeSelection;
+}
+
+// ============================================================================
+// Entity Selector Types
+// ============================================================================
+
+/**
+ * Maps an entity attribute to a MeshBoard variable.
+ */
+export interface EntitySelectorAttributeMapping {
+  /** Attribute path on the entity (e.g., "contact.firstName") */
+  attributePath: string;
+  /** Variable name to populate (without $ prefix) */
+  variableName: string;
+  /** Attribute value type for variable type mapping */
+  attributeValueType?: string;
+}
+
+/**
+ * Configuration for a single entity selector in the MeshBoard toolbar.
+ * Each selector is bound to a CK type and populates variables from the selected entity.
+ */
+export interface EntitySelectorConfig {
+  /** Stable ID for URL params (e.g., "mp") */
+  id: string;
+  /** Toolbar label (e.g., "Metering Point") */
+  label: string;
+  /** CK type to select from (rtCkTypeId) */
+  ckTypeId: string;
+  /** Maps entity attributes to MeshBoard variables */
+  attributeMappings: EntitySelectorAttributeMapping[];
+  /** Whether to show the selector in the toolbar (default: true) */
+  showInToolbar?: boolean;
+  /** Optional pre-selected entity rtId */
+  defaultRtId?: string;
+  /** Current selection (transient, not persisted) */
+  selectedRtId?: string;
+  /** Display name of the currently selected entity */
+  selectedDisplayName?: string;
 }
 
 // ============================================================================
@@ -759,6 +914,8 @@ export interface MeshBoardConfig {
   variables?: MeshBoardVariable[];
   /** Optional time filter configuration */
   timeFilter?: MeshBoardTimeFilterConfig;
+  /** Entity selector configurations for the toolbar */
+  entitySelectors?: EntitySelectorConfig[];
   widgets: AnyWidgetConfig[];
 }
 
