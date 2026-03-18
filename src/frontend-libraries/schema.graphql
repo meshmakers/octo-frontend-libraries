@@ -830,7 +830,7 @@ interface SystemCommunicationPipelineInterface {
   ): SystemCommunicationTag_TaggedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System-2.0.5/Configuration-1'"
+"Interface for runtime entities of construction kit type 'System-2.0.6/Configuration-1'"
 interface SystemConfigurationInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -943,7 +943,7 @@ interface SystemConfigurationInterface {
   ): SystemCommunicationPipeline_UsedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System-2.0.5/Entity-1'"
+"Interface for runtime entities of construction kit type 'System-2.0.6/Entity-1'"
 interface SystemEntityInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -1232,7 +1232,7 @@ interface SystemIdentityResourceInterface {
   ): SystemCommunicationTag_TaggedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System-2.0.5/PersistentQuery-1'"
+"Interface for runtime entities of construction kit type 'System-2.0.6/PersistentQuery-1'"
 interface SystemPersistentQueryInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -1634,7 +1634,7 @@ interface SystemUIUIElementInterface {
 union BasicAsset_EventSourceUnion = BasicAsset | EnvironmentWasteMeter | IndustryBasicMachine | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceWorkplace | OctoSdkDemoMeteringPoint
 
 "Union of types derived from Basic/Asset for RelatesFrom association"
-union BasicAsset_RelatesFromUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
+union BasicAsset_RelatesFromUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataAggregationQuery | SystemStreamDataGroupingAggregationQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
 
 "Union of types derived from Basic/TreeNode for Children association"
 union BasicTreeNode_ChildrenUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicState | BasicTreeNode | EnergyCommunityOperatingFacility | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicMachine | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceWorkplace | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility
@@ -1646,7 +1646,7 @@ union BasicTreeNode_MachineUnion = BasicAsset | BasicCity | BasicCountry | Basic
 union BasicTreeNode_ParentUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicState | BasicTreeNode | EnergyCommunityOperatingFacility | EnvironmentWasteMeter | IndustryBasicMachine | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceWorkplace | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility
 
 "Union of types derived from Basic/TreeNode for RelatesTo association"
-union BasicTreeNode_RelatesToUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
+union BasicTreeNode_RelatesToUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataAggregationQuery | SystemStreamDataGroupingAggregationQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
 
 "Union of types derived from Basic/Tree for Parent association"
 union BasicTree_ParentUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicState | BasicTree | BasicTreeNode | EnergyCommunityOperatingFacility | EnvironmentWasteMeter | IndustryBasicMachine | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceWorkplace | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility
@@ -1808,16 +1808,16 @@ union SystemCommunicationTag_TaggedByUnion = SystemCommunicationTag
 union SystemConfiguration_IsUsingUnion = SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemIdentityMailNotificationConfiguration | SystemNotificationCssTemplateConfiguration | SystemReportingConnectionInfo | SystemTenantConfiguration | SystemTenantModeConfiguration
 
 "Union of types derived from System/Entity for Configures association"
-union SystemEntity_ConfiguresUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
+union SystemEntity_ConfiguresUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataAggregationQuery | SystemStreamDataGroupingAggregationQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
 
 "Union of types derived from System/Entity for IsTagging association"
-union SystemEntity_IsTaggingUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
+union SystemEntity_IsTaggingUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataAggregationQuery | SystemStreamDataGroupingAggregationQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
 
 "Union of types derived from System/Entity for RelatesFrom association"
-union SystemEntity_RelatesFromUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
+union SystemEntity_RelatesFromUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataAggregationQuery | SystemStreamDataGroupingAggregationQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
 
 "Union of types derived from System/Entity for RelatesTo association"
-union SystemEntity_RelatesToUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
+union SystemEntity_RelatesToUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEdaMessage | EnergyCommunityEdaMeteringPoint | EnergyCommunityEdaProcess | EnergyCommunityEnergyPrice | EnergyCommunityEnergyQuantity | EnergyCommunityOperatingFacility | EnergyCommunityProducer | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyBattery | IndustryEnergyEnergyMeter | IndustryEnergyInverter | IndustryEnergyPhotovoltaic | IndustryEnergyPhotovoltaicModule | IndustryEnergyPhotovoltaicString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAutoIncrement | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationDataPipeline | SystemCommunicationDataPipelineTrigger | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEdgeAdapter | SystemCommunicationEdgePipeline | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationMeshAdapter | SystemCommunicationMeshPipeline | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPool | SystemCommunicationSapConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationTag | SystemGroupingAggregationRtQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityIdentityResource | SystemIdentityMailNotificationConfiguration | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityUser | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemQuery | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemStreamDataAggregationQuery | SystemStreamDataGroupingAggregationQuery | SystemStreamDataSimpleQuery | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIDashboard | SystemUIDashboardWidget | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary
 
 "Union of types derived from System.Reporting/FileSystemContainer for Children association"
 union SystemReportingFileSystemContainer_ChildrenUnion = SystemReportingFileSystemItem | SystemReportingFolder
@@ -14225,6 +14225,8 @@ type OctoSubscriptions {
   systemReportingFolderEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemReportingFolderUpdateMessage
   systemReportingFolderRootEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemReportingFolderRootUpdateMessage
   systemSimpleRtQueryEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemSimpleRtQueryUpdateMessage
+  systemStreamDataAggregationQueryEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemStreamDataAggregationQueryUpdateMessage
+  systemStreamDataGroupingAggregationQueryEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemStreamDataGroupingAggregationQueryUpdateMessage
   systemStreamDataSimpleQueryEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemStreamDataSimpleQueryUpdateMessage
   systemTenantConfigurationEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemTenantConfigurationUpdateMessage
   systemTenantEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemTenantUpdateMessage
@@ -14914,6 +14916,10 @@ type Runtime {
   systemReportingFolders: SystemReportingFolderMutations
   "Mutation for entities of type 'SystemSimpleRtQuery'."
   systemSimpleRtQuerys: SystemSimpleRtQueryMutations
+  "Mutation for entities of type 'SystemStreamDataAggregationQuery'."
+  systemStreamDataAggregationQuerys: SystemStreamDataAggregationQueryMutations
+  "Mutation for entities of type 'SystemStreamDataGroupingAggregationQuery'."
+  systemStreamDataGroupingAggregationQuerys: SystemStreamDataGroupingAggregationQueryMutations
   "Mutation for entities of type 'SystemStreamDataSimpleQuery'."
   systemStreamDataSimpleQuerys: SystemStreamDataSimpleQueryMutations
   "Mutation for entities of type 'SystemTenantConfiguration'."
@@ -17341,6 +17347,50 @@ type RuntimeModelQuery {
     "Sort order for items"
     sortOrder: [Sort]
   ): SystemSimpleRtQueryConnection
+  systemStreamDataAggregationQuery(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Geospatial filter for items, that searches for items near a point"
+    geoNearFilter: NearGeospatialFilter,
+    "Global options to apply to the query, for example to include archived items."
+    options: GlobalQueryOptions,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemStreamDataAggregationQueryConnection
+  systemStreamDataGroupingAggregationQuery(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Geospatial filter for items, that searches for items near a point"
+    geoNearFilter: NearGeospatialFilter,
+    "Global options to apply to the query, for example to include archived items."
+    options: GlobalQueryOptions,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemStreamDataGroupingAggregationQueryConnection
   systemStreamDataSimpleQuery(
     "Only return edges after the specified cursor."
     after: String,
@@ -17734,6 +17784,26 @@ type StreamDataModelQuery {
     "Sort order for items"
     sortOrder: [Sort]
   ): streamIndustryFluidWaterMeterConnection
+  streamDataAggregationQuery(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Override time filter and limit at execution time."
+    arg: StreamDataArguments,
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "The persisted stream data aggregation query runtime id."
+    rtId: OctoObjectId!
+  ): StreamDataQueryRowDtoConnection
+  streamDataGroupingAggregationQuery(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Override time filter and limit at execution time."
+    arg: StreamDataArguments,
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "The persisted stream data grouping aggregation query runtime id."
+    rtId: OctoObjectId!
+  ): StreamDataQueryRowDtoConnection
   streamDataQuery(
     "Only return edges after the specified cursor."
     after: String,
@@ -17743,6 +17813,58 @@ type StreamDataModelQuery {
     first: Int,
     "The persisted stream data query runtime id."
     rtId: OctoObjectId!,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): StreamDataQueryRowDtoConnection
+  transientStreamDataAggregationQuery(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Time filter and limit."
+    arg: StreamDataArguments,
+    "The construction kit type with the given id."
+    ckId: String!,
+    "Aggregation columns with attribute path and aggregation type."
+    columnPaths: [StreamDataQueryColumnInput!]!,
+    "Field-level comparison filters"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Scope to specific runtime entity IDs"
+    rtIds: [OctoObjectId]
+  ): StreamDataQueryRowDtoConnection
+  transientStreamDataGroupedAggregationQuery(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Time filter and limit."
+    arg: StreamDataArguments,
+    "The construction kit type with the given id."
+    ckId: String!,
+    "Aggregation columns with attribute path and aggregation type."
+    columnPaths: [StreamDataQueryColumnInput!]!,
+    "Field-level comparison filters"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "The attribute paths to group by."
+    groupByColumnPaths: [String!]!,
+    "Scope to specific runtime entity IDs"
+    rtIds: [OctoObjectId]
+  ): StreamDataQueryRowDtoConnection
+  transientStreamDataQuery(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Time filter and limit."
+    arg: StreamDataArguments,
+    "The construction kit type with the given id."
+    ckId: String!,
+    "Data stream attribute names to project."
+    columnPaths: [String!]!,
+    "Field-level comparison filters"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Scope to specific runtime entity IDs"
+    rtIds: [OctoObjectId],
     "Sort order for items"
     sortOrder: [Sort]
   ): StreamDataQueryRowDtoConnection
@@ -17790,7 +17912,7 @@ type SystemAggregationQueryColumn {
   constructionKitType: CkType
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/AggregationRtQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.6/AggregationRtQuery-1'"
 type SystemAggregationRtQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -17963,7 +18085,7 @@ type SystemAttributeSearchFilter {
   searchValue: String!
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/AutoIncrement-1'"
+"Runtime entities of construction kit type 'System-2.0.6/AutoIncrement-1'"
 type SystemAutoIncrement implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -23141,7 +23263,7 @@ type SystemCommunicationUiThemeColors {
   tertiaryColor: String!
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/Configuration-1'"
+"Runtime entities of construction kit type 'System-2.0.6/Configuration-1'"
 type SystemConfiguration implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -23336,7 +23458,7 @@ type SystemConfiguration_IsUsingUnionEdge {
   node: SystemConfiguration_IsUsingUnion
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/Entity-1'"
+"Runtime entities of construction kit type 'System-2.0.6/Entity-1'"
 type SystemEntity {
   associations(
     "Only return edges after the specified cursor."
@@ -23591,7 +23713,7 @@ type SystemFieldFilter {
   operator: SystemFieldFilterOperator!
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/GroupingAggregationRtQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.6/GroupingAggregationRtQuery-1'"
 type SystemGroupingAggregationRtQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -26835,7 +26957,7 @@ type SystemIdentityUserUpdateMessage {
   items: [SystemIdentityUserUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/MigrationHistory-1'"
+"Runtime entities of construction kit type 'System-2.0.6/MigrationHistory-1'"
 type SystemMigrationHistory implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -27670,7 +27792,7 @@ type SystemNotificationStatefulEventUpdateMessage {
   items: [SystemNotificationStatefulEventUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/PersistentQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.6/PersistentQuery-1'"
 type SystemPersistentQuery implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -27825,7 +27947,7 @@ type SystemPersistentQueryUpdateMessage {
   items: [SystemPersistentQueryUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/Query-1'"
+"Runtime entities of construction kit type 'System-2.0.6/Query-1'"
 type SystemQuery implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -29101,7 +29223,7 @@ type SystemReportingFolder_ParentUnionEdge {
   node: SystemReportingFolder_ParentUnion
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/SimpleRtQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.6/SimpleRtQuery-1'"
 type SystemSimpleRtQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -29275,7 +29397,344 @@ type SystemSortOrderItem {
   sortOrder: SystemSortOrders!
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/StreamDataSimpleQuery-1'"
+"Runtime entities of construction kit type 'System-2.0.6/StreamDataAggregationQuery-1'"
+type SystemStreamDataAggregationQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
+  associations(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "The construction kit type with the given id."
+    ckId: String!,
+    "The direction of the association."
+    direction: GraphDirection!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Include indirect associations, otherwise direct associations are returned."
+    includeIndirect: Boolean,
+    "The role id of the association."
+    roleId: String!,
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): RtEntityGenericDtoConnection
+  ckTypeId: RtCkTypeId!
+  columns: [SystemAggregationQueryColumn!]!
+  configuredBy(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filter by multiple CK type IDs (can include base types to include all derived types)."
+    ckTypeIds: [String!]!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  constructionKitType: CkType
+  description: String
+  fieldFilter: [SystemFieldFilter!]
+  from: DateTime
+  limit: Int
+  name: String!
+  navigationFilterMode: SystemNavigationFilterModes
+  queryCkTypeId: String!
+  relatesFrom(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filter by multiple CK type IDs (can include base types to include all derived types)."
+    ckTypeIds: [String!]!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemEntity_RelatesFromUnionConnection
+  relatesTo(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filter by multiple CK type IDs (can include base types to include all derived types)."
+    ckTypeIds: [String!]!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemEntity_RelatesToUnionConnection
+  rtBlueprintAppliedAt: DateTime
+  rtBlueprintLocked: Boolean
+  rtBlueprintSource: String
+  rtChangedDateTime: DateTime
+  rtCreationDateTime: DateTime
+  rtId: OctoObjectId!
+  rtIds: [String!]
+  rtVersion: ULong
+  rtWellKnownName: String
+  taggedBy(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filter by multiple CK type IDs (can include base types to include all derived types)."
+    ckTypeIds: [String!]!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemCommunicationTag_TaggedByUnionConnection
+  to: DateTime
+}
+
+"A connection to `SystemStreamDataAggregationQuery`."
+type SystemStreamDataAggregationQueryConnection {
+  "Result of aggregating the items of the result set."
+  aggregation: aggregation
+  "Information to aid in pagination."
+  edges: [SystemStreamDataAggregationQueryEdge]
+  "Result of aggregating the items by fields."
+  fieldAggregations: [fieldAggregation]
+  "A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for \"{ edges { node } }\" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the \"cursor\" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full \"{ edges { node } } \" version should be used instead."
+  items: [SystemStreamDataAggregationQuery]
+  "Information to aid in pagination."
+  pageInfo: PageInfo
+  "A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing \"5\" as the argument to `first`, then fetch the total count so it could display \"5 of 83\", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`."
+  totalCount: Int
+}
+
+"An edge in a connection from an object to another object of type `SystemStreamDataAggregationQuery`."
+type SystemStreamDataAggregationQueryEdge {
+  "A cursor for use in pagination"
+  cursor: String!
+  "The item at the end of the edge"
+  node: SystemStreamDataAggregationQuery
+}
+
+type SystemStreamDataAggregationQueryMutations {
+  "Creates new entities of type 'SystemStreamDataAggregationQuery'."
+  create(entities: [SystemStreamDataAggregationQueryInput]!): [SystemStreamDataAggregationQuery]
+  "Updates existing entity of type 'SystemStreamDataAggregationQuery'."
+  update(entities: [SystemStreamDataAggregationQueryInputUpdate]!): [SystemStreamDataAggregationQuery]
+}
+
+type SystemStreamDataAggregationQueryUpdate {
+  "The corresponding item"
+  item: SystemStreamDataAggregationQuery
+  updateState: UpdateType
+}
+
+type SystemStreamDataAggregationQueryUpdateMessage {
+  "The corresponding items"
+  items: [SystemStreamDataAggregationQueryUpdate]
+}
+
+"Runtime entities of construction kit type 'System-2.0.6/StreamDataGroupingAggregationQuery-1'"
+type SystemStreamDataGroupingAggregationQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
+  associations(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "The construction kit type with the given id."
+    ckId: String!,
+    "The direction of the association."
+    direction: GraphDirection!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Include indirect associations, otherwise direct associations are returned."
+    includeIndirect: Boolean,
+    "The role id of the association."
+    roleId: String!,
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): RtEntityGenericDtoConnection
+  ckTypeId: RtCkTypeId!
+  columns: [SystemAggregationQueryColumn!]!
+  configuredBy(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filter by multiple CK type IDs (can include base types to include all derived types)."
+    ckTypeIds: [String!]!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  constructionKitType: CkType
+  description: String
+  fieldFilter: [SystemFieldFilter!]
+  from: DateTime
+  groupingColumns: [String!]!
+  limit: Int
+  name: String!
+  navigationFilterMode: SystemNavigationFilterModes
+  queryCkTypeId: String!
+  relatesFrom(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filter by multiple CK type IDs (can include base types to include all derived types)."
+    ckTypeIds: [String!]!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemEntity_RelatesFromUnionConnection
+  relatesTo(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filter by multiple CK type IDs (can include base types to include all derived types)."
+    ckTypeIds: [String!]!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemEntity_RelatesToUnionConnection
+  rtBlueprintAppliedAt: DateTime
+  rtBlueprintLocked: Boolean
+  rtBlueprintSource: String
+  rtChangedDateTime: DateTime
+  rtCreationDateTime: DateTime
+  rtId: OctoObjectId!
+  rtIds: [String!]
+  rtVersion: ULong
+  rtWellKnownName: String
+  taggedBy(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields."
+    aggregations: ResultAggregationInput,
+    "Filter by multiple CK type IDs (can include base types to include all derived types)."
+    ckTypeIds: [String!]!,
+    "Filters items based on field compare"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Returns the entity with the given rtId."
+    rtId: OctoObjectId,
+    "Returns entities with the given rtIds."
+    rtIds: [OctoObjectId],
+    "Filters items based on text search"
+    searchFilter: SearchFilter,
+    "Sort order for items"
+    sortOrder: [Sort]
+  ): SystemCommunicationTag_TaggedByUnionConnection
+  to: DateTime
+}
+
+"A connection to `SystemStreamDataGroupingAggregationQuery`."
+type SystemStreamDataGroupingAggregationQueryConnection {
+  "Result of aggregating the items of the result set."
+  aggregation: aggregation
+  "Information to aid in pagination."
+  edges: [SystemStreamDataGroupingAggregationQueryEdge]
+  "Result of aggregating the items by fields."
+  fieldAggregations: [fieldAggregation]
+  "A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for \"{ edges { node } }\" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the \"cursor\" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full \"{ edges { node } } \" version should be used instead."
+  items: [SystemStreamDataGroupingAggregationQuery]
+  "Information to aid in pagination."
+  pageInfo: PageInfo
+  "A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing \"5\" as the argument to `first`, then fetch the total count so it could display \"5 of 83\", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`."
+  totalCount: Int
+}
+
+"An edge in a connection from an object to another object of type `SystemStreamDataGroupingAggregationQuery`."
+type SystemStreamDataGroupingAggregationQueryEdge {
+  "A cursor for use in pagination"
+  cursor: String!
+  "The item at the end of the edge"
+  node: SystemStreamDataGroupingAggregationQuery
+}
+
+type SystemStreamDataGroupingAggregationQueryMutations {
+  "Creates new entities of type 'SystemStreamDataGroupingAggregationQuery'."
+  create(entities: [SystemStreamDataGroupingAggregationQueryInput]!): [SystemStreamDataGroupingAggregationQuery]
+  "Updates existing entity of type 'SystemStreamDataGroupingAggregationQuery'."
+  update(entities: [SystemStreamDataGroupingAggregationQueryInputUpdate]!): [SystemStreamDataGroupingAggregationQuery]
+}
+
+type SystemStreamDataGroupingAggregationQueryUpdate {
+  "The corresponding item"
+  item: SystemStreamDataGroupingAggregationQuery
+  updateState: UpdateType
+}
+
+type SystemStreamDataGroupingAggregationQueryUpdateMessage {
+  "The corresponding items"
+  items: [SystemStreamDataGroupingAggregationQueryUpdate]
+}
+
+"Runtime entities of construction kit type 'System-2.0.6/StreamDataSimpleQuery-1'"
 type SystemStreamDataSimpleQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -29444,7 +29903,7 @@ type SystemStreamDataSimpleQueryUpdateMessage {
   items: [SystemStreamDataSimpleQueryUpdate]
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/Tenant-1'"
+"Runtime entities of construction kit type 'System-2.0.6/Tenant-1'"
 type SystemTenant implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -29563,7 +30022,7 @@ type SystemTenant implements SystemEntityInterface {
   tenantId: String!
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/TenantConfiguration-1'"
+"Runtime entities of construction kit type 'System-2.0.6/TenantConfiguration-1'"
 type SystemTenantConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -29766,7 +30225,7 @@ type SystemTenantEdge {
   node: SystemTenant
 }
 
-"Runtime entities of construction kit type 'System-2.0.5/TenantModeConfiguration-1'"
+"Runtime entities of construction kit type 'System-2.0.6/TenantModeConfiguration-1'"
 type SystemTenantModeConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -31954,8 +32413,10 @@ enum AggregationInputTypes {
 "Defines the aggregation type"
 enum AggregationType {
   AVG
+  COUNT
   MAX
   MIN
+  SUM
 }
 
 "Defines the type of aggregation for runtime query results."
@@ -34143,6 +34604,11 @@ input StreamDataArguments {
   to: DateTime
 }
 
+input StreamDataQueryColumnInput {
+  aggregationType: AggregationType!
+  attributePath: String!
+}
+
 input SystemAggregationQueryColumnInput {
   aggregationType: SystemAggregationTypes
   attributePath: String
@@ -35478,6 +35944,61 @@ input SystemSimpleRtQueryInputUpdate {
 input SystemSortOrderItemInput {
   attributePath: String
   sortOrder: SystemSortOrders
+}
+
+input SystemStreamDataAggregationQueryInput {
+  columns: [SystemAggregationQueryColumnInput]
+  configuredBy: [RtAssociationInput]
+  description: String
+  fieldFilter: [SystemFieldFilterInput]
+  from: DateTime
+  limit: Int
+  name: String
+  navigationFilterMode: SystemNavigationFilterModes
+  queryCkTypeId: String
+  relatesFrom: [RtAssociationInput]
+  relatesTo: [RtAssociationInput]
+  rtBlueprintAppliedAt: DateTime
+  rtBlueprintLocked: Boolean
+  rtBlueprintSource: String
+  rtIds: [String!]
+  rtWellKnownName: String
+  taggedBy: [RtAssociationInput]
+  to: DateTime
+}
+
+input SystemStreamDataAggregationQueryInputUpdate {
+  "Item to update"
+  item: SystemStreamDataAggregationQueryInput!
+  rtId: OctoObjectId
+}
+
+input SystemStreamDataGroupingAggregationQueryInput {
+  columns: [SystemAggregationQueryColumnInput]
+  configuredBy: [RtAssociationInput]
+  description: String
+  fieldFilter: [SystemFieldFilterInput]
+  from: DateTime
+  groupingColumns: [String!]
+  limit: Int
+  name: String
+  navigationFilterMode: SystemNavigationFilterModes
+  queryCkTypeId: String
+  relatesFrom: [RtAssociationInput]
+  relatesTo: [RtAssociationInput]
+  rtBlueprintAppliedAt: DateTime
+  rtBlueprintLocked: Boolean
+  rtBlueprintSource: String
+  rtIds: [String!]
+  rtWellKnownName: String
+  taggedBy: [RtAssociationInput]
+  to: DateTime
+}
+
+input SystemStreamDataGroupingAggregationQueryInputUpdate {
+  "Item to update"
+  item: SystemStreamDataGroupingAggregationQueryInput!
+  rtId: OctoObjectId
 }
 
 input SystemStreamDataSimpleQueryInput {
