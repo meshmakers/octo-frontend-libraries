@@ -49,7 +49,7 @@ export function initServices(configurationService: ConfigurationService, authori
       clientId: configurationService.config.clientId,
       redirectUri: configurationService.config.redirectUri || window.location.origin + '/',
       postLogoutRedirectUri: configurationService.config.postLogoutRedirectUri || window.location.origin + '/',
-      scope: 'openid profile email role offline_access assetSystemAPI.full_access identityAPI.full_access',
+      scope: 'openid profile email role offline_access octo_api',
       showDebugInformation: true,
       sessionChecksEnabled: false,
       wellKnownServiceUris: ['/'],

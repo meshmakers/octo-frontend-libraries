@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, Signal, signal, ViewChild, WritableSignal, inject } from '@angular/core';
+import { Component, computed, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, Signal, ViewChild, inject } from '@angular/core';
 import { AuthorizeService } from '@meshmakers/shared-auth';
 import { AvatarComponent } from '@progress/kendo-angular-layout';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
@@ -31,20 +31,23 @@ export class LoginAppBarSectionComponent implements OnInit {
   );
 
   /**
-   * Computed signal for the user's full name (given name + family name).
+   * Computed signal for the user's display name.
+   * Delegates to AuthorizeService which handles cross-tenant username derivation.
    */
-  protected readonly fullName: Signal<string | null> = computed(() => {
-    const user = this.authorizeService.user();
-    if (user?.given_name && user?.family_name) {
-      return user.given_name + " " + user.family_name;
+  protected readonly fullName: Signal<string | null> = this.authorizeService.displayName;
+
+  /**
+   * Computed signal for the profile management URI.
+   * Uses the tenant_id from the access token to build the correct URL.
+   */
+  protected readonly profileUri: Signal<string | null> = computed(() => {
+    const issuerUri = this.authorizeService.issuer();
+    const tenantId = this.authorizeService.tokenTenantId();
+    if (issuerUri && tenantId) {
+      return `${issuerUri}${tenantId}/manage`;
     }
     return null;
   });
-
-  /**
-   * Signal for the profile management URI.
-   */
-  protected readonly profileUri: WritableSignal<string | null> = signal(null);
 
   @ViewChild("user", { read: ElementRef })
   private anchor: ElementRef | null = null;
@@ -57,13 +60,8 @@ export class LoginAppBarSectionComponent implements OnInit {
     this._showRegister = false;
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     console.debug('mm-login-app-bar-section::created');
-
-    const issuerUri = this.authorizeService.issuer();
-    if (issuerUri) {
-      this.profileUri.set(issuerUri + "Manage");
-    }
   }
 
   @Output() get register(): EventEmitter<void> {

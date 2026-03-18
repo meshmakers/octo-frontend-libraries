@@ -4,6 +4,12 @@ import { OAuthService, OAuthEvent, TokenResponse } from 'angular-oauth2-oidc';
 import { AuthorizeService, AuthorizeOptions, IUser } from './authorize.service';
 import { Roles } from './roles';
 
+function createMockJwt(payload: Record<string, unknown>): string {
+  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+  const body = btoa(JSON.stringify(payload));
+  return `${header}.${body}.signature`;
+}
+
 describe('AuthorizeService', () => {
   let service: AuthorizeService;
   let oauthServiceMock: jasmine.SpyObj<OAuthService>;
@@ -46,6 +52,7 @@ describe('AuthorizeService', () => {
       'refreshToken',
       'getIdentityClaims',
       'getAccessToken',
+      'getIdToken',
       'initImplicitFlow',
       'logOut'
     ], {
@@ -198,10 +205,10 @@ describe('AuthorizeService', () => {
     });
 
     describe('logout', () => {
-      it('should call logOut', () => {
+      it('should call logOut with noRedirectToLogoutUrl=true', () => {
         service.logout();
 
-        expect(oauthServiceMock.logOut).toHaveBeenCalled();
+        expect(oauthServiceMock.logOut as jasmine.Spy).toHaveBeenCalledWith(true);
       });
     });
 
@@ -337,7 +344,7 @@ describe('AuthorizeService', () => {
           expect(service.accessToken()).toBeNull();
         });
 
-        it('should call reloadPage on logout event', async () => {
+        it('should not call reloadPage on logout event (redirect handled by oauthService)', async () => {
           await service.initialize(mockOptions);
 
           oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -346,7 +353,7 @@ describe('AuthorizeService', () => {
           _reloadPageSpy.calls.reset();
           oauthEvents$.next({ type: 'logout' } as OAuthEvent);
 
-          expect(_reloadPageSpy).toHaveBeenCalled();
+          expect(_reloadPageSpy).not.toHaveBeenCalled();
         });
       });
 
@@ -401,6 +408,89 @@ describe('AuthorizeService', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
 
         expect(service.userInitials()).toBe('Ad');
+      });
+
+      it('should derive initials from xt_ cross-tenant username', async () => {
+        const xtUser: IUser = {
+          ...mockUser,
+          given_name: null,
+          family_name: null,
+          name: 'xt_octosystem_gerald.lochner@salzburgdev.at'
+        };
+        oauthServiceMock.getIdentityClaims.and.returnValue(xtUser);
+
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.userInitials()).toBe('GL');
+      });
+
+      it('should derive initials from plain email username', async () => {
+        const emailUser: IUser = {
+          ...mockUser,
+          given_name: null,
+          family_name: null,
+          name: 'gerald.lochner@salzburgdev.at'
+        };
+        oauthServiceMock.getIdentityClaims.and.returnValue(emailUser);
+
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.userInitials()).toBe('GL');
+      });
+    });
+
+    describe('displayName', () => {
+      it('should return full name from given_name and family_name', async () => {
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.displayName()).toBe('Max Mustermann');
+      });
+
+      it('should derive display name from xt_ cross-tenant username', async () => {
+        const xtUser: IUser = {
+          ...mockUser,
+          given_name: null,
+          family_name: null,
+          name: 'xt_octosystem_gerald.lochner@salzburgdev.at'
+        };
+        oauthServiceMock.getIdentityClaims.and.returnValue(xtUser);
+
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.displayName()).toBe('Gerald Lochner');
+      });
+
+      it('should derive display name from plain email username', async () => {
+        const emailUser: IUser = {
+          ...mockUser,
+          given_name: null,
+          family_name: null,
+          name: 'gerald.lochner@salzburgdev.at'
+        };
+        oauthServiceMock.getIdentityClaims.and.returnValue(emailUser);
+
+        await service.initialize(mockOptions);
+
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.displayName()).toBe('Gerald Lochner');
+      });
+
+      it('should return null when user is null', () => {
+        expect(service.displayName()).toBeNull();
       });
     });
 
@@ -506,6 +596,62 @@ describe('AuthorizeService', () => {
       });
     });
 
+    describe('tokenTenantId', () => {
+      it('should return null when not authenticated', () => {
+        expect(service.tokenTenantId()).toBeNull();
+      });
+
+      it('should return parsed tenant_id after token_received', async () => {
+        const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+
+        await service.initialize(mockOptions);
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.tokenTenantId()).toBe('octosystem');
+      });
+
+      it('should return null when token has no tenant_id claim', async () => {
+        const mockToken = createMockJwt({ sub: 'user-123' });
+        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+
+        await service.initialize(mockOptions);
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(service.tokenTenantId()).toBeNull();
+      });
+
+      it('should be cleared on logout event', async () => {
+        const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+
+        await service.initialize(mockOptions);
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(service.tokenTenantId()).toBe('octosystem');
+
+        oauthEvents$.next({ type: 'logout' } as OAuthEvent);
+
+        expect(service.tokenTenantId()).toBeNull();
+      });
+
+      it('should be cleared on session_terminated event', async () => {
+        const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+
+        await service.initialize(mockOptions);
+        oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(service.tokenTenantId()).toBe('octosystem');
+
+        oauthEvents$.next({ type: 'session_terminated' } as OAuthEvent);
+
+        expect(service.tokenTenantId()).toBeNull();
+      });
+    });
+
     // =============================================================================
     // CROSS-TAB LOGOUT DETECTION TESTS
     // =============================================================================
@@ -516,5 +662,48 @@ describe('AuthorizeService', () => {
     // 2. BroadcastChannel listener: Receives logout messages from other tabs
     // Both handlers clear user state and call reloadPage() when authenticated.
     // These features should be verified through E2E/integration tests.
+  });
+
+  // =============================================================================
+  // updateRedirectUris TESTS
+  // =============================================================================
+
+  describe('updateRedirectUris', () => {
+    it('should not reset discovery document endpoints', async () => {
+      oauthServiceMock.hasValidIdToken.and.returnValue(false);
+      oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.resolveTo(true);
+
+      await service.initialize(mockOptions);
+
+      // Simulate discovery document having loaded — set endpoints on the mock
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockObj = oauthServiceMock as any;
+      mockObj.logoutUrl = 'https://auth.example.com/connect/endsession';
+      mockObj.tokenEndpoint = 'https://auth.example.com/connect/token';
+
+      // Call updateRedirectUris (this previously called configure() which reset all properties)
+      service.updateRedirectUris('https://app.example.com/tenant1', 'https://app.example.com');
+
+      // The discovery document endpoints should NOT have been reset
+      expect(mockObj.logoutUrl).toBe('https://auth.example.com/connect/endsession');
+      expect(mockObj.tokenEndpoint).toBe('https://auth.example.com/connect/token');
+
+      // configure() should NOT be called again (only once during initialize)
+      expect(oauthServiceMock.configure).toHaveBeenCalledTimes(1);
+    });
+
+    it('should update redirect URIs directly on the service', async () => {
+      oauthServiceMock.hasValidIdToken.and.returnValue(false);
+      oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.resolveTo(true);
+
+      await service.initialize(mockOptions);
+
+      service.updateRedirectUris('https://app.example.com/tenant1', 'https://app.example.com/logout');
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockObj = oauthServiceMock as any;
+      expect(mockObj.redirectUri).toBe('https://app.example.com/tenant1');
+      expect(mockObj.postLogoutRedirectUri).toBe('https://app.example.com/logout');
+    });
   });
 });

@@ -994,7 +994,7 @@ describe('AssetRepoService', () => {
 
     const promise = service.getTenants(0, 10);
 
-    const req = httpMock.expectOne('https://api.example.com/system/v1/tenants?skip=0&take=10');
+    const req = httpMock.expectOne('https://api.example.com/octosystem/v1/tenants?skip=0&take=10');
     req.flush(mockResponse);
 
     const result = await promise;

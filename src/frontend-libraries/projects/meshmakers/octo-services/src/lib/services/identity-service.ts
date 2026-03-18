@@ -7,8 +7,13 @@ import {UserDto} from '../shared/userDto';
 import {RoleDto} from '../shared/roleDto';
 import {PagedResultDto} from '@meshmakers/shared-services';
 import {ClientDto} from '../shared/clientDto';
+import {IdentityProviderDto, IdentityProvidersResult} from '../shared/identityProviderDto';
+import {EmailDomainGroupRuleDto, EmailDomainGroupRulesResult} from '../shared/emailDomainGroupRuleDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
+import {CreateGroupDto, GroupDto, UpdateGroupDto} from '../shared/groupDto';
+import {CreateExternalTenantUserMappingDto, ExternalTenantUserMappingDto} from '../shared/externalTenantUserMappingDto';
+import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 
 @Injectable({
   providedIn: 'root'
@@ -16,12 +21,22 @@ import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 export class IdentityService {
   private readonly httpClient = inject(HttpClient);
   private readonly configurationService = inject(CONFIGURATION_SERVICE);
+  private readonly tenantIdProvider: TenantIdProvider | null = inject(TENANT_ID_PROVIDER, {optional: true});
 
+  private async getApiBaseUrl(): Promise<string | null> {
+    if (!this.configurationService.config?.issuer) return null;
+    let tenantId = 'octosystem';
+    if (this.tenantIdProvider) {
+      tenantId = await this.tenantIdProvider() ?? 'octosystem';
+    }
+    return `${this.configurationService.config.issuer}${tenantId}/v1/`;
+  }
 
   async userDiagnostics(): Promise<DiagnosticsModel | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       return await firstValueFrom(this.httpClient.get<DiagnosticsModel>(
-        this.configurationService.config.issuer + 'system/v1/Diagnostics'
+        baseUrl + 'Diagnostics'
       ));
     }
     return null;
@@ -30,9 +45,10 @@ export class IdentityService {
   async getUsers(skip: number, take: number): Promise<PagedResultDto<UserDto> | null> {
     const params = new HttpParams().set('skip', '' + skip.toString()).set('take', '' + take.toString());
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<PagedResultDto<UserDto> | null>(this.configurationService.config.issuer + 'system/v1/users/getPaged', {
+        this.httpClient.get<PagedResultDto<UserDto> | null>(baseUrl + 'users/getPaged', {
           params,
           observe: 'response'
         })
@@ -43,9 +59,10 @@ export class IdentityService {
   }
 
   async getUserDetails(userName: string): Promise<UserDto | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<UserDto | null>(this.configurationService.config.issuer + `system/v1/users/${userName}`, {
+        this.httpClient.get<UserDto | null>(baseUrl + `users/${userName}`, {
           observe: 'response'
         })
       );
@@ -55,9 +72,10 @@ export class IdentityService {
   }
 
   async createUser(userDto: UserDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.post<void>(this.configurationService.config.issuer + 'system/v1/users', userDto, {
+        this.httpClient.post<void>(baseUrl + 'users', userDto, {
           observe: 'response'
         })
       );
@@ -65,9 +83,10 @@ export class IdentityService {
   }
 
   async updateUser(userName: string, userDto: UserDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/users/${userName}`, userDto, {
+        this.httpClient.put<void>(baseUrl + `users/${userName}`, userDto, {
           observe: 'response'
         })
       );
@@ -75,9 +94,10 @@ export class IdentityService {
   }
 
   async deleteUser(userName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<void>(this.configurationService.config.issuer + `system/v1/users/${userName}`, {
+        this.httpClient.delete<void>(baseUrl + `users/${userName}`, {
           observe: 'response'
         })
       );
@@ -85,9 +105,23 @@ export class IdentityService {
   }
 
   async getUserRoles(userName: string): Promise<RoleDto[] | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<RoleDto[] | null>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles`, {
+        this.httpClient.get<RoleDto[] | null>(baseUrl + `users/${userName}/roles`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getUserDirectRoles(userName: string): Promise<RoleDto[] | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<RoleDto[] | null>(baseUrl + `users/${userName}/directRoles`, {
           observe: 'response'
         })
       );
@@ -97,11 +131,12 @@ export class IdentityService {
   }
 
   async updateUserRoles(userName: string, roles: RoleDto[]): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const roleIds = roles.map((role) => role.id);
 
       await firstValueFrom(
-        this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles`, roleIds, {
+        this.httpClient.put<void>(baseUrl + `users/${userName}/roles`, roleIds, {
           observe: 'response'
         })
       );
@@ -109,9 +144,10 @@ export class IdentityService {
   }
 
   async addUserToRole(userName: string, roleName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles/${roleName}`, null, {
+        this.httpClient.put<void>(baseUrl + `users/${userName}/roles/${roleName}`, null, {
           observe: 'response'
         })
       );
@@ -119,9 +155,10 @@ export class IdentityService {
   }
 
   async removeRoleFromUser(userName: string, roleName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<void>(this.configurationService.config.issuer + `system/v1/users/${userName}/roles/${roleName}`, {
+        this.httpClient.delete<void>(baseUrl + `users/${userName}/roles/${roleName}`, {
           observe: 'response'
         })
       );
@@ -129,11 +166,12 @@ export class IdentityService {
   }
 
   async mergeUsers(targetUserName: string, sourceUserName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const request: MergeUsersRequestDto = { sourceUserName };
       await firstValueFrom(
         this.httpClient.post<void>(
-          this.configurationService.config.issuer + `system/v1/users/${encodeURIComponent(targetUserName)}/merge`,
+          baseUrl + `users/${encodeURIComponent(targetUserName)}/merge`,
           request,
           { observe: 'response' }
         )
@@ -144,9 +182,10 @@ export class IdentityService {
   async resetPassword(userName: string, password: string): Promise<unknown> {
     const params = new HttpParams().set('userName', userName).set('password', password);
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.post<unknown>(this.configurationService.config.issuer + 'system/v1/users/ResetPassword', null, {
+        this.httpClient.post<unknown>(baseUrl + 'users/ResetPassword', null, {
           params,
           observe: 'response'
         })
@@ -159,9 +198,10 @@ export class IdentityService {
   async getClients(skip: number, take: number): Promise<PagedResultDto<ClientDto> | null> {
     const params = new HttpParams().set('skip', '' + skip.toString()).set('take', '' + take.toString());
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<PagedResultDto<ClientDto> | null>(this.configurationService.config.issuer + 'system/v1/clients/getPaged', {
+        this.httpClient.get<PagedResultDto<ClientDto> | null>(baseUrl + 'clients/getPaged', {
           params,
           observe: 'response'
         })
@@ -172,9 +212,10 @@ export class IdentityService {
   }
 
   async getClientDetails(clientId: string): Promise<ClientDto | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<ClientDto>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, {
+        this.httpClient.get<ClientDto>(baseUrl + `clients/${clientId}`, {
           observe: 'response'
         })
       );
@@ -184,9 +225,10 @@ export class IdentityService {
   }
 
   async createClient(clientDto: ClientDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.post<void>(this.configurationService.config.issuer + 'system/v1/clients', clientDto, {
+        this.httpClient.post<void>(baseUrl + 'clients', clientDto, {
           observe: 'response'
         })
       );
@@ -194,16 +236,18 @@ export class IdentityService {
   }
 
   async updateClient(clientId: string, clientDto: ClientDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
-      await firstValueFrom(this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, clientDto, {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(this.httpClient.put<void>(baseUrl + `clients/${clientId}`, clientDto, {
         observe: 'response'
       }));
     }
   }
 
- async deleteClient(clientId: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
-      await firstValueFrom(this.httpClient.delete<void>(this.configurationService.config.issuer + `system/v1/clients/${clientId}`, {
+  async deleteClient(clientId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(this.httpClient.delete<void>(baseUrl + `clients/${clientId}`, {
         observe: 'response'
       }));
     }
@@ -212,9 +256,10 @@ export class IdentityService {
   async generatePassword(): Promise<GeneratedPasswordDto | null> {
     const params = new HttpParams();
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const r = await firstValueFrom(this.httpClient
-        .get<GeneratedPasswordDto>(this.configurationService.config.issuer + 'system/v1/tools/generatePassword', {
+        .get<GeneratedPasswordDto>(baseUrl + 'tools/generatePassword', {
           params,
           observe: 'response'
         }));
@@ -231,9 +276,10 @@ export class IdentityService {
   async getRoles(skip: number, take: number): Promise<PagedResultDto<RoleDto> | null> {
     const params = new HttpParams().set('skip', '' + skip.toString()).set('take', '' + take.toString());
 
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<PagedResultDto<RoleDto> | null>(this.configurationService.config.issuer + 'system/v1/roles/getPaged', {
+        this.httpClient.get<PagedResultDto<RoleDto> | null>(baseUrl + 'roles/getPaged', {
           params,
           observe: 'response'
         })
@@ -244,9 +290,10 @@ export class IdentityService {
   }
 
   async getRoleDetails(roleName: string): Promise<RoleDto | null> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       const response = await firstValueFrom(
-        this.httpClient.get<RoleDto | null>(this.configurationService.config.issuer + `system/v1/roles/names/${roleName}`, {
+        this.httpClient.get<RoleDto | null>(baseUrl + `roles/names/${roleName}`, {
           observe: 'response'
         })
       );
@@ -256,9 +303,10 @@ export class IdentityService {
   }
 
   async createRole(roleDto: RoleDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.post<void>(this.configurationService.config.issuer + 'system/v1/roles', roleDto, {
+        this.httpClient.post<void>(baseUrl + 'roles', roleDto, {
           observe: 'response'
         })
       );
@@ -266,9 +314,10 @@ export class IdentityService {
   }
 
   async updateRole(roleName: string, roleDto: RoleDto): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.put<void>(this.configurationService.config.issuer + `system/v1/roles/${roleName}`, roleDto, {
+        this.httpClient.put<void>(baseUrl + `roles/${roleName}`, roleDto, {
           observe: 'response'
         })
       );
@@ -276,9 +325,366 @@ export class IdentityService {
   }
 
   async deleteRole(roleName: string): Promise<void> {
-    if (this.configurationService.config?.issuer) {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
       await firstValueFrom(
-        this.httpClient.delete<void>(this.configurationService.config.issuer + `system/v1/roles/${roleName}`, {
+        this.httpClient.delete<void>(baseUrl + `roles/${roleName}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  // ========================================
+  // Identity Provider Management
+  // ========================================
+
+  async getIdentityProviders(): Promise<IdentityProvidersResult | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<IdentityProvidersResult | null>(baseUrl + 'identityproviders', {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getIdentityProviderDetails(rtId: string): Promise<IdentityProvidersResult | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<IdentityProvidersResult | null>(baseUrl + `identityproviders/${rtId}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async createIdentityProvider(dto: IdentityProviderDto): Promise<IdentityProviderDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<IdentityProviderDto>(baseUrl + 'identityproviders', dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async updateIdentityProvider(rtId: string, dto: IdentityProviderDto): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<void>(baseUrl + `identityproviders/${rtId}`, dto, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async deleteIdentityProvider(rtId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `identityproviders/${rtId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  // ========================================
+  // Email Domain Group Rules
+  // ========================================
+
+  async getEmailDomainGroupRules(): Promise<EmailDomainGroupRulesResult | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<EmailDomainGroupRulesResult | null>(baseUrl + 'emaildomaingrouprules', {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getEmailDomainGroupRuleDetails(rtId: string): Promise<EmailDomainGroupRuleDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<EmailDomainGroupRuleDto | null>(baseUrl + `emaildomaingrouprules/${rtId}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async createEmailDomainGroupRule(dto: EmailDomainGroupRuleDto): Promise<EmailDomainGroupRuleDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<EmailDomainGroupRuleDto>(baseUrl + 'emaildomaingrouprules', dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async updateEmailDomainGroupRule(rtId: string, dto: EmailDomainGroupRuleDto): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<void>(baseUrl + `emaildomaingrouprules/${rtId}`, dto, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async deleteEmailDomainGroupRule(rtId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `emaildomaingrouprules/${rtId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  // ========================================
+  // Group Management
+  // ========================================
+
+  async getGroups(): Promise<GroupDto[] | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<GroupDto[] | null>(baseUrl + 'groups', {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getGroupsPaged(skip: number, take: number): Promise<GroupDto[] | null> {
+    const params = new HttpParams().set('skip', skip.toString()).set('take', take.toString());
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<GroupDto[] | null>(baseUrl + 'groups/getPaged', {
+          params,
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getGroupById(rtId: string): Promise<GroupDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<GroupDto | null>(baseUrl + `groups/${rtId}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async getGroupByName(groupName: string): Promise<GroupDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<GroupDto | null>(baseUrl + `groups/names/${encodeURIComponent(groupName)}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async createGroup(dto: CreateGroupDto): Promise<GroupDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<GroupDto>(baseUrl + 'groups', dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async updateGroup(rtId: string, dto: UpdateGroupDto): Promise<GroupDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.put<GroupDto>(baseUrl + `groups/${rtId}`, dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async deleteGroup(rtId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `groups/${rtId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async getGroupRoles(rtId: string): Promise<string[] | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<string[] | null>(baseUrl + `groups/${rtId}/roles`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async updateGroupRoles(rtId: string, roleIds: string[]): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<void>(baseUrl + `groups/${rtId}/roles`, roleIds, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async addUserToGroup(rtId: string, userId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<void>(baseUrl + `groups/${rtId}/members/users/${userId}`, null, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async removeUserFromGroup(rtId: string, userId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `groups/${rtId}/members/users/${userId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async addGroupToGroup(rtId: string, childGroupId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<void>(baseUrl + `groups/${rtId}/members/groups/${childGroupId}`, null, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async removeGroupFromGroup(rtId: string, childGroupId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `groups/${rtId}/members/groups/${childGroupId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  // ========================================
+  // Admin Provisioning (via system tenant)
+  // ========================================
+
+  private getSystemTenantBaseUrl(): string | null {
+    if (!this.configurationService.config?.issuer) return null;
+    return `${this.configurationService.config.issuer}octosystem/v1/`;
+  }
+
+  async getAdminProvisionedUsers(targetTenantId: string): Promise<ExternalTenantUserMappingDto[] | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<ExternalTenantUserMappingDto[]>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async provisionCurrentUser(targetTenantId: string): Promise<ExternalTenantUserMappingDto | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<ExternalTenantUserMappingDto>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/provisionCurrentUser`, null, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async createAdminProvisioning(targetTenantId: string, dto: CreateExternalTenantUserMappingDto): Promise<ExternalTenantUserMappingDto | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<ExternalTenantUserMappingDto>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}`, dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async deleteAdminProvisioning(targetTenantId: string, mappingRtId: string): Promise<void> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/${encodeURIComponent(mappingRtId)}`, {
           observe: 'response'
         })
       );

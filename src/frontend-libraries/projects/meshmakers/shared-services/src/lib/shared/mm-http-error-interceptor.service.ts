@@ -19,6 +19,10 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
           this.messageService.showError('Cannot connect to server. Please check your network connection or if the server is down.');
         }
 
+        if (error.status === 403) {
+          this.messageService.showError('Access denied. You do not have permission to access this tenant or resource.');
+        }
+
         if (error.status === 400 && error.error.statusCode) {
           const apiError = error.error as ApiErrorDto;
 
