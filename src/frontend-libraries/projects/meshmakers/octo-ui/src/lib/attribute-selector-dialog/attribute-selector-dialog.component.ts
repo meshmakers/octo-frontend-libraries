@@ -470,7 +470,9 @@ export class AttributeSelectorDialogComponent implements OnInit {
       this.maxDepth = this.data.maxDepth ?? null;
       this.additionalAttributes = this.data.additionalAttributes ?? [];
       this.hideNavigationControls = this.data.hideNavigationControls ?? false;
-      this.attributePathsSet = this.data.attributePaths ? new Set(this.data.attributePaths) : null;
+      this.attributePathsSet = this.data.attributePaths
+        ? new Set(this.data.attributePaths)
+        : null;
 
       if (
         this.data.selectedAttributes &&
@@ -497,36 +499,54 @@ export class AttributeSelectorDialogComponent implements OnInit {
   }
 
   private loadAvailableAttributes(searchTerm?: string): void {
-    this.attributeService.getAvailableAttributes(
-      this.rtCkTypeId, undefined, undefined, undefined,
-      this.selectedValueTypeFilter || undefined,
-      searchTerm || undefined,
-      this.includeNavigationProperties,
-      this.maxDepth ?? undefined
-    ).subscribe(result => {
-      // Filter out already selected attributes
-      const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
+    this.attributeService
+      .getAvailableAttributes(
+        this.rtCkTypeId,
+        undefined,
+        undefined,
+        undefined,
+        this.selectedValueTypeFilter || undefined,
+        searchTerm || undefined,
+        this.includeNavigationProperties,
+        this.maxDepth ?? undefined,
+      )
+      .subscribe((result) => {
+        // Filter out already selected attributes
+        const selectedPaths = new Set(
+          this.selectedAttributes.map((a) => a.attributePath),
+        );
 
-      // Apply client-side attribute path restriction if set (additionalAttributes bypass this filter intentionally)
-      const filteredItems = this.attributePathsSet
-        ? result.items.filter(item => this.attributePathsSet!.has(item.attributePath))
-        : result.items;
+        // Apply client-side attribute path restriction if set (additionalAttributes bypass this filter intentionally)
+        const filteredItems = this.attributePathsSet
+          ? result.items.filter((item) =>
+              this.attributePathsSet!.has(item.attributePath),
+            )
+          : result.items;
 
-      // Include additional virtual attributes (e.g., Timestamp for stream data), filtered by search/type
-      const filteredAdditional = this.additionalAttributes.filter(attr => {
-        if (selectedPaths.has(attr.attributePath)) return false;
-        if (searchTerm && !attr.attributePath.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-        if (this.selectedValueTypeFilter && attr.attributeValueType !== this.selectedValueTypeFilter) return false;
-        return true;
+        // Include additional virtual attributes (e.g., Timestamp for stream data), filtered by search/type
+        const filteredAdditional = this.additionalAttributes.filter((attr) => {
+          if (selectedPaths.has(attr.attributePath)) return false;
+          if (
+            searchTerm &&
+            !attr.attributePath.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+            return false;
+          if (
+            this.selectedValueTypeFilter &&
+            attr.attributeValueType !== this.selectedValueTypeFilter
+          )
+            return false;
+          return true;
+        });
+
+        this.availableAttributes = [
+          ...filteredAdditional,
+          ...filteredItems.filter(
+            (item) => !selectedPaths.has(item.attributePath),
+          ),
+        ];
+        this.updateAvailableGrid();
       });
-  }
-
-      this.availableAttributes = [
-        ...filteredAdditional,
-        ...filteredItems.filter(item => !selectedPaths.has(item.attributePath))
-      ];
-      this.updateAvailableGrid();
-    });
   }
 
   private loadInitialSelectedAttributes(attributePaths: string[]): void {
