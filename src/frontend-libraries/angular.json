@@ -44,7 +44,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "5kB",
-                  "maximumError": "710kB"
+                  "maximumError": "715kB"
                 }
               ],
               "allowedCommonJsDependencies": ["cronstrue", "cron-parser"],

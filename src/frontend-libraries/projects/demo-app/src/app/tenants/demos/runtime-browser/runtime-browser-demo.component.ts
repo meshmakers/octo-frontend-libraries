@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { RuntimeBrowserComponent } from '@meshmakers/octo-ui';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-runtime-browser-demo',
-  imports: [RuntimeBrowserComponent],
+  imports: [RouterOutlet],
   templateUrl: './runtime-browser-demo.component.html',
   styleUrl: './runtime-browser-demo.component.scss',
 })

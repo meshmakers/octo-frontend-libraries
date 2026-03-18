@@ -96,9 +96,6 @@ $kendo-inverse: #3d3d3d;
 $kendo-success: #37b400;
 
 @mixin variables {
-  --exodia: #666;
-  --scyther: #999;
-
   // Typography
   --lcars-font-primary: "Montserrat", "Roboto", "Helvetica Neue", sans-serif;
   --lcars-font-mono: "Roboto Mono", "Consolas", monospace;
@@ -3401,7 +3398,7 @@ $kendo-colors: map.merge(
 
   .octo-full {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     height: 100%;
     width: 100%;
     overflow: hidden;
