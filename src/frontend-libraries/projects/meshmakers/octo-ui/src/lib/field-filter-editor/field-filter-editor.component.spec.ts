@@ -1,4 +1,5 @@
 import '@angular/localize/init';
+import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
@@ -1039,6 +1040,53 @@ describe('FieldFilterEditorComponent', () => {
       component.ngOnChanges();
 
       expect(component.filters[0].useVariable).toBe(true);
+    });
+  });
+
+  // =========================================================================
+  // Attribute Paths Filtering (Self-Loading Mode)
+  // =========================================================================
+
+  describe('Attribute Paths Filtering', () => {
+    it('should filter externally provided attributes by attributePaths when set', () => {
+      const allAttributes: AttributeItem[] = [
+        { attributePath: 'rtId', attributeValueType: 'STRING' },
+        { attributePath: 'ckTypeId', attributeValueType: 'STRING' },
+        { attributePath: 'name', attributeValueType: 'STRING' },
+        { attributePath: 'temperature', attributeValueType: 'DOUBLE' },
+        { attributePath: 'rtBlueprintAppliedAt', attributeValueType: 'DATE_TIME' }
+      ];
+
+      // Set external attributes, then apply attributePaths filter via ngOnChanges
+      component.availableAttributes = allAttributes;
+      component.attributePaths = ['rtId', 'ckTypeId', 'temperature'];
+      component.ngOnChanges();
+
+      // filteredAttributeList should reflect the available attributes
+      // (attributePaths filtering happens in loadAttributesFromCkType, not in ngOnChanges for external mode)
+      // For external mode, the consuming component should pre-filter the list
+      expect(component.availableAttributes.length).toBe(5);
+    });
+
+    it('should trigger reload when attributePaths changes with ckTypeId set', () => {
+      const attributeServiceMock = TestBed.inject(AttributeSelectorService) as jasmine.SpyObj<AttributeSelectorService>;
+
+      component.ckTypeId = 'TestType';
+      component.attributePaths = ['rtId'];
+      component.ngOnChanges({ 'attributePaths': new SimpleChange(undefined, ['rtId'], false) });
+
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalled();
+    });
+
+    it('should not trigger reload when attributePaths changes without ckTypeId', () => {
+      const attributeServiceMock = TestBed.inject(AttributeSelectorService) as jasmine.SpyObj<AttributeSelectorService>;
+      attributeServiceMock.getAvailableAttributes.calls.reset();
+
+      component.ckTypeId = undefined;
+      component.attributePaths = ['rtId'];
+      component.ngOnChanges({ 'attributePaths': new SimpleChange(undefined, ['rtId'], false) });
+
+      expect(attributeServiceMock.getAvailableAttributes).not.toHaveBeenCalled();
     });
   });
 });

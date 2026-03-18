@@ -567,6 +567,12 @@ export class FieldFilterEditorComponent implements OnChanges {
    */
   @Input() public hideNavigationProperties = false;
 
+  /**
+   * When set, restricts the available attributes to only these attribute paths (filtered client-side after fetching).
+   * Used for stream data queries to show only stream-data-enabled attributes.
+   */
+  @Input() public attributePaths?: string[];
+
   /** Enable variable mode - allows using variables instead of literal values */
   @Input() public enableVariables = false;
 
@@ -606,11 +612,8 @@ export class FieldFilterEditorComponent implements OnChanges {
       this.maxDepth = null;
     }
 
-    // Reload attributes when ckTypeId or hideNavigationProperties changes
-    if (
-      (changes?.['ckTypeId'] || changes?.['hideNavigationProperties']) &&
-      this.ckTypeId
-    ) {
+    // Reload attributes when ckTypeId, hideNavigationProperties, or attributePaths changes
+    if ((changes?.['ckTypeId'] || changes?.['hideNavigationProperties'] || changes?.['attributePaths']) && this.ckTypeId) {
       this.loadAttributesFromCkType();
     }
 
@@ -680,7 +683,11 @@ export class FieldFilterEditorComponent implements OnChanges {
           this.maxDepth ?? undefined,
         ),
       );
-      this.availableAttributes = this.filterAvailableAttributes(result.items);
+      // Apply client-side attribute path restriction if set
+      const allowedPathsSet = this.attributePaths ? new Set(this.attributePaths) : null;
+      this.availableAttributes = allowedPathsSet
+        ? result.items.filter(item => allowedPathsSet.has(item.attributePath))
+        : result.items;
       this.filteredAttributeList = [...this.availableAttributes];
       this.buildAttributeTypeMap();
     } catch (error) {

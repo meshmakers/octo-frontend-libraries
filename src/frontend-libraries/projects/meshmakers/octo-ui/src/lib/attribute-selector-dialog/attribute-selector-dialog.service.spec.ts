@@ -15,6 +15,7 @@ interface MockComponentInstance {
     includeNavigationProperties?: boolean;
     maxDepth?: number;
     hideNavigationControls?: boolean;
+    attributePaths?: string[];
   };
 }
 
@@ -142,7 +143,8 @@ describe('AttributeSelectorDialogService', () => {
         additionalAttributes: undefined,
         includeNavigationProperties: undefined,
         maxDepth: undefined,
-        hideNavigationControls: undefined
+        hideNavigationControls: undefined,
+        attributePaths: undefined
       });
     });
 
@@ -264,7 +266,8 @@ describe('AttributeSelectorDialogService', () => {
         additionalAttributes: undefined,
         includeNavigationProperties: undefined,
         maxDepth: undefined,
-        hideNavigationControls: undefined
+        hideNavigationControls: undefined,
+        attributePaths: undefined
       });
     });
 
