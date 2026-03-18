@@ -282,7 +282,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.importRtModel('tenant-1', mockFile);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ImportRt?tenantId=tenant-1&importStrategy=0`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=0`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body instanceof FormData).toBeTrue();
       req.flush(mockResponse);
@@ -297,7 +297,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.importRtModel('tenant-1', mockFile, ImportStrategyDto.Upsert);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ImportRt?tenantId=tenant-1&importStrategy=1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=1`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body instanceof FormData).toBeTrue();
       req.flush(mockResponse);
@@ -311,7 +311,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.importRtModel('tenant-1', mockFile);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ImportRt?tenantId=tenant-1&importStrategy=0`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=0`);
       req.flush({});
 
       const result = await resultPromise;
@@ -334,7 +334,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.importCkModel('tenant-1', mockFile);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ImportCk?tenantId=tenant-1&importStrategy=0`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportCk?importStrategy=0`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body instanceof FormData).toBeTrue();
       req.flush(mockResponse);
@@ -358,7 +358,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.exportRtModelByQuery('tenant-1', 'query-123');
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ExportRtByQuery?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByQuery`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ queryId: 'query-123' });
       req.flush(mockResponse);
@@ -370,7 +370,7 @@ describe('AssetRepoService', () => {
     it('should return null when response has no jobId', async () => {
       const resultPromise = service.exportRtModelByQuery('tenant-1', 'query-123');
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ExportRtByQuery?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByQuery`);
       req.flush({});
 
       const result = await resultPromise;
@@ -393,7 +393,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.exportRtModelDeepGraph('tenant-1', originRtIds, originCkTypeId);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ExportRtByDeepGraph?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ originRtIds, originCkTypeId });
       req.flush(mockResponse);
@@ -405,7 +405,7 @@ describe('AssetRepoService', () => {
     it('should return null when response has no jobId', async () => {
       const resultPromise = service.exportRtModelDeepGraph('tenant-1', ['rt-1'], 'ck-type-1');
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ExportRtByDeepGraph?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
       req.flush({});
 
       const result = await resultPromise;

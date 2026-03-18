@@ -103,13 +103,12 @@ export class AssetRepoService {
 
   public async importRtModel(tenantId: string, file: File, importStrategy: ImportStrategyDto = ImportStrategyDto.InsertOnly): Promise<string | null> {
     const params = new HttpParams()
-      .set('tenantId', tenantId)
       .set('importStrategy', importStrategy.toString());
     if (this.configurationService.config?.assetServices) {
 
       const formData: FormData = new FormData();
       formData.append("file", file);
-      const r = await firstValueFrom(this.httpClient.post<ImportModelResponseDto>(this.configurationService.config.assetServices + 'system/v1/Models/ImportRt', formData, {
+      const r = await firstValueFrom(this.httpClient.post<ImportModelResponseDto>(this.configurationService.config.assetServices + tenantId + '/v1/Models/ImportRt', formData, {
         params,
         observe: 'response'
       }));
@@ -121,12 +120,11 @@ export class AssetRepoService {
 
   public async importCkModel(tenantId: string, file: File, importStrategy: ImportStrategyDto = ImportStrategyDto.InsertOnly): Promise<string | null> {
     const params = new HttpParams()
-      .set('tenantId', tenantId)
       .set('importStrategy', importStrategy.toString());
     if (this.configurationService.config?.assetServices) {
       const formData: FormData = new FormData();
       formData.append("file", file);
-      const r = await firstValueFrom(this.httpClient.post<ImportModelResponseDto>(this.configurationService.config.assetServices + 'system/v1/Models/ImportCk', formData, {
+      const r = await firstValueFrom(this.httpClient.post<ImportModelResponseDto>(this.configurationService.config.assetServices + tenantId + '/v1/Models/ImportCk', formData, {
         params,
         observe: 'response'
       }));
@@ -136,15 +134,12 @@ export class AssetRepoService {
   }
 
   public async exportRtModelByQuery(tenantId: string, queryId: string): Promise<string | null> {
-    const params = new HttpParams().set('tenantId', tenantId);
-
     if (this.configurationService.config?.assetServices) {
       const r = await firstValueFrom(this.httpClient
         .post<ExportModelResponseDto>(
-          this.configurationService.config.assetServices + 'system/v1/Models/ExportRtByQuery',
+          this.configurationService.config.assetServices + tenantId + '/v1/Models/ExportRtByQuery',
           {queryId},
           {
-            params,
             observe: 'response'
           }
         ));
@@ -155,15 +150,12 @@ export class AssetRepoService {
   }
 
   public async exportRtModelDeepGraph(tenantId: string, originRtIds: string[], originCkTypeId: string): Promise<string | null> {
-    const params = new HttpParams().set('tenantId', tenantId);
-
     if (this.configurationService.config?.assetServices) {
       const r = await firstValueFrom(this.httpClient
         .post<ExportModelResponseDto>(
-          this.configurationService.config.assetServices + 'system/v1/Models/ExportRtByDeepGraph',
+          this.configurationService.config.assetServices + tenantId + '/v1/Models/ExportRtByDeepGraph',
           {originRtIds, originCkTypeId},
           {
-            params,
             observe: 'response'
           }
         ));
