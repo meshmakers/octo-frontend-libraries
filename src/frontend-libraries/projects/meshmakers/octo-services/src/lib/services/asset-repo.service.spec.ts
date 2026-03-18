@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { AssetRepoService } from './asset-repo.service';
 import { CONFIGURATION_SERVICE } from './configuration.service';
+import { TENANT_ID_PROVIDER } from './tenant-provider';
 import { TenantDto } from '../shared/tenantDto';
 import { AddInConfiguration } from '../shared/addInConfiguration';
 import { PagedResultDto } from '@meshmakers/shared-services';
@@ -14,6 +15,7 @@ describe('AssetRepoService', () => {
   let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: jasmine.Spy };
 
   const baseUrl = 'https://asset.example.com/';
+  const tenantId = 'meshtest';
 
   const mockConfig: AddInConfiguration = {
     assetServices: baseUrl,
@@ -44,6 +46,11 @@ describe('AssetRepoService', () => {
     ]
   };
 
+  // Helper to flush the async tenant provider microtask
+  async function flushTenantProvider(): Promise<void> {
+    await Promise.resolve();
+  }
+
   beforeEach(() => {
     mockConfigService = {
       config: mockConfig,
@@ -55,7 +62,8 @@ describe('AssetRepoService', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         AssetRepoService,
-        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
+        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
+        { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(tenantId) }
       ]
     });
 
@@ -74,8 +82,9 @@ describe('AssetRepoService', () => {
   describe('getTenants', () => {
     it('should return paged tenants on success', async () => {
       const resultPromise = service.getTenants(0, 10);
+      await flushTenantProvider();
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/tenants?skip=0&take=10`);
+      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?skip=0&take=10`);
       expect(req.request.method).toBe('GET');
       req.flush(mockTenantsResponse);
 
@@ -87,8 +96,9 @@ describe('AssetRepoService', () => {
 
     it('should pass correct skip and take parameters', async () => {
       const resultPromise = service.getTenants(5, 20);
+      await flushTenantProvider();
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/tenants?skip=5&take=20`);
+      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?skip=5&take=20`);
       expect(req.request.params.get('skip')).toBe('5');
       expect(req.request.params.get('take')).toBe('20');
       req.flush(mockTenantsResponse);
@@ -114,8 +124,9 @@ describe('AssetRepoService', () => {
   describe('getTenantDetails', () => {
     it('should return tenant details on success', async () => {
       const resultPromise = service.getTenantDetails('tenant-1');
+      await flushTenantProvider();
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/tenants/tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/tenant-1`);
       expect(req.request.method).toBe('GET');
       req.flush(mockTenant);
 
@@ -132,8 +143,9 @@ describe('AssetRepoService', () => {
 
     it('should handle tenant not found', async () => {
       const resultPromise = service.getTenantDetails('non-existent');
+      await flushTenantProvider();
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/tenants/non-existent`);
+      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/non-existent`);
       req.flush('Not Found', { status: 404, statusText: 'Not Found' });
 
       await expectAsync(resultPromise).toBeRejected();
@@ -143,9 +155,10 @@ describe('AssetRepoService', () => {
   describe('createTenant', () => {
     it('should create tenant with correct parameters', async () => {
       const resultPromise = service.createTenant(mockTenant);
+      await flushTenantProvider();
 
       const req = httpMock.expectOne(
-        `${baseUrl}system/v1/tenants?tenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`
+        `${baseUrl}${tenantId}/v1/tenants?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`
       );
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
@@ -165,9 +178,10 @@ describe('AssetRepoService', () => {
   describe('attachTenant', () => {
     it('should attach tenant with correct parameters', async () => {
       const resultPromise = service.attachTenant(mockTenant);
+      await flushTenantProvider();
 
       const req = httpMock.expectOne(
-        `${baseUrl}system/v1/tenants/attach?tenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`
+        `${baseUrl}${tenantId}/v1/tenants/attach?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`
       );
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
@@ -187,8 +201,9 @@ describe('AssetRepoService', () => {
   describe('detachTenant', () => {
     it('should detach tenant with correct parameters', async () => {
       const resultPromise = service.detachTenant('tenant-1');
+      await flushTenantProvider();
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/tenants/detach?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/detach?childTenantId=tenant-1`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(null);
@@ -207,8 +222,9 @@ describe('AssetRepoService', () => {
   describe('deleteTenant', () => {
     it('should delete tenant with correct parameters', async () => {
       const resultPromise = service.deleteTenant('tenant-1');
+      await flushTenantProvider();
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/tenants?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?childTenantId=tenant-1`);
       expect(req.request.method).toBe('DELETE');
       req.flush(null);
 
@@ -223,6 +239,42 @@ describe('AssetRepoService', () => {
     });
   });
 
+  describe('with fallback tenant', () => {
+    let fallbackService: AssetRepoService;
+    let fallbackHttpMock: HttpTestingController;
+
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          AssetRepoService,
+          { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
+          { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(null) }
+        ]
+      });
+
+      fallbackService = TestBed.inject(AssetRepoService);
+      fallbackHttpMock = TestBed.inject(HttpTestingController);
+    });
+
+    afterEach(() => {
+      fallbackHttpMock.verify();
+    });
+
+    it('should fall back to octosystem when tenant provider returns null', async () => {
+      const resultPromise = fallbackService.getTenants(0, 10);
+      await flushTenantProvider();
+
+      const req = fallbackHttpMock.expectOne(`${baseUrl}octosystem/v1/tenants?skip=0&take=10`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockTenantsResponse);
+
+      await resultPromise;
+    });
+  });
+
   describe('importRtModel', () => {
     it('should import RT model with default strategy and return job ID', async () => {
       const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
@@ -230,7 +282,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.importRtModel('tenant-1', mockFile);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ImportRt?tenantId=tenant-1&importStrategy=0`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=0`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body instanceof FormData).toBeTrue();
       req.flush(mockResponse);
@@ -245,7 +297,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.importRtModel('tenant-1', mockFile, ImportStrategyDto.Upsert);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ImportRt?tenantId=tenant-1&importStrategy=1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=1`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body instanceof FormData).toBeTrue();
       req.flush(mockResponse);
@@ -259,7 +311,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.importRtModel('tenant-1', mockFile);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ImportRt?tenantId=tenant-1&importStrategy=0`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=0`);
       req.flush({});
 
       const result = await resultPromise;
@@ -282,7 +334,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.importCkModel('tenant-1', mockFile);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ImportCk?tenantId=tenant-1&importStrategy=0`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportCk?importStrategy=0`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body instanceof FormData).toBeTrue();
       req.flush(mockResponse);
@@ -306,7 +358,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.exportRtModelByQuery('tenant-1', 'query-123');
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ExportRtByQuery?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByQuery`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ queryId: 'query-123' });
       req.flush(mockResponse);
@@ -318,7 +370,7 @@ describe('AssetRepoService', () => {
     it('should return null when response has no jobId', async () => {
       const resultPromise = service.exportRtModelByQuery('tenant-1', 'query-123');
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ExportRtByQuery?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByQuery`);
       req.flush({});
 
       const result = await resultPromise;
@@ -341,7 +393,7 @@ describe('AssetRepoService', () => {
 
       const resultPromise = service.exportRtModelDeepGraph('tenant-1', originRtIds, originCkTypeId);
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ExportRtByDeepGraph?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ originRtIds, originCkTypeId });
       req.flush(mockResponse);
@@ -353,7 +405,7 @@ describe('AssetRepoService', () => {
     it('should return null when response has no jobId', async () => {
       const resultPromise = service.exportRtModelDeepGraph('tenant-1', ['rt-1'], 'ck-type-1');
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/Models/ExportRtByDeepGraph?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
       req.flush({});
 
       const result = await resultPromise;

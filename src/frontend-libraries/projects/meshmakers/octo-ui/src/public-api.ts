@@ -23,6 +23,7 @@ export * from './lib/octo-loader';
 export * from './lib/property-grid';
 export * from './lib/runtime-browser';
 export * from './lib/runtime-entity-variable-dialog';
+export * from './lib/tenant-switcher';
 
 /**
  * Provides OctoUi services using modern Angular provider functions.

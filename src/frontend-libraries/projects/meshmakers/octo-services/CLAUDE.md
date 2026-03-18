@@ -112,18 +112,18 @@ Checks health status of backend services.
 
 ### AssetRepoService
 
-Manages tenants and model import/export.
+Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVIDER` (injected as `optional: true`) to resolve the current tenant ID for tenant management API requests. Falls back to `'octosystem'` when the provider is not available or returns `null`. Tenant API URLs follow the pattern `{assetServices}{tenantId}/v1/tenants`.
 
-**Tenant Management:**
+**Tenant Management (child tenants of the current tenant):**
 
 | Method | Description |
 |--------|-------------|
-| `getTenants(skip, take)` | List tenants with pagination |
-| `getTenantDetails(tenantId)` | Get tenant details |
-| `createTenant(tenantDto)` | Create a new tenant |
-| `attachTenant(tenantDto)` | Attach existing database as tenant |
-| `detachTenant(tenantId)` | Detach tenant (keep database) |
-| `deleteTenant(tenantId)` | Delete tenant and database |
+| `getTenants(skip, take)` | List child tenants with pagination |
+| `getTenantDetails(childTenantId)` | Get child tenant details |
+| `createTenant(tenantDto)` | Create a new child tenant |
+| `attachTenant(tenantDto)` | Attach existing database as child tenant |
+| `detachTenant(childTenantId)` | Detach child tenant (keep database) |
+| `deleteTenant(childTenantId)` | Delete child tenant and database |
 
 **Model Import/Export:**
 
@@ -136,7 +136,7 @@ Manages tenants and model import/export.
 
 ### IdentityService
 
-Manages users, roles, and OAuth clients.
+Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVIDER` (injected as `optional: true`) to resolve the current tenant ID for API requests. Falls back to `'octosystem'` when the provider is not available or returns `null`. API URLs follow the pattern `{issuer}{tenantId}/v1/...`.
 
 **User Management:**
 
@@ -148,7 +148,8 @@ Manages users, roles, and OAuth clients.
 | `updateUser(userName, userDto)` | Update user |
 | `deleteUser(userName)` | Delete user |
 | `resetPassword(userName, password)` | Reset user password |
-| `getUserRoles(userName)` | Get user's roles |
+| `getUserRoles(userName)` | Get user's roles (direct + group-inherited) |
+| `getUserDirectRoles(userName)` | Get user's directly assigned roles only |
 | `updateUserRoles(userName, roles)` | Update user's roles |
 | `addUserToRole(userName, roleName)` | Add user to role |
 | `removeRoleFromUser(userName, roleName)` | Remove user from role |
@@ -172,6 +173,44 @@ Manages users, roles, and OAuth clients.
 | `createClient(clientDto)` | Create client |
 | `updateClient(clientId, clientDto)` | Update client |
 | `deleteClient(clientId)` | Delete client |
+
+**Identity Provider Management:**
+
+| Method | Description |
+|--------|-------------|
+| `getIdentityProviders()` | List all identity providers |
+| `getIdentityProviderDetails(rtId)` | Get identity provider details |
+| `createIdentityProvider(dto)` | Create identity provider |
+| `updateIdentityProvider(rtId, dto)` | Update identity provider |
+| `deleteIdentityProvider(rtId)` | Delete identity provider |
+
+**Email Domain Group Rules:**
+
+| Method | Description |
+|--------|-------------|
+| `getEmailDomainGroupRules()` | List all email domain group rules |
+| `getEmailDomainGroupRuleDetails(rtId)` | Get email domain group rule details |
+| `createEmailDomainGroupRule(dto)` | Create email domain group rule |
+| `updateEmailDomainGroupRule(rtId, dto)` | Update email domain group rule |
+| `deleteEmailDomainGroupRule(rtId)` | Delete email domain group rule |
+
+**Group Management:**
+
+| Method | Description |
+|--------|-------------|
+| `getGroups()` | List all groups |
+| `getGroupsPaged(skip, take)` | List groups with pagination |
+| `getGroupById(rtId)` | Get group by ID |
+| `getGroupByName(groupName)` | Get group by name |
+| `createGroup(dto)` | Create group |
+| `updateGroup(rtId, dto)` | Update group name/description |
+| `deleteGroup(rtId)` | Delete group |
+| `getGroupRoles(rtId)` | Get assigned role IDs |
+| `updateGroupRoles(rtId, roleIds)` | Replace role assignments |
+| `addUserToGroup(rtId, userId)` | Add user member |
+| `removeUserFromGroup(rtId, userId)` | Remove user member |
+| `addGroupToGroup(rtId, childGroupId)` | Add nested group member |
+| `removeGroupFromGroup(rtId, childGroupId)` | Remove nested group member |
 
 **Utilities:**
 
@@ -451,6 +490,31 @@ interface RoleDto {
 }
 ```
 
+### GroupDto
+
+```typescript
+interface GroupDto {
+  id?: string;
+  groupName: string;
+  groupDescription?: string;
+  roleIds: string[];
+  memberUserIds: string[];
+  memberExternalUserIds: string[];
+  memberGroupIds: string[];
+}
+
+interface CreateGroupDto {
+  groupName: string;
+  groupDescription?: string;
+  roleIds?: string[];
+}
+
+interface UpdateGroupDto {
+  groupName: string;
+  groupDescription?: string;
+}
+```
+
 ### ClientDto
 
 ```typescript
@@ -461,6 +525,50 @@ interface ClientDto {
   description?: string;
   grantTypes?: GrantTypes[];
   scopes?: ClientScope[];
+}
+```
+
+### IdentityProviderDto
+
+```typescript
+interface IdentityProviderDto {
+  $type?: number;             // IdentityProviderType enum discriminator
+  rtId?: string;
+  name?: string;
+  description?: string;
+  isEnabled: boolean;
+  clientId?: string;          // OAuth providers
+  clientSecret?: string;      // OAuth providers
+  tenantId?: string;          // Azure Entra ID
+  authority?: string;         // Azure Entra ID
+  host?: string;              // LDAP providers
+  port?: number;              // LDAP providers
+  useTls?: boolean;           // LDAP providers
+  userBaseDn?: string;        // OpenLDAP
+  userNameAttribute?: string; // OpenLDAP
+  allowSelfRegistration?: boolean;  // Login configuration
+  defaultGroupRtId?: string;        // Login configuration
+  parentTenantId?: string;          // OctoTenant (cross-tenant auth)
+}
+
+enum IdentityProviderType {
+  Google = 0, Microsoft = 1, MicrosoftAzureAd = 2,
+  MicrosoftActiveDirectory = 3, OpenLdap = 4, Facebook = 5, OctoTenant = 6
+}
+```
+
+### EmailDomainGroupRuleDto
+
+```typescript
+interface EmailDomainGroupRuleDto {
+  rtId?: string;
+  emailDomainPattern?: string;
+  targetGroupRtId?: string;
+  description?: string;
+}
+
+interface EmailDomainGroupRulesResult {
+  emailDomainGroupRules?: EmailDomainGroupRuleDto[];
 }
 ```
 

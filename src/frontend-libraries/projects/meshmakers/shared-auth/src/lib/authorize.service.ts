@@ -44,8 +44,14 @@ export class AuthorizeService {
   private readonly _isInitialized: WritableSignal<boolean> = signal(false);
   private readonly _isInitializing: WritableSignal<boolean> = signal(false);
   private readonly _sessionLoading: WritableSignal<boolean> = signal(false);
+  private readonly _allowedTenants: WritableSignal<string[]> = signal([]);
+  private readonly _tokenTenantId: WritableSignal<string | null> = signal(null);
+
+  private static readonly TENANT_REAUTH_KEY = 'octo_tenant_reauth';
+  private static readonly TENANT_SWITCH_ATTEMPTED_KEY = 'octo_tenant_switch_attempted';
 
   private authorizeOptions: AuthorizeOptions | null = null;
+  private lastAuthConfig: AuthConfig | null = null;
 
   // =============================================================================
   // PUBLIC API (Readonly Signals) - NEW API
@@ -82,9 +88,34 @@ export class AuthorizeService {
   readonly sessionLoading: Signal<boolean> = this._sessionLoading.asReadonly();
 
   /**
+   * Signal containing the list of tenants the user is allowed to access.
+   * Parsed from the allowed_tenants claims in the access token.
+   */
+  readonly allowedTenants: Signal<string[]> = this._allowedTenants.asReadonly();
+
+  /**
+   * Signal containing the tenant_id claim from the current access token.
+   * Used to detect tenant mismatch when navigating between tenants.
+   */
+  readonly tokenTenantId: Signal<string | null> = this._tokenTenantId.asReadonly();
+
+  /**
    * Computed signal containing the user's roles.
    */
   readonly roles: Signal<string[]> = computed(() => this._user()?.role ?? []);
+
+  /**
+   * Computed signal for the user's display name.
+   * Uses given_name + family_name if available, otherwise derives from the username.
+   */
+  readonly displayName: Signal<string | null> = computed(() => {
+    const user = this._user();
+    if (!user) return null;
+    if (user.given_name && user.family_name) {
+      return user.given_name + ' ' + user.family_name;
+    }
+    return this.deriveDisplayNameFromUsername(user.name);
+  });
 
   constructor() {
     console.debug("AuthorizeService::created");
@@ -105,6 +136,7 @@ export class AuthorizeService {
           this._accessToken.set(null);
           this._user.set(null);
           this._isAuthenticated.set(false);
+          this._tokenTenantId.set(null);
           // Reload the page to trigger the auth flow and redirect to login
           this.reloadPage();
         }
@@ -130,8 +162,13 @@ export class AuthorizeService {
         this._accessToken.set(null);
         this._user.set(null);
         this._isAuthenticated.set(false);
-        // Reload the page to trigger the auth flow and redirect to login
-        this.reloadPage();
+        this._tokenTenantId.set(null);
+        this._allowedTenants.set([]);
+        // Do NOT call reloadPage() here — oauthService.logOut() already
+        // redirects to the Identity Server's end_session_endpoint.
+        // Calling reload() would race with that redirect and cause the
+        // page to reload before the server-side session is terminated,
+        // leaving the user still logged in.
       }
     });
 
@@ -146,6 +183,7 @@ export class AuthorizeService {
         this._accessToken.set(null);
         this._user.set(null);
         this._isAuthenticated.set(false);
+        this._tokenTenantId.set(null);
         // Reload the page to trigger the auth flow and redirect to login
         this.reloadPage();
       }
@@ -163,6 +201,7 @@ export class AuthorizeService {
           this._accessToken.set(null);
           this._user.set(null);
           this._isAuthenticated.set(false);
+          this._tokenTenantId.set(null);
           this.reloadPage();
         }
       };
@@ -196,17 +235,191 @@ export class AuthorizeService {
   }
 
   /**
-   * Initiates the login flow.
+   * Checks if the user is allowed to access the specified tenant.
+   * Returns true if no allowed_tenants claims are present (backwards compatibility).
    */
-  public login(): void {
-    this.oauthService.initImplicitFlow();
+  public isTenantAllowed(tenantId: string): boolean {
+    const allowed = this._allowedTenants();
+    if (allowed.length === 0) {
+      return true; // No claims = backwards compatible (old tokens)
+    }
+    return allowed.some(t => t.toLowerCase() === tenantId.toLowerCase());
   }
 
   /**
-   * Logs out the current user.
+   * Initiates the login flow.
+   * @param tenantId Optional tenant ID. When provided, includes acr_values=tenant:{tenantId}
+   *   so the identity server redirects to the correct tenant's login page.
+   */
+  public login(tenantId?: string): void {
+    if (tenantId) {
+      this.oauthService.initImplicitFlow('', { acr_values: `tenant:${tenantId}` });
+    } else {
+      this.oauthService.initImplicitFlow();
+    }
+  }
+
+  /**
+   * Forces re-authentication for a different tenant by clearing the local
+   * OAuth session and reloading the page. On reload, the guard will see
+   * isAuthenticated=false and call login(tenantId) with the correct acr_values.
+   *
+   * This is used when the current token's tenant_id does not match the
+   * route's tenantId (e.g., navigating from octosystem to meshtest).
+   */
+  /**
+   * Returns true if the switch was initiated, false if skipped (loop prevention).
+   */
+  public switchTenant(targetTenantId: string, targetUrl: string): boolean {
+    console.debug(`AuthorizeService::switchTenant to "${targetTenantId}" at "${targetUrl}"`);
+
+    // Prevent infinite redirect loop: if we already attempted a switch to this
+    // exact tenant and ended up here again, the Identity Server did not issue
+    // a token for the target tenant. Do NOT attempt again.
+    try {
+      const previousAttempt = sessionStorage.getItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY);
+      if (previousAttempt && previousAttempt.toLowerCase() === targetTenantId.toLowerCase()) {
+        console.warn(`AuthorizeService::switchTenant — already attempted switch to "${targetTenantId}", skipping to prevent loop`);
+        return false;
+      }
+    } catch {
+      // sessionStorage may be unavailable
+    }
+
+    // Store target tenant so login() uses the correct acr_values after reload
+    try {
+      sessionStorage.setItem(AuthorizeService.TENANT_REAUTH_KEY, targetTenantId);
+      sessionStorage.setItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY, targetTenantId);
+    } catch {
+      // sessionStorage may be unavailable
+    }
+
+    // Clear local OAuth tokens directly from storage.
+    // Do NOT use oauthService.logOut() — it fires a 'logout' event
+    // whose handler calls reloadPage(), racing with our navigation below.
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('id_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('id_token_claims_obj');
+    localStorage.removeItem('id_token_expires_at');
+    localStorage.removeItem('id_token_stored_at');
+    localStorage.removeItem('access_token_stored_at');
+    localStorage.removeItem('expires_at');
+    localStorage.removeItem('nonce');
+    localStorage.removeItem('PKCE_verifier');
+    localStorage.removeItem('session_state');
+    localStorage.removeItem('granted_scopes');
+    localStorage.removeItem('requested_route');
+
+    // Clear our signals
+    this._accessToken.set(null);
+    this._user.set(null);
+    this._isAuthenticated.set(false);
+    this._tokenTenantId.set(null);
+
+    // Full page navigation to the target URL — triggers fresh auth flow
+    window.location.href = targetUrl;
+    return true;
+  }
+
+  /**
+   * Returns the pending tenant switch target (if any) and clears it.
+   * Called by the guard to pass the correct tenantId to login() after a switchTenant reload.
+   */
+  public consumePendingTenantSwitch(): string | null {
+    try {
+      const tenantId = sessionStorage.getItem(AuthorizeService.TENANT_REAUTH_KEY);
+      sessionStorage.removeItem(AuthorizeService.TENANT_REAUTH_KEY);
+      return tenantId;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Returns the tenant for which a switch was already attempted (if any) and clears it.
+   * Used by the guard to prevent infinite redirect loops: if the Identity Server
+   * issues a token for the wrong tenant even after a switch, we skip the second attempt.
+   */
+  public consumeSwitchAttempted(): string | null {
+    try {
+      const tenantId = sessionStorage.getItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY);
+      sessionStorage.removeItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY);
+      return tenantId;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Logs out the current user by redirecting to the Identity Server's
+   * OIDC end_session_endpoint for proper Single Logout (SLO).
+   *
+   * We cannot rely on oauthService.logOut() for the redirect because it calls
+   * clearStorage() which may clear internal state before the redirect happens.
+   * Instead, we capture the logoutUrl and id_token first, then clear state,
+   * then manually redirect to the end_session_endpoint.
    */
   public logout(): void {
-    this.oauthService.logOut(false);
+    // Read the end_session_endpoint (stored as logoutUrl on the service) and id_token BEFORE clearing storage
+    const endSessionEndpoint = this.oauthService.logoutUrl;
+    const idToken = this.oauthService.getIdToken();
+    const postLogoutRedirectUri = this.lastAuthConfig?.postLogoutRedirectUri;
+
+    // Clear local OAuth state (tokens, discovery doc, etc.)
+    this.oauthService.logOut(true); // true = noRedirectToLogoutUrl (we redirect manually)
+
+    if (endSessionEndpoint) {
+      // Build the end_session URL with id_token_hint and post_logout_redirect_uri
+      const params = new URLSearchParams();
+      if (idToken) {
+        params.set('id_token_hint', idToken);
+      }
+      if (postLogoutRedirectUri) {
+        params.set('post_logout_redirect_uri', postLogoutRedirectUri);
+      }
+      window.location.href = `${endSessionEndpoint}?${params.toString()}`;
+    } else {
+      // Fallback: no end_session_endpoint available, just reload
+      this.reloadPage();
+    }
+  }
+
+  /**
+   * Updates the redirect URIs without performing a full re-initialization.
+   * Use this when the OAuth session is already established and only the
+   * redirect targets need to change (e.g., when switching tenants).
+   */
+  public updateRedirectUris(redirectUri: string, postLogoutRedirectUri: string): void {
+    if (this.authorizeOptions) {
+      this.authorizeOptions.redirectUri = redirectUri;
+      this.authorizeOptions.postLogoutRedirectUri = postLogoutRedirectUri;
+    }
+
+    if (this.lastAuthConfig) {
+      this.lastAuthConfig.redirectUri = redirectUri;
+      this.lastAuthConfig.postLogoutRedirectUri = postLogoutRedirectUri;
+    }
+
+    // Update the redirect URIs directly on the OAuthService without calling
+    // configure(), because configure() does Object.assign(this, new AuthConfig(), config)
+    // which resets ALL properties — including logoutUrl, tokenEndpoint, and other
+    // discovery document endpoints — back to their AuthConfig defaults (empty).
+    this.oauthService.redirectUri = redirectUri;
+    this.oauthService.postLogoutRedirectUri = postLogoutRedirectUri;
+
+    console.debug("AuthorizeService::updateRedirectUris::done");
+  }
+
+  /**
+   * Refreshes the access token and updates the allowed tenants signal.
+   * Call this after actions that change the user's tenant access (e.g., provisioning).
+   */
+  public async refreshAccessToken(): Promise<void> {
+    console.debug("AuthorizeService::refreshAccessToken::started");
+    await this.oauthService.refreshToken();
+    await this.loadUserAsync();
+    console.debug("AuthorizeService::refreshAccessToken::done");
   }
 
   /**
@@ -241,6 +454,7 @@ export class AuthorizeService {
       };
 
       this.authorizeOptions = authorizeOptions;
+      this.lastAuthConfig = config;
 
       this.oauthService.setStorage(localStorage);
       this.oauthService.configure(config);
@@ -288,6 +502,13 @@ export class AuthorizeService {
       this.oauthService.stopAutomaticRefresh();
 
       this.authorizeOptions = null;
+      this.lastAuthConfig = null;
+
+      // Note: Do NOT clear auth signals (_accessToken, _isAuthenticated, etc.) here.
+      // The access token and user info are globally valid (not per-tenant) and remain
+      // valid during re-initialization. Clearing them creates a window where the HTTP
+      // interceptor sends requests without a Bearer token, causing 401 errors.
+      // Signals are already properly cleared on logout/session_terminated events.
 
       this._isInitialized.set(false);
       console.debug("AuthorizeService::uninitialize::done");
@@ -306,11 +527,11 @@ export class AuthorizeService {
     }
 
     const user = claims as IUser;
-    if (user.family_name && user.given_name) {
-      const initials = user.given_name.charAt(0) + user.family_name.charAt(0);
-      this._userInitials.set(initials);
+    if (user.given_name && user.family_name) {
+      this._userInitials.set(user.given_name.charAt(0).toUpperCase() + user.family_name.charAt(0).toUpperCase());
     } else {
-      this._userInitials.set(user.name.charAt(0) + user.name.charAt(1));
+      const derived = this.deriveDisplayNameFromUsername(user.name);
+      this._userInitials.set(this.deriveInitials(derived));
     }
 
     const accessToken = this.oauthService.getAccessToken();
@@ -318,7 +539,99 @@ export class AuthorizeService {
     this._accessToken.set(accessToken);
     this._isAuthenticated.set(true);
     this._sessionLoading.set(false);
-    console.debug("AuthorizeService::loadUserAsync::done");
+
+    // Parse allowed_tenants from the access token
+    this._allowedTenants.set(this.parseAllowedTenantsFromToken(accessToken));
+
+    // Parse tenant_id from the access token (used for tenant mismatch detection)
+    const tokenTenantId = this.parseTenantIdFromToken(accessToken);
+    this._tokenTenantId.set(tokenTenantId);
+
+    console.debug(`AuthorizeService::loadUserAsync::done (tokenTenantId="${tokenTenantId}", allowedTenants=${JSON.stringify(this._allowedTenants())})`);
+  }
+
+  /**
+   * Decodes the JWT access token payload and extracts allowed_tenants claims.
+   * The claim can be a single string or an array of strings.
+   */
+  private parseAllowedTenantsFromToken(accessToken: string | null): string[] {
+    if (!accessToken) {
+      return [];
+    }
+
+    try {
+      const parts = accessToken.split('.');
+      if (parts.length !== 3) {
+        return [];
+      }
+
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(base64));
+      const allowedTenants = payload['allowed_tenants'];
+
+      if (!allowedTenants) {
+        return [];
+      }
+
+      if (Array.isArray(allowedTenants)) {
+        return allowedTenants;
+      }
+
+      // Single value claim
+      if (typeof allowedTenants === 'string') {
+        return [allowedTenants];
+      }
+
+      return [];
+    } catch (e) {
+      console.warn('Failed to parse allowed_tenants from access token', e);
+      return [];
+    }
+  }
+
+  /**
+   * Decodes the JWT access token payload and extracts the tenant_id claim.
+   */
+  private parseTenantIdFromToken(accessToken: string | null): string | null {
+    if (!accessToken) {
+      return null;
+    }
+
+    try {
+      const parts = accessToken.split('.');
+      if (parts.length !== 3) {
+        return null;
+      }
+
+      const payload = JSON.parse(atob(parts[1]));
+      return payload['tenant_id'] ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  private deriveDisplayNameFromUsername(username: string): string {
+    let name = username;
+    // Strip xt_{tenantId}_ prefix
+    const xtMatch = name.match(/^xt_[^_]+_(.+)$/);
+    if (xtMatch) { name = xtMatch[1]; }
+    // Extract local part of email
+    const atIndex = name.indexOf('@');
+    if (atIndex > 0) { name = name.substring(0, atIndex); }
+    // Split by dots and capitalize
+    const parts = name.split('.').filter(p => p.length > 0);
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+  }
+
+  private deriveInitials(displayName: string): string {
+    const words = displayName.split(' ').filter(w => w.length > 0);
+    if (words.length >= 2) {
+      return words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase();
+    }
+    if (words.length === 1 && words[0].length >= 2) {
+      return words[0].charAt(0).toUpperCase() + words[0].charAt(1).toLowerCase();
+    }
+    return '??';
   }
 
   /**
