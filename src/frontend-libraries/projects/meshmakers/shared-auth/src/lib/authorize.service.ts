@@ -163,6 +163,7 @@ export class AuthorizeService {
         this._user.set(null);
         this._isAuthenticated.set(false);
         this._tokenTenantId.set(null);
+        this._allowedTenants.set([]);
         // Do NOT call reloadPage() here — oauthService.logOut() already
         // redirects to the Identity Server's end_session_endpoint.
         // Calling reload() would race with that redirect and cause the
@@ -564,7 +565,8 @@ export class AuthorizeService {
         return [];
       }
 
-      const payload = JSON.parse(atob(parts[1]));
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(base64));
       const allowedTenants = payload['allowed_tenants'];
 
       if (!allowedTenants) {
