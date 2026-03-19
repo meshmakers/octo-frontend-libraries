@@ -19638,9 +19638,11 @@ export type StreamDataModelQueryDto = {
   industryManufacturingShiftMachine?: Maybe<StreamIndustryManufacturingShiftMachineConnectionDto>;
   industryManufacturingShiftOrderItem?: Maybe<StreamIndustryManufacturingShiftOrderItemConnectionDto>;
   streamDataAggregationQuery?: Maybe<StreamDataQueryRowDtoConnectionDto>;
+  streamDataDownsamplingQuery?: Maybe<StreamDataQueryRowDtoConnectionDto>;
   streamDataGroupingAggregationQuery?: Maybe<StreamDataQueryRowDtoConnectionDto>;
   streamDataQuery?: Maybe<StreamDataQueryRowDtoConnectionDto>;
   transientStreamDataAggregationQuery?: Maybe<StreamDataQueryRowDtoConnectionDto>;
+  transientStreamDataDownsamplingQuery?: Maybe<StreamDataQueryRowDtoConnectionDto>;
   transientStreamDataGroupedAggregationQuery?: Maybe<StreamDataQueryRowDtoConnectionDto>;
   transientStreamDataQuery?: Maybe<StreamDataQueryRowDtoConnectionDto>;
 };
@@ -19804,6 +19806,14 @@ export type StreamDataModelQueryStreamDataAggregationQueryArgsDto = {
 };
 
 
+export type StreamDataModelQueryStreamDataDownsamplingQueryArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  arg?: InputMaybe<StreamDataArgumentsDto>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId: Scalars['OctoObjectId']['input'];
+};
+
+
 export type StreamDataModelQueryStreamDataGroupingAggregationQueryArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   arg?: InputMaybe<StreamDataArgumentsDto>;
@@ -19829,6 +19839,19 @@ export type StreamDataModelQueryTransientStreamDataAggregationQueryArgsDto = {
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   first?: InputMaybe<Scalars['Int']['input']>;
   rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+};
+
+
+export type StreamDataModelQueryTransientStreamDataDownsamplingQueryArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  ckId: Scalars['String']['input'];
+  columnPaths: Array<StreamDataQueryColumnInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  from: Scalars['DateTime']['input'];
+  limit: Scalars['Int']['input'];
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  to: Scalars['DateTime']['input'];
 };
 
 

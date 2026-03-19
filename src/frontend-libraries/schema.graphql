@@ -20181,6 +20181,16 @@ type StreamDataModelQuery {
     "The persisted stream data aggregation query runtime id."
     rtId: OctoObjectId!
   ): StreamDataQueryRowDtoConnection
+  streamDataDownsamplingQuery(
+    "Only return edges after the specified cursor."
+    after: String,
+    "Override time filter and limit at execution time."
+    arg: StreamDataArguments,
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "The persisted stream data downsampling query runtime id."
+    rtId: OctoObjectId!
+  ): StreamDataQueryRowDtoConnection
   streamDataGroupingAggregationQuery(
     "Only return edges after the specified cursor."
     after: String,
@@ -20218,6 +20228,26 @@ type StreamDataModelQuery {
     first: Int,
     "Scope to specific runtime entity IDs"
     rtIds: [OctoObjectId]
+  ): StreamDataQueryRowDtoConnection
+  transientStreamDataDownsamplingQuery(
+    "Only return edges after the specified cursor."
+    after: String,
+    "The construction kit type with the given id."
+    ckId: String!,
+    "Aggregation columns with attribute path and aggregation type."
+    columnPaths: [StreamDataQueryColumnInput!]!,
+    "Field-level comparison filters"
+    fieldFilter: [FieldFilter],
+    "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
+    first: Int,
+    "Start of time range."
+    from: DateTime!,
+    "Number of time buckets to produce."
+    limit: Int!,
+    "Scope to specific runtime entity IDs"
+    rtIds: [OctoObjectId],
+    "End of time range."
+    to: DateTime!
   ): StreamDataQueryRowDtoConnection
   transientStreamDataGroupedAggregationQuery(
     "Only return edges after the specified cursor."
