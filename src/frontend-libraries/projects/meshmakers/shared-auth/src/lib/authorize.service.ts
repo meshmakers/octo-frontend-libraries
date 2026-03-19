@@ -26,6 +26,9 @@ export class AuthorizeOptions {
   scope?: string;
   showDebugInformation?: boolean;
   sessionChecksEnabled?: boolean;
+  // Default tenant ID for single-tenant apps. When set, login() uses this tenant
+  // if no tenantId is explicitly provided (sends acr_values=tenant:{defaultTenantId}).
+  defaultTenantId?: string;
 }
 
 @Injectable()
@@ -252,8 +255,9 @@ export class AuthorizeService {
    *   so the identity server redirects to the correct tenant's login page.
    */
   public login(tenantId?: string): void {
-    if (tenantId) {
-      this.oauthService.initImplicitFlow('', { acr_values: `tenant:${tenantId}` });
+    const effectiveTenantId = tenantId ?? this.authorizeOptions?.defaultTenantId;
+    if (effectiveTenantId) {
+      this.oauthService.initImplicitFlow('', { acr_values: `tenant:${effectiveTenantId}` });
     } else {
       this.oauthService.initImplicitFlow();
     }
