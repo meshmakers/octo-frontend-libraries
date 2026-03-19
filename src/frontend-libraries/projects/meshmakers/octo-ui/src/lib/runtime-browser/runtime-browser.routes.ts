@@ -1,5 +1,6 @@
 import type { Provider } from '@angular/core';
 import { Route, Routes } from '@angular/router';
+import { Roles } from '@meshmakers/shared-auth/types/meshmakers-shared-auth';
 import type { SVGIcon } from '@progress/kendo-svg-icons';
 import { EntityDetailComponent } from './entity-detail.component';
 import { RuntimeBrowserPageComponent } from './runtime-browser-page.component';
@@ -36,7 +37,7 @@ export interface RuntimeBrowserRouteOptions {
  *     entityBreadcrumbLabel: 'Entity Details',
  *     svgIcon: storage,
  *   }),
- *   data: { breadcrumb: [{ label: 'Repository', url: 'repository' }] },
+ *   data: { roles: [Roles.AdminPanelManagement], breadcrumb: [{ label: 'Repository', url: 'repository' }] },
  * }
  */
 export function createRuntimeBrowserRoutes(
@@ -55,6 +56,7 @@ export function createRuntimeBrowserRoutes(
     path: '',
     component: (pageComponent as never) ?? RuntimeBrowserPageComponent,
     data: {
+      roles: [Roles.AdminPanelManagement],
       breadcrumb: [
         {
           label: breadcrumbLabel,
@@ -70,6 +72,7 @@ export function createRuntimeBrowserRoutes(
     path: 'entity/:id',
     component: EntityDetailComponent,
     data: {
+      roles: [Roles.AdminPanelManagement],
       breadcrumb: [
         {
           label: breadcrumbLabel,
