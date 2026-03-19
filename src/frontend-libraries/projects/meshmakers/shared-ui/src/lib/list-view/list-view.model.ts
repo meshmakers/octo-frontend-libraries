@@ -31,7 +31,7 @@ export interface StatusFieldConfig {
 export interface TableColumn {
   displayName?: string | null;
   field: string;
-  dataType?: 'text' | 'numeric' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression';
+  dataType?: 'text' | 'numeric' | 'numericRange' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression';
   format?: string;
   /**
    * Column width in pixels. If not set, the column will auto-size.
@@ -60,6 +60,11 @@ export interface TableColumn {
    * Set to false to hide the filter cell for this column when row filtering is active.
    */
   filterable?: boolean;
+  /**
+   * Default filter operator for the row filter.
+   * For numeric columns, defaults to 'eq'. Set to 'gte' for range-style filtering.
+   */
+  filterOperator?: string;
   /**
    * Dropdown filter options for the row filter.
    * When set, the column's row filter renders a dropdown instead of a text input.

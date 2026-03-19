@@ -20,7 +20,7 @@ import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-
 import {ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
-import {SeparatorComponent, CheckBoxComponent} from '@progress/kendo-angular-inputs';
+import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
 import {fileExcelIcon, filePdfIcon, filterIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
@@ -71,7 +71,8 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     DateFilterCellComponent,
     DropDownListComponent,
     ValueTemplateDirective,
-    ItemTemplateDirective
+    ItemTemplateDirective,
+    NumericTextBoxComponent
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -258,6 +259,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       case 'boolean':
       case 'date':
         return column.dataType;
+      case 'numericRange':
+        return 'numeric';
       case 'iso8601':
         return 'date';
       default:
@@ -348,6 +351,37 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     const newFilter: CompositeFilterDescriptor = { logic: 'and', filters: otherFilters };
     grid.filter = newFilter;
     // Sync filter into directive state and trigger rebind
+    this.dataBindingDirective?.notifyFilterChange(newFilter);
+  }
+
+  protected getRangeFilterValue(column: TableColumn, operator: 'gte' | 'lte'): number | null {
+    const grid = this.gridComponent;
+    if (!grid?.filter) return null;
+    const currentFilter = grid.filter as CompositeFilterDescriptor;
+    const fd = currentFilter.filters.find(
+      f => 'field' in f && (f as FilterDescriptor).field === column.field &&
+           (f as FilterDescriptor).operator === operator
+    ) as FilterDescriptor | undefined;
+    return fd?.value as number | null ?? null;
+  }
+
+  protected onRangeFilterChange(value: number | null, column: TableColumn, operator: 'gte' | 'lte'): void {
+    const grid = this.gridComponent;
+    if (!grid) return;
+
+    const currentFilter: CompositeFilterDescriptor = grid.filter as CompositeFilterDescriptor ?? { logic: 'and', filters: [] };
+    // Remove existing filter for this field + operator
+    const otherFilters = currentFilter.filters.filter(
+      f => !('field' in f) || (f as FilterDescriptor).field !== column.field ||
+           (f as FilterDescriptor).operator !== operator
+    );
+
+    if (value !== null && value !== undefined) {
+      otherFilters.push({ field: column.field, operator, value });
+    }
+
+    const newFilter: CompositeFilterDescriptor = { logic: 'and', filters: otherFilters };
+    grid.filter = newFilter;
     this.dataBindingDirective?.notifyFilterChange(newFilter);
   }
 
