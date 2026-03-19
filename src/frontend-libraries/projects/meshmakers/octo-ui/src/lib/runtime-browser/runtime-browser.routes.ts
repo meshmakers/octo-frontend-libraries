@@ -1,6 +1,6 @@
 import type { Provider } from '@angular/core';
 import { Route, Routes } from '@angular/router';
-import { Roles } from '@meshmakers/shared-auth/types/meshmakers-shared-auth';
+import { Roles } from '@meshmakers/shared-auth';
 import type { SVGIcon } from '@progress/kendo-svg-icons';
 import { EntityDetailComponent } from './entity-detail.component';
 import { RuntimeBrowserPageComponent } from './runtime-browser-page.component';
