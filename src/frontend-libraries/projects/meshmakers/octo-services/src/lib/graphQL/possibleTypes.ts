@@ -61,6 +61,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -115,6 +122,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -129,6 +137,12 @@
     "BasicDocumentInterface": [
       "EnergyCommunityBillingDocument"
     ],
+    "BasicEmployee_EmployeeUnion": [
+      "BasicEmployee"
+    ],
+    "BasicEmployee_EmployeesUnion": [
+      "BasicEmployee"
+    ],
     "BasicNamedEntityInterface": [
       "BasicTree",
       "EnergyCommunityConsumer",
@@ -138,7 +152,8 @@
       "EnvironmentEnvironmentalGoal",
       "IndustryBasicAlarm",
       "IndustryBasicEvent",
-      "IndustryBasicRuntimeVariable"
+      "IndustryBasicRuntimeVariable",
+      "IndustryManufacturingShiftTemplate"
     ],
     "BasicTreeNode_ChildrenUnion": [
       "BasicAsset",
@@ -256,6 +271,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -310,6 +332,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -481,6 +504,43 @@
     "IndustryMaintenanceOrder_ParentUnion": [
       "IndustryMaintenanceOrder"
     ],
+    "IndustryManufacturingPartialFeedback_ChildrenUnion": [
+      "IndustryManufacturingPartialFeedback"
+    ],
+    "IndustryManufacturingPartialFeedback_PartialFeedbacksUnion": [
+      "IndustryManufacturingPartialFeedback"
+    ],
+    "IndustryManufacturingProductionOrderItem_ChildrenUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrderItem_OrderItemsUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrderItem_ProductionOrderItemUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrder_ParentUnion": [
+      "IndustryManufacturingProductionOrder"
+    ],
+    "IndustryManufacturingShiftMachine_ChildrenUnion": [
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShiftMachine_ShiftAssignmentsUnion": [
+      "IndustryManufacturingShiftMachine"
+    ],
+    "IndustryManufacturingShiftMachine_ShiftMachinesUnion": [
+      "IndustryManufacturingShiftMachine"
+    ],
+    "IndustryManufacturingShiftOrderItem_ParentUnion": [
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShiftOrderItem_ShiftOrderItemsUnion": [
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShift_ParentUnion": [
+      "IndustryManufacturingShift"
+    ],
     "OctoSdkDemoCustomer_OwnedByUnion": [
       "OctoSdkDemoCustomer"
     ],
@@ -625,6 +685,13 @@
       "IndustryMaintenanceOrder",
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "SystemAggregationRtQuery",
       "SystemAutoIncrement",
@@ -686,6 +753,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -741,6 +809,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -795,6 +870,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -849,6 +925,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -903,6 +986,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -957,6 +1041,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -1011,6 +1102,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -1065,6 +1157,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -1119,6 +1218,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -1148,6 +1248,7 @@
       "SystemGroupingAggregationRtQuery",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery"
     ],
@@ -1252,6 +1353,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -1306,6 +1414,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -1320,6 +1429,12 @@
     "BasicDocumentInterface": [
       "EnergyCommunityBillingDocument"
     ],
+    "BasicEmployee_EmployeeUnion": [
+      "BasicEmployee"
+    ],
+    "BasicEmployee_EmployeesUnion": [
+      "BasicEmployee"
+    ],
     "BasicNamedEntityInterface": [
       "BasicTree",
       "EnergyCommunityConsumer",
@@ -1329,7 +1444,8 @@
       "EnvironmentEnvironmentalGoal",
       "IndustryBasicAlarm",
       "IndustryBasicEvent",
-      "IndustryBasicRuntimeVariable"
+      "IndustryBasicRuntimeVariable",
+      "IndustryManufacturingShiftTemplate"
     ],
     "BasicTreeNode_ChildrenUnion": [
       "BasicAsset",
@@ -1447,6 +1563,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -1501,6 +1624,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -1672,6 +1796,43 @@
     "IndustryMaintenanceOrder_ParentUnion": [
       "IndustryMaintenanceOrder"
     ],
+    "IndustryManufacturingPartialFeedback_ChildrenUnion": [
+      "IndustryManufacturingPartialFeedback"
+    ],
+    "IndustryManufacturingPartialFeedback_PartialFeedbacksUnion": [
+      "IndustryManufacturingPartialFeedback"
+    ],
+    "IndustryManufacturingProductionOrderItem_ChildrenUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrderItem_OrderItemsUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrderItem_ProductionOrderItemUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrder_ParentUnion": [
+      "IndustryManufacturingProductionOrder"
+    ],
+    "IndustryManufacturingShiftMachine_ChildrenUnion": [
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShiftMachine_ShiftAssignmentsUnion": [
+      "IndustryManufacturingShiftMachine"
+    ],
+    "IndustryManufacturingShiftMachine_ShiftMachinesUnion": [
+      "IndustryManufacturingShiftMachine"
+    ],
+    "IndustryManufacturingShiftOrderItem_ParentUnion": [
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShiftOrderItem_ShiftOrderItemsUnion": [
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShift_ParentUnion": [
+      "IndustryManufacturingShift"
+    ],
     "OctoSdkDemoCustomer_OwnedByUnion": [
       "OctoSdkDemoCustomer"
     ],
@@ -1816,6 +1977,13 @@
       "IndustryMaintenanceOrder",
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "SystemAggregationRtQuery",
       "SystemAutoIncrement",
@@ -1877,6 +2045,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -1932,6 +2101,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -1986,6 +2162,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -2040,6 +2217,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -2094,6 +2278,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -2148,6 +2333,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -2202,6 +2394,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -2256,6 +2449,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -2310,6 +2510,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
@@ -2339,6 +2540,7 @@
       "SystemGroupingAggregationRtQuery",
       "SystemSimpleRtQuery",
       "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
       "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery"
     ],
