@@ -1,6 +1,6 @@
 /**
- * Shared utilities for attribute mapping (FormAttributesServiceMapper, AttributeMapperService).
- * Reduces duplication of convertGeospatialPointToGeoJSON, fileToByteArray, getFileFromValue, base64ToByteArray.
+ * Shared utilities for attribute mapping (AttributeMapperService).
+ * Provides convertGeospatialPointToGeoJSON, fileToByteArray, getFileFromValue, base64ToByteArray.
  */
 
 function isRecordValue(value: unknown): value is Record<string, unknown> {
