@@ -1,0 +1,55 @@
+@use "variables" as *;
+
+@mixin lcars-button {
+  background: var(--lcars-btn-base);
+  border: 1px solid var(--octo-mint-30);
+  color: var(--octo-mint);
+  font-family: var(--lcars-font-primary);
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--lcars-btn-base-hover);
+    border-color: var(--octo-mint-50);
+    box-shadow: 0 0 10px var(--octo-mint-30);
+  }
+
+  &:active:not(:disabled) {
+    background: linear-gradient(
+      180deg,
+      var(--octo-mint-30),
+      var(--octo-mint-20)
+    );
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.k-button-solid-primary,
+  &.k-button-primary,
+  &[themecolor="primary"] {
+    background: linear-gradient(
+      180deg,
+      var(--octo-mint-30),
+      var(--octo-mint-15)
+    );
+    border-color: var(--octo-mint-50);
+    color: var(--octo-text-color);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(
+        180deg,
+        var(--octo-mint-45),
+        var(--octo-mint-25)
+      );
+      border-color: var(--octo-mint);
+      box-shadow: 0 0 15px var(--octo-mint-40);
+    }
+  }
+}

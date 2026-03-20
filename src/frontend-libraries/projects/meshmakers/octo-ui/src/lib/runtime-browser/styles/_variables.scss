@@ -4,19 +4,19 @@
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// LCARS DESIGN TOKENS - Brand color palette (SCSS variables for reuse)
+// LCARS DESIGN TOKENS - Brand color palette (from Brand Manual)
 // ----------------------------------------------------------------------------
-$octo-mint: #8ca3a1;
-$neo-cyan: #7f97ad;
-$indigogo: #6e7f99;
-$toffee: #b8a184;
-$bubblegum: #b38f9f;
-$lilac-glow: #a3a0b6;
-$royal-violet: #8f85a8;
-$ash-blue: #9aa4b2;
-$iron-navy: #3b4657;
-$deep-sea: #1a2230;
-$surface-elevated: #243042;
+$octo-mint: #64ceb9;        // Primary highlight
+$neo-cyan: #00a8dc;        // Secondary highlight
+$indigogo: #546fbd;        // Panel accents
+$toffee: #da9162;           // Warm accent
+$bubblegum: #ec658f;       // Alert/warning accent
+$lilac-glow: #c861d6;      // Hover states, glow effects
+$royal-violet: #6c4da8;    // LCARS-typical accent
+$ash-blue: #9292a6;        // Inactive elements, secondary text
+$iron-navy: #394555;       // Surface, panels
+$deep-sea: #07172b;        // Background (NEVER use black!)
+$surface-elevated: #1f2e40; // Elevated surfaces
 $octo-text-color: #ffffff;
 $lcars-border-color: #64ceb9;
 $pink: #ec658f;
@@ -152,6 +152,9 @@ $kendo-success: #37b400;
 
   // LCARS-specific design tokens
   --lcars-glow-primary: 0 0 10px var(--octo-mint-40);
+  --lcars-btn-base: linear-gradient(180deg, var(--octo-mint-15), var(--octo-mint-05));
+  --lcars-btn-base-hover: linear-gradient(180deg, var(--octo-mint-25), var(--octo-mint-15));
+  --lcars-input-focus: 0 0 8px var(--octo-mint-30);
   --lcars-glow-cyan: 0 0 10px var(--neo-cyan-40);
   --lcars-glow-violet: 0 0 10px var(--royal-violet-40);
   --lcars-glow-pink: 0 0 10px var(--bubblegum-40);

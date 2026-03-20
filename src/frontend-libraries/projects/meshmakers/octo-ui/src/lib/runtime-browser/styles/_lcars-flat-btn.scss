@@ -1,0 +1,11 @@
+@use "variables" as *;
+
+@mixin lcars-flat-btn {
+  background: var(--lcars-btn-base) !important;
+  border: 1px solid var(--octo-mint-30) !important;
+  color: var(--octo-mint) !important;
+  &:hover:not(:disabled) {
+    background: var(--lcars-btn-base-hover) !important;
+    border-color: var(--octo-mint-50) !important;
+  }
+}

@@ -7,7 +7,11 @@ LCARS-inspired theme styles for the runtime-browser and related components. The 
 | File | Purpose |
 |------|---------|
 | `_variables.scss` | Design tokens (SCSS variables) and `variables` mixin (CSS custom properties). No Kendo dependency. |
-| `_index.scss` | Base entry point. Forwards `variables` mixin and defines `styles` mixin. No Kendo imports. |
+| `_lcars-flat-btn.scss` | Mixin for flat/outline button overrides in dialogs. |
+| `_lcars-input.scss` | Mixin for LCARS input styling (text, number, select). |
+| `_lcars-button.scss` | Mixin for LCARS button styles (toolbars, dialogs). |
+| `_styles.scss` | Main `styles` mixin – dockview, panels, Kendo overrides. Uses the LCARS mixins. |
+| `_index.scss` | Entry point. Forwards `variables` and `styles`. No Kendo imports. |
 | `_kendo-theme.scss` | Optional. Imports Kendo Material theme and applies LCARS color configuration. |
 | `_with-kendo.scss` | Optional entry point for apps that don't import Kendo. Loads Kendo + base styles. |
 
