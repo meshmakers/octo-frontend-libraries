@@ -20,18 +20,18 @@ import { KENDO_INPUTS } from "@progress/kendo-angular-inputs";
 import { KENDO_LABEL } from "@progress/kendo-angular-label";
 import { CardModule } from "@progress/kendo-angular-layout";
 import { firstValueFrom, of, startWith, switchMap } from "rxjs";
-import { CreateEntitiesDtoGQL } from "../../graphQL/createEntities";
-import { CkTypeDto } from "../../graphQL/globalTypes";
+import { CreateEntitiesDtoGQL } from "../../../graphQL/createEntities";
+import { CkTypeDto } from "../../../graphQL/globalTypes";
 import { Attribute } from "../../models/attribute";
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from "../../runtime-browser.model";
 import { AttributeCoordinatorService } from "../../services/attribute-coordinator.service";
 import { AttributeDataService } from "../../services/attribute-data.service";
 import { AttributeMapperService } from "../../services/attribute-mapper.service";
 import { AttributesGroupComponent } from "../attributes-group/attributes-group.component";
 import { SharedEditor } from "../shared-editor/shared-editor";
-import {
-  DEFAULT_RUNTIME_BROWSER_MESSAGES,
-  RuntimeBrowserMessages,
-} from "../../runtime-browser.model";
 
 @Component({
   selector: "mm-create-editor-component",
@@ -59,8 +59,7 @@ import {
             <kendo-textbox
               [disabled]="true"
               [value]="
-                createInput()!.parent!.name ||
-                resolvedMessages().rootLevel
+                createInput()!.parent!.name || resolvedMessages().rootLevel
               "
             ></kendo-textbox>
           </div>
@@ -72,9 +71,7 @@ import {
               textField="rtCkTypeId"
               valueField="rtCkTypeId"
               [valuePrimitive]="false"
-              [attr.placeholder]="
-                resolvedMessages().selectType
-              "
+              [attr.placeholder]="resolvedMessages().selectType"
               (valueChange)="onTypeChange($event)"
             >
             </kendo-dropdownlist>
@@ -125,10 +122,12 @@ export class CreateEditorComponent {
   // Inputs
   createInput = input.required<CreateInput>();
   messages = input<Partial<RuntimeBrowserMessages>>({});
-  protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(() => ({
-    ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
-    ...this.messages(),
-  }));
+  protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(
+    () => ({
+      ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
+      ...this.messages(),
+    }),
+  );
   // Outputs
   createOutput = output<CreateOutput>();
   cancelRequested = output<void>();
@@ -366,3 +365,4 @@ export interface CreateOutput {
     createdRtEntityId: string;
   };
 }
+

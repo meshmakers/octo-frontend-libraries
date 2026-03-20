@@ -9,7 +9,7 @@ import {
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { OctoGraphQlDataSource } from '../../data-sources/octo-graph-ql-data-source';
-import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../graphQL/getRuntimeEntityAssociationsById';
+import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../graphQL/getRuntimeEntityAssociationsById';
 
 export interface AssociationDisplayItem {
   targetRtId: string;

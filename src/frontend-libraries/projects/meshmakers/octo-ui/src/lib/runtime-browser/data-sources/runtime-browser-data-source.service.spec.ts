@@ -6,11 +6,11 @@ import {
   ApolloTestingModule,
 } from 'apollo-angular/testing';
 import { of, throwError } from 'rxjs';
-import { DeleteEntitiesDtoGQL } from '../graphQL/deleteEntities';
-import { GetCkModelsDtoGQL } from '../graphQL/getCkModels';
-import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../graphQL/getRuntimeEntityAssociationsById';
-import { GetTreeNodesDtoGQL } from '../graphQL/getTreeNodes';
-import { GetTreesDtoGQL } from '../graphQL/getTrees';
+import { DeleteEntitiesDtoGQL } from '../../graphQL/deleteEntities';
+import { GetCkModelsDtoGQL } from '../../graphQL/getCkModels';
+import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../graphQL/getRuntimeEntityAssociationsById';
+import { GetTreeNodesDtoGQL } from '../../graphQL/getTreeNodes';
+import { GetTreesDtoGQL } from '../../graphQL/getTrees';
 import {
   AssociationModOptionsDto,
   CkModelDto,
@@ -20,8 +20,8 @@ import {
   GraphDirectionDto,
   RtAssociationDto,
   RtEntityDto,
-} from '../graphQL/globalTypes';
-import { UpdateTreeNodesDtoGQL } from '../graphQL/updateTreeNodes';
+} from '../../graphQL/globalTypes';
+import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
 import { TypeHelperService } from '../services/type-helper.service';
 import { RuntimeBrowserDataSource } from './runtime-browser-data-source.service';
 

@@ -2,7 +2,7 @@
  * Public API Surface of octo-ui
  */
 import { EnvironmentProviders, makeEnvironmentProviders } from '@angular/core';
-import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideOctoServices } from '@meshmakers/octo-services';
 import { provideMmSharedAuth } from '@meshmakers/shared-auth';
 import { provideMmSharedUi } from '@meshmakers/shared-ui';
@@ -34,7 +34,7 @@ export function provideOctoUi(): EnvironmentProviders {
     provideOctoServices(),
     provideMmSharedUi(),
     provideMmSharedAuth(),
-    provideAnimations(),
+    provideAnimationsAsync(),
     AttributeSortSelectorDialogService,
     PropertyConverterService,
     CkTypeSelectorDialogService,

@@ -30,20 +30,20 @@ import {
 } from "@progress/kendo-svg-icons";
 import { firstValueFrom, Subject } from "rxjs";
 import { debounceTime, distinctUntilChanged, takeUntil } from "rxjs/operators";
+import { GetBinaryInfoDtoGQL } from "../../graphQL/getBinaryInfo";
+import { GraphDirectionDto, RtEntityDto } from "../../graphQL/globalTypes";
 import {
   BinaryDownloadEvent,
+  PropertyChangeEvent,
   PropertyConverterService,
   PropertyGridComponent,
   PropertyGridConfig,
-  PropertyChangeEvent,
   PropertyGridItem,
 } from "../../property-grid";
 import {
   AssociationDisplayItem,
   EntityAssociationsDataSourceDirective,
 } from "../data-sources/entity-associations-data-source.directive";
-import { GetBinaryInfoDtoGQL } from "../graphQL/getBinaryInfo";
-import { GraphDirectionDto, RtEntityDto } from "../graphQL/globalTypes";
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
   RuntimeBrowserMessages,
@@ -107,12 +107,7 @@ interface DirectionOption {
                     size="small"
                     [svgIcon]="copyIcon"
                     [title]="_messages.copyToClipboard"
-                    (click)="
-                      copyToClipboard(
-                        entity.rtId,
-                        _messages.runtimeId
-                      )
-                    "
+                    (click)="copyToClipboard(entity.rtId, _messages.runtimeId)"
                   ></button>
                 </div>
               </div>
@@ -126,19 +121,12 @@ interface DirectionOption {
                     size="small"
                     [svgIcon]="copyIcon"
                     [title]="_messages.copyToClipboard"
-                    (click)="
-                      copyToClipboard(
-                        entity.ckTypeId,
-                        _messages.typeId
-                      )
-                    "
+                    (click)="copyToClipboard(entity.ckTypeId, _messages.typeId)"
                   ></button>
                 </div>
               </div>
               <div class="info-item with-action">
-                <label
-                  >{{ _messages.entityIdentifier }}:</label
-                >
+                <label>{{ _messages.entityIdentifier }}:</label>
                 <div class="value-with-action">
                   <span class="value">{{ getEntityIdentifier() }}</span>
                   <button
@@ -169,12 +157,7 @@ interface DirectionOption {
         <!-- Tab Strip for Detailed Information -->
         <kendo-tabstrip class="entity-tabs" (tabSelect)="onTabSelect($event)">
           <kendo-tabstrip-tab
-            [title]="
-              _messages.attributes +
-              ' (' +
-              getPropertyCount() +
-              ')'
-            "
+            [title]="_messages.attributes + ' (' + getPropertyCount() + ')'"
             [selected]="true"
           >
             <ng-template kendoTabContent>
@@ -202,10 +185,7 @@ interface DirectionOption {
 
           <kendo-tabstrip-tab
             [title]="
-              _messages.associations +
-              ' (' +
-              getAssociationCount() +
-              ')'
+              _messages.associations + ' (' + getAssociationCount() + ')'
             "
           >
             <ng-template kendoTabContent>
@@ -381,7 +361,11 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     this.roleIdFilter$
       .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((roleId) => {
-        if (this.associationsDataSource && this.entity?.rtId && this.entity?.ckTypeId) {
+        if (
+          this.associationsDataSource &&
+          this.entity?.rtId &&
+          this.entity?.ckTypeId
+        ) {
           this.associationsDataSource.setRoleId(roleId);
         }
       });
@@ -389,7 +373,11 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     this.relatedRtCkIdFilter$
       .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((relatedRtCkId) => {
-        if (this.associationsDataSource && this.entity?.rtId && this.entity?.ckTypeId) {
+        if (
+          this.associationsDataSource &&
+          this.entity?.rtId &&
+          this.entity?.ckTypeId
+        ) {
           this.associationsDataSource.setRelatedRtCkId(relatedRtCkId);
         }
       });
@@ -397,7 +385,11 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     this.relatedRtIdFilter$
       .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((relatedRtId) => {
-        if (this.associationsDataSource && this.entity?.rtId && this.entity?.ckTypeId) {
+        if (
+          this.associationsDataSource &&
+          this.entity?.rtId &&
+          this.entity?.ckTypeId
+        ) {
           this.associationsDataSource.setRelatedRtId(relatedRtId);
         }
       });
@@ -439,13 +431,13 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     rtCreationDateTime?: string;
     rtChangedDateTime?: string;
     rtWellKnownName?: string;
-    attributes?: { items?: { attributeName?: string | null; value?: unknown }[] };
+    attributes?: {
+      items?: { attributeName?: string | null; value?: unknown }[];
+    };
   } {
     const attributeItems = (entity.attributes?.items ?? []).filter(
-      (
-        item
-      ): item is { attributeName?: string | null; value?: unknown } =>
-        item != null
+      (item): item is { attributeName?: string | null; value?: unknown } =>
+        item != null,
     );
     return {
       rtId: entity.rtId,
@@ -453,7 +445,8 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
       rtCreationDateTime: this.normalizeDateValue(entity.rtCreationDateTime),
       rtChangedDateTime: this.normalizeDateValue(entity.rtChangedDateTime),
       rtWellKnownName: entity.rtWellKnownName ?? undefined,
-      attributes: attributeItems.length > 0 ? { items: attributeItems } : undefined
+      attributes:
+        attributeItems.length > 0 ? { items: attributeItems } : undefined,
     };
   }
 
@@ -619,3 +612,4 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     }
   }
 }
+

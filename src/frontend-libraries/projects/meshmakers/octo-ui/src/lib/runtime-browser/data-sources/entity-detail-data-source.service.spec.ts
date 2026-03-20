@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { GetRuntimeEntityByIdDtoGQL } from '../graphQL/getRuntimeEntityById';
-import { RtEntityDto } from '../graphQL/globalTypes';
+import { GetRuntimeEntityByIdDtoGQL } from '../../graphQL/getRuntimeEntityById';
+import { RtEntityDto } from '../../graphQL/globalTypes';
 import { EntityDetailDataSource } from './entity-detail-data-source.service';
 
 describe('EntityDetailDataSource', () => {

@@ -5,12 +5,9 @@ import { PropertyConverterService } from "@meshmakers/octo-ui";
 import { SelectEvent } from "@progress/kendo-angular-layout";
 import { NotificationService } from "@progress/kendo-angular-notification";
 import { of } from "rxjs";
-import {
-  AttributeValueTypeDto,
-  PropertyGridItem,
-} from "../../property-grid";
-import { GetBinaryInfoDtoGQL } from "../graphQL/getBinaryInfo";
-import { RtEntityDto } from "../graphQL/globalTypes";
+import { GetBinaryInfoDtoGQL } from "../../graphQL/getBinaryInfo";
+import { RtEntityDto } from "../../graphQL/globalTypes";
+import { AttributeValueTypeDto, PropertyGridItem } from "../../property-grid";
 import { EntityDetailViewComponent } from "./entity-detail-view.component";
 
 describe("EntityDetailViewComponent", () => {
@@ -257,3 +254,4 @@ describe("EntityDetailViewComponent", () => {
     });
   });
 });
+

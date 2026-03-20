@@ -10,17 +10,17 @@ import { KENDO_LABEL } from "@progress/kendo-angular-label";
 import { CardModule } from "@progress/kendo-angular-layout";
 import { NotificationService } from "@progress/kendo-angular-notification";
 import { firstValueFrom } from "rxjs";
-import { CreateEntitiesDtoGQL } from "../../graphQL/createEntities";
+import { CreateEntitiesDtoGQL } from "../../../graphQL/createEntities";
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from "../../runtime-browser.model";
 import {
   FormAttributesServiceMapper,
   RtEntityAttributeInput,
 } from "../../services/form-attributes-mapper";
 import { FormAttributesService } from "../../services/form-attributes-service";
 import { AttributesForm } from "../attributes-form/attributes-form";
-import {
-  DEFAULT_RUNTIME_BROWSER_MESSAGES,
-  RuntimeBrowserMessages,
-} from "../../runtime-browser.model";
 
 type ParentTreeItem = TreeItemDataTyped<{ ckTypeId?: string; rtId?: string }>;
 
@@ -62,9 +62,7 @@ interface EntityInput {
             <label>{{ _messages.targetLocation }}</label>
             <kendo-textbox
               [disabled]="true"
-              [value]="
-                parent?.text || _messages.rootLevel
-              "
+              [value]="parent?.text || _messages.rootLevel"
             ></kendo-textbox>
           </div>
 
@@ -171,9 +169,7 @@ export class EntityEditorComponent {
     const newNodeRtCkTypeId = this.newNodeRtCkTypeId;
     if (!newNodeRtCkTypeId) {
       console.error("Missing required identifiers to create an entity.");
-      this.showErrorNotification(
-        this._messages.missingRequiredIdentifiers,
-      );
+      this.showErrorNotification(this._messages.missingRequiredIdentifiers);
       return;
     }
 
@@ -218,9 +214,7 @@ export class EntityEditorComponent {
       } as EntityCreationResult);
     } catch (error) {
       console.error("Error creating entity:", error);
-      this.showErrorNotification(
-        this._messages.failedToCreateEntity,
-      );
+      this.showErrorNotification(this._messages.failedToCreateEntity);
       this.saveEdit.emit({
         success: false,
         rtId: undefined,
@@ -268,9 +262,10 @@ export class EntityEditorComponent {
   /**
    * Prepares mutation options with variables and optional multipart context.
    */
-  private prepareMutationOptions(
-    entityInput: RtEntityInputDto,
-  ): { variables: { entities: RtEntityInputDto[] }; context?: { useMultipart: boolean } } {
+  private prepareMutationOptions(entityInput: RtEntityInputDto): {
+    variables: { entities: RtEntityInputDto[] };
+    context?: { useMultipart: boolean };
+  } {
     const mutationOptions: {
       variables: { entities: RtEntityInputDto[] };
       context?: { useMultipart: boolean };
@@ -329,3 +324,4 @@ export interface EntityCreationResult {
   /** The CK type ID of the created entity (if successful). */
   ckTypeId?: string;
 }
+

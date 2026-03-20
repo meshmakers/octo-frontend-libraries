@@ -24,15 +24,15 @@ import { Apollo } from 'apollo-angular';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { OctoGraphQlHierarchyDataSource } from '../../data-sources/octo-graph-ql-hierarchy-data-source';
-import { DeleteEntitiesDtoGQL } from '../graphQL/deleteEntities';
-import { GetCkModelsDtoGQL } from '../graphQL/getCkModels';
+import { DeleteEntitiesDtoGQL } from '../../graphQL/deleteEntities';
+import { GetCkModelsDtoGQL } from '../../graphQL/getCkModels';
 import {
   GetRuntimeEntityAssociationsByIdDtoGQL,
   GetRuntimeEntityAssociationsByIdQueryDto,
-} from '../graphQL/getRuntimeEntityAssociationsById';
-import { GetTreeNodesDtoGQL } from '../graphQL/getTreeNodes';
-import { GetTreesDtoGQL } from '../graphQL/getTrees';
-import { UpdateTreeNodesDtoGQL } from '../graphQL/updateTreeNodes';
+} from '../../graphQL/getRuntimeEntityAssociationsById';
+import { GetTreeNodesDtoGQL } from '../../graphQL/getTreeNodes';
+import { GetTreesDtoGQL } from '../../graphQL/getTrees';
+import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
 import { code, storage } from '../icons/custom-svg-icons';
 import { TypeHelperService } from '../services/type-helper.service';
 

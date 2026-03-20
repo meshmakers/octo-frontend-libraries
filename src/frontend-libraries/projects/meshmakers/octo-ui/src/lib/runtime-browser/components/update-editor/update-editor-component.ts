@@ -17,17 +17,17 @@ import { KENDO_INPUTS } from "@progress/kendo-angular-inputs";
 import { KENDO_LABEL } from "@progress/kendo-angular-label";
 import { CardModule } from "@progress/kendo-angular-layout";
 import { firstValueFrom, of, startWith, switchMap } from "rxjs";
-import { UpdateRuntimeEntitiesDtoGQL } from "../../graphQL/updateRuntimeEntities";
+import { UpdateRuntimeEntitiesDtoGQL } from "../../../graphQL/updateRuntimeEntities";
 import { Attribute } from "../../models/attribute";
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from "../../runtime-browser.model";
 import { AttributeCoordinatorService } from "../../services/attribute-coordinator.service";
 import { AttributeDataService } from "../../services/attribute-data.service";
 import { AttributeMapperService } from "../../services/attribute-mapper.service";
 import { AttributesGroupComponent } from "../attributes-group/attributes-group.component";
 import { SharedEditor } from "../shared-editor/shared-editor";
-import {
-  DEFAULT_RUNTIME_BROWSER_MESSAGES,
-  RuntimeBrowserMessages,
-} from "../../runtime-browser.model";
 
 @Component({
   selector: "mm-update-editor-component",
@@ -128,10 +128,12 @@ export class UpdateEditorComponent {
   // Inputs
   updateInput = input.required<UpdateInput>();
   messages = input<Partial<RuntimeBrowserMessages>>({});
-  protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(() => ({
-    ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
-    ...this.messages(),
-  }));
+  protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(
+    () => ({
+      ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
+      ...this.messages(),
+    }),
+  );
   // Outputs
   updateOutput = output<UpdateOutput>();
   cancelRequested = output<void>();
@@ -382,3 +384,4 @@ export interface UpdateOutput {
     updatedRtEntityId: string;
   };
 }
+

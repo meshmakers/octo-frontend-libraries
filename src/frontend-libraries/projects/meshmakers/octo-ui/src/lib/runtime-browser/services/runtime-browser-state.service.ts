@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TreeItemDataTyped } from '@meshmakers/shared-services';
-import { CkModelDto, CkTypeDto, RtEntityDto } from '../graphQL/globalTypes';
+import { CkModelDto, CkTypeDto, RtEntityDto } from '../../graphQL/globalTypes';
 
 // Extended type to handle both Runtime Entities and CK Models/Types
 type BrowserItem =

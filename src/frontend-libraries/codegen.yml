@@ -74,3 +74,15 @@ generates:
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
+
+  projects/meshmakers/octo-ui/src/lib/graphQL/:
+    documents: "projects/meshmakers/octo-ui/src/lib/graphQL/*.graphql"
+    preset: near-operation-file
+    presetConfig:
+      extension: .ts
+      baseTypesPath: globalTypes.ts
+    plugins:
+      - "typescript-operations"
+      - "typescript-apollo-angular"
+    config:
+      typesSuffix: Dto

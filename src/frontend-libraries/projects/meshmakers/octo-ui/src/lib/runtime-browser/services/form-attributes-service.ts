@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { GetCkAttributesDetailedDtoGQL } from '../graphQL/getCkAttributesDetailed';
-import { GetCkRecordDetailedDtoGQL } from '../graphQL/getCkRecordDetailed';
+import { GetCkAttributesDetailedDtoGQL } from '../../graphQL/getCkAttributesDetailed';
+import { GetCkRecordDetailedDtoGQL } from '../../graphQL/getCkRecordDetailed';
 import { AttributeField } from '../models/attribute-field';
 import { CkAttributeMetadata } from '../models/attribute-metadata';
 import { FormAttributesServiceMapper } from './form-attributes-mapper';

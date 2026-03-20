@@ -19,9 +19,9 @@ import { ListViewComponent } from "@meshmakers/shared-ui";
 import { ButtonModule } from "@progress/kendo-angular-buttons";
 import { SVGIconModule } from "@progress/kendo-angular-icons";
 import { eyeIcon } from "@progress/kendo-svg-icons";
+import { CkModelDto, CkTypeDto, RtEntityDto } from "../../graphQL/globalTypes";
 import { CkTypeEntitiesDataSourceDirective } from "../data-sources/ck-type-entities-data-source.directive";
 import { EntityDetailDataSource } from "../data-sources/entity-detail-data-source.service";
-import { CkModelDto, CkTypeDto, RtEntityDto } from "../graphQL/globalTypes";
 import { RtEntityIdHelper } from "../models/rt-entity-id";
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
@@ -119,33 +119,23 @@ export interface EntitySavedEvent {
                   {{ _messages.constructionKitModel }}
                 </h3>
                 <p>
-                  <strong
-                    >{{ _messages.fullName }}:</strong
-                  >
+                  <strong>{{ _messages.fullName }}:</strong>
                   {{ getCkModelIdFullName(selectedItem.item) }}
                 </p>
                 <p>
-                  <strong
-                    >{{ _messages.semanticName }}:</strong
-                  >
+                  <strong>{{ _messages.semanticName }}:</strong>
                   {{ getCkModelIdSemanticName(selectedItem.item) }}
                 </p>
                 <p>
-                  <strong
-                    >{{ _messages.modelName }}:</strong
-                  >
+                  <strong>{{ _messages.modelName }}:</strong>
                   {{ getCkModelIdName(selectedItem.item) }}
                 </p>
                 <p>
-                  <strong
-                    >{{ _messages.version }}:</strong
-                  >
+                  <strong>{{ _messages.version }}:</strong>
                   {{ getCkModelIdVersion(selectedItem.item) }}
                 </p>
                 <p>
-                  <strong
-                    >{{ _messages.state }}:</strong
-                  >
+                  <strong>{{ _messages.state }}:</strong>
                   {{ getCkModelState(selectedItem.item) }}
                 </p>
                 <p class="info-text">
@@ -166,9 +156,7 @@ export interface EntitySavedEvent {
                       }}</span>
                     }
                     @if (isCkTypeFinal(selectedItem.item)) {
-                      <span class="badge final">{{
-                        _messages.final
-                      }}</span>
+                      <span class="badge final">{{ _messages.final }}</span>
                     }
                     @if (getCkTypeBaseType(selectedItem.item)) {
                       <span class="base-type"
@@ -420,21 +408,11 @@ export class RuntimeBrowserDetailsComponent
   }
 
   protected isCkModel(item: BrowserItem): item is CkModelDto {
-    return (
-      !!item &&
-      "id" in item &&
-      !("rtId" in item) &&
-      !("ckTypeId" in item)
-    );
+    return !!item && "id" in item && !("rtId" in item) && !("ckTypeId" in item);
   }
 
   protected isCkType(item: BrowserItem): item is CkTypeDto {
-    return (
-      !!item &&
-      "ckTypeId" in item &&
-      !("rtId" in item) &&
-      !("id" in item)
-    );
+    return !!item && "ckTypeId" in item && !("rtId" in item) && !("id" in item);
   }
 
   protected isCkModelsRoot(
@@ -609,3 +587,4 @@ export class RuntimeBrowserDetailsComponent
     this.updateInput = undefined;
   }
 }
+

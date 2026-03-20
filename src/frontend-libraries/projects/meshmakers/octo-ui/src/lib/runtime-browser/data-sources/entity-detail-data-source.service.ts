@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { GetRuntimeEntityByIdDtoGQL } from '../graphQL/getRuntimeEntityById';
-import { RtEntityDto } from '../graphQL/globalTypes';
+import { GetRuntimeEntityByIdDtoGQL } from '../../graphQL/getRuntimeEntityById';
+import { RtEntityDto } from '../../graphQL/globalTypes';
 
 @Injectable({
   providedIn: 'root',

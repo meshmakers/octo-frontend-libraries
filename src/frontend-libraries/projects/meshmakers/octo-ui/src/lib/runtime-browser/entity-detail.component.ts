@@ -5,9 +5,9 @@ import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowLeftIcon } from '@progress/kendo-svg-icons';
 import { Subject, takeUntil } from 'rxjs';
+import { RtEntityDto } from '../graphQL/globalTypes';
 import { EntityDetailViewComponent } from './components/entity-detail-view.component';
 import { EntityDetailDataSource } from './data-sources/entity-detail-data-source.service';
-import { RtEntityDto } from './graphQL/globalTypes';
 import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
 
 @Component({

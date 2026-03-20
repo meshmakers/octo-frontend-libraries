@@ -9,7 +9,7 @@ import {
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { OctoGraphQlDataSource } from '../../data-sources/octo-graph-ql-data-source';
-import { GetRuntimeEntitiesByTypeDtoGQL } from '../graphQL/getRuntimeEntitiesByType';
+import { GetRuntimeEntitiesByTypeDtoGQL } from '../../graphQL/getRuntimeEntitiesByType';
 
 @Directive({
   selector: '[mmCkTypeEntitiesDataSource]',

@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { FetchDataOptions, ListViewComponent } from '@meshmakers/shared-ui';
 import { of } from 'rxjs';
-import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../graphQL/getRuntimeEntityAssociationsById';
-import { GraphDirectionDto } from '../graphQL/globalTypes';
+import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../graphQL/getRuntimeEntityAssociationsById';
+import { GraphDirectionDto } from '../../graphQL/globalTypes';
 import {
   AssociationDisplayItem,
   EntityAssociationsDataSourceDirective,

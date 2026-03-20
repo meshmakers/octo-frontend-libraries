@@ -1,3 +1,4 @@
+import { GetRuntimeEntityByIdDtoGQL } from '..graphQL/getRuntimeEntityById';
 import {
   AfterViewInit,
   Component,
@@ -24,17 +25,16 @@ import {
 } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
 import {
-  EntitySavedEvent,
-  RuntimeBrowserDetailsComponent,
-} from './components/runtime-browser-details.component';
-import { RuntimeBrowserDataSource } from './data-sources/runtime-browser-data-source.service';
-import { GetRuntimeEntityByIdDtoGQL } from './graphQL/getRuntimeEntityById';
-import {
   CkModelDto,
   CkTypeDto,
   GetCkTypesDtoGQL,
   RtEntityDto,
-} from './graphQL/globalTypes';
+} from '../graphQL/globalTypes';
+import {
+  EntitySavedEvent,
+  RuntimeBrowserDetailsComponent,
+} from './components/runtime-browser-details.component';
+import { RuntimeBrowserDataSource } from './data-sources/runtime-browser-data-source.service';
 import { RtEntityIdHelper } from './models/rt-entity-id';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,

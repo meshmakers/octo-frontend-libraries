@@ -32,7 +32,7 @@ export const UpdateRuntimeEntitiesDocumentDto = gql`
     providedIn: 'root'
   })
   export class UpdateRuntimeEntitiesDtoGQL extends Apollo.Mutation<UpdateRuntimeEntitiesMutationDto, UpdateRuntimeEntitiesMutationVariablesDto> {
-    override document = UpdateRuntimeEntitiesDocumentDto;
+    document = UpdateRuntimeEntitiesDocumentDto;
     
     constructor(apollo: Apollo.Apollo) {
       super(apollo);

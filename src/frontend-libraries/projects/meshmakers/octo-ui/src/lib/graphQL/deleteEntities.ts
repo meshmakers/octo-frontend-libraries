@@ -5,16 +5,17 @@ import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
 export type DeleteEntitiesMutationVariablesDto = Types.Exact<{
   rtEntityIds: Array<Types.InputMaybe<Types.RtEntityIdDto>> | Types.InputMaybe<Types.RtEntityIdDto>;
+  deleteStrategy?: Types.DeleteStrategiesDto;
 }>;
 
 
 export type DeleteEntitiesMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', runtimeEntities?: { __typename?: 'RtEntityMutations', delete?: boolean | null } | null } | null };
 
 export const DeleteEntitiesDocumentDto = gql`
-    mutation deleteEntities($rtEntityIds: [RtEntityId]!) {
+    mutation deleteEntities($rtEntityIds: [RtEntityId]!, $deleteStrategy: DeleteStrategies! = ARCHIVE) {
   runtime {
     runtimeEntities {
-      delete(entities: $rtEntityIds)
+      delete(entities: $rtEntityIds, options: $deleteStrategy)
     }
   }
 }
