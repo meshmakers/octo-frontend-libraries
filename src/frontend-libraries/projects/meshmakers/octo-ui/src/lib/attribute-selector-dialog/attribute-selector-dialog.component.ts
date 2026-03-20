@@ -346,7 +346,15 @@ export class AttributeSelectorDialogComponent implements OnInit {
   protected readonly arrowUpIcon = arrowUpIcon;
   protected readonly arrowDownIcon = arrowDownIcon;
 
-  public data!: AttributeSelectorDialogData;
+  private _data!: AttributeSelectorDialogData;
+  public get data(): AttributeSelectorDialogData { return this._data; }
+  public set data(value: AttributeSelectorDialogData) {
+    this._data = value;
+    if (value) {
+      this.initializeFromData(value);
+    }
+  }
+
   public dialogTitle = 'Select Attributes';
   public rtCkTypeId!: string;
   public singleSelect = false;
@@ -386,33 +394,32 @@ export class AttributeSelectorDialogComponent implements OnInit {
   private readonly doubleClickDelay = 300; // milliseconds
 
   ngOnInit(): void {
-    if (this.data) {
-      this.rtCkTypeId = this.data.rtCkTypeId;
-      this.dialogTitle = this.data.dialogTitle || 'Select Attributes';
-      this.singleSelect = this.data.singleSelect ?? false;
-      this.includeNavigationProperties = this.data.includeNavigationProperties ?? true;
-      this.maxDepth = this.data.maxDepth ?? null;
-      this.additionalAttributes = this.data.additionalAttributes ?? [];
-      this.hideNavigationControls = this.data.hideNavigationControls ?? false;
-      this.attributePathsSet = this.data.attributePaths ? new Set(this.data.attributePaths) : null;
-
-      if (this.data.selectedAttributes && this.data.selectedAttributes.length > 0) {
-        if (this.singleSelect) {
-          this.selectedSingleKey = [this.data.selectedAttributes[0]];
-        } else {
-          // Pre-populate selected attributes if provided
-          this.loadInitialSelectedAttributes(this.data.selectedAttributes);
-        }
-      }
-    }
-
-    // Set up search debouncing
+    // Set up search debouncing (always, regardless of data timing)
     this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(searchText => {
       this.loadAvailableAttributes(searchText);
     });
+  }
+
+  private initializeFromData(data: AttributeSelectorDialogData): void {
+    this.rtCkTypeId = data.rtCkTypeId;
+    this.dialogTitle = data.dialogTitle || 'Select Attributes';
+    this.singleSelect = data.singleSelect ?? false;
+    this.includeNavigationProperties = data.includeNavigationProperties ?? true;
+    this.maxDepth = data.maxDepth ?? null;
+    this.additionalAttributes = data.additionalAttributes ?? [];
+    this.hideNavigationControls = data.hideNavigationControls ?? false;
+    this.attributePathsSet = data.attributePaths ? new Set(data.attributePaths) : null;
+
+    if (data.selectedAttributes && data.selectedAttributes.length > 0) {
+      if (this.singleSelect) {
+        this.selectedSingleKey = [data.selectedAttributes[0]];
+      } else {
+        this.loadInitialSelectedAttributes(data.selectedAttributes);
+      }
+    }
 
     // Load initial attributes
     this.loadAvailableAttributes();
@@ -452,7 +459,12 @@ export class AttributeSelectorDialogComponent implements OnInit {
 
   private loadInitialSelectedAttributes(attributePaths: string[]): void {
     // Load all attributes to get the details for selected ones
-    this.attributeService.getAvailableAttributes(this.rtCkTypeId).subscribe(result => {
+    this.attributeService.getAvailableAttributes(
+      this.rtCkTypeId, undefined, undefined, undefined,
+      undefined, undefined,
+      this.includeNavigationProperties,
+      this.maxDepth ?? undefined
+    ).subscribe(result => {
       // Create a map for quick lookup, including additional virtual attributes
       const attributeMap = new Map(result.items.map(item => [item.attributePath, item]));
       for (const attr of this.additionalAttributes) {
@@ -466,11 +478,14 @@ export class AttributeSelectorDialogComponent implements OnInit {
 
       this.updateSelectedGrid();
 
-      // Filter out selected from available
+      // Filter out selected from available, and apply attributePathsSet restriction
       const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
+      const filteredItems = this.attributePathsSet
+        ? result.items.filter(item => this.attributePathsSet!.has(item.attributePath))
+        : result.items;
       this.availableAttributes = [
         ...this.additionalAttributes.filter(attr => !selectedPaths.has(attr.attributePath)),
-        ...result.items.filter(item => !selectedPaths.has(item.attributePath))
+        ...filteredItems.filter(item => !selectedPaths.has(item.attributePath))
       ];
       this.updateAvailableGrid();
     });

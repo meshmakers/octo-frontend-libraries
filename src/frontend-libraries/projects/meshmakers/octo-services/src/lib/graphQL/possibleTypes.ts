@@ -61,6 +61,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -91,12 +98,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -114,6 +125,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -127,6 +141,12 @@
     "BasicDocumentInterface": [
       "EnergyCommunityBillingDocument"
     ],
+    "BasicEmployee_EmployeeUnion": [
+      "BasicEmployee"
+    ],
+    "BasicEmployee_EmployeesUnion": [
+      "BasicEmployee"
+    ],
     "BasicNamedEntityInterface": [
       "BasicTree",
       "EnergyCommunityConsumer",
@@ -136,7 +156,8 @@
       "EnvironmentEnvironmentalGoal",
       "IndustryBasicAlarm",
       "IndustryBasicEvent",
-      "IndustryBasicRuntimeVariable"
+      "IndustryBasicRuntimeVariable",
+      "IndustryManufacturingShiftTemplate"
     ],
     "BasicTreeNode_ChildrenUnion": [
       "BasicAsset",
@@ -254,6 +275,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -284,12 +312,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -307,6 +339,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -477,6 +512,43 @@
     "IndustryMaintenanceOrder_ParentUnion": [
       "IndustryMaintenanceOrder"
     ],
+    "IndustryManufacturingPartialFeedback_ChildrenUnion": [
+      "IndustryManufacturingPartialFeedback"
+    ],
+    "IndustryManufacturingPartialFeedback_PartialFeedbacksUnion": [
+      "IndustryManufacturingPartialFeedback"
+    ],
+    "IndustryManufacturingProductionOrderItem_ChildrenUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrderItem_OrderItemsUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrderItem_ProductionOrderItemUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrder_ParentUnion": [
+      "IndustryManufacturingProductionOrder"
+    ],
+    "IndustryManufacturingShiftMachine_ChildrenUnion": [
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShiftMachine_ShiftAssignmentsUnion": [
+      "IndustryManufacturingShiftMachine"
+    ],
+    "IndustryManufacturingShiftMachine_ShiftMachinesUnion": [
+      "IndustryManufacturingShiftMachine"
+    ],
+    "IndustryManufacturingShiftOrderItem_ParentUnion": [
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShiftOrderItem_ShiftOrderItemsUnion": [
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShift_ParentUnion": [
+      "IndustryManufacturingShift"
+    ],
     "OctoSdkDemoCustomer_OwnedByUnion": [
       "OctoSdkDemoCustomer"
     ],
@@ -621,6 +693,13 @@
       "IndustryMaintenanceOrder",
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "SystemAggregationRtQuery",
       "SystemAutoIncrement",
@@ -653,13 +732,17 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityProvider",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -681,6 +764,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -735,6 +821,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -765,12 +858,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -788,6 +885,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -841,6 +941,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -871,12 +978,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -894,6 +1005,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -947,6 +1061,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -977,12 +1098,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -1000,6 +1125,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -1053,6 +1181,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -1083,12 +1218,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -1106,6 +1245,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -1116,12 +1258,26 @@
       "SystemUISymbolDefinition",
       "SystemUISymbolLibrary"
     ],
+    "SystemIdentityGroup_AssignedEntitiesUnion": [
+      "SystemIdentityGroup",
+      "SystemIdentityUser"
+    ],
+    "SystemIdentityGroup_ChildGroupsUnion": [
+      "SystemIdentityGroup"
+    ],
+    "SystemIdentityGroup_MemberOfGroupsUnion": [
+      "SystemIdentityGroup"
+    ],
+    "SystemIdentityGroup_ParentGroupsUnion": [
+      "SystemIdentityGroup"
+    ],
     "SystemIdentityIdentityProviderInterface": [
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider"
     ],
     "SystemIdentityResourceInterface": [
@@ -1129,10 +1285,20 @@
       "SystemIdentityApiScope",
       "SystemIdentityIdentityResource"
     ],
+    "SystemIdentityRole_AssignedRolesUnion": [
+      "SystemIdentityRole"
+    ],
+    "SystemIdentityUser_MembersUnion": [
+      "SystemIdentityExternalTenantUserMapping",
+      "SystemIdentityUser"
+    ],
     "SystemPersistentQueryInterface": [
       "SystemAggregationRtQuery",
       "SystemGroupingAggregationRtQuery",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery"
     ],
     "SystemReportingFileSystemContainerInterface": [
@@ -1236,6 +1402,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -1266,12 +1439,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -1289,6 +1466,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -1302,6 +1482,12 @@
     "BasicDocumentInterface": [
       "EnergyCommunityBillingDocument"
     ],
+    "BasicEmployee_EmployeeUnion": [
+      "BasicEmployee"
+    ],
+    "BasicEmployee_EmployeesUnion": [
+      "BasicEmployee"
+    ],
     "BasicNamedEntityInterface": [
       "BasicTree",
       "EnergyCommunityConsumer",
@@ -1311,7 +1497,8 @@
       "EnvironmentEnvironmentalGoal",
       "IndustryBasicAlarm",
       "IndustryBasicEvent",
-      "IndustryBasicRuntimeVariable"
+      "IndustryBasicRuntimeVariable",
+      "IndustryManufacturingShiftTemplate"
     ],
     "BasicTreeNode_ChildrenUnion": [
       "BasicAsset",
@@ -1429,6 +1616,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -1459,12 +1653,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -1482,6 +1680,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -1652,6 +1853,43 @@
     "IndustryMaintenanceOrder_ParentUnion": [
       "IndustryMaintenanceOrder"
     ],
+    "IndustryManufacturingPartialFeedback_ChildrenUnion": [
+      "IndustryManufacturingPartialFeedback"
+    ],
+    "IndustryManufacturingPartialFeedback_PartialFeedbacksUnion": [
+      "IndustryManufacturingPartialFeedback"
+    ],
+    "IndustryManufacturingProductionOrderItem_ChildrenUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrderItem_OrderItemsUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrderItem_ProductionOrderItemUnion": [
+      "IndustryManufacturingProductionOrderItem"
+    ],
+    "IndustryManufacturingProductionOrder_ParentUnion": [
+      "IndustryManufacturingProductionOrder"
+    ],
+    "IndustryManufacturingShiftMachine_ChildrenUnion": [
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShiftMachine_ShiftAssignmentsUnion": [
+      "IndustryManufacturingShiftMachine"
+    ],
+    "IndustryManufacturingShiftMachine_ShiftMachinesUnion": [
+      "IndustryManufacturingShiftMachine"
+    ],
+    "IndustryManufacturingShiftOrderItem_ParentUnion": [
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShiftOrderItem_ShiftOrderItemsUnion": [
+      "IndustryManufacturingShiftOrderItem"
+    ],
+    "IndustryManufacturingShift_ParentUnion": [
+      "IndustryManufacturingShift"
+    ],
     "OctoSdkDemoCustomer_OwnedByUnion": [
       "OctoSdkDemoCustomer"
     ],
@@ -1796,6 +2034,13 @@
       "IndustryMaintenanceOrder",
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "SystemAggregationRtQuery",
       "SystemAutoIncrement",
@@ -1828,13 +2073,17 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityProvider",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -1856,6 +2105,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -1910,6 +2162,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -1940,12 +2199,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -1963,6 +2226,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -2016,6 +2282,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -2046,12 +2319,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -2069,6 +2346,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -2122,6 +2402,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -2152,12 +2439,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -2175,6 +2466,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -2228,6 +2522,13 @@
       "IndustryMaintenanceOrderCosts",
       "IndustryMaintenanceOrderFeedback",
       "IndustryMaintenanceWorkplace",
+      "IndustryManufacturingPartialFeedback",
+      "IndustryManufacturingProductionOrder",
+      "IndustryManufacturingProductionOrderItem",
+      "IndustryManufacturingShift",
+      "IndustryManufacturingShiftMachine",
+      "IndustryManufacturingShiftOrderItem",
+      "IndustryManufacturingShiftTemplate",
       "OctoSdkDemoCustomer",
       "OctoSdkDemoMeteringPoint",
       "OctoSdkDemoOperatingFacility",
@@ -2258,12 +2559,16 @@
       "SystemIdentityApiScope",
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityClient",
+      "SystemIdentityEmailDomainGroupRule",
+      "SystemIdentityExternalTenantUserMapping",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
+      "SystemIdentityGroup",
       "SystemIdentityIdentityResource",
       "SystemIdentityMailNotificationConfiguration",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider",
       "SystemIdentityPermission",
       "SystemIdentityPermissionRole",
@@ -2281,6 +2586,9 @@
       "SystemReportingFolder",
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -2291,12 +2599,26 @@
       "SystemUISymbolDefinition",
       "SystemUISymbolLibrary"
     ],
+    "SystemIdentityGroup_AssignedEntitiesUnion": [
+      "SystemIdentityGroup",
+      "SystemIdentityUser"
+    ],
+    "SystemIdentityGroup_ChildGroupsUnion": [
+      "SystemIdentityGroup"
+    ],
+    "SystemIdentityGroup_MemberOfGroupsUnion": [
+      "SystemIdentityGroup"
+    ],
+    "SystemIdentityGroup_ParentGroupsUnion": [
+      "SystemIdentityGroup"
+    ],
     "SystemIdentityIdentityProviderInterface": [
       "SystemIdentityAzureEntraIdIdentityProvider",
       "SystemIdentityFacebookIdentityProvider",
       "SystemIdentityGoogleIdentityProvider",
       "SystemIdentityMicrosoftAdIdentityProvider",
       "SystemIdentityMicrosoftIdentityProvider",
+      "SystemIdentityOctoTenantIdentityProvider",
       "SystemIdentityOpenLdapIdentityProvider"
     ],
     "SystemIdentityResourceInterface": [
@@ -2304,10 +2626,20 @@
       "SystemIdentityApiScope",
       "SystemIdentityIdentityResource"
     ],
+    "SystemIdentityRole_AssignedRolesUnion": [
+      "SystemIdentityRole"
+    ],
+    "SystemIdentityUser_MembersUnion": [
+      "SystemIdentityExternalTenantUserMapping",
+      "SystemIdentityUser"
+    ],
     "SystemPersistentQueryInterface": [
       "SystemAggregationRtQuery",
       "SystemGroupingAggregationRtQuery",
       "SystemSimpleRtQuery",
+      "SystemStreamDataAggregationQuery",
+      "SystemStreamDataDownsamplingQuery",
+      "SystemStreamDataGroupingAggregationQuery",
       "SystemStreamDataSimpleQuery"
     ],
     "SystemReportingFileSystemContainerInterface": [
