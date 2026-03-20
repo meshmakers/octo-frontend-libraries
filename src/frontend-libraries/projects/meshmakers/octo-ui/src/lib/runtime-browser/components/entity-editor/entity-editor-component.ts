@@ -8,7 +8,6 @@ import { KENDO_DROPDOWNS } from "@progress/kendo-angular-dropdowns";
 import { KENDO_INPUTS } from "@progress/kendo-angular-inputs";
 import { KENDO_LABEL } from "@progress/kendo-angular-label";
 import { CardModule } from "@progress/kendo-angular-layout";
-import { NotificationService } from "@progress/kendo-angular-notification";
 import { firstValueFrom } from "rxjs";
 import { CreateEntitiesDtoGQL } from "../../../graphQL/createEntities";
 import {
@@ -20,6 +19,7 @@ import {
   RtEntityAttributeInput,
 } from "../../services/form-attributes-mapper";
 import { FormAttributesService } from "../../services/form-attributes-service";
+import { SharedEditor } from "../shared-editor/shared-editor";
 import { AttributesForm } from "../attributes-form/attributes-form";
 
 type ParentTreeItem = TreeItemDataTyped<{ ckTypeId?: string; rtId?: string }>;
@@ -117,6 +117,7 @@ export class EntityEditorComponent {
   private readonly createEntitiesGQL = inject(CreateEntitiesDtoGQL);
   private readonly formAttributesService = inject(FormAttributesService);
   private readonly formAttributesMapper = inject(FormAttributesServiceMapper);
+  private readonly sharedEditor = inject(SharedEditor);
 
   // Inputs
   @Input() parent: ParentTreeItem | null = null;
@@ -133,7 +134,6 @@ export class EntityEditorComponent {
   private fb = inject(FormBuilder);
 
   // Services
-  private readonly notificationService = inject(NotificationService);
   protected _messages: RuntimeBrowserMessages = {
     ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
   };
@@ -169,7 +169,7 @@ export class EntityEditorComponent {
     const newNodeRtCkTypeId = this.newNodeRtCkTypeId;
     if (!newNodeRtCkTypeId) {
       console.error("Missing required identifiers to create an entity.");
-      this.showErrorNotification(this._messages.missingRequiredIdentifiers);
+      this.sharedEditor.showErrorNotification(this._messages.missingRequiredIdentifiers);
       return;
     }
 
@@ -198,8 +198,8 @@ export class EntityEditorComponent {
       );
       const entityInput = entity as unknown as RtEntityInputDto;
 
-      // Prepare mutation options
-      const mutationOptions = this.prepareMutationOptions(entityInput);
+      // Prepare mutation options (uses SharedEditor for correct multipart detection)
+      const mutationOptions = this.sharedEditor.prepareMutationOptions(entityInput);
 
       // Execute mutation
       const result = await firstValueFrom(
@@ -214,7 +214,7 @@ export class EntityEditorComponent {
       } as EntityCreationResult);
     } catch (error) {
       console.error("Error creating entity:", error);
-      this.showErrorNotification(this._messages.failedToCreateEntity);
+      this.sharedEditor.showErrorNotification(this._messages.failedToCreateEntity);
       this.saveEdit.emit({
         success: false,
         rtId: undefined,
@@ -257,44 +257,6 @@ export class EntityEditorComponent {
     }
 
     return entity;
-  }
-
-  /**
-   * Prepares mutation options with variables and optional multipart context.
-   */
-  private prepareMutationOptions(entityInput: RtEntityInputDto): {
-    variables: { entities: RtEntityInputDto[] };
-    context?: { useMultipart: boolean };
-  } {
-    const mutationOptions: {
-      variables: { entities: RtEntityInputDto[] };
-      context?: { useMultipart: boolean };
-    } = {
-      variables: { entities: [entityInput] },
-    };
-
-    // Use multipart for binary file uploads
-    const hasBinaryLinkedFiles =
-      Array.isArray(entityInput.attributes) &&
-      entityInput.attributes.length > 0;
-    if (hasBinaryLinkedFiles) {
-      mutationOptions.context = { useMultipart: true };
-    }
-
-    return mutationOptions;
-  }
-
-  /**
-   * Shows an error notification to the user.
-   */
-  private showErrorNotification(message: string): void {
-    this.notificationService.show({
-      content: message,
-      hideAfter: 3000,
-      position: { horizontal: "right", vertical: "top" },
-      animation: { type: "fade", duration: 400 },
-      type: { style: "error", icon: true },
-    });
   }
 
   /**

@@ -8,6 +8,12 @@ import {
 } from '@angular/forms';
 import { AttributeField } from '../models/attribute-field';
 import { CkAttributeMetadata } from '../models/attribute-metadata';
+import {
+  base64ToByteArray,
+  convertGeospatialPointToGeoJSON,
+  fileToByteArray,
+  getFileFromValue,
+} from './attribute-mapper-utils';
 
 export interface RtEntityAttributeInput {
   attributeName: string;
@@ -198,21 +204,21 @@ export class FormAttributesServiceMapper {
         return value;
 
       case 'GEOSPATIAL_POINT':
-        return this.convertGeospatialPointToGeoJSON(value);
+        return convertGeospatialPointToGeoJSON(value);
 
       case 'TIME_SPAN':
         return this.convertTimeSpanToSeconds(value);
 
       case 'BINARY': {
-        const binaryFile = this.getFileFromValue(value);
+        const binaryFile = getFileFromValue(value);
         if (binaryFile) {
-          return await this.fileToByteArray(binaryFile);
+          return await fileToByteArray(binaryFile);
         }
         return await this.convertBinaryToByteArray(value);
       }
 
       case 'BINARY_LINKED':
-        return this.getFileFromValue(value);
+        return getFileFromValue(value);
 
       case 'DATE_TIME':
       case 'DATE_TIME_OFFSET':
@@ -227,32 +233,6 @@ export class FormAttributesServiceMapper {
       default:
         return value;
     }
-  }
-
-  /**
-   * Normalizes File values from different control shapes.
-   */
-  private getFileFromValue(value: unknown): File | null {
-    if (Array.isArray(value) && value.length > 0 && value[0] instanceof File) {
-      return value[0];
-    }
-    if (value instanceof File) {
-      return value;
-    }
-    return null;
-  }
-
-  /**
-   * Converts a GeoJSON-like point control to GraphQL-friendly shape.
-   */
-  private convertGeospatialPointToGeoJSON(point: unknown): unknown {
-    if (this.isRecordValue(point) && point.type === 'Point') {
-      return {
-        type: 'Point',
-        coordinates: [point.longitude, point.latitude],
-      };
-    }
-    return point;
   }
 
   /**
@@ -272,22 +252,6 @@ export class FormAttributesServiceMapper {
   }
 
   /**
-   * Converts a File into a byte array.
-   */
-  private async fileToByteArray(file: File): Promise<number[]> {
-    const arrayBuffer = await file.arrayBuffer();
-    return Array.from(new Uint8Array(arrayBuffer));
-  }
-
-  /**
-   * Converts a base64 string into a byte array.
-   */
-  private base64ToByteArray(base64: string): number[] {
-    const binaryString = atob(base64);
-    return Array.from(binaryString, (char) => char.charCodeAt(0));
-  }
-
-  /**
    * Converts supported binary representations into byte arrays.
    */
   private async convertBinaryToByteArray(
@@ -300,10 +264,10 @@ export class FormAttributesServiceMapper {
       return value as number[];
     }
 
-    const fileValue = this.getFileFromValue(value);
+    const fileValue = getFileFromValue(value);
     if (fileValue) {
       try {
-        return await this.fileToByteArray(fileValue);
+        return await fileToByteArray(fileValue);
       } catch (e) {
         console.error('Error converting File to byte array:', e);
         return value;
@@ -312,7 +276,7 @@ export class FormAttributesServiceMapper {
 
     if (typeof value === 'string') {
       try {
-        return this.base64ToByteArray(value);
+        return base64ToByteArray(value);
       } catch (e) {
         console.error('Error converting Base64 to byte array:', e);
         return value;

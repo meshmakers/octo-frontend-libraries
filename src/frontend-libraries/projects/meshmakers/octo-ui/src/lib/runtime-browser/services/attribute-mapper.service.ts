@@ -6,6 +6,12 @@ import {
   CkAttributeMetadata,
 } from "../models/attribute-metadata";
 import { AttributeRecognitionService } from "./attribute-recognition.service";
+import {
+  base64ToByteArray,
+  convertGeospatialPointToGeoJSON,
+  fileToByteArray,
+  getFileFromValue,
+} from "./attribute-mapper-utils";
 
 export interface RtEntityAttributeInput {
   attributeName: string;
@@ -223,7 +229,7 @@ export class AttributeMapperService {
         return value;
 
       case "GEOSPATIAL_POINT":
-        return this.convertGeospatialPointToGeoJSON(value);
+        return convertGeospatialPointToGeoJSON(value);
 
       case "TIME_SPAN":
         return this.convertTimeSpanToSeconds(value);
@@ -243,7 +249,7 @@ export class AttributeMapperService {
         }
         if (typeof value === "string") {
           // base64 string
-          return this.base64ToByteArray(value);
+          return base64ToByteArray(value);
         }
         if (value instanceof ArrayBuffer) {
           return this.arrayBufferToByteArray(value);
@@ -300,19 +306,6 @@ export class AttributeMapperService {
     return Array.from(new Uint8Array(buffer));
   }
 
-  /**
-   * Normalizes File values from different control shapes.
-   */
-  private getFileFromValue(value: unknown): File | null {
-    if (Array.isArray(value) && value.length > 0 && value[0] instanceof File) {
-      return value[0];
-    }
-    if (value instanceof File) {
-      return value;
-    }
-    return null;
-  }
-
   // ─── Geo / time / binary helpers ──────────────────────────────────────────────────
 
   /** Normalizes API/GeoJSON value to form shape { longitude, latitude } for edit mode. */
@@ -352,24 +345,6 @@ export class AttributeMapperService {
   }
 
   /**
-   * Converts a GeoJSON-like point control to GraphQL-friendly shape.
-   */
-  private convertGeospatialPointToGeoJSON(coordinates: unknown): unknown {
-    if (
-      coordinates &&
-      this.isRecordValue(coordinates) &&
-      "longitude" in coordinates &&
-      "latitude" in coordinates
-    ) {
-      return {
-        type: "Point",
-        coordinates: [coordinates["longitude"], coordinates["latitude"]],
-      };
-    }
-    return coordinates;
-  }
-
-  /**
    * Converts a TimeSpan control value to seconds.
    */
   private convertTimeSpanToSeconds(value: unknown): number {
@@ -388,22 +363,6 @@ export class AttributeMapperService {
   // --- BINARY helpers for MeshMakers ---
 
   /**
-   * Converts a File into a byte array.
-   */
-  private async fileToByteArray(file: File): Promise<number[]> {
-    const arrayBuffer = await file.arrayBuffer();
-    return Array.from(new Uint8Array(arrayBuffer));
-  }
-
-  /**
-   * Converts a base64 string into a byte array.
-   */
-  private base64ToByteArray(base64: string): number[] {
-    const binaryString = atob(base64);
-    return Array.from(binaryString, (char) => char.charCodeAt(0));
-  }
-
-  /**
    * Decodes a base64 string into a File with real content, size and optional name/type.
    * Returns null if decoding fails (e.g. invalid base64).
    * Note: A base64 string carries only the raw bytes; it does not contain filename or other metadata.
@@ -415,7 +374,7 @@ export class AttributeMapperService {
     contentType = "application/octet-stream",
   ): File | null {
     try {
-      const bytes = this.base64ToByteArray(base64);
+      const bytes = base64ToByteArray(base64);
       const uint8 = new Uint8Array(bytes);
       const blob = new Blob([uint8], { type: contentType });
       return new File([blob], filename, { type: contentType });
@@ -437,10 +396,10 @@ export class AttributeMapperService {
       return value as number[];
     }
 
-    const fileValue = this.getFileFromValue(value);
+    const fileValue = getFileFromValue(value);
     if (fileValue) {
       try {
-        return await this.fileToByteArray(fileValue);
+        return await fileToByteArray(fileValue);
       } catch (e) {
         console.error("Error converting File to byte array:", e);
         return value;
@@ -449,7 +408,7 @@ export class AttributeMapperService {
 
     if (typeof value === "string") {
       try {
-        return this.base64ToByteArray(value);
+        return base64ToByteArray(value);
       } catch (e) {
         console.error("Error converting Base64 to byte array:", e);
         return value;

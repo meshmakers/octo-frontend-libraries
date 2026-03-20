@@ -1,4 +1,4 @@
-import { GetRuntimeEntityByIdDtoGQL } from '..graphQL/getRuntimeEntityById';
+import { GetRuntimeEntityByIdDtoGQL } from '../graphQL/getRuntimeEntityById';
 import {
   AfterViewInit,
   Component,
