@@ -7,7 +7,7 @@ module.exports = tseslint.config(
   {
     files: ["**/*.ts"],
     ignores: [
-      "**/src/lib/runtime-browser/graphQL/**.*"
+      "**/src/lib/graphQL/**.*"
     ],
     rules: {
       "@angular-eslint/directive-selector": [
@@ -30,7 +30,7 @@ module.exports = tseslint.config(
   },
   {
     // Ignore unsupported lint rules for generated GraphQL files
-    files: ["**/src/lib/runtime-browser/graphQL/**/*.ts"],
+    files: ["**/src/lib/graphQL/**/*.ts"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
