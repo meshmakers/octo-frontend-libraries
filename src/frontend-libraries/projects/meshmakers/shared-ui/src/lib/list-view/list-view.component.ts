@@ -226,8 +226,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return column.displayName ?? column.field;
   }
 
-  protected getIsDisabled(commandItem: CommandItem): boolean {
-    return CommandBaseService.getIsDisabled(commandItem);
+  protected getIsDisabled(commandItem: CommandItem, dataItem?: unknown): boolean {
+    return CommandBaseService.getIsDisabled(commandItem, dataItem);
   }
 
   protected getValue(element: Record<string, unknown>, column: TableColumn): unknown {
@@ -474,13 +474,45 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     await this.navigateAsync(commandItem, dataItem);
   }
 
-  protected onContextMenu(dataItem: unknown, e: PointerEvent) {
+  protected getMenuItemDisabled(menuItem: MenuItem, dataItem: unknown): boolean {
+    const commandItem = menuItem.data as CommandItem;
+    if (commandItem) {
+      return CommandBaseService.getIsDisabled(commandItem, dataItem);
+    }
+    return menuItem.disabled ?? false;
+  }
 
+  protected onContextMenu(dataItem: unknown, e: PointerEvent) {
     this._actionMenuSelectedRow = dataItem;
+    // Rebuild context menu items with updated disabled state for the current row.
+    // A new array reference is needed so Kendo's kendoMenuHierarchyBinding detects the change.
+    this._contextMenuItems = this.buildContextMenuItemsWithDisabledState(this._contextMenuCommandItems, dataItem);
     this.gridContextMenu?.show({
       left: e.pageX,
       top: e.pageY,
     });
+  }
+
+  private buildContextMenuItemsWithDisabledState(commandItems: CommandItem[], dataItem: unknown): MenuItem[] {
+    const items: MenuItem[] = [];
+    for (const commandItem of commandItems) {
+      if (commandItem.type === 'separator') {
+        items.push({ separator: true });
+      } else {
+        let childMenuItems: MenuItem[] | undefined;
+        if (commandItem.children) {
+          childMenuItems = this.buildContextMenuItemsWithDisabledState(commandItem.children, dataItem);
+        }
+        items.push({
+          text: commandItem.text,
+          svgIcon: commandItem.svgIcon as SVGIcon,
+          data: commandItem,
+          items: childMenuItems,
+          disabled: CommandBaseService.getIsDisabled(commandItem, dataItem),
+        });
+      }
+    }
+    return items;
   }
 
   protected onContextMenuClosed(_event: ContextMenuPopupEvent) {
