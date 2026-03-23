@@ -33,7 +33,7 @@ export class AppConfigurationService implements IConfigurationService {
     }
     console.debug('adminUri', adminUri);
 
-    const adminPanelConfig = await firstValueFrom(this.httpClient.get<AdminPanelConfigurationDto>(`${adminUri}_configuration`));
+    const adminPanelConfig = await firstValueFrom(this.httpClient.get<AdminPanelConfigurationDto>(`${adminUri}octosystem/_configuration`));
 
     this._config.issuer = adminPanelConfig.issuer;
     this._config.assetServices = adminPanelConfig.assetServices;

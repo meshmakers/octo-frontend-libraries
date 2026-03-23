@@ -37,6 +37,22 @@
   }
 }
 
+.numeric-range-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  kendo-numerictextbox {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .range-separator {
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+}
+
 .cron-expression-cell {
   display: flex;
   flex-direction: column;

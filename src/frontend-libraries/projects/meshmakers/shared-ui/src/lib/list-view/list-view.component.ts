@@ -20,7 +20,7 @@ import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-
 import {ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
-import {SeparatorComponent, CheckBoxComponent} from '@progress/kendo-angular-inputs';
+import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
 import {fileExcelIcon, filePdfIcon, filterIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
@@ -71,7 +71,8 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     DateFilterCellComponent,
     DropDownListComponent,
     ValueTemplateDirective,
-    ItemTemplateDirective
+    ItemTemplateDirective,
+    NumericTextBoxComponent
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -225,8 +226,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return column.displayName ?? column.field;
   }
 
-  protected getIsDisabled(commandItem: CommandItem): boolean {
-    return CommandBaseService.getIsDisabled(commandItem);
+  protected getIsDisabled(commandItem: CommandItem, dataItem?: unknown): boolean {
+    return CommandBaseService.getIsDisabled(commandItem, dataItem);
   }
 
   protected getValue(element: Record<string, unknown>, column: TableColumn): unknown {
@@ -258,6 +259,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       case 'boolean':
       case 'date':
         return column.dataType;
+      case 'numericRange':
+        return 'numeric';
       case 'iso8601':
         return 'date';
       default:
@@ -351,6 +354,37 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this.dataBindingDirective?.notifyFilterChange(newFilter);
   }
 
+  protected getRangeFilterValue(column: TableColumn, operator: 'gte' | 'lte'): number | null {
+    const grid = this.gridComponent;
+    if (!grid?.filter) return null;
+    const currentFilter = grid.filter as CompositeFilterDescriptor;
+    const fd = currentFilter.filters.find(
+      f => 'field' in f && (f as FilterDescriptor).field === column.field &&
+           (f as FilterDescriptor).operator === operator
+    ) as FilterDescriptor | undefined;
+    return fd?.value as number | null ?? null;
+  }
+
+  protected onRangeFilterChange(value: number | null, column: TableColumn, operator: 'gte' | 'lte'): void {
+    const grid = this.gridComponent;
+    if (!grid) return;
+
+    const currentFilter: CompositeFilterDescriptor = grid.filter as CompositeFilterDescriptor ?? { logic: 'and', filters: [] };
+    // Remove existing filter for this field + operator
+    const otherFilters = currentFilter.filters.filter(
+      f => !('field' in f) || (f as FilterDescriptor).field !== column.field ||
+           (f as FilterDescriptor).operator !== operator
+    );
+
+    if (value !== null && value !== undefined) {
+      otherFilters.push({ field: column.field, operator, value });
+    }
+
+    const newFilter: CompositeFilterDescriptor = { logic: 'and', filters: otherFilters };
+    grid.filter = newFilter;
+    this.dataBindingDirective?.notifyFilterChange(newFilter);
+  }
+
   protected onShowRowFilter() {
     if (this.rowFilterEnabled) {
       this._showRowFilter = !this._showRowFilter;
@@ -440,13 +474,45 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     await this.navigateAsync(commandItem, dataItem);
   }
 
-  protected onContextMenu(dataItem: unknown, e: PointerEvent) {
+  protected getMenuItemDisabled(menuItem: MenuItem, dataItem: unknown): boolean {
+    const commandItem = menuItem.data as CommandItem;
+    if (commandItem) {
+      return CommandBaseService.getIsDisabled(commandItem, dataItem);
+    }
+    return menuItem.disabled ?? false;
+  }
 
+  protected onContextMenu(dataItem: unknown, e: PointerEvent) {
     this._actionMenuSelectedRow = dataItem;
+    // Rebuild context menu items with updated disabled state for the current row.
+    // A new array reference is needed so Kendo's kendoMenuHierarchyBinding detects the change.
+    this._contextMenuItems = this.buildContextMenuItemsWithDisabledState(this._contextMenuCommandItems, dataItem);
     this.gridContextMenu?.show({
       left: e.pageX,
       top: e.pageY,
     });
+  }
+
+  private buildContextMenuItemsWithDisabledState(commandItems: CommandItem[], dataItem: unknown): MenuItem[] {
+    const items: MenuItem[] = [];
+    for (const commandItem of commandItems) {
+      if (commandItem.type === 'separator') {
+        items.push({ separator: true });
+      } else {
+        let childMenuItems: MenuItem[] | undefined;
+        if (commandItem.children) {
+          childMenuItems = this.buildContextMenuItemsWithDisabledState(commandItem.children, dataItem);
+        }
+        items.push({
+          text: commandItem.text,
+          svgIcon: commandItem.svgIcon as SVGIcon,
+          data: commandItem,
+          items: childMenuItems,
+          disabled: CommandBaseService.getIsDisabled(commandItem, dataItem),
+        });
+      }
+    }
+    return items;
   }
 
   protected onContextMenuClosed(_event: ContextMenuPopupEvent) {

@@ -155,16 +155,36 @@
               }
             </ng-template>
           </kendo-dropdownlist>
+        } @else if (column.dataType === 'numericRange') {
+          <span class="numeric-range-filter">
+            <kendo-numerictextbox
+              [value]="$any(getRangeFilterValue(column, 'gte'))"
+              (valueChange)="onRangeFilterChange($event, column, 'gte')"
+              [spinners]="false"
+              [decimals]="2"
+              placeholder="From"
+              size="small"
+            ></kendo-numerictextbox>
+            <span class="range-separator">–</span>
+            <kendo-numerictextbox
+              [value]="$any(getRangeFilterValue(column, 'lte'))"
+              (valueChange)="onRangeFilterChange($event, column, 'lte')"
+              [spinners]="false"
+              [decimals]="2"
+              placeholder="To"
+              size="small"
+            ></kendo-numerictextbox>
+          </span>
         } @else {
           @switch (getFilterType(column)) {
             @case ('numeric') {
-              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" operator="eq"></kendo-grid-numeric-filter-cell>
+              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"></kendo-grid-numeric-filter-cell>
             }
             @case ('boolean') {
               <kendo-grid-boolean-filter-cell [column]="gridColumn" [filter]="filter"></kendo-grid-boolean-filter-cell>
             }
             @case ('date') {
-              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" operator="eq"></kendo-grid-date-filter-cell>
+              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"></kendo-grid-date-filter-cell>
             }
             @default {
               <kendo-grid-string-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-string-filter-cell>
@@ -223,7 +243,7 @@
               <button kendoButton themeColor="primary" fillMode="flat"
                 [svgIcon]="menuItem.svgIcon!"
                 [title]="menuItem.text ?? ''"
-                [disabled]="(menuItem.disabled ?? false) || isLoading()"
+                [disabled]="getMenuItemDisabled(menuItem, dataItem) || isLoading()"
                 (click)="onSelectOptionActionItem($event, dataItem, menuItem)">
               </button>
             }
@@ -269,6 +289,8 @@
   [textField]="['text']"
   childrenField="items"
   svgIconField="svgIcon"
-  separatorField="separator" (popupClose)="onContextMenuClosed($event)"
+  separatorField="separator"
+  disabledField="disabled"
+  (popupClose)="onContextMenuClosed($event)"
   (select)="onContextMenuSelect($event)"
 ></kendo-contextmenu>

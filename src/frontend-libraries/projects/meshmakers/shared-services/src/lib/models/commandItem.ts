@@ -24,7 +24,7 @@ export interface CommandItem {
 
   target?: string;
   isVisible?: boolean | (() => Promise<boolean>);
-  isDisabled?: boolean | (() => boolean);
+  isDisabled?: boolean | ((data?: unknown) => boolean);
   children?: CommandItem[];
 }
 

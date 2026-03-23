@@ -37,12 +37,12 @@ export abstract class CommandBaseService {
     return true;
   }
 
-  protected static getIsDisabled(commandItem: CommandItem): boolean {
+  protected static getIsDisabled(commandItem: CommandItem, data?: unknown): boolean {
     if (commandItem.isDisabled !== undefined) {
       if (typeof commandItem.isDisabled === 'boolean') {
         return commandItem.isDisabled;
       } else if (typeof commandItem.isDisabled === 'function') {
-        return commandItem.isDisabled();
+        return commandItem.isDisabled(data);
       }
     }
     return false;

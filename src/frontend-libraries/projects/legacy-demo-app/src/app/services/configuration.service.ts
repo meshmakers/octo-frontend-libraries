@@ -19,7 +19,7 @@ export class ConfigurationService implements IConfigurationService {
 
   async loadConfigAsync(): Promise<void> {
     try {
-      const result = await fetch('/_configuration');
+      const result = await fetch('/octosystem/_configuration');
       if (result.ok) {
         this.configuration = await result.json() as AddInConfiguration;
         return;
