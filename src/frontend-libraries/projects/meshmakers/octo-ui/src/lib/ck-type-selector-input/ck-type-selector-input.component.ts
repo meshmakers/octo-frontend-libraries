@@ -26,9 +26,20 @@ import { LoaderModule } from '@progress/kendo-angular-indicators';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { IconsModule, SVGIconModule } from '@progress/kendo-angular-icons';
 import { searchIcon } from '@progress/kendo-svg-icons';
-import { CkTypeSelectorService, CkTypeSelectorItem } from '@meshmakers/octo-services';
+import {
+  CkTypeSelectorService,
+  CkTypeSelectorItem,
+  CkTypeSelectorResult
+} from '@meshmakers/octo-services';
 import { Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap, tap, catchError } from 'rxjs/operators';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  tap,
+  catchError,
+  map
+} from 'rxjs/operators';
 import { of } from 'rxjs';
 import { CkTypeSelectorDialogService } from '../ck-type-selector-dialog/ck-type-selector-dialog.service';
 
@@ -358,9 +369,7 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
         }),
         switchMap(filter => {
           const source$ = this.derivedFromRtCkTypeId
-            ? this.ckTypeSelectorService.getDerivedCkTypes(this.derivedFromRtCkTypeId, {
-                searchText: filter
-              })
+            ? this.getDerivedTypes(filter)
             : this.ckTypeSelectorService.getCkTypes({
                 ckModelIds: this.ckModelIds,
                 searchText: filter,
@@ -373,19 +382,80 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
             })
           );
         })
-      ).subscribe(result => {
+      ).subscribe((result: CkTypeSelectorResult) => {
         this.isLoading = false;
 
         // Filter out abstract types if not allowed
         let items = result.items;
         if (!this.allowAbstract) {
-          items = items.filter(item => !item.isAbstract);
+          items = items.filter((item: CkTypeSelectorItem) => !item.isAbstract);
         }
 
-        this.filteredTypes = items.map(item => item.rtCkTypeId);
-        this.typeMap = new Map(items.map(item => [item.rtCkTypeId, item]));
+        this.filteredTypes = items.map((item: CkTypeSelectorItem) => item.rtCkTypeId);
+        this.typeMap = new Map(
+          items.map((item: CkTypeSelectorItem) => [item.rtCkTypeId, item])
+        );
       })
     );
+  }
+
+  private getDerivedTypes(filter: string) {
+    const derivedService = this.ckTypeSelectorService as {
+      getDerivedCkTypes?: (
+        rtCkTypeId: string,
+        options?: {
+          searchText?: string;
+          ignoreAbstractTypes?: boolean;
+          includeSelf?: boolean;
+        }
+      ) => import('rxjs').Observable<CkTypeSelectorResult>;
+    };
+
+    if (derivedService.getDerivedCkTypes) {
+      return derivedService.getDerivedCkTypes(this.derivedFromRtCkTypeId!, {
+        searchText: filter
+      });
+    }
+
+    return this.ckTypeSelectorService
+      .getCkTypes({
+        searchText: filter,
+        first: this.maxResults,
+        skip: 0
+      })
+      .pipe(
+        map(result =>
+          this.filterDerivedTypesFallback(result, this.derivedFromRtCkTypeId!)
+        )
+      );
+  }
+
+  private filterDerivedTypesFallback(
+    result: CkTypeSelectorResult,
+    baseRtCkTypeId: string
+  ): CkTypeSelectorResult {
+    const allowed = new Set<string>([baseRtCkTypeId]);
+    let changed = true;
+
+    while (changed) {
+      changed = false;
+      for (const item of result.items) {
+        if (
+          item.baseTypeRtCkTypeId &&
+          allowed.has(item.baseTypeRtCkTypeId) &&
+          !allowed.has(item.rtCkTypeId)
+        ) {
+          allowed.add(item.rtCkTypeId);
+          changed = true;
+        }
+      }
+    }
+
+    const items = result.items.filter(item =>
+      allowed.has(item.rtCkTypeId) && (this.allowAbstract || !item.isAbstract)
+    );
+
+    return { items, totalCount: items.length };
   }
 
   private injectPopupStyles(): void {

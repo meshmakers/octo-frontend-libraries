@@ -6,6 +6,7 @@ Angular library providing reusable UI components for OctoMesh applications.
 
 - **Data Sources** - GraphQL-based data source abstractions for list views and hierarchies
 - **Property Grid** - Dynamic property editor with type-aware value display
+- **Runtime Browser** - Tree/detail view with create and update editors for runtime entities
 - **Selector Dialogs** - Attribute and CK type selection dialogs
 - **Filter Editor** - Visual query filter configuration
 - **Theme Independent** - Works with any Kendo UI theme

@@ -1,0 +1,40 @@
+   query getCkRecordDetailed($ckId: String) {
+  constructionKit {
+    records(ckId: $ckId) {
+      totalCount
+      items {
+        ckRecordId {
+          fullName
+        }
+        isAbstract
+        attributes {
+          items {
+            ckAttributeId {
+              fullName
+            }
+            isOptional
+            attributeName
+            attributeValueType
+            attribute {
+              ckRecord {
+                ckRecordId {
+                  fullName
+                  }
+                }
+              ckEnum {
+                ckEnumId {
+                  fullName
+                }
+                values {
+                  key
+                  name
+                }
+              }
+              defaultValues
+            }
+          }
+        }
+      }
+    }
+  }
+}

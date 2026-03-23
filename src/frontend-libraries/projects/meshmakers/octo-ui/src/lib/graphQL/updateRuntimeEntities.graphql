@@ -1,0 +1,15 @@
+mutation UpdateRuntimeEntities ($entities: [RtEntityUpdate]!) {
+  runtime {
+    runtimeEntities {
+      update (entities: $entities) {
+        rtId
+        attributes {
+          items {
+            attributeName
+            value
+          }
+        } 
+      }
+    }
+  }
+}

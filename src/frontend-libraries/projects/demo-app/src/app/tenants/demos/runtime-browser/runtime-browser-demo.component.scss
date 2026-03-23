@@ -1,0 +1,23 @@
+@use "../../../../../../meshmakers/octo-ui/src/styles/_index" as octo;
+
+:host {
+  display: block;
+  @include octo.variables();
+  --octo-mint: #007dc5 !important;
+  --neo-cyan: #5ac4be !important;
+  --indigogo: #0b5c92 !important;
+  --toffee: #f59e0b !important;
+  --bubblegum: #ef4444 !important;
+  --lilac-glow: #8b5cf6 !important;
+  --royal-violet: #7c3aed !important;
+  --ash-blue: #64748b !important;
+  --iron-navy: #e2e8f0 !important;
+  --deep-sea: #ffffff !important;
+  --surface-elevated: #f1f5f9 !important;
+  --octo-text-color: #000000 !important;
+  --mm-cron-success: #37b400 !important;
+
+  .browser-container ::ng-deep {
+    @include octo.styles();
+  }
+}

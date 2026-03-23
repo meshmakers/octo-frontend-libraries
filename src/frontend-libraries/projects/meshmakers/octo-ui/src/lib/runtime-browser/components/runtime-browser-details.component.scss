@@ -1,0 +1,421 @@
+// ============================================================================
+// RUNTIME BROWSER DETAILS - LCARS STYLE
+// ============================================================================
+
+// LCARS Color Variables come from global CSS custom properties
+
+// Host element must fill available space
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.runtime-browser-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  background: linear-gradient(
+    180deg,
+    var(--surface-elevated) 0%,
+    var(--deep-sea) 100%
+  );
+
+  // ============================================================================
+  // NO SELECTION STATE - LCARS STYLE
+  // ============================================================================
+
+  .no-selection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+
+    .placeholder-content {
+      text-align: center;
+      max-width: 400px;
+      padding: 40px;
+      background: linear-gradient(
+        135deg,
+        var(--iron-navy-80),
+        var(--surface-elevated-90)
+      );
+      border: 1px solid var(--octo-mint-30);
+      border-radius: 8px 24px 8px 24px;
+      box-shadow:
+        0 0 30px var(--octo-mint-10),
+        inset 0 0 40px var(--octo-mint-03);
+
+      .placeholder-icon {
+        margin-bottom: 24px;
+
+        .k-icon {
+          font-size: 64px;
+          color: var(--octo-mint-50);
+          text-shadow: 0 0 20px var(--octo-mint-50);
+          animation: lcars-icon-pulse 3s ease-in-out infinite;
+        }
+      }
+
+      h3 {
+        margin: 0 0 12px 0;
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--octo-mint);
+        text-shadow: 0 0 15px var(--octo-mint-50);
+      }
+
+      p {
+        margin: 0;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: rgba(#{var(--octo-text-color)}, 0.7);
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  // ============================================================================
+  // ENTITY DETAILS
+  // ============================================================================
+
+  .entity-details {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .details-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px 16px 24px;
+      background: linear-gradient(
+        180deg,
+        var(--iron-navy),
+        var(--surface-elevated)
+      );
+      border: 1px solid var(--octo-mint-30);
+      border-radius: 4px 16px 4px 16px;
+      margin-bottom: 20px;
+      position: relative;
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.4),
+        0 0 15px var(--octo-mint-08);
+
+      // LCARS accent line
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint),
+          var(--neo-cyan),
+          var(--royal-violet)
+        );
+        box-shadow: 0 0 10px var(--octo-mint-50);
+        border-radius: 4px 0 0 4px;
+      }
+
+      .entity-icon {
+        font-size: 28px;
+        color: var(--octo-mint);
+        text-shadow: 0 0 10px var(--octo-mint-50);
+      }
+
+      .entity-title {
+        flex: 1;
+
+        h3 {
+          margin: 0 0 6px 0;
+          font-family: "Montserrat", sans-serif;
+          font-size: 1.1rem;
+          font-weight: 600;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          color: var(--octo-text-color);
+        }
+
+        .entity-type {
+          margin: 0;
+          font-family: "Roboto Mono", monospace;
+          font-size: 0.8rem;
+          color: var(--neo-cyan);
+          background: var(--deep-sea-60);
+          padding: 4px 10px;
+          border-radius: 4px;
+          border: 1px solid var(--neo-cyan-30);
+          display: inline-block;
+        }
+      }
+    }
+
+    mm-entity-detail-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    // ============================================================================
+    // CK MODEL DETAILS
+    // ============================================================================
+
+    .ck-model-details,
+    .ck-models-root {
+      padding: 24px;
+      background: linear-gradient(
+        180deg,
+        var(--iron-navy),
+        var(--surface-elevated)
+      );
+      border: 1px solid var(--octo-mint-30);
+      border-radius: 4px 16px 4px 16px;
+      position: relative;
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint),
+          var(--neo-cyan),
+          var(--royal-violet)
+        );
+        box-shadow: 0 0 10px var(--octo-mint-50);
+      }
+
+      h3 {
+        margin: 0 0 20px 0;
+        font-family: "Montserrat", sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--octo-text-color);
+      }
+
+      p {
+        margin: 0 0 12px 0;
+        font-family: "Roboto", sans-serif;
+        font-size: 0.9rem;
+        color: rgba(#{var(--octo-text-color)}, 0.85);
+
+        strong {
+          font-family: "Montserrat", sans-serif;
+          font-weight: 600;
+          font-size: 0.8rem;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          color: var(--octo-mint-80);
+          margin-right: 12px;
+        }
+
+        &.info-text {
+          color: rgba(#{var(--octo-text-color)}, 0.6);
+          font-style: italic;
+          margin-top: 24px;
+          padding: 16px 20px;
+          background: linear-gradient(
+            135deg,
+            var(--neo-cyan-10),
+            var(--neo-cyan-05)
+          );
+          border: 1px solid var(--neo-cyan-30);
+          border-radius: 4px 12px 4px 12px;
+        }
+      }
+    }
+
+    // ============================================================================
+    // CK TYPE DETAILS
+    // ============================================================================
+
+    .ck-type-details {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 0;
+
+      .type-header {
+        margin-bottom: 20px;
+        padding: 20px 24px;
+        background: linear-gradient(
+          180deg,
+          var(--iron-navy),
+          var(--surface-elevated)
+        );
+        border: 1px solid var(--octo-mint-30);
+        border-radius: 4px 16px 4px 16px;
+        position: relative;
+
+        &::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 4px;
+          height: 100%;
+          background: linear-gradient(
+            180deg,
+            var(--octo-mint),
+            var(--neo-cyan),
+            var(--royal-violet)
+          );
+          box-shadow: 0 0 10px var(--octo-mint-50);
+        }
+
+        h3 {
+          margin: 0 0 12px 0;
+          font-family: "Montserrat", sans-serif;
+          font-size: 1.1rem;
+          font-weight: 600;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          color: var(--octo-text-color);
+        }
+
+        .type-metadata {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+
+          .badge {
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-family: "Montserrat", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+
+            &.abstract {
+              background: linear-gradient(
+                135deg,
+                var(--royal-violet-30),
+                var(--royal-violet-15)
+              );
+              border: 1px solid var(--royal-violet-50);
+              color: var(--royal-violet-light-20);
+              box-shadow: 0 0 10px var(--royal-violet-30);
+            }
+
+            &.final {
+              background: linear-gradient(
+                135deg,
+                var(--toffee-30),
+                var(--toffee-15)
+              );
+              border: 1px solid var(--toffee-50);
+              color: var(--toffee);
+              box-shadow: 0 0 10px var(--toffee-30);
+            }
+          }
+
+          .base-type {
+            font-family: "Roboto Mono", monospace;
+            font-size: 0.8rem;
+            color: var(--neo-cyan);
+            background: var(--deep-sea-60);
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--neo-cyan-30);
+          }
+        }
+      }
+
+      .entities-table {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: linear-gradient(
+          180deg,
+          var(--iron-navy),
+          var(--surface-elevated)
+        );
+        border: 1px solid var(--octo-mint-30);
+        border-radius: 4px 16px 4px 16px;
+        padding: 20px;
+
+        h4 {
+          margin: 0 0 16px 0;
+          font-family: "Montserrat", sans-serif;
+          font-size: 1rem;
+          font-weight: 600;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          color: var(--octo-mint);
+        }
+
+        mm-list-view {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+      }
+    }
+  }
+}
+
+// ============================================================================
+// ANIMATIONS
+// ============================================================================
+
+@keyframes lcars-icon-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+// ============================================================================
+// RESPONSIVE DESIGN
+// ============================================================================
+
+@media (max-width: 768px) {
+  .runtime-browser-details {
+    padding: 16px;
+
+    .no-selection .placeholder-content {
+      padding: 24px;
+
+      .placeholder-icon .k-icon {
+        font-size: 48px;
+      }
+
+      h3 {
+        font-size: 1.1rem;
+      }
+    }
+
+    .entity-details .details-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+  }
+}

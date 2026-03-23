@@ -1,0 +1,32 @@
+.k-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.field-input-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+
+  .input-wrapper {
+    flex: 1;
+    min-width: 0;
+
+    ::ng-deep {
+      .k-widget,
+      .k-textbox,
+      .k-numerictextbox,
+      .k-dropdownlist {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.k-form-error {
+  font-size: 0.75rem;
+  margin-top: 4px;
+}

@@ -1,0 +1,38 @@
+query getCkTypes(
+  $after: String
+  $first: Int
+  $searchFilter: SearchFilter
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+  $ckModelIds: [String]
+) {
+  constructionKit {
+    types(
+      after: $after
+      first: $first
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+      ckModelIds: $ckModelIds
+    ) {
+      totalCount
+      items {
+        baseType {
+          ckTypeId {
+            fullName
+            semanticVersionedFullName
+          }
+          isAbstract
+          isFinal
+        }
+        ckTypeId {
+          fullName
+          semanticVersionedFullName
+        }
+        rtCkTypeId
+        isAbstract
+        isFinal
+      }
+    }
+  }
+}

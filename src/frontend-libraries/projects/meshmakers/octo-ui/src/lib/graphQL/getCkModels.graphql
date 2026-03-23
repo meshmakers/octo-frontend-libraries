@@ -1,0 +1,30 @@
+query getCkModels($after: String
+  $first: Int
+  $searchFilter: SearchFilter
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+  $ckId: String
+) {
+  constructionKit {
+    models(after: $after
+      first: $first
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+      ckId: $ckId) {
+      totalCount
+      items {
+        id {
+          name
+          version
+          fullName
+          semanticVersionedFullName
+        }
+        modelState
+        dependencies {
+          fullName
+        }
+      }
+    }
+  }
+}

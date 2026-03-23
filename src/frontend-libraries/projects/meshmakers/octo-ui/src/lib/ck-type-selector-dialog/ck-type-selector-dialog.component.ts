@@ -9,9 +9,13 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { IconsModule } from '@progress/kendo-angular-icons';
 import { LoaderModule } from '@progress/kendo-angular-indicators';
 import { searchIcon, filterClearIcon } from '@progress/kendo-svg-icons';
-import { CkTypeSelectorService, CkTypeSelectorItem } from '@meshmakers/octo-services';
+import {
+  CkTypeSelectorService,
+  CkTypeSelectorItem,
+  CkTypeSelectorResult
+} from '@meshmakers/octo-services';
 import { Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 
 export interface CkTypeSelectorDialogData {
   selectedCkTypeId?: string;
@@ -314,9 +318,7 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
     this.isLoading = true;
 
     const source$ = this.derivedFromRtCkTypeId
-      ? this.ckTypeSelectorService.getDerivedCkTypes(this.derivedFromRtCkTypeId, {
-          searchText: this.searchText || undefined
-        })
+      ? this.getDerivedTypes(this.searchText || undefined)
       : this.ckTypeSelectorService.getCkTypes({
           ckModelIds: this.selectedModel ? [this.selectedModel] : this.initialCkModelIds,
           searchText: this.searchText || undefined,
@@ -326,7 +328,7 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(
       source$.subscribe({
-        next: result => {
+        next: (result: CkTypeSelectorResult) => {
           this.gridData = {
             data: result.items,
             total: result.totalCount
@@ -334,7 +336,10 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
 
           // Restore selection if exists
           if (this.selectedKeys.length > 0) {
-            const selectedItem = result.items.find(item => item.fullName === this.selectedKeys[0]);
+            const selectedItem = result.items.find(
+              (item: CkTypeSelectorItem) =>
+                item.fullName === this.selectedKeys[0]
+            );
             if (selectedItem) {
               this.selectedType = selectedItem;
             }
@@ -348,6 +353,63 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
         }
       })
     );
+  }
+
+  private getDerivedTypes(searchText?: string) {
+    const derivedService = this.ckTypeSelectorService as {
+      getDerivedCkTypes?: (
+        rtCkTypeId: string,
+        options?: {
+          searchText?: string;
+          ignoreAbstractTypes?: boolean;
+          includeSelf?: boolean;
+        }
+      ) => import('rxjs').Observable<CkTypeSelectorResult>;
+    };
+
+    if (derivedService.getDerivedCkTypes) {
+      return derivedService.getDerivedCkTypes(this.derivedFromRtCkTypeId!, {
+        searchText
+      });
+    }
+
+    return this.ckTypeSelectorService
+      .getCkTypes({
+        searchText,
+        first: 1000,
+        skip: 0
+      })
+      .pipe(
+        map(result => this.filterDerivedTypesFallback(result, this.derivedFromRtCkTypeId!))
+      );
+  }
+
+  private filterDerivedTypesFallback(
+    result: CkTypeSelectorResult,
+    baseRtCkTypeId: string
+  ): CkTypeSelectorResult {
+    const allowed = new Set<string>([baseRtCkTypeId]);
+    let changed = true;
+
+    while (changed) {
+      changed = false;
+      for (const item of result.items) {
+        if (
+          item.baseTypeRtCkTypeId &&
+          allowed.has(item.baseTypeRtCkTypeId) &&
+          !allowed.has(item.rtCkTypeId)
+        ) {
+          allowed.add(item.rtCkTypeId);
+          changed = true;
+        }
+      }
+    }
+
+    const items = result.items.filter(item =>
+      allowed.has(item.rtCkTypeId) && (this.allowAbstract || !item.isAbstract)
+    );
+
+    return { items, totalCount: items.length };
   }
 
   private loadAvailableModels(): void {

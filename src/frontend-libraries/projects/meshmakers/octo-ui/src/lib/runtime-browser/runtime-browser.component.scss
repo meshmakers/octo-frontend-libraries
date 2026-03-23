@@ -1,0 +1,114 @@
+// ============================================================================
+// RUNTIME BROWSER - Component-specific styles (self-contained)
+// Kendo theme and dockview overrides are scoped to this component via :host
+// ============================================================================
+
+// Container
+.runtime-browser-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+  gap: 16px;
+}
+
+// MM-BASE-TREE-DETAIL OVERRIDES (component-specific)
+::ng-deep mm-base-tree-detail {
+  .k-splitter {
+    background: transparent;
+    border: none;
+
+    .k-splitbar {
+      background: linear-gradient(180deg, var(--octo-mint-30), transparent);
+      width: 4px !important;
+
+      &:hover {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-50),
+          var(--octo-mint-20)
+        );
+      }
+    }
+  }
+
+  kendo-treeview {
+    .k-treeview-item {
+      .k-treeview-leaf {
+        font-family: "Roboto", sans-serif;
+        transition: all 0.2s ease;
+        border-radius: 4px;
+
+        &:hover {
+          background: var(--octo-mint-10);
+          color: var(--octo-mint);
+        }
+
+        &.k-selected {
+          background: linear-gradient(90deg, var(--octo-mint-20), transparent);
+          color: var(--octo-mint);
+          border-left: 3px solid var(--octo-mint);
+
+          &:hover {
+            background: linear-gradient(
+              90deg,
+              var(--octo-mint-25),
+              transparent
+            );
+          }
+        }
+      }
+    }
+  }
+
+  .toolbar {
+    background: linear-gradient(90deg, var(--octo-mint-05), transparent);
+    border-bottom: 1px solid var(--octo-mint-20);
+  }
+
+  .base-tree-detail-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .k-splitter {
+      flex: 1;
+      min-height: 0;
+    }
+  }
+
+  kendo-splitter-pane.detail-pane {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+
+    > mm-runtime-browser-details {
+      display: flex !important;
+      flex: 1 !important;
+      min-height: 0 !important;
+      height: 100% !important;
+
+      > .runtime-browser-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+    }
+  }
+}
+
+// Responsive container padding
+@media (max-width: 1024px) {
+  .runtime-browser-container {
+    padding: 12px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .runtime-browser-container {
+    padding: 8px;
+    gap: 10px;
+  }
+}

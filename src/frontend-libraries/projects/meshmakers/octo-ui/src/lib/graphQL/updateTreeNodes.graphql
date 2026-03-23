@@ -1,0 +1,11 @@
+mutation UpdateTreeNodes(
+  $entities: [BasicTreeNodeInputUpdate]!
+) {
+  runtime {
+    basicTreeNodes {
+      update(entities: $entities) {
+        rtId
+      }
+    }
+  }
+}

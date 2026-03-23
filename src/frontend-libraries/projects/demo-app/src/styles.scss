@@ -2,7 +2,8 @@
 @use "@progress/kendo-theme-default/dist/all.scss";
 
 /* Global styles */
-html, body {
+html,
+body {
   margin: 0;
   height: 100%;
   overflow: hidden;
@@ -114,4 +115,3 @@ app-tenant {
   display: flex !important;
   flex-direction: column !important;
 }
-

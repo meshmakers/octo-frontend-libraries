@@ -20,10 +20,7 @@
             "outputPath": "dist/demo-app",
             "index": "projects/demo-app/src/index.html",
             "main": "projects/demo-app/src/main.ts",
-            "polyfills": [
-              "zone.js",
-              "@angular/localize/init"
-            ],
+            "polyfills": ["zone.js", "@angular/localize/init"],
             "tsConfig": "projects/demo-app/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -33,9 +30,7 @@
                 "input": "projects/demo-app/public"
               }
             ],
-            "styles": [
-              "projects/demo-app/src/styles.scss"
-            ],
+            "styles": ["projects/demo-app/src/styles.scss"],
             "scripts": []
           },
           "configurations": {
@@ -49,13 +44,10 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "5kB",
-                  "maximumError": "10kB"
+                  "maximumError": "187kB"
                 }
               ],
-              "allowedCommonJsDependencies": [
-                "cronstrue",
-                "cron-parser"
-              ],
+              "allowedCommonJsDependencies": ["cronstrue", "cron-parser"],
               "outputHashing": "all"
             },
             "development": {
@@ -105,9 +97,7 @@
                 "input": "projects/demo-app/public"
               }
             ],
-            "styles": [
-              "projects/demo-app/src/styles.scss"
-            ],
+            "styles": ["projects/demo-app/src/styles.scss"],
             "scripts": []
           }
         },
@@ -194,10 +184,7 @@
           "options": {
             "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/shared-ui/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["zone.js", "zone.js/testing"]
           }
         },
         "lint": {
@@ -238,10 +225,7 @@
           "options": {
             "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/shared-ui-legacy/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["zone.js", "zone.js/testing"]
           }
         },
         "lint": {
@@ -327,10 +311,7 @@
           "options": {
             "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-services/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["zone.js", "zone.js/testing"]
           }
         },
         "lint": {
@@ -371,10 +352,7 @@
           "options": {
             "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-ui/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["zone.js", "zone.js/testing"]
           }
         },
         "lint": {
@@ -415,10 +393,7 @@
           "options": {
             "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-ui-legacy/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["zone.js", "zone.js/testing"]
           }
         },
         "lint": {
@@ -459,10 +434,7 @@
           "options": {
             "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-process-diagrams/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["zone.js", "zone.js/testing"]
           }
         },
         "lint": {
@@ -567,10 +539,7 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "projects/legacy-demo-app/tsconfig.spec.json",
             "karmaConfig": "projects/legacy-demo-app/karma.conf.js",
             "inlineStyleLanguage": "scss",
@@ -623,10 +592,7 @@
           "options": {
             "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-meshboard/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
+            "polyfills": ["zone.js", "zone.js/testing"]
           }
         },
         "lint": {

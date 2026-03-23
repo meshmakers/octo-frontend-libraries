@@ -1,0 +1,31 @@
+query getRuntimeEntityAssociationsById(
+  $rtId: OctoObjectId!
+  $ckTypeId: String!
+  $direction: GraphDirection!
+  $after: String
+  $first: Int
+  $roleId: String
+  $relatedRtCkId: RtCkTypeId,
+  $relatedRtId: OctoObjectId
+) {
+  runtime {
+    runtimeEntities(ckId: $ckTypeId, rtId: $rtId) {
+      items {
+        rtId
+        ckTypeId
+        associations {
+          definitions(direction: $direction, roleId: $roleId, relatedRtCkId: $relatedRtCkId, relatedRtId: $relatedRtId, after: $after, first: $first) {
+            totalCount
+            items {
+              targetRtId
+              targetCkTypeId
+              originRtId
+              originCkTypeId
+              ckAssociationRoleId
+            }
+          }
+        }
+      }
+    }
+  }
+}

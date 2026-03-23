@@ -1,14 +1,30 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { WindowModule, WindowRef } from '@progress/kendo-angular-dialog';
-import { GridModule, GridDataResult, CellClickEvent } from '@progress/kendo-angular-grid';
+import {
+  AttributeItem,
+  AttributeSelectorService,
+  AttributeValueTypeDto,
+} from '@meshmakers/octo-services';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { InputsModule } from '@progress/kendo-angular-inputs';
+import { WindowModule, WindowRef } from '@progress/kendo-angular-dialog';
 import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
+import {
+  CellClickEvent,
+  GridDataResult,
+  GridModule,
+} from '@progress/kendo-angular-grid';
 import { IconsModule } from '@progress/kendo-angular-icons';
-import { arrowRightIcon, arrowLeftIcon, searchIcon, arrowUpIcon, arrowDownIcon, chevronDoubleRightIcon, chevronDoubleLeftIcon } from '@progress/kendo-svg-icons';
-import { AttributeSelectorService, AttributeItem, AttributeValueTypeDto } from '@meshmakers/octo-services';
+import { InputsModule } from '@progress/kendo-angular-inputs';
+import {
+  arrowDownIcon,
+  arrowLeftIcon,
+  arrowRightIcon,
+  arrowUpIcon,
+  chevronDoubleLeftIcon,
+  chevronDoubleRightIcon,
+  searchIcon,
+} from '@progress/kendo-svg-icons';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -47,7 +63,7 @@ interface ValueTypeFilterOption {
     InputsModule,
     DropDownListModule,
     IconsModule,
-    WindowModule
+    WindowModule,
   ],
   template: `
     <div class="attribute-selector-container">
@@ -56,9 +72,14 @@ interface ValueTypeFilterOption {
           [(ngModel)]="searchText"
           (ngModelChange)="onSearchChange($event)"
           placeholder="Search path & description..."
-          class="search-input">
+          class="search-input"
+        >
           <ng-template kendoTextBoxSuffixTemplate>
-            <button kendoButton [svgIcon]="searchIcon" fillMode="clear"></button>
+            <button
+              kendoButton
+              [svgIcon]="searchIcon"
+              fillMode="clear"
+            ></button>
           </ng-template>
         </kendo-textbox>
         <kendo-dropdownlist
@@ -68,25 +89,33 @@ interface ValueTypeFilterOption {
           textField="text"
           valueField="value"
           [valuePrimitive]="true"
-          class="type-filter-dropdown">
+          class="type-filter-dropdown"
+        >
         </kendo-dropdownlist>
       </div>
 
       @if (!hideNavigationControls) {
         <div class="options-container">
-          <input type="checkbox" kendoCheckBox
+          <input
+            type="checkbox"
+            kendoCheckBox
             [(ngModel)]="includeNavigationProperties"
-            (ngModelChange)="onNavigationPropertiesChange()" />
+            (ngModelChange)="onNavigationPropertiesChange()"
+          />
           <label class="option-label">Include Navigation Properties</label>
 
           <kendo-numerictextbox
             [(ngModel)]="maxDepth"
-            [min]="1" [max]="5" [step]="1" [format]="'n0'"
+            [min]="1"
+            [max]="5"
+            [step]="1"
+            [format]="'n0'"
             [placeholder]="'Depth'"
             [spinners]="true"
             [disabled]="!includeNavigationProperties"
             (valueChange)="onMaxDepthChange($event)"
-            class="depth-input">
+            class="depth-input"
+          >
           </kendo-numerictextbox>
           <label class="option-label">Max Depth</label>
         </div>
@@ -103,10 +132,22 @@ interface ValueTypeFilterOption {
             [(selectedKeys)]="selectedAvailableKeys"
             (cellClick)="onAvailableCellClick($event)"
             [resizable]="true"
-            class="attribute-grid">
-            <kendo-grid-column field="attributePath" title="Attribute Path" [width]="250"></kendo-grid-column>
-            <kendo-grid-column field="attributeValueType" title="Type" [width]="100"></kendo-grid-column>
-            <kendo-grid-column field="description" title="Description"></kendo-grid-column>
+            class="attribute-grid"
+          >
+            <kendo-grid-column
+              field="attributePath"
+              title="Attribute Path"
+              [width]="250"
+            ></kendo-grid-column>
+            <kendo-grid-column
+              field="attributeValueType"
+              title="Type"
+              [width]="100"
+            ></kendo-grid-column>
+            <kendo-grid-column
+              field="description"
+              title="Description"
+            ></kendo-grid-column>
           </kendo-grid>
         </div>
 
@@ -116,30 +157,30 @@ interface ValueTypeFilterOption {
             [svgIcon]="arrowRightIcon"
             [disabled]="selectedAvailableKeys.length === 0"
             (click)="addSelected()"
-            title="Add selected">
-          </button>
+            title="Add selected"
+          ></button>
           <button
             kendoButton
             [svgIcon]="arrowLeftIcon"
             [disabled]="selectedChosenKeys.length === 0"
             (click)="removeSelected()"
-            title="Remove selected">
-          </button>
+            title="Remove selected"
+          ></button>
           <div class="separator"></div>
           <button
             kendoButton
             [svgIcon]="chevronDoubleRightIcon"
             [disabled]="availableAttributes.length === 0"
             (click)="addAll()"
-            title="Add all">
-          </button>
+            title="Add all"
+          ></button>
           <button
             kendoButton
             [svgIcon]="chevronDoubleLeftIcon"
             [disabled]="selectedAttributes.length === 0"
             (click)="removeAll()"
-            title="Remove all">
-          </button>
+            title="Remove all"
+          ></button>
         </div>
 
         <div class="list-section">
@@ -152,14 +193,27 @@ interface ValueTypeFilterOption {
             [(selectedKeys)]="selectedChosenKeys"
             (cellClick)="onSelectedCellClick($event)"
             [resizable]="true"
-            class="attribute-grid">
-            <kendo-grid-column field="attributePath" title="Attribute Path" [width]="200">
-              <ng-template kendoGridCellTemplate let-dataItem let-rowIndex="rowIndex">
+            class="attribute-grid"
+          >
+            <kendo-grid-column
+              field="attributePath"
+              title="Attribute Path"
+              [width]="200"
+            >
+              <ng-template
+                kendoGridCellTemplate
+                let-dataItem
+                let-rowIndex="rowIndex"
+              >
                 <span class="order-number">{{ rowIndex + 1 }}.</span>
                 {{ dataItem.attributePath }}
               </ng-template>
             </kendo-grid-column>
-            <kendo-grid-column field="attributeValueType" title="Type" [width]="100"></kendo-grid-column>
+            <kendo-grid-column
+              field="attributeValueType"
+              title="Type"
+              [width]="100"
+            ></kendo-grid-column>
           </kendo-grid>
         </div>
 
@@ -169,15 +223,15 @@ interface ValueTypeFilterOption {
             [svgIcon]="arrowUpIcon"
             [disabled]="!canMoveUp()"
             (click)="moveUp()"
-            title="Move up">
-          </button>
+            title="Move up"
+          ></button>
           <button
             kendoButton
             [svgIcon]="arrowDownIcon"
             [disabled]="!canMoveDown()"
             (click)="moveDown()"
-            title="Move down">
-          </button>
+            title="Move down"
+          ></button>
         </div>
       </div>
 
@@ -190,148 +244,169 @@ interface ValueTypeFilterOption {
           [(selectedKeys)]="selectedSingleKey"
           (cellClick)="onSingleSelectCellClick($event)"
           [resizable]="true"
-          class="attribute-grid">
-          <kendo-grid-column field="attributePath" title="Attribute Path" [width]="250"></kendo-grid-column>
-          <kendo-grid-column field="attributeValueType" title="Type" [width]="100"></kendo-grid-column>
-          <kendo-grid-column field="description" title="Description"></kendo-grid-column>
+          class="attribute-grid"
+        >
+          <kendo-grid-column
+            field="attributePath"
+            title="Attribute Path"
+            [width]="250"
+          ></kendo-grid-column>
+          <kendo-grid-column
+            field="attributeValueType"
+            title="Type"
+            [width]="100"
+          ></kendo-grid-column>
+          <kendo-grid-column
+            field="description"
+            title="Description"
+          ></kendo-grid-column>
         </kendo-grid>
       </div>
 
       <div class="action-bar">
         <button kendoButton (click)="onCancel()">Cancel</button>
-        <button kendoButton themeColor="primary" [disabled]="singleSelect && selectedSingleKey.length === 0" (click)="onConfirm()">OK</button>
+        <button
+          kendoButton
+          themeColor="primary"
+          [disabled]="singleSelect && selectedSingleKey.length === 0"
+          (click)="onConfirm()"
+        >
+          OK
+        </button>
       </div>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-      height: 100%;
-    }
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100%;
+      }
 
-    .attribute-selector-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 16px 20px;
-      box-sizing: border-box;
-      gap: 16px;
-    }
+      .attribute-selector-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 16px 20px;
+        box-sizing: border-box;
+        gap: 16px;
+      }
 
-    .filter-container {
-      display: flex;
-      gap: 12px;
-      flex-shrink: 0;
-    }
+      .filter-container {
+        display: flex;
+        gap: 12px;
+        flex-shrink: 0;
+      }
 
-    .search-input {
-      flex: 1;
-    }
+      .search-input {
+        flex: 1;
+      }
 
-    .type-filter-dropdown {
-      width: 160px;
-      flex-shrink: 0;
-    }
+      .type-filter-dropdown {
+        width: 160px;
+        flex-shrink: 0;
+      }
 
-    .options-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      flex-shrink: 0;
-    }
+      .options-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+      }
 
-    .option-label {
-      cursor: pointer;
-    }
+      .option-label {
+        cursor: pointer;
+      }
 
-    .depth-input {
-      width: 90px;
-    }
+      .depth-input {
+        width: 90px;
+      }
 
-    .lists-container {
-      display: flex;
-      gap: 16px;
-      flex: 1;
-      min-height: 0;
-    }
+      .lists-container {
+        display: flex;
+        gap: 16px;
+        flex: 1;
+        min-height: 0;
+      }
 
-    .list-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-    }
+      .list-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
 
-    .list-section h4 {
-      margin: 0 0 10px 0;
-      font-size: 0.85rem;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
+      .list-section h4 {
+        margin: 0 0 10px 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
 
-    .attribute-grid {
-      border-radius: 4px;
-      flex: 1;
-      min-height: 200px;
-    }
+      .attribute-grid {
+        border-radius: 4px;
+        flex: 1;
+        min-height: 200px;
+      }
 
-    .attribute-grid ::ng-deep .k-grid-table tbody tr {
-      cursor: pointer;
-    }
+      .attribute-grid ::ng-deep .k-grid-table tbody tr {
+        cursor: pointer;
+      }
 
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      justify-content: center;
-      padding: 0 8px;
-      padding-top: 32px;
-    }
+      .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: center;
+        padding: 0 8px;
+        padding-top: 32px;
+      }
 
-    .separator {
-      height: 1px;
-      background-color: var(--kendo-color-border, #dee2e6);
-      margin: 8px 0;
-    }
+      .separator {
+        height: 1px;
+        background-color: var(--kendo-color-border, #dee2e6);
+        margin: 8px 0;
+      }
 
-    .order-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      justify-content: center;
-      padding: 0 8px;
-      padding-top: 32px;
-    }
+      .order-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: center;
+        padding: 0 8px;
+        padding-top: 32px;
+      }
 
-    .order-number {
-      color: var(--kendo-color-primary, #ff6358);
-      font-weight: 600;
-      margin-right: 8px;
-      min-width: 24px;
-      display: inline-block;
-    }
+      .order-number {
+        color: var(--kendo-color-primary, #ff6358);
+        font-weight: 600;
+        margin-right: 8px;
+        min-width: 24px;
+        display: inline-block;
+      }
 
-    .single-select-container {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-    }
+      .single-select-container {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
 
-    .single-select-container .attribute-grid {
-      flex: 1;
-    }
+      .single-select-container .attribute-grid {
+        flex: 1;
+      }
 
-    .action-bar {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      flex-shrink: 0;
-      padding-top: 8px;
-      border-top: 1px solid var(--kendo-color-border, #dee2e6);
-    }
-  `]
+      .action-bar {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-shrink: 0;
+        padding-top: 8px;
+        border-top: 1px solid var(--kendo-color-border, #dee2e6);
+      }
+    `,
+  ],
 })
 export class AttributeSelectorDialogComponent implements OnInit {
   private readonly windowRef = inject(WindowRef);
@@ -347,7 +422,9 @@ export class AttributeSelectorDialogComponent implements OnInit {
   protected readonly arrowDownIcon = arrowDownIcon;
 
   private _data!: AttributeSelectorDialogData;
-  public get data(): AttributeSelectorDialogData { return this._data; }
+  public get data(): AttributeSelectorDialogData {
+    return this._data;
+  }
   public set data(value: AttributeSelectorDialogData) {
     this._data = value;
     if (value) {
@@ -385,7 +462,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
     { text: 'DateTime', value: AttributeValueTypeDto.DateTimeDto },
     { text: 'DateTimeOffset', value: AttributeValueTypeDto.DateTimeOffsetDto },
     { text: 'Enum', value: AttributeValueTypeDto.EnumDto },
-    { text: 'TimeSpan', value: AttributeValueTypeDto.TimeSpanDto }
+    { text: 'TimeSpan', value: AttributeValueTypeDto.TimeSpanDto },
   ];
 
   // Double-click tracking
@@ -395,12 +472,11 @@ export class AttributeSelectorDialogComponent implements OnInit {
 
   ngOnInit(): void {
     // Set up search debouncing (always, regardless of data timing)
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(searchText => {
-      this.loadAvailableAttributes(searchText);
-    });
+    this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((searchText) => {
+        this.loadAvailableAttributes(searchText);
+      });
   }
 
   private initializeFromData(data: AttributeSelectorDialogData): void {
@@ -411,7 +487,9 @@ export class AttributeSelectorDialogComponent implements OnInit {
     this.maxDepth = data.maxDepth ?? null;
     this.additionalAttributes = data.additionalAttributes ?? [];
     this.hideNavigationControls = data.hideNavigationControls ?? false;
-    this.attributePathsSet = data.attributePaths ? new Set(data.attributePaths) : null;
+    this.attributePathsSet = data.attributePaths
+      ? new Set(data.attributePaths)
+      : null;
 
     if (data.selectedAttributes && data.selectedAttributes.length > 0) {
       if (this.singleSelect) {
@@ -426,69 +504,104 @@ export class AttributeSelectorDialogComponent implements OnInit {
   }
 
   private loadAvailableAttributes(searchTerm?: string): void {
-    this.attributeService.getAvailableAttributes(
-      this.rtCkTypeId, undefined, undefined, undefined,
-      this.selectedValueTypeFilter || undefined,
-      searchTerm || undefined,
-      this.includeNavigationProperties,
-      this.maxDepth ?? undefined
-    ).subscribe(result => {
-      // Filter out already selected attributes
-      const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
+    this.attributeService
+      .getAvailableAttributes(
+        this.rtCkTypeId,
+        undefined,
+        undefined,
+        undefined,
+        this.selectedValueTypeFilter || undefined,
+        searchTerm || undefined,
+        this.includeNavigationProperties,
+        this.maxDepth ?? undefined,
+      )
+      .subscribe((result) => {
+        // Filter out already selected attributes
+        const selectedPaths = new Set(
+          this.selectedAttributes.map((a) => a.attributePath),
+        );
 
-      // Apply client-side attribute path restriction if set (additionalAttributes bypass this filter intentionally)
-      const filteredItems = this.attributePathsSet
-        ? result.items.filter(item => this.attributePathsSet!.has(item.attributePath))
-        : result.items;
+        // Apply client-side attribute path restriction if set (additionalAttributes bypass this filter intentionally)
+        const filteredItems = this.attributePathsSet
+          ? result.items.filter((item) =>
+              this.attributePathsSet!.has(item.attributePath),
+            )
+          : result.items;
 
-      // Include additional virtual attributes (e.g., Timestamp for stream data), filtered by search/type
-      const filteredAdditional = this.additionalAttributes.filter(attr => {
-        if (selectedPaths.has(attr.attributePath)) return false;
-        if (searchTerm && !attr.attributePath.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-        if (this.selectedValueTypeFilter && attr.attributeValueType !== this.selectedValueTypeFilter) return false;
-        return true;
+        // Include additional virtual attributes (e.g., Timestamp for stream data), filtered by search/type
+        const filteredAdditional = this.additionalAttributes.filter((attr) => {
+          if (selectedPaths.has(attr.attributePath)) return false;
+          if (
+            searchTerm &&
+            !attr.attributePath.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+            return false;
+          if (
+            this.selectedValueTypeFilter &&
+            attr.attributeValueType !== this.selectedValueTypeFilter
+          )
+            return false;
+          return true;
+        });
+
+        this.availableAttributes = [
+          ...filteredAdditional,
+          ...filteredItems.filter(
+            (item) => !selectedPaths.has(item.attributePath),
+          ),
+        ];
+        this.updateAvailableGrid();
       });
-
-      this.availableAttributes = [
-        ...filteredAdditional,
-        ...filteredItems.filter(item => !selectedPaths.has(item.attributePath))
-      ];
-      this.updateAvailableGrid();
-    });
   }
 
   private loadInitialSelectedAttributes(attributePaths: string[]): void {
     // Load all attributes to get the details for selected ones
-    this.attributeService.getAvailableAttributes(
-      this.rtCkTypeId, undefined, undefined, undefined,
-      undefined, undefined,
-      this.includeNavigationProperties,
-      this.maxDepth ?? undefined
-    ).subscribe(result => {
-      // Create a map for quick lookup, including additional virtual attributes
-      const attributeMap = new Map(result.items.map(item => [item.attributePath, item]));
-      for (const attr of this.additionalAttributes) {
-        attributeMap.set(attr.attributePath, attr);
-      }
+    this.attributeService
+      .getAvailableAttributes(
+        this.rtCkTypeId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        this.includeNavigationProperties,
+        this.maxDepth ?? undefined,
+      )
+      .subscribe((result) => {
+        // Create a map for quick lookup, including additional virtual attributes
+        const attributeMap = new Map(
+          result.items.map((item) => [item.attributePath, item]),
+        );
+        for (const attr of this.additionalAttributes) {
+          attributeMap.set(attr.attributePath, attr);
+        }
 
-      // Preserve the order from attributePaths
-      this.selectedAttributes = attributePaths
-        .map(path => attributeMap.get(path))
-        .filter((item): item is AttributeItem => item !== undefined);
+        // Preserve the order from attributePaths
+        this.selectedAttributes = attributePaths
+          .map((path) => attributeMap.get(path))
+          .filter((item): item is AttributeItem => item !== undefined);
 
-      this.updateSelectedGrid();
+        this.updateSelectedGrid();
 
-      // Filter out selected from available, and apply attributePathsSet restriction
-      const selectedPaths = new Set(this.selectedAttributes.map(a => a.attributePath));
-      const filteredItems = this.attributePathsSet
-        ? result.items.filter(item => this.attributePathsSet!.has(item.attributePath))
-        : result.items;
-      this.availableAttributes = [
-        ...this.additionalAttributes.filter(attr => !selectedPaths.has(attr.attributePath)),
-        ...filteredItems.filter(item => !selectedPaths.has(item.attributePath))
-      ];
-      this.updateAvailableGrid();
-    });
+        // Filter out selected from available, and apply attributePathsSet restriction
+        const selectedPaths = new Set(
+          this.selectedAttributes.map((a) => a.attributePath),
+        );
+        const filteredItems = this.attributePathsSet
+          ? result.items.filter((item) =>
+              this.attributePathsSet!.has(item.attributePath),
+            )
+          : result.items;
+        this.availableAttributes = [
+          ...this.additionalAttributes.filter(
+            (attr) => !selectedPaths.has(attr.attributePath),
+          ),
+          ...filteredItems.filter(
+            (item) => !selectedPaths.has(item.attributePath),
+          ),
+        ];
+        this.updateAvailableGrid();
+      });
   }
 
   public onSearchChange(value: string): void {
@@ -512,13 +625,13 @@ export class AttributeSelectorDialogComponent implements OnInit {
   }
 
   public addSelected(): void {
-    const itemsToAdd = this.availableAttributes.filter(
-      item => this.selectedAvailableKeys.includes(item.attributePath)
+    const itemsToAdd = this.availableAttributes.filter((item) =>
+      this.selectedAvailableKeys.includes(item.attributePath),
     );
 
     this.selectedAttributes.push(...itemsToAdd);
     this.availableAttributes = this.availableAttributes.filter(
-      item => !this.selectedAvailableKeys.includes(item.attributePath)
+      (item) => !this.selectedAvailableKeys.includes(item.attributePath),
     );
 
     this.selectedAvailableKeys = [];
@@ -526,13 +639,13 @@ export class AttributeSelectorDialogComponent implements OnInit {
   }
 
   public removeSelected(): void {
-    const itemsToRemove = this.selectedAttributes.filter(
-      item => this.selectedChosenKeys.includes(item.attributePath)
+    const itemsToRemove = this.selectedAttributes.filter((item) =>
+      this.selectedChosenKeys.includes(item.attributePath),
     );
 
     this.availableAttributes.push(...itemsToRemove);
     this.selectedAttributes = this.selectedAttributes.filter(
-      item => !this.selectedChosenKeys.includes(item.attributePath)
+      (item) => !this.selectedChosenKeys.includes(item.attributePath),
     );
 
     this.selectedChosenKeys = [];
@@ -557,14 +670,14 @@ export class AttributeSelectorDialogComponent implements OnInit {
 
   private sortAvailableAttributes(): void {
     this.availableAttributes.sort((a, b) =>
-      a.attributePath.localeCompare(b.attributePath)
+      a.attributePath.localeCompare(b.attributePath),
     );
   }
 
   public canMoveUp(): boolean {
     if (this.selectedChosenKeys.length !== 1) return false;
     const index = this.selectedAttributes.findIndex(
-      a => a.attributePath === this.selectedChosenKeys[0]
+      (a) => a.attributePath === this.selectedChosenKeys[0],
     );
     return index > 0;
   }
@@ -572,7 +685,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
   public canMoveDown(): boolean {
     if (this.selectedChosenKeys.length !== 1) return false;
     const index = this.selectedAttributes.findIndex(
-      a => a.attributePath === this.selectedChosenKeys[0]
+      (a) => a.attributePath === this.selectedChosenKeys[0],
     );
     return index >= 0 && index < this.selectedAttributes.length - 1;
   }
@@ -580,20 +693,24 @@ export class AttributeSelectorDialogComponent implements OnInit {
   public moveUp(): void {
     if (!this.canMoveUp()) return;
     const index = this.selectedAttributes.findIndex(
-      a => a.attributePath === this.selectedChosenKeys[0]
+      (a) => a.attributePath === this.selectedChosenKeys[0],
     );
-    [this.selectedAttributes[index - 1], this.selectedAttributes[index]] =
-      [this.selectedAttributes[index], this.selectedAttributes[index - 1]];
+    [this.selectedAttributes[index - 1], this.selectedAttributes[index]] = [
+      this.selectedAttributes[index],
+      this.selectedAttributes[index - 1],
+    ];
     this.updateSelectedGrid();
   }
 
   public moveDown(): void {
     if (!this.canMoveDown()) return;
     const index = this.selectedAttributes.findIndex(
-      a => a.attributePath === this.selectedChosenKeys[0]
+      (a) => a.attributePath === this.selectedChosenKeys[0],
     );
-    [this.selectedAttributes[index], this.selectedAttributes[index + 1]] =
-      [this.selectedAttributes[index + 1], this.selectedAttributes[index]];
+    [this.selectedAttributes[index], this.selectedAttributes[index + 1]] = [
+      this.selectedAttributes[index + 1],
+      this.selectedAttributes[index],
+    ];
     this.updateSelectedGrid();
   }
 
@@ -605,14 +722,14 @@ export class AttributeSelectorDialogComponent implements OnInit {
   private updateAvailableGrid(): void {
     this.availableGridData = {
       data: this.availableAttributes,
-      total: this.availableAttributes.length
+      total: this.availableAttributes.length,
     };
   }
 
   private updateSelectedGrid(): void {
     this.selectedGridData = {
       data: this.selectedAttributes,
-      total: this.selectedAttributes.length
+      total: this.selectedAttributes.length,
     };
   }
 
@@ -623,15 +740,15 @@ export class AttributeSelectorDialogComponent implements OnInit {
   public onConfirm(): void {
     if (this.singleSelect) {
       const selected = this.availableAttributes.find(
-        a => a.attributePath === this.selectedSingleKey[0]
+        (a) => a.attributePath === this.selectedSingleKey[0],
       );
       const result: AttributeSelectorDialogResult = {
-        selectedAttributes: selected ? [selected] : []
+        selectedAttributes: selected ? [selected] : [],
       };
       this.windowRef.close(result);
     } else {
       const result: AttributeSelectorDialogResult = {
-        selectedAttributes: this.selectedAttributes
+        selectedAttributes: this.selectedAttributes,
       };
       this.windowRef.close(result);
     }
@@ -720,7 +837,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
   private moveAttributeToSelected(attribute: AttributeItem): void {
     // Remove from available
     this.availableAttributes = this.availableAttributes.filter(
-      item => item.attributePath !== attribute.attributePath
+      (item) => item.attributePath !== attribute.attributePath,
     );
 
     // Add to selected
@@ -728,7 +845,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
 
     // Clear selections
     this.selectedAvailableKeys = this.selectedAvailableKeys.filter(
-      key => key !== attribute.attributePath
+      (key) => key !== attribute.attributePath,
     );
 
     this.updateGrids();
@@ -740,7 +857,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
   private moveAttributeToAvailable(attribute: AttributeItem): void {
     // Remove from selected
     this.selectedAttributes = this.selectedAttributes.filter(
-      item => item.attributePath !== attribute.attributePath
+      (item) => item.attributePath !== attribute.attributePath,
     );
 
     // Add to available
@@ -748,7 +865,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
 
     // Clear selections
     this.selectedChosenKeys = this.selectedChosenKeys.filter(
-      key => key !== attribute.attributePath
+      (key) => key !== attribute.attributePath,
     );
 
     // Sort available attributes

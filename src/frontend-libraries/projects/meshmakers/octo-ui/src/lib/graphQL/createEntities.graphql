@@ -1,0 +1,9 @@
+mutation CreateEntities($entities: [RtEntityInput]!) {
+  runtime {
+    runtimeEntities {
+      create (entities: $entities) {
+        rtId
+      }
+    }
+  }
+}

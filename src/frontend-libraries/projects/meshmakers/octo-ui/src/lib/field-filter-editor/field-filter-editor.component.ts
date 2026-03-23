@@ -1,23 +1,36 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { GridModule } from '@progress/kendo-angular-grid';
-import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
-import { InputsModule } from '@progress/kendo-angular-inputs';
-import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
-import { IconsModule } from '@progress/kendo-angular-icons';
-import { PopupModule } from '@progress/kendo-angular-popup';
-import { IntlModule } from '@progress/kendo-angular-intl';
-// Note: Kendo locale data (de/en) should be loaded via polyfills in the consuming application
-import { plusIcon, minusIcon, trashIcon, dollarIcon } from '@progress/kendo-svg-icons';
 import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  inject,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ButtonsModule } from '@progress/kendo-angular-buttons';
+import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
+import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
+import { GridModule } from '@progress/kendo-angular-grid';
+import { IconsModule } from '@progress/kendo-angular-icons';
+import { InputsModule } from '@progress/kendo-angular-inputs';
+import { IntlModule } from '@progress/kendo-angular-intl';
+import { PopupModule } from '@progress/kendo-angular-popup';
+// Note: Kendo locale data (de/en) should be loaded via polyfills in the consuming application
+import {
+  AttributeItem,
+  AttributeSelectorService,
+  AttributeValueTypeDto,
   FieldFilterDto,
   FieldFilterOperatorsDto,
-  AttributeValueTypeDto,
-  AttributeItem,
-  AttributeSelectorService
 } from '@meshmakers/octo-services';
+import {
+  dollarIcon,
+  minusIcon,
+  plusIcon,
+  trashIcon,
+} from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -54,27 +67,34 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
     DateInputsModule,
     IconsModule,
     PopupModule,
-    IntlModule
+    IntlModule,
   ],
   template: `
     <div class="field-filter-editor">
       @if (ckTypeId && !hideNavigationProperties) {
         <div class="attribute-options">
           <label class="inline-checkbox">
-            <input type="checkbox" kendoCheckBox
+            <input
+              type="checkbox"
+              kendoCheckBox
               [(ngModel)]="includeNavigationProperties"
-              (ngModelChange)="onNavigationPropertiesChange()" />
+              (ngModelChange)="onNavigationPropertiesChange()"
+            />
             Include Navigation Properties
           </label>
           <label class="inline-field">
             Max Depth
             <kendo-numerictextbox
               [(ngModel)]="maxDepth"
-              [min]="1" [max]="5" [step]="1" [format]="'n0'"
+              [min]="1"
+              [max]="5"
+              [step]="1"
+              [format]="'n0'"
               [spinners]="true"
               [disabled]="!includeNavigationProperties"
               (valueChange)="onMaxDepthChange($event)"
-              class="depth-input">
+              class="depth-input"
+            >
             </kendo-numerictextbox>
           </label>
           @if (isLoadingAttributes) {
@@ -88,7 +108,8 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
           [svgIcon]="plusIcon"
           themeColor="primary"
           (click)="addFilter()"
-          title="Add filter">
+          title="Add filter"
+        >
           Add Filter
         </button>
         <button
@@ -97,7 +118,8 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
           themeColor="error"
           (click)="removeSelected()"
           [disabled]="selectedKeys.length === 0"
-          title="Remove selected filters">
+          title="Remove selected filters"
+        >
           Remove Selected
         </button>
       </div>
@@ -107,25 +129,31 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
         [selectable]="{ mode: 'multiple', enabled: true }"
         [kendoGridSelectBy]="'id'"
         [(selectedKeys)]="selectedKeys"
-        class="filter-grid">
-
+        class="filter-grid"
+      >
         <kendo-grid-column title="" [width]="50" [class]="'checkbox-column'">
           <ng-template kendoGridHeaderTemplate>
             <input
               type="checkbox"
               [checked]="isAllSelected()"
               [indeterminate]="isIndeterminate()"
-              (change)="toggleSelectAll($event)" />
+              (change)="toggleSelectAll($event)"
+            />
           </ng-template>
           <ng-template kendoGridCellTemplate let-dataItem>
             <input
               type="checkbox"
               [checked]="isSelected(dataItem)"
-              (change)="toggleSelection(dataItem)" />
+              (change)="toggleSelection(dataItem)"
+            />
           </ng-template>
         </kendo-grid-column>
 
-        <kendo-grid-column field="attributePath" title="Attribute Path" [width]="280">
+        <kendo-grid-column
+          field="attributePath"
+          title="Attribute Path"
+          [width]="280"
+        >
           <ng-template kendoGridCellTemplate let-dataItem>
             @if (availableAttributes.length > 0) {
               <kendo-combobox
@@ -140,11 +168,14 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                 (filterChange)="onAttributeFilterChange($event)"
                 [listHeight]="300"
                 [popupSettings]="{ appendTo: 'root', animate: true }"
-                class="attribute-dropdown">
+                class="attribute-dropdown"
+              >
                 <ng-template kendoComboBoxItemTemplate let-item>
                   <div class="attribute-item">
                     <span class="attribute-path">{{ item.attributePath }}</span>
-                    <span class="attribute-type">{{ item.attributeValueType }}</span>
+                    <span class="attribute-type">{{
+                      item.attributeValueType
+                    }}</span>
                   </div>
                 </ng-template>
               </kendo-combobox>
@@ -153,7 +184,8 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                 [(ngModel)]="dataItem.attributePath"
                 (valueChange)="onFilterChange()"
                 placeholder="Enter attribute path"
-                class="attribute-input">
+                class="attribute-input"
+              >
               </kendo-textbox>
             }
           </ng-template>
@@ -170,7 +202,8 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
               [valuePrimitive]="true"
               [listHeight]="300"
               [popupSettings]="{ appendTo: 'root', animate: true }"
-              class="operator-dropdown">
+              class="operator-dropdown"
+            >
             </kendo-dropdownlist>
           </ng-template>
         </kendo-grid-column>
@@ -189,10 +222,13 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                   [valuePrimitive]="false"
                   [popupSettings]="{ appendTo: 'root', animate: true }"
                   placeholder="Select variable..."
-                  class="value-input variable-dropdown">
+                  class="value-input variable-dropdown"
+                >
                   <ng-template kendoDropDownListItemTemplate let-item>
                     <div class="variable-item">
-                      <span class="variable-name">{{ formatVariableDisplay(item.name) }}</span>
+                      <span class="variable-name">{{
+                        formatVariableDisplay(item.name)
+                      }}</span>
                       @if (item.label && item.label !== item.name) {
                         <span class="variable-label">{{ item.label }}</span>
                       }
@@ -200,9 +236,13 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                   </ng-template>
                   <ng-template kendoDropDownListValueTemplate let-item>
                     @if (item) {
-                      <span class="variable-value">{{ formatVariableDisplay(item.name) }}</span>
+                      <span class="variable-value">{{
+                        formatVariableDisplay(item.name)
+                      }}</span>
                     } @else {
-                      <span class="variable-placeholder">Select variable...</span>
+                      <span class="variable-placeholder"
+                        >Select variable...</span
+                      >
                     }
                   </ng-template>
                 </kendo-dropdownlist>
@@ -213,9 +253,12 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                     @if (isArrayOperator(dataItem.operator)) {
                       <kendo-textbox
                         [value]="getDisplayValue(dataItem)"
-                        (valueChange)="onComparisonValueChange(dataItem, $event)"
+                        (valueChange)="
+                          onComparisonValueChange(dataItem, $event)
+                        "
                         placeholder="true, false"
-                        class="value-input">
+                        class="value-input"
+                      >
                       </kendo-textbox>
                     } @else {
                       <kendo-dropdownlist
@@ -223,7 +266,8 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                         [value]="getBooleanValue(dataItem)"
                         (valueChange)="onBooleanValueChange(dataItem, $event)"
                         [popupSettings]="{ appendTo: 'root', animate: true }"
-                        class="value-input">
+                        class="value-input"
+                      >
                       </kendo-dropdownlist>
                     }
                   }
@@ -231,9 +275,12 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                     @if (isArrayOperator(dataItem.operator)) {
                       <kendo-textbox
                         [value]="getDisplayValue(dataItem)"
-                        (valueChange)="onComparisonValueChange(dataItem, $event)"
+                        (valueChange)="
+                          onComparisonValueChange(dataItem, $event)
+                        "
                         placeholder="1, 2, 3"
-                        class="value-input">
+                        class="value-input"
+                      >
                       </kendo-textbox>
                     } @else {
                       <kendo-numerictextbox
@@ -241,7 +288,8 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                         (valueChange)="onNumericValueChange(dataItem, $event)"
                         [decimals]="getDecimals(dataItem)"
                         [format]="getNumberFormat(dataItem)"
-                        class="value-input">
+                        class="value-input"
+                      >
                       </kendo-numerictextbox>
                     }
                   }
@@ -249,16 +297,20 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                     @if (isArrayOperator(dataItem.operator)) {
                       <kendo-textbox
                         [value]="getDisplayValue(dataItem)"
-                        (valueChange)="onComparisonValueChange(dataItem, $event)"
+                        (valueChange)="
+                          onComparisonValueChange(dataItem, $event)
+                        "
                         placeholder="2024-01-15, 2024-02-20"
-                        class="value-input">
+                        class="value-input"
+                      >
                       </kendo-textbox>
                     } @else {
                       <kendo-datetimepicker
                         [value]="getDateTimeValue(dataItem)"
                         (valueChange)="onDateTimeValueChange(dataItem, $event)"
                         [popupSettings]="{ appendTo: 'root', animate: true }"
-                        class="value-input">
+                        class="value-input"
+                      >
                       </kendo-datetimepicker>
                     }
                   }
@@ -268,7 +320,8 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                       (valueChange)="onComparisonValueChange(dataItem, $event)"
                       (blur)="onComparisonValueBlur(dataItem)"
                       [placeholder]="getValuePlaceholder(dataItem)"
-                      class="value-input">
+                      class="value-input"
+                    >
                     </kendo-textbox>
                   }
                 }
@@ -281,9 +334,13 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                   fillMode="flat"
                   [themeColor]="dataItem.useVariable ? 'primary' : 'base'"
                   (click)="toggleVariableMode(dataItem)"
-                  [title]="dataItem.useVariable ? 'Switch to literal value' : 'Use variable'"
-                  class="variable-toggle">
-                </button>
+                  [title]="
+                    dataItem.useVariable
+                      ? 'Switch to literal value'
+                      : 'Use variable'
+                  "
+                  class="variable-toggle"
+                ></button>
               }
             </div>
           </ng-template>
@@ -297,11 +354,10 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
               fillMode="flat"
               themeColor="error"
               (click)="removeFilter(dataItem)"
-              title="Remove this filter">
-            </button>
+              title="Remove this filter"
+            ></button>
           </ng-template>
         </kendo-grid-column>
-
       </kendo-grid>
 
       @if (filters.length === 0) {
@@ -311,151 +367,155 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
       }
     </div>
   `,
-  styles: [`
-    .field-filter-editor {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+  styles: [
+    `
+      .field-filter-editor {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
 
-    .attribute-options {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      font-size: 0.85rem;
-    }
+      .attribute-options {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 0.85rem;
+      }
 
-    .inline-checkbox {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      font-weight: normal;
-    }
+      .inline-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-weight: normal;
+      }
 
-    .inline-field {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: normal;
-    }
+      .inline-field {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: normal;
+      }
 
-    .depth-input {
-      width: 80px;
-    }
+      .depth-input {
+        width: 80px;
+      }
 
-    .loading-hint {
-      font-size: 0.8rem;
-      color: var(--kendo-color-subtle, #6c757d);
-    }
+      .loading-hint {
+        font-size: 0.8rem;
+        color: var(--kendo-color-subtle, #6c757d);
+      }
 
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 5px;
-    }
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 5px;
+      }
 
-    .filter-grid {
-      border: 1px solid #d5d5d5;
-    }
+      .filter-grid {
+        border: 1px solid #d5d5d5;
+      }
 
-    .filter-grid ::ng-deep .k-grid-header .k-header {
-      font-weight: 600;
-    }
+      .filter-grid ::ng-deep .k-grid-header .k-header {
+        font-weight: 600;
+      }
 
-    .checkbox-column {
-      text-align: center;
-    }
+      .checkbox-column {
+        text-align: center;
+      }
 
-    .attribute-dropdown,
-    .operator-dropdown,
-    .attribute-input {
-      width: 100%;
-    }
+      .attribute-dropdown,
+      .operator-dropdown,
+      .attribute-input {
+        width: 100%;
+      }
 
-    .value-input {
-      width: 100%;
-    }
+      .value-input {
+        width: 100%;
+      }
 
-    .attribute-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-    }
+      .attribute-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+      }
 
-    .attribute-path {
-      flex: 1;
-    }
+      .attribute-path {
+        flex: 1;
+      }
 
-    .attribute-type {
-      font-size: 11px;
-      color: #888;
-      margin-left: 8px;
-      padding: 2px 6px;
-      background: #f0f0f0;
-      border-radius: 3px;
-    }
+      .attribute-type {
+        font-size: 11px;
+        color: #888;
+        margin-left: 8px;
+        padding: 2px 6px;
+        background: #f0f0f0;
+        border-radius: 3px;
+      }
 
-    .empty-state {
-      padding: 40px;
-      text-align: center;
-      border: 1px dashed;
-      border-radius: 8px;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 0.9rem;
-    }
+      .empty-state {
+        padding: 40px;
+        text-align: center;
+        border: 1px dashed;
+        border-radius: 8px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+      }
 
-    .empty-state p {
-      margin: 0;
-    }
+      .empty-state p {
+        margin: 0;
+      }
 
-    .value-cell {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
+      .value-cell {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
 
-    .value-cell .value-input {
-      flex: 1;
-    }
+      .value-cell .value-input {
+        flex: 1;
+      }
 
-    .variable-toggle {
-      flex-shrink: 0;
-    }
+      .variable-toggle {
+        flex-shrink: 0;
+      }
 
-    .variable-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+      .variable-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
 
-    .variable-name {
-      font-family: monospace;
-      font-weight: 500;
-    }
+      .variable-name {
+        font-family: monospace;
+        font-weight: 500;
+      }
 
-    .variable-label {
-      font-size: 11px;
-      color: var(--kendo-color-subtle, #888);
-    }
+      .variable-label {
+        font-size: 11px;
+        color: var(--kendo-color-subtle, #888);
+      }
 
-    .variable-value {
-      font-family: monospace;
-      color: var(--kendo-color-primary, #0d6efd);
-    }
+      .variable-value {
+        font-family: monospace;
+        color: var(--kendo-color-primary, #0d6efd);
+      }
 
-    .variable-placeholder {
-      color: var(--kendo-color-subtle, #888);
-    }
+      .variable-placeholder {
+        color: var(--kendo-color-subtle, #888);
+      }
 
-    .variable-dropdown ::ng-deep .k-input-value-text {
-      font-family: monospace;
-    }
-  `]
+      .variable-dropdown ::ng-deep .k-input-value-text {
+        font-family: monospace;
+      }
+    `,
+  ],
 })
 export class FieldFilterEditorComponent implements OnChanges {
-  private readonly attributeService = inject(AttributeSelectorService, { optional: true });
+  private readonly attributeService = inject(AttributeSelectorService, {
+    optional: true,
+  });
 
   protected readonly plusIcon = plusIcon;
   protected readonly minusIcon = minusIcon;
@@ -464,14 +524,20 @@ export class FieldFilterEditorComponent implements OnChanges {
 
   private readonly arrayOperators = [
     FieldFilterOperatorsDto.InDto,
-    FieldFilterOperatorsDto.NotInDto
+    FieldFilterOperatorsDto.NotInDto,
   ];
 
-  public readonly operators: { label: string; value: FieldFilterOperatorsDto }[] = [
+  public readonly operators: {
+    label: string;
+    value: FieldFilterOperatorsDto;
+  }[] = [
     { label: 'Equals', value: FieldFilterOperatorsDto.EqualsDto },
     { label: 'Not Equals', value: FieldFilterOperatorsDto.NotEqualsDto },
     { label: 'Greater Than', value: FieldFilterOperatorsDto.GreaterThanDto },
-    { label: 'Greater Equal', value: FieldFilterOperatorsDto.GreaterEqualThanDto },
+    {
+      label: 'Greater Equal',
+      value: FieldFilterOperatorsDto.GreaterEqualThanDto,
+    },
     { label: 'Less Than', value: FieldFilterOperatorsDto.LessThanDto },
     { label: 'Less Equal', value: FieldFilterOperatorsDto.LessEqualThanDto },
     { label: 'Like', value: FieldFilterOperatorsDto.LikeDto },
@@ -479,7 +545,7 @@ export class FieldFilterEditorComponent implements OnChanges {
     { label: 'Not In', value: FieldFilterOperatorsDto.NotInDto },
     { label: 'Any Equals', value: FieldFilterOperatorsDto.AnyEqDto },
     { label: 'Any Like', value: FieldFilterOperatorsDto.AnyLikeDto },
-    { label: 'Match RegEx', value: FieldFilterOperatorsDto.MatchRegExDto }
+    { label: 'Match RegEx', value: FieldFilterOperatorsDto.MatchRegExDto },
   ];
 
   public readonly booleanOptions = ['true', 'false'];
@@ -538,7 +604,10 @@ export class FieldFilterEditorComponent implements OnChanges {
 
   ngOnChanges(changes?: SimpleChanges): void {
     // When hideNavigationProperties changes to true, reset nav props
-    if (changes?.['hideNavigationProperties'] && this.hideNavigationProperties) {
+    if (
+      changes?.['hideNavigationProperties'] &&
+      this.hideNavigationProperties
+    ) {
       this.includeNavigationProperties = false;
       this.maxDepth = null;
     }
@@ -571,7 +640,10 @@ export class FieldFilterEditorComponent implements OnChanges {
   private buildAttributeTypeMap(): void {
     this.attributeTypeMap.clear();
     for (const attr of this.availableAttributes) {
-      this.attributeTypeMap.set(attr.attributePath, attr.attributeValueType as AttributeValueTypeDto);
+      this.attributeTypeMap.set(
+        attr.attributePath,
+        attr.attributeValueType as AttributeValueTypeDto,
+      );
     }
   }
 
@@ -595,19 +667,21 @@ export class FieldFilterEditorComponent implements OnChanges {
     if (!this.ckTypeId || !this.attributeService) return;
 
     this.isLoadingAttributes = true;
-    const includeNavProps = this.hideNavigationProperties ? false : this.includeNavigationProperties;
+    const includeNavProps = this.hideNavigationProperties
+      ? false
+      : this.includeNavigationProperties;
     try {
       const result = await firstValueFrom(
         this.attributeService.getAvailableAttributes(
           this.ckTypeId,
           undefined, // filter
-          1000,      // first
+          1000, // first
           undefined, // after
           undefined, // attributeValueType
           undefined, // searchTerm
           includeNavProps,
-          this.maxDepth ?? undefined
-        )
+          this.maxDepth ?? undefined,
+        ),
       );
       // Apply client-side attribute path restriction if set
       const allowedPathsSet = this.attributePaths ? new Set(this.attributePaths) : null;
@@ -625,25 +699,47 @@ export class FieldFilterEditorComponent implements OnChanges {
     }
   }
 
+  private filterAvailableAttributes(items: AttributeItem[]): AttributeItem[] {
+    let filtered = items;
+    if (!this.includeNavigationProperties) {
+      filtered = filtered.filter(
+        (item) => this.getAttributeDepth(item.attributePath) === 0,
+      );
+    }
+    if (this.maxDepth != null) {
+      filtered = filtered.filter(
+        (item) => this.getAttributeDepth(item.attributePath) <= this.maxDepth!,
+      );
+    }
+    return filtered;
+  }
+
+  private getAttributeDepth(attributePath: string): number {
+    if (!attributePath) return 0;
+    return attributePath.split('.').length - 1;
+  }
+
   public addFilter(): void {
     const newFilter: FieldFilterItem = {
       id: this.nextId++,
       attributePath: '',
       operator: FieldFilterOperatorsDto.EqualsDto,
-      comparisonValue: ''
+      comparisonValue: '',
     };
     this._filters = [...this._filters, newFilter];
     this.filtersChange.emit(this._filters);
   }
 
   public removeFilter(filter: FieldFilterItem): void {
-    this._filters = this._filters.filter(f => f.id !== filter.id);
-    this.selectedKeys = this.selectedKeys.filter(k => k !== filter.id);
+    this._filters = this._filters.filter((f) => f.id !== filter.id);
+    this.selectedKeys = this.selectedKeys.filter((k) => k !== filter.id);
     this.filtersChange.emit(this._filters);
   }
 
   public removeSelected(): void {
-    this._filters = this._filters.filter(f => !this.selectedKeys.includes(f.id));
+    this._filters = this._filters.filter(
+      (f) => !this.selectedKeys.includes(f.id),
+    );
     this.selectedKeys = [];
     this.filtersChange.emit(this._filters);
   }
@@ -652,7 +748,10 @@ export class FieldFilterEditorComponent implements OnChanges {
     this.filtersChange.emit(this._filters);
   }
 
-  public onAttributeChange(filter: FieldFilterItem, attributePath: string): void {
+  public onAttributeChange(
+    filter: FieldFilterItem,
+    attributePath: string,
+  ): void {
     filter.attributePath = attributePath;
     // Reset comparison value when attribute changes
     filter.comparisonValue = '';
@@ -683,7 +782,10 @@ export class FieldFilterEditorComponent implements OnChanges {
     this.onFilterChange();
   }
 
-  public onComparisonValueChange(filter: FieldFilterItem, inputValue: string | null): void {
+  public onComparisonValueChange(
+    filter: FieldFilterItem,
+    inputValue: string | null,
+  ): void {
     if (inputValue === null) {
       filter.comparisonValue = '';
       return;
@@ -719,12 +821,18 @@ export class FieldFilterEditorComponent implements OnChanges {
     this.onFilterChange();
   }
 
-  public onNumericValueChange(filter: FieldFilterItem, value: number | null): void {
+  public onNumericValueChange(
+    filter: FieldFilterItem,
+    value: number | null,
+  ): void {
     filter.comparisonValue = value !== null ? String(value) : '';
     this.onFilterChange();
   }
 
-  public onDateTimeValueChange(filter: FieldFilterItem, value: Date | null): void {
+  public onDateTimeValueChange(
+    filter: FieldFilterItem,
+    value: Date | null,
+  ): void {
     filter.comparisonValue = value !== null ? value.toISOString() : '';
     this.onFilterChange();
   }
@@ -777,15 +885,23 @@ export class FieldFilterEditorComponent implements OnChanges {
     }
 
     // Numeric types
-    if (normalizedType === 'INT' || normalizedType === 'INTEGER' ||
-        normalizedType === 'INT_64' || normalizedType === 'INTEGER_64' ||
-        normalizedType === 'DOUBLE') {
+    if (
+      normalizedType === 'INT' ||
+      normalizedType === 'INTEGER' ||
+      normalizedType === 'INT_64' ||
+      normalizedType === 'INTEGER_64' ||
+      normalizedType === 'DOUBLE'
+    ) {
       return 'number';
     }
 
     // DateTime types
-    if (normalizedType === 'DATE_TIME' || normalizedType === 'DATE_TIME_OFFSET' ||
-        normalizedType === 'DATETIME' || normalizedType === 'DATETIMEOFFSET') {
+    if (
+      normalizedType === 'DATE_TIME' ||
+      normalizedType === 'DATE_TIME_OFFSET' ||
+      normalizedType === 'DATETIME' ||
+      normalizedType === 'DATETIMEOFFSET'
+    ) {
       return 'datetime';
     }
 
@@ -819,32 +935,38 @@ export class FieldFilterEditorComponent implements OnChanges {
 
   public toggleSelection(filter: FieldFilterItem): void {
     if (this.isSelected(filter)) {
-      this.selectedKeys = this.selectedKeys.filter(k => k !== filter.id);
+      this.selectedKeys = this.selectedKeys.filter((k) => k !== filter.id);
     } else {
       this.selectedKeys = [...this.selectedKeys, filter.id];
     }
   }
 
   public isAllSelected(): boolean {
-    return this._filters.length > 0 && this.selectedKeys.length === this._filters.length;
+    return (
+      this._filters.length > 0 &&
+      this.selectedKeys.length === this._filters.length
+    );
   }
 
   public isIndeterminate(): boolean {
-    return this.selectedKeys.length > 0 && this.selectedKeys.length < this._filters.length;
+    return (
+      this.selectedKeys.length > 0 &&
+      this.selectedKeys.length < this._filters.length
+    );
   }
 
   public toggleSelectAll(event: Event): void {
     const checkbox = event.target as HTMLInputElement;
     if (checkbox.checked) {
-      this.selectedKeys = this._filters.map(f => f.id);
+      this.selectedKeys = this._filters.map((f) => f.id);
     } else {
       this.selectedKeys = [];
     }
   }
 
   public onAttributeFilterChange(filter: string): void {
-    this.filteredAttributeList = this.availableAttributes.filter(
-      attr => attr.attributePath.toLowerCase().includes(filter.toLowerCase())
+    this.filteredAttributeList = this.availableAttributes.filter((attr) =>
+      attr.attributePath.toLowerCase().includes(filter.toLowerCase()),
     );
   }
 
@@ -871,13 +993,16 @@ export class FieldFilterEditorComponent implements OnChanges {
     const varName = this.extractVariableName(String(filter.comparisonValue));
     if (!varName) return null;
 
-    return this.availableVariables.find(v => v.name === varName) || null;
+    return this.availableVariables.find((v) => v.name === varName) || null;
   }
 
   /**
    * Handles variable selection from the dropdown.
    */
-  public onVariableSelected(filter: FieldFilterItem, variable: FilterVariable | null): void {
+  public onVariableSelected(
+    filter: FieldFilterItem,
+    variable: FilterVariable | null,
+  ): void {
     if (variable) {
       // Store as ${variableName} format
       filter.comparisonValue = `\${${variable.name}}`;
@@ -911,7 +1036,9 @@ export class FieldFilterEditorComponent implements OnChanges {
    */
   public isVariableValue(value: unknown): boolean {
     if (!value || typeof value !== 'string') return false;
-    return /^\$\{[^}]+\}$/.test(value) || /^\$[a-zA-Z_][a-zA-Z0-9_]*$/.test(value);
+    return (
+      /^\$\{[^}]+\}$/.test(value) || /^\$[a-zA-Z_][a-zA-Z0-9_]*$/.test(value)
+    );
   }
 
   /**
@@ -923,20 +1050,20 @@ export class FieldFilterEditorComponent implements OnChanges {
 
   public getFieldFilters(): FieldFilterDto[] {
     return this._filters
-      .filter(f => f.attributePath && f.attributePath.trim() !== '')
-      .map(f => ({
+      .filter((f) => f.attributePath && f.attributePath.trim() !== '')
+      .map((f) => ({
         attributePath: f.attributePath,
         operator: f.operator,
-        comparisonValue: f.comparisonValue
+        comparisonValue: f.comparisonValue,
       }));
   }
 
   public setFieldFilters(filters: FieldFilterDto[]): void {
-    this._filters = filters.map(f => ({
+    this._filters = filters.map((f) => ({
       ...f,
       id: this.nextId++,
       // Detect if the value is a variable reference
-      useVariable: this.isVariableValue(f.comparisonValue)
+      useVariable: this.isVariableValue(f.comparisonValue),
     }));
     this.filtersChange.emit(this._filters);
   }
