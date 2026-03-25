@@ -82,10 +82,14 @@ export class BreadCrumbService {
             }
           }
 
+          // Replace any unresolved {{param}} placeholders with ellipsis for display
+          const displayLabel = label.replace(/\{\{[^}]+}}/g, '\u2026');
+
           path.push({
-            text: label,
-            title: label,
+            text: displayLabel,
+            title: displayLabel,
             labelTemplate: breadCrumbRouteItem.label,
+            urlTemplate: breadCrumbRouteItem.url,
             svgIcon: breadCrumbRouteItem.svgIcon,
             url: url
           });
@@ -106,20 +110,36 @@ export class BreadCrumbService {
 
     const list = await firstValueFrom(this._breadCrumbItems);
     for (const breadCrumbDataItem of list) {
-      if (!breadCrumbDataItem.labelTemplate) {
-        continue;
-      }
-      // noinspection RegExpDuplicateCharacterInClass
-      const labelParams = breadCrumbDataItem.labelTemplate.match(/[^{{]+(?=}})/g);
-      if (labelParams) {
-        for (const labelParam of labelParams) {
-
-          const value = data[labelParam];
-          if (!value) {
-            continue;
+      // Resolve {{param}} in labels
+      if (breadCrumbDataItem.labelTemplate) {
+        // noinspection RegExpDuplicateCharacterInClass
+        const labelParams = breadCrumbDataItem.labelTemplate.match(/[^{{]+(?=}})/g);
+        if (labelParams) {
+          let resolvedLabel = breadCrumbDataItem.labelTemplate;
+          for (const labelParam of labelParams) {
+            const value = data[labelParam];
+            if (value) {
+              resolvedLabel = resolvedLabel.replace('{{' + labelParam + '}}', value);
+            }
           }
-          breadCrumbDataItem.title = breadCrumbDataItem.labelTemplate.replace('{{' + labelParam + '}}', data[labelParam]);
-          breadCrumbDataItem.text = breadCrumbDataItem.title;
+          breadCrumbDataItem.title = resolvedLabel;
+          breadCrumbDataItem.text = resolvedLabel;
+        }
+      }
+
+      // Resolve {{param}} in URLs
+      if (breadCrumbDataItem.urlTemplate) {
+        // noinspection RegExpDuplicateCharacterInClass
+        const urlParams = breadCrumbDataItem.urlTemplate.match(/[^{{]+(?=}})/g);
+        if (urlParams) {
+          let resolvedUrl = breadCrumbDataItem.urlTemplate;
+          for (const urlParam of urlParams) {
+            const value = data[urlParam];
+            if (value) {
+              resolvedUrl = resolvedUrl.replace('{{' + urlParam + '}}', value);
+            }
+          }
+          breadCrumbDataItem.url = resolvedUrl;
         }
       }
     }

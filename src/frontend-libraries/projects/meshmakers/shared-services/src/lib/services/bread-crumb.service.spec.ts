@@ -319,8 +319,8 @@ describe('BreadCrumbService', () => {
       service = TestBed.inject(BreadCrumbService);
 
       service.breadCrumbItems.subscribe(items => {
-        // When param is missing, the placeholder remains
-        expect(items[0].text).toBe('User {{missingParam}}');
+        // When param is missing, the placeholder is replaced with ellipsis
+        expect(items[0].text).toBe('User \u2026');
         done();
       });
     });

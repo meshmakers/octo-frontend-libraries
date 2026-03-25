@@ -63,6 +63,11 @@ export interface BaseFormConfig {
   showCancelButton?: boolean;
   showLoadingOverlay?: boolean;
   /**
+   * Whether to show the title row. Defaults to true.
+   * Set to false to hide the title (useful when the form is embedded in a tab).
+   */
+  showTitle?: boolean;
+  /**
    * Indicates whether the form has unsaved changes.
    * When true, displays a "Modified" indicator in the header and footer.
    */
@@ -110,6 +115,7 @@ export class BaseFormComponent implements HasUnsavedChanges {
   protected readonly cancelIcon: SVGIcon = cancelIcon;
 
   protected get title(): string {
+    if (this.config.showTitle === false) return '';
     if (this.config.title) return this.config.title;
     const msgs = this.config.messages;
     if (this.config.isViewMode) return msgs?.viewTitle ?? 'View Details';

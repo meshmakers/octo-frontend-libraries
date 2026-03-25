@@ -17,6 +17,7 @@ export class BreadCrumbData implements BreadCrumbItem {
   iconClass?: string;
   imageUrl?: string;
 
-  labelTemplate: string
+  labelTemplate: string;
+  urlTemplate?: string;
   url: string;
 }
