@@ -14,6 +14,9 @@
 //   --mm-login-btn-primary-end   (default: #1565c0)
 //   --mm-login-btn-primary-text  (default: #ffffff)
 //   --mm-login-font            (default: 'Roboto', sans-serif)
+//   --mm-login-avatar-bg       (default: rgba(accent-rgb, 0.15))
+//   --mm-login-avatar-text     (default: --mm-login-accent)
+//   --mm-login-avatar-border   (default: rgba(accent-rgb, 0.5))
 // ============================================================================
 
 .content {
@@ -29,9 +32,9 @@
 
 // Avatar styling — override Kendo defaults (border-width: 0)
 :host ::ng-deep kendo-avatar.k-avatar {
-  background-color: rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.15) !important;
-  border: 1.5px solid rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.5) !important;
-  color: var(--mm-login-accent, #1976d2);
+  background-color: var(--mm-login-avatar-bg, rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.15)) !important;
+  border: 1.5px solid var(--mm-login-avatar-border, rgba(var(--mm-login-accent-rgb, 25, 118, 210), 0.5)) !important;
+  color: var(--mm-login-avatar-text, var(--mm-login-accent, #1976d2));
 
   .k-avatar-text {
     font-family: var(--mm-login-font, 'Roboto', sans-serif);
