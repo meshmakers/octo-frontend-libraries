@@ -1,7 +1,7 @@
 <div class="mm-base-form-container" [class.with-card]="config.showCard" [class.without-card]="!config.showCard">
   <!-- Title (no card mode) -->
-  <div *ngIf="!config.showCard && title" class="mm-form-title-row mm-form-title-standalone">
-    <h2 class="mm-form-title">{{ title }}</h2>
+  <div *ngIf="!config.showCard && (title || titleExtra)" class="mm-form-title-row mm-form-title-standalone">
+    <h2 *ngIf="title" class="mm-form-title">{{ title }}</h2>
     <ng-container *ngIf="titleExtra" [ngTemplateOutlet]="titleExtra.templateRef"></ng-container>
     <span *ngIf="config.hasChanges" class="mm-modified-badge">{{ unsavedChangesText }}</span>
   </div>
@@ -9,8 +9,8 @@
   <!-- Main form wrapper - styled as card or plain based on CSS class -->
   <div class="mm-form-wrapper" [style.maxWidth]="config.showCard ? (config.cardWidth || '800px') : null">
     <!-- Card header (only in card mode) -->
-    <div *ngIf="config.showCard && title" class="mm-form-header">
-      <h2 class="mm-form-title">{{ title }}</h2>
+    <div *ngIf="config.showCard && (title || titleExtra)" class="mm-form-header">
+      <h2 *ngIf="title" class="mm-form-title">{{ title }}</h2>
       <ng-container *ngIf="titleExtra" [ngTemplateOutlet]="titleExtra.templateRef"></ng-container>
       <span *ngIf="config.hasChanges" class="mm-modified-badge">{{ unsavedChangesText }}</span>
     </div>
