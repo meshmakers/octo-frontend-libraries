@@ -80,6 +80,20 @@ export type ColumnDefinition =
 export type ContextMenuType = 'contextMenu' | 'actionMenu';
 
 /**
+ * Callback for applying CSS classes to individual grid rows based on data.
+ * Mirrors Kendo Grid's RowClassFn signature.
+ *
+ * @example
+ * ```typescript
+ * rowClassFn = (context: { dataItem: any; index: number }) => ({
+ *   'row-warning': context.dataItem.status === 'warn',
+ *   'row-error': context.dataItem.status === 'error'
+ * });
+ * ```
+ */
+export type RowClassFn = (context: { dataItem: unknown; index: number }) => string | string[] | Set<string> | Record<string, boolean>;
+
+/**
  * Translatable messages for the ListViewComponent.
  * Pass translated strings to override the English defaults.
  */

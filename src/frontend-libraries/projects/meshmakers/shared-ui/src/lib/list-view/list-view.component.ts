@@ -17,7 +17,7 @@ import {
 } from '@progress/kendo-angular-grid';
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
-import {ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
+import {ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
@@ -150,6 +150,14 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public sortable = false;
   @Input() public rowFilterEnabled = false;
   @Input() public searchTextBoxEnabled = false;
+
+  /**
+   * Callback for applying CSS classes to grid rows based on row data.
+   * Passed through to Kendo Grid's [rowClass] input.
+   */
+  @Input() public rowClass: RowClassFn | undefined;
+
+  protected readonly defaultRowClass: RowClassFn = () => ({});
 
   protected _messages: ListViewMessages = {...DEFAULT_LIST_VIEW_MESSAGES};
 

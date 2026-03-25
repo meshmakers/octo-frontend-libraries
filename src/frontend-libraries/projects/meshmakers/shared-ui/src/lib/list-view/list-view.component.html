@@ -6,6 +6,7 @@
   [pageable]="pageable"
   [sortable]="sortable"
   [filterable]="_showRowFilter"
+  [rowClass]="rowClass ?? defaultRowClass"
 >
   <kendo-grid-messages
     [pagerItemsPerPage]="_messages.pagerItemsPerPage"
