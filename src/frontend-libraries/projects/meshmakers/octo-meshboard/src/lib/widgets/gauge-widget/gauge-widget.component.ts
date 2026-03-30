@@ -252,7 +252,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
     .gauge-center-label .value-text {
       font-size: 1.25rem;
       font-weight: 600;
-      color: var(--kendo-color-on-surface, #212529);
+      color: var(--kendo-color-on-surface, inherit);
     }
 
     .gauge-center-label .label-text {
@@ -268,7 +268,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
       margin-top: 8px;
       font-size: 1.1rem;
       font-weight: 600;
-      color: var(--kendo-color-on-surface, #212529);
+      color: var(--kendo-color-on-surface, inherit);
     }
 
     .gauge-value-label .label-text {
