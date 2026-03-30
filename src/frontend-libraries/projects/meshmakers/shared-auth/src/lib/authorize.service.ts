@@ -143,6 +143,16 @@ export class AuthorizeService {
           // Reload the page to trigger the auth flow and redirect to login
           this.reloadPage();
         }
+
+        if (e.type === "token_refresh_error") {
+          console.warn("AuthorizeService: Token refresh failed — clearing session and redirecting to login");
+          this._accessToken.set(null);
+          this._user.set(null);
+          this._isAuthenticated.set(false);
+          this._tokenTenantId.set(null);
+          this._allowedTenants.set([]);
+          this.oauthService.logOut();
+        }
       });
 
     this.oauthService.events.subscribe(async (e) => {
