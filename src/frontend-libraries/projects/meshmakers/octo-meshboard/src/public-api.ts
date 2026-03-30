@@ -95,6 +95,10 @@ export { MarkdownWidgetComponent } from './lib/widgets/markdown-widget/markdown-
 export { MarkdownConfigDialogComponent } from './lib/widgets/markdown-widget/markdown-config-dialog.component';
 export type { MarkdownConfigResult } from './lib/widgets/markdown-widget/markdown-config-dialog.component';
 
+export { StatusListWidgetComponent } from './lib/widgets/status-list-widget/status-list-widget.component';
+export { StatusListConfigDialogComponent } from './lib/widgets/status-list-widget/status-list-config-dialog.component';
+export type { StatusListConfigResult } from './lib/widgets/status-list-widget/status-list-config-dialog.component';
+
 // Process Widget - Separate export for lazy loading of octo-process-diagrams
 // To use ProcessWidget in MeshBoard:
 // 1. Import provideProcessWidget from '@meshmakers/octo-meshboard'

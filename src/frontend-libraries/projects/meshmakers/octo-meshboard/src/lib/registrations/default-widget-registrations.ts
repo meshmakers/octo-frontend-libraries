@@ -22,6 +22,7 @@ import {
   ServiceHealthWidgetConfig,
   WidgetGroupConfig,
   MarkdownWidgetConfig,
+  StatusListWidgetConfig,
   DataSource,
   WidgetFilterConfig
 } from '../models/meshboard.models';
@@ -41,6 +42,8 @@ import { ServiceHealthWidgetComponent } from '../widgets/service-health-widget/s
 import { WidgetGroupComponent } from '../widgets/widget-group/widget-group.component';
 import { MarkdownWidgetComponent } from '../widgets/markdown-widget/markdown-widget.component';
 import { HeatmapWidgetComponent } from '../widgets/heatmap-widget/heatmap-widget.component';
+import { StatusListWidgetComponent } from '../widgets/status-list-widget/status-list-widget.component';
+import { StatusListConfigDialogComponent, StatusListConfigResult } from '../widgets/status-list-widget/status-list-config-dialog.component';
 // Note: ProcessWidget registration moved to process-widget-registration.ts for lazy loading
 // Use provideProcessWidget() or registerProcessWidget() to enable Process Diagram widgets
 
@@ -1798,6 +1801,73 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         compactNumbers: config['compactNumbers'] as boolean | undefined,
         valueMultiplier: config['valueMultiplier'] as number | undefined,
         filters: config['filters'] as WidgetFilterConfig[] | undefined
+      };
+    }
+  });
+
+  // Status List Widget
+  registry.registerWidget<StatusListWidgetConfig, StatusListConfigResult>({
+    type: 'statusList',
+    label: 'Status List',
+    component: StatusListWidgetComponent,
+    configDialogComponent: StatusListConfigDialogComponent,
+    configDialogSize: { width: 650, height: 550, minWidth: 500, minHeight: 400 },
+    configDialogTitle: 'Status List Configuration',
+    defaultSize: { colSpan: 2, rowSpan: 2 },
+    supportedDataSources: ['runtimeEntity'],
+
+    getInitialConfig: (widget) => {
+      const slWidget = widget as StatusListWidgetConfig;
+      return {
+        initialCkTypeId: slWidget.ckTypeId,
+        initialLabelField: slWidget.labelField,
+        initialStatusField: slWidget.statusField,
+        initialStatusColors: slWidget.statusColors
+      };
+    },
+
+    applyConfigResult: (widget, result) => ({
+      ...widget,
+      ckTypeId: result.ckTypeId,
+      labelField: result.labelField,
+      statusField: result.statusField,
+      statusColors: result.statusColors,
+      dataSource: { type: 'runtimeEntity' as const, ckTypeId: result.ckTypeId }
+    } as StatusListWidgetConfig),
+
+    createDefaultConfig: (base: BaseWidgetConfig): StatusListWidgetConfig => ({
+      ...base,
+      type: 'statusList',
+      colSpan: 3,
+      rowSpan: 1,
+      dataSource: { type: 'runtimeEntity' },
+      ckTypeId: '',
+      labelField: 'name',
+      statusField: ''
+    }),
+
+    toPersistedConfig: (widget: StatusListWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'runtimeEntity',
+      dataSourceCkTypeId: widget.ckTypeId,
+      config: {
+        ckTypeId: widget.ckTypeId,
+        labelField: widget.labelField,
+        statusField: widget.statusField,
+        statusColors: widget.statusColors
+      }
+    }),
+
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): StatusListWidgetConfig => {
+      const config = parseConfig(data);
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'statusList',
+        dataSource: { type: 'runtimeEntity' as const, ckTypeId: data.ckTypeId ?? config['ckTypeId'] as string },
+        ckTypeId: (config['ckTypeId'] as string) ?? data.ckTypeId ?? '',
+        labelField: (config['labelField'] as string) ?? 'name',
+        statusField: (config['statusField'] as string) ?? '',
+        statusColors: config['statusColors'] as StatusListWidgetConfig['statusColors']
       };
     }
   });

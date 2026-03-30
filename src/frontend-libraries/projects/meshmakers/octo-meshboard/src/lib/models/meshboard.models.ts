@@ -180,7 +180,8 @@ export type WidgetType =
   | 'serviceHealth'
   | 'process'
   | 'widgetGroup'
-  | 'markdown';
+  | 'markdown'
+  | 'statusList';
 
 /**
  * Base widget configuration
@@ -759,6 +760,26 @@ export interface MarkdownWidgetConfig extends WidgetConfig {
   textAlign?: MarkdownTextAlign;
 }
 
+// ============================================================================
+// Status List Widget
+// ============================================================================
+
+/**
+ * Widget that displays a list of items with colored status badges.
+ * Typically used for compliance/regulatory status overviews.
+ */
+export interface StatusListWidgetConfig extends WidgetConfig {
+  type: 'statusList';
+  /** CK type to query entities from */
+  ckTypeId: string;
+  /** Attribute path for the item label (e.g. 'name') */
+  labelField: string;
+  /** Attribute path for the status value (e.g. 'complianceStatus') */
+  statusField: string;
+  /** Map of status enum values to badge colors and labels */
+  statusColors?: Record<string, { color: string; label?: string }>;
+}
+
 // Process Widget Config is defined in the process-widget module
 // Re-exported here for AnyWidgetConfig union
 import type { ProcessWidgetConfig, DiagramPropertyMapping } from '../widgets/process-widget/process-widget-config.model';
@@ -779,7 +800,8 @@ export type AnyWidgetConfig =
   | ServiceHealthWidgetConfig
   | ProcessWidgetConfig
   | WidgetGroupConfig
-  | MarkdownWidgetConfig;
+  | MarkdownWidgetConfig
+  | StatusListWidgetConfig;
 
 // ============================================================================
 // MeshBoard Variables
