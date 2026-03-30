@@ -458,6 +458,21 @@ export interface BarChartWidgetConfig extends WidgetConfig {
   showDataLabels?: boolean;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
+  /** Suffix appended to data labels (e.g. ' kW') */
+  dataLabelSuffix?: string;
+  /** Threshold-based per-bar coloring. Thresholds sorted ascending by value. */
+  colorThresholds?: BarChartColorThreshold[];
+  /** Default bar color when value exceeds all thresholds */
+  defaultBarColor?: string;
+}
+
+/**
+ * Color threshold for conditional bar coloring.
+ * Values less than or equal to this threshold get the specified color.
+ */
+export interface BarChartColorThreshold {
+  value: number;
+  color: string;
 }
 
 // ============================================================================
@@ -498,6 +513,8 @@ export interface LineChartWidgetConfig extends WidgetConfig {
   showMarkers?: boolean;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
+  /** Title for the value axis (e.g. 'kW') */
+  valueAxisTitle?: string;
   /** Horizontal reference/threshold lines displayed on the value axis */
   referenceLines?: ChartReferenceLine[];
 }

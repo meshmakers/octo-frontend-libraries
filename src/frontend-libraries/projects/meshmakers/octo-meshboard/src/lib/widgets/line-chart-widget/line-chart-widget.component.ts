@@ -50,11 +50,14 @@ interface ValueAxisConfig {
           <span>{{ error() }}</span>
         </div>
       } @else {
-        <kendo-chart class="chart-container">
-          <kendo-chart-plot-area [margin]="{ top: 0, right: 0, bottom: 0, left: 0 }"></kendo-chart-plot-area>
+        <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: { top: 0, right: 0, bottom: 0, left: 0 } }">
+          <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
 
           <kendo-chart-category-axis>
-            <kendo-chart-category-axis-item [categories]="categories()">
+            <kendo-chart-category-axis-item
+              [categories]="categories()"
+              [line]="{ visible: false }"
+              [majorGridLines]="{ visible: false }">
               <kendo-chart-category-axis-item-labels
                 [rotation]="labelRotation()"
                 [step]="labelStep()"
@@ -69,15 +72,22 @@ interface ValueAxisConfig {
                 <kendo-chart-value-axis-item
                   [name]="axis.name"
                   [title]="{ text: axis.unit }"
+                  [line]="{ visible: false }"
+                  [majorGridLines]="{ color: 'rgba(255,255,255,0.06)' }"
                   [plotBands]="plotBands()">
                 </kendo-chart-value-axis-item>
               }
             </kendo-chart-value-axis>
           }
 
-          @if (valueAxes().length === 0 && plotBands().length > 0) {
+          @if (valueAxes().length === 0) {
             <kendo-chart-value-axis>
-              <kendo-chart-value-axis-item [name]="''" [plotBands]="plotBands()">
+              <kendo-chart-value-axis-item
+                [name]="''"
+                [title]="{ text: config.valueAxisTitle ?? '' }"
+                [line]="{ visible: false }"
+                [majorGridLines]="{ color: 'rgba(255,255,255,0.06)' }"
+                [plotBands]="plotBands()">
               </kendo-chart-value-axis-item>
             </kendo-chart-value-axis>
           }
@@ -86,9 +96,11 @@ interface ValueAxisConfig {
             @for (series of seriesData(); track series.name) {
               <kendo-chart-series-item
                 [type]="chartType()"
+                [style]="'smooth'"
                 [data]="series.data"
                 [name]="series.name"
                 [axis]="series.axisName ?? ''"
+                [opacity]="0.7"
                 [markers]="{ visible: config.showMarkers ?? false }">
               </kendo-chart-series-item>
             }

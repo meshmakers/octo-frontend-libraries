@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { BarChartType, BarChartSeries, WidgetFilterConfig } from '../../models/meshboard.models';
+import { BarChartType, BarChartSeries, BarChartColorThreshold, WidgetFilterConfig } from '../../models/meshboard.models';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -39,6 +39,8 @@ export interface BarChartConfigResult extends WidgetConfigResult {
   legendPosition: 'top' | 'bottom' | 'left' | 'right';
   showDataLabels: boolean;
   filters?: FieldFilterDto[];
+  colorThresholds?: BarChartColorThreshold[];
+  defaultBarColor?: string;
 }
 
 /**
@@ -289,6 +291,24 @@ export interface BarChartConfigResult extends WidgetConfigResult {
             </div>
           }
         </div>
+
+        <div class="form-section">
+          <h4>Conditional Colors</h4>
+          <p class="section-hint">Color bars based on value thresholds (sorted ascending).</p>
+          @for (threshold of form.colorThresholds; track $index) {
+            <div class="threshold-row">
+              <label>Values &le;</label>
+              <kendo-numerictextbox [(ngModel)]="threshold.value" [format]="'n0'" [spinners]="false" style="width: 100px;"></kendo-numerictextbox>
+              <kendo-textbox [(ngModel)]="threshold.color" [placeholder]="'Color (#10b981)'" style="width: 120px;"></kendo-textbox>
+              <button kendoButton fillMode="flat" (click)="removeColorThreshold($index)">Remove</button>
+            </div>
+          }
+          <div class="threshold-row">
+            <label>Default color</label>
+            <kendo-textbox [(ngModel)]="form.defaultBarColor" [placeholder]="'#ef4444'" style="width: 120px;"></kendo-textbox>
+          </div>
+          <button kendoButton fillMode="flat" (click)="addColorThreshold()">+ Add Threshold</button>
+        </div>
       </div>
 
       <div class="action-bar mm-dialog-actions">
@@ -430,6 +450,11 @@ export interface BarChartConfigResult extends WidgetConfigResult {
       font-size: 0.8rem;
       color: var(--kendo-color-subtle, #6c757d);
     }
+
+    .form-section { margin-top: 8px; }
+    .form-section h4 { margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 600; }
+    .threshold-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .threshold-row label { font-size: 0.85rem; min-width: 70px; }
   `]
 })
 export class BarChartConfigDialogComponent implements OnInit {
@@ -450,6 +475,8 @@ export class BarChartConfigDialogComponent implements OnInit {
   @Input() initialShowLegend?: boolean;
   @Input() initialLegendPosition?: 'top' | 'bottom' | 'left' | 'right';
   @Input() initialShowDataLabels?: boolean;
+  @Input() initialColorThresholds?: BarChartColorThreshold[];
+  @Input() initialDefaultBarColor?: string;
   @Input() initialFilters?: WidgetFilterConfig[];
 
   // State
@@ -494,7 +521,9 @@ export class BarChartConfigDialogComponent implements OnInit {
     categoryField: '',
     showLegend: true,
     legendPosition: 'right' as 'top' | 'bottom' | 'left' | 'right',
-    showDataLabels: false
+    showDataLabels: false,
+    colorThresholds: [] as BarChartColorThreshold[],
+    defaultBarColor: ''
   };
 
   get isValid(): boolean {
@@ -523,6 +552,8 @@ export class BarChartConfigDialogComponent implements OnInit {
     this.form.showLegend = this.initialShowLegend ?? true;
     this.form.legendPosition = this.initialLegendPosition ?? 'right';
     this.form.showDataLabels = this.initialShowDataLabels ?? false;
+    this.form.colorThresholds = this.initialColorThresholds ? [...this.initialColorThresholds] : [];
+    this.form.defaultBarColor = this.initialDefaultBarColor ?? '';
 
     // Determine series mode from initial values
     if (this.initialSeriesGroupField && this.initialValueField) {
@@ -687,6 +718,8 @@ export class BarChartConfigDialogComponent implements OnInit {
       showLegend: this.form.showLegend,
       legendPosition: this.form.legendPosition,
       showDataLabels: this.form.showDataLabels,
+      colorThresholds: this.form.colorThresholds.length > 0 ? this.form.colorThresholds : undefined,
+      defaultBarColor: this.form.defaultBarColor || undefined,
       filters: filtersDto
     };
 
@@ -697,6 +730,14 @@ export class BarChartConfigDialogComponent implements OnInit {
     }
 
     this.windowRef.close(result);
+  }
+
+  addColorThreshold(): void {
+    this.form.colorThresholds.push({ value: 0, color: '#10b981' });
+  }
+
+  removeColorThreshold(index: number): void {
+    this.form.colorThresholds.splice(index, 1);
   }
 
   onCancel(): void {

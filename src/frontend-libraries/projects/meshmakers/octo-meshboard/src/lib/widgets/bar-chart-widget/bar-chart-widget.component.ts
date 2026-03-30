@@ -15,7 +15,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
  */
 interface SeriesData {
   name: string;
-  data: number[];
+  data: unknown[];
   color?: string;
 }
 
@@ -57,16 +57,26 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
           <span>{{ error() }}</span>
         </div>
       } @else {
-        <kendo-chart class="chart-container">
-          <kendo-chart-plot-area [margin]="plotAreaMargin()"></kendo-chart-plot-area>
+        <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: plotAreaMargin() }">
+          <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
           <kendo-chart-category-axis>
-            <kendo-chart-category-axis-item [categories]="categories()">
+            <kendo-chart-category-axis-item
+              [categories]="categories()"
+              [line]="{ visible: false }"
+              [majorGridLines]="{ visible: false }">
               <kendo-chart-category-axis-item-labels
                 [rotation]="labelRotation()"
                 [content]="categoryLabelContent">
               </kendo-chart-category-axis-item-labels>
             </kendo-chart-category-axis-item>
           </kendo-chart-category-axis>
+
+          <kendo-chart-value-axis>
+            <kendo-chart-value-axis-item
+              [line]="{ visible: false }"
+              [majorGridLines]="{ color: 'rgba(255,255,255,0.06)' }">
+            </kendo-chart-value-axis-item>
+          </kendo-chart-value-axis>
 
           <kendo-chart-series>
             @for (series of seriesData(); track series.name) {
@@ -75,11 +85,15 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
                 [data]="series.data"
                 [name]="series.name"
                 [color]="series.color"
+                [field]="hasColorThresholds() ? 'value' : ''"
+                [colorField]="hasColorThresholds() ? '_color' : ''"
+                [border]="{ width: 0 }"
+                [gap]="0.8"
                 [stack]="stackConfig()">
                 @if (config.showDataLabels) {
                   <kendo-chart-series-item-labels
                     [visible]="true"
-                    [format]="'{0:n0}'">
+                    [format]="dataLabelFormat()">
                   </kendo-chart-series-item-labels>
                 }
               </kendo-chart-series-item>
@@ -384,7 +398,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
         const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
 
         if (sanitizedPath === this.sanitizeFieldName(this.config.categoryField)) {
-          categoryValue = String(cell.value ?? '');
+          categoryValue = this.formatCategoryValue(cell.value);
         }
 
         // Check if this cell is one of our series fields
@@ -408,11 +422,14 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     }
 
     // Convert to series data array
-    const seriesData: SeriesData[] = (this.config.series ?? []).map(seriesConfig => ({
-      name: seriesConfig.name ?? seriesConfig.field,
-      data: seriesMap.get(seriesConfig.field) ?? [],
-      color: seriesConfig.color
-    }));
+    const seriesData: SeriesData[] = (this.config.series ?? []).map(seriesConfig => {
+      const rawData = seriesMap.get(seriesConfig.field) ?? [];
+      return {
+        name: seriesConfig.name ?? seriesConfig.field,
+        data: this.hasColorThresholds() ? this.applyColorThresholds(rawData) : rawData,
+        color: seriesConfig.color
+      };
+    });
 
     this._categories.set(categories);
     this._seriesData.set(seriesData);
@@ -457,7 +474,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
         const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
 
         if (sanitizedPath === this.sanitizeFieldName(categoryField)) {
-          categoryValue = String(cell.value ?? '');
+          categoryValue = this.formatCategoryValue(cell.value);
         } else if (sanitizedPath === this.sanitizeFieldName(seriesGroupField)) {
           seriesGroupValue = String(cell.value ?? '');
         } else if (sanitizedPath === this.sanitizeFieldName(valueField)) {
@@ -484,13 +501,13 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
 
     // Build series data
     const seriesData: SeriesData[] = seriesGroups.map(seriesGroup => {
-      const data = categories.map(category => {
+      const rawData = categories.map(category => {
         return dataMap.get(category)?.get(seriesGroup) ?? 0;
       });
 
       return {
         name: seriesGroup,
-        data
+        data: this.hasColorThresholds() ? this.applyColorThresholds(rawData) : rawData
       };
     });
 
@@ -502,6 +519,46 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
    * Sanitizes field names for comparison.
    * Replaces dots with underscores (same as table widget).
    */
+  readonly dataLabelFormat = computed(() => {
+    const suffix = this.config?.dataLabelSuffix ?? '';
+    return `{0:n0}${suffix}`;
+  });
+
+  hasColorThresholds(): boolean {
+    return (this.config?.colorThresholds?.length ?? 0) > 0;
+  }
+
+  private applyColorThresholds(data: number[]): unknown[] {
+    const thresholds = this.config.colorThresholds ?? [];
+    const defaultColor = this.config.defaultBarColor ?? '#6b7280';
+    return data.map(val => ({
+      value: val,
+      _color: this.getColorForValue(val, thresholds, defaultColor)
+    }));
+  }
+
+  private getColorForValue(val: number, thresholds: { value: number; color: string }[], defaultColor: string): string {
+    for (const t of thresholds) {
+      if (val <= t.value) return t.color;
+    }
+    return defaultColor;
+  }
+
+  private formatCategoryValue(value: unknown): string {
+    const str = String(value ?? '');
+    // Detect ISO 8601 timestamps and format as readable date/time
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(str)) {
+      const date = new Date(str);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleString('de-AT', {
+          day: '2-digit', month: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        });
+      }
+    }
+    return str;
+  }
+
   private sanitizeFieldName(fieldName: string): string {
     return fieldName.replace(/\./g, '_');
   }

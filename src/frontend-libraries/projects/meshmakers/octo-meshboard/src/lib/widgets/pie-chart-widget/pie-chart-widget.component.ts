@@ -40,8 +40,8 @@ interface ChartDataItem {
           <span>{{ error() }}</span>
         </div>
       } @else {
-        <kendo-chart class="chart-container">
-          <kendo-chart-plot-area [margin]="plotAreaMargin"></kendo-chart-plot-area>
+        <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: plotAreaMargin }">
+          <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
           <kendo-chart-series>
             <kendo-chart-series-item
               [type]="config.chartType"

@@ -1016,6 +1016,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowLegend: barWidget.showLegend,
         initialLegendPosition: barWidget.legendPosition,
         initialShowDataLabels: barWidget.showDataLabels,
+        initialColorThresholds: barWidget.colorThresholds,
+        initialDefaultBarColor: barWidget.defaultBarColor,
         initialFilters: barWidget.filters
       };
     },
@@ -1044,6 +1046,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: result.showLegend,
         legendPosition: result.legendPosition,
         showDataLabels: result.showDataLabels,
+        colorThresholds: result.colorThresholds,
+        defaultBarColor: result.defaultBarColor,
         filters
       } as BarChartWidgetConfig;
     },
@@ -1076,6 +1080,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: widget.showLegend,
         legendPosition: widget.legendPosition,
         showDataLabels: widget.showDataLabels,
+        dataLabelSuffix: widget.dataLabelSuffix,
+        colorThresholds: widget.colorThresholds,
+        defaultBarColor: widget.defaultBarColor,
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
         filters: widget.filters
@@ -1100,6 +1107,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: (config['showLegend'] as boolean) ?? true,
         legendPosition: (config['legendPosition'] as BarChartWidgetConfig['legendPosition']) ?? 'right',
         showDataLabels: (config['showDataLabels'] as boolean) ?? false,
+        dataLabelSuffix: config['dataLabelSuffix'] as string | undefined,
+        colorThresholds: config['colorThresholds'] as BarChartWidgetConfig['colorThresholds'],
+        defaultBarColor: config['defaultBarColor'] as string | undefined,
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
     }
