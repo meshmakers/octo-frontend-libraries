@@ -193,13 +193,24 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   readonly plotBands = computed(() => {
     if (!this.config?.referenceLines?.length) return [];
-    return this.config.referenceLines.map(ref => ({
-      from: ref.value,
-      to: ref.value,
-      color: ref.color ?? '#ef4444',
-      opacity: ref.opacity ?? 0.8,
-      label: ref.label ? { text: ref.label, position: 'top' as const } : undefined
-    }));
+    return this.config.referenceLines.map(ref => {
+      const lineColor = ref.color ?? '#ef4444';
+      const bandWidth = ref.value * 0.002 || 1;
+      return {
+        from: ref.value - bandWidth,
+        to: ref.value + bandWidth,
+        color: lineColor,
+        opacity: ref.opacity ?? 0.8,
+        label: ref.label ? {
+          text: ref.label,
+          position: 'top' as const,
+          align: 'right' as const,
+          color: lineColor,
+          font: '500 0.8rem sans-serif',
+          padding: { top: 2, right: 4, bottom: 2, left: 4 }
+        } : undefined
+      };
+    });
   });
 
   readonly chartType = computed((): 'line' | 'area' => {
