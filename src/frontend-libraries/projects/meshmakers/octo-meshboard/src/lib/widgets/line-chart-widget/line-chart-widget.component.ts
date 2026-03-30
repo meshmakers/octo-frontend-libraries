@@ -73,9 +73,11 @@ interface ValueAxisConfig {
                 </kendo-chart-value-axis-item>
               }
             </kendo-chart-value-axis>
-          } @else if (plotBands().length > 0) {
+          }
+
+          @if (valueAxes().length === 0 && plotBands().length > 0) {
             <kendo-chart-value-axis>
-              <kendo-chart-value-axis-item [plotBands]="plotBands()">
+              <kendo-chart-value-axis-item [name]="''" [plotBands]="plotBands()">
               </kendo-chart-value-axis-item>
             </kendo-chart-value-axis>
           }
