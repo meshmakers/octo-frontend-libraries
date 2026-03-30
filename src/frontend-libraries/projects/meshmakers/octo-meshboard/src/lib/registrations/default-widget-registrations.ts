@@ -240,6 +240,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialPrefix: kpiWidget.prefix,
         initialSuffix: kpiWidget.suffix,
         initialTrend: kpiWidget.trend,
+        initialComparisonText: kpiWidget.comparisonText,
         // Filters
         initialFilters: kpiWidget.filters
       };
@@ -368,7 +369,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           prefix: config['prefix'] as string | undefined,
           suffix: config['suffix'] as string | undefined,
           icon: config['icon'] as string | undefined,
-          trend: config['trend'] as KpiWidgetConfig['trend']
+          trend: config['trend'] as KpiWidgetConfig['trend'],
+          comparisonText: config['comparisonText'] as string | undefined
         };
       }
 
@@ -387,6 +389,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           suffix: config['suffix'] as string | undefined,
           icon: config['icon'] as string | undefined,
           trend: config['trend'] as KpiWidgetConfig['trend'],
+          comparisonText: config['comparisonText'] as string | undefined,
           filters: config['filters'] as WidgetFilterConfig[] | undefined
         };
       }
@@ -402,6 +405,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         suffix: config['suffix'] as string | undefined,
         icon: config['icon'] as string | undefined,
         trend: config['trend'] as KpiWidgetConfig['trend'],
+        comparisonText: config['comparisonText'] as string | undefined,
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
     }

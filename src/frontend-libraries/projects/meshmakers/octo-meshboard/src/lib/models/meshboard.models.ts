@@ -264,6 +264,8 @@ export interface KpiWidgetConfig extends WidgetConfig {
   filters?: WidgetFilterConfig[];
   /** Static value or variable expression (e.g., '${variableName}') for static data source */
   staticValue?: string;
+  /** Comparison text displayed below the value in trend color (e.g., '+3,1% vs. Vorwoche'). Supports ${variables}. */
+  comparisonText?: string;
 }
 
 /**

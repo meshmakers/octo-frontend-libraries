@@ -48,6 +48,7 @@ export interface KpiConfigResult extends WidgetConfigResult {
   prefix?: string;
   suffix?: string;
   trend?: 'up' | 'down' | 'neutral';
+  comparisonText?: string;
   // Filters
   filters?: FieldFilterDto[];
 }
@@ -412,6 +413,11 @@ interface TrendOption {
               [(ngModel)]="form.trend">
             </kendo-dropdownlist>
           </div>
+          <div class="form-field">
+            <label>Comparison Text</label>
+            <kendo-textbox [(ngModel)]="form.comparisonText" placeholder="e.g. +3,1% vs. last week"></kendo-textbox>
+            <p class="section-hint">Displayed below the value in the trend color. Supports {{ variableSyntaxHint }}</p>
+          </div>
         </div>
 
         <!-- Filters Section -->
@@ -610,6 +616,7 @@ export class KpiConfigDialogComponent implements OnInit {
   @Input() initialPrefix?: string;
   @Input() initialSuffix?: string;
   @Input() initialTrend?: 'up' | 'down' | 'neutral';
+  @Input() initialComparisonText?: string;
 
   // Initial values for editing - Persistent Query
   @Input() initialDataSourceType?: KpiDataSourceType;
@@ -661,6 +668,7 @@ export class KpiConfigDialogComponent implements OnInit {
     prefix: '',
     suffix: '',
     trend: undefined as 'up' | 'down' | 'neutral' | undefined,
+    comparisonText: '',
     // Query-specific form fields
     queryValueField: '',
     queryCategoryField: '',
@@ -719,6 +727,7 @@ export class KpiConfigDialogComponent implements OnInit {
     this.form.prefix = this.initialPrefix || '';
     this.form.suffix = this.initialSuffix || '';
     this.form.trend = this.initialTrend;
+    this.form.comparisonText = this.initialComparisonText || '';
     this.form.queryValueField = this.initialQueryValueField || '';
     this.form.queryCategoryField = this.initialQueryCategoryField || '';
     this.form.queryCategoryValue = this.initialQueryCategoryValue || '';
@@ -913,7 +922,8 @@ export class KpiConfigDialogComponent implements OnInit {
         staticValue: this.form.staticValue,
         prefix: this.form.prefix || undefined,
         suffix: this.form.suffix || undefined,
-        trend: this.form.trend
+        trend: this.form.trend,
+        comparisonText: this.form.comparisonText || undefined
       });
       return;
     }
@@ -933,6 +943,7 @@ export class KpiConfigDialogComponent implements OnInit {
         prefix: this.form.prefix || undefined,
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
+        comparisonText: this.form.comparisonText || undefined,
         filters: filtersDto
       });
     } else if (this.selectedCkType) {
@@ -945,6 +956,7 @@ export class KpiConfigDialogComponent implements OnInit {
         prefix: this.form.prefix || undefined,
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
+        comparisonText: this.form.comparisonText || undefined,
         filters: filtersDto
       });
     }

@@ -21,6 +21,15 @@
         }
       </div>
 
+      @if (comparisonText()) {
+        <div class="kpi-comparison" [ngClass]="trendClass()">
+          @if (config.trend) {
+            <kendo-svg-icon [icon]="trendIcon()" size="xsmall"></kendo-svg-icon>
+          }
+          {{ comparisonText() }}
+        </div>
+      }
+
       @if (label()) {
         <div class="kpi-label">{{ label() }}</div>
       }

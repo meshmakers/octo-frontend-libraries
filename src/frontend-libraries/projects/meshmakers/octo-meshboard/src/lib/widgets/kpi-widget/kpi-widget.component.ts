@@ -188,6 +188,12 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     }
   });
 
+  readonly comparisonText = computed(() => {
+    if (!this.config?.comparisonText) return null;
+    const variables = this.stateService.getVariables();
+    return this.variableService.resolveVariables(this.config.comparisonText, variables);
+  });
+
   ngOnInit(): void {
     this.loadData();
   }
