@@ -73,6 +73,35 @@
   }
 }
 
+.progress-bar-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+
+  .progress-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--mm-progress-track-bg, rgba(255, 255, 255, 0.1));
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    display: block;
+    height: 100%;
+    background: var(--mm-progress-fill-color, #10b981);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-bar-label {
+    min-width: 40px;
+    text-align: right;
+    font-size: 0.85em;
+  }
+}
+
 // =============================================================================
 // PDF EXPORT STYLES - Simple black and white grid with 1px borders
 // Kendo adds .k-pdf-export class during PDF generation

@@ -1,9 +1,29 @@
 import { Component, Input, OnChanges, SimpleChanges, ViewChild, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TableWidgetConfig, PersistentQueryDataSource } from '../../models/meshboard.models';
+import { TableWidgetConfig, PersistentQueryDataSource, TableColumnStatusIconMapping } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
-import { ListViewComponent, TableColumn as ListViewTableColumn } from '@meshmakers/shared-ui';
+import { ListViewComponent, TableColumn as ListViewTableColumn, StatusMapping } from '@meshmakers/shared-ui';
 import { TableWidgetDataSourceDirective, QueryColumn } from './table-widget-data-source.directive';
+import { SVGIcon, checkCircleIcon, xCircleIcon, exclamationCircleIcon, questionCircleIcon, minusCircleIcon, warningTriangleIcon, circleIcon } from '@progress/kendo-svg-icons';
+
+const ICON_MAP: Record<string, SVGIcon> = {
+  'check-circle': checkCircleIcon,
+  'x-circle': xCircleIcon,
+  'exclamation-circle': exclamationCircleIcon,
+  'warning-triangle': warningTriangleIcon,
+  'minus-circle': minusCircleIcon,
+  'question-circle': questionCircleIcon,
+  'circle': circleIcon,
+};
+
+function resolveStatusMapping(config: Record<string, TableColumnStatusIconMapping>): StatusMapping {
+  return Object.fromEntries(
+    Object.entries(config).map(([key, val]) => [
+      key,
+      { icon: ICON_MAP[val.icon] ?? questionCircleIcon, tooltip: val.tooltip, color: val.color }
+    ])
+  );
+}
 
 @Component({
   selector: 'mm-table-widget',
@@ -100,26 +120,27 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
    * For persistent queries, uses dynamically derived columns from the query response.
    */
   readonly listViewColumns = computed((): ListViewTableColumn[] => {
-    // For persistent query, use derived columns
+    // If explicit columns are configured, use them (works for both data source types)
+    if (this.config?.columns && this.config.columns.length > 0) {
+      return this.config.columns.map(col => ({
+        field: col.field,
+        displayName: col.title,
+        dataType: (col.dataType ?? 'text') as ListViewTableColumn['dataType'],
+        width: col.width,
+        ...(col.statusMapping ? { statusMapping: resolveStatusMapping(col.statusMapping) } : {})
+      }));
+    }
+
+    // For persistent query without explicit columns, use derived columns
     if (this.config?.dataSource?.type === 'persistentQuery') {
-      // Return query-derived columns if available
       const queryColumns = this._queryColumnsForView();
       if (queryColumns.length > 0) {
         return queryColumns;
       }
-      // Return empty array while waiting for first data load
       return [];
     }
 
-    // For runtime entity, use configured columns
-    if (!this.config?.columns) return [];
-
-    return this.config.columns.map(col => ({
-      field: col.field,
-      displayName: col.title,
-      dataType: 'text' as const,
-      width: col.width
-    }));
+    return [];
   });
 
   /**

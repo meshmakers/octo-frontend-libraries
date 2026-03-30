@@ -227,6 +227,14 @@
           @case ('numeric') {
             {{ $any(getValue(dataItem, column)) | number:column.format }}
           }
+          @case ('progressBar') {
+            <span class="progress-bar-cell">
+              <span class="progress-bar-track">
+                <span class="progress-bar-fill" [style.width.%]="getValue(dataItem, column)"></span>
+              </span>
+              <span class="progress-bar-label">{{ getValue(dataItem, column) }}%</span>
+            </span>
+          }
           @default {
             {{ getValue(dataItem, column) }}
           }

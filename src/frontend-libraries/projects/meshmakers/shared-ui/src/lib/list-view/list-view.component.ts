@@ -268,6 +268,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       case 'date':
         return column.dataType;
       case 'numericRange':
+      case 'progressBar':
         return 'numeric';
       case 'iso8601':
         return 'date';

@@ -302,10 +302,18 @@ export interface TableWidgetConfig extends WidgetConfig {
   sortable?: boolean;
 }
 
+export interface TableColumnStatusIconMapping {
+  icon: string;
+  tooltip: string;
+  color?: string;
+}
+
 export interface TableColumn {
   field: string;
   title: string;
   width?: number;
+  dataType?: string;
+  statusMapping?: Record<string, TableColumnStatusIconMapping>;
 }
 
 /**

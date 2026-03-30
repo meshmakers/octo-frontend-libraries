@@ -31,7 +31,7 @@ export interface StatusFieldConfig {
 export interface TableColumn {
   displayName?: string | null;
   field: string;
-  dataType?: 'text' | 'numeric' | 'numericRange' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression';
+  dataType?: 'text' | 'numeric' | 'numericRange' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression' | 'progressBar';
   format?: string;
   /**
    * Column width in pixels. If not set, the column will auto-size.
