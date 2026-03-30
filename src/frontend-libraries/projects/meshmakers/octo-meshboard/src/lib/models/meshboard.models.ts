@@ -498,6 +498,22 @@ export interface LineChartWidgetConfig extends WidgetConfig {
   showMarkers?: boolean;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
+  /** Horizontal reference/threshold lines displayed on the value axis */
+  referenceLines?: ChartReferenceLine[];
+}
+
+/**
+ * Configuration for a horizontal reference/threshold line on the chart value axis
+ */
+export interface ChartReferenceLine {
+  /** Y-axis value where the line is drawn */
+  value: number;
+  /** Optional label displayed next to the line */
+  label?: string;
+  /** CSS color for the line (default: '#ef4444') */
+  color?: string;
+  /** Opacity 0-1 (default: 0.8) */
+  opacity?: number;
 }
 
 // ============================================================================

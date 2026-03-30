@@ -1131,6 +1131,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowLegend: lineWidget.showLegend,
         initialLegendPosition: lineWidget.legendPosition,
         initialShowMarkers: lineWidget.showMarkers,
+        initialReferenceLines: lineWidget.referenceLines,
         initialFilters: lineWidget.filters
       };
     },
@@ -1158,6 +1159,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: result.showLegend,
         legendPosition: result.legendPosition,
         showMarkers: result.showMarkers,
+        referenceLines: result.referenceLines,
         filters
       } as LineChartWidgetConfig;
     },
@@ -1189,6 +1191,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: widget.showLegend,
         legendPosition: widget.legendPosition,
         showMarkers: widget.showMarkers,
+        referenceLines: widget.referenceLines,
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
         filters: widget.filters
@@ -1212,6 +1215,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: (config['showLegend'] as boolean) ?? true,
         legendPosition: (config['legendPosition'] as LineChartWidgetConfig['legendPosition']) ?? 'right',
         showMarkers: (config['showMarkers'] as boolean) ?? false,
+        referenceLines: config['referenceLines'] as LineChartWidgetConfig['referenceLines'],
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
     }

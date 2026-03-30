@@ -68,9 +68,15 @@ interface ValueAxisConfig {
               @for (axis of valueAxes(); track axis.name) {
                 <kendo-chart-value-axis-item
                   [name]="axis.name"
-                  [title]="{ text: axis.unit }">
+                  [title]="{ text: axis.unit }"
+                  [plotBands]="plotBands()">
                 </kendo-chart-value-axis-item>
               }
+            </kendo-chart-value-axis>
+          } @else if (plotBands().length > 0) {
+            <kendo-chart-value-axis>
+              <kendo-chart-value-axis-item [plotBands]="plotBands()">
+              </kendo-chart-value-axis-item>
             </kendo-chart-value-axis>
           }
 
@@ -182,6 +188,17 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   readonly error = this._error.asReadonly();
 
   readonly data = computed(() => this._seriesData());
+
+  readonly plotBands = computed(() => {
+    if (!this.config?.referenceLines?.length) return [];
+    return this.config.referenceLines.map(ref => ({
+      from: ref.value,
+      to: ref.value,
+      color: ref.color ?? '#ef4444',
+      opacity: ref.opacity ?? 0.8,
+      label: ref.label ? { text: ref.label, position: 'top' as const } : undefined
+    }));
+  });
 
   readonly chartType = computed((): 'line' | 'area' => {
     return this.config?.chartType ?? 'line';

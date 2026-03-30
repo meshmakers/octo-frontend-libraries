@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { LineChartType, WidgetFilterConfig } from '../../models/meshboard.models';
+import { LineChartType, WidgetFilterConfig, ChartReferenceLine } from '../../models/meshboard.models';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -32,6 +32,7 @@ export interface LineChartConfigResult extends WidgetConfigResult {
   legendPosition: 'top' | 'bottom' | 'left' | 'right';
   showMarkers: boolean;
   filters?: FieldFilterDto[];
+  referenceLines?: ChartReferenceLine[];
 }
 
 /**
@@ -228,6 +229,20 @@ export interface LineChartConfigResult extends WidgetConfigResult {
             </div>
           }
         </div>
+
+        <div class="form-section">
+          <h4>Reference Lines</h4>
+          <p class="section-hint">Add horizontal threshold lines to the chart.</p>
+          @for (refLine of form.referenceLines; track $index) {
+            <div class="reference-line-row">
+              <kendo-numerictextbox [(ngModel)]="refLine.value" [format]="'n0'" [placeholder]="'Value'" [spinners]="false" style="width: 100px;"></kendo-numerictextbox>
+              <kendo-textbox [(ngModel)]="refLine.label" [placeholder]="'Label (e.g. Limit)'" style="flex: 1;"></kendo-textbox>
+              <kendo-textbox [(ngModel)]="refLine.color" [placeholder]="'Color (#ef4444)'" style="width: 110px;"></kendo-textbox>
+              <button kendoButton fillMode="flat" (click)="removeReferenceLine($index)">Remove</button>
+            </div>
+          }
+          <button kendoButton fillMode="flat" (click)="addReferenceLine()">+ Add Reference Line</button>
+        </div>
       </div>
 
       <div class="action-bar mm-dialog-actions">
@@ -356,6 +371,23 @@ export interface LineChartConfigResult extends WidgetConfigResult {
       font-size: 0.8rem;
       color: var(--kendo-color-subtle, #6c757d);
     }
+
+    .form-section {
+      margin-top: 8px;
+    }
+
+    .form-section h4 {
+      margin: 0 0 4px 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .reference-line-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
   `]
 })
 export class LineChartConfigDialogComponent implements OnInit {
@@ -376,6 +408,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialShowLegend?: boolean;
   @Input() initialLegendPosition?: 'top' | 'bottom' | 'left' | 'right';
   @Input() initialShowMarkers?: boolean;
+  @Input() initialReferenceLines?: ChartReferenceLine[];
   @Input() initialFilters?: WidgetFilterConfig[];
 
   // State
@@ -409,7 +442,8 @@ export class LineChartConfigDialogComponent implements OnInit {
     unitField: '' as string | undefined,
     showLegend: true,
     legendPosition: 'right' as 'top' | 'bottom' | 'left' | 'right',
-    showMarkers: false
+    showMarkers: false,
+    referenceLines: [] as ChartReferenceLine[]
   };
 
   get isValid(): boolean {
@@ -436,6 +470,7 @@ export class LineChartConfigDialogComponent implements OnInit {
     this.form.showLegend = this.initialShowLegend ?? true;
     this.form.legendPosition = this.initialLegendPosition ?? 'right';
     this.form.showMarkers = this.initialShowMarkers ?? false;
+    this.form.referenceLines = this.initialReferenceLines ? [...this.initialReferenceLines] : [];
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -551,10 +586,19 @@ export class LineChartConfigDialogComponent implements OnInit {
       showLegend: this.form.showLegend,
       legendPosition: this.form.legendPosition,
       showMarkers: this.form.showMarkers,
+      referenceLines: this.form.referenceLines.length > 0 ? this.form.referenceLines : undefined,
       filters: filtersDto
     };
 
     this.windowRef.close(result);
+  }
+
+  addReferenceLine(): void {
+    this.form.referenceLines.push({ value: 0, label: '', color: '#ef4444' });
+  }
+
+  removeReferenceLine(index: number): void {
+    this.form.referenceLines.splice(index, 1);
   }
 
   onCancel(): void {
