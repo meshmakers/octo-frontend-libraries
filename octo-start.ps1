@@ -32,6 +32,16 @@ try {
         exit 1
     }
 
+    # On Windows, run npx via cmd.exe to handle .cmd/.ps1 wrappers correctly.
+    # System.Diagnostics.Process cannot execute .ps1 files directly.
+    if ($IsWindows -or (-not ($IsMacOS -or $IsLinux))) {
+        $procFileName = "cmd.exe"
+        $npxPrefix = "/c npx "
+    } else {
+        $procFileName = (Get-Command npx).Source
+        $npxPrefix = ""
+    }
+
     # Kill any leftover processes on our ports
     foreach ($port in @(4201, 4202)) {
         $existingPid = $null
@@ -48,14 +58,12 @@ try {
     # Map configuration to Angular configuration name
     $ngConfiguration = if ($configuration -eq "Release") { "production" } else { "development" }
 
-    $npxPath = (Get-Command npx).Source
-
     # Start demo-app and legacy-demo-app using System.Diagnostics.Process
     # This works correctly both standalone and when called from Start-Job (no console/terminal required)
     function Start-NgServe($project, $port) {
         $psi = [System.Diagnostics.ProcessStartInfo]::new()
-        $psi.FileName = $npxPath
-        $psi.Arguments = "ng serve $project --port $port --configuration $ngConfiguration"
+        $psi.FileName = $procFileName
+        $psi.Arguments = "${npxPrefix}ng serve $project --port $port --configuration $ngConfiguration"
         $psi.WorkingDirectory = $frontendLibsPath
         $psi.UseShellExecute = $false
         $psi.RedirectStandardOutput = $true
