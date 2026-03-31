@@ -351,16 +351,31 @@ export class AuthorizeService {
   }
 
   /**
-   * Returns the pending tenant switch target (if any) and clears it.
-   * Called by the guard to pass the correct tenantId to login() after a switchTenant reload.
+   * Returns the pending tenant switch target (if any) WITHOUT clearing it.
+   * The key persists across the OAuth redirect cycle (guard → IDS → callback → guard)
+   * and is only cleared after a successful token exchange in loadUserAsync().
+   *
+   * Previously this method removed the key immediately, but that caused a race condition:
+   * the guard consumed it before the IDS redirect, and after the callback redirect the
+   * key was gone — causing the guard to fall back to the route tenant (wrong tenant).
    */
   public consumePendingTenantSwitch(): string | null {
     try {
-      const tenantId = sessionStorage.getItem(AuthorizeService.TENANT_REAUTH_KEY);
-      sessionStorage.removeItem(AuthorizeService.TENANT_REAUTH_KEY);
-      return tenantId;
+      return sessionStorage.getItem(AuthorizeService.TENANT_REAUTH_KEY);
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * Clears the pending tenant switch key. Called after a successful token exchange
+   * when the token's tenant_id matches the target, completing the switch cycle.
+   */
+  public clearPendingTenantSwitch(): void {
+    try {
+      sessionStorage.removeItem(AuthorizeService.TENANT_REAUTH_KEY);
+    } catch {
+      // sessionStorage may be unavailable
     }
   }
 
@@ -580,6 +595,11 @@ export class AuthorizeService {
     // Parse tenant_id from the access token (used for tenant mismatch detection)
     const tokenTenantId = this.parseTenantIdFromToken(accessToken);
     this._tokenTenantId.set(tokenTenantId);
+
+    // Clear the pending tenant switch key now that we have a valid token.
+    // This completes the switch cycle and prevents the guard from re-using
+    // the pending tenant on subsequent route activations.
+    this.clearPendingTenantSwitch();
 
     console.debug(`AuthorizeService::loadUserAsync::done (tokenTenantId="${tokenTenantId}", allowedTenants=${JSON.stringify(this._allowedTenants())})`);
   }
