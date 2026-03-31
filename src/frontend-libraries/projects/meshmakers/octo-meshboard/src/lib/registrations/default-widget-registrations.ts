@@ -26,6 +26,7 @@ import {
   SummaryCardWidgetConfig,
   AlertBannerWidgetConfig,
   AlertListWidgetConfig,
+  AiInsightsWidgetConfig,
   DataSource,
   WidgetFilterConfig
 } from '../models/meshboard.models';
@@ -53,6 +54,8 @@ import { AlertBannerWidgetComponent } from '../widgets/alert-banner-widget/alert
 import { AlertBannerConfigDialogComponent, AlertBannerConfigResult } from '../widgets/alert-banner-widget/alert-banner-config-dialog.component';
 import { AlertListWidgetComponent } from '../widgets/alert-list-widget/alert-list-widget.component';
 import { AlertListConfigDialogComponent, AlertListConfigResult } from '../widgets/alert-list-widget/alert-list-config-dialog.component';
+import { AiInsightsWidgetComponent } from '../widgets/ai-insights-widget/ai-insights-widget.component';
+import { AiInsightsConfigDialogComponent, AiInsightsConfigResult } from '../widgets/ai-insights-widget/ai-insights-config-dialog.component';
 // Note: ProcessWidget registration moved to process-widget-registration.ts for lazy loading
 // Use provideProcessWidget() or registerProcessWidget() to enable Process Diagram widgets
 
@@ -2062,6 +2065,78 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showTimestamp: config['showTimestamp'] as boolean | undefined,
         sortBySeverity: config['sortBySeverity'] as boolean | undefined,
         maxAlerts: config['maxAlerts'] as number | undefined
+      };
+    }
+  });
+
+  // AI Insights Widget
+  registry.registerWidget<AiInsightsWidgetConfig, AiInsightsConfigResult>({
+    type: 'aiInsights',
+    label: 'AI Insights',
+    component: AiInsightsWidgetComponent,
+    configDialogComponent: AiInsightsConfigDialogComponent,
+    configDialogSize: { width: 600, height: 500, minWidth: 450, minHeight: 400 },
+    configDialogTitle: 'AI Insights Configuration',
+    defaultSize: { colSpan: 3, rowSpan: 2 },
+    supportedDataSources: ['static'],
+
+    getInitialConfig: (widget) => {
+      const aiWidget = widget as AiInsightsWidgetConfig;
+      return {
+        apiKey: aiWidget.apiKey,
+        model: aiWidget.model ?? 'claude-sonnet-4-20250514',
+        domainContext: aiWidget.domainContext ?? 'energy management',
+        refreshInterval: aiWidget.refreshInterval ?? 0,
+        maxInsights: aiWidget.maxInsights ?? 4
+      };
+    },
+
+    applyConfigResult: (widget, result) => ({
+      ...widget,
+      apiKey: result.apiKey,
+      model: result.model,
+      domainContext: result.domainContext,
+      refreshInterval: result.refreshInterval,
+      maxInsights: result.maxInsights,
+      dataSource: { type: 'static' as const }
+    } as AiInsightsWidgetConfig),
+
+    createDefaultConfig: (base: BaseWidgetConfig): AiInsightsWidgetConfig => ({
+      ...base,
+      type: 'aiInsights',
+      colSpan: 3,
+      rowSpan: 2,
+      dataSource: { type: 'static' },
+      refreshInterval: 0,
+      maxInsights: 4,
+      domainContext: 'energy management'
+    }),
+
+    toPersistedConfig: (widget: AiInsightsWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'static',
+      config: {
+        apiKey: widget.apiKey,
+        model: widget.model,
+        systemPrompt: widget.systemPrompt,
+        refreshInterval: widget.refreshInterval,
+        maxInsights: widget.maxInsights,
+        domainContext: widget.domainContext
+      }
+    }),
+
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): AiInsightsWidgetConfig => {
+      const config = parseConfig(data);
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'aiInsights',
+        dataSource: { type: 'static' as const },
+        apiKey: config['apiKey'] as string | undefined,
+        model: config['model'] as string | undefined,
+        systemPrompt: config['systemPrompt'] as string | undefined,
+        refreshInterval: (config['refreshInterval'] as number) ?? 0,
+        maxInsights: (config['maxInsights'] as number) ?? 4,
+        domainContext: (config['domainContext'] as string) ?? 'energy management'
       };
     }
   });

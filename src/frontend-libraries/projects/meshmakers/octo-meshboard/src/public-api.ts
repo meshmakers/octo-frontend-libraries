@@ -111,6 +111,11 @@ export { AlertListWidgetComponent } from './lib/widgets/alert-list-widget/alert-
 export { AlertListConfigDialogComponent } from './lib/widgets/alert-list-widget/alert-list-config-dialog.component';
 export type { AlertListConfigResult } from './lib/widgets/alert-list-widget/alert-list-config-dialog.component';
 
+export { AiInsightsWidgetComponent } from './lib/widgets/ai-insights-widget/ai-insights-widget.component';
+export { AiInsightsConfigDialogComponent } from './lib/widgets/ai-insights-widget/ai-insights-config-dialog.component';
+export type { AiInsightsConfigResult } from './lib/widgets/ai-insights-widget/ai-insights-config-dialog.component';
+export { AiInsightsService } from './lib/widgets/ai-insights-widget/ai-insights.service';
+
 // Process Widget - Separate export for lazy loading of octo-process-diagrams
 // To use ProcessWidget in MeshBoard:
 // 1. Import provideProcessWidget from '@meshmakers/octo-meshboard'

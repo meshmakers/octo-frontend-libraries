@@ -184,7 +184,8 @@ export type WidgetType =
   | 'statusList'
   | 'summaryCard'
   | 'alertBanner'
-  | 'alertList';
+  | 'alertList'
+  | 'aiInsights';
 
 /**
  * Base widget configuration
@@ -855,6 +856,26 @@ export interface AlertListWidgetConfig extends WidgetConfig {
   maxAlerts?: number;
 }
 
+// ============================================================================
+// AI Insights Widget
+// ============================================================================
+
+export interface AiInsightsWidgetConfig extends WidgetConfig {
+  type: 'aiInsights';
+  /** Anthropic API key (demo only - use backend proxy in production) */
+  apiKey?: string;
+  /** Claude model (default: claude-sonnet-4-20250514) */
+  model?: string;
+  /** Custom system prompt override */
+  systemPrompt?: string;
+  /** Auto-refresh interval in seconds (0 = disabled, default: 0) */
+  refreshInterval?: number;
+  /** Max insights to generate (default: 4) */
+  maxInsights?: number;
+  /** Domain context hint (default: energy management) */
+  domainContext?: string;
+}
+
 // Process Widget Config is defined in the process-widget module
 // Re-exported here for AnyWidgetConfig union
 import type { ProcessWidgetConfig, DiagramPropertyMapping } from '../widgets/process-widget/process-widget-config.model';
@@ -879,7 +900,8 @@ export type AnyWidgetConfig =
   | StatusListWidgetConfig
   | SummaryCardWidgetConfig
   | AlertBannerWidgetConfig
-  | AlertListWidgetConfig;
+  | AlertListWidgetConfig
+  | AiInsightsWidgetConfig;
 
 // ============================================================================
 // MeshBoard Variables
