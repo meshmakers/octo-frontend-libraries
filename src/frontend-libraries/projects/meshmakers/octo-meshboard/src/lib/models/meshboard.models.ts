@@ -182,7 +182,9 @@ export type WidgetType =
   | 'widgetGroup'
   | 'markdown'
   | 'statusList'
-  | 'summaryCard';
+  | 'summaryCard'
+  | 'alertBanner'
+  | 'alertList';
 
 /**
  * Base widget configuration
@@ -819,6 +821,38 @@ export interface SummaryCardTile {
   };
 }
 
+// ============================================================================
+// Alert Banner Widget
+// ============================================================================
+
+export interface AlertBannerWidgetConfig extends WidgetConfig {
+  type: 'alertBanner';
+  /** CK type to query (default: System.Notification/StatefulEvent) */
+  ckTypeId?: string;
+  /** Rotation interval in ms (default: 5000) */
+  rotationInterval?: number;
+  /** Show severity icon (default: true) */
+  showIcon?: boolean;
+  /** Max alerts to fetch (default: 20) */
+  maxAlerts?: number;
+}
+
+// ============================================================================
+// Alert List Widget
+// ============================================================================
+
+export interface AlertListWidgetConfig extends WidgetConfig {
+  type: 'alertList';
+  /** CK type to query (default: System.Notification/StatefulEvent) */
+  ckTypeId?: string;
+  /** Show timestamp column (default: true) */
+  showTimestamp?: boolean;
+  /** Sort by severity descending (default: true) */
+  sortBySeverity?: boolean;
+  /** Max alerts to fetch (default: 50) */
+  maxAlerts?: number;
+}
+
 // Process Widget Config is defined in the process-widget module
 // Re-exported here for AnyWidgetConfig union
 import type { ProcessWidgetConfig, DiagramPropertyMapping } from '../widgets/process-widget/process-widget-config.model';
@@ -841,7 +875,9 @@ export type AnyWidgetConfig =
   | WidgetGroupConfig
   | MarkdownWidgetConfig
   | StatusListWidgetConfig
-  | SummaryCardWidgetConfig;
+  | SummaryCardWidgetConfig
+  | AlertBannerWidgetConfig
+  | AlertListWidgetConfig;
 
 // ============================================================================
 // MeshBoard Variables

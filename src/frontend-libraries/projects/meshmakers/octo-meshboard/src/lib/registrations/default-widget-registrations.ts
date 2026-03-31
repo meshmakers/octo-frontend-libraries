@@ -24,6 +24,8 @@ import {
   MarkdownWidgetConfig,
   StatusListWidgetConfig,
   SummaryCardWidgetConfig,
+  AlertBannerWidgetConfig,
+  AlertListWidgetConfig,
   DataSource,
   WidgetFilterConfig
 } from '../models/meshboard.models';
@@ -47,6 +49,10 @@ import { StatusListWidgetComponent } from '../widgets/status-list-widget/status-
 import { StatusListConfigDialogComponent, StatusListConfigResult } from '../widgets/status-list-widget/status-list-config-dialog.component';
 import { SummaryCardWidgetComponent } from '../widgets/summary-card-widget/summary-card-widget.component';
 import { SummaryCardConfigDialogComponent, SummaryCardConfigResult } from '../widgets/summary-card-widget/summary-card-config-dialog.component';
+import { AlertBannerWidgetComponent } from '../widgets/alert-banner-widget/alert-banner-widget.component';
+import { AlertBannerConfigDialogComponent, AlertBannerConfigResult } from '../widgets/alert-banner-widget/alert-banner-config-dialog.component';
+import { AlertListWidgetComponent } from '../widgets/alert-list-widget/alert-list-widget.component';
+import { AlertListConfigDialogComponent, AlertListConfigResult } from '../widgets/alert-list-widget/alert-list-config-dialog.component';
 // Note: ProcessWidget registration moved to process-widget-registration.ts for lazy loading
 // Use provideProcessWidget() or registerProcessWidget() to enable Process Diagram widgets
 
@@ -1928,6 +1934,134 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dataSource: { type: 'runtimeEntity' as const, ckTypeId: data.ckTypeId ?? 'configured' } as RuntimeEntityDataSource,
         columns: (config['columns'] as number) ?? 2,
         tiles: (config['tiles'] as SummaryCardWidgetConfig['tiles']) ?? []
+      };
+    }
+  });
+
+  // Alert Banner Widget
+  registry.registerWidget<AlertBannerWidgetConfig, AlertBannerConfigResult>({
+    type: 'alertBanner',
+    label: 'Alert Banner',
+    component: AlertBannerWidgetComponent,
+    configDialogComponent: AlertBannerConfigDialogComponent,
+    configDialogSize: { width: 500, height: 400, minWidth: 400, minHeight: 300 },
+    configDialogTitle: 'Alert Banner Configuration',
+    defaultSize: { colSpan: 4, rowSpan: 1 },
+    supportedDataSources: ['runtimeEntity'],
+
+    getInitialConfig: (widget) => {
+      const abWidget = widget as AlertBannerWidgetConfig;
+      return {
+        ckTypeId: abWidget.ckTypeId ?? 'System.Notification/StatefulEvent',
+        rotationInterval: abWidget.rotationInterval ?? 5000,
+        showIcon: abWidget.showIcon ?? true,
+        maxAlerts: abWidget.maxAlerts ?? 20
+      };
+    },
+
+    applyConfigResult: (widget, result) => ({
+      ...widget,
+      ckTypeId: result.ckTypeId,
+      rotationInterval: result.rotationInterval,
+      showIcon: result.showIcon,
+      maxAlerts: result.maxAlerts
+    } as AlertBannerWidgetConfig),
+
+    createDefaultConfig: (base: BaseWidgetConfig): AlertBannerWidgetConfig => ({
+      ...base,
+      type: 'alertBanner',
+      colSpan: 4,
+      rowSpan: 1,
+      dataSource: { type: 'runtimeEntity' },
+      ckTypeId: 'System.Notification/StatefulEvent'
+    }),
+
+    toPersistedConfig: (widget: AlertBannerWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'runtimeEntity',
+      dataSourceCkTypeId: widget.ckTypeId ?? 'System.Notification/StatefulEvent',
+      config: {
+        ckTypeId: widget.ckTypeId,
+        rotationInterval: widget.rotationInterval,
+        showIcon: widget.showIcon,
+        maxAlerts: widget.maxAlerts
+      }
+    }),
+
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): AlertBannerWidgetConfig => {
+      const config = parseConfig(data);
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'alertBanner',
+        dataSource: { type: 'runtimeEntity' as const, ckTypeId: data.ckTypeId ?? 'System.Notification/StatefulEvent' },
+        ckTypeId: (config['ckTypeId'] as string) ?? data.ckTypeId ?? 'System.Notification/StatefulEvent',
+        rotationInterval: config['rotationInterval'] as number | undefined,
+        showIcon: config['showIcon'] as boolean | undefined,
+        maxAlerts: config['maxAlerts'] as number | undefined
+      };
+    }
+  });
+
+  // Alert List Widget
+  registry.registerWidget<AlertListWidgetConfig, AlertListConfigResult>({
+    type: 'alertList',
+    label: 'Alert List',
+    component: AlertListWidgetComponent,
+    configDialogComponent: AlertListConfigDialogComponent,
+    configDialogSize: { width: 500, height: 400, minWidth: 400, minHeight: 300 },
+    configDialogTitle: 'Alert List Configuration',
+    defaultSize: { colSpan: 3, rowSpan: 3 },
+    supportedDataSources: ['runtimeEntity'],
+
+    getInitialConfig: (widget) => {
+      const alWidget = widget as AlertListWidgetConfig;
+      return {
+        ckTypeId: alWidget.ckTypeId ?? 'System.Notification/StatefulEvent',
+        showTimestamp: alWidget.showTimestamp ?? true,
+        sortBySeverity: alWidget.sortBySeverity ?? true,
+        maxAlerts: alWidget.maxAlerts ?? 50
+      };
+    },
+
+    applyConfigResult: (widget, result) => ({
+      ...widget,
+      ckTypeId: result.ckTypeId,
+      showTimestamp: result.showTimestamp,
+      sortBySeverity: result.sortBySeverity,
+      maxAlerts: result.maxAlerts
+    } as AlertListWidgetConfig),
+
+    createDefaultConfig: (base: BaseWidgetConfig): AlertListWidgetConfig => ({
+      ...base,
+      type: 'alertList',
+      colSpan: 3,
+      rowSpan: 3,
+      dataSource: { type: 'runtimeEntity' },
+      ckTypeId: 'System.Notification/StatefulEvent'
+    }),
+
+    toPersistedConfig: (widget: AlertListWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'runtimeEntity',
+      dataSourceCkTypeId: widget.ckTypeId ?? 'System.Notification/StatefulEvent',
+      config: {
+        ckTypeId: widget.ckTypeId,
+        showTimestamp: widget.showTimestamp,
+        sortBySeverity: widget.sortBySeverity,
+        maxAlerts: widget.maxAlerts
+      }
+    }),
+
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): AlertListWidgetConfig => {
+      const config = parseConfig(data);
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'alertList',
+        dataSource: { type: 'runtimeEntity' as const, ckTypeId: data.ckTypeId ?? 'System.Notification/StatefulEvent' },
+        ckTypeId: (config['ckTypeId'] as string) ?? data.ckTypeId ?? 'System.Notification/StatefulEvent',
+        showTimestamp: config['showTimestamp'] as boolean | undefined,
+        sortBySeverity: config['sortBySeverity'] as boolean | undefined,
+        maxAlerts: config['maxAlerts'] as number | undefined
       };
     }
   });
