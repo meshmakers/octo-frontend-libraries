@@ -350,24 +350,38 @@ kendo-tilelayout {
   }
 }
 
-// Chromeless mode: hide widget chrome in view mode
-:host ::ng-deep kendo-tilelayout-item.chromeless {
-  &.k-tilelayout-item.k-card {
-    border: none;
-    background: transparent;
-    box-shadow: none;
-  }
+:host ::ng-deep kendo-tilelayout.has-banners {
+  padding-top: 0 !important;
+}
 
-  .chromeless-header {
-    display: none;
+// Banner zone: chromeless widgets rendered outside the grid
+.banner-zone-item {
+  margin: 0;
+  padding: 8px 1rem;
+
+  &.banner-edit {
+    border: 1px dashed var(--kendo-color-border, rgba(255, 255, 255, 0.2));
+    border-radius: 4px;
+    margin: 0 1rem 12px;
+    padding: 4px 0;
   }
 }
 
-// Chromeless mode in edit mode: show dashed border for orientation
-:host ::ng-deep kendo-tilelayout-item.chromeless-edit {
-  &.k-tilelayout-item.k-card {
-    border: 1px dashed var(--kendo-color-border, rgba(255, 255, 255, 0.2));
-    background: transparent;
-    box-shadow: none;
+.banner-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  opacity: 0.7;
+
+  .widget-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .widget-actions {
+    display: flex;
+    gap: 2px;
   }
 }

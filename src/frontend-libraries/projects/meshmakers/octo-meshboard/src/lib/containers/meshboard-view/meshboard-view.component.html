@@ -181,25 +181,70 @@
       </div>
     }
 
+    <!-- Banner Zone: chromeless widgets rendered outside the grid -->
+    @for (widget of bannerWidgets(); track trackByWidgetId($index, widget)) {
+      <div class="banner-zone-item" [class.banner-edit]="isEditMode()">
+        @if (isEditMode()) {
+          <div class="banner-edit-header">
+            <span class="widget-title">{{ widget.title }}</span>
+            <div class="widget-actions">
+              @if (supportsConfiguration(widget)) {
+                <button
+                  kendoButton
+                  [svgIcon]="linkIcon"
+                  (click)="openWidgetConfig(widget)"
+                  fillMode="flat"
+                  size="small"
+                  class="config-widget-btn"
+                  [class.needs-config]="isWidgetUnconfigured(widget)"
+                  [title]="isWidgetUnconfigured(widget) ? 'Configure data source (required)' : 'Configure data source'">
+                </button>
+              }
+              <button
+                kendoButton
+                [svgIcon]="gearIcon"
+                (click)="openEditWidgetDialog(widget)"
+                fillMode="flat"
+                size="small"
+                class="edit-widget-btn"
+                title="Edit position">
+              </button>
+              <button
+                kendoButton
+                [svgIcon]="trashIcon"
+                (click)="removeWidget(widget.id)"
+                fillMode="flat"
+                size="small"
+                class="remove-widget-btn"
+                title="Delete widget">
+              </button>
+            </div>
+          </div>
+        }
+        @if (getWidgetComponentType(widget.type); as componentType) {
+          <ng-container *ngComponentOutlet="componentType; inputs: { config: widget }"></ng-container>
+        }
+      </div>
+    }
+
     <!-- MeshBoard Grid -->
-    @if (hasWidgets()) {
+    @if (hasGridWidgets()) {
       <kendo-tilelayout
         [columns]="config().columns"
         [rowHeight]="config().rowHeight"
         [gap]="config().gap"
+        [class.has-banners]="bannerWidgets().length > 0 && !isEditMode()"
         [resizable]="isEditMode()"
         [reorderable]="isEditMode()"
         (reorder)="onReorder($event)"
         (resize)="onResize($event)">
-        @for (widget of config().widgets; track trackByWidgetId($index, widget)) {
+        @for (widget of gridWidgets(); track trackByWidgetId($index, widget)) {
           <kendo-tilelayout-item
             [col]="widget.col"
             [row]="widget.row"
             [colSpan]="widget.colSpan"
-            [rowSpan]="widget.rowSpan"
-            [class.chromeless]="widget.chromeless && !isEditMode()"
-            [class.chromeless-edit]="widget.chromeless && isEditMode()">
-            <kendo-tilelayout-item-header [class.chromeless-header]="widget.chromeless && !isEditMode()">
+            [rowSpan]="widget.rowSpan">
+            <kendo-tilelayout-item-header>
               <div class="widget-header" [class.unconfigured]="isWidgetUnconfigured(widget)">
                 <span class="widget-title">{{ widget.title }}</span>
                 @if (isWidgetUnconfigured(widget) && !isEditMode()) {

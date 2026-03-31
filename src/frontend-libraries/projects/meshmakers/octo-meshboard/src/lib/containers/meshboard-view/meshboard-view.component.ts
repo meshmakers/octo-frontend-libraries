@@ -147,6 +147,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Computed
   protected readonly hasWidgets = computed(() => this.config().widgets.length > 0);
+  protected readonly bannerWidgets = computed(() => this.config().widgets.filter(w => w.chromeless));
+  protected readonly gridWidgets = computed(() => this.config().widgets.filter(w => !w.chromeless));
+  protected readonly hasGridWidgets = computed(() => this.gridWidgets().length > 0);
   protected readonly canSave = computed(() => this.isEditMode() && !this.isSaving());
 
   // Time Filter computed signals
