@@ -354,6 +354,10 @@ kendo-tilelayout {
   padding-top: 0 !important;
 }
 
+:host ::ng-deep kendo-tilelayout {
+  padding-bottom: 1.5rem !important;
+}
+
 // Banner zone: chromeless widgets rendered outside the grid
 .banner-zone-item {
   margin: 0;
