@@ -1026,7 +1026,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       col: update.col,
       row: update.row,
       colSpan: update.colSpan,
-      rowSpan: update.rowSpan
+      rowSpan: update.rowSpan,
+      chromeless: update.chromeless
     }));
 
     this.closeEditWidgetDialog();

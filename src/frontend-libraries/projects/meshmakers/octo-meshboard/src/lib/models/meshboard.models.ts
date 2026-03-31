@@ -204,6 +204,8 @@ export interface WidgetConfig {
   rowSpan: number;
   /** Whether the widget supports data source configuration dialog */
   configurable?: boolean;
+  /** Hide widget chrome (title bar, border) in view mode */
+  chromeless?: boolean;
 }
 
 /**

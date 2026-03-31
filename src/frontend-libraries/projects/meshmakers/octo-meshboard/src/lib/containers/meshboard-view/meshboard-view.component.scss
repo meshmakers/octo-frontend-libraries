@@ -349,3 +349,25 @@ kendo-tilelayout {
     padding: 1rem;
   }
 }
+
+// Chromeless mode: hide widget chrome in view mode
+:host ::ng-deep kendo-tilelayout-item.chromeless {
+  &.k-tilelayout-item.k-card {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .chromeless-header {
+    display: none;
+  }
+}
+
+// Chromeless mode in edit mode: show dashed border for orientation
+:host ::ng-deep kendo-tilelayout-item.chromeless-edit {
+  &.k-tilelayout-item.k-card {
+    border: 1px dashed var(--kendo-color-border, rgba(255, 255, 255, 0.2));
+    background: transparent;
+    box-shadow: none;
+  }
+}

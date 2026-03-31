@@ -14,6 +14,7 @@ export interface WidgetPositionUpdate {
   row: number;
   colSpan: number;
   rowSpan: number;
+  chromeless?: boolean;
 }
 
 @Component({
@@ -91,6 +92,11 @@ export interface WidgetPositionUpdate {
           </div>
         </div>
 
+        <div class="form-field form-field-checkbox">
+          <input type="checkbox" id="editWidgetChromeless" [(ngModel)]="form.chromeless" />
+          <label for="editWidgetChromeless">Chromeless (hide title bar and border in view mode)</label>
+        </div>
+
         @if (error) {
           <div class="form-error">{{ error }}</div>
         }
@@ -137,6 +143,16 @@ export interface WidgetPositionUpdate {
       }
     }
 
+    .form-field-checkbox {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+
+      label {
+        font-weight: 400;
+      }
+    }
+
     .form-error {
       color: var(--kendo-color-error, #dc3545);
       font-size: 0.875rem;
@@ -174,7 +190,8 @@ export class EditWidgetDialogComponent implements OnInit {
       col: this.widget.col,
       row: this.widget.row,
       colSpan: this.widget.colSpan,
-      rowSpan: this.widget.rowSpan
+      rowSpan: this.widget.rowSpan,
+      chromeless: this.widget.chromeless ?? false
     };
   }
 

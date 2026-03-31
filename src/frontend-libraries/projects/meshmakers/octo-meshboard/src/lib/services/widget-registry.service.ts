@@ -25,6 +25,7 @@ export interface BaseWidgetConfig {
   colSpan: number;
   rowSpan: number;
   configurable?: boolean;
+  chromeless?: boolean;
 }
 
 /**
@@ -299,6 +300,7 @@ export class WidgetRegistryService {
    * Builds base configuration from persisted data.
    */
   private buildBaseConfig(data: PersistedWidgetData): BaseWidgetConfig {
+    const parsedConfig = data.config ? (typeof data.config === 'string' ? JSON.parse(data.config) : data.config) : {};
     return {
       id: data.rtId,
       title: data.name,
@@ -306,7 +308,8 @@ export class WidgetRegistryService {
       row: data.row,
       colSpan: data.colSpan,
       rowSpan: data.rowSpan,
-      configurable: true
+      configurable: true,
+      chromeless: parsedConfig['chromeless'] === true ? true : undefined
     };
   }
 

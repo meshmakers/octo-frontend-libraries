@@ -196,8 +196,10 @@
             [col]="widget.col"
             [row]="widget.row"
             [colSpan]="widget.colSpan"
-            [rowSpan]="widget.rowSpan">
-            <kendo-tilelayout-item-header>
+            [rowSpan]="widget.rowSpan"
+            [class.chromeless]="widget.chromeless && !isEditMode()"
+            [class.chromeless-edit]="widget.chromeless && isEditMode()">
+            <kendo-tilelayout-item-header [class.chromeless-header]="widget.chromeless && !isEditMode()">
               <div class="widget-header" [class.unconfigured]="isWidgetUnconfigured(widget)">
                 <span class="widget-title">{{ widget.title }}</span>
                 @if (isWidgetUnconfigured(widget) && !isEditMode()) {

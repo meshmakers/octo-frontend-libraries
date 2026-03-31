@@ -360,7 +360,10 @@ export class MeshBoardPersistenceService {
       dataSourceType,
       dataSourceCkTypeId: persistenceData.dataSourceCkTypeId ?? '',
       dataSourceRtId: persistenceData.dataSourceRtId ?? '',
-      config: JSON.stringify(persistenceData.config)
+      config: JSON.stringify({
+        ...persistenceData.config,
+        ...(widget.chromeless ? { chromeless: true } : {})
+      })
     };
 
     // Only include parent if there are association changes
