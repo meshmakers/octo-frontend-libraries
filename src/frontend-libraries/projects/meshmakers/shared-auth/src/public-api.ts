@@ -9,6 +9,7 @@ import { provideOAuthClient } from 'angular-oauth2-oidc';
 // Core services
 export * from './lib/authorize.service';
 export * from './lib/roles';
+export { TenantAwareOAuthStorage } from './lib/tenant-aware-oauth-storage';
 
 // Functional interceptor
 export { authorizeInterceptor } from './lib/authorize.interceptor';

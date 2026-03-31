@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { OAuthService, OAuthEvent, TokenResponse } from 'angular-oauth2-oidc';
 import { AuthorizeService, AuthorizeOptions, IUser } from './authorize.service';
+import { TenantAwareOAuthStorage } from './tenant-aware-oauth-storage';
 import { Roles } from './roles';
 
 function createMockJwt(payload: Record<string, unknown>): string {
@@ -75,8 +76,9 @@ describe('AuthorizeService', () => {
 
     service = TestBed.inject(AuthorizeService);
 
-    // Spy on the protected reloadPage method to prevent actual page reloads during tests
+    // Spy on the protected reloadPage and navigateTo methods to prevent actual page navigation during tests
     _reloadPageSpy = spyOn(service as unknown as { reloadPage: () => void }, 'reloadPage');
+    spyOn(service as unknown as { navigateTo: (url: string) => void }, 'navigateTo');
   });
 
   // =============================================================================
@@ -132,10 +134,10 @@ describe('AuthorizeService', () => {
         }));
       });
 
-      it('should set localStorage as storage', async () => {
+      it('should set TenantAwareOAuthStorage as storage', async () => {
         await service.initialize(mockOptions);
 
-        expect(oauthServiceMock.setStorage).toHaveBeenCalledWith(localStorage);
+        expect(oauthServiceMock.setStorage).toHaveBeenCalledWith(jasmine.any(TenantAwareOAuthStorage));
       });
 
       it('should load discovery document and try login', async () => {
@@ -662,6 +664,67 @@ describe('AuthorizeService', () => {
     // 2. BroadcastChannel listener: Receives logout messages from other tabs
     // Both handlers clear user state and call reloadPage() when authenticated.
     // These features should be verified through E2E/integration tests.
+
+    // =============================================================================
+    // PER-TENANT STORAGE TESTS
+    // =============================================================================
+
+    describe('setStorageTenantId', () => {
+      it('should pass TenantAwareOAuthStorage with correct tenant to setStorage', async () => {
+        service.setStorageTenantId('maco');
+        await service.initialize(mockOptions);
+
+        const storageArg = oauthServiceMock.setStorage.calls.mostRecent().args[0] as TenantAwareOAuthStorage;
+        expect(storageArg).toBeInstanceOf(TenantAwareOAuthStorage);
+        expect(storageArg.getTenantId()).toBe('maco');
+      });
+    });
+
+    describe('switchTenant', () => {
+      beforeEach(async () => {
+        await service.initialize(mockOptions);
+        // Prevent actual page navigation by spying on reloadPage
+        // (switchTenant uses window.location.href which we can't easily mock,
+        // but the important assertions are about side effects before navigation)
+      });
+
+      it('should call stopAutomaticRefresh', () => {
+        oauthServiceMock.stopAutomaticRefresh.calls.reset();
+
+        // switchTenant will set window.location.href which triggers navigation,
+        // but the stopAutomaticRefresh call happens before that
+        service.switchTenant('octosystem', 'https://localhost:4200/octosystem');
+
+        expect(oauthServiceMock.stopAutomaticRefresh).toHaveBeenCalled();
+      });
+
+      it('should store target tenant in sessionStorage for login after reload', () => {
+        service.switchTenant('octosystem', 'https://localhost:4200/octosystem');
+
+        expect(sessionStorage.getItem('octo_tenant_reauth')).toBe('octosystem');
+        expect(sessionStorage.getItem('octo_tenant_switch_attempted')).toBe('octosystem');
+      });
+
+      afterEach(() => {
+        sessionStorage.removeItem('octo_tenant_reauth');
+        sessionStorage.removeItem('octo_tenant_switch_attempted');
+      });
+    });
+
+    describe('logout with tenant storage', () => {
+      it('should clear all tenant tokens on logout', () => {
+        // Set up tokens for multiple tenants
+        localStorage.setItem('maco__access_token', 'maco-token');
+        localStorage.setItem('octosystem__access_token', 'octo-token');
+        localStorage.setItem('maco__nonce', 'maco-nonce');
+
+        service.logout();
+
+        expect(localStorage.getItem('maco__access_token')).toBeNull();
+        expect(localStorage.getItem('octosystem__access_token')).toBeNull();
+        expect(localStorage.getItem('maco__nonce')).toBeNull();
+      });
+    });
   });
 
   // =============================================================================

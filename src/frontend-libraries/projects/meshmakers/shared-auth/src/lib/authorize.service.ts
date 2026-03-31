@@ -1,6 +1,7 @@
 import { Injectable, Signal, WritableSignal, computed, inject, signal } from "@angular/core";
 import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
 import { Roles } from "./roles";
+import { TenantAwareOAuthStorage } from "./tenant-aware-oauth-storage";
 
 export interface IUser {
   family_name: string | null;
@@ -53,6 +54,7 @@ export class AuthorizeService {
   private static readonly TENANT_REAUTH_KEY = 'octo_tenant_reauth';
   private static readonly TENANT_SWITCH_ATTEMPTED_KEY = 'octo_tenant_switch_attempted';
 
+  private readonly tenantStorage = new TenantAwareOAuthStorage();
   private authorizeOptions: AuthorizeOptions | null = null;
   private lastAuthConfig: AuthConfig | null = null;
 
@@ -189,9 +191,11 @@ export class AuthorizeService {
     // This enables immediate cross-tab logout detection
     window.addEventListener('storage', (event) => {
       console.debug("AuthorizeService: Storage event received", event.key, event.newValue);
-      // Check if access_token was removed (logout in another tab)
+      // Check if the current tenant's access_token was removed (logout in another tab)
+      // With per-tenant storage, the key is prefixed (e.g., "maco__access_token")
       // Note: OAuth library may set to empty string or null when clearing
-      if (event.key === 'access_token' && (event.newValue === null || event.newValue === '') && this._isAuthenticated()) {
+      const expectedKey = this.tenantStorage.prefixKey('access_token');
+      if (event.key === expectedKey && (event.newValue === null || event.newValue === '') && this._isAuthenticated()) {
         console.debug("AuthorizeService: Access token removed in another tab - logging out and reloading");
         this._accessToken.set(null);
         this._user.set(null);
@@ -235,6 +239,21 @@ export class AuthorizeService {
    */
   public getServiceUris(): string[] | null {
     return this.authorizeOptions?.wellKnownServiceUris ?? null;
+  }
+
+  /**
+   * Sets the tenant ID for per-tenant token storage isolation.
+   * Must be called BEFORE initialize() to ensure tokens are stored/retrieved
+   * under the correct tenant prefix in localStorage.
+   *
+   * When set, all OAuth storage keys are prefixed with `{tenantId}__`
+   * (e.g., `maco__access_token`), preventing token collisions between tenants.
+   *
+   * @param tenantId The tenant ID to use for storage key prefixing, or null for unprefixed mode.
+   */
+  public setStorageTenantId(tenantId: string | null): void {
+    this.tenantStorage.setTenantId(tenantId);
+    console.debug(`AuthorizeService::setStorageTenantId("${tenantId}")`);
   }
 
   /**
@@ -308,22 +327,17 @@ export class AuthorizeService {
       // sessionStorage may be unavailable
     }
 
-    // Clear local OAuth tokens directly from storage.
-    // Do NOT use oauthService.logOut() — it fires a 'logout' event
-    // whose handler calls reloadPage(), racing with our navigation below.
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('id_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('id_token_claims_obj');
-    localStorage.removeItem('id_token_expires_at');
-    localStorage.removeItem('id_token_stored_at');
-    localStorage.removeItem('access_token_stored_at');
-    localStorage.removeItem('expires_at');
-    localStorage.removeItem('nonce');
-    localStorage.removeItem('PKCE_verifier');
-    localStorage.removeItem('session_state');
-    localStorage.removeItem('granted_scopes');
-    localStorage.removeItem('requested_route');
+    // Stop automatic refresh and session checks to prevent the OAuth library
+    // from firing additional authorize requests during the page reload window.
+    // This prevents race conditions where a session check or silent refresh
+    // could overwrite the nonce/PKCE verifier of the new tenant's auth flow.
+    this.oauthService.stopAutomaticRefresh();
+
+    // With per-tenant storage (TenantAwareOAuthStorage), we do NOT clear
+    // tokens from localStorage. Each tenant's tokens are stored under
+    // prefixed keys (e.g., "maco__access_token") and are isolated from
+    // each other. After page reload, the storage tenant will be set to
+    // the target tenant, and cached tokens (if valid) can be reused.
 
     // Clear our signals
     this._accessToken.set(null);
@@ -332,7 +346,7 @@ export class AuthorizeService {
     this._tokenTenantId.set(null);
 
     // Full page navigation to the target URL — triggers fresh auth flow
-    window.location.href = targetUrl;
+    this.navigateTo(targetUrl);
     return true;
   }
 
@@ -383,6 +397,12 @@ export class AuthorizeService {
     // Clear local OAuth state (tokens, discovery doc, etc.)
     this.oauthService.logOut(true); // true = noRedirectToLogoutUrl (we redirect manually)
 
+    // Clear OAuth tokens for ALL tenants, not just the current one.
+    // With per-tenant storage, oauthService.logOut() only clears the current
+    // tenant's prefixed keys. We need to ensure no stale tokens remain for
+    // any tenant after a full logout.
+    this.tenantStorage.clearAllTenants();
+
     if (endSessionEndpoint) {
       // Build the end_session URL with id_token_hint and post_logout_redirect_uri
       const params = new URLSearchParams();
@@ -392,7 +412,7 @@ export class AuthorizeService {
       if (postLogoutRedirectUri) {
         params.set('post_logout_redirect_uri', postLogoutRedirectUri);
       }
-      window.location.href = `${endSessionEndpoint}?${params.toString()}`;
+      this.navigateTo(`${endSessionEndpoint}?${params.toString()}`);
     } else {
       // Fallback: no end_session_endpoint available, just reload
       this.reloadPage();
@@ -470,7 +490,7 @@ export class AuthorizeService {
       this.authorizeOptions = authorizeOptions;
       this.lastAuthConfig = config;
 
-      this.oauthService.setStorage(localStorage);
+      this.oauthService.setStorage(this.tenantStorage);
       this.oauthService.configure(config);
       console.debug("AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin");
       await this.oauthService.loadDiscoveryDocumentAndTryLogin();
@@ -654,5 +674,14 @@ export class AuthorizeService {
    */
   protected reloadPage(): void {
     window.location.reload();
+  }
+
+  /**
+   * Navigates to the given URL via full page navigation.
+   * This method is protected to allow mocking in tests.
+   * @internal
+   */
+  protected navigateTo(url: string): void {
+    window.location.href = url;
   }
 }
