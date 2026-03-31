@@ -23,6 +23,7 @@ import {
   WidgetGroupConfig,
   MarkdownWidgetConfig,
   StatusListWidgetConfig,
+  SummaryCardWidgetConfig,
   DataSource,
   WidgetFilterConfig
 } from '../models/meshboard.models';
@@ -44,6 +45,8 @@ import { MarkdownWidgetComponent } from '../widgets/markdown-widget/markdown-wid
 import { HeatmapWidgetComponent } from '../widgets/heatmap-widget/heatmap-widget.component';
 import { StatusListWidgetComponent } from '../widgets/status-list-widget/status-list-widget.component';
 import { StatusListConfigDialogComponent, StatusListConfigResult } from '../widgets/status-list-widget/status-list-config-dialog.component';
+import { SummaryCardWidgetComponent } from '../widgets/summary-card-widget/summary-card-widget.component';
+import { SummaryCardConfigDialogComponent, SummaryCardConfigResult } from '../widgets/summary-card-widget/summary-card-config-dialog.component';
 // Note: ProcessWidget registration moved to process-widget-registration.ts for lazy loading
 // Use provideProcessWidget() or registerProcessWidget() to enable Process Diagram widgets
 
@@ -1868,6 +1871,63 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         labelField: (config['labelField'] as string) ?? 'name',
         statusField: (config['statusField'] as string) ?? '',
         statusColors: config['statusColors'] as StatusListWidgetConfig['statusColors']
+      };
+    }
+  });
+
+  // Summary Card Widget
+  registry.registerWidget<SummaryCardWidgetConfig, SummaryCardConfigResult>({
+    type: 'summaryCard',
+    label: 'Summary Card',
+    component: SummaryCardWidgetComponent,
+    configDialogComponent: SummaryCardConfigDialogComponent,
+    configDialogSize: { width: 750, height: 650, minWidth: 600, minHeight: 500 },
+    configDialogTitle: 'Summary Card Configuration',
+    defaultSize: { colSpan: 2, rowSpan: 2 },
+    supportedDataSources: ['runtimeEntity'],
+
+    getInitialConfig: (widget) => {
+      const scWidget = widget as SummaryCardWidgetConfig;
+      return {
+        initialColumns: scWidget.columns,
+        initialTiles: scWidget.tiles
+      };
+    },
+
+    applyConfigResult: (widget, result) => ({
+      ...widget,
+      columns: result.columns,
+      tiles: result.tiles,
+      dataSource: { type: 'runtimeEntity' as const }
+    } as SummaryCardWidgetConfig),
+
+    createDefaultConfig: (base: BaseWidgetConfig): SummaryCardWidgetConfig => ({
+      ...base,
+      type: 'summaryCard',
+      colSpan: 2,
+      rowSpan: 2,
+      dataSource: { type: 'runtimeEntity' },
+      columns: 2,
+      tiles: []
+    }),
+
+    toPersistedConfig: (widget: SummaryCardWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'runtimeEntity',
+      config: {
+        columns: widget.columns,
+        tiles: widget.tiles
+      }
+    }),
+
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): SummaryCardWidgetConfig => {
+      const config = parseConfig(data);
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'summaryCard',
+        dataSource: { type: 'runtimeEntity' as const, ckTypeId: data.ckTypeId ?? 'configured' } as RuntimeEntityDataSource,
+        columns: (config['columns'] as number) ?? 2,
+        tiles: (config['tiles'] as SummaryCardWidgetConfig['tiles']) ?? []
       };
     }
   });

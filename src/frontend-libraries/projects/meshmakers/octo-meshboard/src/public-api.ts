@@ -99,6 +99,10 @@ export { StatusListWidgetComponent } from './lib/widgets/status-list-widget/stat
 export { StatusListConfigDialogComponent } from './lib/widgets/status-list-widget/status-list-config-dialog.component';
 export type { StatusListConfigResult } from './lib/widgets/status-list-widget/status-list-config-dialog.component';
 
+export { SummaryCardWidgetComponent } from './lib/widgets/summary-card-widget/summary-card-widget.component';
+export { SummaryCardConfigDialogComponent } from './lib/widgets/summary-card-widget/summary-card-config-dialog.component';
+export type { SummaryCardConfigResult } from './lib/widgets/summary-card-widget/summary-card-config-dialog.component';
+
 // Process Widget - Separate export for lazy loading of octo-process-diagrams
 // To use ProcessWidget in MeshBoard:
 // 1. Import provideProcessWidget from '@meshmakers/octo-meshboard'

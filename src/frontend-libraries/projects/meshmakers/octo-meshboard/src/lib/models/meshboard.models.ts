@@ -181,7 +181,8 @@ export type WidgetType =
   | 'process'
   | 'widgetGroup'
   | 'markdown'
-  | 'statusList';
+  | 'statusList'
+  | 'summaryCard';
 
 /**
  * Base widget configuration
@@ -780,6 +781,44 @@ export interface StatusListWidgetConfig extends WidgetConfig {
   statusColors?: Record<string, { color: string; label?: string }>;
 }
 
+// ============================================================================
+// Summary Card Widget
+// ============================================================================
+
+/**
+ * Widget that displays multiple data tiles from different entities/aggregations
+ * in a compact card layout. Each tile independently fetches its value.
+ */
+export interface SummaryCardWidgetConfig extends WidgetConfig {
+  type: 'summaryCard';
+  /** Layout columns for the tiles grid (default: 2) */
+  columns?: number;
+  /** Individual data tiles */
+  tiles: SummaryCardTile[];
+}
+
+export interface SummaryCardTile {
+  id: string;
+  label: string;
+  prefix?: string;
+  suffix?: string;
+  color?: 'default' | 'primary' | 'success' | 'warning' | 'error';
+  size?: 'normal' | 'full';
+  /** Fetch a single attribute from a runtime entity */
+  entitySource?: {
+    rtId: string;
+    ckTypeId: string;
+    attributePath: string;
+  };
+  /** Fetch an aggregated value (count/sum/avg) */
+  aggregationSource?: {
+    ckTypeId: string;
+    aggregation: 'count' | 'sum' | 'avg' | 'min' | 'max';
+    attribute?: string;
+    filters?: WidgetFilterConfig[];
+  };
+}
+
 // Process Widget Config is defined in the process-widget module
 // Re-exported here for AnyWidgetConfig union
 import type { ProcessWidgetConfig, DiagramPropertyMapping } from '../widgets/process-widget/process-widget-config.model';
@@ -801,7 +840,8 @@ export type AnyWidgetConfig =
   | ProcessWidgetConfig
   | WidgetGroupConfig
   | MarkdownWidgetConfig
-  | StatusListWidgetConfig;
+  | StatusListWidgetConfig
+  | SummaryCardWidgetConfig;
 
 // ============================================================================
 // MeshBoard Variables
