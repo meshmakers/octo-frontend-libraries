@@ -362,7 +362,8 @@ export class MeshBoardPersistenceService {
       dataSourceRtId: persistenceData.dataSourceRtId ?? '',
       config: JSON.stringify({
         ...persistenceData.config,
-        ...(widget.chromeless ? { chromeless: true } : {})
+        ...(widget.chromeless ? { chromeless: true } : {}),
+        ...(widget.zone && widget.zone !== 'grid' ? { zone: widget.zone } : {})
       })
     };
 

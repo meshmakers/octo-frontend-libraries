@@ -48,7 +48,7 @@ export class MeshBoardGridService {
     const widgetCells = this.getCells(col, row, colSpan, rowSpan);
 
     for (const other of widgets) {
-      if (other.id === widgetId || other.chromeless) continue;
+      if (other.id === widgetId || other.zone === 'banner') continue;
 
       const otherCells = this.getCells(other.col, other.row, other.colSpan, other.rowSpan);
 
@@ -107,9 +107,9 @@ export class MeshBoardGridService {
     const occupiedCells = new Set<string>();
 
     for (const widget of widgets) {
-      // Skip chromeless (banner) widgets — they are rendered outside the grid
+      // Skip banner-zone widgets — they are rendered outside the grid
       // and should not participate in grid overlap detection.
-      if (widget.chromeless) continue;
+      if (widget.zone === 'banner') continue;
 
       const cells = this.getCells(widget.col, widget.row, widget.colSpan, widget.rowSpan);
       const hasOverlap = cells.some(c => occupiedCells.has(`${c.row},${c.col}`));

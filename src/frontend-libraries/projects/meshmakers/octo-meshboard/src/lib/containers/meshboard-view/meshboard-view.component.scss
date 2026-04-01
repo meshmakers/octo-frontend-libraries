@@ -358,7 +358,37 @@ kendo-tilelayout {
   padding-bottom: 1.5rem !important;
 }
 
-// Banner zone: chromeless widgets rendered outside the grid
+// Chromeless grid widgets: collapse header and hide card styling in view mode.
+// Since Kendo TileLayout components ignore Angular host bindings ([class], [attr]),
+// we target the inner .chromeless-header class that we control.
+.widget-header.chromeless-header {
+  display: none;
+}
+
+:host ::ng-deep .k-tilelayout-item-header:has(.chromeless-header) {
+  display: none;
+}
+
+:host ::ng-deep kendo-tilelayout-item:has(.chromeless-header) {
+  &.k-tilelayout-item,
+  &.k-card {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+}
+
+// Zone labels (visible in edit mode only)
+.zone-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  opacity: 0.4;
+  padding: 6px 1rem 2px;
+  font-weight: 600;
+}
+
+// Banner zone: widgets rendered above the grid as a full-width stack
 .banner-zone-item {
   margin: 0;
   padding: 8px 1rem;

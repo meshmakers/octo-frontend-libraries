@@ -149,8 +149,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Computed
   protected readonly hasWidgets = computed(() => this.config().widgets.length > 0);
-  protected readonly bannerWidgets = computed(() => this.config().widgets.filter(w => w.chromeless));
-  protected readonly gridWidgets = computed(() => this.config().widgets.filter(w => !w.chromeless));
+  protected readonly bannerWidgets = computed(() => this.config().widgets.filter(w => w.zone === 'banner'));
+  protected readonly gridWidgets = computed(() => this.config().widgets.filter(w => w.zone !== 'banner'));
   protected readonly hasGridWidgets = computed(() => this.gridWidgets().length > 0);
   protected readonly canSave = computed(() => this.isEditMode() && !this.isSaving());
 
@@ -1034,7 +1034,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     this.stateService.updateConfig(config => ({
       ...config,
       widgets: config.widgets.map(widget => {
-        if (widget.chromeless) return widget;
+        if (widget.zone === 'banner') return widget;
 
         const gridIndex = currentGridWidgets.findIndex(gw => gw.id === widget.id);
         if (gridIndex === -1 || gridIndex >= tileItems.length) return widget;
@@ -1104,7 +1104,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       row: update.row,
       colSpan: update.colSpan,
       rowSpan: update.rowSpan,
-      chromeless: update.chromeless
+      chromeless: update.chromeless,
+      zone: update.zone
     }));
 
     this.closeEditWidgetDialog();

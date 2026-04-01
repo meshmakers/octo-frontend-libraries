@@ -188,6 +188,13 @@ export type WidgetType =
   | 'aiInsights';
 
 /**
+ * Widget placement zone.
+ * - 'grid': Rendered inside the Kendo TileLayout grid (default)
+ * - 'banner': Rendered in the banner stack above the grid (full-width, no grid positioning)
+ */
+export type WidgetZone = 'grid' | 'banner';
+
+/**
  * Base widget configuration
  */
 export interface WidgetConfig {
@@ -207,6 +214,8 @@ export interface WidgetConfig {
   configurable?: boolean;
   /** Hide widget chrome (title bar, border) in view mode */
   chromeless?: boolean;
+  /** Which zone this widget is placed in (default: 'grid') */
+  zone?: WidgetZone;
 }
 
 /**

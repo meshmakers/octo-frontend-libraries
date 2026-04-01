@@ -2,7 +2,7 @@ import { Injectable, Type, inject, Injector, EnvironmentInjector, ApplicationRef
 import { Observable, Subject, firstValueFrom } from 'rxjs';
 import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { WindowStateService } from '@meshmakers/shared-ui';
-import { AnyWidgetConfig, WidgetType, RuntimeEntityDataSource, DataSourceType } from '../models/meshboard.models';
+import { AnyWidgetConfig, WidgetType, WidgetZone, RuntimeEntityDataSource, DataSourceType } from '../models/meshboard.models';
 
 /**
  * Base interface for all widget config dialog results.
@@ -26,6 +26,7 @@ export interface BaseWidgetConfig {
   rowSpan: number;
   configurable?: boolean;
   chromeless?: boolean;
+  zone?: WidgetZone;
 }
 
 /**
@@ -301,6 +302,9 @@ export class WidgetRegistryService {
    */
   private buildBaseConfig(data: PersistedWidgetData): BaseWidgetConfig {
     const parsedConfig = data.config ? (typeof data.config === 'string' ? JSON.parse(data.config) : data.config) : {};
+    const chromeless = parsedConfig['chromeless'] === true;
+    // Migration: if chromeless is set but no zone, infer zone from chromeless (legacy data)
+    const zone = (parsedConfig['zone'] as WidgetZone) ?? (chromeless ? 'banner' : undefined);
     return {
       id: data.rtId,
       title: data.name,
@@ -309,7 +313,8 @@ export class WidgetRegistryService {
       colSpan: data.colSpan,
       rowSpan: data.rowSpan,
       configurable: true,
-      chromeless: parsedConfig['chromeless'] === true ? true : undefined
+      chromeless: chromeless || undefined,
+      zone
     };
   }
 

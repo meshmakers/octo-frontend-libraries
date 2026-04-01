@@ -181,7 +181,10 @@
       </div>
     }
 
-    <!-- Banner Zone: chromeless widgets rendered outside the grid -->
+    <!-- Banner Zone: widgets placed in the banner stack above the grid -->
+    @if (isEditMode()) {
+      <div class="zone-label banner-zone-label">Banner Zone</div>
+    }
     @for (widget of bannerWidgets(); track trackByWidgetId($index, widget)) {
       <div class="banner-zone-item" [class.banner-edit]="isEditMode()">
         @if (isEditMode()) {
@@ -228,6 +231,9 @@
     }
 
     <!-- MeshBoard Grid -->
+    @if (isEditMode()) {
+      <div class="zone-label grid-zone-label">Grid Zone</div>
+    }
     @if (hasGridWidgets()) {
       <kendo-tilelayout
         [columns]="config().columns"
@@ -245,10 +251,14 @@
             [colSpan]="widget.colSpan"
             [rowSpan]="widget.rowSpan">
             <kendo-tilelayout-item-header>
-              <div class="widget-header" [class.unconfigured]="isWidgetUnconfigured(widget)">
-                <span class="widget-title">{{ widget.title }}</span>
-                @if (isWidgetUnconfigured(widget) && !isEditMode()) {
-                  <span class="unconfigured-badge" title="Widget needs configuration">!</span>
+              <div class="widget-header"
+                   [class.unconfigured]="isWidgetUnconfigured(widget)"
+                   [class.chromeless-header]="widget.chromeless && !isEditMode()">
+                @if (!(widget.chromeless && !isEditMode())) {
+                  <span class="widget-title">{{ widget.title }}</span>
+                  @if (isWidgetUnconfigured(widget)) {
+                    <span class="unconfigured-badge" title="Widget needs configuration">!</span>
+                  }
                 }
                 @if (isEditMode()) {
                   <div class="widget-actions" (pointerdown)="$event.stopPropagation()">
