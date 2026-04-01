@@ -1,7 +1,7 @@
-import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
-import { TileLayoutModule, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
+import { TileLayoutModule, TileLayoutComponent, TileLayoutReorderEvent, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { DialogService, DialogModule, WindowService, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { filter, firstValueFrom, Subscription } from 'rxjs';
@@ -109,6 +109,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly undoIcon = undoIcon;
   protected readonly copyIcon = copyIcon;
   protected readonly infoCircleIcon = infoCircleIcon;
+
+  @ViewChild(TileLayoutComponent) private tileLayout?: TileLayoutComponent;
 
   // Edit widget dialog state
   protected showEditWidgetDialog = false;
@@ -930,14 +932,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   /**
    * Handles TileLayout reorder events.
    */
-  onReorder(event: { newIndex: number; oldIndex: number }): void {
-    // TileLayout handles the DOM reordering, we just need to update our state
-    const config = this.stateService.getConfig();
-    const widgets = [...config.widgets];
-    const [movedWidget] = widgets.splice(event.oldIndex, 1);
-    widgets.splice(event.newIndex, 0, movedWidget);
-
-    this.stateService.updateConfig(c => ({ ...c, widgets }));
+  onReorder(event: TileLayoutReorderEvent): void {
+    // The event provides the new position of the reordered item explicitly,
+    // because the @Input() properties on TileLayoutItemComponent still reflect
+    // the old Angular binding values at event time.
+    // We use event.newCol/newRow for the moved item and read other items'
+    // positions from the TileLayout after Angular has processed the change.
+    this.syncWidgetPositionsFromEvent({
+      movedItemIndex: event.oldIndex,
+      newCol: event.newCol,
+      newRow: event.newRow
+    });
 
     // Enter edit mode if not already in it
     if (!this.isEditMode()) {
@@ -949,32 +954,101 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Handles TileLayout resize events.
    */
   onResize(event: TileLayoutResizeEvent): void {
-    // Extract the resized item from the event
-    const item = event.item;
-
-    // Find the widget in our config that matches this item
-    const config = this.stateService.getConfig();
-    const widgetIndex = config.widgets.findIndex(w =>
-      w.col === item.col && w.row === item.row
+    // The event provides the new spans of the resized item explicitly.
+    // We find the resized item by matching its old col/row position.
+    const currentGridWidgets = this.gridWidgets();
+    const resizedIndex = currentGridWidgets.findIndex(w =>
+      w.col === event.item.col && w.row === event.item.row
     );
 
-    if (widgetIndex !== -1) {
-      const widget = config.widgets[widgetIndex];
+    this.syncWidgetPositionsFromEvent({
+      movedItemIndex: resizedIndex,
+      newCol: event.item.col,
+      newRow: event.item.row,
+      newColSpan: event.newColSpan,
+      newRowSpan: event.newRowSpan
+    });
 
-      // Update the widget configuration with new size
-      this.stateService.updateWidget(widget.id, w => ({
-        ...w,
-        col: item.col,
-        row: item.row,
-        colSpan: item.colSpan,
-        rowSpan: item.rowSpan
-      }));
-
-      // Enter edit mode if not already in it
-      if (!this.isEditMode()) {
-        this.editModeService.enterEditMode(this.stateService.getConfig());
-      }
+    // Enter edit mode if not already in it
+    if (!this.isEditMode()) {
+      this.editModeService.enterEditMode(this.stateService.getConfig());
     }
+  }
+
+  /**
+   * Syncs widget positions from a TileLayout reorder or resize event.
+   *
+   * At event time, the @Input() properties on TileLayoutItemComponent still
+   * hold their old Angular binding values. The only reliable source for the
+   * changed item's new position are the explicit event properties
+   * (newCol/newRow for reorder, newColSpan/newRowSpan for resize).
+   *
+   * After updating the changed item, we schedule a deferred read of all
+   * item positions from the TileLayout ViewChild (after Angular has processed
+   * the change) to pick up any reflow of other widgets.
+   */
+  private syncWidgetPositionsFromEvent(change: {
+    movedItemIndex: number;
+    newCol?: number;
+    newRow?: number;
+    newColSpan?: number;
+    newRowSpan?: number;
+  }): void {
+    const currentGridWidgets = this.gridWidgets();
+
+    if (change.movedItemIndex < 0 || change.movedItemIndex >= currentGridWidgets.length) {
+      console.warn('Could not find moved/resized widget at index', change.movedItemIndex);
+      return;
+    }
+
+    const movedWidget = currentGridWidgets[change.movedItemIndex];
+
+    // Update the moved/resized widget with the explicit event values
+    this.stateService.updateWidget(movedWidget.id, w => ({
+      ...w,
+      col: change.newCol ?? w.col,
+      row: change.newRow ?? w.row,
+      colSpan: change.newColSpan ?? w.colSpan,
+      rowSpan: change.newRowSpan ?? w.rowSpan
+    }));
+
+    // After Angular processes the change and Kendo re-renders,
+    // read back all item positions to catch any reflow of other widgets.
+    setTimeout(() => this.syncAllWidgetPositionsFromTileLayout(), 0);
+  }
+
+  /**
+   * Reads the current col/row/colSpan/rowSpan from all TileLayout items
+   * and updates the widget state accordingly.
+   * Called after Angular change detection so @Input() values are current.
+   */
+  private syncAllWidgetPositionsFromTileLayout(): void {
+    if (!this.tileLayout) return;
+
+    const tileItems = this.tileLayout.items?.toArray();
+    if (!tileItems) return;
+
+    const currentGridWidgets = this.gridWidgets();
+    if (tileItems.length !== currentGridWidgets.length) return;
+
+    this.stateService.updateConfig(config => ({
+      ...config,
+      widgets: config.widgets.map(widget => {
+        if (widget.chromeless) return widget;
+
+        const gridIndex = currentGridWidgets.findIndex(gw => gw.id === widget.id);
+        if (gridIndex === -1 || gridIndex >= tileItems.length) return widget;
+
+        const tileItem = tileItems[gridIndex];
+        return {
+          ...widget,
+          col: tileItem.col,
+          row: tileItem.row,
+          colSpan: tileItem.colSpan,
+          rowSpan: tileItem.rowSpan
+        };
+      })
+    }));
   }
 
   /**
