@@ -138,6 +138,54 @@ describe('TenantAwareOAuthStorage', () => {
     });
   });
 
+  describe('sessionStorage persistence', () => {
+    beforeEach(() => {
+      sessionStorage.clear();
+    });
+
+    afterEach(() => {
+      sessionStorage.clear();
+    });
+
+    it('should persist tenant ID to sessionStorage when set', () => {
+      storage.setTenantId('maco');
+
+      expect(sessionStorage.getItem('octo_storage_tenant')).toBe('maco');
+    });
+
+    it('should remove tenant ID from sessionStorage when set to null', () => {
+      storage.setTenantId('maco');
+      storage.setTenantId(null);
+
+      expect(sessionStorage.getItem('octo_storage_tenant')).toBeNull();
+    });
+
+    it('should restore tenant ID from sessionStorage', () => {
+      sessionStorage.setItem('octo_storage_tenant', 'octosystem');
+
+      const restored = storage.restoreTenantId();
+
+      expect(restored).toBe('octosystem');
+      expect(storage.getTenantId()).toBe('octosystem');
+    });
+
+    it('should return null when no tenant ID in sessionStorage', () => {
+      const restored = storage.restoreTenantId();
+
+      expect(restored).toBeNull();
+      expect(storage.getTenantId()).toBeNull();
+    });
+
+    it('should use restored tenant ID for key prefixing', () => {
+      sessionStorage.setItem('octo_storage_tenant', 'maco');
+      localStorage.setItem('maco__access_token', 'maco-token');
+
+      storage.restoreTenantId();
+
+      expect(storage.getItem('access_token')).toBe('maco-token');
+    });
+  });
+
   describe('clearAllTenants', () => {
     it('should clear prefixed OAuth keys for all tenants', () => {
       localStorage.setItem('maco__access_token', 'maco-token');

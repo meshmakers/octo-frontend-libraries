@@ -248,12 +248,28 @@ export class AuthorizeService {
    *
    * When set, all OAuth storage keys are prefixed with `{tenantId}__`
    * (e.g., `maco__access_token`), preventing token collisions between tenants.
+   * The tenant ID is also persisted in sessionStorage so it survives OAuth redirects.
    *
    * @param tenantId The tenant ID to use for storage key prefixing, or null for unprefixed mode.
    */
   public setStorageTenantId(tenantId: string | null): void {
     this.tenantStorage.setTenantId(tenantId);
     console.debug(`AuthorizeService::setStorageTenantId("${tenantId}")`);
+  }
+
+  /**
+   * Restores the storage tenant ID from sessionStorage.
+   * Use this when the tenant ID cannot be determined from the URL
+   * (e.g., after an OAuth redirect to the root path).
+   *
+   * @returns The restored tenant ID, or null if none was persisted.
+   */
+  public restoreStorageTenantId(): string | null {
+    const tenantId = this.tenantStorage.restoreTenantId();
+    if (tenantId) {
+      console.debug(`AuthorizeService::restoreStorageTenantId("${tenantId}")`);
+    }
+    return tenantId;
   }
 
   /**

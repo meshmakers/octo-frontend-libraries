@@ -23,6 +23,14 @@ const OAUTH_STORAGE_KEYS = [
 ];
 
 /**
+ * SessionStorage key used to persist the current storage tenant ID across
+ * page reloads (e.g., OAuth redirects). The tenant ID must survive the
+ * round-trip to the identity server because the redirect URI may not
+ * contain the tenant path segment.
+ */
+const STORAGE_TENANT_KEY = 'octo_storage_tenant';
+
+/**
  * Tenant-aware OAuth storage that prefixes all keys with a tenant ID.
  *
  * When a tenant ID is set, all storage keys are prefixed with `{tenantId}__`
@@ -32,6 +40,9 @@ const OAUTH_STORAGE_KEYS = [
  *
  * When no tenant ID is set (null), keys are stored without a prefix,
  * maintaining backwards compatibility with existing single-tenant apps.
+ *
+ * The tenant ID is also persisted in sessionStorage so that it survives
+ * OAuth redirects (the redirect URI may not include the tenant path).
  *
  * @example
  * ```typescript
@@ -51,11 +62,21 @@ export class TenantAwareOAuthStorage extends OAuthStorage {
   /**
    * Sets the tenant ID used to prefix storage keys.
    * Must be called before the OAuthService reads/writes tokens.
+   * The tenant ID is persisted in sessionStorage so it survives OAuth redirects.
    *
    * @param tenantId The tenant ID, or null for unprefixed (backwards-compatible) mode.
    */
   setTenantId(tenantId: string | null): void {
     this.tenantId = tenantId;
+    try {
+      if (tenantId) {
+        sessionStorage.setItem(STORAGE_TENANT_KEY, tenantId);
+      } else {
+        sessionStorage.removeItem(STORAGE_TENANT_KEY);
+      }
+    } catch {
+      // sessionStorage may be unavailable
+    }
   }
 
   /**
@@ -63,6 +84,26 @@ export class TenantAwareOAuthStorage extends OAuthStorage {
    */
   getTenantId(): string | null {
     return this.tenantId;
+  }
+
+  /**
+   * Restores the tenant ID from sessionStorage.
+   * Call this on app startup when the tenant cannot be determined from the URL
+   * (e.g., after an OAuth redirect to the root path).
+   *
+   * @returns The restored tenant ID, or null if none was persisted.
+   */
+  restoreTenantId(): string | null {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_TENANT_KEY);
+      if (stored) {
+        this.tenantId = stored;
+        return stored;
+      }
+    } catch {
+      // sessionStorage may be unavailable
+    }
+    return null;
   }
 
   /**
