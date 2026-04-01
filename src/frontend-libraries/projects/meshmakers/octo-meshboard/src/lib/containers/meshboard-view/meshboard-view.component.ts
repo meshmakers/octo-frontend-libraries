@@ -18,7 +18,9 @@ import {
   gridLayoutIcon,
   undoIcon,
   copyIcon,
-  infoCircleIcon
+  infoCircleIcon,
+  arrowUpIcon,
+  arrowDownIcon
 } from '@progress/kendo-svg-icons';
 
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -109,6 +111,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly undoIcon = undoIcon;
   protected readonly copyIcon = copyIcon;
   protected readonly infoCircleIcon = infoCircleIcon;
+  protected readonly arrowUpIcon = arrowUpIcon;
+  protected readonly arrowDownIcon = arrowDownIcon;
 
   @ViewChild(TileLayoutComponent) private tileLayout?: TileLayoutComponent;
 
@@ -887,6 +891,54 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     this.stateService.removeWidget(widgetId);
 
     // Enter edit mode if not already in it
+    if (!this.isEditMode()) {
+      this.editModeService.enterEditMode(this.stateService.getConfig());
+    }
+  }
+
+  /**
+   * Moves a banner widget up (earlier) in the widgets array.
+   */
+  moveBannerUp(widgetId: string): void {
+    this.stateService.updateConfig(config => {
+      const widgets = [...config.widgets];
+      const index = widgets.findIndex(w => w.id === widgetId);
+      if (index <= 0) return config;
+
+      // Find previous banner widget
+      for (let i = index - 1; i >= 0; i--) {
+        if (widgets[i].zone === 'banner') {
+          [widgets[i], widgets[index]] = [widgets[index], widgets[i]];
+          return { ...config, widgets };
+        }
+      }
+      return config;
+    });
+
+    if (!this.isEditMode()) {
+      this.editModeService.enterEditMode(this.stateService.getConfig());
+    }
+  }
+
+  /**
+   * Moves a banner widget down (later) in the widgets array.
+   */
+  moveBannerDown(widgetId: string): void {
+    this.stateService.updateConfig(config => {
+      const widgets = [...config.widgets];
+      const index = widgets.findIndex(w => w.id === widgetId);
+      if (index === -1) return config;
+
+      // Find next banner widget
+      for (let i = index + 1; i < widgets.length; i++) {
+        if (widgets[i].zone === 'banner') {
+          [widgets[i], widgets[index]] = [widgets[index], widgets[i]];
+          return { ...config, widgets };
+        }
+      }
+      return config;
+    });
+
     if (!this.isEditMode()) {
       this.editModeService.enterEditMode(this.stateService.getConfig());
     }

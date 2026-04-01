@@ -185,12 +185,30 @@
     @if (isEditMode()) {
       <div class="zone-label banner-zone-label">Banner Zone</div>
     }
-    @for (widget of bannerWidgets(); track trackByWidgetId($index, widget)) {
+    @for (widget of bannerWidgets(); track trackByWidgetId($index, widget); let first = $first; let last = $last) {
       <div class="banner-zone-item" [class.banner-edit]="isEditMode()">
         @if (isEditMode()) {
           <div class="banner-edit-header">
             <span class="widget-title">{{ widget.title }}</span>
             <div class="widget-actions">
+              <button
+                kendoButton
+                [svgIcon]="arrowUpIcon"
+                (click)="moveBannerUp(widget.id)"
+                fillMode="flat"
+                size="small"
+                [disabled]="first"
+                title="Move up">
+              </button>
+              <button
+                kendoButton
+                [svgIcon]="arrowDownIcon"
+                (click)="moveBannerDown(widget.id)"
+                fillMode="flat"
+                size="small"
+                [disabled]="last"
+                title="Move down">
+              </button>
               @if (supportsConfiguration(widget)) {
                 <button
                   kendoButton
@@ -210,7 +228,7 @@
                 fillMode="flat"
                 size="small"
                 class="edit-widget-btn"
-                title="Edit position">
+                title="Edit widget">
               </button>
               <button
                 kendoButton
