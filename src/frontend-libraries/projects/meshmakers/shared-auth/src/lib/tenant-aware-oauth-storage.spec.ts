@@ -6,26 +6,28 @@ describe('TenantAwareOAuthStorage', () => {
   beforeEach(() => {
     storage = new TenantAwareOAuthStorage();
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   afterEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   describe('without tenant ID (backwards compatibility)', () => {
-    it('should store items with unprefixed keys', () => {
+    it('should store token keys in localStorage', () => {
       storage.setItem('access_token', 'token-123');
 
       expect(localStorage.getItem('access_token')).toBe('token-123');
     });
 
-    it('should retrieve items with unprefixed keys', () => {
+    it('should retrieve token keys from localStorage', () => {
       localStorage.setItem('access_token', 'token-123');
 
       expect(storage.getItem('access_token')).toBe('token-123');
     });
 
-    it('should remove items with unprefixed keys', () => {
+    it('should remove token keys from localStorage', () => {
       localStorage.setItem('access_token', 'token-123');
 
       storage.removeItem('access_token');
@@ -38,25 +40,70 @@ describe('TenantAwareOAuthStorage', () => {
     });
   });
 
+  describe('session-scoped keys (nonce, PKCE_verifier, requested_route)', () => {
+    it('should store nonce in sessionStorage (not localStorage)', () => {
+      storage.setItem('nonce', 'nonce-123');
+
+      expect(sessionStorage.getItem('nonce')).toBe('nonce-123');
+      expect(localStorage.getItem('nonce')).toBeNull();
+    });
+
+    it('should store PKCE_verifier in sessionStorage', () => {
+      storage.setItem('PKCE_verifier', 'verifier-123');
+
+      expect(sessionStorage.getItem('PKCE_verifier')).toBe('verifier-123');
+      expect(localStorage.getItem('PKCE_verifier')).toBeNull();
+    });
+
+    it('should store requested_route in sessionStorage', () => {
+      storage.setItem('requested_route', '/octosystem/dashboard');
+
+      expect(sessionStorage.getItem('requested_route')).toBe('/octosystem/dashboard');
+      expect(localStorage.getItem('requested_route')).toBeNull();
+    });
+
+    it('should retrieve nonce from sessionStorage', () => {
+      sessionStorage.setItem('nonce', 'nonce-123');
+
+      expect(storage.getItem('nonce')).toBe('nonce-123');
+    });
+
+    it('should remove nonce from sessionStorage', () => {
+      sessionStorage.setItem('nonce', 'nonce-123');
+
+      storage.removeItem('nonce');
+
+      expect(sessionStorage.getItem('nonce')).toBeNull();
+    });
+
+    it('should prefix session-scoped keys with tenant ID', () => {
+      storage.setTenantId('maco');
+      storage.setItem('nonce', 'maco-nonce');
+
+      expect(sessionStorage.getItem('maco__nonce')).toBe('maco-nonce');
+      expect(localStorage.getItem('maco__nonce')).toBeNull();
+    });
+  });
+
   describe('with tenant ID', () => {
     beforeEach(() => {
       storage.setTenantId('maco');
     });
 
-    it('should store items with prefixed keys', () => {
+    it('should store token keys with prefixed keys in localStorage', () => {
       storage.setItem('access_token', 'maco-token');
 
       expect(localStorage.getItem('maco__access_token')).toBe('maco-token');
       expect(localStorage.getItem('access_token')).toBeNull();
     });
 
-    it('should retrieve items with prefixed keys', () => {
+    it('should retrieve token keys with prefixed keys from localStorage', () => {
       localStorage.setItem('maco__access_token', 'maco-token');
 
       expect(storage.getItem('access_token')).toBe('maco-token');
     });
 
-    it('should remove items with prefixed keys', () => {
+    it('should remove token keys with prefixed keys from localStorage', () => {
       localStorage.setItem('maco__access_token', 'maco-token');
 
       storage.removeItem('access_token');
@@ -87,11 +134,12 @@ describe('TenantAwareOAuthStorage', () => {
       storage.setItem('access_token', 'octosystem-token');
       storage.setItem('nonce', 'octosystem-nonce');
 
-      // Verify isolation
+      // Tokens in localStorage
       expect(localStorage.getItem('maco__access_token')).toBe('maco-token');
-      expect(localStorage.getItem('maco__nonce')).toBe('maco-nonce');
       expect(localStorage.getItem('octosystem__access_token')).toBe('octosystem-token');
-      expect(localStorage.getItem('octosystem__nonce')).toBe('octosystem-nonce');
+      // Nonces in sessionStorage
+      expect(sessionStorage.getItem('maco__nonce')).toBe('maco-nonce');
+      expect(sessionStorage.getItem('octosystem__nonce')).toBe('octosystem-nonce');
     });
 
     it('should read correct tenant tokens after switch', () => {
@@ -138,15 +186,7 @@ describe('TenantAwareOAuthStorage', () => {
     });
   });
 
-  describe('sessionStorage persistence', () => {
-    beforeEach(() => {
-      sessionStorage.clear();
-    });
-
-    afterEach(() => {
-      sessionStorage.clear();
-    });
-
+  describe('sessionStorage persistence (tenant ID)', () => {
     it('should persist tenant ID to sessionStorage when set', () => {
       storage.setTenantId('maco');
 
@@ -187,10 +227,9 @@ describe('TenantAwareOAuthStorage', () => {
   });
 
   describe('clearAllTenants', () => {
-    it('should clear prefixed OAuth keys for all tenants', () => {
+    it('should clear prefixed token keys from localStorage', () => {
       localStorage.setItem('maco__access_token', 'maco-token');
       localStorage.setItem('maco__refresh_token', 'maco-refresh');
-      localStorage.setItem('maco__nonce', 'maco-nonce');
       localStorage.setItem('octosystem__access_token', 'octo-token');
       localStorage.setItem('octosystem__id_token', 'octo-id');
 
@@ -198,21 +237,32 @@ describe('TenantAwareOAuthStorage', () => {
 
       expect(localStorage.getItem('maco__access_token')).toBeNull();
       expect(localStorage.getItem('maco__refresh_token')).toBeNull();
-      expect(localStorage.getItem('maco__nonce')).toBeNull();
       expect(localStorage.getItem('octosystem__access_token')).toBeNull();
       expect(localStorage.getItem('octosystem__id_token')).toBeNull();
     });
 
-    it('should clear unprefixed OAuth keys', () => {
+    it('should clear session-scoped keys from sessionStorage', () => {
+      sessionStorage.setItem('maco__nonce', 'maco-nonce');
+      sessionStorage.setItem('octosystem__PKCE_verifier', 'octo-verifier');
+      sessionStorage.setItem('requested_route', '/dashboard');
+
+      storage.clearAllTenants();
+
+      expect(sessionStorage.getItem('maco__nonce')).toBeNull();
+      expect(sessionStorage.getItem('octosystem__PKCE_verifier')).toBeNull();
+      expect(sessionStorage.getItem('requested_route')).toBeNull();
+    });
+
+    it('should clear unprefixed OAuth keys from both storages', () => {
       localStorage.setItem('access_token', 'old-token');
-      localStorage.setItem('nonce', 'old-nonce');
-      localStorage.setItem('PKCE_verifier', 'old-verifier');
+      sessionStorage.setItem('nonce', 'old-nonce');
+      sessionStorage.setItem('PKCE_verifier', 'old-verifier');
 
       storage.clearAllTenants();
 
       expect(localStorage.getItem('access_token')).toBeNull();
-      expect(localStorage.getItem('nonce')).toBeNull();
-      expect(localStorage.getItem('PKCE_verifier')).toBeNull();
+      expect(sessionStorage.getItem('nonce')).toBeNull();
+      expect(sessionStorage.getItem('PKCE_verifier')).toBeNull();
     });
 
     it('should not remove non-OAuth keys', () => {
@@ -227,28 +277,56 @@ describe('TenantAwareOAuthStorage', () => {
       expect(localStorage.getItem('maco__access_token')).toBeNull();
     });
 
-    it('should handle empty localStorage', () => {
+    it('should handle empty storage', () => {
       expect(() => storage.clearAllTenants()).not.toThrow();
     });
 
-    it('should clear all known OAuth key types', () => {
-      const oauthKeys = [
+    it('should clear all known OAuth key types across both storages', () => {
+      const localKeys = [
         'access_token', 'refresh_token', 'id_token', 'id_token_claims_obj',
         'id_token_header', 'expires_at', 'access_token_stored_at',
-        'id_token_expires_at', 'id_token_stored_at', 'nonce',
-        'PKCE_verifier', 'session_state', 'granted_scopes', 'requested_route',
+        'id_token_expires_at', 'id_token_stored_at',
+        'session_state', 'granted_scopes',
       ];
+      const sessionKeys = ['nonce', 'PKCE_verifier', 'requested_route'];
 
-      // Set all keys for a tenant
-      for (const key of oauthKeys) {
+      for (const key of localKeys) {
         localStorage.setItem(`testTenant__${key}`, 'value');
+      }
+      for (const key of sessionKeys) {
+        sessionStorage.setItem(`testTenant__${key}`, 'value');
       }
 
       storage.clearAllTenants();
 
-      for (const key of oauthKeys) {
+      for (const key of localKeys) {
         expect(localStorage.getItem(`testTenant__${key}`)).toBeNull();
       }
+      for (const key of sessionKeys) {
+        expect(sessionStorage.getItem(`testTenant__${key}`)).toBeNull();
+      }
+    });
+  });
+
+  describe('cross-tab isolation', () => {
+    it('should prevent nonce collision between tabs (sessionStorage is per-tab)', () => {
+      // Simulate: nonce is stored in sessionStorage, which is per-tab
+      // This test verifies that nonce goes to sessionStorage, not localStorage
+      storage.setTenantId('octosystem');
+      storage.setItem('nonce', 'tab-specific-nonce');
+
+      // Nonce should be in sessionStorage (per-tab), NOT in localStorage (shared)
+      expect(sessionStorage.getItem('octosystem__nonce')).toBe('tab-specific-nonce');
+      expect(localStorage.getItem('octosystem__nonce')).toBeNull();
+    });
+
+    it('should share tokens across tabs via localStorage', () => {
+      storage.setTenantId('octosystem');
+      storage.setItem('access_token', 'shared-token');
+
+      // Token should be in localStorage (shared across tabs)
+      expect(localStorage.getItem('octosystem__access_token')).toBe('shared-token');
+      expect(sessionStorage.getItem('octosystem__access_token')).toBeNull();
     });
   });
 });

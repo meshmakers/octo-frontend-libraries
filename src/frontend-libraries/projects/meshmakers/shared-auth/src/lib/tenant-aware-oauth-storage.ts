@@ -23,6 +23,21 @@ const OAUTH_STORAGE_KEYS = [
 ];
 
 /**
+ * Keys that are specific to a single OAuth authorization flow and must
+ * be isolated per browser tab. These are stored in sessionStorage
+ * (which is per-tab) to prevent cross-tab nonce/PKCE collisions.
+ *
+ * Without this, two tabs starting login simultaneously would overwrite
+ * each other's nonce in shared localStorage, causing "invalid_nonce_in_state"
+ * errors when the first tab's callback tries to validate.
+ */
+const SESSION_SCOPED_KEYS = new Set([
+  'nonce',
+  'PKCE_verifier',
+  'requested_route',
+]);
+
+/**
  * SessionStorage key used to persist the current storage tenant ID across
  * page reloads (e.g., OAuth redirects). The tenant ID must survive the
  * round-trip to the identity server because the redirect URI may not
@@ -31,29 +46,30 @@ const OAUTH_STORAGE_KEYS = [
 const STORAGE_TENANT_KEY = 'octo_storage_tenant';
 
 /**
- * Tenant-aware OAuth storage that prefixes all keys with a tenant ID.
+ * Tenant-aware OAuth storage that prefixes all keys with a tenant ID
+ * and splits storage between localStorage and sessionStorage.
  *
- * When a tenant ID is set, all storage keys are prefixed with `{tenantId}__`
- * (double underscore separator). This isolates OAuth tokens per tenant,
- * preventing race conditions during tenant switches where tokens from one
- * tenant could overwrite another's.
+ * **Key prefixing:** When a tenant ID is set, all storage keys are prefixed
+ * with `{tenantId}__` (double underscore separator). This isolates OAuth
+ * tokens per tenant, preventing race conditions during tenant switches.
+ *
+ * **Storage split:** Flow-specific ephemeral keys (nonce, PKCE_verifier)
+ * are stored in sessionStorage (per browser tab), while tokens and session
+ * data are stored in localStorage (shared across tabs). This prevents
+ * cross-tab nonce collisions when multiple tabs initiate login simultaneously.
  *
  * When no tenant ID is set (null), keys are stored without a prefix,
  * maintaining backwards compatibility with existing single-tenant apps.
- *
- * The tenant ID is also persisted in sessionStorage so that it survives
- * OAuth redirects (the redirect URI may not include the tenant path).
  *
  * @example
  * ```typescript
  * const storage = new TenantAwareOAuthStorage();
  * storage.setTenantId('maco');
  * storage.setItem('access_token', 'abc');
- * // Stored as: localStorage['maco__access_token'] = 'abc'
+ * // Stored in: localStorage['maco__access_token'] = 'abc'
  *
- * storage.setTenantId('octosystem');
- * storage.getItem('access_token');
- * // Reads: localStorage['octosystem__access_token'] → null (isolated)
+ * storage.setItem('nonce', 'xyz');
+ * // Stored in: sessionStorage['maco__nonce'] = 'xyz'  (per-tab!)
  * ```
  */
 export class TenantAwareOAuthStorage extends OAuthStorage {
@@ -118,28 +134,46 @@ export class TenantAwareOAuthStorage extends OAuthStorage {
   }
 
   getItem(key: string): string | null {
-    return localStorage.getItem(this.prefixKey(key));
+    const prefixed = this.prefixKey(key);
+    if (SESSION_SCOPED_KEYS.has(key)) {
+      return sessionStorage.getItem(prefixed);
+    }
+    return localStorage.getItem(prefixed);
   }
 
   removeItem(key: string): void {
-    localStorage.removeItem(this.prefixKey(key));
+    const prefixed = this.prefixKey(key);
+    if (SESSION_SCOPED_KEYS.has(key)) {
+      sessionStorage.removeItem(prefixed);
+    } else {
+      localStorage.removeItem(prefixed);
+    }
   }
 
   setItem(key: string, data: string): void {
-    localStorage.setItem(this.prefixKey(key), data);
+    const prefixed = this.prefixKey(key);
+    if (SESSION_SCOPED_KEYS.has(key)) {
+      sessionStorage.setItem(prefixed, data);
+    } else {
+      localStorage.setItem(prefixed, data);
+    }
   }
 
   /**
-   * Clears all OAuth-related keys for ALL tenants from localStorage.
-   * This removes both prefixed (e.g., `maco__access_token`) and unprefixed
-   * (e.g., `access_token`) OAuth keys, while leaving non-OAuth data intact.
+   * Clears all OAuth-related keys for ALL tenants from both
+   * localStorage and sessionStorage, while leaving non-OAuth data intact.
    *
    * Used during full logout to ensure no stale tokens remain for any tenant.
    */
   clearAllTenants(): void {
+    this.clearOAuthKeysFromStorage(localStorage);
+    this.clearOAuthKeysFromStorage(sessionStorage);
+  }
+
+  private clearOAuthKeysFromStorage(storage: Storage): void {
     const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const storageKey = localStorage.key(i);
+    for (let i = 0; i < storage.length; i++) {
+      const storageKey = storage.key(i);
       if (!storageKey) continue;
 
       for (const oauthKey of OAUTH_STORAGE_KEYS) {
@@ -150,7 +184,7 @@ export class TenantAwareOAuthStorage extends OAuthStorage {
       }
     }
     for (const key of keysToRemove) {
-      localStorage.removeItem(key);
+      storage.removeItem(key);
     }
   }
 }

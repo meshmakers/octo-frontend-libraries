@@ -713,16 +713,16 @@ describe('AuthorizeService', () => {
 
     describe('logout with tenant storage', () => {
       it('should clear all tenant tokens on logout', () => {
-        // Set up tokens for multiple tenants
+        // Set up tokens in localStorage and flow keys in sessionStorage
         localStorage.setItem('maco__access_token', 'maco-token');
         localStorage.setItem('octosystem__access_token', 'octo-token');
-        localStorage.setItem('maco__nonce', 'maco-nonce');
+        sessionStorage.setItem('maco__nonce', 'maco-nonce');
 
         service.logout();
 
         expect(localStorage.getItem('maco__access_token')).toBeNull();
         expect(localStorage.getItem('octosystem__access_token')).toBeNull();
-        expect(localStorage.getItem('maco__nonce')).toBeNull();
+        expect(sessionStorage.getItem('maco__nonce')).toBeNull();
       });
     });
   });
