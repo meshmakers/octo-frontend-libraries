@@ -55,6 +55,7 @@ export class AuthorizeService {
   private static readonly TENANT_SWITCH_ATTEMPTED_KEY = 'octo_tenant_switch_attempted';
 
   private readonly tenantStorage = new TenantAwareOAuthStorage();
+  private _loginInProgress = false;
   private authorizeOptions: AuthorizeOptions | null = null;
   private lastAuthConfig: AuthConfig | null = null;
 
@@ -159,6 +160,7 @@ export class AuthorizeService {
 
     this.oauthService.events.subscribe(async (e) => {
       if (e.type === "token_received") {
+        this._loginInProgress = false;
         await this.loadUserAsync();
       }
     });
@@ -296,10 +298,22 @@ export class AuthorizeService {
 
   /**
    * Initiates the login flow.
+   * Multiple guards (canActivateChild, canMatch) may call this concurrently
+   * during route resolution. Only the first call proceeds — subsequent calls
+   * are skipped to prevent generating a new nonce that overwrites the first
+   * one, which would cause an "invalid_nonce_in_state" error after the
+   * identity server redirects back.
+   *
    * @param tenantId Optional tenant ID. When provided, includes acr_values=tenant:{tenantId}
    *   so the identity server redirects to the correct tenant's login page.
    */
   public login(tenantId?: string): void {
+    if (this._loginInProgress) {
+      console.debug('AuthorizeService::login skipped (already in progress)');
+      return;
+    }
+    this._loginInProgress = true;
+
     const effectiveTenantId = tenantId ?? this.authorizeOptions?.defaultTenantId;
     if (effectiveTenantId) {
       this.oauthService.initImplicitFlow('', { acr_values: `tenant:${effectiveTenantId}` });
