@@ -45,3 +45,30 @@ export interface UpgradeCheckResponseDto {
   hasBreakingChanges: boolean;
   errorMessage?: string;
 }
+
+export interface CkModelLibraryStatusItemDto {
+  name: string;
+  installedVersion?: string;
+  modelState?: string;
+  dependencies: string[];
+  catalogVersion?: string;
+  hasUpdate: boolean;
+  needsAction: boolean;
+  catalogName?: string;
+  fullModelId?: string;
+}
+
+export interface CkModelLibraryStatusResponseDto {
+  items: CkModelLibraryStatusItemDto[];
+  modelsNeedingActionCount: number;
+}
+
+export interface ImportFromCatalogBatchRequestDto {
+  catalogName: string;
+  modelIds: string[];
+}
+
+export interface BatchDependencyResolutionResponseDto {
+  modelsToImport: string[];
+  dependencyTrees: DependencyResolutionResponseDto[];
+}

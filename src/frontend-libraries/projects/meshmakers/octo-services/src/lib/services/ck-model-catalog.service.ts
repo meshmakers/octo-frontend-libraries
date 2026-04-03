@@ -4,9 +4,12 @@ import { firstValueFrom } from 'rxjs';
 import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TENANT_ID_PROVIDER, TenantIdProvider } from './tenant-provider';
 import {
+  BatchDependencyResolutionResponseDto,
   CkModelCatalogDto,
   CkModelCatalogListResponseDto,
+  CkModelLibraryStatusResponseDto,
   DependencyResolutionResponseDto,
+  ImportFromCatalogBatchRequestDto,
   ImportFromCatalogRequestDto,
   UpgradeCheckResponseDto
 } from '../shared/ck-model-catalog.dto';
@@ -93,6 +96,33 @@ export class CkModelCatalogService {
     const url = `${this.configurationService.config.assetServices}${tenantId}/v1/models/CheckUpgrade`;
     const body: ImportFromCatalogRequestDto = { catalogName, modelId };
     const r = await firstValueFrom(this.httpClient.post<UpgradeCheckResponseDto>(
+      url, body, { observe: 'response' }));
+    return r.body;
+  }
+
+  // --- Combined endpoints (business logic on backend) ---
+
+  public async getLibraryStatus(tenantId: string): Promise<CkModelLibraryStatusResponseDto | null> {
+    if (!this.configurationService.config?.assetServices) return null;
+    const url = `${this.configurationService.config.assetServices}${tenantId}/v1/models/LibraryStatus`;
+    const r = await firstValueFrom(this.httpClient.get<CkModelLibraryStatusResponseDto>(
+      url, { observe: 'response' }));
+    return r.body;
+  }
+
+  public async resolveDependenciesBatch(tenantId: string, models: ImportFromCatalogRequestDto[]): Promise<BatchDependencyResolutionResponseDto | null> {
+    if (!this.configurationService.config?.assetServices) return null;
+    const url = `${this.configurationService.config.assetServices}${tenantId}/v1/models/ResolveDependenciesBatch`;
+    const r = await firstValueFrom(this.httpClient.post<BatchDependencyResolutionResponseDto>(
+      url, models, { observe: 'response' }));
+    return r.body;
+  }
+
+  public async importFromCatalogBatch(tenantId: string, catalogName: string, modelIds: string[]): Promise<ImportModelResponseDto | null> {
+    if (!this.configurationService.config?.assetServices) return null;
+    const url = `${this.configurationService.config.assetServices}${tenantId}/v1/models/ImportFromCatalogBatch`;
+    const body: ImportFromCatalogBatchRequestDto = { catalogName, modelIds };
+    const r = await firstValueFrom(this.httpClient.post<ImportModelResponseDto>(
       url, body, { observe: 'response' }));
     return r.body;
   }
