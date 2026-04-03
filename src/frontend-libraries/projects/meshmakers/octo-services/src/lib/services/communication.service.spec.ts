@@ -178,15 +178,15 @@ describe('CommunicationService', () => {
     });
   });
 
-  describe('deployDataPipeline', () => {
+  describe('deployDataFlow', () => {
     it('should call the correct endpoint', async () => {
-      const dataPipelineRtId = 'pipeline-123';
+      const dataFlowRtId = 'pipeline-123';
 
-      const promise = service.deployDataPipeline(tenantId, dataPipelineRtId);
+      const promise = service.deployDataFlow(tenantId, dataFlowRtId);
 
       const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/dataPipeline/deploy` &&
-        request.params.get('dataPipelineRtId') === dataPipelineRtId
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/dataFlow/deploy` &&
+        request.params.get('dataFlowRtId') === dataFlowRtId
       );
       expect(req.request.method).toBe('POST');
       req.flush(null);
@@ -195,15 +195,15 @@ describe('CommunicationService', () => {
     });
   });
 
-  describe('undeployDataPipeline', () => {
+  describe('undeployDataFlow', () => {
     it('should call the correct endpoint', async () => {
-      const dataPipelineRtId = 'pipeline-123';
+      const dataFlowRtId = 'pipeline-123';
 
-      const promise = service.undeployDataPipeline(tenantId, dataPipelineRtId);
+      const promise = service.undeployDataFlow(tenantId, dataFlowRtId);
 
       const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/dataPipeline/undeploy` &&
-        request.params.get('dataPipelineRtId') === dataPipelineRtId
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/dataFlow/undeploy` &&
+        request.params.get('dataFlowRtId') === dataFlowRtId
       );
       expect(req.request.method).toBe('POST');
       req.flush(null);
@@ -215,7 +215,7 @@ describe('CommunicationService', () => {
   describe('getPipelineStatus', () => {
     it('should return deployment result', async () => {
       const pipelineRtId = 'pipeline-123';
-      const pipelineCkTypeId = 'System.Communication/DataPipeline';
+      const pipelineCkTypeId = 'System.Communication/DataFlow';
       const expectedResult = {
         pipelineRtEntityId: `${pipelineCkTypeId}@${pipelineRtId}`,
         state: DeploymentState.Success,
@@ -239,7 +239,7 @@ describe('CommunicationService', () => {
   describe('getPipelineExecutions', () => {
     it('should return pipeline execution history', async () => {
       const pipelineRtId = 'pipeline-123';
-      const pipelineCkTypeId = 'System.Communication/DataPipeline';
+      const pipelineCkTypeId = 'System.Communication/DataFlow';
       const expectedResult = [
         {id: 'exec-1', dateTime: new Date()},
         {id: 'exec-2', dateTime: new Date()}
@@ -264,7 +264,7 @@ describe('CommunicationService', () => {
   describe('getLatestPipelineExecution', () => {
     it('should return the latest execution', async () => {
       const pipelineRtId = 'pipeline-123';
-      const pipelineCkTypeId = 'System.Communication/DataPipeline';
+      const pipelineCkTypeId = 'System.Communication/DataFlow';
       const expectedResult = {id: 'exec-latest', dateTime: new Date()};
 
       const promise = service.getLatestPipelineExecution(tenantId, pipelineRtId, pipelineCkTypeId);
