@@ -56,6 +56,9 @@ export interface CkModelLibraryStatusItemDto {
   needsAction: boolean;
   catalogName?: string;
   fullModelId?: string;
+  isServiceManaged: boolean;
+  isCompatible: boolean;
+  incompatibilityReason?: string;
 }
 
 export interface CkModelLibraryStatusResponseDto {
