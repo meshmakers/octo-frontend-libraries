@@ -5,6 +5,7 @@ import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TENANT_ID_PROVIDER, TenantIdProvider } from './tenant-provider';
 import {
   BatchDependencyResolutionResponseDto,
+  BatchImportResponseDto,
   CkModelCatalogDto,
   CkModelCatalogListResponseDto,
   CkModelLibraryStatusResponseDto,
@@ -118,11 +119,11 @@ export class CkModelCatalogService {
     return r.body;
   }
 
-  public async importFromCatalogBatch(tenantId: string, catalogName: string, modelIds: string[]): Promise<ImportModelResponseDto | null> {
+  public async importFromCatalogBatch(tenantId: string, catalogName: string, modelIds: string[]): Promise<BatchImportResponseDto | null> {
     if (!this.configurationService.config?.assetServices) return null;
     const url = `${this.configurationService.config.assetServices}${tenantId}/v1/models/ImportFromCatalogBatch`;
     const body: ImportFromCatalogBatchRequestDto = { catalogName, modelIds };
-    const r = await firstValueFrom(this.httpClient.post<ImportModelResponseDto>(
+    const r = await firstValueFrom(this.httpClient.post<BatchImportResponseDto>(
       url, body, { observe: 'response' }));
     return r.body;
   }

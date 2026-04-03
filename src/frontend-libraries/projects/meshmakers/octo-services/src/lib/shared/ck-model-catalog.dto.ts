@@ -71,6 +71,10 @@ export interface ImportFromCatalogBatchRequestDto {
   modelIds: string[];
 }
 
+export interface BatchImportResponseDto {
+  jobIds: string[];
+}
+
 export interface BatchDependencyResolutionResponseDto {
   modelsToImport: string[];
   dependencyTrees: DependencyResolutionResponseDto[];
