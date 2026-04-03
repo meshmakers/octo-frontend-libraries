@@ -28,7 +28,7 @@ export interface DependencyResolutionItemDto {
   name: string;
   requiredVersion: string;
   installedVersion?: string;
-  action: 'install' | 'update' | 'none';
+  action: 'install' | 'update' | 'none' | 'incompatible';
   dependencies: DependencyResolutionItemDto[];
 }
 
