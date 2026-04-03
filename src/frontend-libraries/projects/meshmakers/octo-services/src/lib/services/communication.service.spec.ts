@@ -161,14 +161,14 @@ describe('CommunicationService', () => {
 
   describe('executePipeline', () => {
     it('should return pipeline execution data', async () => {
-      const dataPipelineRtId = 'pipeline-123';
+      const pipelineRtId = 'pipeline-123';
       const expectedResult = {id: 'exec-1', dateTime: new Date()};
 
-      const promise = service.executePipeline(tenantId, dataPipelineRtId);
+      const promise = service.executePipeline(tenantId, pipelineRtId);
 
       const req = httpMock.expectOne(request =>
         request.url === `${mockConfig.communicationServices}${tenantId}/v1/pipeline/execute` &&
-        request.params.get('dataPipelineRtId') === dataPipelineRtId
+        request.params.get('pipelineRtId') === pipelineRtId
       );
       expect(req.request.method).toBe('POST');
       req.flush(expectedResult);

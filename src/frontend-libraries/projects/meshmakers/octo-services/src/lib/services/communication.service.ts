@@ -160,10 +160,10 @@ export class CommunicationService {
    */
   async executePipeline(
     tenantId: string,
-    dataPipelineRtId: string
+    pipelineRtId: string
   ): Promise<PipelineExecutionDataDto | null> {
     if (this.communicationServicesUrl) {
-      const params = new HttpParams().set('dataPipelineRtId', dataPipelineRtId);
+      const params = new HttpParams().set('pipelineRtId', pipelineRtId);
       const uri = `${this.communicationServicesUrl}${tenantId}/v1/pipeline/execute`;
 
       const response = await firstValueFrom(
