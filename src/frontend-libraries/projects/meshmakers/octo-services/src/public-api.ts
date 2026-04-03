@@ -39,6 +39,7 @@ export * from './lib/shared/tenantDto';
 export * from './lib/shared/adminPanelConfigurationDto';
 export * from './lib/shared/configurationDto';
 export * from './lib/shared/communicationDtos';
+export * from './lib/shared/ck-model-catalog.dto';
 
 // GraphQL generated types - re-export all for use by dependent packages
 export * from './lib/graphQL/globalTypes';
@@ -70,6 +71,7 @@ export * from './lib/services/identity-service';
 export * from './lib/services/job-management.service';
 export * from './lib/services/communication.service';
 export * from './lib/services/tus-upload.service';
+export * from './lib/services/ck-model-catalog.service';
 
 // Tenant provider (for tenant-specific operations)
 export * from './lib/services/tenant-provider';

@@ -55,8 +55,8 @@ export class JobManagementService {
 
       if (jobDto.status === 'Succeeded' || jobDto.status === 'Failed'
         || jobDto.status === 'Deleted' || cancelled) {
+        progressDialog.close();
         if (jobDto.status === 'Succeeded') {
-          progressDialog.close();
           return true;
         } else {
           const errorDetails = jobDto.errorMessage || jobDto.reason || 'Unknown error';

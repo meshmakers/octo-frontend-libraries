@@ -55,6 +55,7 @@ export class AuthorizeService {
   private static readonly TENANT_SWITCH_ATTEMPTED_KEY = 'octo_tenant_switch_attempted';
 
   private readonly tenantStorage = new TenantAwareOAuthStorage();
+  private _loginInProgress = false;
   private authorizeOptions: AuthorizeOptions | null = null;
   private lastAuthConfig: AuthConfig | null = null;
 
@@ -159,6 +160,7 @@ export class AuthorizeService {
 
     this.oauthService.events.subscribe(async (e) => {
       if (e.type === "token_received") {
+        this._loginInProgress = false;
         await this.loadUserAsync();
       }
     });
@@ -248,12 +250,28 @@ export class AuthorizeService {
    *
    * When set, all OAuth storage keys are prefixed with `{tenantId}__`
    * (e.g., `maco__access_token`), preventing token collisions between tenants.
+   * The tenant ID is also persisted in sessionStorage so it survives OAuth redirects.
    *
    * @param tenantId The tenant ID to use for storage key prefixing, or null for unprefixed mode.
    */
   public setStorageTenantId(tenantId: string | null): void {
     this.tenantStorage.setTenantId(tenantId);
     console.debug(`AuthorizeService::setStorageTenantId("${tenantId}")`);
+  }
+
+  /**
+   * Restores the storage tenant ID from sessionStorage.
+   * Use this when the tenant ID cannot be determined from the URL
+   * (e.g., after an OAuth redirect to the root path).
+   *
+   * @returns The restored tenant ID, or null if none was persisted.
+   */
+  public restoreStorageTenantId(): string | null {
+    const tenantId = this.tenantStorage.restoreTenantId();
+    if (tenantId) {
+      console.debug(`AuthorizeService::restoreStorageTenantId("${tenantId}")`);
+    }
+    return tenantId;
   }
 
   /**
@@ -280,10 +298,22 @@ export class AuthorizeService {
 
   /**
    * Initiates the login flow.
+   * Multiple guards (canActivateChild, canMatch) may call this concurrently
+   * during route resolution. Only the first call proceeds — subsequent calls
+   * are skipped to prevent generating a new nonce that overwrites the first
+   * one, which would cause an "invalid_nonce_in_state" error after the
+   * identity server redirects back.
+   *
    * @param tenantId Optional tenant ID. When provided, includes acr_values=tenant:{tenantId}
    *   so the identity server redirects to the correct tenant's login page.
    */
   public login(tenantId?: string): void {
+    if (this._loginInProgress) {
+      console.debug('AuthorizeService::login skipped (already in progress)');
+      return;
+    }
+    this._loginInProgress = true;
+
     const effectiveTenantId = tenantId ?? this.authorizeOptions?.defaultTenantId;
     if (effectiveTenantId) {
       this.oauthService.initImplicitFlow('', { acr_values: `tenant:${effectiveTenantId}` });
