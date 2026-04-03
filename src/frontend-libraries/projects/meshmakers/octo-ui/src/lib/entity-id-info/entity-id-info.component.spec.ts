@@ -28,8 +28,8 @@ describe('EntityIdInfoComponent', () => {
   let notificationServiceMock: jasmine.SpyObj<NotificationDisplayService>;
 
   const mockRtId = '65d5c447b420da3fb12381bc';
-  const mockRtCkTypeId = 'System.Communication/EdgeAdapter';
-  const mockCkTypeId = 'System.Communication~2.0.3/EdgeAdapter~1';
+  const mockRtCkTypeId = 'System.Communication/Adapter';
+  const mockCkTypeId = 'System.Communication~2.0.3/Adapter~1';
 
   beforeEach(async () => {
     notificationServiceMock = jasmine.createSpyObj('NotificationDisplayService', ['showSuccess', 'showError']);
@@ -138,7 +138,7 @@ describe('EntityIdInfoComponent', () => {
     it('should generate correct RtEntityId format', () => {
       const options = testAccess.copyOptions;
       const rtEntityId = options[3].value;
-      expect(rtEntityId).toBe('System.Communication/EdgeAdapter@65d5c447b420da3fb12381bc');
+      expect(rtEntityId).toBe('System.Communication/Adapter@65d5c447b420da3fb12381bc');
     });
   });
 

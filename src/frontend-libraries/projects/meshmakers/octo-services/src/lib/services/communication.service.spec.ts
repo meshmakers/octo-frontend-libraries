@@ -66,7 +66,7 @@ describe('CommunicationService', () => {
   describe('deployAdapterConfigurationUpdate', () => {
     it('should call the correct endpoint with rtEntityId param', async () => {
       const adapterRtId = 'adapter-123';
-      const adapterCkTypeId = 'System.Communication/EdgeAdapter';
+      const adapterCkTypeId = 'System.Communication/Adapter';
 
       const promise = service.deployAdapterConfigurationUpdate(
         tenantId,
@@ -123,7 +123,7 @@ describe('CommunicationService', () => {
     it('should call the correct endpoint with pool and adapter params', async () => {
       const poolRtId = 'pool-123';
       const adapterRtId = 'adapter-123';
-      const adapterCkTypeId = 'System.Communication/EdgeAdapter';
+      const adapterCkTypeId = 'System.Communication/Adapter';
 
       const promise = service.deployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId);
 
@@ -143,7 +143,7 @@ describe('CommunicationService', () => {
     it('should call the correct endpoint with pool and adapter params', async () => {
       const poolRtId = 'pool-123';
       const adapterRtId = 'adapter-123';
-      const adapterCkTypeId = 'System.Communication/EdgeAdapter';
+      const adapterCkTypeId = 'System.Communication/Adapter';
 
       const promise = service.undeployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId);
 

@@ -112,7 +112,7 @@ export class EntityIdInfoComponent {
   /** The RtId (ObjectId) of the entity */
   @Input({ required: true }) rtId!: string;
 
-  /** The RtCkTypeId - runtime CK type ID (e.g., System.Communication/MeshAdapter) */
+  /** The RtCkTypeId - runtime CK type ID (e.g., System.Communication/Adapter) */
   @Input({ required: true }) rtCkTypeId!: string;
 
   /** The CkTypeId - full versioned Construction Kit type ID (e.g., System.Communication-2.0.3/MeshAdapter-1) */
