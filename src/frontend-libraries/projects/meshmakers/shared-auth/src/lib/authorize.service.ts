@@ -548,6 +548,13 @@ export class AuthorizeService {
       this.oauthService.setStorage(this.tenantStorage);
       this.oauthService.configure(config);
 
+      // Re-apply customQueryParams after configure() because configure() resets all
+      // properties via Object.assign(this, new AuthConfig(), config).
+      const storageTenantId = this.tenantStorage.getTenantId();
+      if (storageTenantId) {
+        this.oauthService.customQueryParams = { acr_values: `tenant:${storageTenantId}` };
+      }
+
       console.debug("AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin");
       await this.oauthService.loadDiscoveryDocumentAndTryLogin();
 
