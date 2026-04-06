@@ -537,6 +537,15 @@ export class AuthorizeService {
 
       this.oauthService.setStorage(this.tenantStorage);
       this.oauthService.configure(config);
+
+      // Pass the tenant context as acr_values on every token request (including refresh).
+      // This allows the Identity Server to resolve the correct tenant even when its
+      // in-memory token-to-tenant cache is lost (e.g., after a service restart).
+      const storageTenantId = this.tenantStorage.getTenantId();
+      if (storageTenantId) {
+        this.oauthService.customQueryParams = { acr_values: `tenant:${storageTenantId}` };
+      }
+
       console.debug("AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin");
       await this.oauthService.loadDiscoveryDocumentAndTryLogin();
 
