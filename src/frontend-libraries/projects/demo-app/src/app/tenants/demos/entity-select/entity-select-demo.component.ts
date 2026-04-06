@@ -192,7 +192,7 @@ class CustomerDialogDataSource implements EntitySelectDialogDataSource<OctoSdkDe
             <div class="customer-details">
               <p><strong>Name:</strong> {{ selectedCustomer.contact.firstName }} {{ selectedCustomer.contact.lastName }}</p>
               <p><strong>Company:</strong> {{ selectedCustomer.contact.companyName }}</p>
-              <p><strong>Address:</strong> {{ selectedCustomer.contact.address.street }}, {{ selectedCustomer.contact.address.zipcode }} {{ selectedCustomer.contact.address.cityTown }}, {{ selectedCustomer.contact.address.nationalCode }}</p>
+              <p><strong>Address:</strong> {{ selectedCustomer.contact.address?.street }}, {{ selectedCustomer.contact.address?.zipcode }} {{ selectedCustomer.contact.address?.cityTown }}, {{ selectedCustomer.contact.address?.nationalCode }}</p>
               <p class="rt-id"><strong>RT-ID:</strong> {{ selectedCustomer.rtId }}</p>
             </div>
           </div>
@@ -330,7 +330,7 @@ class CustomerDialogDataSource implements EntitySelectDialogDataSource<OctoSdkDe
             <div class="customer-details">
               <p><strong>Name:</strong> {{ dialogSelectedCustomer.contact.firstName }} {{ dialogSelectedCustomer.contact.lastName }}</p>
               <p><strong>Company:</strong> {{ dialogSelectedCustomer.contact.companyName }}</p>
-              <p><strong>Address:</strong> {{ dialogSelectedCustomer.contact.address.street }}, {{ dialogSelectedCustomer.contact.address.zipcode }} {{ dialogSelectedCustomer.contact.address.cityTown }}, {{ dialogSelectedCustomer.contact.address.nationalCode }}</p>
+              <p><strong>Address:</strong> {{ dialogSelectedCustomer.contact.address?.street }}, {{ dialogSelectedCustomer.contact.address?.zipcode }} {{ dialogSelectedCustomer.contact.address?.cityTown }}, {{ dialogSelectedCustomer.contact.address?.nationalCode }}</p>
               <p class="rt-id"><strong>RT-ID:</strong> {{ dialogSelectedCustomer.rtId }}</p>
             </div>
           </div>

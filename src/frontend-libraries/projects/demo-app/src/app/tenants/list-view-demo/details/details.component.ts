@@ -142,10 +142,10 @@ export class ListViewDetailsComponent implements OnInit, HasUnsavedChanges {
           firstName: customer.contact.firstName,
           lastName: customer.contact.lastName,
           companyName: customer.contact.companyName ?? '',
-          street: customer.contact.address.street,
-          postalCode: customer.contact.address.zipcode,
-          city: customer.contact.address.cityTown,
-          country: customer.contact.address.nationalCode
+          street: customer.contact.address?.street,
+          postalCode: customer.contact.address?.zipcode,
+          city: customer.contact.address?.cityTown,
+          country: customer.contact.address?.nationalCode
         });
       } else {
         console.warn('Customer not found:', id);
