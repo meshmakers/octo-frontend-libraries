@@ -557,7 +557,7 @@ export class PipelineComponent {
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `executePipeline(tenantId, dataFlowRtId)` | `Promise<PipelineExecutionDataDto \| null>` | Execute pipeline manually |
+| `executePipeline(tenantId, pipelineRtId)` | `Promise<PipelineExecutionDataDto \| null>` | Execute pipeline manually |
 
 **Pipeline Deployment:**
 

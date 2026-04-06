@@ -253,7 +253,7 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | `undeployAllAdaptersOfPool(tenantId, poolRtId)` | Undeploy all adapters of a pool |
 | `deployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Deploy single adapter |
 | `undeployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Undeploy single adapter |
-| `executePipeline(tenantId, dataFlowRtId)` | Execute pipeline manually |
+| `executePipeline(tenantId, pipelineRtId)` | Execute pipeline manually |
 | `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, definition)` | Deploy pipeline definition |
 | `deployDataFlow(tenantId, dataFlowRtId)` | Deploy data flow |
 | `undeployDataFlow(tenantId, dataFlowRtId)` | Undeploy data flow |

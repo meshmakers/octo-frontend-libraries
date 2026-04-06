@@ -614,6 +614,10 @@ export class AuthorizeService {
       return;
     }
 
+    // Capture auth state BEFORE setting _isAuthenticated to true,
+    // so we can distinguish initial login from token refresh below.
+    const previouslyAuthenticated = this._isAuthenticated();
+
     const user = claims as IUser;
     if (user.given_name && user.family_name) {
       this._userInitials.set(user.given_name.charAt(0).toUpperCase() + user.family_name.charAt(0).toUpperCase());
@@ -630,9 +634,6 @@ export class AuthorizeService {
 
     // Parse allowed_tenants from the access token
     this._allowedTenants.set(this.parseAllowedTenantsFromToken(accessToken));
-
-    // Parse tenant_id from the access token (used for tenant mismatch detection)
-    const previouslyAuthenticated = this._isAuthenticated();
     const tokenTenantId = this.parseTenantIdFromToken(accessToken);
     this._tokenTenantId.set(tokenTenantId);
 
@@ -713,7 +714,8 @@ export class AuthorizeService {
         return null;
       }
 
-      const payload = JSON.parse(atob(parts[1]));
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(base64));
       return payload['tenant_id'] ?? null;
     } catch {
       return null;
