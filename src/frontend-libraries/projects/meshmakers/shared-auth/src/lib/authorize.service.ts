@@ -623,8 +623,25 @@ export class AuthorizeService {
     this._allowedTenants.set(this.parseAllowedTenantsFromToken(accessToken));
 
     // Parse tenant_id from the access token (used for tenant mismatch detection)
+    const previouslyAuthenticated = this._isAuthenticated();
     const tokenTenantId = this.parseTenantIdFromToken(accessToken);
     this._tokenTenantId.set(tokenTenantId);
+
+    // Detect tenant mismatch after silent refresh: if we were already authenticated
+    // (i.e., this is a token refresh, not an initial login) and the new token's tenant_id
+    // doesn't match the expected tenant from storage, trigger re-authentication.
+    // This handles the case where the Identity Server returns a token for the wrong tenant
+    // (e.g., after a service restart when the in-memory token-to-tenant cache is lost).
+    const expectedTenantId = this.tenantStorage.getTenantId();
+    if (previouslyAuthenticated && tokenTenantId && expectedTenantId &&
+        tokenTenantId.toLowerCase() !== expectedTenantId.toLowerCase()) {
+      console.warn(
+        `AuthorizeService::loadUserAsync: Tenant mismatch after silent refresh — ` +
+        `token="${tokenTenantId}", expected="${expectedTenantId}". Triggering re-authentication.`
+      );
+      this.switchTenant(expectedTenantId, window.location.href);
+      return;
+    }
 
     // Clear the pending tenant switch key now that we have a valid token.
     // This completes the switch cycle and prevents the guard from re-using
