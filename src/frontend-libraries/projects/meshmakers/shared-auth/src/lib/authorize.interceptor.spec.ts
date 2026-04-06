@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpRequest, HttpResponse, HttpHandlerFn } from '@angular/common/http';
+import { HttpRequest, HttpResponse, HttpHandlerFn, HttpParams } from '@angular/common/http';
 import { of } from 'rxjs';
 import { authorizeInterceptor } from './authorize.interceptor';
 import { AuthorizeService } from './authorize.service';
@@ -208,6 +208,100 @@ describe('authorizeInterceptor (functional)', () => {
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
+        });
+      });
+    });
+  });
+
+  describe('acr_values injection for token endpoint', () => {
+    beforeEach(() => {
+      authServiceMock = jasmine.createSpyObj('AuthorizeService',
+        ['getAccessTokenSync', 'getServiceUris', 'getStorageTenantId']);
+      authServiceMock.getAccessTokenSync.and.returnValue('test-token');
+      authServiceMock.getServiceUris.and.returnValue(null);
+
+      TestBed.overrideProvider(AuthorizeService, { useValue: authServiceMock });
+    });
+
+    it('should inject acr_values into /connect/token POST with HttpParams body', (done) => {
+      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+
+      const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
+      const req = new HttpRequest('POST', 'https://auth.example.com/connect/token', body);
+
+      TestBed.runInInjectionContext(() => {
+        authorizeInterceptor(req, nextFn).subscribe(() => {
+          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
+          expect(handledReq.body).toBeInstanceOf(HttpParams);
+          expect((handledReq.body as HttpParams).get('acr_values')).toBe('tenant:meshtest');
+          done();
+        });
+      });
+    });
+
+    it('should not inject acr_values when no tenantId in storage', (done) => {
+      authServiceMock.getStorageTenantId.and.returnValue(null);
+
+      const body = new HttpParams().set('grant_type', 'refresh_token');
+      const req = new HttpRequest('POST', 'https://auth.example.com/connect/token', body);
+
+      TestBed.runInInjectionContext(() => {
+        authorizeInterceptor(req, nextFn).subscribe(() => {
+          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
+          expect((handledReq.body as HttpParams).has('acr_values')).toBeFalse();
+          done();
+        });
+      });
+    });
+
+    it('should not inject acr_values for non-token endpoint POST', (done) => {
+      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+
+      const body = new HttpParams().set('data', 'value');
+      const req = new HttpRequest('POST', '/api/data', body);
+
+      TestBed.runInInjectionContext(() => {
+        authorizeInterceptor(req, nextFn).subscribe(() => {
+          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
+          expect((handledReq.body as HttpParams).has('acr_values')).toBeFalse();
+          done();
+        });
+      });
+    });
+
+    it('should not inject acr_values for GET request to token endpoint', (done) => {
+      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+
+      const req = new HttpRequest('GET', 'https://auth.example.com/connect/token');
+
+      TestBed.runInInjectionContext(() => {
+        authorizeInterceptor(req, nextFn).subscribe(() => {
+          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+          // GET requests don't have body manipulation
+          expect(handledReq.url).toContain('/connect/token');
+          done();
+        });
+      });
+    });
+
+    it('should preserve existing form body params when injecting acr_values', (done) => {
+      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+
+      const body = new HttpParams()
+        .set('grant_type', 'refresh_token')
+        .set('refresh_token', 'abc123')
+        .set('client_id', 'my-client');
+      const req = new HttpRequest('POST', 'https://auth.example.com/connect/token', body);
+
+      TestBed.runInInjectionContext(() => {
+        authorizeInterceptor(req, nextFn).subscribe(() => {
+          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
+          const params = handledReq.body as HttpParams;
+          expect(params.get('grant_type')).toBe('refresh_token');
+          expect(params.get('refresh_token')).toBe('abc123');
+          expect(params.get('client_id')).toBe('my-client');
+          expect(params.get('acr_values')).toBe('tenant:meshtest');
+          done();
         });
       });
     });

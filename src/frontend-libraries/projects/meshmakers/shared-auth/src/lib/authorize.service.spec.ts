@@ -17,6 +17,7 @@ describe('AuthorizeService', () => {
   let oauthEvents$: Subject<OAuthEvent>;
   let discoveryDocumentLoaded$: Subject<unknown>;
   let _reloadPageSpy: jasmine.Spy;
+  let _navigateToSpy: jasmine.Spy;
 
   const mockUser: IUser = {
     family_name: 'Mustermann',
@@ -78,7 +79,7 @@ describe('AuthorizeService', () => {
 
     // Spy on the protected reloadPage and navigateTo methods to prevent actual page navigation during tests
     _reloadPageSpy = spyOn(service as unknown as { reloadPage: () => void }, 'reloadPage');
-    spyOn(service as unknown as { navigateTo: (url: string) => void }, 'navigateTo');
+    _navigateToSpy = spyOn(service as unknown as { navigateTo: (url: string) => void }, 'navigateTo');
   });
 
   // =============================================================================
@@ -724,6 +725,102 @@ describe('AuthorizeService', () => {
         expect(localStorage.getItem('octosystem__access_token')).toBeNull();
         expect(sessionStorage.getItem('maco__nonce')).toBeNull();
       });
+    });
+  });
+
+  // =============================================================================
+  // TENANT MISMATCH DETECTION TESTS
+  // =============================================================================
+
+  describe('tenant mismatch detection', () => {
+    it('should NOT trigger switchTenant on initial login (not previously authenticated)', async () => {
+      // Arrange: Set storage tenant to a different tenant than what the token contains
+      service.setStorageTenantId('meshtest');
+      const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+      oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+
+      _navigateToSpy.calls.reset();
+
+      await service.initialize(mockOptions);
+
+      // Act: Initial login (not previously authenticated)
+      oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Assert: Should NOT trigger switchTenant because this is the initial login
+      expect(_navigateToSpy).not.toHaveBeenCalled();
+      expect(service.isAuthenticated()).toBeTrue();
+      expect(service.tokenTenantId()).toBe('octosystem');
+    });
+
+    it('should trigger switchTenant when previously authenticated and tenant_id mismatches storage', async () => {
+      // Arrange: First login with matching tenant
+      service.setStorageTenantId('octosystem');
+      const initialToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+      oauthServiceMock.getAccessToken.and.returnValue(initialToken);
+
+      await service.initialize(mockOptions);
+      oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      expect(service.isAuthenticated()).toBeTrue();
+
+      // Now simulate a refresh that returns a token for the wrong tenant
+      service.setStorageTenantId('meshtest');
+      const mismatchedToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+      oauthServiceMock.getAccessToken.and.returnValue(mismatchedToken);
+
+      _navigateToSpy.calls.reset();
+
+      // Act: Simulate token refresh (previously authenticated = true)
+      oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Assert: Should trigger switchTenant because token tenant doesn't match storage
+      expect(_navigateToSpy).toHaveBeenCalled();
+    });
+
+    it('should NOT trigger switchTenant when tenant_id matches storage on refresh', async () => {
+      // Arrange: First login
+      service.setStorageTenantId('octosystem');
+      const token = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+      oauthServiceMock.getAccessToken.and.returnValue(token);
+
+      await service.initialize(mockOptions);
+      oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      _navigateToSpy.calls.reset();
+
+      // Act: Refresh returns same tenant
+      oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Assert: No switch needed
+      expect(_navigateToSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT trigger switchTenant when token has no tenant_id', async () => {
+      // Arrange: First login with a token that has tenant_id
+      service.setStorageTenantId('octosystem');
+      const initialToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
+      oauthServiceMock.getAccessToken.and.returnValue(initialToken);
+
+      await service.initialize(mockOptions);
+      oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Now simulate refresh returning token without tenant_id
+      const tokenWithoutTenant = createMockJwt({ sub: 'user-123' });
+      oauthServiceMock.getAccessToken.and.returnValue(tokenWithoutTenant);
+
+      _navigateToSpy.calls.reset();
+
+      // Act
+      oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      // Assert: No switch — can't determine mismatch without tenant_id
+      expect(_navigateToSpy).not.toHaveBeenCalled();
     });
   });
 
