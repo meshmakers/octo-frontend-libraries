@@ -256,6 +256,15 @@ export class AuthorizeService {
    */
   public setStorageTenantId(tenantId: string | null): void {
     this.tenantStorage.setTenantId(tenantId);
+
+    // Ensure every token request (including refresh) sends the tenant context
+    // so the Identity Server can resolve the correct tenant after a restart.
+    if (tenantId) {
+      this.oauthService.customQueryParams = { acr_values: `tenant:${tenantId}` };
+    } else {
+      this.oauthService.customQueryParams = {};
+    }
+
     console.debug(`AuthorizeService::setStorageTenantId("${tenantId}")`);
   }
 
@@ -269,6 +278,7 @@ export class AuthorizeService {
   public restoreStorageTenantId(): string | null {
     const tenantId = this.tenantStorage.restoreTenantId();
     if (tenantId) {
+      this.oauthService.customQueryParams = { acr_values: `tenant:${tenantId}` };
       console.debug(`AuthorizeService::restoreStorageTenantId("${tenantId}")`);
     }
     return tenantId;
@@ -537,14 +547,6 @@ export class AuthorizeService {
 
       this.oauthService.setStorage(this.tenantStorage);
       this.oauthService.configure(config);
-
-      // Pass the tenant context as acr_values on every token request (including refresh).
-      // This allows the Identity Server to resolve the correct tenant even when its
-      // in-memory token-to-tenant cache is lost (e.g., after a service restart).
-      const storageTenantId = this.tenantStorage.getTenantId();
-      if (storageTenantId) {
-        this.oauthService.customQueryParams = { acr_values: `tenant:${storageTenantId}` };
-      }
 
       console.debug("AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin");
       await this.oauthService.loadDiscoveryDocumentAndTryLogin();
