@@ -26,6 +26,10 @@ export interface DeploymentResultDto {
 export interface PipelineExecutionDataDto {
   id: string;
   dateTime: Date;
+  status?: string;
+  durationMs?: number;
+  errorMessage?: string;
+  hasDebugData?: boolean;
 }
 
 /**

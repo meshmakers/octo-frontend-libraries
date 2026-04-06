@@ -511,8 +511,8 @@ export class PipelineComponent {
   private readonly communicationService = inject(CommunicationService);
 
   async deployAndExecute(tenantId: string, pipelineRtId: string): Promise<void> {
-    // Deploy a data pipeline
-    await this.communicationService.deployDataPipeline(tenantId, pipelineRtId);
+    // Deploy a data flow
+    await this.communicationService.deployDataFlow(tenantId, pipelineRtId);
 
     // Execute it manually
     const result = await this.communicationService.executePipeline(tenantId, pipelineRtId);
@@ -557,15 +557,15 @@ export class PipelineComponent {
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `executePipeline(tenantId, dataPipelineRtId)` | `Promise<PipelineExecutionDataDto \| null>` | Execute pipeline manually |
+| `executePipeline(tenantId, pipelineRtId)` | `Promise<PipelineExecutionDataDto \| null>` | Execute pipeline manually |
 
 **Pipeline Deployment:**
 
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, pipelineDefinition)` | `Promise<void>` | Deploy pipeline definition |
-| `deployDataPipeline(tenantId, dataPipelineRtId)` | `Promise<void>` | Deploy data pipeline |
-| `undeployDataPipeline(tenantId, dataPipelineRtId)` | `Promise<void>` | Undeploy data pipeline |
+| `deployDataFlow(tenantId, dataFlowRtId)` | `Promise<void>` | Deploy data flow |
+| `undeployDataFlow(tenantId, dataFlowRtId)` | `Promise<void>` | Undeploy data flow |
 | `getPipelineStatus(tenantId, pipelineRtId, pipelineCkTypeId)` | `Promise<DeploymentResultDto \| null>` | Get deployment status |
 | `getPipelineSchema(tenantId, adapterRtId, adapterCkTypeId)` | `Promise<Record<string, unknown> \| null>` | Get JSON Schema for adapter |
 

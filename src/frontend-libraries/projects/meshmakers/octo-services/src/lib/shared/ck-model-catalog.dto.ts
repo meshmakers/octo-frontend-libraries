@@ -72,7 +72,7 @@ export interface ImportFromCatalogBatchRequestDto {
 }
 
 export interface BatchImportResponseDto {
-  jobIds: string[];
+  jobId: string;
 }
 
 export interface BatchDependencyResolutionResponseDto {

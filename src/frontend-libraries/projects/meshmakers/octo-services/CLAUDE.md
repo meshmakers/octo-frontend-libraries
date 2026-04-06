@@ -253,10 +253,10 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | `undeployAllAdaptersOfPool(tenantId, poolRtId)` | Undeploy all adapters of a pool |
 | `deployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Deploy single adapter |
 | `undeployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Undeploy single adapter |
-| `executePipeline(tenantId, dataPipelineRtId)` | Execute pipeline manually |
+| `executePipeline(tenantId, pipelineRtId)` | Execute pipeline manually |
 | `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, definition)` | Deploy pipeline definition |
-| `deployDataPipeline(tenantId, dataPipelineRtId)` | Deploy data pipeline |
-| `undeployDataPipeline(tenantId, dataPipelineRtId)` | Undeploy data pipeline |
+| `deployDataFlow(tenantId, dataFlowRtId)` | Deploy data flow |
+| `undeployDataFlow(tenantId, dataFlowRtId)` | Undeploy data flow |
 | `getPipelineStatus(tenantId, pipelineRtId, pipelineCkTypeId)` | Get deployment status |
 | `getPipelineSchema(tenantId, adapterRtId, adapterCkTypeId)` | Get JSON Schema for adapter |
 | `getPipelineExecutions(tenantId, pipelineRtId, pipelineCkTypeId, skip, take)` | Get execution history |

@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { HttpHandlerFn, HttpInterceptorFn, HttpParams, HttpRequest } from '@angular/common/http';
 import { AuthorizeService } from './authorize.service';
 
 // =============================================================================
@@ -49,11 +49,16 @@ function isKnownServiceUri(req: HttpRequest<unknown>, serviceUris: string[] | nu
 // =============================================================================
 
 /**
- * Functional HTTP interceptor that adds Bearer token to authorized requests.
+ * Functional HTTP interceptor that adds Bearer token to authorized requests
+ * and injects tenant context (acr_values) into token endpoint requests.
  *
  * Adds the Authorization header to requests that are either:
  * - Same-origin requests (relative URLs or same host)
  * - Requests to known service URIs configured in AuthorizeOptions
+ *
+ * For token endpoint POST requests (`/connect/token`), appends
+ * `acr_values=tenant:{tenantId}` to the form body so the Identity Server
+ * can resolve the correct tenant during refresh token exchanges.
  *
  * @example
  * ```typescript
@@ -80,6 +85,19 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
         Authorization: `Bearer ${token}`
       }
     });
+  }
+
+  // Inject acr_values=tenant:{tenantId} into token endpoint POST requests.
+  // This ensures the Identity Server resolves the correct tenant during
+  // refresh token exchanges, even after a service restart when its
+  // in-memory token-to-tenant cache is lost.
+  if (req.method === 'POST' && req.url.endsWith('/connect/token')) {
+    const tenantId = authorizeService.getStorageTenantId();
+    if (tenantId && req.body instanceof HttpParams) {
+      req = req.clone({
+        body: req.body.set('acr_values', `tenant:${tenantId}`)
+      });
+    }
   }
 
   return next(req);

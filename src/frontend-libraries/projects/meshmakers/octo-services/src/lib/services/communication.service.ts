@@ -160,10 +160,10 @@ export class CommunicationService {
    */
   async executePipeline(
     tenantId: string,
-    dataPipelineRtId: string
+    pipelineRtId: string
   ): Promise<PipelineExecutionDataDto | null> {
     if (this.communicationServicesUrl) {
-      const params = new HttpParams().set('dataPipelineRtId', dataPipelineRtId);
+      const params = new HttpParams().set('pipelineRtId', pipelineRtId);
       const uri = `${this.communicationServicesUrl}${tenantId}/v1/pipeline/execute`;
 
       const response = await firstValueFrom(
@@ -210,12 +210,12 @@ export class CommunicationService {
   }
 
   /**
-   * Deploys a data pipeline.
+   * Deploys a data flow.
    */
-  async deployDataPipeline(tenantId: string, dataPipelineRtId: string): Promise<void> {
+  async deployDataFlow(tenantId: string, dataFlowRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
-      const params = new HttpParams().set('dataPipelineRtId', dataPipelineRtId);
-      const uri = `${this.communicationServicesUrl}${tenantId}/v1/dataPipeline/deploy`;
+      const params = new HttpParams().set('dataFlowRtId', dataFlowRtId);
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/dataFlow/deploy`;
 
       await firstValueFrom(
         this.httpClient.post<void>(uri, null, {params, observe: 'response'})
@@ -224,12 +224,12 @@ export class CommunicationService {
   }
 
   /**
-   * Undeploys a data pipeline.
+   * Undeploys a data flow.
    */
-  async undeployDataPipeline(tenantId: string, dataPipelineRtId: string): Promise<void> {
+  async undeployDataFlow(tenantId: string, dataFlowRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
-      const params = new HttpParams().set('dataPipelineRtId', dataPipelineRtId);
-      const uri = `${this.communicationServicesUrl}${tenantId}/v1/dataPipeline/undeploy`;
+      const params = new HttpParams().set('dataFlowRtId', dataFlowRtId);
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/dataFlow/undeploy`;
 
       await firstValueFrom(
         this.httpClient.post<void>(uri, null, {params, observe: 'response'})
