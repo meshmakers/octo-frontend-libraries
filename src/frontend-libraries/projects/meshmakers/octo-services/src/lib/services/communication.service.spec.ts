@@ -54,7 +54,7 @@ describe('CommunicationService', () => {
       const promise = service.deployTrigger(tenantId);
 
       const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/dataPipelineTrigger/deploy`
+        `${mockConfig.communicationServices}${tenantId}/v1/pipelineTrigger/deploy`
       );
       expect(req.request.method).toBe('POST');
       req.flush(null);

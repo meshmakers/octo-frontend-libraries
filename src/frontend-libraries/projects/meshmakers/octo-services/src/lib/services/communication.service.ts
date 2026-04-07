@@ -42,7 +42,7 @@ export class CommunicationService {
    */
   async deployTrigger(tenantId: string): Promise<void> {
     if (this.communicationServicesUrl) {
-      const uri = `${this.communicationServicesUrl}${tenantId}/v1/dataPipelineTrigger/deploy`;
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pipelineTrigger/deploy`;
       await firstValueFrom(
         this.httpClient.post<void>(uri, null, {observe: 'response'})
       );
