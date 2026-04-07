@@ -148,13 +148,21 @@ export class AuthorizeService {
         }
 
         if (e.type === "token_refresh_error") {
-          console.warn("AuthorizeService: Token refresh failed — clearing session and redirecting to login");
+          console.warn("AuthorizeService: Token refresh failed — clearing local session and reloading");
           this._accessToken.set(null);
           this._user.set(null);
           this._isAuthenticated.set(false);
           this._tokenTenantId.set(null);
           this._allowedTenants.set([]);
-          this.oauthService.logOut();
+          // Do NOT call oauthService.logOut() here — it destroys the server-side
+          // session at the Identity Server's end_session_endpoint. If the refresh
+          // token is invalid (e.g., after an IDS restart), the user still has a
+          // valid IDS session cookie and can silently re-authenticate. Calling
+          // logOut() would force a full re-login with credentials.
+          // Instead, clear local tokens and reload — the guard will trigger
+          // login() which obtains a fresh authorization code via the existing session.
+          this.tenantStorage.clearAllTenants();
+          this.reloadPage();
         }
       });
 
