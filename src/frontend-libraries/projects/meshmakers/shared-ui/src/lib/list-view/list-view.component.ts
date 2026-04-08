@@ -483,6 +483,14 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     await this.navigateAsync(commandItem, dataItem);
   }
 
+  protected getMenuItemVisible(menuItem: MenuItem, dataItem: unknown): boolean {
+    const commandItem = menuItem.data as CommandItem;
+    if (commandItem) {
+      return CommandBaseService.getIsVisibleSync(commandItem, dataItem);
+    }
+    return true;
+  }
+
   protected getMenuItemDisabled(menuItem: MenuItem, dataItem: unknown): boolean {
     const commandItem = menuItem.data as CommandItem;
     if (commandItem) {

@@ -26,6 +26,21 @@ export abstract class CommandBaseService {
     }
   }
 
+  static getIsVisibleSync(commandItem: CommandItem, data?: unknown): boolean {
+    if (commandItem.isVisible !== undefined) {
+      if (typeof commandItem.isVisible === 'boolean') {
+        return commandItem.isVisible;
+      } else if (typeof commandItem.isVisible === 'function') {
+        const result = commandItem.isVisible(data);
+        if (result instanceof Promise) {
+          return true;
+        }
+        return result;
+      }
+    }
+    return true;
+  }
+
   protected static async getIsVisible(commandItem: CommandItem): Promise<boolean> {
     if (commandItem.isVisible !== undefined) {
       if (typeof commandItem.isVisible === 'boolean') {

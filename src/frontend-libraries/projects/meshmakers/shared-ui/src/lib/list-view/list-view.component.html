@@ -248,7 +248,7 @@
       <ng-template kendoGridCellTemplate let-dataItem>
         @if (_actionMenuItems.length > 0) {
           @for (menuItem of _actionMenuItems; track menuItem.text) {
-            @if (!menuItem.separator) {
+            @if (!menuItem.separator && getMenuItemVisible(menuItem, dataItem)) {
               <button kendoButton themeColor="primary" fillMode="flat"
                 [svgIcon]="menuItem.svgIcon!"
                 [title]="menuItem.text ?? ''"
