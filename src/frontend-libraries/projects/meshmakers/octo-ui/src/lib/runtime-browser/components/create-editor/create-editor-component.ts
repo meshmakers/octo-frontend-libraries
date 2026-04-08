@@ -15,13 +15,13 @@ import {
 } from "@meshmakers/octo-services";
 import { KENDO_BUTTONS } from "@progress/kendo-angular-buttons";
 import { KENDO_DATEINPUTS } from "@progress/kendo-angular-dateinputs";
-import { KENDO_DROPDOWNS } from "@progress/kendo-angular-dropdowns";
 import { KENDO_INPUTS } from "@progress/kendo-angular-inputs";
 import { KENDO_LABEL } from "@progress/kendo-angular-label";
 import { CardModule } from "@progress/kendo-angular-layout";
+import { CkTypeSelectorItem } from "@meshmakers/octo-services";
 import { firstValueFrom, of, startWith, switchMap } from "rxjs";
 import { CreateEntitiesDtoGQL } from "../../../graphQL/createEntities";
-import { CkTypeDto } from "../../../graphQL/globalTypes";
+import { CkTypeSelectorInputComponent } from "../../../ck-type-selector-input/ck-type-selector-input.component";
 import { Attribute } from "../../models/attribute";
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
@@ -41,8 +41,8 @@ import { SharedEditor } from "../shared-editor/shared-editor";
     KENDO_INPUTS,
     KENDO_LABEL,
     KENDO_BUTTONS,
-    KENDO_DROPDOWNS,
     KENDO_DATEINPUTS,
+    CkTypeSelectorInputComponent,
     AttributesGroupComponent,
   ],
   template: `
@@ -66,15 +66,15 @@ import { SharedEditor } from "../shared-editor/shared-editor";
 
           <div class="info-item">
             <label>{{ resolvedMessages().entityType }}</label>
-            <kendo-dropdownlist
-              [data]="createInput()!.ckTypes || []"
-              textField="rtCkTypeId"
-              valueField="rtCkTypeId"
-              [valuePrimitive]="false"
-              [attr.placeholder]="resolvedMessages().selectType"
-              (valueChange)="onTypeChange($event)"
+            <mm-ck-type-selector-input
+              [placeholder]="resolvedMessages().selectType"
+              [allowAbstract]="false"
+              [derivedFromRtCkTypeId]="createInput()!.derivedFromRtCkTypeId"
+              [dialogTitle]="resolvedMessages().selectType"
+              (ckTypeSelected)="onCkTypeSelected($event)"
+              (ckTypeCleared)="onCkTypeCleared()"
             >
-            </kendo-dropdownlist>
+            </mm-ck-type-selector-input>
           </div>
         </kendo-card-body>
       </kendo-card>
@@ -317,15 +317,13 @@ export class CreateEditorComponent {
   }
 
   /**
-   * Resets the form and prepares the state for the selected type.
-   * Naming (intentional, not swapped): CkTypeDto has ckTypeId { fullName } and rtCkTypeId.
+   * Handles type selection from the CkTypeSelectorInput.
+   * CkTypeSelectorItem has fullName and rtCkTypeId.
    * - selectedRtCkTypeId = fullName → used as [ckId] for attributes-group (getCkAttributesDetailed expects type id).
-   * - selectedCkTypeId = DTO's rtCkTypeId → used in create mutation payload as entity.ckTypeId.
+   * - selectedCkTypeId = rtCkTypeId → used in create mutation payload as entity.ckTypeId.
    */
-  protected onTypeChange(selectedType: CkTypeDto | null) {
-    if (selectedType === null || selectedType === undefined) return;
-
-    const rtCkTypeId = selectedType.ckTypeId.fullName;
+  protected onCkTypeSelected(selectedType: CkTypeSelectorItem) {
+    const rtCkTypeId = selectedType.fullName;
     const ckTypeId = selectedType.rtCkTypeId;
 
     if (ckTypeId && rtCkTypeId) {
@@ -337,6 +335,12 @@ export class CreateEditorComponent {
       this.selectedRtCkTypeId.set(null);
       this.selectedCkTypeId.set(null);
     }
+  }
+
+  protected onCkTypeCleared() {
+    this.form.set(null);
+    this.selectedRtCkTypeId.set(null);
+    this.selectedCkTypeId.set(null);
   }
 }
 
@@ -351,9 +355,10 @@ export interface CreateInput {
     name?: string;
   };
   /**
-   * List of available CK types to choose from when creating a new entity. This is required to populate the dropdown for type selection in the UI.
+   * Base CK type ID used to filter the type selector to only show derived types.
+   * For child creation this is typically 'Basic/TreeNode'; for root-level it is 'Basic/Tree'.
    */
-  ckTypes: CkTypeDto[];
+  derivedFromRtCkTypeId?: string;
 }
 
 export interface CreateOutput {
