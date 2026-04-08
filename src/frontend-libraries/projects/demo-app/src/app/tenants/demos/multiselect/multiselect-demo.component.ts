@@ -154,7 +154,7 @@ const GROUPED_EMPLOYEES = MOCK_EMPLOYEES.map(emp => ({
             <div class="customer-list">
               <div *ngFor="let customer of selectedCustomers" class="customer-item">
                 <div><strong>{{ customer.contact.firstName }} {{ customer.contact.lastName }}</strong></div>
-                <div class="customer-detail">{{ customer.contact.companyName }} - {{ customer.contact.address.cityTown }}, {{ customer.contact.address.nationalCode }}</div>
+                <div class="customer-detail">{{ customer.contact.companyName }} - {{ customer.contact.address?.cityTown }}, {{ customer.contact.address?.nationalCode }}</div>
                 <div class="rt-id">RT-ID: {{ customer.rtId }}</div>
               </div>
             </div>

@@ -28,7 +28,7 @@ export interface DependencyResolutionItemDto {
   name: string;
   requiredVersion: string;
   installedVersion?: string;
-  action: 'install' | 'update' | 'none';
+  action: 'install' | 'update' | 'none' | 'incompatible';
   dependencies: DependencyResolutionItemDto[];
 }
 
@@ -44,4 +44,38 @@ export interface UpgradeCheckResponseDto {
   migrationPathAvailable: boolean;
   hasBreakingChanges: boolean;
   errorMessage?: string;
+}
+
+export interface CkModelLibraryStatusItemDto {
+  name: string;
+  installedVersion?: string;
+  modelState?: string;
+  dependencies: string[];
+  catalogVersion?: string;
+  hasUpdate: boolean;
+  needsAction: boolean;
+  catalogName?: string;
+  fullModelId?: string;
+  isServiceManaged: boolean;
+  isCompatible: boolean;
+  incompatibilityReason?: string;
+}
+
+export interface CkModelLibraryStatusResponseDto {
+  items: CkModelLibraryStatusItemDto[];
+  modelsNeedingActionCount: number;
+}
+
+export interface ImportFromCatalogBatchRequestDto {
+  catalogName: string;
+  modelIds: string[];
+}
+
+export interface BatchImportResponseDto {
+  jobId: string;
+}
+
+export interface BatchDependencyResolutionResponseDto {
+  modelsToImport: string[];
+  dependencyTrees: DependencyResolutionResponseDto[];
 }

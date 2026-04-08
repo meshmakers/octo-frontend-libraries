@@ -13,7 +13,7 @@ export type GetSdkCustomersQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetSdkCustomersQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', octoSdkDemoCustomer?: { __typename?: 'OctoSdkDemoCustomerConnection', totalCount?: number | null, items?: Array<{ __typename?: 'OctoSdkDemoCustomer', rtId: any, ckTypeId: any, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { __typename?: 'BasicContact', legalEntityType: Types.BasicLegalEntityTypeDto, firstName?: string | null, lastName?: string | null, companyName?: string | null, address: { __typename?: 'BasicAddress', street: string, zipcode: number, cityTown: string, nationalCode: string } } } | null> | null } | null } | null };
+export type GetSdkCustomersQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', octoSdkDemoCustomer?: { __typename?: 'OctoSdkDemoCustomerConnection', totalCount?: number | null, items?: Array<{ __typename?: 'OctoSdkDemoCustomer', rtId: any, ckTypeId: any, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { __typename?: 'BasicContact', legalEntityType?: Types.BasicLegalEntityTypeDto | null, firstName?: string | null, lastName?: string | null, companyName?: string | null, address?: { __typename?: 'BasicAddress', street: string, zipcode: number, cityTown: string, nationalCode: string } | null } } | null> | null } | null } | null };
 
 export const GetSdkCustomersDocumentDto = gql`
     query getSdkCustomers($after: String, $first: Int, $rtIds: [OctoObjectId], $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort]) {

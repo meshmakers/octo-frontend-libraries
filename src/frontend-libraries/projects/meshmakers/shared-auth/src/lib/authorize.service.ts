@@ -148,13 +148,21 @@ export class AuthorizeService {
         }
 
         if (e.type === "token_refresh_error") {
-          console.warn("AuthorizeService: Token refresh failed — clearing session and redirecting to login");
+          console.warn("AuthorizeService: Token refresh failed — clearing local session and reloading");
           this._accessToken.set(null);
           this._user.set(null);
           this._isAuthenticated.set(false);
           this._tokenTenantId.set(null);
           this._allowedTenants.set([]);
-          this.oauthService.logOut();
+          // Do NOT call oauthService.logOut() here — it destroys the server-side
+          // session at the Identity Server's end_session_endpoint. If the refresh
+          // token is invalid (e.g., after an IDS restart), the user still has a
+          // valid IDS session cookie and can silently re-authenticate. Calling
+          // logOut() would force a full re-login with credentials.
+          // Instead, clear local tokens and reload — the guard will trigger
+          // login() which obtains a fresh authorization code via the existing session.
+          this.tenantStorage.clearAllTenants();
+          this.reloadPage();
         }
       });
 
@@ -257,6 +265,14 @@ export class AuthorizeService {
   public setStorageTenantId(tenantId: string | null): void {
     this.tenantStorage.setTenantId(tenantId);
     console.debug(`AuthorizeService::setStorageTenantId("${tenantId}")`);
+  }
+
+  /**
+   * Returns the current storage tenant ID.
+   * Used by the interceptor to inject acr_values into token endpoint requests.
+   */
+  public getStorageTenantId(): string | null {
+    return this.tenantStorage.getTenantId();
   }
 
   /**
@@ -537,6 +553,7 @@ export class AuthorizeService {
 
       this.oauthService.setStorage(this.tenantStorage);
       this.oauthService.configure(config);
+
       console.debug("AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin");
       await this.oauthService.loadDiscoveryDocumentAndTryLogin();
 
@@ -605,6 +622,10 @@ export class AuthorizeService {
       return;
     }
 
+    // Capture auth state BEFORE setting _isAuthenticated to true,
+    // so we can distinguish initial login from token refresh below.
+    const previouslyAuthenticated = this._isAuthenticated();
+
     const user = claims as IUser;
     if (user.given_name && user.family_name) {
       this._userInitials.set(user.given_name.charAt(0).toUpperCase() + user.family_name.charAt(0).toUpperCase());
@@ -621,10 +642,24 @@ export class AuthorizeService {
 
     // Parse allowed_tenants from the access token
     this._allowedTenants.set(this.parseAllowedTenantsFromToken(accessToken));
-
-    // Parse tenant_id from the access token (used for tenant mismatch detection)
     const tokenTenantId = this.parseTenantIdFromToken(accessToken);
     this._tokenTenantId.set(tokenTenantId);
+
+    // Detect tenant mismatch after silent refresh: if we were already authenticated
+    // (i.e., this is a token refresh, not an initial login) and the new token's tenant_id
+    // doesn't match the expected tenant from storage, trigger re-authentication.
+    // This handles the case where the Identity Server returns a token for the wrong tenant
+    // (e.g., after a service restart when the in-memory token-to-tenant cache is lost).
+    const expectedTenantId = this.tenantStorage.getTenantId();
+    if (previouslyAuthenticated && tokenTenantId && expectedTenantId &&
+        tokenTenantId.toLowerCase() !== expectedTenantId.toLowerCase()) {
+      console.warn(
+        `AuthorizeService::loadUserAsync: Tenant mismatch after silent refresh — ` +
+        `token="${tokenTenantId}", expected="${expectedTenantId}". Triggering re-authentication.`
+      );
+      this.switchTenant(expectedTenantId, window.location.href);
+      return;
+    }
 
     // Clear the pending tenant switch key now that we have a valid token.
     // This completes the switch cycle and prevents the guard from re-using
@@ -687,7 +722,8 @@ export class AuthorizeService {
         return null;
       }
 
-      const payload = JSON.parse(atob(parts[1]));
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(base64));
       return payload['tenant_id'] ?? null;
     } catch {
       return null;
