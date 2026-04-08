@@ -132,7 +132,6 @@ export class RuntimeBrowserComponent implements AfterViewInit {
 
   private isSelectedItemAnRtEntity = false;
   private isLoading = false;
-  private isCreating = false;
   private isEditing = false;
 
   messages = input<Partial<RuntimeBrowserMessages>>({});
@@ -219,7 +218,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
     return !this.isLoading;
   }
   private get isCreateButtonEnabled() {
-    return !this.isLoading && !this.isCreating;
+    return !this.isLoading;
   }
   private get isDeleteButtonEnabled() {
     return !this.isLoading && this.isSelectedItemAnRtEntity;

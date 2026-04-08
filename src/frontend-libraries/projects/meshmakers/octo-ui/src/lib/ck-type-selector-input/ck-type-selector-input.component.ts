@@ -314,6 +314,8 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
       if (ckType) {
         this.selectCkType(ckType);
       }
+    } else if (!value && this.selectedCkType) {
+      this.clear();
     }
   }
 
