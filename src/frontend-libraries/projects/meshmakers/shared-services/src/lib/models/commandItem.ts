@@ -23,7 +23,7 @@ export interface CommandItem {
   onClick?: (eventArgs: CommandItemExecuteEventArgs) =>  Promise<void>;
 
   target?: string;
-  isVisible?: boolean | (() => Promise<boolean>);
+  isVisible?: boolean | ((data?: unknown) => boolean | Promise<boolean>);
   isDisabled?: boolean | ((data?: unknown) => boolean);
   children?: CommandItem[];
 }

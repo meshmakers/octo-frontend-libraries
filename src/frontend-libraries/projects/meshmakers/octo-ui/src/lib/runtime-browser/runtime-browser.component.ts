@@ -132,7 +132,6 @@ export class RuntimeBrowserComponent implements AfterViewInit {
 
   private isSelectedItemAnRtEntity = false;
   private isLoading = false;
-  private isCreating = false;
   private isEditing = false;
 
   messages = input<Partial<RuntimeBrowserMessages>>({});
@@ -219,7 +218,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
     return !this.isLoading;
   }
   private get isCreateButtonEnabled() {
-    return !this.isLoading && !this.isCreating;
+    return !this.isLoading;
   }
   private get isDeleteButtonEnabled() {
     return !this.isLoading && this.isSelectedItemAnRtEntity;
@@ -750,34 +749,14 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   /**
    * Main action to initiate the creation of a new node
    */
-  protected async onCreate(): Promise<void> {
-    // Anti-spam validation: prevent multiple clicks
-    if (this.isCreating) {
-      return;
-    }
+  protected onCreate(): void {
+    const isRootLevel = !this.selectedItem;
+    const derivedFromRtCkTypeId = isRootLevel ? 'Basic/Tree' : 'Basic/TreeNode';
 
-    try {
-      this.isCreating = true;
-
-      // Fetch available Construction Kit types from the API
-      const result = await firstValueFrom(this.ckTypesGQL.fetch());
-      const allTypes = (
-        result.data?.constructionKit?.types?.items ?? []
-      ).filter((type): type is CkTypeDto => type != null);
-      const isRootLevel = !this.selectedItem;
-      const filteredTypes = this.getCompatibleTreeTypes(allTypes, isRootLevel);
-
-      // Transition the details panel into Create Mode
-      // Pass null as parent if no item is selected (creates root-level entity)
-      this.detailsPanel?.enterCreateMode(
-        this.selectedItem || null,
-        filteredTypes as CkTypeDto[],
-      );
-    } catch (err) {
-      console.error('Failed to load types for creation:', err);
-    } finally {
-      this.isCreating = false;
-    }
+    this.detailsPanel?.enterCreateMode(
+      this.selectedItem || null,
+      derivedFromRtCkTypeId,
+    );
   }
 
   protected async onEdit(): Promise<void> {
@@ -817,74 +796,6 @@ export class RuntimeBrowserComponent implements AfterViewInit {
     }
   }
 
-  /**
-   * Filters the list of types to find compatible types for entity creation.
-   * For root-level creation, only allows Basic/Tree types.
-   * For child creation, allows non-abstract TreeNode types.
-   *
-   * @param types - All available CK types
-   * @param isRootLevel - If true, only Basic/Tree types are allowed
-   * @returns Filtered list of compatible types
-   */
-  private getCompatibleTreeTypes(
-    types: CkTypeDto[],
-    isRootLevel = false,
-  ): CkTypeDto[] {
-    // For root-level creation, only allow Basic/Tree types
-    if (isRootLevel) {
-      return types.filter((type) => {
-        const isBasicTree = type?.rtCkTypeId === 'Basic/Tree';
-        return isBasicTree;
-      });
-    }
-
-    // For child creation, allow non-abstract TreeNode types
-    const filtered = types.filter((type) => {
-      const isNotAbstract = type?.isAbstract === false;
-      const isTreeNodeFamily = this.isTreeNodeType(type);
-
-      return isNotAbstract && isTreeNodeFamily;
-    });
-
-    // If no TreeNode types found, fallback to all non-abstract types
-    if (filtered.length === 0) {
-      return types.filter((type) => type?.isAbstract === false);
-    }
-
-    return filtered;
-  }
-
-  /**
-   * Checks if a specific type or its base type belongs to the TreeNode hierarchy
-   */
-  private isTreeNodeType(type: CkTypeDto): boolean {
-    const typeFullName = type?.ckTypeId?.fullName || '';
-    const baseTypeFullName = type?.baseType?.ckTypeId?.fullName || '';
-
-    const getShortName = (fullName: string): string => {
-      if (!fullName) {
-        return '';
-      }
-      // Handle both dot notation (System.Entity) and slash notation (System/Entity)
-      const parts = fullName.includes('/')
-        ? fullName.split('/')
-        : fullName.split('.');
-      return parts[parts.length - 1] || '';
-    };
-
-    const typeName = getShortName(typeFullName);
-    const baseTypeName = getShortName(baseTypeFullName);
-
-    // Check if type name ends with TreeNode or is TreeNode
-    const isTreeNode = typeName === 'TreeNode' || baseTypeName === 'TreeNode';
-
-    // Also check if full name contains TreeNode (for cases like Basic/TreeNode)
-    const containsTreeNode =
-      typeFullName.includes('TreeNode') ||
-      baseTypeFullName.includes('TreeNode');
-
-    return isTreeNode || containsTreeNode;
-  }
 
   /**
    * Handles entitySaved from the details panel: refreshes the tree, then reloads the detail view

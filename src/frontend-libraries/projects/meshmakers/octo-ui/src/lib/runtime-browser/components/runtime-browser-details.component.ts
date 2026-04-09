@@ -483,11 +483,11 @@ export class RuntimeBrowserDetailsComponent
   /**
    * Activates the creation UI and provides necessary data
    * @param parentNode The tree node under which the new entity will be created, or null for root-level creation
-   * @param allowedTypes List of compatible entity types for the new node
+   * @param derivedFromRtCkTypeId Base type ID to filter the type selector (e.g. 'Basic/TreeNode' or 'Basic/Tree')
    */
   public enterCreateMode(
     parentNode: TreeItemDataTyped<BrowserItem> | null,
-    allowedTypes: CkTypeDto[],
+    derivedFromRtCkTypeId?: string,
   ): void {
     const rtEntityDto = parentNode as TreeItemDataTyped<RtEntityDto>;
 
@@ -497,7 +497,7 @@ export class RuntimeBrowserDetailsComponent
         rtId: rtEntityDto?.item.rtId,
         name: parentNode?.text ?? "",
       },
-      ckTypes: allowedTypes,
+      derivedFromRtCkTypeId,
     };
 
     // Toggle the UI state to show the creation form
