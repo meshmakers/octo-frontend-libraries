@@ -3,7 +3,7 @@ import { TreeItemDataTyped } from '@meshmakers/shared-services';
 import { CkModelDto, CkTypeDto, RtEntityDto } from '../../graphQL/globalTypes';
 
 // Extended type to handle both Runtime Entities and CK Models/Types
-type BrowserItem =
+export type BrowserItem =
   | RtEntityDto
   | CkModelDto
   | CkTypeDto
@@ -125,27 +125,35 @@ export class RuntimeBrowserStateService {
   private getItemId(item: TreeItemDataTyped<BrowserItem>): string {
     const itemData = item.item;
 
-    // Runtime entity
+    // Runtime entity — has both rtId and ckTypeId as scalar strings
     if ('rtId' in itemData && 'ckTypeId' in itemData) {
       return `${String(itemData.ckTypeId)}@${String(itemData.rtId)}`;
     }
 
-    // CK Model
+    // CK Model — id is CkModelIdDto (object with fullName)
     if (
       'id' in itemData &&
       !('rtId' in itemData) &&
       !('ckTypeId' in itemData)
     ) {
-      return `ck-model:${String(itemData.id)}`;
+      const modelId = (itemData as CkModelDto).id;
+      const name = typeof modelId === 'object' && modelId !== null && 'fullName' in modelId
+        ? modelId.fullName
+        : String(modelId);
+      return `ck-model:${name}`;
     }
 
-    // CK Type
+    // CK Type — ckTypeId is CkTypeIdDto (object with fullName)
     if (
       'ckTypeId' in itemData &&
       !('rtId' in itemData) &&
       !('id' in itemData)
     ) {
-      return `ck-type:${String(itemData.ckTypeId)}`;
+      const typeId = (itemData as CkTypeDto).ckTypeId;
+      const name = typeof typeId === 'object' && typeId !== null && 'fullName' in typeId
+        ? typeId.fullName
+        : String(typeId);
+      return `ck-type:${name}`;
     }
 
     // CK Models root

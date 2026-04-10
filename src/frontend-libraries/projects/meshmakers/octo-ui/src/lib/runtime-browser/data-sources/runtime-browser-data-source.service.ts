@@ -32,6 +32,7 @@ import {
 } from '../../graphQL/getRuntimeEntityAssociationsById';
 import { GetTreeNodesDtoGQL } from '../../graphQL/getTreeNodes';
 import { GetTreesDtoGQL } from '../../graphQL/getTrees';
+import { UpdateRuntimeEntitiesDtoGQL } from '../../graphQL/updateRuntimeEntities';
 import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
 import { code, storage } from '../icons/custom-svg-icons';
 import { TypeHelperService } from '../services/type-helper.service';
@@ -56,6 +57,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   private readonly getRuntimeEntityAssociationsByIdDtoGQL = inject(
     GetRuntimeEntityAssociationsByIdDtoGQL,
   );
+  private readonly updateRuntimeEntitiesDtoGQL = inject(UpdateRuntimeEntitiesDtoGQL);
   private readonly updateTreeNodesDtoGQL = inject(UpdateTreeNodesDtoGQL);
   private readonly typeHelperService = inject(TypeHelperService);
   private isCkModelsRoot(
@@ -464,6 +466,101 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     }
 
     return true;
+  }
+
+  /**
+   * Moves an entity to a new parent using the generic `runtimeEntities.update` mutation.
+   * Works for any entity type (not just Basic/TreeNode).
+   *
+   * Uses the `associations` field on `RtEntityInputDto` with `roleName` set to
+   * the navigation property name (e.g. "parent") and modOption CREATE/DELETE.
+   *
+   * @param srcObjRtId Runtime ID of the entity being moved.
+   * @param srcObjCkTypeId CK type of the entity being moved.
+   * @param navigationPropertyName Navigation property for the parent association (e.g. "parent").
+   * @param oldParentCkTypeId CK type of the current parent.
+   * @param oldParentRtId Runtime ID of the current parent.
+   * @param newParentCkTypeId CK type of the new parent.
+   * @param newParentRtId Runtime ID of the new parent.
+   * @returns true if the move succeeded.
+   */
+  public async updateEntityAssociation(
+    srcObjRtId: string,
+    srcObjCkTypeId: string,
+    navigationPropertyName: string,
+    oldParentCkTypeId: string,
+    oldParentRtId: string,
+    newParentCkTypeId: string,
+    newParentRtId: string,
+  ): Promise<boolean> {
+    const entitiesToUpdate = [
+      {
+        rtId: srcObjRtId,
+        item: {
+          ckTypeId: srcObjCkTypeId,
+          attributes: [],
+          associations: [
+            {
+              roleName: navigationPropertyName,
+              targets: [
+                {
+                  target: {
+                    rtId: oldParentRtId,
+                    ckTypeId: oldParentCkTypeId,
+                  },
+                  modOption: AssociationModOptionsDto.DeleteDto,
+                },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        rtId: srcObjRtId,
+        item: {
+          ckTypeId: srcObjCkTypeId,
+          attributes: [],
+          associations: [
+            {
+              roleName: navigationPropertyName,
+              targets: [
+                {
+                  target: {
+                    rtId: newParentRtId,
+                    ckTypeId: newParentCkTypeId,
+                  },
+                  modOption: AssociationModOptionsDto.CreateDto,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ];
+
+    try {
+      const response = await firstValueFrom(
+        this.updateRuntimeEntitiesDtoGQL.mutate({
+          variables: {
+            entities: entitiesToUpdate,
+          },
+          fetchPolicy: 'network-only',
+        }),
+      );
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(
+        'Error on attempt to move entity by changing association',
+        srcObjRtId,
+        error,
+      );
+      return false;
+    }
   }
 
   /**
