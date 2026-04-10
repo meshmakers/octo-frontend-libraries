@@ -21,6 +21,7 @@ import {
   RtAssociationDto,
   RtEntityDto,
 } from '../../graphQL/globalTypes';
+import { UpdateRuntimeEntitiesDtoGQL } from '../../graphQL/updateRuntimeEntities';
 import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
 import { TypeHelperService } from '../services/type-helper.service';
 import { RuntimeBrowserDataSource } from './runtime-browser-data-source.service';
@@ -221,6 +222,10 @@ describe('RuntimeBrowserDataSource', () => {
     mutate: jasmine.createSpy('mutate').and.returnValue(of({ data: {} })),
   };
 
+  const mockUpdateRuntimeEntitiesGQL = {
+    mutate: jasmine.createSpy('mutate').and.returnValue(of({ data: {} })),
+  };
+
   const mockTypeHelperService = {
     isRuntimeEntity: jasmine.createSpy('isRuntimeEntity').and.returnValue(true),
   };
@@ -245,6 +250,7 @@ describe('RuntimeBrowserDataSource', () => {
         },
         { provide: DeleteEntitiesDtoGQL, useValue: mockDeleteEntitiesDtoGQL },
         { provide: UpdateTreeNodesDtoGQL, useValue: mockUpdateTreeNodesGQL },
+        { provide: UpdateRuntimeEntitiesDtoGQL, useValue: mockUpdateRuntimeEntitiesGQL },
         { provide: TypeHelperService, useValue: mockTypeHelperService },
       ],
     }).compileComponents();
@@ -274,6 +280,8 @@ describe('RuntimeBrowserDataSource', () => {
     mockDeleteEntitiesDtoGQL.mutate.and.returnValue(of(mockDeleteResponse));
     mockUpdateTreeNodesGQL.mutate.calls.reset();
     mockUpdateTreeNodesGQL.mutate.and.returnValue(of({ data: {} }));
+    mockUpdateRuntimeEntitiesGQL.mutate.calls.reset();
+    mockUpdateRuntimeEntitiesGQL.mutate.and.returnValue(of({ data: {} }));
     controller.verify();
   });
 
@@ -375,11 +383,15 @@ describe('RuntimeBrowserDataSource', () => {
     });
 
     it('should fetch CK types when expanding a CK model', async () => {
+      const ckModel: CkModelDto = {
+        id: { fullName: 'Basic', name: 'Basic', semanticVersionedFullName: 'Basic', version: '1.0.0' },
+        dependencies: [],
+      };
       const modelNode = new TreeItemDataTyped<BrowserItem>(
         'model:Basic',
         'Basic',
         '',
-        { id: { fullName: 'Basic' }, modelState: 'Released' } as CkModelDto,
+        ckModel,
         fileIcon,
         true,
       );
@@ -393,11 +405,17 @@ describe('RuntimeBrowserDataSource', () => {
     });
 
     it('should return empty array for CK type nodes', async () => {
+      const ckType: CkTypeDto = {
+        ckTypeId: { fullName: 'Basic/Entity', semanticVersionedFullName: 'Basic/Entity' },
+        isAbstract: false,
+        isFinal: false,
+        rtCkTypeId: 'Basic/Entity',
+      };
       const typeNode = new TreeItemDataTyped<BrowserItem>(
         'type:Basic/Entity',
         'Basic/Entity',
         '',
-        { ckTypeId: 'Basic/Entity' } as CkTypeDto,
+        ckType,
         fileIcon,
         false,
       );
@@ -408,11 +426,17 @@ describe('RuntimeBrowserDataSource', () => {
     });
 
     it('should return empty array for entity without rtId', async () => {
+      const ckType: CkTypeDto = {
+        ckTypeId: { fullName: 'Test/Type', semanticVersionedFullName: 'Test/Type' },
+        isAbstract: false,
+        isFinal: false,
+        rtCkTypeId: 'Test/Type',
+      };
       const invalidNode = new TreeItemDataTyped<BrowserItem>(
         'invalid',
         'Invalid',
         '',
-        { ckTypeId: 'Test/Type' } as CkTypeDto,
+        ckType,
         fileIcon,
         false,
       );
@@ -483,11 +507,15 @@ describe('RuntimeBrowserDataSource', () => {
         throwError(() => new Error('Error')),
       );
 
+      const ckModel: CkModelDto = {
+        id: { fullName: 'Basic', name: 'Basic', semanticVersionedFullName: 'Basic', version: '1.0.0' },
+        dependencies: [],
+      };
       const modelNode = new TreeItemDataTyped<BrowserItem>(
         'model:Basic',
         'Basic',
         '',
-        { id: { fullName: 'Basic' }, modelState: 'Released' } as CkModelDto,
+        ckModel,
         fileIcon,
         true,
       );
@@ -852,6 +880,113 @@ describe('RuntimeBrowserDataSource', () => {
         params.oldId,
         params.newType,
         params.newId,
+      );
+
+      expect(result).toBeFalse();
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('updateEntityAssociation', () => {
+    const params = {
+      srcId: 'machine-1',
+      srcType: 'Industry.Basic/Machine',
+      navProp: 'Parent',
+      oldParentType: 'Basic/TreeNode',
+      oldParentId: 'node-old',
+      newParentType: 'Basic/TreeNode',
+      newParentId: 'node-new',
+    };
+
+    it('should construct the correct generic mutation payload', async () => {
+      mockUpdateRuntimeEntitiesGQL.mutate.and.returnValue(
+        of({ data: { runtime: { runtimeEntities: { update: [{ rtId: params.srcId }] } } } }),
+      );
+
+      const result = await service.updateEntityAssociation(
+        params.srcId,
+        params.srcType,
+        params.navProp,
+        params.oldParentType,
+        params.oldParentId,
+        params.newParentType,
+        params.newParentId,
+      );
+
+      expect(mockUpdateRuntimeEntitiesGQL.mutate).toHaveBeenCalledWith({
+        variables: {
+          entities: [
+            {
+              rtId: params.srcId,
+              item: {
+                ckTypeId: params.srcType,
+                attributes: [],
+                associations: [
+                  {
+                    roleName: params.navProp,
+                    targets: [
+                      {
+                        target: { rtId: params.oldParentId, ckTypeId: params.oldParentType },
+                        modOption: AssociationModOptionsDto.DeleteDto,
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+            {
+              rtId: params.srcId,
+              item: {
+                ckTypeId: params.srcType,
+                attributes: [],
+                associations: [
+                  {
+                    roleName: params.navProp,
+                    targets: [
+                      {
+                        target: { rtId: params.newParentId, ckTypeId: params.newParentType },
+                        modOption: AssociationModOptionsDto.CreateDto,
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        fetchPolicy: 'network-only',
+      });
+      expect(result).toBeTrue();
+    });
+
+    it('should return false when GraphQL response contains error', async () => {
+      mockUpdateRuntimeEntitiesGQL.mutate.and.returnValue(
+        of({ data: null, error: { message: 'Association not allowed' } }),
+      );
+
+      const result = await service.updateEntityAssociation(
+        params.srcId, params.srcType, params.navProp,
+        params.oldParentType, params.oldParentId,
+        params.newParentType, params.newParentId,
+      );
+
+      expect(result).toBeFalse();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        jasmine.stringMatching(/Error on attempt to move entity/),
+        params.srcId,
+        jasmine.any(Object),
+      );
+    });
+
+    it('should return false when network error occurs', async () => {
+      mockUpdateRuntimeEntitiesGQL.mutate.and.returnValue(
+        throwError(() => new Error('Network error')),
+      );
+
+      const result = await service.updateEntityAssociation(
+        params.srcId, params.srcType, params.navProp,
+        params.oldParentType, params.oldParentId,
+        params.newParentType, params.newParentId,
       );
 
       expect(result).toBeFalse();
