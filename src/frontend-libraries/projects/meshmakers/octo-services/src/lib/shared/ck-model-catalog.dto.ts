@@ -79,3 +79,24 @@ export interface BatchDependencyResolutionResponseDto {
   modelsToImport: string[];
   dependencyTrees: DependencyResolutionResponseDto[];
 }
+
+export interface MigrationHistoryEntryDto {
+  ckModelName: string;
+  fromVersion: string;
+  toVersion: string;
+  executedAt: string;
+  success: boolean;
+  entitiesAffected: number;
+  entitiesAdded: number;
+  entitiesUpdated: number;
+  entitiesDeleted: number;
+  durationMs: number;
+  errors?: string[];
+  warnings?: string[];
+  backupId?: string;
+}
+
+export interface MigrationHistoryResponseDto {
+  items: MigrationHistoryEntryDto[];
+  totalCount: number;
+}

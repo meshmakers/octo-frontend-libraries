@@ -12,6 +12,7 @@ import {
   DependencyResolutionResponseDto,
   ImportFromCatalogBatchRequestDto,
   ImportFromCatalogRequestDto,
+  MigrationHistoryResponseDto,
   UpgradeCheckResponseDto
 } from '../shared/ck-model-catalog.dto';
 import { ImportModelResponseDto } from '../shared/importModelResponseDto';
@@ -125,6 +126,14 @@ export class CkModelCatalogService {
     const body: ImportFromCatalogBatchRequestDto = { catalogName, modelIds };
     const r = await firstValueFrom(this.httpClient.post<BatchImportResponseDto>(
       url, body, { observe: 'response' }));
+    return r.body;
+  }
+
+  public async getMigrationHistory(tenantId: string, modelName: string): Promise<MigrationHistoryResponseDto | null> {
+    if (!this.configurationService.config?.assetServices) return null;
+    const url = `${this.configurationService.config.assetServices}${tenantId}/v1/models/${encodeURIComponent(modelName)}/MigrationHistory`;
+    const r = await firstValueFrom(this.httpClient.get<MigrationHistoryResponseDto>(
+      url, { observe: 'response' }));
     return r.body;
   }
 }
