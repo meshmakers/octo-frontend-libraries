@@ -110,7 +110,18 @@ describe('AssociationValidationService', () => {
 
       expect(result.allowed).toBeTrue();
       expect(result.rtRoleId).toBe('System/ParentChild');
-      expect(result.navigationPropertyName).toBe('Parent');
+      expect(result.navigationPropertyName).toBe('parent');
+    });
+
+    it('should normalize navigationPropertyName to lowerCamelCase', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of(mockMachineRolesResponse));
+
+      const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
+
+      // CK metadata returns "Parent" (PascalCase); service must emit "parent" (camelCase)
+      // to match backend's typed input convention.
+      expect(result.navigationPropertyName?.charAt(0)).toBe('p');
+      expect(result.navigationPropertyName).not.toBe('Parent');
     });
 
     it('should allow move to Tree root', async () => {
@@ -147,7 +158,7 @@ describe('AssociationValidationService', () => {
       const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
 
       expect(result.rtRoleId).toBe('System/ParentChild');
-      expect(result.navigationPropertyName).toBe('Parent');
+      expect(result.navigationPropertyName).toBe('parent');
     });
 
     it('should use cached roles on subsequent calls', async () => {

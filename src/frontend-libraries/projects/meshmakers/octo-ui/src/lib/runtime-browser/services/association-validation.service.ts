@@ -66,7 +66,9 @@ export class AssociationValidationService {
         allowed: true,
         rtRoleId: matchingRole.rtRoleId,
         roleId: matchingRole.roleId,
-        navigationPropertyName: matchingRole.navigationPropertyName,
+        navigationPropertyName: this.toLowerCamelCase(
+          matchingRole.navigationPropertyName,
+        ),
       };
     }
 
@@ -112,6 +114,17 @@ export class AssociationValidationService {
 
     this.outRolesCache.set(ckTypeId, roles);
     return roles;
+  }
+
+  /**
+   * Normalizes navigation property name to lowerCamelCase, matching the
+   * backend convention used by typed input types (e.g. "Parent" → "parent").
+   */
+  private toLowerCamelCase(name: string): string {
+    if (!name) {
+      return name;
+    }
+    return name.charAt(0).toLowerCase() + name.slice(1);
   }
 
   /** Clears the role cache (e.g. on tenant switch). */

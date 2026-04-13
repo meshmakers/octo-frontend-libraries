@@ -929,20 +929,6 @@ describe('RuntimeBrowserDataSource', () => {
                         target: { rtId: params.oldParentId, ckTypeId: params.oldParentType },
                         modOption: AssociationModOptionsDto.DeleteDto,
                       },
-                    ],
-                  },
-                ],
-              },
-            },
-            {
-              rtId: params.srcId,
-              item: {
-                ckTypeId: params.srcType,
-                attributes: [],
-                associations: [
-                  {
-                    roleName: params.navProp,
-                    targets: [
                       {
                         target: { rtId: params.newParentId, ckTypeId: params.newParentType },
                         modOption: AssociationModOptionsDto.CreateDto,

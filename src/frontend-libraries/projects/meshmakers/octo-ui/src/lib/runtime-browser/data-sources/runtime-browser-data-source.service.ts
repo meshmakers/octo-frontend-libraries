@@ -510,20 +510,6 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
                   },
                   modOption: AssociationModOptionsDto.DeleteDto,
                 },
-              ],
-            },
-          ],
-        },
-      },
-      {
-        rtId: srcObjRtId,
-        item: {
-          ckTypeId: srcObjCkTypeId,
-          attributes: [],
-          associations: [
-            {
-              roleName: navigationPropertyName,
-              targets: [
                 {
                   target: {
                     rtId: newParentRtId,
