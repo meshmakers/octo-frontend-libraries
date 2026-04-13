@@ -238,16 +238,29 @@ export class AttributeMapperService {
     value: unknown,
     recordCkId: string | undefined,
   ): Promise<Record<string, unknown>> {
-    if (!this.isRecordValue(value) || !recordCkId) {
+    if (!this.isRecordValue(value)) {
       return {};
     }
 
-    let subMetadataMap: Map<string, Attribute>;
+    const subMetadataMap = await this.resolveSubMetadataMap(recordCkId);
+    return this.mapRecordEntries(value, subMetadataMap);
+  }
+
+  /**
+   * Resolves sub-attribute metadata for a given recordCkId. Returns an empty map (pass-through mode)
+   * when recordCkId is missing or resolver fails — caller must preserve user values in that case.
+   */
+  private async resolveSubMetadataMap(
+    recordCkId: string | undefined,
+  ): Promise<Map<string, Attribute>> {
+    if (!recordCkId) {
+      return new Map();
+    }
     try {
       const rawDefinitions = await firstValueFrom(
         this.metadataResolver.getRawAttributes$(recordCkId, true),
       );
-      subMetadataMap = new Map(
+      return new Map(
         rawDefinitions.map((meta) => {
           const subAttr = this.mapToFormAttribute(meta, undefined);
           return [subAttr.attributeName, subAttr];
@@ -261,22 +274,37 @@ export class AttributeMapperService {
         `AttributeMapperService: failed to resolve sub-attributes for record '${recordCkId}'`,
         err,
       );
-      subMetadataMap = new Map();
+      return new Map();
     }
+  }
 
+  /**
+   * Maps record entries to GraphQL payload using the resolved metadata map.
+   * Pass-through mode (empty metadata map) preserves user values verbatim, including explicit
+   * nulls — required so cleared nested fields still reach the backend.
+   */
+  private async mapRecordEntries(
+    value: Record<string, unknown>,
+    subMetadataMap: Map<string, Attribute>,
+  ): Promise<Record<string, unknown>> {
     const result: Record<string, unknown> = {};
     for (const [subKey, subValue] of Object.entries(value)) {
       if (!subKey) continue;
+      const subMeta = subMetadataMap.get(subKey);
+      if (!subMeta) {
+        // Pass-through: no metadata available, preserve the value as-is (including nulls).
+        result[subKey] = subValue;
+        continue;
+      }
       const mapped = await this.mapSingleAttributeToInput(
         subKey,
         subValue,
-        subMetadataMap.get(subKey),
+        subMeta,
       );
       if (mapped !== null) {
         result[mapped.attributeName] = mapped.value;
       }
     }
-
     return result;
   }
 
@@ -292,9 +320,15 @@ export class AttributeMapperService {
     recordCkId: string | undefined,
   ): Promise<Record<string, unknown>[]> {
     if (!Array.isArray(value)) return [];
+    // Resolve metadata once for the whole array — items share the same recordCkId.
+    const subMetadataMap = await this.resolveSubMetadataMap(recordCkId);
     const result: Record<string, unknown>[] = [];
     for (const item of value) {
-      result.push(await this.mapRecordValueToGraphQL(item, recordCkId));
+      if (!this.isRecordValue(item)) {
+        result.push({});
+        continue;
+      }
+      result.push(await this.mapRecordEntries(item, subMetadataMap));
     }
     return result;
   }
@@ -500,8 +534,14 @@ export class AttributeMapperService {
       try {
         return base64ToByteArray(value);
       } catch (e) {
+        // Re-throw instead of returning null: a malformed base64 must not silently degrade
+        // to null, which the backend may interpret as "clear/detach" the linked binary.
+        // Surfacing the error lets the caller present a validation message to the user.
         console.error("Error converting BINARY_LINKED base64 to byte array:", e);
-        return null;
+        throw new Error(
+          "Invalid base64 value for BINARY_LINKED attribute",
+          { cause: e },
+        );
       }
     }
     if (value instanceof ArrayBuffer) {

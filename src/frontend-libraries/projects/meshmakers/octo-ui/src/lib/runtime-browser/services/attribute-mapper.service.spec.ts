@@ -185,6 +185,18 @@ describe("AttributeMapperService", () => {
       );
       expect(result).toEqual([{ attributeName: "document", value: null }]);
     });
+
+    it("throws on malformed BINARY_LINKED base64 instead of silently nulling the value", async () => {
+      spyOn(console, "error");
+      // A non-base64 string must surface as an error, not a silent null that the backend
+      // could interpret as "detach the link".
+      await expectAsync(
+        service.mapFormValueToGraphQLAttributes(
+          { document: "###not-base64###" },
+          [attr("document", "BINARY_LINKED")],
+        ),
+      ).toBeRejectedWithError(/BINARY_LINKED/);
+    });
   });
 
   describe("RECORD / RECORD_ARRAY recursive mapping", () => {
@@ -299,13 +311,55 @@ describe("AttributeMapperService", () => {
       expect(console.error).toHaveBeenCalled();
     });
 
-    it("returns empty object for RECORD when recordCkId is missing", async () => {
+    it("passes record values through verbatim when recordCkId is missing", async () => {
       const result = await service.mapFormValueToGraphQLAttributes(
         { address: { street: "Main" } },
         [attr("address", "RECORD", false, "")],
       );
-      expect(result).toEqual([{ attributeName: "address", value: {} }]);
+      // No metadata available → preserve user values as-is so data is not silently dropped.
+      expect(result).toEqual([
+        { attributeName: "address", value: { street: "Main" } },
+      ]);
       expect(resolverSpy.getRawAttributes$).not.toHaveBeenCalled();
+    });
+
+    it("preserves explicit null sub-values in pass-through mode (cleared nested fields)", async () => {
+      resolverSpy.getRawAttributes$.and.returnValue(
+        throwError(() => new Error("network down")),
+      );
+      spyOn(console, "error");
+
+      const result = await service.mapFormValueToGraphQLAttributes(
+        { address: { street: null, city: "Berlin" } },
+        [attr("address", "RECORD", false, "Basic/Address-1")],
+      );
+
+      // Pass-through must preserve nulls so cleared nested fields reach the backend.
+      expect(result).toEqual([
+        {
+          attributeName: "address",
+          value: { street: null, city: "Berlin" },
+        },
+      ]);
+    });
+
+    it("resolves sub-metadata once for RECORD_ARRAY (shared across items)", async () => {
+      resolverSpy.getRawAttributes$.and.returnValue(
+        of([
+          {
+            attributeName: "qty",
+            attributeValueType: "INTEGER",
+            isOptional: false,
+          } as unknown as CkAttributeMetadata,
+        ]),
+      );
+
+      await service.mapFormValueToGraphQLAttributes(
+        { lines: [{ qty: 1 }, { qty: 2 }, { qty: 3 }] },
+        [attr("lines", "RECORD_ARRAY", false, "Basic/OrderLine-1")],
+      );
+
+      expect(resolverSpy.getRawAttributes$).toHaveBeenCalledTimes(1);
     });
   });
 });
