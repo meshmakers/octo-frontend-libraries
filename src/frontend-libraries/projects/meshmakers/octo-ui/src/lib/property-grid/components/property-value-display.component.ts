@@ -376,7 +376,7 @@ export class PropertyValueDisplayComponent implements OnInit {
   }
 
   private computeIsComplexType(): boolean {
-    return [
+    const isComplexDataType = [
       AttributeValueTypeDto.RecordDto,
       AttributeValueTypeDto.RecordArrayDto,
       AttributeValueTypeDto.StringArrayDto,
@@ -385,6 +385,11 @@ export class PropertyValueDisplayComponent implements OnInit {
       AttributeValueTypeDto.BinaryDto,
       AttributeValueTypeDto.BinaryLinkedDto
     ].includes(this.type);
+
+    // Only show inline type indicator when the value is actually complex
+    // (not when a simple string is passed for a complex-typed property)
+    if (!isComplexDataType) return false;
+    return this.value != null && typeof this.value === 'object';
   }
 
   private computeTypeIndicator(): string {
