@@ -19,6 +19,14 @@ describe('PropertyValueDisplayComponent', () => {
     component = fixture.componentInstance;
   });
 
+  /** Helper: set inputs and run ngOnInit via detectChanges */
+  function initComponent(value: unknown, type: AttributeValueTypeDto, displayMode?: PropertyDisplayMode): void {
+    component.value = value;
+    component.type = type;
+    if (displayMode) component.displayMode = displayMode;
+    fixture.detectChanges(); // triggers ngOnInit
+  }
+
   it('should create', () => {
     fixture.detectChanges();
     expect(component).toBeTruthy();
@@ -49,389 +57,351 @@ describe('PropertyValueDisplayComponent', () => {
   });
 
   // =========================================================================
-  // getFormattedValue - Basic Types
+  // formattedValue - Basic Types
   // =========================================================================
 
-  describe('getFormattedValue - Basic Values', () => {
+  describe('formattedValue - Basic Values', () => {
     it('should return <null> for null value', () => {
-      component.value = null;
-      expect(component.getFormattedValue()).toBe('<null>');
+      initComponent(null, AttributeValueTypeDto.StringDto);
+      expect(component.formattedValue).toBe('<null>');
     });
 
     it('should return <undefined> for undefined value', () => {
-      component.value = undefined;
-      expect(component.getFormattedValue()).toBe('<undefined>');
+      initComponent(undefined, AttributeValueTypeDto.StringDto);
+      expect(component.formattedValue).toBe('<undefined>');
     });
 
     it('should return <empty> for empty string', () => {
-      component.value = '';
-      expect(component.getFormattedValue()).toBe('<empty>');
+      initComponent('', AttributeValueTypeDto.StringDto);
+      expect(component.formattedValue).toBe('<empty>');
     });
 
     it('should return string value as-is for STRING type', () => {
-      component.value = 'Hello World';
-      component.type = AttributeValueTypeDto.StringDto;
-      expect(component.getFormattedValue()).toBe('Hello World');
+      initComponent('Hello World', AttributeValueTypeDto.StringDto);
+      expect(component.formattedValue).toBe('Hello World');
     });
   });
 
-  describe('getFormattedValue - Boolean', () => {
+  describe('formattedValue - Boolean', () => {
     it('should return checkmark True for true boolean', () => {
-      component.value = true;
-      component.type = AttributeValueTypeDto.BooleanDto;
-      expect(component.getFormattedValue()).toBe('✓ True');
+      initComponent(true, AttributeValueTypeDto.BooleanDto);
+      expect(component.formattedValue).toBe('✓ True');
     });
 
     it('should return cross False for false boolean', () => {
-      component.value = false;
-      component.type = AttributeValueTypeDto.BooleanDto;
-      expect(component.getFormattedValue()).toBe('✗ False');
+      initComponent(false, AttributeValueTypeDto.BooleanDto);
+      expect(component.formattedValue).toBe('✗ False');
     });
   });
 
-  describe('getFormattedValue - Numbers', () => {
+  describe('formattedValue - Numbers', () => {
     it('should format INT without decimals', () => {
-      component.value = 42;
-      component.type = AttributeValueTypeDto.IntDto;
-      expect(component.getFormattedValue()).toBe('42');
+      initComponent(42, AttributeValueTypeDto.IntDto);
+      expect(component.formattedValue).toBe('42');
     });
 
     it('should format INTEGER without decimals', () => {
-      component.value = 100;
-      component.type = AttributeValueTypeDto.IntegerDto;
-      expect(component.getFormattedValue()).toBe('100');
+      initComponent(100, AttributeValueTypeDto.IntegerDto);
+      expect(component.formattedValue).toBe('100');
     });
 
     it('should format INTEGER_64 without decimals', () => {
-      component.value = 9999999999;
-      component.type = AttributeValueTypeDto.Integer_64Dto;
-      expect(component.getFormattedValue()).toBe('9999999999');
+      initComponent(9999999999, AttributeValueTypeDto.Integer_64Dto);
+      expect(component.formattedValue).toBe('9999999999');
     });
 
     it('should format INT_64 without decimals', () => {
-      component.value = 1234567890;
-      component.type = AttributeValueTypeDto.Int_64Dto;
-      expect(component.getFormattedValue()).toBe('1234567890');
+      initComponent(1234567890, AttributeValueTypeDto.Int_64Dto);
+      expect(component.formattedValue).toBe('1234567890');
     });
 
     it('should format DOUBLE with 2 decimals', () => {
-      component.value = 3.14159;
-      component.type = AttributeValueTypeDto.DoubleDto;
-      expect(component.getFormattedValue()).toBe('3.14');
+      initComponent(3.14159, AttributeValueTypeDto.DoubleDto);
+      expect(component.formattedValue).toBe('3.14');
     });
 
     it('should format DOUBLE rounding correctly', () => {
-      component.value = 2.999;
-      component.type = AttributeValueTypeDto.DoubleDto;
-      expect(component.getFormattedValue()).toBe('3.00');
+      initComponent(2.999, AttributeValueTypeDto.DoubleDto);
+      expect(component.formattedValue).toBe('3.00');
     });
 
     it('should return original string for invalid number', () => {
-      component.value = 'not a number';
-      component.type = AttributeValueTypeDto.IntDto;
-      expect(component.getFormattedValue()).toBe('not a number');
+      initComponent('not a number', AttributeValueTypeDto.IntDto);
+      expect(component.formattedValue).toBe('not a number');
     });
   });
 
-  describe('getFormattedValue - DateTime', () => {
+  describe('formattedValue - DateTime', () => {
     it('should format ISO date string for DATE_TIME', () => {
-      component.value = '2024-01-15T10:30:00Z';
-      component.type = AttributeValueTypeDto.DateTimeDto;
-      const result = component.getFormattedValue();
-      // Should contain date parts (locale-dependent)
-      expect(result).toContain('2024');
+      initComponent('2024-01-15T10:30:00Z', AttributeValueTypeDto.DateTimeDto);
+      expect(component.formattedValue).toContain('2024');
     });
 
     it('should format DATE_TIME_OFFSET', () => {
-      component.value = '2024-06-20T14:45:00+02:00';
-      component.type = AttributeValueTypeDto.DateTimeOffsetDto;
-      const result = component.getFormattedValue();
-      expect(result).toContain('2024');
+      initComponent('2024-06-20T14:45:00+02:00', AttributeValueTypeDto.DateTimeOffsetDto);
+      expect(component.formattedValue).toContain('2024');
     });
 
     it('should format Date object', () => {
-      component.value = new Date('2024-03-01T12:00:00Z');
-      component.type = AttributeValueTypeDto.DateTimeDto;
-      const result = component.getFormattedValue();
-      expect(result).toContain('2024');
+      initComponent(new Date('2024-03-01T12:00:00Z'), AttributeValueTypeDto.DateTimeDto);
+      expect(component.formattedValue).toContain('2024');
     });
 
     it('should return original value for invalid date', () => {
-      component.value = 'invalid-date';
-      component.type = AttributeValueTypeDto.DateTimeDto;
-      expect(component.getFormattedValue()).toBe('invalid-date');
+      initComponent('invalid-date', AttributeValueTypeDto.DateTimeDto);
+      expect(component.formattedValue).toBe('invalid-date');
     });
   });
 
-  describe('getFormattedValue - Arrays', () => {
+  describe('formattedValue - Arrays', () => {
     it('should format empty STRING_ARRAY', () => {
-      component.value = [];
-      component.type = AttributeValueTypeDto.StringArrayDto;
-      expect(component.getFormattedValue()).toBe('[]');
+      initComponent([], AttributeValueTypeDto.StringArrayDto);
+      expect(component.formattedValue).toBe('[]');
     });
 
     it('should format short STRING_ARRAY', () => {
-      component.value = ['a', 'b', 'c'];
-      component.type = AttributeValueTypeDto.StringArrayDto;
-      expect(component.getFormattedValue()).toBe('[a, b, c]');
+      initComponent(['a', 'b', 'c'], AttributeValueTypeDto.StringArrayDto);
+      expect(component.formattedValue).toBe('[a, b, c]');
     });
 
     it('should truncate long STRING_ARRAY', () => {
-      component.value = ['one', 'two', 'three', 'four', 'five'];
-      component.type = AttributeValueTypeDto.StringArrayDto;
-      expect(component.getFormattedValue()).toBe('[one, two, three, ... +2 more]');
+      initComponent(['one', 'two', 'three', 'four', 'five'], AttributeValueTypeDto.StringArrayDto);
+      expect(component.formattedValue).toBe('[one, two, three, ... +2 more]');
     });
 
     it('should format INTEGER_ARRAY', () => {
-      component.value = [1, 2, 3];
-      component.type = AttributeValueTypeDto.IntegerArrayDto;
-      expect(component.getFormattedValue()).toBe('[1, 2, 3]');
+      initComponent([1, 2, 3], AttributeValueTypeDto.IntegerArrayDto);
+      expect(component.formattedValue).toBe('[1, 2, 3]');
     });
 
     it('should format INT_ARRAY', () => {
-      component.value = [10, 20];
-      component.type = AttributeValueTypeDto.IntArrayDto;
-      expect(component.getFormattedValue()).toBe('[10, 20]');
+      initComponent([10, 20], AttributeValueTypeDto.IntArrayDto);
+      expect(component.formattedValue).toBe('[10, 20]');
     });
 
     it('should return original value if not array', () => {
-      component.value = 'not an array';
-      component.type = AttributeValueTypeDto.StringArrayDto;
-      expect(component.getFormattedValue()).toBe('not an array');
+      initComponent('not an array', AttributeValueTypeDto.StringArrayDto);
+      expect(component.formattedValue).toBe('not an array');
     });
   });
 
-  describe('getFormattedValue - Records', () => {
+  describe('formattedValue - Records', () => {
     it('should format empty RECORD', () => {
-      component.value = {};
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.displayMode = PropertyDisplayMode.Text;
-      expect(component.getFormattedValue()).toBe('{}');
+      initComponent({}, AttributeValueTypeDto.RecordDto, PropertyDisplayMode.Text);
+      expect(component.formattedValue).toBe('{}');
     });
 
     it('should format RECORD with few properties', () => {
-      component.value = { name: 'Test', age: 25 };
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.displayMode = PropertyDisplayMode.Text;
-      expect(component.getFormattedValue()).toContain('name:');
-      expect(component.getFormattedValue()).toContain('age:');
+      initComponent({ name: 'Test', age: 25 }, AttributeValueTypeDto.RecordDto, PropertyDisplayMode.Text);
+      expect(component.formattedValue).toContain('name:');
+      expect(component.formattedValue).toContain('age:');
     });
 
     it('should truncate RECORD with many properties', () => {
-      component.value = { a: 1, b: 2, c: 3, d: 4, e: 5 };
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.displayMode = PropertyDisplayMode.Text;
-      expect(component.getFormattedValue()).toContain('... +3 more');
+      initComponent({ a: 1, b: 2, c: 3, d: 4, e: 5 }, AttributeValueTypeDto.RecordDto, PropertyDisplayMode.Text);
+      expect(component.formattedValue).toContain('... +3 more');
     });
 
     it('should format RECORD as JSON when displayMode is Json', () => {
-      component.value = { key: 'value' };
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.displayMode = PropertyDisplayMode.Json;
-      const result = component.getFormattedValue();
-      expect(result).toContain('"key"');
-      expect(result).toContain('"value"');
+      initComponent({ key: 'value' }, AttributeValueTypeDto.RecordDto, PropertyDisplayMode.Json);
+      expect(component.formattedValue).toContain('"key"');
+      expect(component.formattedValue).toContain('"value"');
     });
 
     it('should format RECORD_ARRAY as JSON', () => {
-      component.value = [{ id: 1 }, { id: 2 }];
-      component.type = AttributeValueTypeDto.RecordArrayDto;
-      component.displayMode = PropertyDisplayMode.Json;
-      expect(component.getFormattedValue()).toContain('"id"');
+      initComponent([{ id: 1 }, { id: 2 }], AttributeValueTypeDto.RecordArrayDto, PropertyDisplayMode.Json);
+      expect(component.formattedValue).toContain('"id"');
     });
   });
 
-  describe('getFormattedValue - Binary', () => {
+  describe('formattedValue - Binary', () => {
     it('should format ArrayBuffer with byte count', () => {
-      component.value = new ArrayBuffer(1024);
-      component.type = AttributeValueTypeDto.BinaryDto;
-      expect(component.getFormattedValue()).toBe('<Binary: 1024 bytes>');
+      initComponent(new ArrayBuffer(1024), AttributeValueTypeDto.BinaryDto);
+      expect(component.formattedValue).toBe('<Binary: 1024 bytes>');
     });
 
     it('should detect base64 data URL', () => {
-      component.value = 'data:image/png;base64,iVBORw0KGgo...';
-      component.type = AttributeValueTypeDto.BinaryDto;
-      expect(component.getFormattedValue()).toBe('<Base64 Data>');
+      initComponent('data:image/png;base64,iVBORw0KGgo...', AttributeValueTypeDto.BinaryDto);
+      expect(component.formattedValue).toBe('<Base64 Data>');
     });
 
     it('should return default binary text for other values', () => {
-      component.value = { binaryId: '123' };
-      component.type = AttributeValueTypeDto.BinaryDto;
-      expect(component.getFormattedValue()).toBe('<Binary Data>');
+      initComponent({ binaryId: '123' }, AttributeValueTypeDto.BinaryDto);
+      expect(component.formattedValue).toBe('<Binary Data>');
     });
   });
 
   // =========================================================================
-  // isExpandableRecord
+  // expandableRecord
   // =========================================================================
 
-  describe('isExpandableRecord', () => {
-    it('should return true for RECORD with object value', () => {
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.value = { key: 'value' };
-      expect(component.isExpandableRecord()).toBe(true);
+  describe('expandableRecord', () => {
+    it('should be true for RECORD with object value', () => {
+      initComponent({ key: 'value' }, AttributeValueTypeDto.RecordDto);
+      expect(component.expandableRecord).toBe(true);
     });
 
-    it('should return true for RECORD_ARRAY with array value', () => {
-      component.type = AttributeValueTypeDto.RecordArrayDto;
-      component.value = [{ id: 1 }];
-      expect(component.isExpandableRecord()).toBe(true);
+    it('should be true for RECORD_ARRAY with array value', () => {
+      initComponent([{ id: 1 }], AttributeValueTypeDto.RecordArrayDto);
+      expect(component.expandableRecord).toBe(true);
     });
 
-    it('should return false for RECORD with null value', () => {
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.value = null;
-      expect(component.isExpandableRecord()).toBe(false);
+    it('should be false for RECORD with null value', () => {
+      initComponent(null, AttributeValueTypeDto.RecordDto);
+      expect(component.expandableRecord).toBe(false);
     });
 
-    it('should return false for STRING type', () => {
-      component.type = AttributeValueTypeDto.StringDto;
-      component.value = 'text';
-      expect(component.isExpandableRecord()).toBe(false);
+    it('should be false for STRING type', () => {
+      initComponent('text', AttributeValueTypeDto.StringDto);
+      expect(component.expandableRecord).toBe(false);
     });
 
-    it('should return false for RECORD with primitive value', () => {
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.value = 'string value';
-      expect(component.isExpandableRecord()).toBe(false);
+    it('should be false for RECORD with primitive value', () => {
+      initComponent('string value', AttributeValueTypeDto.RecordDto);
+      expect(component.expandableRecord).toBe(false);
     });
   });
 
   // =========================================================================
-  // isComplexType
+  // complexType
   // =========================================================================
 
-  describe('isComplexType', () => {
-    it('should return true for RECORD', () => {
-      component.type = AttributeValueTypeDto.RecordDto;
-      expect(component.isComplexType()).toBe(true);
+  describe('complexType', () => {
+    it('should be true for RECORD with object value', () => {
+      initComponent({ key: 'value' }, AttributeValueTypeDto.RecordDto);
+      expect(component.complexType).toBe(true);
     });
 
-    it('should return true for RECORD_ARRAY', () => {
-      component.type = AttributeValueTypeDto.RecordArrayDto;
-      expect(component.isComplexType()).toBe(true);
+    it('should be true for RECORD_ARRAY with array value', () => {
+      initComponent([{ id: 1 }], AttributeValueTypeDto.RecordArrayDto);
+      expect(component.complexType).toBe(true);
     });
 
-    it('should return true for STRING_ARRAY', () => {
-      component.type = AttributeValueTypeDto.StringArrayDto;
-      expect(component.isComplexType()).toBe(true);
+    it('should be true for STRING_ARRAY with array value', () => {
+      initComponent(['a', 'b'], AttributeValueTypeDto.StringArrayDto);
+      expect(component.complexType).toBe(true);
     });
 
-    it('should return true for INTEGER_ARRAY', () => {
-      component.type = AttributeValueTypeDto.IntegerArrayDto;
-      expect(component.isComplexType()).toBe(true);
+    it('should be true for INTEGER_ARRAY with array value', () => {
+      initComponent([1, 2], AttributeValueTypeDto.IntegerArrayDto);
+      expect(component.complexType).toBe(true);
     });
 
-    it('should return true for INT_ARRAY', () => {
-      component.type = AttributeValueTypeDto.IntArrayDto;
-      expect(component.isComplexType()).toBe(true);
+    it('should be true for INT_ARRAY with array value', () => {
+      initComponent([1, 2], AttributeValueTypeDto.IntArrayDto);
+      expect(component.complexType).toBe(true);
     });
 
-    it('should return true for BINARY', () => {
-      component.type = AttributeValueTypeDto.BinaryDto;
-      expect(component.isComplexType()).toBe(true);
+    it('should be true for BINARY with object value', () => {
+      initComponent(new ArrayBuffer(10), AttributeValueTypeDto.BinaryDto);
+      expect(component.complexType).toBe(true);
     });
 
-    it('should return true for BINARY_LINKED', () => {
-      component.type = AttributeValueTypeDto.BinaryLinkedDto;
-      expect(component.isComplexType()).toBe(true);
+    it('should be true for BINARY_LINKED with object value', () => {
+      initComponent({ binaryId: '123' }, AttributeValueTypeDto.BinaryLinkedDto);
+      expect(component.complexType).toBe(true);
     });
 
-    it('should return false for STRING', () => {
-      component.type = AttributeValueTypeDto.StringDto;
-      expect(component.isComplexType()).toBe(false);
+    it('should be false for STRING', () => {
+      initComponent('text', AttributeValueTypeDto.StringDto);
+      expect(component.complexType).toBe(false);
     });
 
-    it('should return false for INT', () => {
-      component.type = AttributeValueTypeDto.IntDto;
-      expect(component.isComplexType()).toBe(false);
+    it('should be false for INT', () => {
+      initComponent(42, AttributeValueTypeDto.IntDto);
+      expect(component.complexType).toBe(false);
     });
 
-    it('should return false for BOOLEAN', () => {
-      component.type = AttributeValueTypeDto.BooleanDto;
-      expect(component.isComplexType()).toBe(false);
+    it('should be false for BOOLEAN', () => {
+      initComponent(true, AttributeValueTypeDto.BooleanDto);
+      expect(component.complexType).toBe(false);
+    });
+
+    it('should be false for complex type with simple string value', () => {
+      initComponent('8 items', AttributeValueTypeDto.RecordArrayDto);
+      expect(component.complexType).toBe(false);
     });
   });
 
   // =========================================================================
-  // getTypeIndicator
+  // typeIndicator
   // =========================================================================
 
-  describe('getTypeIndicator', () => {
+  describe('typeIndicator', () => {
     it('should return RECORD for RecordDto', () => {
-      component.type = AttributeValueTypeDto.RecordDto;
-      expect(component.getTypeIndicator()).toBe('RECORD');
+      initComponent(null, AttributeValueTypeDto.RecordDto);
+      expect(component.typeIndicator).toBe('RECORD');
     });
 
     it('should return ARR[RECORD] for RecordArrayDto', () => {
-      component.type = AttributeValueTypeDto.RecordArrayDto;
-      expect(component.getTypeIndicator()).toBe('ARR[RECORD]');
+      initComponent(null, AttributeValueTypeDto.RecordArrayDto);
+      expect(component.typeIndicator).toBe('ARR[RECORD]');
     });
 
     it('should return ARR[STR] for StringArrayDto', () => {
-      component.type = AttributeValueTypeDto.StringArrayDto;
-      expect(component.getTypeIndicator()).toBe('ARR[STR]');
+      initComponent(null, AttributeValueTypeDto.StringArrayDto);
+      expect(component.typeIndicator).toBe('ARR[STR]');
     });
 
     it('should return ARR[INT] for IntegerArrayDto', () => {
-      component.type = AttributeValueTypeDto.IntegerArrayDto;
-      expect(component.getTypeIndicator()).toBe('ARR[INT]');
+      initComponent(null, AttributeValueTypeDto.IntegerArrayDto);
+      expect(component.typeIndicator).toBe('ARR[INT]');
     });
 
     it('should return ARR[INT] for IntArrayDto', () => {
-      component.type = AttributeValueTypeDto.IntArrayDto;
-      expect(component.getTypeIndicator()).toBe('ARR[INT]');
+      initComponent(null, AttributeValueTypeDto.IntArrayDto);
+      expect(component.typeIndicator).toBe('ARR[INT]');
     });
 
     it('should return BIN for BinaryDto', () => {
-      component.type = AttributeValueTypeDto.BinaryDto;
-      expect(component.getTypeIndicator()).toBe('BIN');
+      initComponent(null, AttributeValueTypeDto.BinaryDto);
+      expect(component.typeIndicator).toBe('BIN');
     });
 
     it('should return BIN for BinaryLinkedDto', () => {
-      component.type = AttributeValueTypeDto.BinaryLinkedDto;
-      expect(component.getTypeIndicator()).toBe('BIN');
+      initComponent(null, AttributeValueTypeDto.BinaryLinkedDto);
+      expect(component.typeIndicator).toBe('BIN');
     });
 
     it('should return cleaned type name for other types', () => {
-      component.type = AttributeValueTypeDto.StringDto;
-      expect(component.getTypeIndicator()).toBe('STRING');
+      initComponent(null, AttributeValueTypeDto.StringDto);
+      expect(component.typeIndicator).toBe('STRING');
     });
   });
 
   // =========================================================================
-  // getTypeDescription
+  // typeDescription
   // =========================================================================
 
-  describe('getTypeDescription', () => {
+  describe('typeDescription', () => {
     it('should return Complex object for RecordDto', () => {
-      component.type = AttributeValueTypeDto.RecordDto;
-      expect(component.getTypeDescription()).toBe('Complex object');
+      initComponent(null, AttributeValueTypeDto.RecordDto);
+      expect(component.typeDescription).toBe('Complex object');
     });
 
     it('should return Array of complex objects for RecordArrayDto', () => {
-      component.type = AttributeValueTypeDto.RecordArrayDto;
-      expect(component.getTypeDescription()).toBe('Array of complex objects');
+      initComponent(null, AttributeValueTypeDto.RecordArrayDto);
+      expect(component.typeDescription).toBe('Array of complex objects');
     });
 
     it('should return Array of strings for StringArrayDto', () => {
-      component.type = AttributeValueTypeDto.StringArrayDto;
-      expect(component.getTypeDescription()).toBe('Array of strings');
+      initComponent(null, AttributeValueTypeDto.StringArrayDto);
+      expect(component.typeDescription).toBe('Array of strings');
     });
 
     it('should return Array of numbers for IntegerArrayDto', () => {
-      component.type = AttributeValueTypeDto.IntegerArrayDto;
-      expect(component.getTypeDescription()).toBe('Array of numbers');
+      initComponent(null, AttributeValueTypeDto.IntegerArrayDto);
+      expect(component.typeDescription).toBe('Array of numbers');
     });
 
     it('should return Binary data for BinaryDto', () => {
-      component.type = AttributeValueTypeDto.BinaryDto;
-      expect(component.getTypeDescription()).toBe('Binary data');
+      initComponent(null, AttributeValueTypeDto.BinaryDto);
+      expect(component.typeDescription).toBe('Binary data');
     });
 
     it('should return Type: X for other types', () => {
-      component.type = AttributeValueTypeDto.StringDto;
-      expect(component.getTypeDescription()).toBe('Type: STRING');
+      initComponent(null, AttributeValueTypeDto.StringDto);
+      expect(component.typeDescription).toBe('Type: STRING');
     });
   });
 
@@ -454,38 +424,33 @@ describe('PropertyValueDisplayComponent', () => {
   });
 
   // =========================================================================
-  // getRecordSummary
+  // recordSummary
   // =========================================================================
 
-  describe('getRecordSummary', () => {
+  describe('recordSummary', () => {
     it('should return Array with X items for RecordArrayDto', () => {
-      component.type = AttributeValueTypeDto.RecordArrayDto;
-      component.value = [{ id: 1 }, { id: 2 }, { id: 3 }];
-      expect(component.getRecordSummary()).toBe('Array with 3 items');
+      initComponent([{ id: 1 }, { id: 2 }, { id: 3 }], AttributeValueTypeDto.RecordArrayDto);
+      expect(component.recordSummary).toBe('Array with 3 items');
     });
 
     it('should use singular item for single element array', () => {
-      component.type = AttributeValueTypeDto.RecordArrayDto;
-      component.value = [{ id: 1 }];
-      expect(component.getRecordSummary()).toBe('Array with 1 item');
+      initComponent([{ id: 1 }], AttributeValueTypeDto.RecordArrayDto);
+      expect(component.recordSummary).toBe('Array with 1 item');
     });
 
     it('should return Object with X properties for RecordDto', () => {
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.value = { name: 'Test', age: 25 };
-      expect(component.getRecordSummary()).toBe('Object with 2 properties');
+      initComponent({ name: 'Test', age: 25 }, AttributeValueTypeDto.RecordDto);
+      expect(component.recordSummary).toBe('Object with 2 properties');
     });
 
     it('should use singular property for single key object', () => {
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.value = { name: 'Test' };
-      expect(component.getRecordSummary()).toBe('Object with 1 property');
+      initComponent({ name: 'Test' }, AttributeValueTypeDto.RecordDto);
+      expect(component.recordSummary).toBe('Object with 1 property');
     });
 
     it('should return Complex object for non-object values', () => {
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.value = null;
-      expect(component.getRecordSummary()).toBe('Complex object');
+      initComponent(null, AttributeValueTypeDto.RecordDto);
+      expect(component.recordSummary).toBe('Complex object');
     });
   });
 
@@ -494,6 +459,8 @@ describe('PropertyValueDisplayComponent', () => {
   // =========================================================================
 
   describe('getObjectProperties', () => {
+    beforeEach(() => fixture.detectChanges());
+
     it('should return empty array for null', () => {
       expect(component.getObjectProperties(null)).toEqual([]);
     });
@@ -505,7 +472,6 @@ describe('PropertyValueDisplayComponent', () => {
     it('should return key-value pairs for object', () => {
       const obj = { name: 'Test', value: 123 };
       const result = component.getObjectProperties(obj);
-
       expect(result.length).toBe(2);
       expect(result).toContain(jasmine.objectContaining({ key: 'name', value: 'Test' }));
       expect(result).toContain(jasmine.objectContaining({ key: 'value', value: 123 }));
@@ -514,7 +480,6 @@ describe('PropertyValueDisplayComponent', () => {
     it('should handle nested objects', () => {
       const obj = { nested: { inner: 'value' } };
       const result = component.getObjectProperties(obj);
-
       expect(result.length).toBe(1);
       expect(result[0].key).toBe('nested');
       expect(result[0].value).toEqual({ inner: 'value' });
@@ -526,7 +491,6 @@ describe('PropertyValueDisplayComponent', () => {
         { id: 'ckRecordId', name: 'field2', value: 'value2' }
       ];
       const result = component.getObjectProperties(obj);
-
       expect(result.length).toBe(2);
       expect(result[0]).toEqual({ key: 'field1', value: 'value1' });
       expect(result[1]).toEqual({ key: 'field2', value: 'value2' });
@@ -538,6 +502,8 @@ describe('PropertyValueDisplayComponent', () => {
   // =========================================================================
 
   describe('getPropertyType', () => {
+    beforeEach(() => fixture.detectChanges());
+
     it('should return STRING for null', () => {
       expect(component.getPropertyType(null)).toBe(AttributeValueTypeDto.StringDto);
     });
@@ -590,126 +556,56 @@ describe('PropertyValueDisplayComponent', () => {
   });
 
   // =========================================================================
-  // Binary Linked Methods
+  // Binary Linked (pre-computed properties)
   // =========================================================================
 
-  describe('isBinaryLinkedWithDownload', () => {
-    it('should return false for non-BINARY_LINKED type', () => {
-      component.type = AttributeValueTypeDto.StringDto;
-      component.value = { binaryId: '123' };
-      expect(component.isBinaryLinkedWithDownload()).toBe(false);
+  describe('binaryLinkedWithDownload', () => {
+    it('should be false for non-BINARY_LINKED type', () => {
+      initComponent({ binaryId: '123' }, AttributeValueTypeDto.StringDto);
+      expect(component.binaryLinkedWithDownload).toBe(false);
     });
 
-    it('should return falsy for BINARY_LINKED with null value', () => {
-      component.type = AttributeValueTypeDto.BinaryLinkedDto;
-      component.value = null;
-      expect(component.isBinaryLinkedWithDownload()).toBeFalsy();
+    it('should be false for BINARY_LINKED with null value', () => {
+      initComponent(null, AttributeValueTypeDto.BinaryLinkedDto);
+      expect(component.binaryLinkedWithDownload).toBeFalsy();
     });
 
-    it('should return false for BINARY_LINKED without binaryId or downloadUri', () => {
-      component.type = AttributeValueTypeDto.BinaryLinkedDto;
-      component.value = { filename: 'test.pdf' };
-      expect(component.isBinaryLinkedWithDownload()).toBe(false);
+    it('should be false for BINARY_LINKED without binaryId or downloadUri', () => {
+      initComponent({ filename: 'test.pdf' }, AttributeValueTypeDto.BinaryLinkedDto);
+      expect(component.binaryLinkedWithDownload).toBe(false);
     });
 
-    it('should return true for BINARY_LINKED with binaryId', () => {
-      component.type = AttributeValueTypeDto.BinaryLinkedDto;
-      component.value = { binaryId: '123' };
-      expect(component.isBinaryLinkedWithDownload()).toBe(true);
+    it('should be true for BINARY_LINKED with binaryId', () => {
+      initComponent({ binaryId: '123' }, AttributeValueTypeDto.BinaryLinkedDto);
+      expect(component.binaryLinkedWithDownload).toBe(true);
     });
 
-    it('should return true for BINARY_LINKED with downloadUri', () => {
-      component.type = AttributeValueTypeDto.BinaryLinkedDto;
-      component.value = { downloadUri: 'https://example.com/file.pdf' };
-      expect(component.isBinaryLinkedWithDownload()).toBe(true);
+    it('should be true for BINARY_LINKED with downloadUri', () => {
+      initComponent({ downloadUri: 'https://example.com/file.pdf' }, AttributeValueTypeDto.BinaryLinkedDto);
+      expect(component.binaryLinkedWithDownload).toBe(true);
     });
   });
 
-  describe('getBinaryFilename', () => {
-    it('should return null for null value', () => {
-      component.value = null;
-      expect(component.getBinaryFilename()).toBeNull();
+  describe('binary properties', () => {
+    it('should set binaryFilename from value', () => {
+      initComponent({ binaryId: '1', filename: 'document.pdf' }, AttributeValueTypeDto.BinaryLinkedDto);
+      expect(component.binaryFilename).toBe('document.pdf');
     });
 
-    it('should return null for non-object value', () => {
-      component.value = 'string';
-      expect(component.getBinaryFilename()).toBeNull();
+    it('should set binarySize from value', () => {
+      initComponent({ binaryId: '1', size: 1024 }, AttributeValueTypeDto.BinaryLinkedDto);
+      expect(component.binarySize).toBe(1024);
     });
 
-    it('should return null when filename not present', () => {
-      component.value = { binaryId: '123' };
-      expect(component.getBinaryFilename()).toBeNull();
-    });
-
-    it('should return filename when present', () => {
-      component.value = { filename: 'document.pdf' };
-      expect(component.getBinaryFilename()).toBe('document.pdf');
+    it('should set binaryContentType from value', () => {
+      initComponent({ binaryId: '1', contentType: 'application/pdf' }, AttributeValueTypeDto.BinaryLinkedDto);
+      expect(component.binaryContentType).toBe('application/pdf');
     });
   });
 
-  describe('getBinarySize', () => {
-    it('should return null for null value', () => {
-      component.value = null;
-      expect(component.getBinarySize()).toBeNull();
-    });
-
-    it('should return null when size not present', () => {
-      component.value = { binaryId: '123' };
-      expect(component.getBinarySize()).toBeNull();
-    });
-
-    it('should return size when present', () => {
-      component.value = { size: 1024 };
-      expect(component.getBinarySize()).toBe(1024);
-    });
-  });
-
-  describe('getBinaryContentType', () => {
-    it('should return null for null value', () => {
-      component.value = null;
-      expect(component.getBinaryContentType()).toBeNull();
-    });
-
-    it('should return null when contentType not present', () => {
-      component.value = { binaryId: '123' };
-      expect(component.getBinaryContentType()).toBeNull();
-    });
-
-    it('should return contentType when present', () => {
-      component.value = { contentType: 'application/pdf' };
-      expect(component.getBinaryContentType()).toBe('application/pdf');
-    });
-  });
-
-  describe('formatFileSize', () => {
-    it('should return empty string for null', () => {
-      expect(component.formatFileSize(null)).toBe('');
-    });
-
-    it('should format bytes', () => {
-      expect(component.formatFileSize(500)).toBe('500 B');
-    });
-
-    it('should format kilobytes', () => {
-      expect(component.formatFileSize(1024)).toBe('1.0 KB');
-    });
-
-    it('should format megabytes', () => {
-      expect(component.formatFileSize(1024 * 1024)).toBe('1.0 MB');
-    });
-
-    it('should format gigabytes', () => {
-      expect(component.formatFileSize(1024 * 1024 * 1024)).toBe('1.0 GB');
-    });
-
-    it('should format terabytes', () => {
-      expect(component.formatFileSize(1024 * 1024 * 1024 * 1024)).toBe('1.0 TB');
-    });
-
-    it('should round to one decimal place', () => {
-      expect(component.formatFileSize(1536)).toBe('1.5 KB');
-    });
-  });
+  // =========================================================================
+  // onDownload
+  // =========================================================================
 
   describe('onDownload', () => {
     let windowOpenSpy: jasmine.Spy;
@@ -734,36 +630,23 @@ describe('PropertyValueDisplayComponent', () => {
       component.value = { downloadUri: 'https://example.com/file.pdf' };
       component.onDownload();
       expect(windowOpenSpy).toHaveBeenCalledWith(
-        'https://example.com/file.pdf',
-        '_blank',
-        'noopener,noreferrer'
+        'https://example.com/file.pdf', '_blank', 'noopener,noreferrer'
       );
     });
 
     it('should emit binaryDownload event when only binaryId present', () => {
       spyOn(component.binaryDownload, 'emit');
-      component.value = {
-        binaryId: '123',
-        filename: 'test.pdf',
-        contentType: 'application/pdf'
-      };
+      component.value = { binaryId: '123', filename: 'test.pdf', contentType: 'application/pdf' };
       component.onDownload();
-
       expect(component.binaryDownload.emit).toHaveBeenCalledWith({
-        binaryId: '123',
-        filename: 'test.pdf',
-        contentType: 'application/pdf'
+        binaryId: '123', filename: 'test.pdf', contentType: 'application/pdf'
       });
     });
 
     it('should prefer downloadUri over binaryId', () => {
       spyOn(component.binaryDownload, 'emit');
-      component.value = {
-        binaryId: '123',
-        downloadUri: 'https://example.com/file.pdf'
-      };
+      component.value = { binaryId: '123', downloadUri: 'https://example.com/file.pdf' };
       component.onDownload();
-
       expect(windowOpenSpy).toHaveBeenCalled();
       expect(component.binaryDownload.emit).not.toHaveBeenCalled();
     });
@@ -772,7 +655,6 @@ describe('PropertyValueDisplayComponent', () => {
       spyOn(component.binaryDownload, 'emit');
       component.value = { filename: 'test.pdf' };
       component.onDownload();
-
       expect(windowOpenSpy).not.toHaveBeenCalled();
       expect(component.binaryDownload.emit).not.toHaveBeenCalled();
     });
@@ -784,34 +666,23 @@ describe('PropertyValueDisplayComponent', () => {
 
   describe('Edge Cases', () => {
     it('should handle deeply nested objects', () => {
-      component.value = { level1: { level2: { level3: 'deep' } } };
-      component.type = AttributeValueTypeDto.RecordDto;
-      component.displayMode = PropertyDisplayMode.Text;
-
-      const formatted = component.getFormattedValue();
-      expect(formatted).toContain('level1');
+      initComponent({ level1: { level2: { level3: 'deep' } } }, AttributeValueTypeDto.RecordDto, PropertyDisplayMode.Text);
+      expect(component.formattedValue).toContain('level1');
     });
 
     it('should handle mixed array types', () => {
-      // When array has mixed types, uses first element to determine type
-      component.value = ['string', 123, true];
-      component.type = AttributeValueTypeDto.StringArrayDto;
-      expect(component.getFormattedValue()).toBe('[string, 123, true]');
+      initComponent(['string', 123, true], AttributeValueTypeDto.StringArrayDto);
+      expect(component.formattedValue).toBe('[string, 123, true]');
     });
 
     it('should handle special characters in string values', () => {
-      component.value = '<script>alert("xss")</script>';
-      component.type = AttributeValueTypeDto.StringDto;
-      expect(component.getFormattedValue()).toBe('<script>alert("xss")</script>');
+      initComponent('<script>alert("xss")</script>', AttributeValueTypeDto.StringDto);
+      expect(component.formattedValue).toBe('<script>alert("xss")</script>');
     });
 
     it('should handle numeric strings for DATE_TIME', () => {
-      component.value = '12345';
-      component.type = AttributeValueTypeDto.DateTimeDto;
-      // Invalid date should return original
-      const result = component.getFormattedValue();
-      // Depending on locale, might parse as timestamp or return as-is
-      expect(result).toBeDefined();
+      initComponent('12345', AttributeValueTypeDto.DateTimeDto);
+      expect(component.formattedValue).toBeDefined();
     });
   });
 });
