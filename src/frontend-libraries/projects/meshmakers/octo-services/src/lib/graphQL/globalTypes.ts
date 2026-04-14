@@ -14184,6 +14184,7 @@ export type SystemCommunicationPipelineDto = SystemCommunicationDeployableEntity
   deploymentState: SystemCommunicationDeploymentStateDto;
   description?: Maybe<Scalars['String']['output']>;
   enabled?: Maybe<Scalars['Boolean']['output']>;
+  isDebuggingEnabled?: Maybe<Scalars['Boolean']['output']>;
   executedBy?: Maybe<SystemCommunicationAdapter_ExecutedByUnionConnectionDto>;
   executedPipeline?: Maybe<SystemCommunicationPipelineExecution_ExecutedPipelineUnionConnectionDto>;
   isUsing?: Maybe<SystemConfiguration_IsUsingUnionConnectionDto>;
@@ -14702,6 +14703,7 @@ export type SystemCommunicationPipelineInputDto = {
   deploymentState?: InputMaybe<SystemCommunicationDeploymentStateDto>;
   description?: InputMaybe<Scalars['String']['input']>;
   enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  isDebuggingEnabled?: InputMaybe<Scalars['Boolean']['input']>;
   executedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   executedPipeline?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   isUsing?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
