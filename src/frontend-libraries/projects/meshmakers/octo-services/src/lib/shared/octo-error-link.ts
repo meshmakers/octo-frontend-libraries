@@ -30,6 +30,13 @@ export class OctoErrorLink extends ApolloLink {
   }
 
   private showErrorLike(error: ErrorLike): void {
+    // Network connectivity errors (HTTP status 0) are already handled by MmHttpErrorInterceptor
+    // which either shows the connection error overlay (via ON_CONNECTION_LOST) or a toast.
+    // Suppress the raw "Http failure response for ...: 0 Unknown Error" message here.
+    if ('status' in error && (error as Record<string, unknown>)['status'] === 0) {
+      return;
+    }
+
     const messageService = this.injector.get(MessageService);
 
     console.error(error);
