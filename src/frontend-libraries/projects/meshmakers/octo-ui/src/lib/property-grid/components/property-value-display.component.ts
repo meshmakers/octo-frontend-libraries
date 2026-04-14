@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
@@ -21,10 +21,11 @@ interface BinaryLinkedValue {
   selector: 'mm-property-value-display',
   standalone: true,
   imports: [CommonModule, SVGIconModule, ButtonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="property-value-display" [ngClass]="'type-' + type.toLowerCase()">
 
-      @if (isExpandableRecord()) {
+      @if (expandableRecord) {
         <div class="expandable-record">
           <!-- Expand/Collapse Button and Summary -->
           <div class="record-header" (click)="toggleExpansion()">
@@ -32,9 +33,9 @@ interface BinaryLinkedValue {
               [icon]="isExpanded ? chevronDownIcon : chevronRightIcon"
               class="expand-icon">
             </kendo-svgicon>
-            <span class="record-summary">{{ getRecordSummary() }}</span>
-            <span class="type-indicator" [title]="getTypeDescription()">
-              {{ getTypeIndicator() }}
+            <span class="record-summary">{{ recordSummary }}</span>
+            <span class="type-indicator" [title]="typeDescription">
+              {{ typeIndicator }}
             </span>
           </div>
 
@@ -74,18 +75,18 @@ interface BinaryLinkedValue {
             </div>
           }
         </div>
-      } @else if (isBinaryLinkedWithDownload()) {
+      } @else if (binaryLinkedWithDownload) {
         <!-- Binary Linked with download capability -->
         <div class="binary-linked-display">
           <div class="binary-info">
-            @if (getBinaryFilename()) {
-              <span class="filename">{{ getBinaryFilename() }}</span>
+            @if (binaryFilename) {
+              <span class="filename">{{ binaryFilename }}</span>
             }
-            @if (getBinarySize()) {
-              <span class="file-size">({{ formatFileSize(getBinarySize()) }})</span>
+            @if (binarySize) {
+              <span class="file-size">({{ formattedBinarySize }})</span>
             }
-            @if (getBinaryContentType()) {
-              <span class="content-type">{{ getBinaryContentType() }}</span>
+            @if (binaryContentType) {
+              <span class="content-type">{{ binaryContentType }}</span>
             }
           </div>
           <button
@@ -102,19 +103,19 @@ interface BinaryLinkedValue {
         <!-- Non-expandable value display -->
         @switch (displayMode) {
           @case (PropertyDisplayMode.Json) {
-            <pre class="json-display">{{ getFormattedValue() }}</pre>
+            <pre class="json-display">{{ formattedValue }}</pre>
           }
           @case (PropertyDisplayMode.Text) {
-            <span class="text-display" [innerHTML]="getFormattedValue()"></span>
+            <span class="text-display" [innerHTML]="formattedValue"></span>
           }
           @default {
-            <span class="default-display">{{ getFormattedValue() }}</span>
+            <span class="default-display">{{ formattedValue }}</span>
           }
         }
 
-        @if (isComplexType() && !isExpandableRecord()) {
-          <span class="type-indicator" [title]="getTypeDescription()">
-            {{ getTypeIndicator() }}
+        @if (complexType && !expandableRecord) {
+          <span class="type-indicator" [title]="typeDescription">
+            {{ typeIndicator }}
           </span>
         }
       }
@@ -125,9 +126,38 @@ interface BinaryLinkedValue {
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      min-height: 20px;
-      font-family: inherit;
       width: 100%;
+      min-width: 0;
+    }
+
+    .text-display, .default-display {
+      word-break: break-word;
+      white-space: pre-wrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .json-display {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.8em;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .type-indicator {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.7em;
+      padding: 1px 5px;
+      background: var(--kendo-color-base-subtle);
+      border-radius: 3px;
+      color: var(--kendo-color-subtle);
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .expandable-record {
@@ -139,140 +169,69 @@ interface BinaryLinkedValue {
       align-items: center;
       gap: 6px;
       cursor: pointer;
-      padding: 4px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
+      padding: 2px 0;
+      border-radius: 3px;
+      transition: background-color 0.15s ease;
     }
 
     .record-header:hover {
-      background: var(--kendo-color-base-subtle);
+      background-color: var(--kendo-color-base-subtle, rgba(0,0,0,0.04));
     }
 
     .expand-icon {
-      width: 16px;
-      height: 16px;
       flex-shrink: 0;
-      transition: transform 0.2s;
+      width: 14px;
+      height: 14px;
+      color: var(--kendo-color-subtle);
     }
 
     .record-summary {
+      color: var(--kendo-color-subtle);
+      font-size: 0.85em;
+      font-style: italic;
       flex: 1;
-      font-size: 0.9em;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .record-content {
-      margin-left: 22px;
-      margin-top: 8px;
-      border-left: 2px solid var(--kendo-color-border);
-      padding-left: 12px;
-      background: var(--kendo-color-base-subtle);
-      border-radius: 0 4px 4px 0;
+      margin-left: 20px;
+      padding-left: 8px;
+      border-left: 1px solid var(--kendo-color-border, #dee2e6);
+    }
+
+    .array-item {
+      margin: 4px 0;
+    }
+
+    .array-index {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.8em;
+      color: var(--kendo-color-subtle);
     }
 
     .nested-properties {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 8px;
+      margin-left: 8px;
     }
 
     .nested-property {
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      min-height: 24px;
+      padding: 2px 0;
     }
 
     .property-key {
       font-weight: 500;
-      color: var(--kendo-color-primary);
-      min-width: 100px;
+      white-space: nowrap;
       flex-shrink: 0;
-      font-size: 0.9em;
-    }
-
-    .array-item {
-      border: 1px solid var(--kendo-color-border);
-      border-radius: 4px;
-      margin-bottom: 8px;
-      background: transparent;
-    }
-
-    .array-index {
-      display: inline-block;
-      background: var(--kendo-color-primary);
-      color: white;
-      padding: 2px 8px;
-      font-size: 0.8em;
-      font-weight: bold;
-      border-radius: 4px 0 4px 0;
-      margin-bottom: 4px;
-    }
-
-    .json-display {
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      margin: 0;
-      padding: 4px 8px;
-      background: var(--kendo-color-base-subtle);
-      border-radius: 4px;
-      max-width: 300px;
-      overflow: auto;
-    }
-
-    .text-display,
-    .default-display {
-      flex: 1;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-    }
-
-    .type-boolean {
-      .default-display {
-        font-weight: 500;
-        &.value-true { color: #28a745; }
-        &.value-false { color: #dc3545; }
-      }
-    }
-
-    .type-datetime,
-    .type-datetimeoffset {
-      .default-display {
-        font-family: monospace;
-        font-size: 0.9em;
-      }
-    }
-
-    .type-int,
-    .type-integer,
-    .type-double {
-      .default-display {
-        font-family: monospace;
-        text-align: right;
-      }
-    }
-
-    .type-indicator {
-      font-size: 0.75em;
-      padding: 2px 6px;
-      background: var(--kendo-color-primary);
-      color: white;
-      border-radius: 3px;
-      text-transform: uppercase;
-      font-weight: 500;
-      flex-shrink: 0;
-    }
-
-    .empty-value {
       color: var(--kendo-color-subtle);
-      font-style: italic;
+      font-size: 0.85em;
     }
 
-    .null-value {
-      color: var(--kendo-color-error);
-      font-style: italic;
-    }
-
+    /* Binary Linked Display */
     .binary-linked-display {
       display: flex;
       align-items: center;
@@ -290,7 +249,6 @@ interface BinaryLinkedValue {
 
     .filename {
       font-weight: 500;
-      color: var(--kendo-color-on-app-surface);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -323,6 +281,19 @@ export class PropertyValueDisplayComponent implements OnInit {
   // Expansion state
   isExpanded = false;
 
+  // Pre-computed template properties (computed once in ngOnInit)
+  expandableRecord = false;
+  complexType = false;
+  binaryLinkedWithDownload = false;
+  formattedValue = '';
+  recordSummary = '';
+  typeIndicator = '';
+  typeDescription = '';
+  binaryFilename: string | null = null;
+  binarySize: number | null = null;
+  binaryContentType: string | null = null;
+  formattedBinarySize = '';
+
   readonly PropertyDisplayMode = PropertyDisplayMode;
   readonly AttributeValueTypeDto = AttributeValueTypeDto;
   readonly Array = Array;
@@ -331,20 +302,24 @@ export class PropertyValueDisplayComponent implements OnInit {
   readonly downloadIcon = downloadIcon;
 
   ngOnInit() {
-    // Debug every property value display component creation
-    console.log('PropertyValueDisplayComponent ngOnInit:', {
-      type: this.type,
-      value: this.value,
-      valueType: typeof this.value,
-      valueStringified: JSON.stringify(this.value),
-      isExpandableRecord: this.isExpandableRecord()
-    });
+    this.expandableRecord = this.computeIsExpandableRecord();
+    this.complexType = this.computeIsComplexType();
+    this.binaryLinkedWithDownload = this.computeIsBinaryLinkedWithDownload();
+    this.formattedValue = this.computeFormattedValue();
+    this.recordSummary = this.computeRecordSummary();
+    this.typeIndicator = this.computeTypeIndicator();
+    this.typeDescription = this.computeTypeDescription();
+
+    if (this.binaryLinkedWithDownload) {
+      const bv = this.value as BinaryLinkedValue;
+      this.binaryFilename = bv?.filename || null;
+      this.binarySize = bv?.size || null;
+      this.binaryContentType = bv?.contentType || null;
+      this.formattedBinarySize = this.formatFileSize(this.binarySize);
+    }
   }
 
-  /**
-   * Get formatted display value
-   */
-  getFormattedValue(): string {
+  private computeFormattedValue(): string {
     if (this.value === null) {
       return '<null>';
     }
@@ -394,55 +369,13 @@ export class PropertyValueDisplayComponent implements OnInit {
     }
   }
 
-  /**
-   * Check if this is an expandable record type
-   */
-  isExpandableRecord(): boolean {
-    // Comprehensive debug logging
-    console.log('PropertyValueDisplay: isExpandableRecord check:', {
-      type: this.type,
-      typeString: String(this.type),
-      typeOf: typeof this.type,
-      AttributeValueTypeDtoRecordDto: AttributeValueTypeDto.RecordDto,
-      AttributeValueTypeDtoRecordArrayDto: AttributeValueTypeDto.RecordArrayDto,
-      typeIsRecordDto: this.type === AttributeValueTypeDto.RecordDto,
-      typeIsRecordDtoString: this.type === 'RECORD',
-      typeIsRecordArrayDto: this.type === AttributeValueTypeDto.RecordArrayDto,
-      value: this.value,
-      valueType: typeof this.value,
-      valueIsNull: this.value == null,
-      valueKeys: this.value && typeof this.value === 'object' ? Object.keys(this.value) : 'not object'
-    });
-
-    // Check for record types
-    const isRecordDto = this.type === AttributeValueTypeDto.RecordDto;
-    const isRecordArrayDto = this.type === AttributeValueTypeDto.RecordArrayDto;
-    const isRecordType = isRecordDto || isRecordArrayDto;
-
-    // Simple check: does it have a value?
-    const hasValue = this.value != null;
-
-    // Simple check: is it an object or array?
-    const isObjectLike = typeof this.value === 'object' && this.value != null;
-
-    const result = isRecordType && hasValue && isObjectLike;
-
-    console.log('PropertyValueDisplay: Expandable result:', {
-      isRecordDto,
-      isRecordArrayDto,
-      isRecordType,
-      hasValue,
-      isObjectLike,
-      finalResult: result
-    });
-
-    return result;
+  private computeIsExpandableRecord(): boolean {
+    const isRecordType = this.type === AttributeValueTypeDto.RecordDto
+      || this.type === AttributeValueTypeDto.RecordArrayDto;
+    return isRecordType && this.value != null && typeof this.value === 'object';
   }
 
-  /**
-   * Check if the type is complex (object/array)
-   */
-  isComplexType(): boolean {
+  private computeIsComplexType(): boolean {
     return [
       AttributeValueTypeDto.RecordDto,
       AttributeValueTypeDto.RecordArrayDto,
@@ -454,10 +387,7 @@ export class PropertyValueDisplayComponent implements OnInit {
     ].includes(this.type);
   }
 
-  /**
-   * Get type indicator text
-   */
-  getTypeIndicator(): string {
+  private computeTypeIndicator(): string {
     switch (this.type) {
       case AttributeValueTypeDto.RecordDto:
         return 'RECORD';
@@ -476,10 +406,7 @@ export class PropertyValueDisplayComponent implements OnInit {
     }
   }
 
-  /**
-   * Get type description for tooltip
-   */
-  getTypeDescription(): string {
+  private computeTypeDescription(): string {
     switch (this.type) {
       case AttributeValueTypeDto.RecordDto:
         return 'Complex object';
@@ -594,16 +521,14 @@ export class PropertyValueDisplayComponent implements OnInit {
   }
 
   /**
-   * Get summary text for record header
+   * Compute summary text for record header
    */
-  getRecordSummary(): string {
+  private computeRecordSummary(): string {
     if (this.type === AttributeValueTypeDto.RecordArrayDto && Array.isArray(this.value)) {
       return `Array with ${this.value.length} item${this.value.length !== 1 ? 's' : ''}`;
     }
 
     if (typeof this.value === 'object' && this.value !== null) {
-
-      // Handle regular objects
       const keys = Object.keys(this.value);
       return `Object with ${keys.length} propert${keys.length !== 1 ? 'ies' : 'y'}`;
     }
@@ -620,14 +545,12 @@ export class PropertyValueDisplayComponent implements OnInit {
     }
 
     if (Array.isArray(obj) && obj.length > 0 && typeof obj[0] === 'object' && obj[0] !== null && 'id' in obj[0] && obj[0].id === 'ckRecordId') {
-      // Handle array of records
       return obj.map((item: Record<string, unknown>) => ({
         key: String(item['name']),
         value: item['value']
       }));
     }
 
-    // Handle regular objects
     const record = obj as Record<string, unknown>;
     return Object.keys(record).map(key => ({
       key,
@@ -652,7 +575,6 @@ export class PropertyValueDisplayComponent implements OnInit {
     }
 
     if (typeof value === 'string') {
-      // Check if it looks like a date
       if (value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
         return AttributeValueTypeDto.DateTimeDto;
       }
@@ -672,7 +594,7 @@ export class PropertyValueDisplayComponent implements OnInit {
       if (value.length > 0 && typeof value[0] === 'number') {
         return AttributeValueTypeDto.IntegerArrayDto;
       }
-      return AttributeValueTypeDto.StringArrayDto; // fallback
+      return AttributeValueTypeDto.StringArrayDto;
     }
 
 
@@ -681,52 +603,17 @@ export class PropertyValueDisplayComponent implements OnInit {
 
   // ========== Binary Linked Methods ==========
 
-  /**
-   * Check if this is a BINARY_LINKED type with download capability
-   */
-  isBinaryLinkedWithDownload(): boolean {
+  private computeIsBinaryLinkedWithDownload(): boolean {
     if (this.type !== AttributeValueTypeDto.BinaryLinkedDto) {
       return false;
     }
-
-    // Check if value has binaryId or downloadUri (LargeBinaryInfo structure)
     return !!this.value && typeof this.value === 'object' && ('binaryId' in this.value || 'downloadUri' in this.value);
-  }
-
-  /**
-   * Get the filename from binary info
-   */
-  getBinaryFilename(): string | null {
-    if (!this.value || typeof this.value !== 'object') {
-      return null;
-    }
-    return (this.value as BinaryLinkedValue).filename || null;
-  }
-
-  /**
-   * Get the file size from binary info
-   */
-  getBinarySize(): number | null {
-    if (!this.value || typeof this.value !== 'object') {
-      return null;
-    }
-    return (this.value as BinaryLinkedValue).size || null;
-  }
-
-  /**
-   * Get the content type from binary info
-   */
-  getBinaryContentType(): string | null {
-    if (!this.value || typeof this.value !== 'object') {
-      return null;
-    }
-    return (this.value as BinaryLinkedValue).contentType || null;
   }
 
   /**
    * Format file size to human readable format
    */
-  formatFileSize(bytes: number | null): string {
+  private formatFileSize(bytes: number | null): string {
     if (bytes === null || bytes === undefined) {
       return '';
     }
@@ -748,19 +635,16 @@ export class PropertyValueDisplayComponent implements OnInit {
    */
   onDownload(): void {
     if (!this.value || typeof this.value !== 'object') {
-      console.warn('No binary value available');
       return;
     }
 
     const binaryValue = this.value as BinaryLinkedValue;
 
-    // If downloadUri is available, open directly
     if (binaryValue.downloadUri) {
       window.open(binaryValue.downloadUri, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    // Otherwise, emit event for parent to handle (needs to load downloadUri)
     if (binaryValue.binaryId) {
       const event: BinaryDownloadEvent = {
         binaryId: binaryValue.binaryId,
@@ -768,8 +652,6 @@ export class PropertyValueDisplayComponent implements OnInit {
         contentType: binaryValue.contentType
       };
       this.binaryDownload.emit(event);
-    } else {
-      console.warn('No binaryId or downloadUri available');
     }
   }
 }

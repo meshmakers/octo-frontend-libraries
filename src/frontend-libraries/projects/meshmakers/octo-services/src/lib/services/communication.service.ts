@@ -6,8 +6,10 @@ import {CONFIGURATION_SERVICE} from './configuration.service';
 import {
   DeploymentResultDto,
   PipelineExecutionDataDto,
+  PipelineNodePropertiesDto,
   DebugPointNode,
-  DebugPointDataDto
+  DebugPointDataDto,
+  NodeDescriptorDto
 } from '../shared/communicationDtos';
 
 /**
@@ -260,6 +262,55 @@ export class CommunicationService {
           })
         )
       );
+    }
+    return null;
+  }
+
+  // ============================================================================
+  // Node Descriptors
+  // ============================================================================
+
+  /**
+   * Gets all node descriptors from all connected adapters.
+   * Each descriptor contains the node name, version, category, and configuration schema.
+   */
+  async getNodeDescriptors(tenantId: string): Promise<NodeDescriptorDto[]> {
+    if (this.communicationServicesUrl) {
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/adapter/nodes`;
+      try {
+        return await firstValueFrom(
+          this.httpClient.get<NodeDescriptorDto[]>(uri)
+        );
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  // ============================================================================
+  // Pipeline Definition Parsing
+  // ============================================================================
+
+  /**
+   * Parses a YAML pipeline definition on the backend and returns the properties
+   * of a specific node instance identified by type and occurrence index.
+   */
+  async parseNodeProperties(
+    tenantId: string,
+    definition: string,
+    nodeType: string,
+    nodeIndex: number
+  ): Promise<PipelineNodePropertiesDto | null> {
+    if (this.communicationServicesUrl) {
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pipelineDefinition/parse-node`;
+      try {
+        return await firstValueFrom(
+          this.httpClient.post<PipelineNodePropertiesDto>(uri, {definition, nodeType, nodeIndex})
+        );
+      } catch {
+        return null;
+      }
     }
     return null;
   }
