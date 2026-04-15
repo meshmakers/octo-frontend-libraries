@@ -315,6 +315,31 @@ export class CommunicationService {
     return null;
   }
 
+  /**
+   * Updates the properties of a specific node in a YAML pipeline definition.
+   * Sends the current YAML, node identifier, and new property values to the backend,
+   * which returns the updated YAML string.
+   */
+  async updateNodeProperties(
+    tenantId: string,
+    definition: string,
+    nodeType: string,
+    nodeIndex: number,
+    properties: Record<string, unknown>
+  ): Promise<string | null> {
+    if (this.communicationServicesUrl) {
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pipelineDefinition/update-node`;
+      try {
+        return await firstValueFrom(
+          this.httpClient.put(uri, {definition, nodeType, nodeIndex, properties}, {responseType: 'text'})
+        );
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
   // ============================================================================
   // Pipeline Schema
   // ============================================================================
