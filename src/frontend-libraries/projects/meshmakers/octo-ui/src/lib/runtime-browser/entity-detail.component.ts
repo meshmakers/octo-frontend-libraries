@@ -3,9 +3,12 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
+import { NotificationService } from '@progress/kendo-angular-notification';
 import { arrowLeftIcon } from '@progress/kendo-svg-icons';
-import { Subject, takeUntil } from 'rxjs';
-import { RtEntityDto } from '../graphQL/globalTypes';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
+import { GraphDirectionDto, RtEntityDto } from '../graphQL/globalTypes';
+import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../graphQL/getRuntimeEntityAssociationsById';
+import { UpdateRuntimeEntitiesDtoGQL } from '../graphQL/updateRuntimeEntities';
 import { EntityDetailViewComponent } from './components/entity-detail-view.component';
 import { EntityDetailDataSource } from './data-sources/entity-detail-data-source.service';
 import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
@@ -44,9 +47,14 @@ import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
         [entity]="entity"
         [loading]="loading"
         [error]="error"
+        [mappingTarget]="mappingTarget"
+        [targetAttributeName]="targetAttributeName"
         (retry)="loadEntity()"
         (propertyChange)="onPropertyChange($event)"
         (navigateToEntity)="navigateToEntity($event.rtId, $event.ckTypeId)"
+        (selectMappingTarget)="onSelectMappingTarget()"
+        (saveMappingRequested)="onSaveMapping($event)"
+        (removeMappingRequested)="onRemoveMapping()"
       >
       </mm-entity-detail-view>
     </div>
@@ -58,6 +66,9 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dataSource = inject(EntityDetailDataSource);
+  private readonly notificationService = inject(NotificationService);
+  private readonly getAssociationsGQL = inject(GetRuntimeEntityAssociationsByIdDtoGQL);
+  private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
   private readonly destroy$ = new Subject<void>();
 
   protected readonly arrowLeftIcon = arrowLeftIcon;
@@ -66,6 +77,10 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
   entityId: RtEntityId | null = null;
+
+  // Data Mapping state
+  mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
+  targetAttributeName = '';
 
   async ngOnInit(): Promise<void> {
     this.route.params
@@ -104,6 +119,8 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
       );
       if (!this.entity) {
         this.error = 'Entity not found';
+      } else {
+        await this.loadMapping();
       }
     } catch (error) {
       console.error('Failed to load entity:', error);
@@ -153,7 +170,189 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
    */
   onPropertyChange(event: unknown): void {
     console.debug('Property changed:', event);
-    // TODO: Implement property change handling
-    // This could be used to track modifications and enable save functionality
+  }
+
+  /**
+   * Load existing MapsToEntity mapping for current entity
+   */
+  async loadMapping(): Promise<void> {
+    if (!this.entity?.rtId || !this.entity?.ckTypeId) return;
+
+    try {
+      const result = await firstValueFrom(
+        this.getAssociationsGQL.fetch({
+          variables: {
+            rtId: this.entity.rtId,
+            ckTypeId: this.entity.ckTypeId,
+            direction: GraphDirectionDto.OutboundDto,
+            first: 10,
+          },
+        }),
+      );
+
+      const entityItem = result.data?.runtime?.runtimeEntities?.items?.[0];
+      const associations = entityItem?.associations?.definitions?.items ?? [];
+      const mapsToAssoc = associations.filter(Boolean).find(
+        (a) => a?.ckAssociationRoleId?.includes('MapsToEntity'),
+      );
+
+      if (mapsToAssoc && 'targetRtId' in mapsToAssoc && 'targetCkTypeId' in mapsToAssoc) {
+        this.mappingTarget = {
+          rtId: mapsToAssoc.targetRtId as string,
+          ckTypeId: mapsToAssoc.targetCkTypeId as string,
+        };
+      } else {
+        this.mappingTarget = null;
+      }
+
+      // Read TargetAttributeName from entity attributes
+      const targetAttr = this.entity.attributes?.items?.find(
+        (a) => a?.attributeName === 'targetAttributeName',
+      );
+      this.targetAttributeName = (targetAttr?.value as string) ?? '';
+    } catch (error) {
+      console.error('Failed to load mapping:', error);
+    }
+  }
+
+  /**
+   * Open target entity selector (prompt for now, dialog later)
+   */
+  onSelectMappingTarget(): void {
+    const input = prompt('Enter target entity identifier (ckTypeId@rtId):');
+    if (!input) return;
+
+    const parts = input.split('@');
+    if (parts.length === 2) {
+      this.mappingTarget = {
+        ckTypeId: parts[0],
+        rtId: parts[1],
+      };
+    }
+  }
+
+  /**
+   * Save mapping: update TargetAttributeName + create MapsToEntity association
+   */
+  async onSaveMapping(event: {
+    targetRtId: string;
+    targetCkTypeId: string;
+    targetAttributeName: string;
+  }): Promise<void> {
+    if (!this.entity?.rtId || !this.entity?.ckTypeId) return;
+
+    try {
+      await firstValueFrom(
+        this.updateEntitiesGQL.mutate({
+          variables: {
+            entities: [
+              {
+                rtId: this.entity.rtId,
+                item: {
+                  ckTypeId: this.entity.ckTypeId,
+                  attributes: [
+                    {
+                      attributeName: 'targetAttributeName',
+                      value: event.targetAttributeName,
+                    },
+                    {
+                      attributeName: 'mapsTo',
+                      value: [
+                        {
+                          target: {
+                            rtId: event.targetRtId,
+                            ckTypeId: event.targetCkTypeId,
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        }),
+      );
+
+      this.targetAttributeName = event.targetAttributeName;
+      this.notificationService.show({
+        content: 'Data mapping saved successfully',
+        type: { style: 'success', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 3000,
+        animation: { type: 'fade', duration: 400 },
+      });
+    } catch (error) {
+      console.error('Failed to save mapping:', error);
+      this.notificationService.show({
+        content: 'Failed to save data mapping',
+        type: { style: 'error', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 3000,
+        animation: { type: 'fade', duration: 400 },
+      });
+    }
+  }
+
+  /**
+   * Remove mapping: clear TargetAttributeName + delete MapsToEntity association
+   */
+  async onRemoveMapping(): Promise<void> {
+    if (!this.entity?.rtId || !this.entity?.ckTypeId || !this.mappingTarget)
+      return;
+
+    try {
+      await firstValueFrom(
+        this.updateEntitiesGQL.mutate({
+          variables: {
+            entities: [
+              {
+                rtId: this.entity.rtId,
+                item: {
+                  ckTypeId: this.entity.ckTypeId,
+                  attributes: [
+                    {
+                      attributeName: 'targetAttributeName',
+                      value: null,
+                    },
+                    {
+                      attributeName: 'mapsTo',
+                      value: [
+                        {
+                          target: {
+                            rtId: this.mappingTarget.rtId,
+                            ckTypeId: this.mappingTarget.ckTypeId,
+                          },
+                          modOption: 'DELETE',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        }),
+      );
+
+      this.mappingTarget = null;
+      this.targetAttributeName = '';
+      this.notificationService.show({
+        content: 'Data mapping removed',
+        type: { style: 'success', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 3000,
+        animation: { type: 'fade', duration: 400 },
+      });
+    } catch (error) {
+      console.error('Failed to remove mapping:', error);
+      this.notificationService.show({
+        content: 'Failed to remove data mapping',
+        type: { style: 'error', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 3000,
+        animation: { type: 'fade', duration: 400 },
+      });
+    }
   }
 }
