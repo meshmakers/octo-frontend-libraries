@@ -1,26 +1,24 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, map, of } from 'rxjs';
-import { GetCkAttributesDetailedDtoGQL } from '../../graphQL/getCkAttributesDetailed';
-import { GetCkRecordDetailedDtoGQL } from '../../graphQL/getCkRecordDetailed';
+import { Observable, map, of } from 'rxjs';
 import { GetRuntimeEntityByIdDtoGQL } from '../../graphQL/getRuntimeEntityById';
 import { RtEntityValuesResponse } from '../components/attributes-group/attributes-group.component';
 import { Attribute } from '../models/attribute';
-import { CkAttributeMetadata } from '../models/attribute-metadata';
 import { AttributeMapperService } from './attribute-mapper.service';
+import { AttributeMetadataResolverService } from './attribute-metadata-resolver.service';
 
 /**
- * Single responsibility: fetch attribute definitions (CK types/records) and runtime entity values for the repository browser.
+ * Fetches form-ready attribute definitions and runtime entity values for the repository browser.
  * Used by attributes-group (rxResource), create-editor and update-editor (firstValueFrom for mutations).
+ *
+ * Raw definition lookups are delegated to AttributeMetadataResolverService; this service
+ * only adds the form-ready mapping (mapToFormAttribute) and required-first sort.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class AttributeDataService {
   private mapper = inject(AttributeMapperService);
-  private readonly getCkAttributesDetailedGQL = inject(
-    GetCkAttributesDetailedDtoGQL,
-  );
-  private readonly getCkRecordDetailedGQL = inject(GetCkRecordDetailedDtoGQL);
+  private readonly resolver = inject(AttributeMetadataResolverService);
   private readonly getRtEntityAttributesGQL = inject(
     GetRuntimeEntityByIdDtoGQL,
   );
@@ -32,20 +30,12 @@ export class AttributeDataService {
   ): Observable<Attribute[]> {
     if (!ckTypeId) return of([]);
 
-    const stream$ = isRecord
-      ? this.fetchCkRecordAttributes(ckTypeId)
-      : this.fetchCkAttributes(ckTypeId);
-
-    return stream$.pipe(
+    return this.resolver.getRawAttributes$(ckTypeId, isRecord).pipe(
       map((items) =>
         this.sortAttributesByOptional(
           items.map((meta) => this.mapper.mapToFormAttribute(meta, undefined)),
         ),
       ),
-      catchError((err) => {
-        console.error('Service error:', err);
-        return of([]);
-      }),
     );
   }
 
@@ -70,42 +60,6 @@ export class AttributeDataService {
       if (a.isOptional === b.isOptional) return 0;
       return a.isOptional ? 1 : -1;
     });
-  }
-
-  private fetchCkAttributes(
-    ckTypeId: string,
-  ): Observable<CkAttributeMetadata[]> {
-    return this.getCkAttributesDetailedGQL
-      .fetch({ variables: { ckId: ckTypeId } })
-      .pipe(
-        map(
-          (res) =>
-            (
-              res.data?.constructionKit?.types?.items?.[0]?.attributes?.items ??
-              []
-            ).filter(
-              (item): item is NonNullable<typeof item> => item != null,
-            ) as CkAttributeMetadata[],
-        ),
-      );
-  }
-
-  private fetchCkRecordAttributes(
-    ckRecordId: string,
-  ): Observable<CkAttributeMetadata[]> {
-    return this.getCkRecordDetailedGQL
-      .fetch({ variables: { ckId: ckRecordId } })
-      .pipe(
-        map(
-          (res) =>
-            (
-              res.data?.constructionKit?.records?.items?.[0]?.attributes
-                ?.items ?? []
-            ).filter(
-              (item): item is NonNullable<typeof item> => item != null,
-            ) as CkAttributeMetadata[],
-        ),
-      );
   }
 
   /** Fetches runtime entity attribute items by rtId and ckTypeId; returns empty array when absent. */

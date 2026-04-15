@@ -1,10 +1,11 @@
 import { inject, Injectable } from "@angular/core";
-import { defer, from, Observable } from "rxjs";
+import { defer, firstValueFrom, from, Observable } from "rxjs";
 import { Attribute } from "../models/attribute";
 import {
   AttributeEnumOption,
   CkAttributeMetadata,
 } from "../models/attribute-metadata";
+import { AttributeMetadataResolverService } from "./attribute-metadata-resolver.service";
 import { AttributeRecognitionService } from "./attribute-recognition.service";
 import {
   base64ToByteArray,
@@ -33,6 +34,7 @@ export const BINARY_REFERENCE_FLAG = "__isBinaryFromBase64";
 })
 export class AttributeMapperService {
   private recognition = inject(AttributeRecognitionService);
+  private metadataResolver = inject(AttributeMetadataResolverService);
   private isRecordValue(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
   }
@@ -112,121 +114,240 @@ export class AttributeMapperService {
   }
 
   /**
-   * Maps form values to GraphQL format for createEntities / updateRuntimeEntities.
-   * Record and RecordArray are passed as nested objects/arrays. BINARY_LINKED is included only when value is a File.
+   * Maps form values to GraphQL format for createEntities / updateRuntimeEntities. Top-level RECORD and
+   * RECORD_ARRAY attribute values are recursively mapped via the same per-attribute logic so nested
+   * scalars (BINARY, GEO, TIME_SPAN, …) get type conversion identical to their top-level siblings.
    */
   async mapFormValueToGraphQLAttributes(
     formValue: unknown,
     attributesMetadata?: Attribute[],
   ): Promise<RtEntityAttributeInput[]> {
-    const result: RtEntityAttributeInput[] = [];
-
     if (!this.isRecordValue(formValue)) {
-      return result;
+      return [];
     }
 
-    const metadataMap = new Map<string, Attribute>();
-    if (attributesMetadata) {
-      attributesMetadata.forEach((attr) => {
-        metadataMap.set(attr.attributeName, attr);
-      });
-    }
+    const metadataMap = new Map<string, Attribute>(
+      (attributesMetadata ?? []).map((attr) => [attr.attributeName, attr]),
+    );
 
+    const result: RtEntityAttributeInput[] = [];
     for (const [key, value] of Object.entries(formValue)) {
-      if (!key) {
-        continue;
-      }
-      const metadata = metadataMap.get(key);
-
-      if (metadata?.attributeValueType === "BINARY_LINKED") {
-        const processedValue = await this.processAttributeValue(
-          value,
-          metadata?.attributeValueType,
-        );
-        if (processedValue instanceof File) {
-          // Skip synthetic reference/preview files — they are placeholders created by
-          // parseBinaryLinkedForForm and must not be re-uploaded (would overwrite real data with zeros).
-          if (
-            (processedValue as unknown as Record<string, unknown>)[
-              BINARY_LINKED_REFERENCE_FLAG
-            ]
-          ) {
-            continue;
-          }
-          result.push({ attributeName: key, value: processedValue });
-        } else {
-          // Value was cleared (null / empty array) — send null so the backend removes the linked binary.
-          result.push({ attributeName: key, value: null });
-        }
-        continue;
-      }
-
-      if (value === null || value === undefined) {
-        if (metadata?.isOptional) {
-          result.push({ attributeName: key, value: null });
-        }
-        continue;
-      }
-
-      if (
-        metadata?.attributeValueType === "BINARY" &&
-        this.isOptionalEmptyBinary(metadata, value)
-      ) {
-        result.push({ attributeName: key, value: null });
-        continue;
-      }
-
-      // Skip empty RECORD (empty object) and RECORD_ARRAY (empty array) unless optional (then send null)
-      if (
-        metadata?.attributeValueType === "RECORD" &&
-        this.isValueEmpty(value)
-      ) {
-        if (metadata?.isOptional) {
-          result.push({ attributeName: key, value: null });
-        }
-        continue;
-      }
-      if (
-        metadata?.attributeValueType === "RECORD_ARRAY" &&
-        Array.isArray(value) &&
-        value.length === 0
-      ) {
-        if (metadata?.isOptional) {
-          result.push({ attributeName: key, value: null });
-        }
-        continue;
-      }
-
-      if (metadata?.isOptional && this.isOptionalEmptyScalarOrArray(value, metadata)) {
-        result.push({ attributeName: key, value: null });
-        continue;
-      }
-
-      const processedValue = await this.processAttributeValue(
+      if (!key) continue;
+      const mapped = await this.mapSingleAttributeToInput(
+        key,
         value,
-        metadata?.attributeValueType,
+        metadataMap.get(key),
       );
+      if (mapped !== null) {
+        result.push(mapped);
+      }
+    }
+    return result;
+  }
 
-      result.push({
-        attributeName: key,
-        value: processedValue,
-      });
+  /**
+   * Maps a single (key, value, metadata) triple into a GraphQL RtEntityAttributeInput, or null when the
+   * attribute should be omitted from the payload entirely (typically: required scalar with no value).
+   *
+   * Single source of truth for empty / null / optional / type-conversion rules. Used by both the top-level
+   * mapping and the recursive RECORD / RECORD_ARRAY mapping so nested attributes follow the exact same
+   * contract. Branch order matters: BINARY_LINKED handling must come before the generic null/undefined
+   * skip because cleared linked binaries are sent as explicit null (to detach the link on the backend).
+   */
+  private async mapSingleAttributeToInput(
+    key: string,
+    value: unknown,
+    metadata: Attribute | undefined,
+  ): Promise<RtEntityAttributeInput | null> {
+    const type = metadata?.attributeValueType;
+
+    // type is set only when metadata exists, so the non-null assertion is safe inside these branches.
+    if (type === "BINARY_LINKED") {
+      return this.mapBinaryLinkedAttribute(key, value, metadata!);
     }
 
+    if (value === null || value === undefined) {
+      return metadata?.isOptional ? { attributeName: key, value: null } : null;
+    }
+
+    if (type === "BINARY" && this.isOptionalEmptyBinary(metadata!, value)) {
+      return { attributeName: key, value: null };
+    }
+
+    // Empty RECORD (empty object) and RECORD_ARRAY (empty array): send null when optional, skip otherwise.
+    if (type === "RECORD" && this.isValueEmpty(value)) {
+      return metadata?.isOptional ? { attributeName: key, value: null } : null;
+    }
+    if (type === "RECORD_ARRAY" && Array.isArray(value) && value.length === 0) {
+      return metadata?.isOptional ? { attributeName: key, value: null } : null;
+    }
+
+    if (
+      metadata?.isOptional &&
+      this.isOptionalEmptyScalarOrArray(value, metadata)
+    ) {
+      return { attributeName: key, value: null };
+    }
+
+    const processedValue = await this.processAttributeValue(value, metadata);
+    return { attributeName: key, value: processedValue };
+  }
+
+  /**
+   * BINARY_LINKED has its own decision tree because synthetic reference Files (created by
+   * parseBinaryLinkedForForm to display existing-file metadata) must NOT be re-uploaded — re-uploading
+   * a synthetic File would overwrite the real binary with zero-filled placeholder content.
+   * Cleared values (null / empty array) emit explicit null so the backend detaches the linked binary.
+   */
+  private async mapBinaryLinkedAttribute(
+    key: string,
+    value: unknown,
+    metadata: Attribute,
+  ): Promise<RtEntityAttributeInput | null> {
+    const processedValue = await this.processAttributeValue(value, metadata);
+    if (processedValue instanceof File) {
+      const isReference =
+        (processedValue as unknown as Record<string, unknown>)[
+          BINARY_LINKED_REFERENCE_FLAG
+        ] === true;
+      if (isReference) {
+        return null;
+      }
+      return { attributeName: key, value: processedValue };
+    }
+    return { attributeName: key, value: null };
+  }
+
+  /**
+   * Recursively maps a RECORD form value (flat object { subAttr: subVal, ... }) to the wire shape expected
+   * by the backend mutation: a flat object { subAttr: processedSubVal, ... }.
+   *
+   * Important asymmetry between query response and mutation input: queries return RECORD as
+   * { attributes: [{ attributeName, value }, ...] } (the GraphQL RtRecord type wraps it), but the mutation
+   * input field RtEntityAttributeInput.value is SimpleScalar — opaque to GraphQL — so the backend reads
+   * the raw dictionary directly and matches keys against CK sub-attribute names. Sending the wrapped
+   * { attributes: [...] } shape resulted in ASSET1004 (mandatory attribute missing) because the backend
+   * never iterated the wrapper.
+   *
+   * Fetches sub-attribute definitions for the given recordCkId via AttributeMetadataResolverService and
+   * routes each entry through mapSingleAttributeToInput so type conversion (BINARY → byte[], GEO → GeoJSON,
+   * TIME_SPAN → seconds, …) and empty/null/optional rules apply identically to nested attributes.
+   * Sub-attribute keys are kept in their form-side camelCase form (matches the previously working code path).
+   */
+  private async mapRecordValueToGraphQL(
+    value: unknown,
+    recordCkId: string | undefined,
+  ): Promise<Record<string, unknown>> {
+    if (!this.isRecordValue(value)) {
+      return {};
+    }
+
+    const subMetadataMap = await this.resolveSubMetadataMap(recordCkId);
+    return this.mapRecordEntries(value, subMetadataMap);
+  }
+
+  /**
+   * Resolves sub-attribute metadata for a given recordCkId. Returns an empty map (pass-through mode)
+   * when recordCkId is missing or resolver fails — caller must preserve user values in that case.
+   */
+  private async resolveSubMetadataMap(
+    recordCkId: string | undefined,
+  ): Promise<Map<string, Attribute>> {
+    if (!recordCkId) {
+      return new Map();
+    }
+    try {
+      const rawDefinitions = await firstValueFrom(
+        this.metadataResolver.getRawAttributes$(recordCkId, true),
+      );
+      return new Map(
+        rawDefinitions.map((meta) => {
+          const subAttr = this.mapToFormAttribute(meta, undefined);
+          return [subAttr.attributeName, subAttr];
+        }),
+      );
+    } catch (err) {
+      // Resolver failure (network/auth/cache) must not abort the whole mapping pipeline. Falling back
+      // to an empty map means sub-attributes are emitted with their form values without type conversion;
+      // the backend will reject the payload with a meaningful error rather than the user seeing nothing.
+      console.error(
+        `AttributeMapperService: failed to resolve sub-attributes for record '${recordCkId}'`,
+        err,
+      );
+      return new Map();
+    }
+  }
+
+  /**
+   * Maps record entries to GraphQL payload using the resolved metadata map.
+   * Pass-through mode (empty metadata map) preserves user values verbatim, including explicit
+   * nulls — required so cleared nested fields still reach the backend.
+   */
+  private async mapRecordEntries(
+    value: Record<string, unknown>,
+    subMetadataMap: Map<string, Attribute>,
+  ): Promise<Record<string, unknown>> {
+    const result: Record<string, unknown> = {};
+    for (const [subKey, subValue] of Object.entries(value)) {
+      if (!subKey) continue;
+      const subMeta = subMetadataMap.get(subKey);
+      if (!subMeta) {
+        // Pass-through: no metadata available, preserve the value as-is (including nulls).
+        result[subKey] = subValue;
+        continue;
+      }
+      const mapped = await this.mapSingleAttributeToInput(
+        subKey,
+        subValue,
+        subMeta,
+      );
+      if (mapped !== null) {
+        result[mapped.attributeName] = mapped.value;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Recursively maps a RECORD_ARRAY form value (array of flat objects) to the wire shape expected by the
+   * backend mutation: an array of flat objects [{ subAttr: subVal }, { subAttr: subVal }].
+   *
+   * Each item is a record sharing the same recordCkId; metadata is fetched (and Apollo-cached) once per item
+   * via mapRecordValueToGraphQL.
+   */
+  private async mapRecordArrayValueToGraphQL(
+    value: unknown,
+    recordCkId: string | undefined,
+  ): Promise<Record<string, unknown>[]> {
+    if (!Array.isArray(value)) return [];
+    // Resolve metadata once for the whole array — items share the same recordCkId.
+    const subMetadataMap = await this.resolveSubMetadataMap(recordCkId);
+    const result: Record<string, unknown>[] = [];
+    for (const item of value) {
+      if (!this.isRecordValue(item)) {
+        result.push({});
+        continue;
+      }
+      result.push(await this.mapRecordEntries(item, subMetadataMap));
+    }
     return result;
   }
 
   /** Processes a single attribute value for mutation payload (type-specific conversion). */
   private async processAttributeValue(
     value: unknown,
-    attributeType?: string,
+    metadata?: Attribute,
   ): Promise<unknown> {
+    const attributeType = metadata?.attributeValueType;
     switch (attributeType) {
       case "RECORD":
-        return value;
+        return await this.mapRecordValueToGraphQL(value, metadata?.id?.ckId);
 
       case "RECORD_ARRAY":
-        return value;
+        return await this.mapRecordArrayValueToGraphQL(
+          value,
+          metadata?.id?.ckId,
+        );
 
       case "GEOSPATIAL_POINT":
         return convertGeospatialPointToGeoJSON(value);
@@ -234,31 +355,13 @@ export class AttributeMapperService {
       case "TIME_SPAN":
         return this.convertTimeSpanToSeconds(value);
 
-      case "BINARY": {
+      case "BINARY":
         // MeshMakers expects byte[] (array of numbers). Accept File, ArrayBuffer, base64 string, or byte[].
         return await this.convertBinaryToByteArray(value);
-      }
 
-      case "BINARY_LINKED": {
-        // MeshMakers: prefer File for multipart, but also accept base64 or byte[]
-        if (value instanceof File) {
-          return value;
-        }
-        if (Array.isArray(value) && value[0] instanceof File) {
-          return value[0];
-        }
-        if (typeof value === "string") {
-          // base64 string
-          return base64ToByteArray(value);
-        }
-        if (value instanceof ArrayBuffer) {
-          return this.arrayBufferToByteArray(value);
-        }
-        if (Array.isArray(value) && typeof value[0] === "number") {
-          return value;
-        }
-        return null;
-      }
+      case "BINARY_LINKED":
+        // MeshMakers: prefer File for multipart upload; also accept base64 string, ArrayBuffer or byte[].
+        return this.convertBinaryLinkedValue(value);
       case "INTEGER_ARRAY":
         return this.normalizePrimitiveArray(value, "number");
       case "STRING_ARRAY":
@@ -384,7 +487,8 @@ export class AttributeMapperService {
   }
 
   /**
-   * Converts supported binary representations into byte arrays.
+   * Converts supported binary representations into byte arrays. Returns the original value as a fallback
+   * when the input shape is not recognized so the backend can produce a meaningful validation error.
    */
   private async convertBinaryToByteArray(
     value: unknown,
@@ -416,6 +520,37 @@ export class AttributeMapperService {
     }
 
     return value;
+  }
+
+  /**
+   * Normalizes a BINARY_LINKED form value to one of the wire shapes the backend accepts. Order matters:
+   * a real File is preferred (multipart upload preserves filename and content type), with byte[] / base64
+   * accepted as fallbacks for callers that already have raw bytes.
+   */
+  private convertBinaryLinkedValue(value: unknown): unknown {
+    if (value instanceof File) return value;
+    if (Array.isArray(value) && value[0] instanceof File) return value[0];
+    if (typeof value === "string") {
+      try {
+        return base64ToByteArray(value);
+      } catch (e) {
+        // Re-throw instead of returning null: a malformed base64 must not silently degrade
+        // to null, which the backend may interpret as "clear/detach" the linked binary.
+        // Surfacing the error lets the caller present a validation message to the user.
+        console.error("Error converting BINARY_LINKED base64 to byte array:", e);
+        throw new Error(
+          "Invalid base64 value for BINARY_LINKED attribute",
+          { cause: e },
+        );
+      }
+    }
+    if (value instanceof ArrayBuffer) {
+      return this.arrayBufferToByteArray(value);
+    }
+    if (Array.isArray(value) && typeof value[0] === "number") {
+      return value;
+    }
+    return null;
   }
 
   // ─── Type recognition (single responsibility: attribute type checks) ─────────────

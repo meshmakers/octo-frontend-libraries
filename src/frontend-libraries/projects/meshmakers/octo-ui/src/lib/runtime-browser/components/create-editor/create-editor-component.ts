@@ -288,7 +288,11 @@ export class CreateEditorComponent {
     return Array.isArray(mapped) && mapped.length > 0;
   }
 
-  /** Builds the create mutation payload: ckTypeId, attributes, optional parent association. */
+  /**
+   * Builds the create mutation payload: ckTypeId, attributes, and an optional parent association.
+   * The association role defaults to "parent" (Basic/TreeNode convention) and can be overridden via
+   * CreateInput.parentRoleName for CK Types that expose the parent link under a different role name.
+   */
   private buildCreatePayload(
     attributes: { attributeName: string; value: unknown }[],
   ): RtEntityInputDto {
@@ -298,11 +302,12 @@ export class CreateEditorComponent {
       attributes,
     };
 
-    const parent = this.createInput()?.parent;
+    const input = this.createInput();
+    const parent = input?.parent;
     if (parent?.ckTypeId && parent?.rtId) {
       entity.associations = [
         {
-          roleName: "parent",
+          roleName: input?.parentRoleName ?? "parent",
           targets: [
             {
               modOption: AssociationModOptionsDto.CreateDto,
@@ -359,6 +364,11 @@ export interface CreateInput {
    * For child creation this is typically 'Basic/TreeNode'; for root-level it is 'Basic/Tree'.
    */
   derivedFromRtCkTypeId?: string;
+  /**
+   * Optional override for the parent association role name. Defaults to "parent" (Basic/TreeNode convention).
+   * Set this when creating an entity whose CK Type defines the parent link under a different role name.
+   */
+  parentRoleName?: string;
 }
 
 export interface CreateOutput {
