@@ -284,7 +284,7 @@ interface DirectionOption {
             <ng-template kendoTabContent>
               <div class="tab-content mapping-tab">
                 @if (!mappingTarget) {
-                  <div class="empty-state">
+                  <div class="mapping-empty">
                     <kendo-svgicon [icon]="linkIcon"></kendo-svgicon>
                     <p>{{ _messages.noMappingConfigured }}</p>
                     <button kendoButton themeColor="primary" (click)="onSelectTargetEntity()">
