@@ -30,6 +30,7 @@ import {
   GetCkTypesDtoGQL,
   RtEntityDto,
 } from '../graphQL/globalTypes';
+import { AssociationValidationService } from './services/association-validation.service';
 import {
   EntitySavedEvent,
   RuntimeBrowserDetailsComponent,
@@ -129,6 +130,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   private readonly stateService = inject(RuntimeBrowserStateService);
   private readonly typeHelperService = inject(TypeHelperService);
   private readonly notificationService = inject(NotificationService);
+  private readonly associationValidationService = inject(AssociationValidationService);
 
   private isSelectedItemAnRtEntity = false;
   private isLoading = false;
@@ -394,39 +396,61 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       return;
     }
 
-    const allowedSrcItemCkTypeIds = ['Basic/TreeNode'];
-
-    if (allowedSrcItemCkTypeIds.indexOf(event.sourceItem.ckTypeId) === -1) {
-      const msg = 'Moving item other than Basic/TreeNode is not supported';
-      this._showWarningNotification(msg);
-      console.debug(msg, event);
-      return;
-    }
-
-    const allowedDstParentItemCkTypeIds = ['Basic/TreeNode', 'Basic/Tree'];
-
-    if (
-      allowedDstParentItemCkTypeIds.indexOf(event.destinationItem.ckTypeId) ===
-      -1
-    ) {
-      const msg = 'Moving item to given parent is not supported';
-      this._showWarningNotification(msg);
-      console.debug(msg, event);
-      return;
-    }
-
     try {
+      const validation = await this.associationValidationService.canMove(
+        event.sourceItem.ckTypeId,
+        event.destinationItem.ckTypeId,
+      );
+
+      if (!validation.allowed || !validation.navigationPropertyName) {
+        const msg =
+          validation.reason ??
+          `Moving "${event.sourceItem.ckTypeId}" to "${event.destinationItem.ckTypeId}" is not allowed`;
+        this._showWarningNotification(msg);
+        return;
+      }
+
       this.isLoading = true;
       this.treeDetail.setEnabledState(false);
 
-      const updateSucceeded =
-        await this.dataSource.updateParentChildAssociation(
-          event.sourceItem.rtId,
-          event.sourceParent.ckTypeId,
-          event.sourceParent.rtId,
-          event.destinationItem.ckTypeId,
-          event.destinationItem.rtId,
-        );
+      // Use legacy TreeNode-specific mutation for Basic/TreeNode, generic mutation for all others
+      let updateSucceeded: boolean;
+      if (event.sourceItem.ckTypeId === 'Basic/TreeNode') {
+        updateSucceeded =
+          await this.dataSource.updateParentChildAssociation(
+            event.sourceItem.rtId,
+            event.sourceParent.ckTypeId,
+            event.sourceParent.rtId,
+            event.destinationItem.ckTypeId,
+            event.destinationItem.rtId,
+          );
+      } else {
+        // Resolve actual ParentChild parent from backend — the tree parent (event.sourceParent)
+        // may differ if the entity was loaded via RelatedClassification instead of ParentChild.
+        const actualParent =
+          await this.dataSource.getRuntimeEntityParentData(
+            event.sourceItem.ckTypeId,
+            event.sourceItem.rtId,
+          );
+
+        if (!actualParent) {
+          this._showWarningNotification(
+            'Cannot move entity: no ParentChild parent found',
+          );
+          return;
+        }
+
+        updateSucceeded =
+          await this.dataSource.updateEntityAssociation(
+            event.sourceItem.rtId,
+            event.sourceItem.ckTypeId,
+            validation.navigationPropertyName,
+            actualParent.ckTypeId,
+            actualParent.rtId,
+            event.destinationItem.ckTypeId,
+            event.destinationItem.rtId,
+          );
+      }
 
       // Update failed due to query / db error.
       if (!updateSucceeded) {
@@ -474,6 +498,9 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       console.error(
         'Error updating tree node parent after drag-and-drop:',
         error,
+      );
+      this._showWarningNotification(
+        'An error occurred while moving the entity',
       );
     } finally {
       this.treeDetail.setEnabledState(true);

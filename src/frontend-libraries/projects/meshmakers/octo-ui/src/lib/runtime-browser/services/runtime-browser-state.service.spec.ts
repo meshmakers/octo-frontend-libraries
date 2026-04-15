@@ -2,21 +2,21 @@ import { TestBed } from '@angular/core/testing';
 import {
   RuntimeBrowserStateService,
   BrowserState,
+  BrowserItem,
 } from './runtime-browser-state.service';
 import { TreeItemDataTyped } from '@meshmakers/shared-services';
-import { RtEntityDto } from '../../../../graphQL/globalTypes';
+import { CkModelDto, CkTypeDto, RtEntityDto } from '../../graphQL/globalTypes';
 import { fileIcon } from '@progress/kendo-svg-icons';
 
 describe('RuntimeBrowserStateService', () => {
   let service: RuntimeBrowserStateService;
 
-  // Helper to create mock TreeItemDataTyped
   const createTreeItem = (
     id: string,
     text: string,
-    item: RtEntityDto,
-  ): TreeItemDataTyped<RtEntityDto> => {
-    return new TreeItemDataTyped<RtEntityDto>(id, text, '', item, fileIcon, false);
+    item: BrowserItem,
+  ): TreeItemDataTyped<BrowserItem> => {
+    return new TreeItemDataTyped<BrowserItem>(id, text, '', item, fileIcon, false);
   };
 
   beforeEach(async () => {
@@ -161,10 +161,10 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should return null for expired state (>5 minutes old)', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',
@@ -245,14 +245,14 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should return false when item does not match', () => {
-      const rtEntity1: Partial<RtEntityDto> = {
+      const rtEntity1 = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
-      const rtEntity2: Partial<RtEntityDto> = {
+      } as RtEntityDto;
+      const rtEntity2 = {
         rtId: 'entity-2',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
 
       const item1 = createTreeItem(
         'Test/Entity@entity-1',
@@ -270,10 +270,10 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should return false when no state is saved', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
-      };
+      } as RtEntityDto;
       const item = createTreeItem(
         'Test/Entity@entity-1',
         'Test Entity',
@@ -286,10 +286,10 @@ describe('RuntimeBrowserStateService', () => {
 
   describe('item ID generation', () => {
     it('should generate correct ID for runtime entity', () => {
-      const rtEntity: Partial<RtEntityDto> = {
+      const rtEntity = {
         rtId: 'rt-123',
         ckTypeId: 'Custom/Type',
-      };
+      } as RtEntityDto;
       const item = createTreeItem('ignored', 'Entity', rtEntity);
 
       service.saveState(item);
@@ -297,7 +297,10 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should generate correct ID for CK model', () => {
-      const ckModel = { id: 'Basic', modelState: 'Released' };
+      const ckModel: CkModelDto = {
+        id: { fullName: 'Basic', name: 'Basic', semanticVersionedFullName: 'Basic', version: '1.0.0' },
+        dependencies: [],
+      };
       const item = createTreeItem('ignored', 'Basic Model', ckModel);
 
       service.saveState(item);
@@ -305,7 +308,12 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should generate correct ID for CK type', () => {
-      const ckType = { ckTypeId: 'Basic/Entity' };
+      const ckType: CkTypeDto = {
+        ckTypeId: { fullName: 'Basic/Entity', semanticVersionedFullName: 'Basic/Entity' },
+        isAbstract: false,
+        isFinal: false,
+        rtCkTypeId: 'Basic/Entity',
+      };
       const item = createTreeItem('ignored', 'Entity Type', ckType);
 
       service.saveState(item);
@@ -313,7 +321,7 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should generate correct ID for CK models root', () => {
-      const rootNode = { isCkModelsRoot: true };
+      const rootNode: BrowserItem = { isCkModelsRoot: true };
       const item = createTreeItem('ignored', 'CK Models', rootNode);
 
       service.saveState(item);
@@ -321,7 +329,7 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should use text as fallback for unknown item types', () => {
-      const unknownItem = { someProperty: 'value' };
+      const unknownItem: BrowserItem = { ckModelId: 'some-value' };
       const item = createTreeItem('ignored', 'Unknown Item', unknownItem);
 
       service.saveState(item);
@@ -329,7 +337,7 @@ describe('RuntimeBrowserStateService', () => {
     });
 
     it('should return "unknown" when text is empty', () => {
-      const unknownItem = { someProperty: 'value' };
+      const unknownItem: BrowserItem = { ckModelId: 'some-value' };
       const item = createTreeItem('id', '', unknownItem);
 
       service.saveState(item);
