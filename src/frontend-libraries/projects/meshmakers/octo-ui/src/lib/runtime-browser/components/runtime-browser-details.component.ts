@@ -18,8 +18,13 @@ import {
 import { ListViewComponent } from "@meshmakers/shared-ui";
 import { ButtonModule } from "@progress/kendo-angular-buttons";
 import { SVGIconModule } from "@progress/kendo-angular-icons";
+import { NotificationService } from "@progress/kendo-angular-notification";
 import { eyeIcon } from "@progress/kendo-svg-icons";
-import { CkModelDto, CkTypeDto, RtEntityDto } from "../../graphQL/globalTypes";
+import { firstValueFrom } from "rxjs";
+import { GraphDirectionDto, CkModelDto, CkTypeDto, RtEntityDto } from "../../graphQL/globalTypes";
+import { GetRuntimeEntityAssociationsByIdDtoGQL } from "../../graphQL/getRuntimeEntityAssociationsById";
+import { UpdateRuntimeEntitiesDtoGQL } from "../../graphQL/updateRuntimeEntities";
+import { EntitySelectorDialogService } from "../../entity-selector-dialog";
 import { CkTypeEntitiesDataSourceDirective } from "../data-sources/ck-type-entities-data-source.directive";
 import { EntityDetailDataSource } from "../data-sources/entity-detail-data-source.service";
 import { RtEntityIdHelper } from "../models/rt-entity-id";
@@ -107,10 +112,16 @@ export interface EntitySavedEvent {
                 [loading]="loading"
                 [error]="error"
                 [messages]="_messages"
+                [mappingTarget]="mappingTarget"
+                [sourceAttributeName]="sourceAttributeName"
+                [targetAttributeName]="targetAttributeName"
                 (retry)="loadFullEntityDetails()"
                 (navigateToEntity)="
                   navigateToEntity($event.rtId, $event.ckTypeId)
                 "
+                (selectMappingTarget)="onSelectMappingTarget()"
+                (saveMappingRequested)="onSaveMapping($event)"
+                (removeMappingRequested)="onRemoveMapping()"
               >
               </mm-entity-detail-view>
             } @else if (isCkModel(selectedItem.item)) {
@@ -221,6 +232,15 @@ export class RuntimeBrowserDetailsComponent
   private readonly stateService = inject(RuntimeBrowserStateService);
 
   protected readonly typeHelperService = inject(TypeHelperService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly getAssociationsGQL = inject(GetRuntimeEntityAssociationsByIdDtoGQL);
+  private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
+  private readonly entitySelectorDialog = inject(EntitySelectorDialogService);
+
+  // Data Mapping state
+  mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
+  sourceAttributeName = '';
+  targetAttributeName = '';
   protected readonly detailsIcon = eyeIcon;
   protected fullEntity: RtEntityDto | null = null;
 
@@ -348,6 +368,8 @@ export class RuntimeBrowserDetailsComponent
 
       if (!this.fullEntity) {
         this.error = this._messages.couldNotLoadEntityDetails;
+      } else {
+        await this.loadMapping();
       }
     } catch (error) {
       console.error("Failed to load full entity details:", error);
@@ -585,6 +607,169 @@ export class RuntimeBrowserDetailsComponent
     this.isUpdateModeEnabled = false;
     this.createInput = undefined;
     this.updateInput = undefined;
+  }
+
+  async loadMapping(): Promise<void> {
+    const entity = this.getEntityForDisplay();
+    if (!entity?.rtId || !entity?.ckTypeId) return;
+
+    try {
+      const result = await firstValueFrom(
+        this.getAssociationsGQL.fetch({
+          variables: {
+            rtId: entity.rtId,
+            ckTypeId: entity.ckTypeId,
+            direction: GraphDirectionDto.OutboundDto,
+            first: 10,
+          },
+        }),
+      );
+
+      const entityItem = result.data?.runtime?.runtimeEntities?.items?.[0];
+      const associations = entityItem?.associations?.definitions?.items ?? [];
+      const mapsToAssoc = associations.filter(Boolean).find(
+        (a) => a?.ckAssociationRoleId?.includes('MapsToEntity'),
+      );
+
+      if (mapsToAssoc && 'targetRtId' in mapsToAssoc && 'targetCkTypeId' in mapsToAssoc) {
+        this.mappingTarget = {
+          rtId: mapsToAssoc.targetRtId as string,
+          ckTypeId: mapsToAssoc.targetCkTypeId as string,
+        };
+      } else {
+        this.mappingTarget = null;
+      }
+
+      const sourceAttr = entity.attributes?.items?.find(
+        (a) => a?.attributeName === 'sourceAttributeName',
+      );
+      this.sourceAttributeName = (sourceAttr?.value as string) ?? '';
+
+      const targetAttr = entity.attributes?.items?.find(
+        (a) => a?.attributeName === 'targetAttributeName',
+      );
+      this.targetAttributeName = (targetAttr?.value as string) ?? '';
+    } catch (error) {
+      console.error('Failed to load mapping:', error);
+    }
+  }
+
+  async onSelectMappingTarget(): Promise<void> {
+    const result = await this.entitySelectorDialog.openEntitySelector({
+      title: 'Select Mapping Target Entity',
+      currentTargetRtId: this.mappingTarget?.rtId,
+      currentTargetCkTypeId: this.mappingTarget?.ckTypeId,
+    });
+
+    if (result.confirmed && result.entity) {
+      this.mappingTarget = {
+        rtId: result.entity.rtId,
+        ckTypeId: result.entity.ckTypeId,
+        name: result.entity.name,
+      };
+    }
+  }
+
+  async onSaveMapping(event: {
+    targetRtId: string;
+    targetCkTypeId: string;
+    sourceAttributeName: string;
+    targetAttributeName: string;
+  }): Promise<void> {
+    const entity = this.getEntityForDisplay();
+    if (!entity?.rtId || !entity?.ckTypeId) return;
+
+    try {
+      await firstValueFrom(
+        this.updateEntitiesGQL.mutate({
+          variables: {
+            entities: [{
+              rtId: entity.rtId,
+              item: {
+                ckTypeId: entity.ckTypeId,
+                attributes: [
+                  { attributeName: 'sourceAttributeName', value: event.sourceAttributeName || null },
+                  { attributeName: 'targetAttributeName', value: event.targetAttributeName },
+                  {
+                    attributeName: 'mapsTo',
+                    value: [{ target: { rtId: event.targetRtId, ckTypeId: event.targetCkTypeId } }],
+                  },
+                ],
+              },
+            }],
+          },
+        }),
+      );
+
+      this.targetAttributeName = event.targetAttributeName;
+      this.notificationService.show({
+        content: this._messages.mappingSaved,
+        type: { style: 'success', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 3000,
+        animation: { type: 'fade', duration: 400 },
+      });
+    } catch (error) {
+      console.error('Failed to save mapping:', error);
+      this.notificationService.show({
+        content: this._messages.failedToSaveMapping,
+        type: { style: 'error', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 3000,
+        animation: { type: 'fade', duration: 400 },
+      });
+    }
+  }
+
+  async onRemoveMapping(): Promise<void> {
+    const entity = this.getEntityForDisplay();
+    if (!entity?.rtId || !entity?.ckTypeId || !this.mappingTarget) return;
+
+    try {
+      await firstValueFrom(
+        this.updateEntitiesGQL.mutate({
+          variables: {
+            entities: [{
+              rtId: entity.rtId,
+              item: {
+                ckTypeId: entity.ckTypeId,
+                attributes: [
+                  { attributeName: 'sourceAttributeName', value: null },
+                  { attributeName: 'targetAttributeName', value: null },
+                  {
+                    attributeName: 'mapsTo',
+                    value: [{
+                      target: { rtId: this.mappingTarget.rtId, ckTypeId: this.mappingTarget.ckTypeId },
+                      modOption: 'DELETE',
+                    }],
+                  },
+                ],
+              },
+            }],
+          },
+        }),
+      );
+
+      this.mappingTarget = null;
+      this.sourceAttributeName = '';
+      this.targetAttributeName = '';
+      this.notificationService.show({
+        content: this._messages.mappingRemoved,
+        type: { style: 'success', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 3000,
+        animation: { type: 'fade', duration: 400 },
+      });
+    } catch (error) {
+      console.error('Failed to remove mapping:', error);
+      this.notificationService.show({
+        content: this._messages.failedToSaveMapping,
+        type: { style: 'error', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 3000,
+        animation: { type: 'fade', duration: 400 },
+      });
+    }
   }
 }
 
