@@ -695,7 +695,7 @@ export class RuntimeBrowserDetailsComponent
                   { attributeName: 'sourceAttributeName', value: event.sourceAttributeName || null },
                   { attributeName: 'targetAttributeName', value: event.targetAttributeName },
                   {
-                    attributeName: 'mapsTo',
+                    attributeName: 'mappedFrom',
                     value: [{ target: { rtId: event.targetRtId, ckTypeId: event.targetCkTypeId } }],
                   },
                 ],
@@ -741,7 +741,7 @@ export class RuntimeBrowserDetailsComponent
                   { attributeName: 'sourceAttributeName', value: null },
                   { attributeName: 'targetAttributeName', value: null },
                   {
-                    attributeName: 'mapsTo',
+                    attributeName: 'mappedFrom',
                     value: [{
                       target: { rtId: this.mappingTarget.rtId, ckTypeId: this.mappingTarget.ckTypeId },
                       modOption: 'DELETE',
