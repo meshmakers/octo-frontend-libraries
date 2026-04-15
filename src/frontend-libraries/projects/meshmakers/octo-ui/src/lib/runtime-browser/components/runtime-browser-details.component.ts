@@ -785,6 +785,10 @@ export class RuntimeBrowserDetailsComponent
       this.sourceAttributeName ? [this.sourceAttributeName] : undefined,
       'Select Source Attribute',
       true,
+      undefined,
+      false,
+      undefined,
+      true,
     );
 
     if (result.confirmed && result.selectedAttributes.length > 0) {
@@ -799,6 +803,10 @@ export class RuntimeBrowserDetailsComponent
       this.mappingTarget.ckTypeId,
       this.targetAttributeName ? [this.targetAttributeName] : undefined,
       'Select Target Attribute',
+      true,
+      undefined,
+      false,
+      undefined,
       true,
     );
 
