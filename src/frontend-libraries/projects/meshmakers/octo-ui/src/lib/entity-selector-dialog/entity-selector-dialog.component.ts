@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { WindowRef } from '@progress/kendo-angular-dialog';
+import { DialogRef } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { TextBoxModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
@@ -126,7 +126,7 @@ import { EntitySelectorDialogData, EntitySelectorDialogResult } from './entity-s
   `],
 })
 export class EntitySelectorDialogComponent {
-  private readonly windowRef = inject(WindowRef);
+  private readonly dialogRef = inject(DialogRef);
 
   data: EntitySelectorDialogData = {};
 
@@ -181,11 +181,11 @@ export class EntitySelectorDialogComponent {
         rtId: this.parsedRtId,
         ckTypeId: this.parsedCkTypeId,
       };
-      this.windowRef.close(result);
+      this.dialogRef.close(result);
     }
   }
 
   onCancel(): void {
-    this.windowRef.close();
+    this.dialogRef.close();
   }
 }

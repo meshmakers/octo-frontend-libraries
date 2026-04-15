@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { WindowService, WindowCloseResult } from '@progress/kendo-angular-dialog';
+import { DialogService, DialogCloseResult } from '@progress/kendo-angular-dialog';
 import { firstValueFrom } from 'rxjs';
-import { WindowStateService } from '@meshmakers/shared-ui';
 import { EntitySelectorDialogComponent } from './entity-selector-dialog.component';
 import {
   EntitySelectorDialogData,
@@ -17,47 +16,39 @@ export interface EntitySelectorResult {
   providedIn: 'root'
 })
 export class EntitySelectorDialogService {
-  private readonly windowService = inject(WindowService);
-  private readonly windowStateService = inject(WindowStateService);
+  private readonly dialogService = inject(DialogService);
 
   public async openEntitySelector(
     data?: EntitySelectorDialogData
   ): Promise<EntitySelectorResult> {
-    const size = this.windowStateService.resolveWindowSize('entity-selector', { width: 600, height: 350 });
-
-    const windowRef = this.windowService.open({
+    const dialogRef = this.dialogService.open({
       content: EntitySelectorDialogComponent,
-      width: size.width,
-      height: size.height,
+      width: 600,
       minWidth: 500,
-      minHeight: 280,
-      resizable: true,
-      title: data?.title ?? 'Select Target Entity'
+      title: data?.title ?? 'Select Target Entity',
     });
 
-    this.windowStateService.applyModalBehavior('entity-selector', windowRef);
-
-    const contentRef = windowRef.content as { instance?: EntitySelectorDialogComponent } | undefined;
-    if (contentRef?.instance && data) {
-      contentRef.instance.data = data;
+    const contentRef = dialogRef.content.instance as EntitySelectorDialogComponent;
+    if (data) {
+      contentRef.data = data;
       if (data.currentTargetRtId && data.currentTargetCkTypeId) {
-        contentRef.instance.entityIdentifier =
+        contentRef.entityIdentifier =
           `${data.currentTargetCkTypeId}@${data.currentTargetRtId}`;
-        contentRef.instance.onIdentifierChange(contentRef.instance.entityIdentifier);
+        contentRef.onIdentifierChange(contentRef.entityIdentifier);
       }
     }
 
     try {
-      const result = await firstValueFrom(windowRef.result);
+      const result = await firstValueFrom(dialogRef.result);
 
-      if (result instanceof WindowCloseResult) {
+      if (result instanceof DialogCloseResult) {
         return { confirmed: false };
       }
 
       if (result && typeof result === 'object' && 'rtId' in result) {
         return {
           confirmed: true,
-          entity: result as EntitySelectorDialogResult
+          entity: result as unknown as EntitySelectorDialogResult
         };
       }
 
