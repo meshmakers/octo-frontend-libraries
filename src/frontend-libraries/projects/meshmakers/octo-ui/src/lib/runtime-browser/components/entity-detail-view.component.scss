@@ -390,6 +390,22 @@
         }
       }
 
+      .attribute-picker {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: 1px solid var(--kendo-color-border, #dee2e6);
+        background: var(--kendo-color-surface-alt, #f8f9fa);
+
+        .attribute-value {
+          flex: 1;
+          font-family: monospace;
+          font-size: 0.85rem;
+        }
+      }
+
       .mapping-actions {
         display: flex;
         gap: 8px;

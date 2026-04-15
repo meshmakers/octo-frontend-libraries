@@ -318,17 +318,27 @@ interface DirectionOption {
                     </div>
                     <div class="mapping-field">
                       <label>{{ _messages.mappingSourceAttribute }}:</label>
-                      <kendo-textbox
-                        [(value)]="sourceAttributeName"
-                        placeholder="e.g. CurrentValue (leave empty for default)"
-                      ></kendo-textbox>
+                      <div class="attribute-picker">
+                        <span class="attribute-value">{{ sourceAttributeName || '(default)' }}</span>
+                        <button
+                          kendoButton
+                          fillMode="flat"
+                          size="small"
+                          (click)="onSelectSourceAttribute()"
+                        >Select...</button>
+                      </div>
                     </div>
                     <div class="mapping-field">
                       <label>{{ _messages.mappingTargetAttribute }}:</label>
-                      <kendo-textbox
-                        [(value)]="targetAttributeName"
-                        placeholder="e.g. Temperature, Humidity, LightingLevel"
-                      ></kendo-textbox>
+                      <div class="attribute-picker">
+                        <span class="attribute-value">{{ targetAttributeName || '(not set)' }}</span>
+                        <button
+                          kendoButton
+                          fillMode="flat"
+                          size="small"
+                          (click)="onSelectTargetAttribute()"
+                        >Select...</button>
+                      </div>
                     </div>
                     <div class="mapping-actions">
                       <button kendoButton themeColor="primary" (click)="onSaveMapping()">
@@ -372,6 +382,8 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     targetAttributeName: string;
   }>();
   @Output() removeMappingRequested = new EventEmitter<void>();
+  @Output() selectSourceAttribute = new EventEmitter<void>();
+  @Output() selectTargetAttribute = new EventEmitter<void>();
 
   @ViewChild("associationsDir", { static: false })
   associationsDataSource?: EntityAssociationsDataSourceDirective;
@@ -615,6 +627,14 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   protected onRemoveMapping(): void {
     this.removeMappingRequested.emit();
+  }
+
+  protected onSelectSourceAttribute(): void {
+    this.selectSourceAttribute.emit();
+  }
+
+  protected onSelectTargetAttribute(): void {
+    this.selectTargetAttribute.emit();
   }
 
   getEntityIdentifier(): string {

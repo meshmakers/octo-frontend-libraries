@@ -24,6 +24,7 @@ import { firstValueFrom } from "rxjs";
 import { GraphDirectionDto, CkModelDto, CkTypeDto, RtEntityDto } from "../../graphQL/globalTypes";
 import { GetRuntimeEntityAssociationsByIdDtoGQL } from "../../graphQL/getRuntimeEntityAssociationsById";
 import { UpdateRuntimeEntitiesDtoGQL } from "../../graphQL/updateRuntimeEntities";
+import { AttributeSelectorDialogService } from "../../attribute-selector-dialog";
 import { EntitySelectorDialogService } from "../../entity-selector-dialog";
 import { CkTypeEntitiesDataSourceDirective } from "../data-sources/ck-type-entities-data-source.directive";
 import { EntityDetailDataSource } from "../data-sources/entity-detail-data-source.service";
@@ -122,6 +123,8 @@ export interface EntitySavedEvent {
                 (selectMappingTarget)="onSelectMappingTarget()"
                 (saveMappingRequested)="onSaveMapping($event)"
                 (removeMappingRequested)="onRemoveMapping()"
+                (selectSourceAttribute)="onSelectSourceAttribute()"
+                (selectTargetAttribute)="onSelectTargetAttribute()"
               >
               </mm-entity-detail-view>
             } @else if (isCkModel(selectedItem.item)) {
@@ -236,6 +239,7 @@ export class RuntimeBrowserDetailsComponent
   private readonly getAssociationsGQL = inject(GetRuntimeEntityAssociationsByIdDtoGQL);
   private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
   private readonly entitySelectorDialog = inject(EntitySelectorDialogService);
+  private readonly attributeSelectorDialog = inject(AttributeSelectorDialogService);
 
   // Data Mapping state
   mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
@@ -769,6 +773,37 @@ export class RuntimeBrowserDetailsComponent
         hideAfter: 3000,
         animation: { type: 'fade', duration: 400 },
       });
+    }
+  }
+
+  async onSelectSourceAttribute(): Promise<void> {
+    const entity = this.getEntityForDisplay();
+    if (!entity?.ckTypeId) return;
+
+    const result = await this.attributeSelectorDialog.openAttributeSelector(
+      entity.ckTypeId,
+      this.sourceAttributeName ? [this.sourceAttributeName] : undefined,
+      'Select Source Attribute',
+      true,
+    );
+
+    if (result.confirmed && result.selectedAttributes.length > 0) {
+      this.sourceAttributeName = result.selectedAttributes[0].attributePath;
+    }
+  }
+
+  async onSelectTargetAttribute(): Promise<void> {
+    if (!this.mappingTarget?.ckTypeId) return;
+
+    const result = await this.attributeSelectorDialog.openAttributeSelector(
+      this.mappingTarget.ckTypeId,
+      this.targetAttributeName ? [this.targetAttributeName] : undefined,
+      'Select Target Attribute',
+      true,
+    );
+
+    if (result.confirmed && result.selectedAttributes.length > 0) {
+      this.targetAttributeName = result.selectedAttributes[0].attributePath;
     }
   }
 }
