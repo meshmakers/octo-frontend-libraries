@@ -26,6 +26,7 @@ import {
   copyIcon,
   eyeIcon,
   gearIcon,
+  hyperlinkOpenIcon,
   infoCircleIcon,
 } from "@progress/kendo-svg-icons";
 import { firstValueFrom, Subject } from "rxjs";
@@ -278,6 +279,63 @@ interface DirectionOption {
               </div>
             </ng-template>
           </kendo-tabstrip-tab>
+
+          <kendo-tabstrip-tab [title]="_messages.dataMapping">
+            <ng-template kendoTabContent>
+              <div class="tab-content mapping-tab">
+                @if (!mappingTarget) {
+                  <div class="empty-state">
+                    <kendo-svgicon [icon]="linkIcon"></kendo-svgicon>
+                    <p>{{ _messages.noMappingConfigured }}</p>
+                    <button kendoButton themeColor="primary" (click)="onSelectTargetEntity()">
+                      {{ _messages.selectTargetEntity }}
+                    </button>
+                  </div>
+                }
+                @if (mappingTarget) {
+                  <div class="mapping-config">
+                    <div class="mapping-field">
+                      <label>{{ _messages.mappingTarget }}:</label>
+                      <div class="mapping-target-display">
+                        <span class="target-type">{{ mappingTarget.ckTypeId }}</span>
+                        <span class="target-name">{{ mappingTarget.name || mappingTarget.rtId }}</span>
+                        <button
+                          kendoButton
+                          fillMode="flat"
+                          size="small"
+                          [svgIcon]="detailsIcon"
+                          [title]="_messages.viewDetails"
+                          (click)="navigateToEntity.emit({ rtId: mappingTarget.rtId, ckTypeId: mappingTarget.ckTypeId })"
+                        ></button>
+                        <button
+                          kendoButton
+                          fillMode="flat"
+                          size="small"
+                          themeColor="primary"
+                          (click)="onSelectTargetEntity()"
+                        >Change</button>
+                      </div>
+                    </div>
+                    <div class="mapping-field">
+                      <label>{{ _messages.mappingTargetAttribute }}:</label>
+                      <kendo-textbox
+                        [(value)]="targetAttributeName"
+                        placeholder="e.g. Temperature, Humidity, LightingLevel"
+                      ></kendo-textbox>
+                    </div>
+                    <div class="mapping-actions">
+                      <button kendoButton themeColor="primary" (click)="onSaveMapping()">
+                        {{ _messages.saveMapping }}
+                      </button>
+                      <button kendoButton (click)="onRemoveMapping()">
+                        {{ _messages.removeMapping }}
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </ng-template>
+          </kendo-tabstrip-tab>
         </kendo-tabstrip>
       </div>
     }
@@ -299,6 +357,13 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     rtId: string;
     ckTypeId: string;
   }>();
+  @Output() selectMappingTarget = new EventEmitter<void>();
+  @Output() saveMappingRequested = new EventEmitter<{
+    targetRtId: string;
+    targetCkTypeId: string;
+    targetAttributeName: string;
+  }>();
+  @Output() removeMappingRequested = new EventEmitter<void>();
 
   @ViewChild("associationsDir", { static: false })
   associationsDataSource?: EntityAssociationsDataSourceDirective;
@@ -314,6 +379,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   protected readonly propertiesIcon = gearIcon;
   protected readonly copyIcon = copyIcon;
   protected readonly detailsIcon = eyeIcon;
+  protected readonly linkIcon = hyperlinkOpenIcon;
 
   propertyGridItems: PropertyGridItem[] = [];
   propertyGridConfig: PropertyGridConfig = {
@@ -350,6 +416,10 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   // Related Entity filter
   protected selectedRelatedRtId: string | null = null;
+
+  // Data Mapping state
+  @Input() mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
+  @Input() targetAttributeName = '';
 
   // Debounced filter subjects
   private readonly destroy$ = new Subject<void>();
@@ -462,7 +532,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   }
 
   protected onTabSelect(event: SelectEvent): void {
-    // Tab 0 = Attributes, Tab 1 = Associations
+    // Tab 0 = Attributes, Tab 1 = Associations, Tab 2 = Data Mapping
     if (event.index === 1) {
       this.loadAssociations();
     }
@@ -518,6 +588,24 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
       });
     }
   };
+
+  protected onSelectTargetEntity(): void {
+    this.selectMappingTarget.emit();
+  }
+
+  protected onSaveMapping(): void {
+    if (this.mappingTarget && this.targetAttributeName) {
+      this.saveMappingRequested.emit({
+        targetRtId: this.mappingTarget.rtId,
+        targetCkTypeId: this.mappingTarget.ckTypeId,
+        targetAttributeName: this.targetAttributeName,
+      });
+    }
+  }
+
+  protected onRemoveMapping(): void {
+    this.removeMappingRequested.emit();
+  }
 
   getEntityIdentifier(): string {
     if (!this.entity?.ckTypeId || !this.entity?.rtId) {

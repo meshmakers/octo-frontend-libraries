@@ -343,5 +343,58 @@
         }
       }
     }
+
+    // ============================================================================
+    // DATA MAPPING TAB
+    // ============================================================================
+    .mapping-tab {
+      .mapping-config {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 8px 0;
+      }
+
+      .mapping-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        label {
+          font-size: 0.8rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: var(--kendo-color-subtle, #6c757d);
+        }
+      }
+
+      .mapping-target-display {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 4px;
+        border: 1px solid var(--kendo-color-border, #dee2e6);
+        background: var(--kendo-color-surface-alt, #f8f9fa);
+
+        .target-type {
+          font-size: 0.75rem;
+          color: var(--kendo-color-subtle, #6c757d);
+          font-family: monospace;
+        }
+
+        .target-name {
+          font-weight: 600;
+          flex: 1;
+        }
+      }
+
+      .mapping-actions {
+        display: flex;
+        gap: 8px;
+        padding-top: 8px;
+      }
+    }
   }
 }

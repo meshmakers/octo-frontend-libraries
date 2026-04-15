@@ -79,6 +79,17 @@ export interface RuntimeBrowserMessages {
   go: string;
   created: string;
   modified: string;
+  dataMapping: string;
+  mappingTarget: string;
+  mappingTargetAttribute: string;
+  selectTargetEntity: string;
+  removeMapping: string;
+  saveMapping: string;
+  noMappingConfigured: string;
+  mappingSaved: string;
+  mappingRemoved: string;
+  failedToSaveMapping: string;
+  failedToLoadMapping: string;
 }
 
 /**
@@ -164,4 +175,15 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   go: 'Go',
   created: 'Created',
   modified: 'Modified',
+  dataMapping: 'Data Mapping',
+  mappingTarget: 'Target Entity',
+  mappingTargetAttribute: 'Target Attribute',
+  selectTargetEntity: 'Select Target Entity...',
+  removeMapping: 'Remove Mapping',
+  saveMapping: 'Save Mapping',
+  noMappingConfigured: 'No data mapping configured. Select a target entity to map this data point.',
+  mappingSaved: 'Data mapping saved successfully',
+  mappingRemoved: 'Data mapping removed',
+  failedToSaveMapping: 'Failed to save data mapping',
+  failedToLoadMapping: 'Failed to load data mapping',
 };
