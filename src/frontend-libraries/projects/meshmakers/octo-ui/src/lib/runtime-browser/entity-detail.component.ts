@@ -49,6 +49,7 @@ import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
         [loading]="loading"
         [error]="error"
         [mappingTarget]="mappingTarget"
+        [sourceAttributeName]="sourceAttributeName"
         [targetAttributeName]="targetAttributeName"
         (retry)="loadEntity()"
         (propertyChange)="onPropertyChange($event)"
@@ -82,6 +83,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
 
   // Data Mapping state
   mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
+  sourceAttributeName = '';
   targetAttributeName = '';
 
   async ngOnInit(): Promise<void> {
@@ -207,7 +209,12 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
         this.mappingTarget = null;
       }
 
-      // Read TargetAttributeName from entity attributes
+      // Read mapping attributes from entity
+      const sourceAttr = this.entity.attributes?.items?.find(
+        (a) => a?.attributeName === 'sourceAttributeName',
+      );
+      this.sourceAttributeName = (sourceAttr?.value as string) ?? '';
+
       const targetAttr = this.entity.attributes?.items?.find(
         (a) => a?.attributeName === 'targetAttributeName',
       );
@@ -242,6 +249,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   async onSaveMapping(event: {
     targetRtId: string;
     targetCkTypeId: string;
+    sourceAttributeName: string;
     targetAttributeName: string;
   }): Promise<void> {
     if (!this.entity?.rtId || !this.entity?.ckTypeId) return;
@@ -256,6 +264,10 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
                 item: {
                   ckTypeId: this.entity.ckTypeId,
                   attributes: [
+                    {
+                      attributeName: 'sourceAttributeName',
+                      value: event.sourceAttributeName || null,
+                    },
                     {
                       attributeName: 'targetAttributeName',
                       value: event.targetAttributeName,
@@ -317,6 +329,10 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
                   ckTypeId: this.entity.ckTypeId,
                   attributes: [
                     {
+                      attributeName: 'sourceAttributeName',
+                      value: null,
+                    },
+                    {
                       attributeName: 'targetAttributeName',
                       value: null,
                     },
@@ -341,6 +357,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
       );
 
       this.mappingTarget = null;
+      this.sourceAttributeName = '';
       this.targetAttributeName = '';
       this.notificationService.show({
         content: 'Data mapping removed',

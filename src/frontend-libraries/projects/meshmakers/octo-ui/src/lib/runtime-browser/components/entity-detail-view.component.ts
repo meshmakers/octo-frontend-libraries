@@ -317,6 +317,13 @@ interface DirectionOption {
                       </div>
                     </div>
                     <div class="mapping-field">
+                      <label>{{ _messages.mappingSourceAttribute }}:</label>
+                      <kendo-textbox
+                        [(value)]="sourceAttributeName"
+                        placeholder="e.g. CurrentValue (leave empty for default)"
+                      ></kendo-textbox>
+                    </div>
+                    <div class="mapping-field">
                       <label>{{ _messages.mappingTargetAttribute }}:</label>
                       <kendo-textbox
                         [(value)]="targetAttributeName"
@@ -361,6 +368,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   @Output() saveMappingRequested = new EventEmitter<{
     targetRtId: string;
     targetCkTypeId: string;
+    sourceAttributeName: string;
     targetAttributeName: string;
   }>();
   @Output() removeMappingRequested = new EventEmitter<void>();
@@ -419,6 +427,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   // Data Mapping state
   @Input() mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
+  @Input() sourceAttributeName = '';
   @Input() targetAttributeName = '';
 
   // Debounced filter subjects
@@ -598,6 +607,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
       this.saveMappingRequested.emit({
         targetRtId: this.mappingTarget.rtId,
         targetCkTypeId: this.mappingTarget.ckTypeId,
+        sourceAttributeName: this.sourceAttributeName,
         targetAttributeName: this.targetAttributeName,
       });
     }

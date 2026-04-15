@@ -81,6 +81,7 @@ export interface RuntimeBrowserMessages {
   modified: string;
   dataMapping: string;
   mappingTarget: string;
+  mappingSourceAttribute: string;
   mappingTargetAttribute: string;
   selectTargetEntity: string;
   removeMapping: string;
@@ -177,6 +178,7 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   modified: 'Modified',
   dataMapping: 'Data Mapping',
   mappingTarget: 'Target Entity',
+  mappingSourceAttribute: 'Source Attribute',
   mappingTargetAttribute: 'Target Attribute',
   selectTargetEntity: 'Select Target Entity...',
   removeMapping: 'Remove Mapping',
