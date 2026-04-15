@@ -23,19 +23,16 @@ export class EntitySelectorDialogService {
   ): Promise<EntitySelectorResult> {
     const dialogRef = this.dialogService.open({
       content: EntitySelectorDialogComponent,
-      width: 600,
-      minWidth: 500,
+      width: 500,
+      height: 600,
+      minWidth: 400,
+      minHeight: 400,
       title: data?.title ?? 'Select Target Entity',
     });
 
     const contentRef = dialogRef.content.instance as EntitySelectorDialogComponent;
     if (data) {
       contentRef.data = data;
-      if (data.currentTargetRtId && data.currentTargetCkTypeId) {
-        contentRef.entityIdentifier =
-          `${data.currentTargetCkTypeId}@${data.currentTargetRtId}`;
-        contentRef.onIdentifierChange(contentRef.entityIdentifier);
-      }
     }
 
     try {
