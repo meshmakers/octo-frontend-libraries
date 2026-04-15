@@ -348,20 +348,44 @@
     // DATA MAPPING TAB
     // ============================================================================
     .mapping-tab {
+      padding: 12px;
+
       .mapping-config {
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        padding: 8px 0;
+        gap: 20px;
+      }
+
+      .mapping-section {
+        border: 1px solid var(--kendo-color-border, #dee2e6);
+        border-radius: 6px;
+        overflow: hidden;
+
+        .section-header {
+          padding: 8px 14px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: var(--kendo-color-on-primary, #ffffff);
+          background: var(--kendo-color-primary, #ff6358);
+        }
+
+        .section-body {
+          padding: 12px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
       }
 
       .mapping-field {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
 
         label {
-          font-size: 0.8rem;
+          font-size: 0.75rem;
           font-weight: 600;
           text-transform: uppercase;
           letter-spacing: 0.5px;
@@ -373,15 +397,15 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 12px;
-        border-radius: 4px;
-        border: 1px solid var(--kendo-color-border, #dee2e6);
-        background: var(--kendo-color-surface-alt, #f8f9fa);
 
         .target-type {
           font-size: 0.75rem;
           color: var(--kendo-color-subtle, #6c757d);
           font-family: monospace;
+          padding: 2px 6px;
+          border-radius: 3px;
+          background: var(--kendo-color-surface-alt, #f8f9fa);
+          border: 1px solid var(--kendo-color-border, #dee2e6);
         }
 
         .target-name {
@@ -394,10 +418,11 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 12px;
+        padding: 4px 10px;
         border-radius: 4px;
         border: 1px solid var(--kendo-color-border, #dee2e6);
         background: var(--kendo-color-surface-alt, #f8f9fa);
+        min-height: 32px;
 
         .attribute-value {
           flex: 1;
@@ -409,7 +434,8 @@
       .mapping-actions {
         display: flex;
         gap: 8px;
-        padding-top: 8px;
+        justify-content: flex-end;
+        padding-top: 4px;
       }
     }
   }

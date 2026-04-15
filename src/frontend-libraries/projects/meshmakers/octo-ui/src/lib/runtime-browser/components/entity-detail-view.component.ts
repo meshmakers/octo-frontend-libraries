@@ -294,58 +294,53 @@ interface DirectionOption {
                 }
                 @if (mappingTarget) {
                   <div class="mapping-config">
-                    <div class="mapping-field">
-                      <label>{{ _messages.mappingTarget }}:</label>
-                      <div class="mapping-target-display">
-                        <span class="target-type">{{ mappingTarget.ckTypeId }}</span>
-                        <span class="target-name">{{ mappingTarget.name || mappingTarget.rtId }}</span>
-                        <button
-                          kendoButton
-                          fillMode="flat"
-                          size="small"
-                          [svgIcon]="detailsIcon"
-                          [title]="_messages.viewDetails"
-                          (click)="navigateToEntity.emit({ rtId: mappingTarget.rtId, ckTypeId: mappingTarget.ckTypeId })"
-                        ></button>
-                        <button
-                          kendoButton
-                          fillMode="flat"
-                          size="small"
-                          themeColor="primary"
-                          (click)="onSelectTargetEntity()"
-                        >Change</button>
+                    <!-- Target Entity Section -->
+                    <div class="mapping-section">
+                      <div class="section-header">{{ _messages.mappingTarget }}</div>
+                      <div class="section-body">
+                        <div class="mapping-target-display">
+                          <span class="target-type">{{ mappingTarget.ckTypeId }}</span>
+                          <span class="target-name">{{ mappingTarget.name || mappingTarget.rtId }}</span>
+                          <button kendoButton fillMode="flat" size="small" [svgIcon]="detailsIcon"
+                            [title]="_messages.viewDetails"
+                            (click)="navigateToEntity.emit({ rtId: mappingTarget.rtId, ckTypeId: mappingTarget.ckTypeId })">
+                          </button>
+                          <button kendoButton fillMode="flat" size="small" themeColor="primary"
+                            (click)="onSelectTargetEntity()">Change</button>
+                        </div>
                       </div>
                     </div>
-                    <div class="mapping-field">
-                      <label>{{ _messages.mappingSourceAttribute }}:</label>
-                      <div class="attribute-picker">
-                        <span class="attribute-value">{{ sourceAttributeName || '(default)' }}</span>
-                        <button
-                          kendoButton
-                          fillMode="flat"
-                          size="small"
-                          (click)="onSelectSourceAttribute()"
-                        >Select...</button>
+
+                    <!-- Attribute Mapping Section -->
+                    <div class="mapping-section">
+                      <div class="section-header">Attribute Mapping</div>
+                      <div class="section-body">
+                        <div class="mapping-field">
+                          <label>{{ _messages.mappingSourceAttribute }}</label>
+                          <div class="attribute-picker">
+                            <span class="attribute-value">{{ sourceAttributeName || '(default)' }}</span>
+                            <button kendoButton fillMode="flat" size="small"
+                              (click)="onSelectSourceAttribute()">Select...</button>
+                          </div>
+                        </div>
+                        <div class="mapping-field">
+                          <label>{{ _messages.mappingTargetAttribute }}</label>
+                          <div class="attribute-picker">
+                            <span class="attribute-value">{{ targetAttributeName || '(not set)' }}</span>
+                            <button kendoButton fillMode="flat" size="small"
+                              (click)="onSelectTargetAttribute()">Select...</button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div class="mapping-field">
-                      <label>{{ _messages.mappingTargetAttribute }}:</label>
-                      <div class="attribute-picker">
-                        <span class="attribute-value">{{ targetAttributeName || '(not set)' }}</span>
-                        <button
-                          kendoButton
-                          fillMode="flat"
-                          size="small"
-                          (click)="onSelectTargetAttribute()"
-                        >Select...</button>
-                      </div>
-                    </div>
+
+                    <!-- Actions -->
                     <div class="mapping-actions">
-                      <button kendoButton themeColor="primary" (click)="onSaveMapping()">
-                        {{ _messages.saveMapping }}
-                      </button>
                       <button kendoButton (click)="onRemoveMapping()">
                         {{ _messages.removeMapping }}
+                      </button>
+                      <button kendoButton themeColor="primary" (click)="onSaveMapping()">
+                        {{ _messages.saveMapping }}
                       </button>
                     </div>
                   </div>
