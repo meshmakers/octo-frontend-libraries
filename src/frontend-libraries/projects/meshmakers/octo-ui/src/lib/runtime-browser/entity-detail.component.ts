@@ -9,6 +9,7 @@ import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { GraphDirectionDto, RtEntityDto } from '../graphQL/globalTypes';
 import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../graphQL/getRuntimeEntityAssociationsById';
 import { UpdateRuntimeEntitiesDtoGQL } from '../graphQL/updateRuntimeEntities';
+import { EntitySelectorDialogService } from '../entity-selector-dialog';
 import { EntityDetailViewComponent } from './components/entity-detail-view.component';
 import { EntityDetailDataSource } from './data-sources/entity-detail-data-source.service';
 import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
@@ -69,6 +70,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly getAssociationsGQL = inject(GetRuntimeEntityAssociationsByIdDtoGQL);
   private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
+  private readonly entitySelectorDialog = inject(EntitySelectorDialogService);
   private readonly destroy$ = new Subject<void>();
 
   protected readonly arrowLeftIcon = arrowLeftIcon;
@@ -216,17 +218,20 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Open target entity selector (prompt for now, dialog later)
+   * Open target entity selector dialog
    */
-  onSelectMappingTarget(): void {
-    const input = prompt('Enter target entity identifier (ckTypeId@rtId):');
-    if (!input) return;
+  async onSelectMappingTarget(): Promise<void> {
+    const result = await this.entitySelectorDialog.openEntitySelector({
+      title: 'Select Mapping Target Entity',
+      currentTargetRtId: this.mappingTarget?.rtId,
+      currentTargetCkTypeId: this.mappingTarget?.ckTypeId,
+    });
 
-    const parts = input.split('@');
-    if (parts.length === 2) {
+    if (result.confirmed && result.entity) {
       this.mappingTarget = {
-        ckTypeId: parts[0],
-        rtId: parts[1],
+        rtId: result.entity.rtId,
+        ckTypeId: result.entity.ckTypeId,
+        name: result.entity.name,
       };
     }
   }
