@@ -350,6 +350,20 @@
     .mapping-tab {
       padding: 12px;
 
+      .empty-state {
+        padding: 24px 20px;
+        justify-content: flex-start;
+
+        kendo-svgicon {
+          font-size: 36px;
+          margin-bottom: 12px;
+        }
+
+        p {
+          margin-bottom: 12px;
+        }
+      }
+
       .mapping-config {
         display: flex;
         flex-direction: column;
