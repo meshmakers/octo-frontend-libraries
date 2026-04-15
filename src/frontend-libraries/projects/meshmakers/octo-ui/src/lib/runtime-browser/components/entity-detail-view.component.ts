@@ -316,17 +316,25 @@ interface DirectionOption {
                       <div class="section-header">Attribute Mapping</div>
                       <div class="section-body">
                         <div class="mapping-field">
-                          <label>{{ _messages.mappingSourceAttribute }}</label>
+                          <label>{{ _messages.mappingSourceAttributePath }}</label>
                           <div class="attribute-picker">
-                            <span class="attribute-value">{{ sourceAttributeName || '(default)' }}</span>
+                            <span class="attribute-value">{{ sourceAttributePath || '(default)' }}</span>
                             <button kendoButton fillMode="flat" size="small"
                               (click)="onSelectSourceAttribute()">Select...</button>
                           </div>
                         </div>
                         <div class="mapping-field">
-                          <label>{{ _messages.mappingTargetAttribute }}</label>
+                          <label>{{ _messages.mappingExpression }}</label>
+                          <kendo-textbox
+                            [(value)]="mappingExpression"
+                            placeholder="e.g. value > 0 ? value : 0"
+                          ></kendo-textbox>
+                          <span class="field-hint">{{ _messages.mappingExpressionHint }}</span>
+                        </div>
+                        <div class="mapping-field">
+                          <label>{{ _messages.mappingTargetAttributePath }}</label>
                           <div class="attribute-picker">
-                            <span class="attribute-value">{{ targetAttributeName || '(not set)' }}</span>
+                            <span class="attribute-value">{{ targetAttributePath || '(not set)' }}</span>
                             <button kendoButton fillMode="flat" size="small"
                               (click)="onSelectTargetAttribute()">Select...</button>
                           </div>
@@ -373,8 +381,9 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   @Output() saveMappingRequested = new EventEmitter<{
     targetRtId: string;
     targetCkTypeId: string;
-    sourceAttributeName: string;
-    targetAttributeName: string;
+    sourceAttributePath: string;
+    mappingExpression: string;
+    targetAttributePath: string;
   }>();
   @Output() removeMappingRequested = new EventEmitter<void>();
   @Output() selectSourceAttribute = new EventEmitter<void>();
@@ -434,8 +443,9 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   // Data Mapping state
   @Input() mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
-  @Input() sourceAttributeName = '';
-  @Input() targetAttributeName = '';
+  @Input() sourceAttributePath = '';
+  @Input() mappingExpression = '';
+  @Input() targetAttributePath = '';
 
   // Debounced filter subjects
   private readonly destroy$ = new Subject<void>();
@@ -610,12 +620,13 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   }
 
   protected onSaveMapping(): void {
-    if (this.mappingTarget && this.targetAttributeName) {
+    if (this.mappingTarget && this.targetAttributePath) {
       this.saveMappingRequested.emit({
         targetRtId: this.mappingTarget.rtId,
         targetCkTypeId: this.mappingTarget.ckTypeId,
-        sourceAttributeName: this.sourceAttributeName,
-        targetAttributeName: this.targetAttributeName,
+        sourceAttributePath: this.sourceAttributePath,
+        mappingExpression: this.mappingExpression,
+        targetAttributePath: this.targetAttributePath,
       });
     }
   }

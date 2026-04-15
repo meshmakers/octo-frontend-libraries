@@ -114,8 +114,9 @@ export interface EntitySavedEvent {
                 [error]="error"
                 [messages]="_messages"
                 [mappingTarget]="mappingTarget"
-                [sourceAttributeName]="sourceAttributeName"
-                [targetAttributeName]="targetAttributeName"
+                [sourceAttributePath]="sourceAttributePath"
+                [mappingExpression]="mappingExpression"
+                [targetAttributePath]="targetAttributePath"
                 (retry)="loadFullEntityDetails()"
                 (navigateToEntity)="
                   navigateToEntity($event.rtId, $event.ckTypeId)
@@ -243,8 +244,9 @@ export class RuntimeBrowserDetailsComponent
 
   // Data Mapping state
   mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
-  sourceAttributeName = '';
-  targetAttributeName = '';
+  sourceAttributePath = '';
+  mappingExpression = '';
+  targetAttributePath = '';
   protected readonly detailsIcon = eyeIcon;
   protected fullEntity: RtEntityDto | null = null;
 
@@ -645,14 +647,19 @@ export class RuntimeBrowserDetailsComponent
       }
 
       const sourceAttr = entity.attributes?.items?.find(
-        (a) => a?.attributeName === 'sourceAttributeName',
+        (a) => a?.attributeName === 'sourceAttributePath',
       );
-      this.sourceAttributeName = (sourceAttr?.value as string) ?? '';
+      this.sourceAttributePath = (sourceAttr?.value as string) ?? '';
+
+      const exprAttr = entity.attributes?.items?.filter(Boolean).find(
+        (a) => a?.attributeName === 'mappingExpression',
+      );
+      this.mappingExpression = (exprAttr?.value as string) ?? '';
 
       const targetAttr = entity.attributes?.items?.find(
-        (a) => a?.attributeName === 'targetAttributeName',
+        (a) => a?.attributeName === 'targetAttributePath',
       );
-      this.targetAttributeName = (targetAttr?.value as string) ?? '';
+      this.targetAttributePath = (targetAttr?.value as string) ?? '';
     } catch (error) {
       console.error('Failed to load mapping:', error);
     }
@@ -677,8 +684,9 @@ export class RuntimeBrowserDetailsComponent
   async onSaveMapping(event: {
     targetRtId: string;
     targetCkTypeId: string;
-    sourceAttributeName: string;
-    targetAttributeName: string;
+    sourceAttributePath: string;
+    mappingExpression: string;
+    targetAttributePath: string;
   }): Promise<void> {
     const entity = this.getEntityForDisplay();
     if (!entity?.rtId || !entity?.ckTypeId) return;
@@ -692,8 +700,9 @@ export class RuntimeBrowserDetailsComponent
               item: {
                 ckTypeId: entity.ckTypeId,
                 attributes: [
-                  { attributeName: 'sourceAttributeName', value: event.sourceAttributeName || null },
-                  { attributeName: 'targetAttributeName', value: event.targetAttributeName },
+                  { attributeName: 'sourceAttributePath', value: event.sourceAttributePath || null },
+                  { attributeName: 'mappingExpression', value: event.mappingExpression || null },
+                  { attributeName: 'targetAttributePath', value: event.targetAttributePath },
                   {
                     attributeName: 'mappedFrom',
                     value: [{ target: { rtId: event.targetRtId, ckTypeId: event.targetCkTypeId } }],
@@ -705,7 +714,7 @@ export class RuntimeBrowserDetailsComponent
         }),
       );
 
-      this.targetAttributeName = event.targetAttributeName;
+      this.targetAttributePath = event.targetAttributePath;
       this.notificationService.show({
         content: this._messages.mappingSaved,
         type: { style: 'success', icon: true },
@@ -738,8 +747,9 @@ export class RuntimeBrowserDetailsComponent
               item: {
                 ckTypeId: entity.ckTypeId,
                 attributes: [
-                  { attributeName: 'sourceAttributeName', value: null },
-                  { attributeName: 'targetAttributeName', value: null },
+                  { attributeName: 'sourceAttributePath', value: null },
+                  { attributeName: 'mappingExpression', value: null },
+                  { attributeName: 'targetAttributePath', value: null },
                   {
                     attributeName: 'mappedFrom',
                     value: [{
@@ -755,8 +765,9 @@ export class RuntimeBrowserDetailsComponent
       );
 
       this.mappingTarget = null;
-      this.sourceAttributeName = '';
-      this.targetAttributeName = '';
+      this.sourceAttributePath = '';
+      this.mappingExpression = '';
+      this.targetAttributePath = '';
       this.notificationService.show({
         content: this._messages.mappingRemoved,
         type: { style: 'success', icon: true },
@@ -782,7 +793,7 @@ export class RuntimeBrowserDetailsComponent
 
     const result = await this.attributeSelectorDialog.openAttributeSelector(
       entity.ckTypeId,
-      this.sourceAttributeName ? [this.sourceAttributeName] : undefined,
+      this.sourceAttributePath ? [this.sourceAttributePath] : undefined,
       'Select Source Attribute',
       true,
       undefined,
@@ -792,7 +803,7 @@ export class RuntimeBrowserDetailsComponent
     );
 
     if (result.confirmed && result.selectedAttributes.length > 0) {
-      this.sourceAttributeName = result.selectedAttributes[0].attributePath;
+      this.sourceAttributePath = result.selectedAttributes[0].attributePath;
     }
   }
 
@@ -801,7 +812,7 @@ export class RuntimeBrowserDetailsComponent
 
     const result = await this.attributeSelectorDialog.openAttributeSelector(
       this.mappingTarget.ckTypeId,
-      this.targetAttributeName ? [this.targetAttributeName] : undefined,
+      this.targetAttributePath ? [this.targetAttributePath] : undefined,
       'Select Target Attribute',
       true,
       undefined,
@@ -811,7 +822,7 @@ export class RuntimeBrowserDetailsComponent
     );
 
     if (result.confirmed && result.selectedAttributes.length > 0) {
-      this.targetAttributeName = result.selectedAttributes[0].attributePath;
+      this.targetAttributePath = result.selectedAttributes[0].attributePath;
     }
   }
 }
