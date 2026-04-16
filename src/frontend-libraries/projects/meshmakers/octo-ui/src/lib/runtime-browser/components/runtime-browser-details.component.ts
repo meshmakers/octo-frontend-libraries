@@ -313,6 +313,8 @@ export class RuntimeBrowserDetailsComponent
           }
         }, 0);
       } else {
+        // Clear stale data before async load to prevent showing previous entity
+        this.fullEntity = null;
         // Load full entity details for runtime entities
         await this.loadFullEntityDetails();
         // Clear any pending CK type ID
