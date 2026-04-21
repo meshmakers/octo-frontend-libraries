@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
@@ -305,7 +305,12 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
     this.recomputeDerivedValues();
   }
 
-  ngOnChanges() {
+  ngOnChanges(changes: SimpleChanges): void {
+    // Collapse any user-driven expansion carried over from a recycled cell
+    // when the underlying data changes; displayMode changes do not qualify.
+    if (changes['value'] || changes['type']) {
+      this.isExpanded = false;
+    }
     this.recomputeDerivedValues();
   }
 

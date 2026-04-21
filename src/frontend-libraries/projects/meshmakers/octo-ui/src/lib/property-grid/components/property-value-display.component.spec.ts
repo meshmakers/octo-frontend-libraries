@@ -1,3 +1,4 @@
+import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PropertyValueDisplayComponent } from './property-value-display.component';
 import {
@@ -683,6 +684,85 @@ describe('PropertyValueDisplayComponent', () => {
     it('should handle numeric strings for DATE_TIME', () => {
       initComponent('12345', AttributeValueTypeDto.DateTimeDto);
       expect(component.formattedValue).toBeDefined();
+    });
+  });
+
+  // =========================================================================
+  // Input Change Regression (Kendo Grid cell recycling)
+  // =========================================================================
+
+  describe('Input Change Regression', () => {
+    it('should recompute formattedValue when value input changes on existing instance', () => {
+      initComponent('initial', AttributeValueTypeDto.StringDto);
+      expect(component.formattedValue).toBe('initial');
+
+      const previous = component.value;
+      component.value = 'updated';
+      component.ngOnChanges({ value: new SimpleChange(previous, 'updated', false) });
+
+      expect(component.formattedValue).toBe('updated');
+    });
+
+    it('should reset binary metadata when transitioning from BINARY_LINKED to plain STRING', () => {
+      initComponent(
+        { binaryId: '1', filename: 'doc.pdf', size: 1024, contentType: 'application/pdf' },
+        AttributeValueTypeDto.BinaryLinkedDto,
+      );
+      expect(component.binaryFilename).toBe('doc.pdf');
+      expect(component.binarySize).toBe(1024);
+      expect(component.binaryContentType).toBe('application/pdf');
+      expect(component.formattedBinarySize).not.toBe('');
+
+      const previousValue = component.value;
+      const previousType = component.type;
+      component.value = 'plain text';
+      component.type = AttributeValueTypeDto.StringDto;
+      component.ngOnChanges({
+        value: new SimpleChange(previousValue, 'plain text', false),
+        type: new SimpleChange(previousType, AttributeValueTypeDto.StringDto, false),
+      });
+
+      expect(component.binaryFilename).toBeNull();
+      expect(component.binarySize).toBeNull();
+      expect(component.binaryContentType).toBeNull();
+      expect(component.formattedBinarySize).toBe('');
+      expect(component.binaryLinkedWithDownload).toBe(false);
+    });
+
+    it('should collapse expansion when value input changes', () => {
+      initComponent({ key: 'value' }, AttributeValueTypeDto.RecordDto);
+      component.toggleExpansion();
+      expect(component.isExpanded).toBe(true);
+
+      const previous = component.value;
+      component.value = { other: 'record' };
+      component.ngOnChanges({ value: new SimpleChange(previous, component.value, false) });
+
+      expect(component.isExpanded).toBe(false);
+    });
+
+    it('should collapse expansion when type input changes', () => {
+      initComponent({ key: 'value' }, AttributeValueTypeDto.RecordDto);
+      component.toggleExpansion();
+      expect(component.isExpanded).toBe(true);
+
+      const previous = component.type;
+      component.type = AttributeValueTypeDto.StringDto;
+      component.ngOnChanges({ type: new SimpleChange(previous, AttributeValueTypeDto.StringDto, false) });
+
+      expect(component.isExpanded).toBe(false);
+    });
+
+    it('should preserve expansion when only displayMode changes', () => {
+      initComponent({ key: 'value' }, AttributeValueTypeDto.RecordDto);
+      component.toggleExpansion();
+      expect(component.isExpanded).toBe(true);
+
+      const previous = component.displayMode;
+      component.displayMode = PropertyDisplayMode.Json;
+      component.ngOnChanges({ displayMode: new SimpleChange(previous, PropertyDisplayMode.Json, false) });
+
+      expect(component.isExpanded).toBe(true);
     });
   });
 });
