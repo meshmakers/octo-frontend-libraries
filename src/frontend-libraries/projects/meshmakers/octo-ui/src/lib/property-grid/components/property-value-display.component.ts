@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
@@ -270,7 +270,7 @@ interface BinaryLinkedValue {
     }
   `]
 })
-export class PropertyValueDisplayComponent implements OnInit {
+export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   @Input() value: unknown;
   @Input() type: AttributeValueTypeDto = AttributeValueTypeDto.StringDto;
   @Input() displayMode: PropertyDisplayMode = PropertyDisplayMode.Text;
@@ -281,7 +281,7 @@ export class PropertyValueDisplayComponent implements OnInit {
   // Expansion state
   isExpanded = false;
 
-  // Pre-computed template properties (computed once in ngOnInit)
+  // Pre-computed template properties — recomputed in ngOnInit and ngOnChanges so Kendo Grid row recycling (cell component reuse with new inputs) does not display stale values.
   expandableRecord = false;
   complexType = false;
   binaryLinkedWithDownload = false;
@@ -302,6 +302,14 @@ export class PropertyValueDisplayComponent implements OnInit {
   readonly downloadIcon = downloadIcon;
 
   ngOnInit() {
+    this.recomputeDerivedValues();
+  }
+
+  ngOnChanges() {
+    this.recomputeDerivedValues();
+  }
+
+  private recomputeDerivedValues(): void {
     this.expandableRecord = this.computeIsExpandableRecord();
     this.complexType = this.computeIsComplexType();
     this.binaryLinkedWithDownload = this.computeIsBinaryLinkedWithDownload();
@@ -316,6 +324,11 @@ export class PropertyValueDisplayComponent implements OnInit {
       this.binarySize = bv?.size || null;
       this.binaryContentType = bv?.contentType || null;
       this.formattedBinarySize = this.formatFileSize(this.binarySize);
+    } else {
+      this.binaryFilename = null;
+      this.binarySize = null;
+      this.binaryContentType = null;
+      this.formattedBinarySize = '';
     }
   }
 
