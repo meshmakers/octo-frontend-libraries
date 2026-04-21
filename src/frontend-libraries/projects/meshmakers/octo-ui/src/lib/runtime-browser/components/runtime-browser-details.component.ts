@@ -223,6 +223,7 @@ export class RuntimeBrowserDetailsComponent
   protected readonly typeHelperService = inject(TypeHelperService);
   protected readonly detailsIcon = eyeIcon;
   protected fullEntity: RtEntityDto | null = null;
+  private loadRequestToken = 0;
 
   protected get ckTypeColumns() {
     return [
@@ -313,6 +314,8 @@ export class RuntimeBrowserDetailsComponent
           }
         }, 0);
       } else {
+        // Clear stale data before async load to prevent showing previous entity
+        this.fullEntity = null;
         // Load full entity details for runtime entities
         await this.loadFullEntityDetails();
         // Clear any pending CK type ID
@@ -337,25 +340,36 @@ export class RuntimeBrowserDetailsComponent
     }
 
     const runtimeEntity = item as RtEntityDto;
+    const token = ++this.loadRequestToken;
     this.loading = true;
     this.error = null;
 
     try {
-      this.fullEntity = await this.entityDataSource.fetchEntityDetails(
+      const result = await this.entityDataSource.fetchEntityDetails(
         runtimeEntity.rtId,
         runtimeEntity.ckTypeId!,
       );
 
+      if (token !== this.loadRequestToken) {
+        return; // Selection changed while loading, discard stale response
+      }
+
+      this.fullEntity = result;
       if (!this.fullEntity) {
         this.error = this._messages.couldNotLoadEntityDetails;
       }
     } catch (error) {
+      if (token !== this.loadRequestToken) {
+        return;
+      }
       console.error("Failed to load full entity details:", error);
       this.error = this._messages.failedToLoadEntityDetails;
       // Fall back to the basic entity data
       this.fullEntity = runtimeEntity;
     } finally {
-      this.loading = false;
+      if (token === this.loadRequestToken) {
+        this.loading = false;
+      }
     }
   }
 
