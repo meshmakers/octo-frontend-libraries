@@ -111,7 +111,7 @@
     "@graphql-codegen/cli": "^6.1.2",
     "@graphql-codegen/fragment-matcher": "^6.0.0",
     "@graphql-codegen/near-operation-file-preset": "^4.0.0",
-    "@graphql-codegen/typescript-apollo-angular": "^4.0.1",
+    "@graphql-codegen/typescript-apollo-angular": "^5.0.1",
     "@graphql-codegen/typescript-operations": "^5.0.8",
     "@types/expr-eval": "^1.1.2",
     "@types/jasmine": "~6.0.0",
