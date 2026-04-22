@@ -123,6 +123,7 @@ export interface EntitySavedEvent {
                 [loading]="loading"
                 [error]="error"
                 [messages]="_messages"
+                [showDataMapping]="showDataMapping"
                 [dataMappings]="dataMappings"
                 [sourceDataPoints]="sourceDataPoints"
                 (retry)="loadFullEntityDetails()"
@@ -230,6 +231,7 @@ export class RuntimeBrowserDetailsComponent
   implements OnChanges, AfterViewInit
 {
   @Input() selectedItem: TreeItemDataTyped<BrowserItem> | null = null;
+  @Input() showDataMapping = true;
   @Input() set messages(value: Partial<RuntimeBrowserMessages>) {
     this._messages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES, ...value };
   }

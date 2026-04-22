@@ -98,6 +98,7 @@ type BrowserItem =
             slot="detail-panel"
             [selectedItem]="selectedItem"
             [messages]="resolvedMessages()"
+            [showDataMapping]="showDataMapping()"
             (entitySaved)="onEntitySaved($event)"
           >
           </mm-runtime-browser-details>
@@ -137,6 +138,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   private isEditing = false;
 
   messages = input<Partial<RuntimeBrowserMessages>>({});
+  showDataMapping = input(true);
   protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(
     () => ({
       ...DEFAULT_RUNTIME_BROWSER_MESSAGES,

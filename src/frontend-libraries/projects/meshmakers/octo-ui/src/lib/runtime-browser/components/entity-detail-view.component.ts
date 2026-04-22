@@ -285,6 +285,7 @@ interface DirectionOption {
             </ng-template>
           </kendo-tabstrip-tab>
 
+          @if (showDataMapping) {
           <kendo-tabstrip-tab [title]="_messages.dataMapping">
             <ng-template kendoTabContent>
               <div class="tab-content mapping-tab">
@@ -302,6 +303,7 @@ interface DirectionOption {
               </div>
             </ng-template>
           </kendo-tabstrip-tab>
+          }
         </kendo-tabstrip>
       </div>
     }
@@ -317,6 +319,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     this._messages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES, ...value };
   }
 
+  @Input() showDataMapping = true;
   @Input() dataMappings: DataPointMappingItem[] = [];
   @Input() sourceDataPoints: string[] = [];
 

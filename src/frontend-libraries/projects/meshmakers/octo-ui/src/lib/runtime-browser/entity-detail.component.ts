@@ -57,6 +57,7 @@ import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
         [entity]="entity"
         [loading]="loading"
         [error]="error"
+        [showDataMapping]="showDataMapping"
         [dataMappings]="dataMappings"
         (retry)="loadEntity()"
         (propertyChange)="onPropertyChange($event)"
@@ -95,6 +96,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
 
   protected readonly arrowLeftIcon = arrowLeftIcon;
 
+  showDataMapping = true;
   entity: RtEntityDto | null = null;
   loading = false;
   error: string | null = null;
