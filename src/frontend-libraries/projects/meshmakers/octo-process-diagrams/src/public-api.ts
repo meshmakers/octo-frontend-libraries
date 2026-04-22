@@ -17,6 +17,8 @@ export { ProcessDiagramDataService } from './lib/services/process-diagram-data.s
 export type { ProcessDiagramSummary } from './lib/services/process-diagram-data.service';
 export { ExpressionEvaluatorService } from './lib/services/expression-evaluator.service';
 export type { ExpressionContext, ExpressionResult, ValidationResult } from './lib/services/expression-evaluator.service';
+export { createMappingExpressionValidator } from './lib/services/mapping-expression-validator';
+export type { MappingExpressionValidatorFn, MappingExpressionValidationResult } from './lib/services/mapping-expression-validator';
 
 // Designer Components
 export { ProcessDesignerComponent } from './lib/designer/process-designer.component';
