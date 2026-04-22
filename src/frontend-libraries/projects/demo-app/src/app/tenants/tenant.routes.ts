@@ -206,6 +206,20 @@ export const routes: Routes = [
     }
   },
   {
+    path: "data-mappings",
+    loadComponent: () =>
+      import('@meshmakers/octo-ui').then(m => m.DataMappingOverviewComponent),
+    data: {
+      breadcrumb: [
+        {
+          label: "Data Mappings",
+          svgIcon: insert_link,
+          url: "data-mappings"
+        }
+      ]
+    }
+  },
+  {
     path: "demos",
     loadChildren: () =>
       import('./demos/demos.routes').then(m => m.routes),
