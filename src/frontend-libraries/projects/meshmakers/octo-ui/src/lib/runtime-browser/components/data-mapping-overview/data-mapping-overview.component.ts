@@ -4,10 +4,14 @@ import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { GridModule, PageChangeEvent, CellClickEvent } from '@progress/kendo-angular-grid';
 import { BadgeModule } from '@progress/kendo-angular-indicators';
-import { arrowRotateCwIcon, checkCircleIcon, exclamationCircleIcon, xCircleIcon } from '@progress/kendo-svg-icons';
+import { SwitchModule } from '@progress/kendo-angular-inputs';
+import { arrowRotateCwIcon, checkCircleIcon, exclamationCircleIcon, trashIcon, xCircleIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
 import { GetDataPointMappingsDtoGQL } from '../../../graphQL/getDataPointMappings';
 import { GetRuntimeEntityByIdDtoGQL } from '../../../graphQL/getRuntimeEntityById';
+import { UpdateRuntimeEntitiesDtoGQL } from '../../../graphQL/updateRuntimeEntities';
+import { DeleteEntitiesDtoGQL } from '../../../graphQL/deleteEntities';
+import { DeleteStrategiesDto } from '@meshmakers/octo-services';
 import {
   DataPointMappingOverviewItem,
   MappingOverviewSummary,
@@ -25,6 +29,7 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
     SVGIconModule,
     GridModule,
     BadgeModule,
+    SwitchModule,
   ],
   template: `
     <div class="mapping-overview">
@@ -119,7 +124,17 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
 
         <kendo-grid-column title="Enabled" field="enabled" [width]="80">
           <ng-template kendoGridCellTemplate let-dataItem>
-            {{ dataItem.enabled ? 'Yes' : 'No' }}
+            <kendo-switch [checked]="dataItem.enabled" size="small"
+              (valueChange)="onToggleEnabled(dataItem, $event)">
+            </kendo-switch>
+          </ng-template>
+        </kendo-grid-column>
+
+        <kendo-grid-column title="" [width]="50" [sortable]="false">
+          <ng-template kendoGridCellTemplate let-dataItem>
+            <button kendoButton fillMode="flat" size="small" [svgIcon]="deleteIcon"
+              (click)="onDeleteMapping(dataItem); $event.stopPropagation()">
+            </button>
           </ng-template>
         </kendo-grid-column>
       </kendo-grid>
@@ -325,6 +340,8 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
 export class DataMappingOverviewComponent implements OnInit {
   private readonly getMappingsGQL = inject(GetDataPointMappingsDtoGQL);
   private readonly getEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
+  private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
+  private readonly deleteEntitiesGQL = inject(DeleteEntitiesDtoGQL);
 
   @Output() navigateToEntity = new EventEmitter<{ rtId: string; ckTypeId: string }>();
 
@@ -356,6 +373,7 @@ export class DataMappingOverviewComponent implements OnInit {
   protected readonly checkIcon = checkCircleIcon;
   protected readonly warnIcon = exclamationCircleIcon;
   protected readonly errorIcon = xCircleIcon;
+  protected readonly deleteIcon = trashIcon;
 
   ngOnInit(): void {
     this.loadMappings();
@@ -400,6 +418,48 @@ export class DataMappingOverviewComponent implements OnInit {
 
   onCellClick(event: CellClickEvent): void {
     this.selectedMapping.set(event.dataItem as DataPointMappingOverviewItem);
+  }
+
+  async onToggleEnabled(item: DataPointMappingOverviewItem, enabled: boolean): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.updateEntitiesGQL.mutate({
+          variables: {
+            entities: [{
+              rtId: item.rtId,
+              item: {
+                ckTypeId: DATA_POINT_MAPPING_CK_TYPE,
+                attributes: [{ attributeName: 'Enabled', value: enabled }],
+              },
+            }],
+          },
+        })
+      );
+      item.enabled = enabled;
+      this.mappings.set([...this.mappings()]);
+    } catch (err) {
+      console.error('Error toggling mapping enabled state:', err);
+    }
+  }
+
+  async onDeleteMapping(item: DataPointMappingOverviewItem): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.deleteEntitiesGQL.mutate({
+          variables: {
+            rtEntityIds: [{ rtId: item.rtId, ckTypeId: DATA_POINT_MAPPING_CK_TYPE }],
+            deleteStrategy: DeleteStrategiesDto.EraseDto,
+          },
+        })
+      );
+      const updated = this.mappings().filter(m => m.rtId !== item.rtId);
+      this.mappings.set(updated);
+      if (this.selectedMapping()?.rtId === item.rtId) {
+        this.selectedMapping.set(null);
+      }
+    } catch (err) {
+      console.error('Error deleting mapping:', err);
+    }
   }
 
   private mapEntityToOverviewItem(entity: {
