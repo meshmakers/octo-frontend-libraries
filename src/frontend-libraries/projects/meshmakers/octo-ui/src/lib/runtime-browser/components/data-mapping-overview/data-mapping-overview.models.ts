@@ -20,11 +20,15 @@ export interface DataPointMappingOverviewItem {
   sourceRtId: string;
   /** Source entity CK type (e.g., "Loxone/Control") */
   sourceCkTypeId: string;
+  /** Resolved source entity name (loaded separately) */
+  sourceName: string;
 
   /** Target entity rtId (from MapsTo association) */
   targetRtId: string;
   /** Target entity CK type (e.g., "EnergyIQ/Space") */
   targetCkTypeId: string;
+  /** Resolved target entity name (loaded separately) */
+  targetName: string;
 
   /** Validation status computed client-side */
   validationStatus: 'valid' | 'warning' | 'error';

@@ -7,6 +7,7 @@ import { BadgeModule } from '@progress/kendo-angular-indicators';
 import { arrowRotateCwIcon, checkCircleIcon, exclamationCircleIcon, xCircleIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
 import { GetDataPointMappingsDtoGQL } from '../../../graphQL/getDataPointMappings';
+import { GetRuntimeEntityByIdDtoGQL } from '../../../graphQL/getRuntimeEntityById';
 import {
   DataPointMappingOverviewItem,
   MappingOverviewSummary,
@@ -80,11 +81,12 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
         <kendo-grid-column title="Mapping Name" field="name" [width]="200">
         </kendo-grid-column>
 
-        <kendo-grid-column title="Source" field="sourceCkTypeId" [width]="180">
+        <kendo-grid-column title="Source" field="sourceName" [width]="200">
           <ng-template kendoGridCellTemplate let-dataItem>
             <span class="entity-ref" (click)="navigateToEntity.emit({ rtId: dataItem.sourceRtId, ckTypeId: dataItem.sourceCkTypeId })">
-              {{ dataItem.sourceCkTypeId | slice:-30 }}
+              {{ dataItem.sourceName || dataItem.sourceRtId | slice:-8 }}
             </span>
+            <div class="entity-type-hint">{{ dataItem.sourceCkTypeId }}</div>
           </ng-template>
         </kendo-grid-column>
 
@@ -99,12 +101,13 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
           </ng-template>
         </kendo-grid-column>
 
-        <kendo-grid-column title="Target" field="targetCkTypeId" [width]="180">
+        <kendo-grid-column title="Target" field="targetName" [width]="200">
           <ng-template kendoGridCellTemplate let-dataItem>
             @if (dataItem.targetRtId) {
               <span class="entity-ref" (click)="navigateToEntity.emit({ rtId: dataItem.targetRtId, ckTypeId: dataItem.targetCkTypeId })">
-                {{ dataItem.targetCkTypeId | slice:-30 }}
+                {{ dataItem.targetName || dataItem.targetRtId | slice:-8 }}
               </span>
+              <div class="entity-type-hint">{{ dataItem.targetCkTypeId }}</div>
             } @else {
               <span class="no-target">(no target)</span>
             }
@@ -129,8 +132,9 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
             <div class="detail-row">
               <label>Source Entity</label>
               <span class="entity-ref" (click)="navigateToEntity.emit({ rtId: selectedMapping()!.sourceRtId, ckTypeId: selectedMapping()!.sourceCkTypeId })">
-                {{ selectedMapping()!.sourceCkTypeId }} @ {{ selectedMapping()!.sourceRtId }}
+                {{ selectedMapping()!.sourceName || selectedMapping()!.sourceRtId }}
               </span>
+              <span class="entity-type-hint">{{ selectedMapping()!.sourceCkTypeId }}</span>
             </div>
             <div class="detail-row">
               <label>Source Attribute</label>
@@ -144,8 +148,9 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
               <label>Target Entity</label>
               @if (selectedMapping()!.targetRtId) {
                 <span class="entity-ref" (click)="navigateToEntity.emit({ rtId: selectedMapping()!.targetRtId, ckTypeId: selectedMapping()!.targetCkTypeId })">
-                  {{ selectedMapping()!.targetCkTypeId }} @ {{ selectedMapping()!.targetRtId }}
+                  {{ selectedMapping()!.targetName || selectedMapping()!.targetRtId }}
                 </span>
+                <span class="entity-type-hint">{{ selectedMapping()!.targetCkTypeId }}</span>
               } @else {
                 <span class="no-target">(no target configured)</span>
               }
@@ -241,6 +246,12 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
       font-style: italic;
     }
 
+    .entity-type-hint {
+      font-size: 0.7rem;
+      color: var(--kendo-color-subtle, #6c757d);
+      font-family: monospace;
+    }
+
     .expression-cell {
       font-size: 0.85rem;
       background: var(--kendo-color-surface-alt, #f8f9fa);
@@ -313,6 +324,7 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
 })
 export class DataMappingOverviewComponent implements OnInit {
   private readonly getMappingsGQL = inject(GetDataPointMappingsDtoGQL);
+  private readonly getEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
 
   @Output() navigateToEntity = new EventEmitter<{ rtId: string; ckTypeId: string }>();
 
@@ -371,6 +383,9 @@ export class DataMappingOverviewComponent implements OnInit {
       items.forEach(item => this.validateMapping(item, items));
 
       this.mappings.set(items);
+
+      // Resolve entity names in background (non-blocking)
+      this.resolveEntityNames(items);
     } catch (err) {
       console.error('Error loading DataPointMappings:', err);
     } finally {
@@ -414,8 +429,10 @@ export class DataMappingOverviewComponent implements OnInit {
       targetAttributePath: getAttr('TargetAttributePath'),
       sourceRtId: mapsFrom ? String(mapsFrom.targetRtId) : '',
       sourceCkTypeId: mapsFrom ? String(mapsFrom.targetCkTypeId) : '',
+      sourceName: '',
       targetRtId: mapsTo ? String(mapsTo.targetRtId) : '',
       targetCkTypeId: mapsTo ? String(mapsTo.targetCkTypeId) : '',
+      targetName: '',
       validationStatus: 'valid',
       validationMessages: [],
     };
@@ -457,5 +474,70 @@ export class DataMappingOverviewComponent implements OnInit {
       : messages.some(m => m.level === 'warning')
         ? 'warning'
         : 'valid';
+  }
+
+  /**
+   * Resolves entity names for all unique source/target rtIds.
+   * Updates items in-place and triggers signal update.
+   */
+  private async resolveEntityNames(items: DataPointMappingOverviewItem[]): Promise<void> {
+    // Collect unique entity references (rtId + ckTypeId pairs)
+    const entityRefs = new Map<string, { rtId: string; ckTypeId: string }>();
+    for (const item of items) {
+      if (item.sourceRtId && item.sourceCkTypeId) {
+        entityRefs.set(item.sourceRtId, { rtId: item.sourceRtId, ckTypeId: item.sourceCkTypeId });
+      }
+      if (item.targetRtId && item.targetCkTypeId) {
+        entityRefs.set(item.targetRtId, { rtId: item.targetRtId, ckTypeId: item.targetCkTypeId });
+      }
+    }
+
+    // Load entity names in parallel
+    const nameMap = new Map<string, string>();
+    const loadPromises = [...entityRefs.values()].map(async (ref) => {
+      try {
+        const result = await firstValueFrom(
+          this.getEntityByIdGQL.fetch({
+            variables: { rtId: ref.rtId, ckTypeId: ref.ckTypeId },
+          })
+        );
+        const entity = result.data?.runtime?.runtimeEntities?.items?.[0];
+        if (entity) {
+          const nameAttr = entity.attributes?.items?.find(
+            a => a?.attributeName === 'Name'
+          );
+          const name = nameAttr?.value as string
+            ?? entity.rtWellKnownName
+            ?? '';
+          if (name) {
+            nameMap.set(ref.rtId, name);
+          }
+        }
+      } catch {
+        // Entity not found or access denied — leave name empty
+      }
+    });
+
+    await Promise.all(loadPromises);
+
+    // Update items with resolved names
+    let changed = false;
+    for (const item of items) {
+      const sourceName = nameMap.get(item.sourceRtId);
+      if (sourceName && sourceName !== item.sourceName) {
+        item.sourceName = sourceName;
+        changed = true;
+      }
+      const targetName = nameMap.get(item.targetRtId);
+      if (targetName && targetName !== item.targetName) {
+        item.targetName = targetName;
+        changed = true;
+      }
+    }
+
+    // Trigger signal update to refresh the grid
+    if (changed) {
+      this.mappings.set([...items]);
+    }
   }
 }
