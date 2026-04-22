@@ -84,6 +84,20 @@ describe('MmHttpErrorInterceptor', () => {
           }
         });
       });
+
+      it('should not show error message for health check requests', (done) => {
+        const req = new HttpRequest('GET', 'https://localhost:5009/health');
+        const error = new HttpErrorResponse({ status: 0, url: 'https://localhost:5009/health' });
+        httpHandlerMock.handle.and.returnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: (err) => {
+            expect(messageServiceMock.showError).not.toHaveBeenCalled();
+            expect(err).toBe(error);
+            done();
+          }
+        });
+      });
     });
 
     describe('API errors (status 400 with statusCode)', () => {
@@ -401,6 +415,21 @@ describe('MmHttpErrorInterceptor', () => {
       interceptor.intercept(req, httpHandlerMock).subscribe({
         error: (err) => {
           expect(connectionLostHandler).toHaveBeenCalled();
+          expect(messageServiceMock.showError).not.toHaveBeenCalled();
+          expect(err).toBe(error);
+          done();
+        }
+      });
+    });
+
+    it('should not call ON_CONNECTION_LOST handler for health check requests', (done) => {
+      const req = new HttpRequest('GET', 'https://localhost:5009/health');
+      const error = new HttpErrorResponse({ status: 0, url: 'https://localhost:5009/health' });
+      httpHandlerMock.handle.and.returnValue(throwError(() => error));
+
+      interceptor.intercept(req, httpHandlerMock).subscribe({
+        error: (err) => {
+          expect(connectionLostHandler).not.toHaveBeenCalled();
           expect(messageServiceMock.showError).not.toHaveBeenCalled();
           expect(err).toBe(error);
           done();

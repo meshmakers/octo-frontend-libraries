@@ -26,6 +26,7 @@ import {
   copyIcon,
   eyeIcon,
   gearIcon,
+  hyperlinkOpenIcon,
   infoCircleIcon,
 } from "@progress/kendo-svg-icons";
 import { firstValueFrom, Subject } from "rxjs";
@@ -48,6 +49,10 @@ import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
   RuntimeBrowserMessages,
 } from "../runtime-browser.model";
+import {
+  DataMappingListComponent,
+  DataPointMappingItem,
+} from "./data-mapping/data-mapping-list.component";
 
 interface DirectionOption {
   text: string;
@@ -68,6 +73,7 @@ interface DirectionOption {
     PropertyGridComponent,
     ListViewComponent,
     EntityAssociationsDataSourceDirective,
+    DataMappingListComponent,
   ],
   template: `
     @if (loading) {
@@ -278,6 +284,24 @@ interface DirectionOption {
               </div>
             </ng-template>
           </kendo-tabstrip-tab>
+
+          <kendo-tabstrip-tab [title]="_messages.dataMapping">
+            <ng-template kendoTabContent>
+              <div class="tab-content mapping-tab">
+                <mm-data-mapping-list
+                  [mappings]="dataMappings"
+                  [sourceDataPoints]="sourceDataPoints"
+                  (addMapping)="addMappingRequested.emit()"
+                  (removeMapping)="removeMappingRequested.emit($event)"
+                  (selectTarget)="selectMappingTarget.emit($event)"
+                  (selectSourceAttribute)="selectSourceAttributeRequested.emit($event)"
+                  (selectTargetAttribute)="selectTargetAttributeRequested.emit($event)"
+                  (mappingChanged)="mappingChanged.emit($event)"
+                  (saveAll)="saveAllMappingsRequested.emit()"
+                ></mm-data-mapping-list>
+              </div>
+            </ng-template>
+          </kendo-tabstrip-tab>
         </kendo-tabstrip>
       </div>
     }
@@ -293,12 +317,22 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     this._messages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES, ...value };
   }
 
+  @Input() dataMappings: DataPointMappingItem[] = [];
+  @Input() sourceDataPoints: string[] = [];
+
   @Output() retry = new EventEmitter<void>();
   @Output() propertyChange = new EventEmitter<PropertyChangeEvent>();
   @Output() navigateToEntity = new EventEmitter<{
     rtId: string;
     ckTypeId: string;
   }>();
+  @Output() addMappingRequested = new EventEmitter<void>();
+  @Output() removeMappingRequested = new EventEmitter<DataPointMappingItem>();
+  @Output() selectMappingTarget = new EventEmitter<DataPointMappingItem>();
+  @Output() selectSourceAttributeRequested = new EventEmitter<DataPointMappingItem>();
+  @Output() selectTargetAttributeRequested = new EventEmitter<DataPointMappingItem>();
+  @Output() mappingChanged = new EventEmitter<DataPointMappingItem>();
+  @Output() saveAllMappingsRequested = new EventEmitter<void>();
 
   @ViewChild("associationsDir", { static: false })
   associationsDataSource?: EntityAssociationsDataSourceDirective;
@@ -314,6 +348,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   protected readonly propertiesIcon = gearIcon;
   protected readonly copyIcon = copyIcon;
   protected readonly detailsIcon = eyeIcon;
+  protected readonly linkIcon = hyperlinkOpenIcon;
 
   propertyGridItems: PropertyGridItem[] = [];
   propertyGridConfig: PropertyGridConfig = {
@@ -462,7 +497,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   }
 
   protected onTabSelect(event: SelectEvent): void {
-    // Tab 0 = Attributes, Tab 1 = Associations
+    // Tab 0 = Attributes, Tab 1 = Associations, Tab 2 = Data Mapping
     if (event.index === 1) {
       this.loadAssociations();
     }

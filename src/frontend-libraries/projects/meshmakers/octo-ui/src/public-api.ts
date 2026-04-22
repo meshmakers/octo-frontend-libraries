@@ -18,6 +18,7 @@ export * from './lib/ck-type-selector-input';
 export * from './lib/data-sources/octo-graph-ql-data-source';
 export * from './lib/data-sources/octo-graph-ql-hierarchy-data-source';
 export * from './lib/entity-id-info';
+export * from './lib/entity-selector-dialog';
 export * from './lib/field-filter-editor';
 export * from './lib/octo-loader';
 export * from './lib/property-grid';

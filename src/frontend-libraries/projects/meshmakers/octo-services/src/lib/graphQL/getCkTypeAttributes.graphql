@@ -1,6 +1,6 @@
 query getCkTypeAttributes($ckTypeId: String!, $first: Int) {
   constructionKit {
-    types(ckId: $ckTypeId) {
+    types(rtCkId: $ckTypeId) {
       items {
         ckTypeId {
           fullName
