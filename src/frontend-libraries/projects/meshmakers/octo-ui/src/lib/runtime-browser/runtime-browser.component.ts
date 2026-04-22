@@ -35,6 +35,7 @@ import {
   EntitySavedEvent,
   RuntimeBrowserDetailsComponent,
 } from './components/runtime-browser-details.component';
+import type { ExpressionValidatorFn } from './components/data-mapping/data-mapping-list.component';
 import { RuntimeBrowserDataSource } from './data-sources/runtime-browser-data-source.service';
 import { RtEntityIdHelper } from './models/rt-entity-id';
 import {
@@ -99,6 +100,7 @@ type BrowserItem =
             [selectedItem]="selectedItem"
             [messages]="resolvedMessages()"
             [showDataMapping]="showDataMapping()"
+            [expressionValidator]="expressionValidator()"
             (entitySaved)="onEntitySaved($event)"
           >
           </mm-runtime-browser-details>
@@ -139,6 +141,11 @@ export class RuntimeBrowserComponent implements AfterViewInit {
 
   messages = input<Partial<RuntimeBrowserMessages>>({});
   showDataMapping = input(true);
+  /**
+   * Optional expression validator function for DataPointMapping expressions.
+   * Passed through to RuntimeBrowserDetailsComponent → EntityDetailViewComponent → DataMappingListComponent.
+   */
+  expressionValidator = input<ExpressionValidatorFn | undefined>(undefined);
   protected readonly resolvedMessages = computed<RuntimeBrowserMessages>(
     () => ({
       ...DEFAULT_RUNTIME_BROWSER_MESSAGES,

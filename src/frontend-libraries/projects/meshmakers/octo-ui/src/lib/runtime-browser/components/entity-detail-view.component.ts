@@ -52,6 +52,7 @@ import {
 import {
   DataMappingListComponent,
   DataPointMappingItem,
+  ExpressionValidatorFn,
 } from "./data-mapping/data-mapping-list.component";
 
 interface DirectionOption {
@@ -292,6 +293,7 @@ interface DirectionOption {
                 <mm-data-mapping-list
                   [mappings]="dataMappings"
                   [sourceDataPoints]="sourceDataPoints"
+                  [expressionValidator]="expressionValidator"
                   (addMapping)="addMappingRequested.emit()"
                   (removeMapping)="removeMappingRequested.emit($event)"
                   (selectTarget)="selectMappingTarget.emit($event)"
@@ -322,6 +324,11 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   @Input() showDataMapping = true;
   @Input() dataMappings: DataPointMappingItem[] = [];
   @Input() sourceDataPoints: string[] = [];
+  /**
+   * Optional expression validator function passed through to DataMappingListComponent.
+   * When provided, mapping expressions are validated on change with visual feedback.
+   */
+  @Input() expressionValidator?: ExpressionValidatorFn;
 
   @Output() retry = new EventEmitter<void>();
   @Output() propertyChange = new EventEmitter<PropertyChangeEvent>();

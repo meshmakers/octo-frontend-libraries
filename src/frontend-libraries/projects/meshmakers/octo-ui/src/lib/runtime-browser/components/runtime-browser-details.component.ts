@@ -35,7 +35,7 @@ import { GetRuntimeEntityByIdDtoGQL } from "../../graphQL/getRuntimeEntityById";
 import { UpdateRuntimeEntitiesDtoGQL } from "../../graphQL/updateRuntimeEntities";
 import { AttributeSelectorDialogService } from "../../attribute-selector-dialog";
 import { EntitySelectorDialogService } from "../../entity-selector-dialog";
-import { DataPointMappingItem } from "./data-mapping/data-mapping-list.component";
+import { DataPointMappingItem, ExpressionValidatorFn } from "./data-mapping/data-mapping-list.component";
 import { CkTypeEntitiesDataSourceDirective } from "../data-sources/ck-type-entities-data-source.directive";
 import { EntityDetailDataSource } from "../data-sources/entity-detail-data-source.service";
 import { RtEntityIdHelper } from "../models/rt-entity-id";
@@ -126,6 +126,7 @@ export interface EntitySavedEvent {
                 [showDataMapping]="showDataMapping"
                 [dataMappings]="dataMappings"
                 [sourceDataPoints]="sourceDataPoints"
+                [expressionValidator]="expressionValidator"
                 (retry)="loadFullEntityDetails()"
                 (navigateToEntity)="
                   navigateToEntity($event.rtId, $event.ckTypeId)
@@ -260,6 +261,10 @@ export class RuntimeBrowserDetailsComponent
   // Data Mapping state (list of DataPointMapping entities)
   dataMappings: DataPointMappingItem[] = [];
   sourceDataPoints: string[] = [];
+  /**
+   * Optional expression validator function passed through to EntityDetailViewComponent → DataMappingListComponent.
+   */
+  @Input() expressionValidator?: ExpressionValidatorFn;
   protected readonly detailsIcon = eyeIcon;
   protected fullEntity: RtEntityDto | null = null;
   private loadRequestToken = 0;

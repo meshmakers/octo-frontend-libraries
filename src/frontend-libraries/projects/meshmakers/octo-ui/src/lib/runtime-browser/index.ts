@@ -9,3 +9,4 @@ export * from './runtime-browser.routes';
 export * from './runtime-browser.tokens';
 export * from './services/association-validation.service';
 export * from './services/runtime-browser-state.service';
+export type { DataPointMappingItem, ExpressionValidatorFn, ExpressionValidationResult } from './components/data-mapping/data-mapping-list.component';

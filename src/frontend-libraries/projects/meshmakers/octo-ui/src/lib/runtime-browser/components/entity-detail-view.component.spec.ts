@@ -1,7 +1,9 @@
+import '@angular/localize/init';
 import { SimpleChange } from "@angular/core";
 import { ComponentFixture, TestBed, fakeAsync } from "@angular/core/testing";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 import { PropertyConverterService } from "../../property-grid";
+import { CkTypeAttributeService } from "@meshmakers/octo-services";
 import { SelectEvent } from "@progress/kendo-angular-layout";
 import { NotificationService } from "@progress/kendo-angular-notification";
 import { of } from "rxjs";
@@ -28,6 +30,12 @@ describe("EntityDetailViewComponent", () => {
     fetch: jasmine.createSpy("fetch").and.returnValue(of({ data: null })),
   };
 
+  const mockCkTypeAttributeService = {
+    getAttributeInfos: jasmine
+      .createSpy("getAttributeInfos")
+      .and.returnValue(of([])),
+  };
+
   const createMockEntity = (overrides?: Partial<RtEntityDto>): RtEntityDto =>
     ({
       rtId: "test-entity-123",
@@ -49,6 +57,10 @@ describe("EntityDetailViewComponent", () => {
           useValue: mockPropertyConverterService,
         },
         { provide: GetBinaryInfoDtoGQL, useValue: mockGetBinaryInfoGQL },
+        {
+          provide: CkTypeAttributeService,
+          useValue: mockCkTypeAttributeService,
+        },
       ],
       imports: [EntityDetailViewComponent],
     }).compileComponents();

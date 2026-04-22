@@ -7,6 +7,25 @@ import { TextBoxModule } from '@progress/kendo-angular-inputs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { plusIcon, trashIcon } from '@progress/kendo-svg-icons';
 
+/**
+ * Result of validating a mapping expression.
+ */
+export interface ExpressionValidationResult {
+  /** Whether the expression is syntactically valid and evaluates successfully. */
+  valid: boolean;
+  /** Error message if the expression is invalid. */
+  error?: string;
+  /** Formatted evaluation result for display (e.g., "42" or "0.42"). */
+  preview?: string;
+}
+
+/**
+ * Function that validates a mapping expression.
+ * Receives the expression string and returns a validation result.
+ * The implementation can use any expression engine (e.g., expr-eval, mXparser via API).
+ */
+export type ExpressionValidatorFn = (expression: string) => ExpressionValidationResult;
+
 export interface DataPointMappingItem {
   rtId?: string;
   name?: string;
@@ -19,6 +38,12 @@ export interface DataPointMappingItem {
   enabled?: boolean;
   /** Tracks the original target rtId at load time to detect changes on save. */
   _originalTargetRtId?: string;
+  /** Client-side validation status (not persisted, set by component). */
+  _expressionValid?: boolean;
+  /** Client-side validation error message (not persisted). */
+  _expressionError?: string;
+  /** Client-side evaluation preview (not persisted, e.g., "value=42 → 0.42"). */
+  _expressionPreview?: string;
 }
 
 @Component({
@@ -74,8 +99,15 @@ export interface DataPointMappingItem {
               <label>Expression</label>
               <kendo-textbox [(value)]="mapping.mappingExpression"
                 placeholder="e.g. value > 0 ? value : 0"
-                (valueChange)="mappingChanged.emit(mapping)">
+                (valueChange)="onExpressionChange(mapping, $event)">
               </kendo-textbox>
+              @if (mapping.mappingExpression && expressionValidator) {
+                @if (mapping._expressionValid === false) {
+                  <div class="expression-feedback expression-error">{{ mapping._expressionError }}</div>
+                } @else if (mapping._expressionValid === true && mapping._expressionPreview) {
+                  <div class="expression-feedback expression-success">value=42 → {{ mapping._expressionPreview }}</div>
+                }
+              }
             </div>
             <div class="mapping-row">
               <label>Target Entity</label>
@@ -192,11 +224,32 @@ export interface DataPointMappingItem {
       justify-content: flex-end;
       padding-top: 4px;
     }
+
+    .expression-feedback {
+      font-size: 0.75rem;
+      padding: 2px 0;
+      font-family: monospace;
+    }
+
+    .expression-error {
+      color: var(--kendo-color-error, #dc3545);
+    }
+
+    .expression-success {
+      color: var(--kendo-color-success, #28a745);
+    }
   `],
 })
 export class DataMappingListComponent {
   @Input() mappings: DataPointMappingItem[] = [];
   @Input() sourceDataPoints: string[] = [];
+  /**
+   * Optional expression validator function. When provided, expressions are validated
+   * on change and feedback (error or preview) is shown below the expression field.
+   * The host app can provide an implementation using any expression engine
+   * (e.g., ExpressionEvaluatorService from octo-process-diagrams).
+   */
+  @Input() expressionValidator?: ExpressionValidatorFn;
 
   @Output() addMapping = new EventEmitter<void>();
   @Output() removeMapping = new EventEmitter<DataPointMappingItem>();
@@ -204,12 +257,29 @@ export class DataMappingListComponent {
   @Output() selectSourceAttribute = new EventEmitter<DataPointMappingItem>();
   @Output() selectTargetAttribute = new EventEmitter<DataPointMappingItem>();
   @Output() mappingChanged = new EventEmitter<DataPointMappingItem>();
+  @Output() saveAll = new EventEmitter<void>();
 
   onSourceDataPointChange(mapping: DataPointMappingItem, value: string): void {
     mapping.sourceAttributePath = value;
     this.mappingChanged.emit(mapping);
   }
-  @Output() saveAll = new EventEmitter<void>();
+
+  onExpressionChange(mapping: DataPointMappingItem, expression: string): void {
+    mapping.mappingExpression = expression;
+
+    if (this.expressionValidator && expression && expression.trim() !== '') {
+      const result = this.expressionValidator(expression);
+      mapping._expressionValid = result.valid;
+      mapping._expressionError = result.error;
+      mapping._expressionPreview = result.preview;
+    } else {
+      mapping._expressionValid = undefined;
+      mapping._expressionError = undefined;
+      mapping._expressionPreview = undefined;
+    }
+
+    this.mappingChanged.emit(mapping);
+  }
 
   protected readonly plusIcon = plusIcon;
   protected readonly trashIcon = trashIcon;
