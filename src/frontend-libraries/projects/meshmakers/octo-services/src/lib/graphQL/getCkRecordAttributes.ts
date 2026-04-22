@@ -14,7 +14,7 @@ export type GetCkRecordAttributesQueryDto = { __typename?: 'OctoQuery', construc
 export const GetCkRecordAttributesDocumentDto = gql`
     query getCkRecordAttributes($ckRecordId: String!, $first: Int) {
   constructionKit {
-    records(ckId: $ckRecordId) {
+    records(rtCkId: $ckRecordId) {
       items {
         ckRecordId {
           fullName

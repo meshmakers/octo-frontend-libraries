@@ -530,10 +530,16 @@ export class PropertyValueDisplayComponent implements OnInit {
    */
   private computeRecordSummary(): string {
     if (this.type === AttributeValueTypeDto.RecordArrayDto && Array.isArray(this.value)) {
-      return `Array with ${this.value.length} item${this.value.length !== 1 ? 's' : ''}`;
+      return `${this.value.length} record${this.value.length !== 1 ? 's' : ''}`;
     }
 
     if (typeof this.value === 'object' && this.value !== null) {
+      const maybeRecord = this.value as Record<string, unknown>;
+      // OctoMesh RtRecord format
+      if ('ckRecordId' in maybeRecord && 'attributes' in maybeRecord && Array.isArray(maybeRecord['attributes'])) {
+        const attrs = maybeRecord['attributes'] as unknown[];
+        return `Record (${attrs.length} attribute${attrs.length !== 1 ? 's' : ''})`;
+      }
       const keys = Object.keys(this.value);
       return `Object with ${keys.length} propert${keys.length !== 1 ? 'ies' : 'y'}`;
     }
@@ -542,13 +548,24 @@ export class PropertyValueDisplayComponent implements OnInit {
   }
 
   /**
-   * Get properties of an object for display
+   * Get properties of an object for display.
+   * Handles OctoMesh RtRecord format: { ckRecordId, attributes: [{ attributeName, value }] }
    */
   getObjectProperties(obj: unknown): {key: string, value: unknown}[] {
     if (typeof obj !== 'object' || obj === null) {
       return [];
     }
 
+    // OctoMesh RtRecord format: { ckRecordId: string, attributes: [{ attributeName, value }] }
+    const maybeRecord = obj as Record<string, unknown>;
+    if ('ckRecordId' in maybeRecord && 'attributes' in maybeRecord && Array.isArray(maybeRecord['attributes'])) {
+      return (maybeRecord['attributes'] as {attributeName?: string, value?: unknown}[]).map(attr => ({
+        key: attr.attributeName || 'unknown',
+        value: attr.value
+      }));
+    }
+
+    // Legacy format: array of { id: 'ckRecordId', name, value }
     if (Array.isArray(obj) && obj.length > 0 && typeof obj[0] === 'object' && obj[0] !== null && 'id' in obj[0] && obj[0].id === 'ckRecordId') {
       return obj.map((item: Record<string, unknown>) => ({
         key: String(item['name']),

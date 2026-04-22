@@ -21,11 +21,21 @@ import { SVGIconModule } from "@progress/kendo-angular-icons";
 import { NotificationService } from "@progress/kendo-angular-notification";
 import { eyeIcon } from "@progress/kendo-svg-icons";
 import { firstValueFrom } from "rxjs";
-import { GraphDirectionDto, CkModelDto, CkTypeDto, RtEntityDto } from "../../graphQL/globalTypes";
+import {
+  DeleteStrategiesDto,
+  GraphDirectionDto,
+  CkModelDto,
+  CkTypeDto,
+  RtEntityDto,
+} from "../../graphQL/globalTypes";
+import { CreateEntitiesDtoGQL } from "../../graphQL/createEntities";
+import { DeleteEntitiesDtoGQL } from "../../graphQL/deleteEntities";
 import { GetRuntimeEntityAssociationsByIdDtoGQL } from "../../graphQL/getRuntimeEntityAssociationsById";
+import { GetRuntimeEntityByIdDtoGQL } from "../../graphQL/getRuntimeEntityById";
 import { UpdateRuntimeEntitiesDtoGQL } from "../../graphQL/updateRuntimeEntities";
 import { AttributeSelectorDialogService } from "../../attribute-selector-dialog";
 import { EntitySelectorDialogService } from "../../entity-selector-dialog";
+import { DataPointMappingItem } from "./data-mapping/data-mapping-list.component";
 import { CkTypeEntitiesDataSourceDirective } from "../data-sources/ck-type-entities-data-source.directive";
 import { EntityDetailDataSource } from "../data-sources/entity-detail-data-source.service";
 import { RtEntityIdHelper } from "../models/rt-entity-id";
@@ -113,19 +123,19 @@ export interface EntitySavedEvent {
                 [loading]="loading"
                 [error]="error"
                 [messages]="_messages"
-                [mappingTarget]="mappingTarget"
-                [sourceAttributePath]="sourceAttributePath"
-                [mappingExpression]="mappingExpression"
-                [targetAttributePath]="targetAttributePath"
+                [dataMappings]="dataMappings"
+                [sourceDataPoints]="sourceDataPoints"
                 (retry)="loadFullEntityDetails()"
                 (navigateToEntity)="
                   navigateToEntity($event.rtId, $event.ckTypeId)
                 "
-                (selectMappingTarget)="onSelectMappingTarget()"
-                (saveMappingRequested)="onSaveMapping($event)"
-                (removeMappingRequested)="onRemoveMapping()"
-                (selectSourceAttribute)="onSelectSourceAttribute()"
-                (selectTargetAttribute)="onSelectTargetAttribute()"
+                (addMappingRequested)="onAddMapping()"
+                (removeMappingRequested)="onRemoveMapping($event)"
+                (selectMappingTarget)="onSelectMappingTarget($event)"
+                (selectSourceAttributeRequested)="onSelectSourceAttribute($event)"
+                (selectTargetAttributeRequested)="onSelectTargetAttribute($event)"
+                (mappingChanged)="onMappingChanged($event)"
+                (saveAllMappingsRequested)="onSaveAllMappings()"
               >
               </mm-entity-detail-view>
             } @else if (isCkModel(selectedItem.item)) {
@@ -238,15 +248,16 @@ export class RuntimeBrowserDetailsComponent
   protected readonly typeHelperService = inject(TypeHelperService);
   private readonly notificationService = inject(NotificationService);
   private readonly getAssociationsGQL = inject(GetRuntimeEntityAssociationsByIdDtoGQL);
+  private readonly getEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
+  private readonly createEntitiesGQL = inject(CreateEntitiesDtoGQL);
   private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
+  private readonly deleteEntitiesGQL = inject(DeleteEntitiesDtoGQL);
   private readonly entitySelectorDialog = inject(EntitySelectorDialogService);
   private readonly attributeSelectorDialog = inject(AttributeSelectorDialogService);
 
-  // Data Mapping state
-  mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
-  sourceAttributePath = '';
-  mappingExpression = '';
-  targetAttributePath = '';
+  // Data Mapping state (list of DataPointMapping entities)
+  dataMappings: DataPointMappingItem[] = [];
+  sourceDataPoints: string[] = [];
   protected readonly detailsIcon = eyeIcon;
   protected fullEntity: RtEntityDto | null = null;
 
@@ -375,7 +386,8 @@ export class RuntimeBrowserDetailsComponent
       if (!this.fullEntity) {
         this.error = this._messages.couldNotLoadEntityDetails;
       } else {
-        await this.loadMapping();
+        this.extractSourceDataPoints();
+        await this.loadDataMappings();
       }
     } catch (error) {
       console.error("Failed to load full entity details:", error);
@@ -615,115 +627,165 @@ export class RuntimeBrowserDetailsComponent
     this.updateInput = undefined;
   }
 
-  async loadMapping(): Promise<void> {
+  private static readonly DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
+  private static readonly MAPS_FROM_ROLE = 'System.Communication/MapsFrom';
+  private static readonly MAPS_TO_ROLE = 'System.Communication/MapsTo';
+
+  /**
+   * Loads all DataPointMapping entities associated with the current entity via MapsFrom.
+   * For each mapping, fetches its attributes and MapsTo target.
+   */
+  async loadDataMappings(): Promise<void> {
     const entity = this.getEntityForDisplay();
-    if (!entity?.rtId || !entity?.ckTypeId) return;
+    if (!entity?.rtId || !entity?.ckTypeId) {
+      this.dataMappings = [];
+      return;
+    }
 
     try {
-      const result = await firstValueFrom(
+      // Find inbound MapsFrom associations → these are DataPointMapping entities
+      const assocResult = await firstValueFrom(
         this.getAssociationsGQL.fetch({
           variables: {
             rtId: entity.rtId,
             ckTypeId: entity.ckTypeId,
-            direction: GraphDirectionDto.OutboundDto,
-            first: 10,
+            direction: GraphDirectionDto.InboundDto,
+            roleId: RuntimeBrowserDetailsComponent.MAPS_FROM_ROLE,
+            first: 100,
           },
         }),
       );
 
-      const entityItem = result.data?.runtime?.runtimeEntities?.items?.[0];
-      const associations = entityItem?.associations?.definitions?.items ?? [];
-      const mapsToAssoc = associations.filter(Boolean).find(
-        (a) => a?.ckAssociationRoleId?.includes('MapsToEntity'),
-      );
+      const associations = assocResult.data?.runtime?.runtimeEntities?.items?.[0]
+        ?.associations?.definitions?.items ?? [];
 
-      if (mapsToAssoc && 'targetRtId' in mapsToAssoc && 'targetCkTypeId' in mapsToAssoc) {
-        this.mappingTarget = {
-          rtId: mapsToAssoc.targetRtId as string,
-          ckTypeId: mapsToAssoc.targetCkTypeId as string,
-        };
-      } else {
-        this.mappingTarget = null;
+      // For each DataPointMapping, load its details
+      const mappings: DataPointMappingItem[] = [];
+      for (const assoc of associations) {
+        if (!assoc?.originRtId || !assoc?.originCkTypeId) continue;
+
+        const mappingItem = await this.loadMappingDetails(
+          assoc.originRtId,
+          assoc.originCkTypeId,
+        );
+        if (mappingItem) {
+          mappings.push(mappingItem);
+        }
       }
 
-      const sourceAttr = entity.attributes?.items?.find(
-        (a) => a?.attributeName === 'sourceAttributePath',
-      );
-      this.sourceAttributePath = (sourceAttr?.value as string) ?? '';
-
-      const exprAttr = entity.attributes?.items?.filter(Boolean).find(
-        (a) => a?.attributeName === 'mappingExpression',
-      );
-      this.mappingExpression = (exprAttr?.value as string) ?? '';
-
-      const targetAttr = entity.attributes?.items?.find(
-        (a) => a?.attributeName === 'targetAttributePath',
-      );
-      this.targetAttributePath = (targetAttr?.value as string) ?? '';
+      this.dataMappings = mappings;
     } catch (error) {
-      console.error('Failed to load mapping:', error);
+      console.error('Failed to load data mappings:', error);
+      this.dataMappings = [];
     }
   }
 
-  async onSelectMappingTarget(): Promise<void> {
-    const result = await this.entitySelectorDialog.openEntitySelector({
-      title: 'Select Mapping Target Entity',
-      currentTargetRtId: this.mappingTarget?.rtId,
-      currentTargetCkTypeId: this.mappingTarget?.ckTypeId,
-    });
+  /**
+   * Loads a single DataPointMapping entity's attributes and MapsTo target.
+   */
+  private async loadMappingDetails(
+    rtId: string,
+    ckTypeId: string,
+  ): Promise<DataPointMappingItem | null> {
+    try {
+      // Load entity attributes
+      const entityResult = await firstValueFrom(
+        this.getEntityByIdGQL.fetch({
+          variables: { rtId, ckTypeId },
+        }),
+      );
 
-    if (result.confirmed && result.entity) {
-      this.mappingTarget = {
-        rtId: result.entity.rtId,
-        ckTypeId: result.entity.ckTypeId,
-        name: result.entity.name,
+      const mappingEntity = entityResult.data?.runtime?.runtimeEntities?.items?.[0];
+      if (!mappingEntity) return null;
+
+      const attrs = mappingEntity.attributes?.items ?? [];
+      const getAttr = (name: string): string =>
+        (attrs.find((a) => a?.attributeName === name)?.value as string) ?? '';
+
+      // Load MapsTo target association
+      const targetResult = await firstValueFrom(
+        this.getAssociationsGQL.fetch({
+          variables: {
+            rtId,
+            ckTypeId,
+            direction: GraphDirectionDto.OutboundDto,
+            roleId: RuntimeBrowserDetailsComponent.MAPS_TO_ROLE,
+            first: 1,
+          },
+        }),
+      );
+
+      const targetAssoc = targetResult.data?.runtime?.runtimeEntities?.items?.[0]
+        ?.associations?.definitions?.items?.[0];
+
+      const targetRtId = targetAssoc?.targetRtId ?? undefined;
+      return {
+        rtId,
+        name: getAttr('name') || undefined,
+        sourceAttributePath: getAttr('sourceAttributePath'),
+        mappingExpression: getAttr('mappingExpression'),
+        targetAttributePath: getAttr('targetAttributePath'),
+        targetRtId,
+        targetCkTypeId: targetAssoc?.targetCkTypeId ?? undefined,
+        enabled: getAttr('enabled') !== 'false',
+        _originalTargetRtId: targetRtId,
       };
+    } catch (error) {
+      console.error(`Failed to load mapping details for ${rtId}:`, error);
+      return null;
     }
   }
 
-  async onSaveMapping(event: {
-    targetRtId: string;
-    targetCkTypeId: string;
-    sourceAttributePath: string;
-    mappingExpression: string;
-    targetAttributePath: string;
-  }): Promise<void> {
+  /**
+   * Creates a new DataPointMapping entity and associates it with the current entity.
+   */
+  async onAddMapping(): Promise<void> {
     const entity = this.getEntityForDisplay();
     if (!entity?.rtId || !entity?.ckTypeId) return;
 
     try {
-      await firstValueFrom(
-        this.updateEntitiesGQL.mutate({
+      const createResult = await firstValueFrom(
+        this.createEntitiesGQL.mutate({
           variables: {
             entities: [{
-              rtId: entity.rtId,
-              item: {
-                ckTypeId: entity.ckTypeId,
-                attributes: [
-                  { attributeName: 'sourceAttributePath', value: event.sourceAttributePath || null },
-                  { attributeName: 'mappingExpression', value: event.mappingExpression || null },
-                  { attributeName: 'targetAttributePath', value: event.targetAttributePath },
-                  {
-                    attributeName: 'mappedFrom',
-                    value: [{ target: { rtId: event.targetRtId, ckTypeId: event.targetCkTypeId } }],
-                  },
-                ],
-              },
+              ckTypeId: RuntimeBrowserDetailsComponent.DATA_POINT_MAPPING_CK_TYPE,
+              attributes: [
+                { attributeName: 'name', value: `Mapping ${this.dataMappings.length + 1}` },
+                { attributeName: 'enabled', value: true },
+              ],
+              associations: [{
+                roleName: 'mappedAsSource',
+                targets: [{ target: { rtId: entity.rtId, ckTypeId: entity.ckTypeId } }],
+              }],
             }],
           },
         }),
       );
 
-      this.targetAttributePath = event.targetAttributePath;
+      const newRtId = createResult.data?.runtime?.runtimeEntities?.create?.[0]?.rtId;
+      if (newRtId) {
+        this.dataMappings = [
+          ...this.dataMappings,
+          {
+            rtId: newRtId,
+            name: `Mapping ${this.dataMappings.length + 1}`,
+            sourceAttributePath: '',
+            mappingExpression: '',
+            targetAttributePath: '',
+            enabled: true,
+          },
+        ];
+      }
+
       this.notificationService.show({
         content: this._messages.mappingSaved,
         type: { style: 'success', icon: true },
         position: { horizontal: 'right', vertical: 'top' },
-        hideAfter: 3000,
+        hideAfter: 2000,
         animation: { type: 'fade', duration: 400 },
       });
     } catch (error) {
-      console.error('Failed to save mapping:', error);
+      console.error('Failed to add mapping:', error);
       this.notificationService.show({
         content: this._messages.failedToSaveMapping,
         type: { style: 'error', icon: true },
@@ -734,45 +796,32 @@ export class RuntimeBrowserDetailsComponent
     }
   }
 
-  async onRemoveMapping(): Promise<void> {
-    const entity = this.getEntityForDisplay();
-    if (!entity?.rtId || !entity?.ckTypeId || !this.mappingTarget) return;
+  /**
+   * Deletes a DataPointMapping entity.
+   */
+  async onRemoveMapping(mapping: DataPointMappingItem): Promise<void> {
+    if (!mapping.rtId) return;
 
     try {
       await firstValueFrom(
-        this.updateEntitiesGQL.mutate({
+        this.deleteEntitiesGQL.mutate({
           variables: {
-            entities: [{
-              rtId: entity.rtId,
-              item: {
-                ckTypeId: entity.ckTypeId,
-                attributes: [
-                  { attributeName: 'sourceAttributePath', value: null },
-                  { attributeName: 'mappingExpression', value: null },
-                  { attributeName: 'targetAttributePath', value: null },
-                  {
-                    attributeName: 'mappedFrom',
-                    value: [{
-                      target: { rtId: this.mappingTarget.rtId, ckTypeId: this.mappingTarget.ckTypeId },
-                      modOption: 'DELETE',
-                    }],
-                  },
-                ],
-              },
+            rtEntityIds: [{
+              rtId: mapping.rtId,
+              ckTypeId: RuntimeBrowserDetailsComponent.DATA_POINT_MAPPING_CK_TYPE,
             }],
+            deleteStrategy: DeleteStrategiesDto.EraseDto,
           },
         }),
       );
 
-      this.mappingTarget = null;
-      this.sourceAttributePath = '';
-      this.mappingExpression = '';
-      this.targetAttributePath = '';
+      this.dataMappings = this.dataMappings.filter((m) => m.rtId !== mapping.rtId);
+
       this.notificationService.show({
         content: this._messages.mappingRemoved,
         type: { style: 'success', icon: true },
         position: { horizontal: 'right', vertical: 'top' },
-        hideAfter: 3000,
+        hideAfter: 2000,
         animation: { type: 'fade', duration: 400 },
       });
     } catch (error) {
@@ -787,13 +836,122 @@ export class RuntimeBrowserDetailsComponent
     }
   }
 
-  async onSelectSourceAttribute(): Promise<void> {
+  /**
+   * Opens entity selector for a specific mapping's target.
+   */
+  async onSelectMappingTarget(mapping: DataPointMappingItem): Promise<void> {
+    const result = await this.entitySelectorDialog.openEntitySelector({
+      title: this._messages.selectTargetEntity,
+      currentTargetRtId: mapping.targetRtId,
+      currentTargetCkTypeId: mapping.targetCkTypeId,
+    });
+
+    if (result.confirmed && result.entity) {
+      mapping.targetRtId = result.entity.rtId;
+      mapping.targetCkTypeId = result.entity.ckTypeId;
+      mapping.targetName = result.entity.name;
+      // Trigger change detection
+      this.dataMappings = [...this.dataMappings];
+    }
+  }
+
+  /**
+   * Tracks in-memory changes to a mapping (no server save yet).
+   */
+  onMappingChanged(_mapping: DataPointMappingItem): void {
+    // Changes are tracked in the dataMappings array via two-way binding in the list component.
+    // Actual persistence happens on "Save All".
+  }
+
+  /**
+   * Extracts DataPoint names from the entity's States/DataPoints RecordArray attribute.
+   * Provides them as dropdown options for sourceAttributePath selection.
+   */
+  private extractSourceDataPoints(): void {
+    this.sourceDataPoints = ['currentValue'];
+
+    const entity = this.getEntityForDisplay();
+    if (!entity?.attributes?.items) return;
+
+    // Look for a RecordArray attribute (States, DataPoints, etc.) - case insensitive
+    const statesAttr = entity.attributes.items.find(
+      (a) => {
+        const name = a?.attributeName?.toLowerCase();
+        return name === 'states' || name === 'datapoints';
+      },
+    );
+
+    if (!statesAttr?.value) return;
+
+    let records: unknown[];
+
+    if (Array.isArray(statesAttr.value)) {
+      records = statesAttr.value;
+    } else if (typeof statesAttr.value === 'string') {
+      // RecordArray might come as JSON string from GraphQL
+      try {
+        const parsed = JSON.parse(statesAttr.value);
+        if (Array.isArray(parsed)) {
+          records = parsed;
+        } else {
+          return;
+        }
+      } catch {
+        return;
+      }
+    } else {
+      return;
+    }
+
+    // Extract Name from each record.
+    // GraphQL returns records as: { ckRecordId, attributes: [{attributeName, value}, ...] }
+    const names: string[] = [];
+    for (const record of records) {
+      if (record && typeof record === 'object') {
+        const r = record as Record<string, unknown>;
+        const attrs = r['attributes'];
+
+        let name: string | undefined;
+
+        if (Array.isArray(attrs)) {
+          // GraphQL format: attributes is array of {attributeName, value}
+          const nameEntry = (attrs as { attributeName?: string; value?: unknown }[])
+            .find((a) => a.attributeName === 'name' || a.attributeName === 'Name');
+          if (nameEntry?.value && typeof nameEntry.value === 'string') {
+            name = nameEntry.value;
+          }
+        } else if (attrs && typeof attrs === 'object') {
+          // Pipeline/MongoDB format: attributes is object {Name: "...", ...}
+          const attrObj = attrs as Record<string, unknown>;
+          name = (attrObj['Name'] ?? attrObj['name'] ?? attrObj['stateName']) as string | undefined;
+        }
+
+        if (!name) {
+          // Flat format: {name: "...", ...}
+          name = (r['Name'] ?? r['name']) as string | undefined;
+        }
+
+        if (typeof name === 'string' && name.length > 0) {
+          names.push(name);
+        }
+      }
+    }
+
+    if (names.length > 0) {
+      this.sourceDataPoints = ['currentValue', ...names.sort()];
+    }
+  }
+
+  /**
+   * Opens attribute selector for the source entity's attributes.
+   */
+  async onSelectSourceAttribute(mapping: DataPointMappingItem): Promise<void> {
     const entity = this.getEntityForDisplay();
     if (!entity?.ckTypeId) return;
 
     const result = await this.attributeSelectorDialog.openAttributeSelector(
       entity.ckTypeId,
-      this.sourceAttributePath ? [this.sourceAttributePath] : undefined,
+      mapping.sourceAttributePath ? [mapping.sourceAttributePath] : undefined,
       'Select Source Attribute',
       true,
       undefined,
@@ -803,16 +961,20 @@ export class RuntimeBrowserDetailsComponent
     );
 
     if (result.confirmed && result.selectedAttributes.length > 0) {
-      this.sourceAttributePath = result.selectedAttributes[0].attributePath;
+      mapping.sourceAttributePath = result.selectedAttributes[0].attributePath;
+      this.dataMappings = [...this.dataMappings];
     }
   }
 
-  async onSelectTargetAttribute(): Promise<void> {
-    if (!this.mappingTarget?.ckTypeId) return;
+  /**
+   * Opens attribute selector for the target entity's attributes.
+   */
+  async onSelectTargetAttribute(mapping: DataPointMappingItem): Promise<void> {
+    if (!mapping.targetCkTypeId) return;
 
     const result = await this.attributeSelectorDialog.openAttributeSelector(
-      this.mappingTarget.ckTypeId,
-      this.targetAttributePath ? [this.targetAttributePath] : undefined,
+      mapping.targetCkTypeId,
+      mapping.targetAttributePath ? [mapping.targetAttributePath] : undefined,
       'Select Target Attribute',
       true,
       undefined,
@@ -822,7 +984,77 @@ export class RuntimeBrowserDetailsComponent
     );
 
     if (result.confirmed && result.selectedAttributes.length > 0) {
-      this.targetAttributePath = result.selectedAttributes[0].attributePath;
+      mapping.targetAttributePath = result.selectedAttributes[0].attributePath;
+      this.dataMappings = [...this.dataMappings];
+    }
+  }
+
+  /**
+   * Saves all DataPointMapping entities (attributes + MapsTo associations).
+   */
+  async onSaveAllMappings(): Promise<void> {
+    try {
+      const updateEntities = this.dataMappings
+        .filter((m) => m.rtId)
+        .map((m) => {
+          const attributes: { attributeName: string; value: unknown }[] = [
+            { attributeName: 'name', value: m.name || null },
+            { attributeName: 'sourceAttributePath', value: m.sourceAttributePath || null },
+            { attributeName: 'mappingExpression', value: m.mappingExpression || null },
+            { attributeName: 'targetAttributePath', value: m.targetAttributePath || null },
+            { attributeName: 'enabled', value: m.enabled ?? true },
+          ];
+
+          const associations: { roleName: string; targets: { target: { rtId: string; ckTypeId: string } }[] }[] = [];
+
+          const targetChanged = m.targetRtId !== m._originalTargetRtId;
+
+          if (targetChanged && m.targetRtId && m.targetCkTypeId) {
+            associations.push({
+              roleName: 'mappedAsTarget',
+              targets: [{ target: { rtId: m.targetRtId, ckTypeId: m.targetCkTypeId } }],
+            });
+          }
+
+          return {
+            rtId: m.rtId,
+            item: {
+              ckTypeId: RuntimeBrowserDetailsComponent.DATA_POINT_MAPPING_CK_TYPE,
+              attributes,
+              associations: associations.length > 0 ? associations : undefined,
+            },
+          };
+        });
+
+      if (updateEntities.length > 0) {
+        await firstValueFrom(
+          this.updateEntitiesGQL.mutate({
+            variables: { entities: updateEntities },
+          }),
+        );
+      }
+
+      // Update original target tracking after successful save
+      for (const m of this.dataMappings) {
+        m._originalTargetRtId = m.targetRtId;
+      }
+
+      this.notificationService.show({
+        content: this._messages.mappingSaved,
+        type: { style: 'success', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 2000,
+        animation: { type: 'fade', duration: 400 },
+      });
+    } catch (error) {
+      console.error('Failed to save mappings:', error);
+      this.notificationService.show({
+        content: this._messages.failedToSaveMapping,
+        type: { style: 'error', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
+        hideAfter: 3000,
+        animation: { type: 'fade', duration: 400 },
+      });
     }
   }
 }

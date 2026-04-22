@@ -37,10 +37,13 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
 
         if (error.status === 0) {
-          if (this.onConnectionLost) {
-            this.onConnectionLost();
-          } else {
-            this.messageService.showError('OctoMesh backend is not reachable. Please check if your network connection is working or contact your Administrator.');
+          const isHealthCheck = request.url.endsWith('/health');
+          if (!isHealthCheck) {
+            if (this.onConnectionLost) {
+              this.onConnectionLost();
+            } else {
+              this.messageService.showError('OctoMesh backend is not reachable. Please check if your network connection is working or contact your Administrator.');
+            }
           }
         }
 

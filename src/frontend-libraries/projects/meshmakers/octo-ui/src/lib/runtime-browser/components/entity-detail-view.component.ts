@@ -49,6 +49,10 @@ import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
   RuntimeBrowserMessages,
 } from "../runtime-browser.model";
+import {
+  DataMappingListComponent,
+  DataPointMappingItem,
+} from "./data-mapping/data-mapping-list.component";
 
 interface DirectionOption {
   text: string;
@@ -69,6 +73,7 @@ interface DirectionOption {
     PropertyGridComponent,
     ListViewComponent,
     EntityAssociationsDataSourceDirective,
+    DataMappingListComponent,
   ],
   template: `
     @if (loading) {
@@ -283,76 +288,17 @@ interface DirectionOption {
           <kendo-tabstrip-tab [title]="_messages.dataMapping">
             <ng-template kendoTabContent>
               <div class="tab-content mapping-tab">
-                @if (!mappingTarget) {
-                  <div class="mapping-empty">
-                    <kendo-svgicon [icon]="linkIcon"></kendo-svgicon>
-                    <p>{{ _messages.noMappingConfigured }}</p>
-                    <button kendoButton themeColor="primary" (click)="onSelectTargetEntity()">
-                      {{ _messages.selectTargetEntity }}
-                    </button>
-                  </div>
-                }
-                @if (mappingTarget) {
-                  <div class="mapping-config">
-                    <!-- Target Entity Section -->
-                    <div class="mapping-section">
-                      <div class="section-header">{{ _messages.mappingTarget }}</div>
-                      <div class="section-body">
-                        <div class="mapping-target-display">
-                          <span class="target-type">{{ mappingTarget.ckTypeId }}</span>
-                          <span class="target-name">{{ mappingTarget.name || mappingTarget.rtId }}</span>
-                          <button kendoButton fillMode="flat" size="small" [svgIcon]="detailsIcon"
-                            [title]="_messages.viewDetails"
-                            (click)="navigateToEntity.emit({ rtId: mappingTarget.rtId, ckTypeId: mappingTarget.ckTypeId })">
-                          </button>
-                          <button kendoButton fillMode="flat" size="small" themeColor="primary"
-                            (click)="onSelectTargetEntity()">Change</button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Attribute Mapping Section -->
-                    <div class="mapping-section">
-                      <div class="section-header">Attribute Mapping</div>
-                      <div class="section-body">
-                        <div class="mapping-field">
-                          <label>{{ _messages.mappingSourceAttributePath }}</label>
-                          <div class="attribute-picker">
-                            <span class="attribute-value">{{ sourceAttributePath || '(default)' }}</span>
-                            <button kendoButton fillMode="flat" size="small"
-                              (click)="onSelectSourceAttribute()">Select...</button>
-                          </div>
-                        </div>
-                        <div class="mapping-field">
-                          <label>{{ _messages.mappingExpression }}</label>
-                          <kendo-textbox
-                            [(value)]="mappingExpression"
-                            placeholder="e.g. value > 0 ? value : 0"
-                          ></kendo-textbox>
-                          <span class="field-hint">{{ _messages.mappingExpressionHint }}</span>
-                        </div>
-                        <div class="mapping-field">
-                          <label>{{ _messages.mappingTargetAttributePath }}</label>
-                          <div class="attribute-picker">
-                            <span class="attribute-value">{{ targetAttributePath || '(not set)' }}</span>
-                            <button kendoButton fillMode="flat" size="small"
-                              (click)="onSelectTargetAttribute()">Select...</button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="mapping-actions">
-                      <button kendoButton (click)="onRemoveMapping()">
-                        {{ _messages.removeMapping }}
-                      </button>
-                      <button kendoButton themeColor="primary" (click)="onSaveMapping()">
-                        {{ _messages.saveMapping }}
-                      </button>
-                    </div>
-                  </div>
-                }
+                <mm-data-mapping-list
+                  [mappings]="dataMappings"
+                  [sourceDataPoints]="sourceDataPoints"
+                  (addMapping)="addMappingRequested.emit()"
+                  (removeMapping)="removeMappingRequested.emit($event)"
+                  (selectTarget)="selectMappingTarget.emit($event)"
+                  (selectSourceAttribute)="selectSourceAttributeRequested.emit($event)"
+                  (selectTargetAttribute)="selectTargetAttributeRequested.emit($event)"
+                  (mappingChanged)="mappingChanged.emit($event)"
+                  (saveAll)="saveAllMappingsRequested.emit()"
+                ></mm-data-mapping-list>
               </div>
             </ng-template>
           </kendo-tabstrip-tab>
@@ -371,23 +317,22 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
     this._messages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES, ...value };
   }
 
+  @Input() dataMappings: DataPointMappingItem[] = [];
+  @Input() sourceDataPoints: string[] = [];
+
   @Output() retry = new EventEmitter<void>();
   @Output() propertyChange = new EventEmitter<PropertyChangeEvent>();
   @Output() navigateToEntity = new EventEmitter<{
     rtId: string;
     ckTypeId: string;
   }>();
-  @Output() selectMappingTarget = new EventEmitter<void>();
-  @Output() saveMappingRequested = new EventEmitter<{
-    targetRtId: string;
-    targetCkTypeId: string;
-    sourceAttributePath: string;
-    mappingExpression: string;
-    targetAttributePath: string;
-  }>();
-  @Output() removeMappingRequested = new EventEmitter<void>();
-  @Output() selectSourceAttribute = new EventEmitter<void>();
-  @Output() selectTargetAttribute = new EventEmitter<void>();
+  @Output() addMappingRequested = new EventEmitter<void>();
+  @Output() removeMappingRequested = new EventEmitter<DataPointMappingItem>();
+  @Output() selectMappingTarget = new EventEmitter<DataPointMappingItem>();
+  @Output() selectSourceAttributeRequested = new EventEmitter<DataPointMappingItem>();
+  @Output() selectTargetAttributeRequested = new EventEmitter<DataPointMappingItem>();
+  @Output() mappingChanged = new EventEmitter<DataPointMappingItem>();
+  @Output() saveAllMappingsRequested = new EventEmitter<void>();
 
   @ViewChild("associationsDir", { static: false })
   associationsDataSource?: EntityAssociationsDataSourceDirective;
@@ -440,12 +385,6 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   // Related Entity filter
   protected selectedRelatedRtId: string | null = null;
-
-  // Data Mapping state
-  @Input() mappingTarget: { rtId: string; ckTypeId: string; name?: string } | null = null;
-  @Input() sourceAttributePath = '';
-  @Input() mappingExpression = '';
-  @Input() targetAttributePath = '';
 
   // Debounced filter subjects
   private readonly destroy$ = new Subject<void>();
@@ -614,34 +553,6 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
       });
     }
   };
-
-  protected onSelectTargetEntity(): void {
-    this.selectMappingTarget.emit();
-  }
-
-  protected onSaveMapping(): void {
-    if (this.mappingTarget && this.targetAttributePath) {
-      this.saveMappingRequested.emit({
-        targetRtId: this.mappingTarget.rtId,
-        targetCkTypeId: this.mappingTarget.ckTypeId,
-        sourceAttributePath: this.sourceAttributePath,
-        mappingExpression: this.mappingExpression,
-        targetAttributePath: this.targetAttributePath,
-      });
-    }
-  }
-
-  protected onRemoveMapping(): void {
-    this.removeMappingRequested.emit();
-  }
-
-  protected onSelectSourceAttribute(): void {
-    this.selectSourceAttribute.emit();
-  }
-
-  protected onSelectTargetAttribute(): void {
-    this.selectTargetAttribute.emit();
-  }
 
   getEntityIdentifier(): string {
     if (!this.entity?.ckTypeId || !this.entity?.rtId) {
