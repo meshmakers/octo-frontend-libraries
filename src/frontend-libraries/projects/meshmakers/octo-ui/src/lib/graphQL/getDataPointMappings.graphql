@@ -1,0 +1,45 @@
+query getDataPointMappings(
+  $ckTypeId: String!
+  $after: String
+  $first: Int
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+) {
+  runtime {
+    runtimeEntities(
+      ckId: $ckTypeId
+      after: $after
+      first: $first
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+    ) {
+      totalCount
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        attributes(resolveEnumValuesToNames: true) {
+          items {
+            attributeName
+            value
+          }
+        }
+        associations {
+          definitions(direction: OUTBOUND, first: 10) {
+            items {
+              targetRtId
+              targetCkTypeId
+              originRtId
+              originCkTypeId
+              ckAssociationRoleId
+            }
+          }
+        }
+      }
+    }
+  }
+}

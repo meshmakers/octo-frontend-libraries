@@ -24,7 +24,6 @@ describe('DataMappingListComponent', () => {
   });
 
   describe('expression validation', () => {
-    let validatorSpy: jasmine.Spy;
     let mapping: DataPointMappingItem;
 
     beforeEach(() => {
