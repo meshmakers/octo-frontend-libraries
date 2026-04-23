@@ -5,7 +5,7 @@ import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { TextBoxModule } from '@progress/kendo-angular-inputs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
-import { plusIcon, trashIcon } from '@progress/kendo-svg-icons';
+import { hyperlinkOpenIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
 
 /**
  * Result of validating a mapping expression.
@@ -111,11 +111,31 @@ export interface DataPointMappingItem {
             </div>
             <div class="mapping-row">
               <label>Target Entity</label>
-              <div class="target-display">
-                <span class="target-info">{{ mapping.targetCkTypeId || '(not set)' }} {{ mapping.targetName || '' }}</span>
-                <button kendoButton fillMode="flat" size="small"
-                  (click)="selectTarget.emit(mapping)">Select...</button>
-              </div>
+              @if (mapping.targetRtId) {
+                <div class="entity-info-display">
+                  <div class="entity-info-main">
+                    <span class="entity-name">{{ mapping.targetName || mapping.targetRtId }}</span>
+                    @if (mapping.targetRtId) {
+                      <button kendoButton fillMode="flat" size="small" [svgIcon]="linkIcon"
+                        title="Navigate to entity"
+                        (click)="navigateToTarget.emit(mapping)"></button>
+                    }
+                  </div>
+                  <div class="entity-info-details">
+                    <span class="entity-detail-item">{{ mapping.targetCkTypeId }}</span>
+                    <span class="entity-detail-separator">@</span>
+                    <span class="entity-detail-item">{{ mapping.targetRtId }}</span>
+                  </div>
+                  <button kendoButton fillMode="flat" size="small"
+                    (click)="selectTarget.emit(mapping)">Change...</button>
+                </div>
+              } @else {
+                <div class="target-display">
+                  <span class="target-info">(not set)</span>
+                  <button kendoButton fillMode="flat" size="small"
+                    (click)="selectTarget.emit(mapping)">Select...</button>
+                </div>
+              }
             </div>
             <div class="mapping-row">
               <label>Target Attribute</label>
@@ -225,6 +245,41 @@ export interface DataPointMappingItem {
       padding-top: 4px;
     }
 
+    .entity-info-display {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 4px 8px;
+      border: 1px solid var(--kendo-color-border, #dee2e6);
+      border-radius: 4px;
+      background: var(--kendo-color-surface-alt, #f8f9fa);
+    }
+
+    .entity-info-main {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .entity-name {
+      flex: 1;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .entity-info-details {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.7rem;
+      font-family: monospace;
+      color: var(--kendo-color-subtle, #6c757d);
+    }
+
+    .entity-detail-separator {
+      color: var(--kendo-color-subtle, #6c757d);
+    }
+
     .expression-feedback {
       font-size: 0.75rem;
       padding: 2px 0;
@@ -257,6 +312,7 @@ export class DataMappingListComponent {
   @Output() selectSourceAttribute = new EventEmitter<DataPointMappingItem>();
   @Output() selectTargetAttribute = new EventEmitter<DataPointMappingItem>();
   @Output() mappingChanged = new EventEmitter<DataPointMappingItem>();
+  @Output() navigateToTarget = new EventEmitter<DataPointMappingItem>();
   @Output() saveAll = new EventEmitter<void>();
 
   onSourceDataPointChange(mapping: DataPointMappingItem, value: string): void {
@@ -283,4 +339,5 @@ export class DataMappingListComponent {
 
   protected readonly plusIcon = plusIcon;
   protected readonly trashIcon = trashIcon;
+  protected readonly linkIcon = hyperlinkOpenIcon;
 }
