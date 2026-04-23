@@ -6,11 +6,10 @@ import {
   FetchResultTyped,
   ListViewComponent,
 } from '@meshmakers/shared-ui';
-import { firstValueFrom, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { OctoGraphQlDataSource } from '../../data-sources/octo-graph-ql-data-source';
 import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../graphQL/getRuntimeEntityAssociationsById';
-import { GetRuntimeEntityByIdDtoGQL } from '../../graphQL/getRuntimeEntityById';
 
 export interface AssociationDisplayItem {
   targetRtId: string;
@@ -21,8 +20,6 @@ export interface AssociationDisplayItem {
   direction: 'Inbound' | 'Outbound';
   relatedRtId: string;
   relatedCkTypeId: string;
-  /** Resolved name of the related entity (loaded after initial fetch). */
-  relatedName: string;
 }
 
 @Directive({
@@ -40,7 +37,6 @@ export class EntityAssociationsDataSourceDirective extends OctoGraphQlDataSource
   private readonly getAssociationsGQL = inject(
     GetRuntimeEntityAssociationsByIdDtoGQL,
   );
-  private readonly getEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
 
   private rtId: string | null = null;
   private ckTypeId: string | null = null;
@@ -81,45 +77,6 @@ export class EntityAssociationsDataSourceDirective extends OctoGraphQlDataSource
 
   public refresh(): void {
     this.fetchAgain();
-  }
-
-  private async resolveRelatedNames(items: AssociationDisplayItem[]): Promise<void> {
-    const entityRefs = new Map<string, { rtId: string; ckTypeId: string }>();
-    for (const item of items) {
-      if (item.relatedRtId && item.relatedCkTypeId) {
-        entityRefs.set(item.relatedRtId, { rtId: item.relatedRtId, ckTypeId: item.relatedCkTypeId });
-      }
-    }
-
-    const nameMap = new Map<string, string>();
-    const loadPromises = [...entityRefs.values()].map(async (ref) => {
-      try {
-        const result = await firstValueFrom(
-          this.getEntityByIdGQL.fetch({ variables: { rtId: ref.rtId, ckTypeId: ref.ckTypeId } })
-        );
-        const entity = result.data?.runtime?.runtimeEntities?.items?.[0];
-        if (entity) {
-          const nameAttr = entity.attributes?.items?.find(a => a?.attributeName === 'name');
-          const name = (nameAttr?.value as string) ?? entity.rtWellKnownName ?? '';
-          if (name) nameMap.set(ref.rtId, name);
-        }
-      } catch { /* entity not found or access denied */ }
-    });
-
-    await Promise.all(loadPromises);
-
-    let changed = false;
-    for (const item of items) {
-      const name = nameMap.get(item.relatedRtId);
-      if (name) {
-        item.relatedName = name;
-        changed = true;
-      }
-    }
-
-    if (changed) {
-      this.fetchAgain();
-    }
   }
 
   public fetchData(
@@ -166,11 +123,8 @@ export class EntityAssociationsDataSourceDirective extends OctoGraphQlDataSource
                 relatedCkTypeId: isOutbound
                   ? item.targetCkTypeId
                   : item.originCkTypeId,
-                relatedName: '',
               } as AssociationDisplayItem;
             });
-
-          this.resolveRelatedNames(transformedItems);
 
           return new FetchResultTyped<AssociationDisplayItem>(
             transformedItems,
