@@ -300,6 +300,7 @@ interface DirectionOption {
                   (selectSourceAttribute)="selectSourceAttributeRequested.emit($event)"
                   (selectTargetAttribute)="selectTargetAttributeRequested.emit($event)"
                   (mappingChanged)="mappingChanged.emit($event)"
+                  (navigateToTarget)="onNavigateToMappingTarget($event)"
                   (saveAll)="saveAllMappingsRequested.emit()"
                 ></mm-data-mapping-list>
               </div>
@@ -581,6 +582,15 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   getAssociationCount(): number {
     return this.entity?.associations?.definitions?.totalCount ?? 0;
+  }
+
+  protected onNavigateToMappingTarget(mapping: DataPointMappingItem): void {
+    if (mapping.targetRtId && mapping.targetCkTypeId) {
+      this.navigateToEntity.emit({
+        rtId: mapping.targetRtId,
+        ckTypeId: mapping.targetCkTypeId,
+      });
+    }
   }
 
   protected copyToClipboard(
