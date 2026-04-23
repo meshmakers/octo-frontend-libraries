@@ -261,6 +261,11 @@ interface DirectionOption {
                       dataType: 'text',
                     },
                     {
+                      field: 'relatedName',
+                      displayName: _messages.relatedEntityName,
+                      dataType: 'text',
+                    },
+                    {
                       field: 'relatedRtId',
                       displayName: _messages.relatedEntity,
                       dataType: 'text',

@@ -36,6 +36,7 @@ export interface RuntimeBrowserMessages {
   role: string;
   relatedType: string;
   relatedEntity: string;
+  relatedEntityName: string;
   all: string;
   inbound: string;
   outbound: string;
@@ -133,6 +134,7 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   role: 'Role',
   relatedType: 'Related Type',
   relatedEntity: 'Related Entity',
+  relatedEntityName: 'Name',
   all: 'All',
   inbound: 'Inbound',
   outbound: 'Outbound',
