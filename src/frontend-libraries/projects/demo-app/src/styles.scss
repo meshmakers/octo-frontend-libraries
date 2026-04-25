@@ -1,10 +1,6 @@
 /* Kendo UI Theme */
 @use "@progress/kendo-theme-default/dist/all.scss";
 
-/* Octo UI structural mixins (theme-neutral defaults) */
-@use "styles/_index.scss" as octo;
-@include octo.drawer();
-
 /* Global styles */
 html,
 body {

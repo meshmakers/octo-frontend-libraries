@@ -1,5 +1,3 @@
 // Global Octo UI styles entrypoint.
-// Forward all reusable mixins and partials so consumers can `@use` the entire
-// styles namespace and pick what they need (e.g. `@include octo.drawer()`).
-@forward "drawer";
+// Forward runtime-browser styles so consumers can configure theme variables.
 @forward "../lib/runtime-browser/styles/index";

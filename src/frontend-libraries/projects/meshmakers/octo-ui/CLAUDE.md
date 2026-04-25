@@ -20,68 +20,21 @@ npm run lint:octo-ui
 ## Project Structure
 
 ```
-src/
-├── lib/
-│   ├── attribute-selector-dialog/    # Attribute selection dialog
-│   ├── attribute-sort-selector-dialog/  # Attribute selection with sort order
-│   ├── ck-type-selector-dialog/      # CK type selection dialog
-│   ├── ck-type-selector-input/       # CK type autocomplete input
-│   ├── data-sources/                 # GraphQL data source abstractions
-│   ├── entity-id-info/               # Entity ID display with copy dropdown
-│   ├── field-filter-editor/          # Filter editor component
-│   ├── octo-loader/                  # Animated loading indicator
-│   ├── property-grid/                # Property grid component
-│   ├── runtime-browser/              # Runtime browser component (with own styles/)
-│   └── tenant-switcher/              # Tenant switching badge with popup
-│       ├── components/               # Grid and value display components
-│       ├── models/                   # TypeScript interfaces and enums
-│       └── services/                 # Property converter service
-└── styles/                           # Reusable SCSS mixins for host apps
-    ├── _drawer.scss                  # @mixin drawer() — Kendo Drawer hierarchy
-    ├── _index.scss                   # Default entrypoint (Kendo already loaded)
-    └── _with-kendo.scss              # Entrypoint that also imports Kendo theme
+src/lib/
+├── attribute-selector-dialog/    # Attribute selection dialog
+├── attribute-sort-selector-dialog/  # Attribute selection with sort order
+├── ck-type-selector-dialog/      # CK type selection dialog
+├── ck-type-selector-input/       # CK type autocomplete input
+├── data-sources/                 # GraphQL data source abstractions
+├── entity-id-info/               # Entity ID display with copy dropdown
+├── field-filter-editor/          # Filter editor component
+├── octo-loader/                  # Animated loading indicator
+├── property-grid/                # Property grid component
+└── tenant-switcher/              # Tenant switching badge with popup
+    ├── components/               # Grid and value display components
+    ├── models/                   # TypeScript interfaces and enums
+    └── services/                 # Property converter service
 ```
-
-## Reusable Style Mixins
-
-The library exposes structural styling for shared Kendo widgets through SCSS
-mixins. Host applications include the mixin once and override the visual tokens
-(colors, accent) via CSS custom properties — keeping app stylesheets focused on
-theme tokens instead of structural rules.
-
-### `drawer()` — Kendo Drawer hierarchy
-
-Renders top-level menu groups as uppercase headers with subdued children that
-share a vertical guide line, hides Kendo's auto-separators, and gives the
-selected item an inset accent bar. Three or more nested levels are intentionally
-unstyled so deeply nested sidebars stay visually broken (a UX smell to flag).
-
-**Usage in a host app's `styles.scss`:**
-
-```scss
-@use "@meshmakers/octo-ui/styles" as octo;
-
-@include octo.drawer();
-
-// Optional: override the visual tokens. Defaults are theme-neutral and pick up
-// `--kendo-color-*` where reasonable, so the mixin works out of the box.
-:root {
-  --mm-drawer-top-color:       #e2e8f0;
-  --mm-drawer-child-color:     #cbd5e1;
-  --mm-drawer-deep-color:      #a0aec0;
-  --mm-drawer-hover-color:     #ffffff;
-  --mm-drawer-hover-bg:        rgba(255, 255, 255, 0.04);
-  --mm-drawer-accent:          #64ceb9;
-  --mm-drawer-accent-bg:       rgba(100, 206, 185, 0.10);
-  --mm-drawer-accent-bg-top:   rgba(100, 206, 185, 0.06);
-  --mm-drawer-guide-color:     rgba(255, 255, 255, 0.10);
-}
-```
-
-**Companion runtime requirement:** The mini (collapsed) drawer relies on the
-`mm-drawer-top` / `mm-drawer-child` marker classes that
-`@meshmakers/shared-services` `CommandService` adds to every `DrawerItem` based
-on its `parentId`. Apps using `CommandService` get this for free.
 
 ## Runtime Browser Localization
 
