@@ -1,0 +1,125 @@
+// ============================================================================
+// KENDO DRAWER - HIERARCHY OVERRIDES
+// Structural styling that gives Kendo's drawer a clear visual hierarchy
+// (top-level groups vs nested children). Colors are theme-neutral by default
+// and can be overridden by host applications via CSS custom properties.
+//
+// Usage in a host app:
+//
+//   @use "@meshmakers/octo-ui/styles" as octo;
+//   @include octo.drawer();
+//
+//   :root {
+//     --mm-drawer-top-color:   #e2e8f0;
+//     --mm-drawer-child-color: #cbd5e1;
+//     --mm-drawer-deep-color:  #a0aec0;
+//     --mm-drawer-accent:      #64ceb9;
+//     ... (see variable list below)
+//   }
+//
+// Companion runtime markers come from `@meshmakers/shared-services`
+// (CommandService.createDrawerItems sets `mm-drawer-top` / `mm-drawer-child`
+// per item) so the hierarchy stays visible in mini/collapsed mode where
+// Kendo strips its own k-level-N classes.
+//
+// Three or more nested levels are intentionally NOT styled (k-level-3+ falls
+// back to Kendo defaults) — deeply nested sidebars are a UX smell.
+// ============================================================================
+
+@mixin drawer() {
+  // --------------------------------------------------------------------------
+  // Top-level groups (k-level-0)
+  // --------------------------------------------------------------------------
+
+  .k-drawer-item.k-level-0 {
+    font-weight: 600;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--mm-drawer-top-color, currentColor);
+    margin-top: 2px;
+
+    &.k-selected {
+      color: var(--mm-drawer-accent, var(--kendo-color-primary, currentColor));
+      background: var(--mm-drawer-accent-bg-top, transparent);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Nested items (k-level-1 + k-level-2)
+  // Shared rules; per-level overrides differ only in indent, font-size,
+  // color, icon scale and guide-line position.
+  // --------------------------------------------------------------------------
+
+  .k-drawer-item.k-level-1,
+  .k-drawer-item.k-level-2 {
+    font-weight: 400;
+    text-transform: none;
+    position: relative;
+
+    .k-icon,
+    svg {
+      opacity: var(--mm-drawer-scale, 0.85);
+      transform: scale(var(--mm-drawer-scale, 0.85));
+    }
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      left: var(--mm-drawer-guide-x, 22px);
+      background: var(--mm-drawer-guide-color, rgba(0, 0, 0, 0.1));
+    }
+
+    &:hover {
+      color: var(--mm-drawer-hover-color, currentColor);
+      background: var(--mm-drawer-hover-bg, rgba(0, 0, 0, 0.04));
+    }
+
+    &.k-selected {
+      color: var(--mm-drawer-accent, var(--kendo-color-primary, currentColor));
+      background: var(--mm-drawer-accent-bg, transparent);
+      box-shadow: inset 3px 0 0 var(--mm-drawer-accent, var(--kendo-color-primary, currentColor));
+    }
+  }
+
+  .k-drawer-item.k-level-1 {
+    font-size: 13px;
+    color: var(--mm-drawer-child-color, var(--kendo-color-subtle, currentColor));
+    padding: 6px 12px 6px 36px;
+  }
+
+  .k-drawer-item.k-level-2 {
+    font-size: 12.5px;
+    color: var(--mm-drawer-deep-color, var(--kendo-color-subtle, currentColor));
+    padding: 6px 12px 6px 60px;
+    --mm-drawer-scale: 0.75;
+    --mm-drawer-guide-x: 46px;
+  }
+
+  // Hide Kendo's auto-generated separators — they create awkward gaps
+  // between logically grouped child items.
+  .k-drawer-item.k-drawer-separator {
+    display: none;
+  }
+
+  // --------------------------------------------------------------------------
+  // Mini drawer (collapsed)
+  // Kendo strips k-level-N here, so we rely on the mm-drawer-top /
+  // mm-drawer-child marker classes that come from shared-services
+  // (parent-id driven) to keep the hierarchy readable.
+  // --------------------------------------------------------------------------
+
+  .k-drawer-mini {
+    .k-drawer-item.mm-drawer-top:not(.k-selected) {
+      color: var(--mm-drawer-top-color, currentColor);
+    }
+
+    .k-drawer-item.mm-drawer-child:not(.k-selected) {
+      color: var(--mm-drawer-child-color, var(--kendo-color-subtle, currentColor));
+      opacity: 0.75;
+    }
+  }
+}

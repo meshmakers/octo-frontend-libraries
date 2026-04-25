@@ -23,6 +23,9 @@
             "polyfills": ["zone.js", "@angular/localize/init"],
             "tsConfig": "projects/demo-app/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "stylePreprocessorOptions": {
+              "includePaths": ["dist/meshmakers/octo-ui"]
+            },
             "assets": [
               "projects/demo-app/src/assets",
               {
