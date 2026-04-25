@@ -41,11 +41,14 @@ export class CommandService extends CommandBaseService {
         continue;
       }
 
+      const hierarchyClass = parentId ? 'mm-drawer-child' : 'mm-drawer-top';
+
       if (commandItem.type === 'separator') {
         items.push({
           id: commandItem.id,
           parentId: parentId ?? undefined,
-          separator: true
+          separator: true,
+          cssClass: hierarchyClass
         });
       } else {
         items.push({
@@ -53,7 +56,8 @@ export class CommandService extends CommandBaseService {
           parentId: parentId ?? undefined,
           text: commandItem.text,
           selected: commandItem.selected,
-          svgIcon: commandItem.svgIcon
+          svgIcon: commandItem.svgIcon,
+          cssClass: hierarchyClass
         });
 
         if (commandItem.children) {
