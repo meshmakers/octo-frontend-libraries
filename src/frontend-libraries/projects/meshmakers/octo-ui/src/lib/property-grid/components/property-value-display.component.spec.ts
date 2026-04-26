@@ -428,14 +428,14 @@ describe('PropertyValueDisplayComponent', () => {
   // =========================================================================
 
   describe('recordSummary', () => {
-    it('should return Array with X items for RecordArrayDto', () => {
+    it('should return N records for RecordArrayDto', () => {
       initComponent([{ id: 1 }, { id: 2 }, { id: 3 }], AttributeValueTypeDto.RecordArrayDto);
-      expect(component.recordSummary).toBe('Array with 3 items');
+      expect(component.recordSummary).toBe('3 records');
     });
 
-    it('should use singular item for single element array', () => {
+    it('should use singular record for single element array', () => {
       initComponent([{ id: 1 }], AttributeValueTypeDto.RecordArrayDto);
-      expect(component.recordSummary).toBe('Array with 1 item');
+      expect(component.recordSummary).toBe('1 record');
     });
 
     it('should return Object with X properties for RecordDto', () => {

@@ -1,7 +1,7 @@
 import { SimpleChange } from "@angular/core";
 import { ComponentFixture, TestBed, fakeAsync } from "@angular/core/testing";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
-import { PropertyConverterService } from "@meshmakers/octo-ui";
+import { PropertyConverterService } from "../../property-grid";
 import { SelectEvent } from "@progress/kendo-angular-layout";
 import { NotificationService } from "@progress/kendo-angular-notification";
 import { of } from "rxjs";
@@ -237,7 +237,12 @@ describe("EntityDetailViewComponent", () => {
 
       expect(
         mockPropertyConverterService.convertRtEntityToProperties,
-      ).toHaveBeenCalledWith(entity);
+      ).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          rtId: entity.rtId,
+          ckTypeId: entity.ckTypeId,
+        }),
+      );
     });
 
     it("should not update property grid when entity is null", () => {

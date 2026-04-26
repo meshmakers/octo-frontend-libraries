@@ -1,10 +1,17 @@
 // Karma configuration file, see link for more information
 // https://karma-runner.github.io/6.4/config/configuration-file.html
 
-// Set CHROME_BIN based on platform (macOS vs Linux/CI)
+// Set CHROME_BIN based on platform (macOS, Windows, Linux/CI)
 if (!process.env.CHROME_BIN) {
   if (process.platform === 'darwin') {
     process.env.CHROME_BIN = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+  } else if (process.platform === 'win32') {
+    const fs = require('fs');
+    const candidates = [
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    ];
+    process.env.CHROME_BIN = candidates.find(p => fs.existsSync(p)) || candidates[0];
   } else {
     process.env.CHROME_BIN = '/usr/bin/google-chrome-stable';
   }

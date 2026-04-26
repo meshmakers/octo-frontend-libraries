@@ -134,9 +134,12 @@ steps:
         set -e
         export NODE_OPTIONS="--max-old-space-size=6144"
 
+        # Calls the per-project script defined in package.json (test:<name>),
+        # which already pins --watch=false --browsers=ChromeHeadlessCI. The CI
+        # only adds --reporters=junit,progress so test results are published.
         run_test() {
           echo "Testing $1..."
-          npm test -- --project="$1" --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+          npm run "test:$1" -- --reporters=junit,progress
         }
 
         wait_all() {
@@ -152,21 +155,21 @@ steps:
 
         # Round 1: octo-process-diagrams (slowest), shared-services, octo-services
         echo "=== Test Round 1 (3 parallel) ==="
-        run_test @meshmakers/octo-process-diagrams &
+        run_test octo-process-diagrams &
         pid1=$!
-        run_test @meshmakers/shared-services &
+        run_test shared-services &
         pid2=$!
-        run_test @meshmakers/octo-services &
+        run_test octo-services &
         pid3=$!
         wait_all $pid1 $pid2 $pid3
 
         # Round 2: shared-auth, shared-ui, octo-meshboard
         echo "=== Test Round 2 (3 parallel) ==="
-        run_test @meshmakers/shared-auth &
+        run_test shared-auth &
         pid4=$!
-        run_test @meshmakers/shared-ui &
+        run_test shared-ui &
         pid5=$!
-        run_test @meshmakers/octo-meshboard &
+        run_test octo-meshboard &
         pid6=$!
         wait_all $pid4 $pid5 $pid6
 
