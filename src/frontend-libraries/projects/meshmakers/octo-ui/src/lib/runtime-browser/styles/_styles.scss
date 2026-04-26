@@ -2470,17 +2470,78 @@
 
       // Separator styling
       &.k-drawer-separator {
-        height: 1px;
-        min-height: 1px;
-        padding: 0;
-        margin: 8px 12px;
-        background: linear-gradient(90deg, var(--octo-mint-30), transparent);
+        display: none;
       }
+    }
+
+    // Hierarchy — top-level groups (k-level-0)
+    .k-drawer-item.k-level-0 {
+      color: var(--octo-text-color);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      font-size: 12.5px;
+      margin-top: 2px;
+    }
+
+    // Hierarchy — nested items (k-level-1 and k-level-2 share most rules;
+    // per-level overrides set indent, font-size, text colour and the
+    // locally-scoped --guide-x / --icon-scale below).
+    .k-drawer-item.k-level-1,
+    .k-drawer-item.k-level-2 {
+      --guide-x: 22px;
+      --icon-scale: 0.85;
+
+      font-weight: 400;
+      text-transform: none;
+      position: relative;
+
+      .k-icon, .k-svg-icon, kendo-svgicon, svg {
+        transform: scale(var(--icon-scale));
+        opacity: var(--icon-scale);
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: var(--guide-x);
+        width: 1px;
+        background: color-mix(in srgb, var(--octo-text-color) 10%, transparent);
+      }
+
+      &:hover {
+        color: var(--octo-text-color);
+        background: color-mix(in srgb, var(--octo-text-color) 4%, transparent);
+      }
+
+      &.k-selected {
+        color: var(--octo-mint);
+        background: var(--octo-mint-10);
+        box-shadow: inset 3px 0 0 var(--octo-mint);
+        border-left: none;
+      }
+    }
+
+    .k-drawer-item.k-level-1 {
+      font-size: 13px;
+      color: color-mix(in srgb, var(--octo-text-color) 75%, transparent);
+      padding: 6px 12px 6px 36px;
+    }
+
+    .k-drawer-item.k-level-2 {
+      font-size: 12.5px;
+      color: color-mix(in srgb, var(--octo-text-color) 60%, transparent);
+      padding: 6px 12px 6px 60px;
+      --guide-x: 46px;
+      --icon-scale: 0.75;
     }
 
     // Collapsed state (mini mode)
     &[style*="flex-basis: 50px"],
-    &[style*="flex-basis:50px"] {
+    &[style*="flex-basis:50px"],
+    &.k-drawer-mini {
       .k-drawer-item {
         justify-content: center;
         padding: 10px 0;
@@ -2497,6 +2558,18 @@
           border-left: 3px solid var(--octo-mint);
           padding-left: 0;
         }
+      }
+
+      .k-drawer-item.mm-drawer-level-0:not(.k-selected) {
+        color: var(--octo-text-color);
+      }
+      .k-drawer-item.mm-drawer-level-1:not(.k-selected) {
+        color: color-mix(in srgb, var(--octo-text-color) 75%, transparent);
+        opacity: 0.85;
+      }
+      .k-drawer-item.mm-drawer-level-2:not(.k-selected) {
+        color: color-mix(in srgb, var(--octo-text-color) 60%, transparent);
+        opacity: 0.7;
       }
     }
   }

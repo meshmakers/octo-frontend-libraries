@@ -346,7 +346,7 @@ Service for managing drawer navigation items and handling navigation commands.
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `drawerItems` | `Observable<DrawerItem[]>` | Drawer items for Kendo Drawer. Each item carries a `cssClass` of `mm-drawer-top` (no parent) or `mm-drawer-child` (has parent) so consumers can style the hierarchy in mini/collapsed mode where Kendo strips its own `k-level-*` classes. |
+| `drawerItems` | `Observable<DrawerItem[]>` | Drawer items for Kendo Drawer. Each item carries a `cssClass` of `mm-drawer-level-${depth}` (level 0 for top-level items, 1 for children, 2 for grandchildren, …) so consumers can style the hierarchy in mini/collapsed mode where Kendo strips its own `k-level-*` classes. |
 
 #### Usage Example
 

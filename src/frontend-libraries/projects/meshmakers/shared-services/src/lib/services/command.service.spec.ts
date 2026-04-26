@@ -57,4 +57,39 @@ describe('CommandService', () => {
       await expectAsync(service.initialize()).toBeResolved();
     });
   });
+
+  describe('createDrawerItems hierarchy markers', () => {
+    it('should emit cssClass mm-drawer-level-N matching the nesting depth', async () => {
+      (mockCommandSettingsService as { commandItems: unknown[] }).commandItems = [
+        {
+          id: 'a',
+          type: 'link',
+          text: 'A',
+          children: [
+            {
+              id: 'b',
+              type: 'link',
+              text: 'B',
+              children: [
+                { id: 'c', type: 'link', text: 'C' }
+              ]
+            }
+          ]
+        }
+      ];
+
+      await service.initialize();
+
+      const items = await new Promise<{ id: unknown; cssClass: unknown }[]>(resolve => {
+        service.drawerItems.subscribe(emitted => {
+          resolve(emitted as { id: unknown; cssClass: unknown }[]);
+        });
+      });
+
+      expect(items.length).toBe(3);
+      expect(items.find(i => i.id === 'a')?.cssClass).toBe('mm-drawer-level-0');
+      expect(items.find(i => i.id === 'b')?.cssClass).toBe('mm-drawer-level-1');
+      expect(items.find(i => i.id === 'c')?.cssClass).toBe('mm-drawer-level-2');
+    });
+  });
 });

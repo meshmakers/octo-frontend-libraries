@@ -36,6 +36,22 @@ src/lib/
     └── services/                 # Property converter service
 ```
 
+## Drawer Hierarchy
+
+`@include octo.styles()` styles the Kendo Drawer with three levels of visual hierarchy:
+- **Level 0** (top-level groups): white, uppercase, full-size icons.
+- **Level 1** (children): indented 36 px, dimmer text, icons at 0.85 scale, vertical guide line.
+- **Level 2** (grandchildren): indented 60 px, even dimmer, icons at 0.75 scale, guide line at 46 px.
+- **Level 3+**: intentionally unstyled — deeply nested sidebars are a UX smell.
+
+Mini (collapsed) mode relies on the `mm-drawer-level-N` `cssClass` that
+`@meshmakers/shared-services` `CommandService` adds to every `DrawerItem`
+based on its nesting depth. Apps consuming `CommandService` get this for free.
+
+All colours come from existing `--octo-*` tokens declared by `octo.variables()`
+(`--octo-text-color`, `--octo-mint`, `--octo-mint-10`); no per-drawer token
+namespace is exposed.
+
 ## Runtime Browser Localization
 
 `RuntimeBrowserComponent` does not load translations internally. Host applications must supply

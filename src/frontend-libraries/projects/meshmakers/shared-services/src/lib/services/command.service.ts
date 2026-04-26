@@ -33,7 +33,12 @@ export class CommandService extends CommandBaseService {
     this._drawerItems.next(items);
   }
 
-  private async createDrawerItems(commandItems: CommandItem[], items: DrawerItem[], parentId: string | null) {
+  private async createDrawerItems(
+    commandItems: CommandItem[],
+    items: DrawerItem[],
+    parentId: string | null,
+    depth = 0,
+  ) {
     for (const commandItem of commandItems) {
       const visible = await CommandBaseService.getIsVisible(commandItem);
 
@@ -41,7 +46,7 @@ export class CommandService extends CommandBaseService {
         continue;
       }
 
-      const hierarchyClass = parentId ? 'mm-drawer-child' : 'mm-drawer-top';
+      const hierarchyClass = `mm-drawer-level-${depth}`;
 
       if (commandItem.type === 'separator') {
         items.push({
@@ -61,7 +66,7 @@ export class CommandService extends CommandBaseService {
         });
 
         if (commandItem.children) {
-          await this.createDrawerItems(commandItem.children, items, commandItem.id);
+          await this.createDrawerItems(commandItem.children, items, commandItem.id, depth + 1);
         }
         this._commandsMap.set(commandItem.id, commandItem);
       }
