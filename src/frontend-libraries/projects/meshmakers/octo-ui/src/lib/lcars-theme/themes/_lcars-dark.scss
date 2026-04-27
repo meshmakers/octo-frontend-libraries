@@ -1,0 +1,47 @@
+// src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/lcars-theme/themes/_lcars-dark.scss
+// ============================================================================
+// LCARS DARK THEME — maps the LCARS brand palette to the semantic surface.
+// Sass color helpers below are private to this file; never escape it.
+// Activated via :root[data-theme="lcars-dark"] (default).
+// ============================================================================
+
+@mixin lcars-dark {
+  // 1. Private Sass helpers (LCARS brand palette)
+  $primary:           #64ceb9;   // Octo Mint
+  $secondary:         #00a8dc;   // Neo Cyan
+  $surface:           #394555;   // Iron Navy
+  $surface-elevated:  #1f2e40;
+  $app-bg:            #07172b;   // Deep Sea
+  $on-bg:             #ffffff;
+  $on-primary:        #07172b;   // Deep Sea text on mint background
+  $on-secondary:      #ffffff;
+  $text-secondary:    #9292a6;   // Ash Blue
+  $success:           #37b400;
+  $warning:           #da9162;   // Toffee (status)
+  $error:             #ec658f;   // Bubblegum
+  $info:              #546fbd;   // Indigogo
+  $accent-violet:     #6c4da8;   // Royal Violet
+  $accent-amber:      #da9162;   // Toffee (decorative)
+  $accent-pink:       #c861d6;   // Lilac Glow
+
+  // 2. Map to semantic surface
+  --theme-primary:            #{$primary};
+  --theme-secondary:          #{$secondary};
+  --theme-surface:            #{$surface};
+  --theme-surface-elevated:   #{$surface-elevated};
+  --theme-app-bg:             #{$app-bg};
+  --theme-on-app-bg:          #{$on-bg};
+  --theme-on-primary:         #{$on-primary};
+  --theme-on-secondary:       #{$on-secondary};
+  --theme-on-surface:         #{$on-bg};
+  --theme-text-secondary:     #{$text-secondary};
+  --theme-success:            #{$success};
+  --theme-warning:            #{$warning};
+  --theme-error:              #{$error};
+  --theme-info:               #{$info};
+  --theme-border:             #{$primary};
+  --theme-border-subtle:      #{$text-secondary};
+  --theme-accent-violet:      #{$accent-violet};
+  --theme-accent-amber:       #{$accent-amber};
+  --theme-accent-pink:        #{$accent-pink};
+}

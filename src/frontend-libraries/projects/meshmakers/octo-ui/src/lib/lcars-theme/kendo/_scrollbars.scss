@@ -13,23 +13,23 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--deep-sea-50);
+    background: var(--theme-app-bg-alpha-50);
     border-radius: var(--lcars-radius-sm);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--iron-navy), var(--ash-blue));
+    background: linear-gradient(180deg, var(--theme-surface), var(--theme-text-secondary));
     border-radius: var(--lcars-radius-sm);
-    border: 1px solid var(--octo-mint-20);
+    border: 1px solid var(--theme-primary-alpha-20);
 
     &:hover {
-      background: linear-gradient(180deg, var(--ash-blue), var(--octo-mint));
+      background: linear-gradient(180deg, var(--theme-text-secondary), var(--theme-primary));
     }
   }
 
   // Firefox scrollbar
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--iron-navy) var(--deep-sea-50);
+    scrollbar-color: var(--theme-surface) var(--theme-app-bg-alpha-50);
   }
 }

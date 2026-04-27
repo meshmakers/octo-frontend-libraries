@@ -23,21 +23,21 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: var(--surface-elevated);
-    color: var(--octo-text-color);
+    background: var(--theme-surface-elevated);
+    color: var(--theme-on-app-bg);
   }
 
   // Styles Panel LCARS theming (overrides library defaults)
   // Use ::ng-deep to penetrate Angular's ViewEncapsulation
   ::ng-deep mm-styles-panel {
     .panel-container {
-      background: var(--surface-elevated);
+      background: var(--theme-surface-elevated);
       overflow-y: auto;
       min-height: 0;
     }
 
     .panel-toolbar {
-      border-bottom-color: var(--octo-mint-20);
+      border-bottom-color: var(--theme-primary-alpha-20);
       flex-shrink: 0;
     }
 
@@ -54,68 +54,68 @@
     }
 
     .add-button {
-      background: var(--iron-navy);
-      border-color: var(--octo-mint-30);
-      color: var(--ash-blue);
+      background: var(--theme-surface);
+      border-color: var(--theme-primary-alpha-30);
+      color: var(--theme-text-secondary);
 
       &:hover {
-        background: var(--octo-mint-15);
-        border-color: var(--octo-mint);
-        color: var(--octo-mint);
+        background: var(--theme-primary-alpha-15);
+        border-color: var(--theme-primary);
+        color: var(--theme-primary);
       }
     }
 
     .style-item {
-      background: var(--surface-elevated);
-      border-color: var(--octo-mint-20);
+      background: var(--theme-surface-elevated);
+      border-color: var(--theme-primary-alpha-20);
 
       &:hover {
-        background: var(--iron-navy);
-        border-color: var(--octo-mint);
+        background: var(--theme-surface);
+        border-color: var(--theme-primary);
       }
 
       &.selected {
-        background: var(--octo-mint-15);
-        border-color: var(--octo-mint);
+        background: var(--theme-primary-alpha-15);
+        border-color: var(--theme-primary);
       }
     }
 
     .style-name {
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
     }
 
     .delete-button {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
 
       &:hover {
-        background: var(--bubblegum-20);
-        color: var(--bubblegum);
+        background: var(--theme-error-alpha-20);
+        color: var(--theme-error);
       }
     }
 
     .empty-state {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .style-editor {
-      background: var(--iron-navy);
-      border-top-color: var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-top-color: var(--theme-primary-alpha-20);
     }
 
     .editor-section h4 {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .form-group {
       label {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
       input[type="text"],
       input[type="number"] {
         @include lcars-input;
       }
       input[type="color"] {
-        border-color: var(--octo-mint-30);
+        border-color: var(--theme-primary-alpha-30);
       }
     }
     .line-type-select {
@@ -123,20 +123,20 @@
     }
 
     .line-preview {
-      background: var(--deep-sea);
-      border-color: var(--octo-mint-30);
+      background: var(--theme-app-bg);
+      border-color: var(--theme-primary-alpha-30);
     }
 
     .opacity-value {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .panel-footer {
-      background: var(--iron-navy);
-      border-top-color: var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-top-color: var(--theme-primary-alpha-20);
 
       .hint {
-        color: var(--ash-blue-70);
+        color: var(--theme-text-secondary-alpha-70);
       }
     }
   }
@@ -144,26 +144,26 @@
   // Element Palette styling (inside dockview panels)
   .element-palette,
   .symbols-palette {
-    background: var(--surface-elevated);
+    background: var(--theme-surface-elevated);
 
     .palette-search input {
       @include lcars-input;
       &::placeholder {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
     }
 
     .palette-content {
-      background: var(--surface-elevated);
+      background: var(--theme-surface-elevated);
     }
 
     .palette-category {
       background: transparent;
-      border-bottom: 1px solid var(--octo-mint-10);
+      border-bottom: 1px solid var(--theme-primary-alpha-10);
 
       .category-header {
-        background: var(--iron-navy-50);
-        color: var(--ash-blue);
+        background: var(--theme-surface-alpha-50);
+        color: var(--theme-text-secondary);
         font-family: "Montserrat", "Roboto", sans-serif;
         font-size: 11px;
         text-transform: uppercase;
@@ -173,12 +173,12 @@
         transition: all 0.15s ease;
 
         &:hover {
-          background: var(--octo-mint-10);
-          color: var(--octo-text-color);
+          background: var(--theme-primary-alpha-10);
+          color: var(--theme-on-app-bg);
         }
 
         .category-icon {
-          color: var(--ash-blue);
+          color: var(--theme-text-secondary);
         }
 
         .category-name {
@@ -186,39 +186,39 @@
         }
 
         .category-count {
-          color: var(--ash-blue-70);
+          color: var(--theme-text-secondary-alpha-70);
         }
       }
 
       .category-elements {
-        background: var(--surface-elevated);
+        background: var(--theme-surface-elevated);
         padding: 8px;
       }
     }
 
     .palette-element {
-      background: var(--iron-navy-50);
-      border: 1px solid var(--octo-mint-15);
+      background: var(--theme-surface-alpha-50);
+      border: 1px solid var(--theme-primary-alpha-15);
       border-radius: 4px;
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
       transition: all 0.15s ease;
       cursor: pointer;
 
       &:hover {
-        background: var(--octo-mint-15);
-        border-color: var(--octo-mint-40);
+        background: var(--theme-primary-alpha-15);
+        border-color: var(--theme-primary-alpha-40);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
 
       .element-preview {
         svg {
-          stroke: var(--octo-mint);
+          stroke: var(--theme-primary);
           fill: none;
         }
       }
 
       .element-label {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
         font-size: 10px;
         text-transform: uppercase;
       }
@@ -227,33 +227,33 @@
 
   // Property Inspector styling
   .property-inspector {
-    background: var(--surface-elevated);
+    background: var(--theme-surface-elevated);
 
     .inspector-content {
-      background: var(--surface-elevated);
-      color: var(--octo-text-color);
+      background: var(--theme-surface-elevated);
+      color: var(--theme-on-app-bg);
     }
 
     .no-selection,
     .multi-selection {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
       font-family: "Montserrat", "Roboto", sans-serif;
 
       .hint {
-        color: var(--ash-blue-70);
+        color: var(--theme-text-secondary-alpha-70);
       }
     }
 
     // Section headers
     .section-header {
-      color: var(--octo-mint);
-      border-bottom-color: var(--octo-mint-20);
+      color: var(--theme-primary);
+      border-bottom-color: var(--theme-primary-alpha-20);
       font-family: "Montserrat", "Roboto", sans-serif;
     }
 
     // Labels
     .property-row label {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     // Text inputs, number inputs, selects
@@ -268,43 +268,43 @@
     .property-row select option,
     .style-class-select option,
     .line-type-select option {
-      background: var(--deep-sea);
-      color: var(--octo-text-color);
+      background: var(--theme-app-bg);
+      color: var(--theme-on-app-bg);
     }
 
     // Checkboxes
     .property-row input[type="checkbox"] {
-      accent-color: var(--octo-mint);
+      accent-color: var(--theme-primary);
     }
 
     // Color inputs
     .property-row input[type="color"] {
-      background: var(--deep-sea);
-      border: 1px solid var(--octo-mint-30);
+      background: var(--theme-app-bg);
+      border: 1px solid var(--theme-primary-alpha-30);
       border-radius: 4px;
     }
 
     // Type badge
     .type-badge {
-      background: var(--octo-mint-15);
-      color: var(--octo-mint);
-      border: 1px solid var(--octo-mint-30);
+      background: var(--theme-primary-alpha-15);
+      color: var(--theme-primary);
+      border: 1px solid var(--theme-primary-alpha-30);
     }
 
     // Opacity value text
     .opacity-value {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     // Info values
     .info-value {
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
     }
 
     // Line preview
     .line-preview {
-      background: var(--iron-navy);
-      border-color: var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-color: var(--theme-primary-alpha-20);
     }
 
     // Opacity slider
@@ -312,124 +312,124 @@
       background: linear-gradient(
         to right,
         transparent,
-        var(--octo-mint)
+        var(--theme-primary)
       );
 
       &::-webkit-slider-thumb {
-        background: var(--octo-mint);
-        border-color: var(--surface-elevated);
+        background: var(--theme-primary);
+        border-color: var(--theme-surface-elevated);
       }
 
       &::-moz-range-thumb {
-        background: var(--octo-mint);
-        border-color: var(--surface-elevated);
+        background: var(--theme-primary);
+        border-color: var(--theme-surface-elevated);
       }
     }
 
     // Image preview container
     .image-preview-container {
-      background: var(--iron-navy);
-      border-color: var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-color: var(--theme-primary-alpha-20);
     }
 
     // File upload button
     .file-upload-button {
       background: linear-gradient(
         180deg,
-        var(--octo-mint-15),
-        var(--octo-mint-05)
+        var(--theme-primary-alpha-15),
+        var(--theme-primary-alpha-5)
       );
-      border: 1px solid var(--octo-mint-30);
-      color: var(--octo-mint);
+      border: 1px solid var(--theme-primary-alpha-30);
+      color: var(--theme-primary);
 
       &:hover {
         background: linear-gradient(
           180deg,
-          var(--octo-mint-25),
-          var(--octo-mint-15)
+          var(--theme-primary-alpha-25),
+          var(--theme-primary-alpha-15)
         );
-        border-color: var(--octo-mint);
+        border-color: var(--theme-primary);
       }
     }
 
     .file-type-hint {
-      color: var(--ash-blue-70);
+      color: var(--theme-text-secondary-alpha-70);
     }
 
     // Exposed properties
     .exposed-property label {
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
     }
 
     .default-value {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .exposed-hint {
-      color: var(--ash-blue-70);
+      color: var(--theme-text-secondary-alpha-70);
     }
   }
 
   // Animation Editor styling
   .animation-editor {
-    background: var(--surface-elevated);
+    background: var(--theme-surface-elevated);
 
     .editor-toolbar {
-      background: var(--iron-navy);
-      border-bottom: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-bottom: 1px solid var(--theme-primary-alpha-20);
     }
 
     .section-content {
-      background: var(--surface-elevated);
+      background: var(--theme-surface-elevated);
     }
 
     .empty-state {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
 
       button {
         background: linear-gradient(
           180deg,
-          var(--octo-mint-15),
-          var(--octo-mint-05)
+          var(--theme-primary-alpha-15),
+          var(--theme-primary-alpha-5)
         );
-        border: 1px solid var(--octo-mint-30);
-        color: var(--octo-mint);
+        border: 1px solid var(--theme-primary-alpha-30);
+        color: var(--theme-primary);
 
         &:hover {
           background: linear-gradient(
             180deg,
-            var(--octo-mint-25),
-            var(--octo-mint-15)
+            var(--theme-primary-alpha-25),
+            var(--theme-primary-alpha-15)
           );
-          border-color: var(--octo-mint);
+          border-color: var(--theme-primary);
         }
       }
     }
 
     // Animation items
     .animation-item {
-      background: var(--iron-navy-50);
-      border-color: var(--octo-mint-15);
+      background: var(--theme-surface-alpha-50);
+      border-color: var(--theme-primary-alpha-15);
 
       &:hover {
-        background: var(--iron-navy-70);
+        background: var(--theme-surface-alpha-70);
       }
 
       &.expanded {
-        border-color: var(--octo-mint-30);
+        border-color: var(--theme-primary-alpha-30);
       }
     }
 
     .item-header {
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
 
       &:hover {
-        background: var(--octo-mint-10);
+        background: var(--theme-primary-alpha-10);
       }
     }
 
     .item-info {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     // Action buttons - always visible, not just on hover
@@ -439,11 +439,11 @@
       .k-button {
         background: transparent !important;
         border: none !important;
-        color: var(--ash-blue) !important;
+        color: var(--theme-text-secondary) !important;
 
         &:hover {
-          color: var(--octo-mint) !important;
-          background: var(--octo-mint-10) !important;
+          color: var(--theme-primary) !important;
+          background: var(--theme-primary-alpha-10) !important;
         }
 
         .k-svg-icon,
@@ -454,91 +454,91 @@
 
       // Delete button with red/pink accent on hover
       .k-button:last-child:hover {
-        color: #ec658f !important;
-        background: var(--bubblegum-10) !important;
+        color: var(--theme-error) !important;
+        background: var(--theme-error-alpha-10) !important;
       }
     }
 
     // Edit form
     .item-edit-form {
-      background: var(--iron-navy);
-      border-top-color: var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-top-color: var(--theme-primary-alpha-20);
     }
 
     .form-row label {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .form-row.hint-row {
-      background: var(--octo-mint-10);
+      background: var(--theme-primary-alpha-10);
     }
 
     .hint-text {
-      color: var(--octo-mint);
+      color: var(--theme-primary);
     }
 
     .input-with-unit .unit {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     // Anchor grid
     .anchor-point {
-      background: var(--deep-sea);
-      border-color: var(--octo-mint-30);
+      background: var(--theme-app-bg);
+      border-color: var(--theme-primary-alpha-30);
 
       &:hover {
-        border-color: var(--octo-mint);
+        border-color: var(--theme-primary);
       }
 
       &.selected {
-        border-color: var(--octo-mint);
-        background: var(--octo-mint-20);
+        border-color: var(--theme-primary);
+        background: var(--theme-primary-alpha-20);
       }
     }
 
     .anchor-dot {
-      background: var(--ash-blue);
+      background: var(--theme-text-secondary);
     }
 
     .anchor-point.selected .anchor-dot {
-      background: var(--octo-mint);
+      background: var(--theme-primary);
     }
 
     // Preset picker
     .preset-picker {
-      background: var(--surface-elevated);
-      border-color: var(--octo-mint);
+      background: var(--theme-surface-elevated);
+      border-color: var(--theme-primary);
     }
 
     .preset-header {
-      background: var(--octo-mint-15);
-      border-bottom-color: var(--octo-mint-30);
-      color: var(--octo-text-color);
+      background: var(--theme-primary-alpha-15);
+      border-bottom-color: var(--theme-primary-alpha-30);
+      color: var(--theme-on-app-bg);
     }
 
     .group-name {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .preset-button {
-      background: var(--deep-sea);
-      border-color: var(--octo-mint-30);
-      color: var(--octo-text-color);
+      background: var(--theme-app-bg);
+      border-color: var(--theme-primary-alpha-30);
+      color: var(--theme-on-app-bg);
 
       &:hover {
-        border-color: var(--octo-mint);
-        background: var(--octo-mint-15);
+        border-color: var(--theme-primary);
+        background: var(--theme-primary-alpha-15);
       }
     }
 
     // Path textarea
     .path-textarea {
-      background: var(--deep-sea);
-      border-color: var(--octo-mint-30);
-      color: var(--octo-text-color);
+      background: var(--theme-app-bg);
+      border-color: var(--theme-primary-alpha-30);
+      color: var(--theme-on-app-bg);
 
       &:focus {
-        border-color: var(--octo-mint);
+        border-color: var(--theme-primary);
         outline: none;
       }
     }
@@ -546,29 +546,29 @@
 
   // Transform Property Editor (Exposures Panel) styling
   .transform-property-editor {
-    background: var(--surface-elevated);
+    background: var(--theme-surface-elevated);
 
     .editor-toolbar {
-      background: var(--iron-navy);
-      border-bottom: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-bottom: 1px solid var(--theme-primary-alpha-20);
     }
 
     .properties-list {
-      background: var(--surface-elevated);
+      background: var(--theme-surface-elevated);
     }
 
     .empty-state {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
 
       .hint {
-        color: var(--ash-blue-70);
+        color: var(--theme-text-secondary-alpha-70);
       }
     }
 
     // Property cards
     .property-card {
-      background: var(--iron-navy);
-      border: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border: 1px solid var(--theme-primary-alpha-20);
       border-radius: 8px;
 
       &:hover {
@@ -576,122 +576,122 @@
       }
 
       &.editing {
-        border-color: var(--octo-mint);
-        box-shadow: 0 2px 8px var(--octo-mint-20);
+        border-color: var(--theme-primary);
+        box-shadow: 0 2px 8px var(--theme-primary-alpha-20);
       }
     }
 
     .property-name {
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
     }
 
     .property-type-badge {
-      background: var(--octo-mint-15);
-      color: var(--octo-mint);
+      background: var(--theme-primary-alpha-15);
+      color: var(--theme-primary);
     }
 
     .property-unit {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .property-details {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .bindings-count {
-      background: var(--octo-mint-10);
-      color: var(--ash-blue);
+      background: var(--theme-primary-alpha-10);
+      color: var(--theme-text-secondary);
     }
 
     .property-description {
-      color: var(--ash-blue-70);
+      color: var(--theme-text-secondary-alpha-70);
     }
 
     .color-swatch {
-      border-color: var(--octo-mint-30);
+      border-color: var(--theme-primary-alpha-30);
     }
 
     // Edit form
     .property-edit-form {
-      background: var(--iron-navy);
+      background: var(--theme-surface);
 
       .form-row label {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
 
       .form-row input[type="text"],
       .form-row input[type="number"],
       .form-row select {
-        background: var(--deep-sea);
-        border: 1px solid var(--octo-mint-30);
-        color: var(--octo-text-color);
+        background: var(--theme-app-bg);
+        border: 1px solid var(--theme-primary-alpha-30);
+        color: var(--theme-on-app-bg);
 
         &:focus {
-          border-color: var(--octo-mint);
+          border-color: var(--theme-primary);
           box-shadow: var(--lcars-input-focus);
           outline: none;
         }
 
         option {
-          background: var(--deep-sea);
-          color: var(--octo-text-color);
+          background: var(--theme-app-bg);
+          color: var(--theme-on-app-bg);
         }
       }
 
       .form-row input[type="color"] {
-        background: var(--deep-sea);
-        border: 1px solid var(--octo-mint-30);
+        background: var(--theme-app-bg);
+        border: 1px solid var(--theme-primary-alpha-30);
       }
 
       .form-row input[type="checkbox"] {
-        accent-color: var(--octo-mint);
+        accent-color: var(--theme-primary);
       }
 
       .form-actions {
-        border-top-color: var(--octo-mint-20);
+        border-top-color: var(--theme-primary-alpha-20);
       }
     }
   }
 
   // Simulation Panel styling
   .simulation-panel {
-    background: var(--surface-elevated);
+    background: var(--theme-surface-elevated);
 
     .panel-toolbar {
-      background: var(--iron-navy);
-      border-bottom: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-bottom: 1px solid var(--theme-primary-alpha-20);
 
       .k-button {
-        color: var(--ash-blue) !important;
+        color: var(--theme-text-secondary) !important;
 
         &:hover {
-          color: var(--octo-mint) !important;
-          background: var(--octo-mint-10) !important;
+          color: var(--theme-primary) !important;
+          background: var(--theme-primary-alpha-10) !important;
         }
       }
     }
 
     .panel-content {
-      background: var(--surface-elevated);
+      background: var(--theme-surface-elevated);
     }
 
     // Property control cards
     .property-control {
-      background: var(--iron-navy);
-      border: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border: 1px solid var(--theme-primary-alpha-20);
 
       &:hover {
-        border-color: var(--octo-mint-40);
+        border-color: var(--theme-primary-alpha-40);
       }
     }
 
     .control-header {
       .property-name {
-        color: var(--octo-text-color);
+        color: var(--theme-on-app-bg);
       }
 
       .property-unit {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
     }
 
@@ -700,52 +700,52 @@
       .value-slider {
         background: linear-gradient(
           to right,
-          var(--octo-mint-20),
-          var(--octo-mint)
+          var(--theme-primary-alpha-20),
+          var(--theme-primary)
         );
 
         &::-webkit-slider-thumb {
-          background: var(--octo-mint);
-          border-color: var(--deep-sea);
-          box-shadow: 0 0 8px var(--octo-mint-50);
+          background: var(--theme-primary);
+          border-color: var(--theme-app-bg);
+          box-shadow: 0 0 8px var(--theme-primary-alpha-50);
         }
 
         &::-moz-range-thumb {
-          background: var(--octo-mint);
-          border-color: var(--deep-sea);
-          box-shadow: 0 0 8px var(--octo-mint-50);
+          background: var(--theme-primary);
+          border-color: var(--theme-app-bg);
+          box-shadow: 0 0 8px var(--theme-primary-alpha-50);
         }
       }
 
       .value-input {
-        background: var(--deep-sea);
-        border: 1px solid var(--octo-mint-30);
-        color: var(--octo-text-color);
+        background: var(--theme-app-bg);
+        border: 1px solid var(--theme-primary-alpha-30);
+        color: var(--theme-on-app-bg);
 
         &:focus {
-          border-color: var(--octo-mint);
+          border-color: var(--theme-primary);
           box-shadow: var(--lcars-input-focus);
         }
       }
     }
 
     .value-range {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     // Color control
     .color-control {
       input[type="color"] {
-        border-color: var(--octo-mint-30);
+        border-color: var(--theme-primary-alpha-30);
       }
 
       .color-input {
-        background: var(--deep-sea);
-        border: 1px solid var(--octo-mint-30);
-        color: var(--octo-mint);
+        background: var(--theme-app-bg);
+        border: 1px solid var(--theme-primary-alpha-30);
+        color: var(--theme-primary);
 
         &:focus {
-          border-color: var(--octo-mint);
+          border-color: var(--theme-primary);
         }
       }
     }
@@ -753,22 +753,22 @@
     // Boolean control
     .boolean-control {
       .toggle-label input[type="checkbox"] {
-        accent-color: var(--octo-mint);
+        accent-color: var(--theme-primary);
       }
 
       .toggle-text {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
     }
 
     // String control
     .string-control input {
-      background: var(--deep-sea);
-      border: 1px solid var(--octo-mint-30);
-      color: var(--octo-text-color);
+      background: var(--theme-app-bg);
+      border: 1px solid var(--theme-primary-alpha-30);
+      color: var(--theme-on-app-bg);
 
       &:focus {
-        border-color: var(--octo-mint);
+        border-color: var(--theme-primary);
         box-shadow: var(--lcars-input-focus);
       }
     }
@@ -776,11 +776,11 @@
     // Reset button - always visible
     .reset-button {
       opacity: 1 !important;
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
 
       &:hover {
-        color: var(--octo-mint);
-        background: var(--octo-mint-10);
+        color: var(--theme-primary);
+        background: var(--theme-primary-alpha-10);
       }
     }
   }
@@ -789,33 +789,33 @@
 
   // Settings Panel styling
   .panel-container {
-    background: var(--surface-elevated);
+    background: var(--theme-surface-elevated);
 
     .settings-section {
-      border-bottom-color: var(--octo-mint-20);
+      border-bottom-color: var(--theme-primary-alpha-20);
 
       h4 {
-        color: var(--octo-mint);
+        color: var(--theme-primary);
       }
     }
 
     .form-group {
       label {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
 
       input,
       textarea {
-        background: var(--deep-sea);
-        border: 1px solid var(--octo-mint-30);
-        color: var(--octo-text-color);
+        background: var(--theme-app-bg);
+        border: 1px solid var(--theme-primary-alpha-30);
+        color: var(--theme-on-app-bg);
 
         &::placeholder {
-          color: var(--ash-blue);
+          color: var(--theme-text-secondary);
         }
 
         &:focus {
-          border-color: var(--octo-mint);
+          border-color: var(--theme-primary);
           box-shadow: var(--lcars-input-focus);
         }
       }
@@ -823,31 +823,31 @@
       // Kendo TextBox
       .k-textbox,
       .k-input {
-        background: var(--deep-sea) !important;
-        border-color: var(--octo-mint-30) !important;
-        color: var(--octo-text-color) !important;
+        background: var(--theme-app-bg) !important;
+        border-color: var(--theme-primary-alpha-30) !important;
+        color: var(--theme-on-app-bg) !important;
       }
 
       // Kendo NumericTextBox
       .k-numerictextbox,
       kendo-numerictextbox {
-        background: var(--deep-sea) !important;
-        border-color: var(--octo-mint-30) !important;
+        background: var(--theme-app-bg) !important;
+        border-color: var(--theme-primary-alpha-30) !important;
 
         .k-input-inner {
           background: transparent !important;
-          color: var(--octo-text-color) !important;
+          color: var(--theme-on-app-bg) !important;
         }
 
         .k-input-button,
         .k-spinner-increase,
         .k-spinner-decrease {
-          background: var(--octo-mint-10) !important;
-          border-color: var(--octo-mint-30) !important;
-          color: var(--octo-mint) !important;
+          background: var(--theme-primary-alpha-10) !important;
+          border-color: var(--theme-primary-alpha-30) !important;
+          color: var(--theme-primary) !important;
 
           &:hover {
-            background: var(--octo-mint-20) !important;
+            background: var(--theme-primary-alpha-20) !important;
           }
         }
       }
@@ -855,12 +855,12 @@
       // Kendo TextArea
       .k-textarea,
       kendo-textarea {
-        background: var(--deep-sea) !important;
-        border-color: var(--octo-mint-30) !important;
+        background: var(--theme-app-bg) !important;
+        border-color: var(--theme-primary-alpha-30) !important;
 
         textarea {
           background: transparent !important;
-          color: var(--octo-text-color) !important;
+          color: var(--theme-on-app-bg) !important;
         }
       }
     }
@@ -868,58 +868,58 @@
 
   // Symbol Library Panel styling
   .symbol-library-panel {
-    background: var(--surface-elevated);
+    background: var(--theme-surface-elevated);
 
     .panel-search {
-      border-bottom: 1px solid var(--octo-mint-20);
+      border-bottom: 1px solid var(--theme-primary-alpha-20);
 
       input {
-        background: var(--deep-sea);
-        border: 1px solid var(--octo-mint-30);
-        color: var(--octo-text-color);
+        background: var(--theme-app-bg);
+        border: 1px solid var(--theme-primary-alpha-30);
+        color: var(--theme-on-app-bg);
 
         &::placeholder {
-          color: var(--ash-blue);
+          color: var(--theme-text-secondary);
         }
 
         &:focus {
-          border-color: var(--octo-mint);
+          border-color: var(--theme-primary);
           box-shadow: var(--lcars-input-focus);
         }
       }
     }
 
     .panel-content {
-      background: var(--surface-elevated);
+      background: var(--theme-surface-elevated);
     }
 
     // Loading state
     .loading {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .loading-spinner {
-      border-color: var(--octo-mint-20);
-      border-top-color: var(--octo-mint);
+      border-color: var(--theme-primary-alpha-20);
+      border-top-color: var(--theme-primary);
     }
 
     // Error state
     .error {
-      color: #ec658f;
+      color: var(--theme-error);
     }
 
     .error-icon {
-      background: rgba(236, 101, 143, 0.2);
-      color: #ec658f;
+      background: var(--theme-error-alpha-20);
+      color: var(--theme-error);
     }
 
     .retry-btn {
       background: transparent;
-      border: 1px solid #ec658f;
-      color: #ec658f;
+      border: 1px solid var(--theme-error);
+      color: var(--theme-error);
 
       &:hover {
-        background: var(--bubblegum-10);
+        background: var(--theme-error-alpha-10);
       }
     }
 
@@ -929,25 +929,25 @@
     }
 
     .library-header {
-      background: var(--iron-navy);
-      border: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border: 1px solid var(--theme-primary-alpha-20);
 
       &:hover {
-        background: var(--octo-mint-10);
-        border-color: var(--octo-mint-40);
+        background: var(--theme-primary-alpha-10);
+        border-color: var(--theme-primary-alpha-40);
       }
     }
 
     .expand-icon {
-      color: var(--octo-mint);
+      color: var(--theme-primary);
     }
 
     .library-name {
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
     }
 
     .library-count {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     // Symbol items
@@ -956,194 +956,194 @@
     }
 
     .symbol-item {
-      background: var(--iron-navy);
-      border: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border: 1px solid var(--theme-primary-alpha-20);
 
       &:hover {
-        border-color: var(--octo-mint);
-        box-shadow: 0 0 12px var(--octo-mint-30);
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 12px var(--theme-primary-alpha-30);
       }
     }
 
     .symbol-preview {
       // Use a lighter background so dark symbols remain visible
       background: #4a5568;
-      border: 1px solid var(--octo-mint-15);
+      border: 1px solid var(--theme-primary-alpha-15);
     }
 
     .symbol-label {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     // Empty/no results states
     .empty-library,
     .no-results {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
   }
 
   // Binding Editor Dialog styling
   .binding-editor-content {
-    background: var(--surface-elevated);
+    background: var(--theme-surface-elevated);
 
     .list-header {
-      border-bottom-color: var(--octo-mint-20);
-      color: var(--octo-text-color);
+      border-bottom-color: var(--theme-primary-alpha-20);
+      color: var(--theme-on-app-bg);
     }
 
     .empty-state {
-      background: var(--iron-navy);
-      color: var(--ash-blue);
+      background: var(--theme-surface);
+      color: var(--theme-text-secondary);
 
       .hint {
-        color: var(--ash-blue-70);
+        color: var(--theme-text-secondary-alpha-70);
       }
     }
 
     // Binding cards
     .binding-card {
-      background: var(--iron-navy);
-      border: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border: 1px solid var(--theme-primary-alpha-20);
 
       &.expanded {
-        border-color: var(--octo-mint);
+        border-color: var(--theme-primary);
       }
     }
 
     .binding-header {
-      background: var(--iron-navy-80);
+      background: var(--theme-surface-alpha-80);
 
       &:hover {
-        background: var(--octo-mint-10);
+        background: var(--theme-primary-alpha-10);
       }
     }
 
     .target-name {
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
     }
 
     .effect-badge {
-      background: var(--octo-mint-15);
-      color: var(--octo-mint);
+      background: var(--theme-primary-alpha-15);
+      color: var(--theme-primary);
     }
 
     // Binding form
     .binding-form {
-      border-top-color: var(--octo-mint-20);
-      background: var(--surface-elevated);
+      border-top-color: var(--theme-primary-alpha-20);
+      background: var(--theme-surface-elevated);
 
       .form-row label {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
 
       .form-row select,
       .form-row input[type="text"],
       .form-row input[type="number"] {
-        background: var(--deep-sea);
-        border: 1px solid var(--octo-mint-30);
-        color: var(--octo-text-color);
+        background: var(--theme-app-bg);
+        border: 1px solid var(--theme-primary-alpha-30);
+        color: var(--theme-on-app-bg);
 
         &:focus {
-          border-color: var(--octo-mint);
+          border-color: var(--theme-primary);
           box-shadow: var(--lcars-input-focus);
           outline: none;
         }
 
         option,
         optgroup {
-          background: var(--deep-sea);
-          color: var(--octo-text-color);
+          background: var(--theme-app-bg);
+          color: var(--theme-on-app-bg);
         }
       }
     }
 
     // Expression hint
     .expression-hint {
-      color: var(--ash-blue-70);
+      color: var(--theme-text-secondary-alpha-70);
 
       code {
-        background: var(--deep-sea);
-        color: var(--octo-mint);
+        background: var(--theme-app-bg);
+        color: var(--theme-primary);
       }
     }
 
     // Expression preview
     .expression-preview {
-      background: var(--iron-navy);
+      background: var(--theme-surface);
       border-radius: 6px;
 
       > label {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
 
       .preview-input,
       .preview-output {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
 
       .preview-input input[type="number"] {
-        background: var(--deep-sea);
-        border: 1px solid var(--octo-mint-30);
-        color: var(--octo-text-color);
+        background: var(--theme-app-bg);
+        border: 1px solid var(--theme-primary-alpha-30);
+        color: var(--theme-on-app-bg);
       }
 
       .preview-input input[type="checkbox"] {
-        accent-color: var(--octo-mint);
+        accent-color: var(--theme-primary);
       }
 
       .boolean-label {
-        color: var(--octo-text-color);
+        color: var(--theme-on-app-bg);
       }
 
       .preview-arrow {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
 
       .preview-output .output-value {
-        color: var(--octo-mint);
+        color: var(--theme-primary);
       }
 
       .preview-output.error .output-value {
-        color: #ec658f;
+        color: var(--theme-error);
       }
     }
 
     // Anchor grid
     .anchor-grid {
-      background: var(--octo-mint-10);
+      background: var(--theme-primary-alpha-10);
     }
 
     .anchor-point {
-      background: var(--deep-sea);
+      background: var(--theme-app-bg);
       border: none;
 
       &:hover {
-        background: var(--octo-mint-20);
+        background: var(--theme-primary-alpha-20);
       }
 
       &.selected {
-        background: var(--octo-mint);
+        background: var(--theme-primary);
       }
     }
 
     .anchor-dot {
-      background: var(--ash-blue);
+      background: var(--theme-text-secondary);
     }
 
     .anchor-point.selected .anchor-dot {
-      background: var(--deep-sea);
+      background: var(--theme-app-bg);
     }
 
     .anchor-point:hover .anchor-dot {
-      background: var(--octo-mint);
+      background: var(--theme-primary);
     }
 
     .anchor-point.selected:hover .anchor-dot {
-      background: var(--deep-sea);
+      background: var(--theme-app-bg);
     }
 
     .anchor-label {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
   }
 
@@ -1156,13 +1156,13 @@
     .k-input,
     kendo-textbox input,
     kendo-numerictextbox input {
-      background: var(--deep-sea) !important;
-      border-color: var(--octo-mint-30) !important;
-      color: var(--octo-text-color) !important;
+      background: var(--theme-app-bg) !important;
+      border-color: var(--theme-primary-alpha-30) !important;
+      color: var(--theme-on-app-bg) !important;
 
       &:focus,
       &.k-focus {
-        border-color: var(--octo-mint) !important;
+        border-color: var(--theme-primary) !important;
         box-shadow: var(--lcars-input-focus) !important;
       }
     }
@@ -1170,51 +1170,51 @@
     // Kendo DropDownList
     .k-dropdownlist,
     kendo-dropdownlist {
-      background: var(--deep-sea) !important;
-      border-color: var(--octo-mint-30) !important;
-      color: var(--octo-text-color) !important;
+      background: var(--theme-app-bg) !important;
+      border-color: var(--theme-primary-alpha-30) !important;
+      color: var(--theme-on-app-bg) !important;
 
       .k-input-inner {
         background: transparent !important;
-        color: var(--octo-text-color) !important;
+        color: var(--theme-on-app-bg) !important;
       }
 
       .k-button {
         background: transparent !important;
         border-color: transparent !important;
-        color: var(--ash-blue) !important;
+        color: var(--theme-text-secondary) !important;
 
         &:hover {
-          color: var(--octo-mint) !important;
+          color: var(--theme-primary) !important;
         }
       }
 
       &:focus,
       &.k-focus {
-        border-color: var(--octo-mint) !important;
+        border-color: var(--theme-primary) !important;
         box-shadow: var(--lcars-input-focus) !important;
       }
     }
 
     // Kendo NumericTextBox
     .k-numerictextbox {
-      background: var(--deep-sea) !important;
-      border-color: var(--octo-mint-30) !important;
+      background: var(--theme-app-bg) !important;
+      border-color: var(--theme-primary-alpha-30) !important;
 
       .k-input-inner {
         background: transparent !important;
-        color: var(--octo-text-color) !important;
+        color: var(--theme-on-app-bg) !important;
       }
 
       .k-input-button,
       .k-spinner-increase,
       .k-spinner-decrease {
-        background: var(--octo-mint-10) !important;
-        border-color: var(--octo-mint-30) !important;
-        color: var(--octo-mint) !important;
+        background: var(--theme-primary-alpha-10) !important;
+        border-color: var(--theme-primary-alpha-30) !important;
+        color: var(--theme-primary) !important;
 
         &:hover {
-          background: var(--octo-mint-20) !important;
+          background: var(--theme-primary-alpha-20) !important;
         }
       }
     }
@@ -1223,35 +1223,35 @@
   // SVG Import Dialog styling
   .svg-file-group,
   .form-group.svg-file-group {
-    background: var(--surface-elevated);
-    border: 2px dashed var(--octo-mint-30);
+    background: var(--theme-surface-elevated);
+    border: 2px dashed var(--theme-primary-alpha-30);
     border-radius: 8px;
     padding: 16px;
     transition: all 0.2s ease;
 
     &:hover {
-      border-color: var(--octo-mint-50);
-      background: var(--octo-mint-05);
+      border-color: var(--theme-primary-alpha-50);
+      background: var(--theme-primary-alpha-5);
     }
 
     // File input button
     button {
       background: linear-gradient(
         180deg,
-        var(--octo-mint-15),
-        var(--octo-mint-05)
+        var(--theme-primary-alpha-15),
+        var(--theme-primary-alpha-5)
       );
-      border: 1px solid var(--octo-mint-30);
-      color: var(--octo-mint);
+      border: 1px solid var(--theme-primary-alpha-30);
+      color: var(--theme-primary);
 
       &:hover {
         background: linear-gradient(
           180deg,
-          var(--octo-mint-25),
-          var(--octo-mint-15)
+          var(--theme-primary-alpha-25),
+          var(--theme-primary-alpha-15)
         );
-        border-color: var(--octo-mint);
-        box-shadow: 0 0 10px var(--octo-mint-30);
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 10px var(--theme-primary-alpha-30);
       }
     }
   }
@@ -1259,37 +1259,37 @@
   // SVG Scale group styling
   .svg-scale-group,
   .form-group.svg-scale-group {
-    background: var(--surface-elevated);
-    border: 1px solid var(--octo-mint-20);
+    background: var(--theme-surface-elevated);
+    border: 1px solid var(--theme-primary-alpha-20);
     border-radius: 8px;
     padding: 12px 16px;
 
     label {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     .scale-info,
     .dimension-info {
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
     }
 
     // Kendo numeric textbox
     .k-numerictextbox {
-      background: var(--deep-sea) !important;
-      border-color: var(--octo-mint-30) !important;
+      background: var(--theme-app-bg) !important;
+      border-color: var(--theme-primary-alpha-30) !important;
 
       .k-input-inner {
-        background: var(--deep-sea) !important;
-        color: var(--octo-text-color) !important;
+        background: var(--theme-app-bg) !important;
+        color: var(--theme-on-app-bg) !important;
       }
 
       .k-input-button {
-        background: var(--octo-mint-10) !important;
-        border-color: var(--octo-mint-30) !important;
-        color: var(--octo-mint) !important;
+        background: var(--theme-primary-alpha-10) !important;
+        border-color: var(--theme-primary-alpha-30) !important;
+        color: var(--theme-primary) !important;
 
         &:hover {
-          background: var(--octo-mint-20) !important;
+          background: var(--theme-primary-alpha-20) !important;
         }
       }
     }
@@ -1298,12 +1298,12 @@
     button.reset-btn,
     .reset-button {
       background: transparent;
-      border: 1px solid var(--ash-blue-30);
-      color: var(--ash-blue);
+      border: 1px solid var(--theme-text-secondary-alpha-30);
+      color: var(--theme-text-secondary);
 
       &:hover {
-        background: var(--ash-blue-10);
-        border-color: var(--ash-blue);
+        background: var(--theme-text-secondary-alpha-10);
+        border-color: var(--theme-text-secondary);
       }
     }
   }
@@ -1312,29 +1312,29 @@
   .import-svg-dialog,
   .symbol-import-dialog {
     .dialog-content {
-      background: var(--deep-sea);
+      background: var(--theme-app-bg);
     }
 
     .form-group {
       label {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
 
       input[type="text"] {
-        background: var(--deep-sea);
-        border: 1px solid var(--octo-mint-30);
-        color: var(--octo-text-color);
+        background: var(--theme-app-bg);
+        border: 1px solid var(--theme-primary-alpha-30);
+        color: var(--theme-on-app-bg);
 
         &:focus {
-          border-color: var(--octo-mint);
+          border-color: var(--theme-primary);
           box-shadow: var(--lcars-input-focus);
         }
       }
     }
 
     .preview-container {
-      background: var(--iron-navy);
-      border: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border: 1px solid var(--theme-primary-alpha-20);
     }
   }
 
@@ -1343,33 +1343,33 @@
   mm-symbol-editor,
   mm-symbol-editor-page {
     // Override designer CSS variables for LCARS theme
-    --designer-bg: #{$deep-sea};
-    --designer-surface: #{$surface-elevated};
-    --designer-surface-alt: #{$iron-navy};
-    --designer-border: rgba(100, 206, 185, 0.2);
+    --designer-bg: var(--theme-app-bg);
+    --designer-surface: var(--theme-surface-elevated);
+    --designer-surface-alt: var(--theme-surface);
+    --designer-border: var(--theme-primary-alpha-20);
     --designer-text: #ffffff;
-    --designer-text-muted: #{$ash-blue};
-    --designer-accent: #{$octo-mint};
-    --designer-accent-secondary: #{$neo-cyan};
-    --designer-canvas-bg: #{$surface-elevated};
-    --designer-hover-bg: rgba(100, 206, 185, 0.1);
+    --designer-text-muted: var(--theme-text-secondary);
+    --designer-accent: var(--theme-primary);
+    --designer-accent-secondary: var(--theme-secondary);
+    --designer-canvas-bg: var(--theme-surface-elevated);
+    --designer-hover-bg: var(--theme-primary-alpha-10);
 
     // Canvas-specific colors (SVG canvas fill and grid)
-    --designer-canvas-color: #{$iron-navy};
-    --designer-grid-color: rgba(100, 206, 185, 0.15);
+    --designer-canvas-color: var(--theme-surface);
+    --designer-grid-color: var(--theme-primary-alpha-15);
 
     // Editor-specific variables (inherited from designer)
-    --editor-bg: #{$deep-sea};
-    --editor-surface: #{$surface-elevated};
-    --editor-surface-alt: #{$iron-navy};
-    --editor-border: rgba(100, 206, 185, 0.2);
+    --editor-bg: var(--theme-app-bg);
+    --editor-surface: var(--theme-surface-elevated);
+    --editor-surface-alt: var(--theme-surface);
+    --editor-border: var(--theme-primary-alpha-20);
     --editor-text: #ffffff;
-    --editor-text-muted: #{$ash-blue};
-    --editor-accent: #{$octo-mint};
-    --editor-hover-bg: rgba(100, 206, 185, 0.1);
+    --editor-text-muted: var(--theme-text-secondary);
+    --editor-accent: var(--theme-primary);
+    --editor-hover-bg: var(--theme-primary-alpha-10);
 
     // Force backgrounds directly on elements
-    background: #{$deep-sea};
+    background: var(--theme-app-bg);
   }
 
   // Force LCARS styling on process designer internal elements
@@ -1377,99 +1377,99 @@
     mm-process-designer,
     mm-symbol-editor {
       .process-designer {
-        background: #{$deep-sea};
+        background: var(--theme-app-bg);
       }
 
       .designer-canvas-container {
-        background: #{$surface-elevated};
+        background: var(--theme-surface-elevated);
       }
 
       // Canvas SVG background - LCARS dark theme
       .canvas-background {
-        fill: #{$iron-navy};
+        fill: var(--theme-surface);
       }
 
       // Grid lines - subtle mint-colored grid
       .designer-grid-line {
-        stroke: rgba(100, 206, 185, 0.15);
+        stroke: var(--theme-primary-alpha-15);
       }
 
       .designer-sidebar,
       .designer-inspector-container {
-        background: #{$surface-elevated};
-        border-color: rgba(100, 206, 185, 0.2);
+        background: var(--theme-surface-elevated);
+        border-color: var(--theme-primary-alpha-20);
       }
 
       .sidebar-tab {
-        background: #{$iron-navy};
-        color: #{$ash-blue};
+        background: var(--theme-surface);
+        color: var(--theme-text-secondary);
 
         &.active {
-          background: #{$surface-elevated};
-          color: #{$octo-mint};
-          border-bottom-color: #{$octo-mint};
+          background: var(--theme-surface-elevated);
+          color: var(--theme-primary);
+          border-bottom-color: var(--theme-primary);
         }
       }
 
       .designer-statusbar {
-        background: #{$iron-navy};
-        border-color: rgba(100, 206, 185, 0.2);
-        color: #{$ash-blue};
+        background: var(--theme-surface);
+        border-color: var(--theme-primary-alpha-20);
+        color: var(--theme-text-secondary);
       }
 
       .dockview-panels-container {
-        background: #{$surface-elevated};
-        border-color: rgba(100, 206, 185, 0.2);
+        background: var(--theme-surface-elevated);
+        border-color: var(--theme-primary-alpha-20);
       }
     }
 
     mm-symbol-editor-page {
       .symbol-editor-page-container {
-        background: #{$deep-sea};
+        background: var(--theme-app-bg);
       }
 
       .editor-header {
-        background: #{$iron-navy};
-        border-color: rgba(100, 206, 185, 0.2);
+        background: var(--theme-surface);
+        border-color: var(--theme-primary-alpha-20);
       }
 
       .symbol-title {
-        color: var(--octo-text-color);
+        color: var(--theme-on-app-bg);
       }
 
       .library-name {
-        color: #{$ash-blue};
+        color: var(--theme-text-secondary);
       }
     }
 
     // Symbol editor container
     mm-symbol-editor {
       .symbol-editor-container {
-        background: #{$deep-sea};
+        background: var(--theme-app-bg);
       }
 
       .properties-panel {
-        background: #{$surface-elevated};
-        border-color: rgba(100, 206, 185, 0.2);
+        background: var(--theme-surface-elevated);
+        border-color: var(--theme-primary-alpha-20);
       }
 
       .panel-header {
-        background: #{$iron-navy};
-        border-color: rgba(100, 206, 185, 0.2);
+        background: var(--theme-surface);
+        border-color: var(--theme-primary-alpha-20);
       }
 
       .panel-title {
-        color: var(--octo-text-color);
+        color: var(--theme-on-app-bg);
       }
 
       .panel-collapsed {
-        background: #{$iron-navy};
-        border-color: rgba(100, 206, 185, 0.2);
+        background: var(--theme-surface);
+        border-color: var(--theme-primary-alpha-20);
       }
 
       .collapsed-label,
       .collapsed-icon {
-        color: #{$ash-blue};
+        color: var(--theme-text-secondary);
       }
     }
   }

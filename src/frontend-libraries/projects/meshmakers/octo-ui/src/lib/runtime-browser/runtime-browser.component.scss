@@ -19,14 +19,14 @@
     border: none;
 
     .k-splitbar {
-      background: linear-gradient(180deg, var(--octo-mint-30), transparent);
+      background: linear-gradient(180deg, var(--theme-primary-alpha-30), transparent);
       width: 4px !important;
 
       &:hover {
         background: linear-gradient(
           180deg,
-          var(--octo-mint-50),
-          var(--octo-mint-20)
+          var(--theme-primary-alpha-50),
+          var(--theme-primary-alpha-20)
         );
       }
     }
@@ -40,19 +40,19 @@
         border-radius: 4px;
 
         &:hover {
-          background: var(--octo-mint-10);
-          color: var(--octo-mint);
+          background: var(--theme-primary-alpha-10);
+          color: var(--theme-primary);
         }
 
         &.k-selected {
-          background: linear-gradient(90deg, var(--octo-mint-20), transparent);
-          color: var(--octo-mint);
-          border-left: 3px solid var(--octo-mint);
+          background: linear-gradient(90deg, var(--theme-primary-alpha-20), transparent);
+          color: var(--theme-primary);
+          border-left: 3px solid var(--theme-primary);
 
           &:hover {
             background: linear-gradient(
               90deg,
-              var(--octo-mint-25),
+              var(--theme-primary-alpha-25),
               transparent
             );
           }
@@ -62,8 +62,8 @@
   }
 
   .toolbar {
-    background: linear-gradient(90deg, var(--octo-mint-05), transparent);
-    border-bottom: 1px solid var(--octo-mint-20);
+    background: linear-gradient(90deg, var(--theme-primary-alpha-5), transparent);
+    border-bottom: 1px solid var(--theme-primary-alpha-20);
   }
 
   .base-tree-detail-container {

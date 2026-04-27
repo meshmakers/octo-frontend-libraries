@@ -10,8 +10,8 @@
 @mixin window {
   // Window action buttons (WindowService dialogs) - LCARS style
   .k-window > .k-actions {
-    background: var(--iron-navy);
-    border-top: 1px solid var(--octo-mint-20);
+    background: var(--theme-surface);
+    border-top: 1px solid var(--theme-primary-alpha-20);
 
     .k-button {
       @include lcars-button;
@@ -43,22 +43,22 @@
 
   // Dialog Danger variant - for production/staging confirmation dialogs
   .mm-dialog-danger .k-dialog {
-    border-color: var(--bubblegum-50);
+    border-color: var(--theme-error-alpha-50);
     box-shadow:
       0 16px 64px rgba(0, 0, 0, 0.5),
-      0 0 40px var(--bubblegum-20);
+      0 0 40px var(--theme-error-alpha-20);
 
     .k-dialog-titlebar {
-      border-bottom-color: var(--bubblegum);
-      color: var(--bubblegum);
+      border-bottom-color: var(--theme-error);
+      color: var(--theme-error);
 
       &::before {
-        background: var(--bubblegum);
+        background: var(--theme-error);
       }
     }
 
     .k-dialog-actions {
-      border-top-color: var(--bubblegum-30);
+      border-top-color: var(--theme-error-alpha-30);
     }
   }
 }

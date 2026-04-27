@@ -8,12 +8,12 @@
   // Context menu
   .k-context-menu,
   .k-menu.k-context-menu {
-    background: var(--iron-navy);
-    border: 1px solid var(--octo-mint-30);
+    background: var(--theme-surface);
+    border: 1px solid var(--theme-primary-alpha-30);
     border-radius: 8px;
     box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.5),
-      0 0 20px var(--octo-mint-15);
+      0 0 20px var(--theme-primary-alpha-15);
     padding: 8px 0;
     min-width: 180px;
     overflow: hidden;
@@ -24,7 +24,7 @@
 
       .k-menu-link {
         padding: 10px 16px;
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
         font-family: var(--lcars-font-primary);
         font-size: 0.85rem;
         font-weight: 500;
@@ -42,8 +42,8 @@
         .k-svg-icon,
         .k-icon,
         svg {
-          fill: var(--ash-blue);
-          color: var(--ash-blue);
+          fill: var(--theme-text-secondary);
+          color: var(--theme-text-secondary);
           width: 18px;
           height: 18px;
           transition: all 0.15s ease;
@@ -55,53 +55,53 @@
       &.k-hover > .k-menu-link {
         background: linear-gradient(
           90deg,
-          var(--octo-mint-20),
-          var(--octo-mint-05)
+          var(--theme-primary-alpha-20),
+          var(--theme-primary-alpha-5)
         );
-        color: var(--octo-mint);
+        color: var(--theme-primary);
 
         .k-svg-icon,
         .k-icon,
         svg {
-          fill: var(--octo-mint);
-          color: var(--octo-mint);
+          fill: var(--theme-primary);
+          color: var(--theme-primary);
         }
       }
 
       // Focus state
       &:focus > .k-menu-link,
       &.k-focus > .k-menu-link {
-        background: var(--octo-mint-15);
-        box-shadow: inset 3px 0 0 var(--octo-mint);
+        background: var(--theme-primary-alpha-15);
+        box-shadow: inset 3px 0 0 var(--theme-primary);
       }
 
       // Delete/destructive action styling
       &[data-command="delete"],
       &.destructive {
         .k-menu-link {
-          color: var(--bubblegum);
+          color: var(--theme-error);
 
           .k-svg-icon,
           .k-icon,
           svg {
-            fill: var(--bubblegum);
-            color: var(--bubblegum);
+            fill: var(--theme-error);
+            color: var(--theme-error);
           }
         }
 
         &:hover > .k-menu-link {
           background: linear-gradient(
             90deg,
-            var(--bubblegum-20),
-            var(--bubblegum-05)
+            var(--theme-error-alpha-20),
+            var(--theme-error-alpha-5)
           );
-          color: var(--bubblegum);
+          color: var(--theme-error);
 
           .k-svg-icon,
           .k-icon,
           svg {
-            fill: var(--bubblegum);
-            color: var(--bubblegum);
+            fill: var(--theme-error);
+            color: var(--theme-error);
           }
         }
       }
@@ -115,7 +115,7 @@
       background: linear-gradient(
         90deg,
         transparent,
-        var(--octo-mint-30),
+        var(--theme-primary-alpha-30),
         transparent
       );
       border: none;
@@ -125,7 +125,7 @@
   // Context menu popup wrapper
   .k-menu-popup {
     .k-context-menu {
-      background: var(--iron-navy);
+      background: var(--theme-surface);
     }
   }
 

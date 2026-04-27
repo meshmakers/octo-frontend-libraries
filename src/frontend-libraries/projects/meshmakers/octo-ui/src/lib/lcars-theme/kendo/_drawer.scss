@@ -49,13 +49,13 @@
       }
 
       &:hover {
-        background: var(--octo-mint-10);
+        background: var(--theme-primary-alpha-10);
       }
 
       &.k-selected {
-        background: linear-gradient(90deg, var(--octo-mint-20), transparent);
-        border-left: 3px solid var(--octo-mint);
-        color: var(--octo-mint);
+        background: linear-gradient(90deg, var(--theme-primary-alpha-20), transparent);
+        border-left: 3px solid var(--theme-primary);
+        color: var(--theme-primary);
       }
 
       // Separator styling
@@ -66,7 +66,7 @@
 
     // Hierarchy — top-level groups (k-level-0)
     .k-drawer-item.k-level-0 {
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
       text-transform: uppercase;
       font-weight: 600;
       letter-spacing: 0.6px;
@@ -98,31 +98,31 @@
         bottom: 0;
         left: var(--guide-x);
         width: 1px;
-        background: color-mix(in srgb, var(--octo-text-color) 10%, transparent);
+        background: color-mix(in srgb, var(--theme-on-app-bg) 10%, transparent);
       }
 
       &:hover {
-        color: var(--octo-text-color);
-        background: color-mix(in srgb, var(--octo-text-color) 4%, transparent);
+        color: var(--theme-on-app-bg);
+        background: color-mix(in srgb, var(--theme-on-app-bg) 4%, transparent);
       }
 
       &.k-selected {
-        color: var(--octo-mint);
-        background: var(--octo-mint-10);
-        box-shadow: inset 3px 0 0 var(--octo-mint);
+        color: var(--theme-primary);
+        background: var(--theme-primary-alpha-10);
+        box-shadow: inset 3px 0 0 var(--theme-primary);
         border-left: none;
       }
     }
 
     .k-drawer-item.k-level-1 {
       font-size: 13px;
-      color: color-mix(in srgb, var(--octo-text-color) 75%, transparent);
+      color: color-mix(in srgb, var(--theme-on-app-bg) 75%, transparent);
       padding: 6px 12px 6px 36px;
     }
 
     .k-drawer-item.k-level-2 {
       font-size: 12.5px;
-      color: color-mix(in srgb, var(--octo-text-color) 60%, transparent);
+      color: color-mix(in srgb, var(--theme-on-app-bg) 60%, transparent);
       padding: 6px 12px 6px 60px;
       --guide-x: 46px;
       --icon-scale: 0.75;
@@ -143,20 +143,20 @@
         }
 
         &.k-selected {
-          border-left: 3px solid var(--octo-mint);
+          border-left: 3px solid var(--theme-primary);
           padding-left: 0;
         }
       }
 
       .k-drawer-item.mm-drawer-level-0:not(.k-selected) {
-        color: var(--octo-text-color);
+        color: var(--theme-on-app-bg);
       }
       .k-drawer-item.mm-drawer-level-1:not(.k-selected) {
-        color: color-mix(in srgb, var(--octo-text-color) 75%, transparent);
+        color: color-mix(in srgb, var(--theme-on-app-bg) 75%, transparent);
         opacity: 0.85;
       }
       .k-drawer-item.mm-drawer-level-2:not(.k-selected) {
-        color: color-mix(in srgb, var(--octo-text-color) 60%, transparent);
+        color: color-mix(in srgb, var(--theme-on-app-bg) 60%, transparent);
         opacity: 0.7;
       }
     }

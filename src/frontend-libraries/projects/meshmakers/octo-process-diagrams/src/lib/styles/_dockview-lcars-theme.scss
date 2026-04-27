@@ -1,22 +1,14 @@
 // ============================================================================
 // DOCKVIEW LCARS THEME
-// Star Trek LCARS-inspired theme for dockview panels
+// LCARS-styled dockview panels. Consumes the semantic theme surface
+// (--theme-*) provided by @meshmakers/octo-ui's themes registry.
 //
 // Usage in host application (styles.scss):
 //   @use '@meshmakers/octo-process-diagrams/styles/dockview-lcars-theme' as dockview;
 //   @include dockview.lcars-theme();
 //
-// Or apply directly via CSS variables in your app's styles.
+// Theme swapping is automatic via [data-theme="..."] on <html>.
 // ============================================================================
-
-// LCARS Color Palette
-$octo-mint: #64ceb9 !default;
-$neo-cyan: #00a8dc !default;
-$royal-violet: #6c4da8 !default;
-$iron-navy: #394555 !default;
-$deep-sea: #07172b !default;
-$surface-elevated: #1f2e40 !default;
-$ash-blue: #9292a6 !default;
 
 // Mixin to apply LCARS theme to dockview
 @mixin lcars-theme() {
@@ -24,39 +16,39 @@ $ash-blue: #9292a6 !default;
   mm-process-designer,
   mm-symbol-editor {
     // Panel backgrounds
-    --dv-background-color: #{$deep-sea};
-    --dv-pane-background-color: #{$surface-elevated};
-    --dv-group-view-background-color: #{$surface-elevated};
-    --dv-tabs-and-actions-container-background-color: #{$iron-navy};
-    --dv-tabs-overflow-dropdown-background-color: #{$iron-navy};
-    --dv-icon-hover-background-color: rgba($octo-mint, 0.2);
-    --dv-tab-divider-color: rgba($octo-mint, 0.2);
+    --dv-background-color: var(--theme-app-bg);
+    --dv-pane-background-color: var(--theme-surface-elevated);
+    --dv-group-view-background-color: var(--theme-surface-elevated);
+    --dv-tabs-and-actions-container-background-color: var(--theme-surface);
+    --dv-tabs-overflow-dropdown-background-color: var(--theme-surface);
+    --dv-icon-hover-background-color: var(--theme-primary-alpha-20);
+    --dv-tab-divider-color: var(--theme-primary-alpha-20);
 
     // Tab colors - active group
-    --dv-activegroup-visiblepanel-tab-background-color: #{$surface-elevated};
-    --dv-activegroup-hiddenpanel-tab-background-color: #{$iron-navy};
-    --dv-activegroup-visiblepanel-tab-color: #{$octo-mint};
-    --dv-activegroup-hiddenpanel-tab-color: #{$ash-blue};
+    --dv-activegroup-visiblepanel-tab-background-color: var(--theme-surface-elevated);
+    --dv-activegroup-hiddenpanel-tab-background-color: var(--theme-surface);
+    --dv-activegroup-visiblepanel-tab-color: var(--theme-primary);
+    --dv-activegroup-hiddenpanel-tab-color: var(--theme-text-secondary);
 
     // Tab colors - inactive group
-    --dv-inactivegroup-visiblepanel-tab-background-color: #{$iron-navy};
-    --dv-inactivegroup-hiddenpanel-tab-background-color: rgba($iron-navy, 0.7);
-    --dv-inactivegroup-visiblepanel-tab-color: #{$ash-blue};
-    --dv-inactivegroup-hiddenpanel-tab-color: rgba($ash-blue, 0.7);
+    --dv-inactivegroup-visiblepanel-tab-background-color: var(--theme-surface);
+    --dv-inactivegroup-hiddenpanel-tab-background-color: color-mix(in srgb, var(--theme-surface) 70%, transparent);
+    --dv-inactivegroup-visiblepanel-tab-color: var(--theme-text-secondary);
+    --dv-inactivegroup-hiddenpanel-tab-color: color-mix(in srgb, var(--theme-text-secondary) 70%, transparent);
 
     // Borders and separators
-    --dv-separator-border: 1px solid rgba($octo-mint, 0.2);
+    --dv-separator-border: 1px solid var(--theme-primary-alpha-20);
 
     // Tab active indicator
-    --dv-tab-active-border-bottom: 2px solid #{$octo-mint};
+    --dv-tab-active-border-bottom: 2px solid var(--theme-primary);
 
     // Drag overlay
-    --dv-drag-over-background-color: rgba($octo-mint, 0.15);
-    --dv-drag-over-border-color: #{$octo-mint};
+    --dv-drag-over-background-color: var(--theme-primary-alpha-15);
+    --dv-drag-over-border-color: var(--theme-primary);
 
     // Sash (resizer)
-    --dv-sash-color: rgba($octo-mint, 0.2);
-    --dv-sash-hover-color: #{$octo-mint};
+    --dv-sash-color: var(--theme-primary-alpha-20);
+    --dv-sash-hover-color: var(--theme-primary);
   }
 
   // Direct style overrides for dockview elements (higher specificity)
@@ -64,44 +56,44 @@ $ash-blue: #9292a6 !default;
   mm-process-designer .dv-grid-view,
   mm-symbol-editor .dv-dockview,
   mm-symbol-editor .dv-grid-view {
-    background-color: $deep-sea !important;
-    --dv-background-color: #{$deep-sea};
-    --dv-pane-background-color: #{$surface-elevated};
-    --dv-group-view-background-color: #{$surface-elevated};
-    --dv-tabs-and-actions-container-background-color: #{$iron-navy};
-    --dv-tabs-overflow-dropdown-background-color: #{$iron-navy};
-    --dv-icon-hover-background-color: rgba($octo-mint, 0.2);
-    --dv-tab-divider-color: rgba($octo-mint, 0.2);
-    --dv-activegroup-visiblepanel-tab-background-color: #{$surface-elevated};
-    --dv-activegroup-hiddenpanel-tab-background-color: #{$iron-navy};
-    --dv-activegroup-visiblepanel-tab-color: #{$octo-mint};
-    --dv-activegroup-hiddenpanel-tab-color: #{$ash-blue};
-    --dv-inactivegroup-visiblepanel-tab-background-color: #{$iron-navy};
-    --dv-inactivegroup-hiddenpanel-tab-background-color: rgba($iron-navy, 0.7);
-    --dv-inactivegroup-visiblepanel-tab-color: #{$ash-blue};
-    --dv-inactivegroup-hiddenpanel-tab-color: rgba($ash-blue, 0.7);
-    --dv-separator-border: 1px solid rgba($octo-mint, 0.2);
-    --dv-sash-color: rgba($octo-mint, 0.2);
-    --dv-sash-hover-color: #{$octo-mint};
-    --dv-drag-over-background-color: rgba($octo-mint, 0.15);
-    --dv-drag-over-border-color: #{$octo-mint};
+    background-color: var(--theme-app-bg) !important;
+    --dv-background-color: var(--theme-app-bg);
+    --dv-pane-background-color: var(--theme-surface-elevated);
+    --dv-group-view-background-color: var(--theme-surface-elevated);
+    --dv-tabs-and-actions-container-background-color: var(--theme-surface);
+    --dv-tabs-overflow-dropdown-background-color: var(--theme-surface);
+    --dv-icon-hover-background-color: var(--theme-primary-alpha-20);
+    --dv-tab-divider-color: var(--theme-primary-alpha-20);
+    --dv-activegroup-visiblepanel-tab-background-color: var(--theme-surface-elevated);
+    --dv-activegroup-hiddenpanel-tab-background-color: var(--theme-surface);
+    --dv-activegroup-visiblepanel-tab-color: var(--theme-primary);
+    --dv-activegroup-hiddenpanel-tab-color: var(--theme-text-secondary);
+    --dv-inactivegroup-visiblepanel-tab-background-color: var(--theme-surface);
+    --dv-inactivegroup-hiddenpanel-tab-background-color: color-mix(in srgb, var(--theme-surface) 70%, transparent);
+    --dv-inactivegroup-visiblepanel-tab-color: var(--theme-text-secondary);
+    --dv-inactivegroup-hiddenpanel-tab-color: color-mix(in srgb, var(--theme-text-secondary) 70%, transparent);
+    --dv-separator-border: 1px solid var(--theme-primary-alpha-20);
+    --dv-sash-color: var(--theme-primary-alpha-20);
+    --dv-sash-hover-color: var(--theme-primary);
+    --dv-drag-over-background-color: var(--theme-primary-alpha-15);
+    --dv-drag-over-border-color: var(--theme-primary);
   }
 
   // Direct element overrides for tabs and containers
   mm-process-designer,
   mm-symbol-editor {
     .dv-tabs-container {
-      background-color: $iron-navy !important;
+      background-color: var(--theme-surface) !important;
     }
 
     .dv-tabs-and-actions-container {
-      background-color: $iron-navy !important;
-      border-bottom: 1px solid rgba($octo-mint, 0.2) !important;
+      background-color: var(--theme-surface) !important;
+      border-bottom: 1px solid var(--theme-primary-alpha-20) !important;
     }
 
     .dv-tab {
-      background-color: $iron-navy !important;
-      color: $ash-blue !important;
+      background-color: var(--theme-surface) !important;
+      color: var(--theme-text-secondary) !important;
       font-family: "Montserrat", "Roboto", sans-serif;
       font-weight: 500;
       text-transform: uppercase;
@@ -110,55 +102,55 @@ $ash-blue: #9292a6 !default;
       transition: all 0.15s ease;
 
       &.dv-active-tab {
-        background-color: $surface-elevated !important;
-        color: $octo-mint !important;
-        border-bottom: 2px solid $octo-mint !important;
+        background-color: var(--theme-surface-elevated) !important;
+        color: var(--theme-primary) !important;
+        border-bottom: 2px solid var(--theme-primary) !important;
       }
 
       &:hover:not(.dv-active-tab) {
-        background-color: rgba($octo-mint, 0.15) !important;
+        background-color: var(--theme-primary-alpha-15) !important;
         color: #ffffff !important;
       }
     }
 
     .dv-default-tab-action {
-      color: $ash-blue !important;
+      color: var(--theme-text-secondary) !important;
 
       &:hover {
-        color: $octo-mint !important;
+        color: var(--theme-primary) !important;
       }
     }
 
     .dv-groupview {
-      background-color: $surface-elevated !important;
+      background-color: var(--theme-surface-elevated) !important;
     }
 
     .dv-content-container {
-      background-color: $surface-elevated !important;
+      background-color: var(--theme-surface-elevated) !important;
     }
 
     .dv-sash {
-      background-color: rgba($octo-mint, 0.2) !important;
+      background-color: var(--theme-primary-alpha-20) !important;
 
       &:hover,
       &.dv-active {
-        background-color: $octo-mint !important;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.5);
+        background-color: var(--theme-primary) !important;
+        box-shadow: 0 0 8px var(--theme-primary-alpha-50);
       }
     }
 
     .dv-drop-target-dropzone {
-      background-color: rgba($octo-mint, 0.15) !important;
-      border: 2px dashed $octo-mint !important;
+      background-color: var(--theme-primary-alpha-15) !important;
+      border: 2px dashed var(--theme-primary) !important;
     }
 
     // Floating overflow dropdown
     .dv-tabs-overflow-container {
-      background-color: $iron-navy !important;
-      border: 1px solid rgba($octo-mint, 0.3) !important;
+      background-color: var(--theme-surface) !important;
+      border: 1px solid var(--theme-primary-alpha-30) !important;
       box-shadow:
         0 4px 20px rgba(0, 0, 0, 0.4),
-        0 0 15px rgba($octo-mint, 0.1) !important;
+        0 0 15px var(--theme-primary-alpha-10) !important;
     }
   }
 
@@ -167,31 +159,31 @@ $ash-blue: #9292a6 !default;
   mm-symbol-editor {
     // View menu dropdown styling
     .view-menu-dropdown {
-      background: $surface-elevated;
-      border: 1px solid rgba($octo-mint, 0.3);
+      background: var(--theme-surface-elevated);
+      border: 1px solid var(--theme-primary-alpha-30);
       box-shadow:
         0 4px 20px rgba(0, 0, 0, 0.4),
-        0 0 15px rgba($octo-mint, 0.1);
+        0 0 15px var(--theme-primary-alpha-10);
     }
 
     .view-menu-item {
       color: #ffffff;
 
       &:hover {
-        background: rgba($octo-mint, 0.15);
+        background: var(--theme-primary-alpha-15);
       }
     }
 
     .view-menu-check {
-      color: $octo-mint;
+      color: var(--theme-primary);
     }
 
     .view-menu-shortcut {
-      color: $ash-blue;
+      color: var(--theme-text-secondary);
     }
 
     .view-menu-divider {
-      background: rgba($octo-mint, 0.2);
+      background: var(--theme-primary-alpha-20);
     }
   }
 
@@ -206,7 +198,7 @@ $ash-blue: #9292a6 !default;
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: $surface-elevated !important;
+    background: var(--theme-surface-elevated) !important;
 
     .panel-container,
     .elements-panel,
@@ -216,53 +208,53 @@ $ash-blue: #9292a6 !default;
     .exposures-panel,
     .animations-panel,
     .simulation-panel {
-      background: $surface-elevated !important;
+      background: var(--theme-surface-elevated) !important;
       color: #ffffff;
     }
 
     .panel-content {
-      background: $surface-elevated !important;
+      background: var(--theme-surface-elevated) !important;
     }
 
     .no-selection {
-      color: $ash-blue;
+      color: var(--theme-text-secondary);
       font-family: "Montserrat", "Roboto", sans-serif;
 
       .hint {
-        color: rgba($ash-blue, 0.7);
+        color: color-mix(in srgb, var(--theme-text-secondary) 70%, transparent);
       }
     }
 
     // Section headers
     .section-header,
     .panel-section-header {
-      color: $octo-mint;
+      color: var(--theme-primary);
       font-family: "Montserrat", "Roboto", sans-serif;
       font-weight: 600;
       text-transform: uppercase;
       font-size: 11px;
       letter-spacing: 0.5px;
-      border-bottom: 1px solid rgba($octo-mint, 0.2);
+      border-bottom: 1px solid var(--theme-primary-alpha-20);
     }
 
     // Form inputs
     input,
     select,
     textarea {
-      background: $deep-sea;
-      border: 1px solid rgba($octo-mint, 0.3);
+      background: var(--theme-app-bg);
+      border: 1px solid var(--theme-primary-alpha-30);
       color: #ffffff;
       border-radius: 4px;
 
       &:focus {
-        border-color: $octo-mint;
-        box-shadow: 0 0 8px rgba($octo-mint, 0.3);
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 8px var(--theme-primary-alpha-30);
         outline: none;
       }
     }
 
     label {
-      color: $ash-blue;
+      color: var(--theme-text-secondary);
       font-family: "Montserrat", "Roboto", sans-serif;
       font-size: 11px;
       text-transform: uppercase;
@@ -273,11 +265,11 @@ $ash-blue: #9292a6 !default;
     button {
       background: linear-gradient(
         180deg,
-        rgba($octo-mint, 0.15),
-        rgba($octo-mint, 0.05)
+        var(--theme-primary-alpha-15),
+        var(--theme-primary-alpha-5)
       );
-      border: 1px solid rgba($octo-mint, 0.3);
-      color: $octo-mint;
+      border: 1px solid var(--theme-primary-alpha-30);
+      color: var(--theme-primary);
       border-radius: 4px;
       font-family: "Montserrat", "Roboto", sans-serif;
       font-weight: 500;
@@ -289,11 +281,11 @@ $ash-blue: #9292a6 !default;
       &:hover:not(:disabled) {
         background: linear-gradient(
           180deg,
-          rgba($octo-mint, 0.25),
-          rgba($octo-mint, 0.15)
+          var(--theme-primary-alpha-25),
+          var(--theme-primary-alpha-15)
         );
-        border-color: $octo-mint;
-        box-shadow: 0 0 10px rgba($octo-mint, 0.3);
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 10px var(--theme-primary-alpha-30);
       }
 
       &:disabled {
@@ -307,44 +299,44 @@ $ash-blue: #9292a6 !default;
   mm-symbols-panel {
     .palette-category {
       background: transparent;
-      border-bottom: 1px solid rgba($octo-mint, 0.1);
+      border-bottom: 1px solid var(--theme-primary-alpha-10);
 
       .category-header {
-        color: $ash-blue;
+        color: var(--theme-text-secondary);
         font-family: "Montserrat", "Roboto", sans-serif;
         font-size: 11px;
         text-transform: uppercase;
 
         &:hover {
-          background: rgba($octo-mint, 0.1);
+          background: var(--theme-primary-alpha-10);
         }
       }
 
       .category-count {
-        color: rgba($ash-blue, 0.7);
+        color: color-mix(in srgb, var(--theme-text-secondary) 70%, transparent);
       }
     }
 
     .palette-item {
-      background: rgba($iron-navy, 0.5);
-      border: 1px solid rgba($octo-mint, 0.15);
+      background: color-mix(in srgb, var(--theme-surface) 50%, transparent);
+      border: 1px solid var(--theme-primary-alpha-15);
       border-radius: 4px;
       color: #ffffff;
       transition: all 0.15s ease;
 
       &:hover {
-        background: rgba($octo-mint, 0.15);
-        border-color: rgba($octo-mint, 0.4);
-        box-shadow: 0 2px 8px rgba(#000, 0.2);
+        background: var(--theme-primary-alpha-15);
+        border-color: var(--theme-primary-alpha-40);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
 
       .item-label {
-        color: $ash-blue;
+        color: var(--theme-text-secondary);
         font-size: 10px;
       }
 
       svg {
-        stroke: $octo-mint;
+        stroke: var(--theme-primary);
         fill: none;
       }
     }
@@ -354,25 +346,25 @@ $ash-blue: #9292a6 !default;
 // CSS-only alternative (can be applied without SCSS)
 // Add these CSS variables to your :root or component host
 @mixin lcars-css-variables() {
-  --dv-background-color: #07172b;
-  --dv-pane-background-color: #1f2e40;
-  --dv-group-view-background-color: #1f2e40;
-  --dv-tabs-and-actions-container-background-color: #394555;
-  --dv-tabs-overflow-dropdown-background-color: #394555;
-  --dv-icon-hover-background-color: rgba(100, 206, 185, 0.2);
-  --dv-tab-divider-color: rgba(100, 206, 185, 0.2);
-  --dv-activegroup-visiblepanel-tab-background-color: #1f2e40;
-  --dv-activegroup-hiddenpanel-tab-background-color: #394555;
-  --dv-activegroup-visiblepanel-tab-color: #64ceb9;
-  --dv-activegroup-hiddenpanel-tab-color: #9292a6;
-  --dv-inactivegroup-visiblepanel-tab-background-color: #394555;
-  --dv-inactivegroup-hiddenpanel-tab-background-color: rgba(57, 69, 85, 0.7);
-  --dv-inactivegroup-visiblepanel-tab-color: #9292a6;
-  --dv-inactivegroup-hiddenpanel-tab-color: rgba(146, 146, 166, 0.7);
-  --dv-separator-border: 1px solid rgba(100, 206, 185, 0.2);
-  --dv-tab-active-border-bottom: 2px solid #64ceb9;
-  --dv-drag-over-background-color: rgba(100, 206, 185, 0.15);
-  --dv-drag-over-border-color: #64ceb9;
-  --dv-sash-color: rgba(100, 206, 185, 0.2);
-  --dv-sash-hover-color: #64ceb9;
+  --dv-background-color: var(--theme-app-bg);
+  --dv-pane-background-color: var(--theme-surface-elevated);
+  --dv-group-view-background-color: var(--theme-surface-elevated);
+  --dv-tabs-and-actions-container-background-color: var(--theme-surface);
+  --dv-tabs-overflow-dropdown-background-color: var(--theme-surface);
+  --dv-icon-hover-background-color: var(--theme-primary-alpha-20);
+  --dv-tab-divider-color: var(--theme-primary-alpha-20);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--theme-surface-elevated);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--theme-surface);
+  --dv-activegroup-visiblepanel-tab-color: var(--theme-primary);
+  --dv-activegroup-hiddenpanel-tab-color: var(--theme-text-secondary);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--theme-surface);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: color-mix(in srgb, var(--theme-surface) 70%, transparent);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--theme-text-secondary);
+  --dv-inactivegroup-hiddenpanel-tab-color: color-mix(in srgb, var(--theme-text-secondary) 70%, transparent);
+  --dv-separator-border: 1px solid var(--theme-primary-alpha-20);
+  --dv-tab-active-border-bottom: 2px solid var(--theme-primary);
+  --dv-drag-over-background-color: var(--theme-primary-alpha-15);
+  --dv-drag-over-border-color: var(--theme-primary);
+  --dv-sash-color: var(--theme-primary-alpha-20);
+  --dv-sash-hover-color: var(--theme-primary);
 }

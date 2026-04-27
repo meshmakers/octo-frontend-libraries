@@ -49,16 +49,16 @@
     border-radius: var(--lcars-radius-lg);
     box-shadow:
       0 16px 64px rgba(0, 0, 0, 0.5),
-      0 0 40px var(--octo-mint-15);
+      0 0 40px var(--theme-primary-alpha-15);
     overflow: hidden;
 
     .k-dialog-titlebar {
       background: linear-gradient(
         90deg,
-        var(--iron-navy),
-        var(--surface-elevated)
+        var(--theme-surface),
+        var(--theme-surface-elevated)
       );
-      border-bottom: 2px solid var(--octo-mint);
+      border-bottom: 2px solid var(--theme-primary);
       font-family: var(--lcars-font-primary);
       font-weight: 600;
       text-transform: uppercase;
@@ -71,13 +71,13 @@
         top: 0;
         bottom: 0;
         width: 4px;
-        background: var(--octo-mint);
+        background: var(--theme-primary);
       }
     }
 
     .k-dialog-content,
     .k-window-content {
-      background: var(--deep-sea);
+      background: var(--theme-app-bg);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -91,8 +91,8 @@
     }
 
     .k-dialog-actions {
-      background: var(--iron-navy);
-      border-top: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-top: 1px solid var(--theme-primary-alpha-20);
       flex-shrink: 0;
 
       .k-button {

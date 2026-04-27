@@ -10,18 +10,18 @@
   // These must be at the root level to properly cascade into the dockview library
   .dv-dockview,
   .dv-grid-view {
-    background-color: var(--deep-sea) !important;
+    background-color: var(--theme-app-bg) !important;
   }
 
   .dv-tabs-container,
   .dv-tabs-and-actions-container {
-    background-color: var(--iron-navy) !important;
-    border-bottom: 1px solid var(--octo-mint-20) !important;
+    background-color: var(--theme-surface) !important;
+    border-bottom: 1px solid var(--theme-primary-alpha-20) !important;
   }
 
   .dv-tab {
-    background-color: var(--iron-navy) !important;
-    color: var(--ash-blue) !important;
+    background-color: var(--theme-surface) !important;
+    color: var(--theme-text-secondary) !important;
     font-family: "Montserrat", "Roboto", sans-serif !important;
     font-weight: 500 !important;
     text-transform: uppercase !important;
@@ -31,46 +31,46 @@
     border: none !important;
 
     &.dv-active-tab {
-      background-color: var(--surface-elevated) !important;
-      color: var(--octo-mint) !important;
-      border-bottom: 2px solid var(--octo-mint) !important;
+      background-color: var(--theme-surface-elevated) !important;
+      color: var(--theme-primary) !important;
+      border-bottom: 2px solid var(--theme-primary) !important;
     }
 
     &:hover:not(.dv-active-tab) {
-      background-color: var(--octo-mint-15) !important;
-      color: var(--octo-text-color) !important;
+      background-color: var(--theme-primary-alpha-15) !important;
+      color: var(--theme-on-app-bg) !important;
     }
   }
 
   .dv-default-tab-action {
-    color: var(--ash-blue) !important;
+    color: var(--theme-text-secondary) !important;
 
     &:hover {
-      color: var(--octo-mint) !important;
-      background-color: var(--octo-mint-20) !important;
+      color: var(--theme-primary) !important;
+      background-color: var(--theme-primary-alpha-20) !important;
     }
   }
 
   .dv-groupview,
   .dv-content-container {
-    background-color: var(--surface-elevated) !important;
+    background-color: var(--theme-surface-elevated) !important;
   }
 
   .dv-sash {
-    background-color: var(--octo-mint-20) !important;
+    background-color: var(--theme-primary-alpha-20) !important;
 
     &:hover,
     &.dv-active {
-      background-color: var(--octo-mint) !important;
-      box-shadow: 0 0 8px var(--octo-mint-50);
+      background-color: var(--theme-primary) !important;
+      box-shadow: 0 0 8px var(--theme-primary-alpha-50);
     }
   }
 
   .dv-tabs-overflow-container {
-    background-color: var(--iron-navy) !important;
-    border: 1px solid var(--octo-mint-30) !important;
+    background-color: var(--theme-surface) !important;
+    border: 1px solid var(--theme-primary-alpha-30) !important;
     box-shadow:
       0 4px 20px rgba(0, 0, 0, 0.4),
-      0 0 15px var(--octo-mint-10) !important;
+      0 0 15px var(--theme-primary-alpha-10) !important;
   }
 }

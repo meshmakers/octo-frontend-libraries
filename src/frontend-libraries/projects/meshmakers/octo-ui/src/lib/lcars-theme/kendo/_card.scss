@@ -13,8 +13,8 @@
     overflow: hidden;
 
     .k-card-header {
-      background: linear-gradient(90deg, var(--iron-navy), transparent);
-      border-left: 4px solid var(--octo-mint);
+      background: linear-gradient(90deg, var(--theme-surface), transparent);
+      border-left: 4px solid var(--theme-primary);
       font-family: var(--lcars-font-primary);
       font-weight: 600;
     }

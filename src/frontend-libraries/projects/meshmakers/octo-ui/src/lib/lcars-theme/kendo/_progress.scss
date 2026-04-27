@@ -7,12 +7,12 @@
 @mixin progress {
   // Progress indicators - LCARS style
   .k-progressbar {
-    background: var(--ash-blue-20);
+    background: var(--theme-text-secondary-alpha-20);
     border-radius: var(--lcars-radius-pill);
     overflow: hidden;
 
     .k-selected {
-      background: linear-gradient(90deg, var(--octo-mint), var(--neo-cyan));
+      background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
       box-shadow: var(--lcars-glow-primary);
     }
   }

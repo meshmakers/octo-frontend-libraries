@@ -10,18 +10,18 @@
   .k-input,
   .k-picker,
   .k-textbox {
-    background: var(--deep-sea-80);
-    border: 1px solid var(--ash-blue-30);
+    background: var(--theme-app-bg-alpha-80);
+    border: 1px solid var(--theme-text-secondary-alpha-30);
     border-radius: var(--lcars-radius-sm);
     transition: all var(--lcars-transition-fast);
 
     &:hover {
-      border-color: var(--octo-mint-50);
+      border-color: var(--theme-primary-alpha-50);
     }
 
     &:focus,
     &.k-focus {
-      border-color: var(--octo-mint);
+      border-color: var(--theme-primary);
       box-shadow: var(--lcars-glow-primary);
     }
   }
@@ -32,31 +32,31 @@
     kendo-label,
     .k-label,
     > label {
-      color: var(--ash-blue) !important;
+      color: var(--theme-text-secondary) !important;
       font-family: var(--lcars-font-primary);
       font-weight: 500;
     }
 
     kendo-formhint,
     .k-form-hint {
-      color: var(--ash-blue-70) !important;
+      color: var(--theme-text-secondary-alpha-70) !important;
     }
 
     kendo-formerror,
     .k-form-error {
-      color: var(--bubblegum) !important;
+      color: var(--theme-error) !important;
     }
   }
 
   // Standalone labels - LCARS style
   .k-label,
   kendo-label {
-    color: var(--ash-blue) !important;
+    color: var(--theme-text-secondary) !important;
   }
 
   // Checkbox labels
   .k-checkbox-label,
   label.k-checkbox-label {
-    color: var(--octo-text-color) !important;
+    color: var(--theme-on-app-bg) !important;
   }
 }

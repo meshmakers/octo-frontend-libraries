@@ -36,46 +36,113 @@ src/lib/
     └── services/                 # Property converter service
 ```
 
-## LCARS Theme Mixins
+## Theming: Semantic Tokens + Themes Registry
 
-The LCARS theme is exposed as three SCSS mixins, forwarded through the public
-entry `<...>/octo-ui/styles/_index.scss`:
+The theme system is built on a two-tier token model. Themes are palette
+providers that map brand colors onto a stable set of semantic CSS custom
+properties; all interaction states and alpha scales are derived automatically
+via `color-mix()`.
+
+### Public mixins
+
+Forwarded through `<...>/octo-ui/styles/_index.scss` (and the Kendo-aware
+twin `_with-kendo.scss`):
 
 ```scss
 @use "@meshmakers/octo-ui/styles" as octo;
 
-@include octo.variables();        // CSS custom properties (composed from tokens/)
-@include octo.styles();            // Global LCARS theme rules
-@include octo.host-overrides();   // Opt-in: LCARS overrides for library components
+@include octo.variables();        // Non-color tokens (typography, radius, motion, components)
+@include octo.lcars-dark;          // Theme palette: maps brand colors to --theme-*
+@include octo.derived;             // Auto-computed hover/active/alpha tokens via color-mix()
+@include octo.styles();            // Global theme rules (LCARS primitives, Kendo overrides, etc.)
+@include octo.host-overrides();   // Opt-in: LCARS overrides for components that ship neutral
 ```
 
-- **`variables()`** — emits the LCARS palette as CSS custom properties
-  (`--octo-*`, `--lcars-*`, `--designer-*`, `--mm-cron-*`, plus per-component
-  tokens like `--lcars-drawer-bg`, `--lcars-dialog-bg`). Composed from
-  `lib/lcars-theme/tokens/`.
-- **`styles()`** — global LCARS theme rules: Dockview overrides, LCARS
-  primitives (panels, page layout, footer, decorative effects, scrollbars),
-  Kendo widget overrides, login popup, context menu, base form, widget
-  config dialog. Theme-neutral library components inherit their look from
-  CSS variables.
-- **`host-overrides()`** — opt-in. LCARS-specific overrides for library
-  components that ship neutral by default: Process Designer / Symbol Editor,
-  Process Widget, Markdown Widget, MeshBoard view & widgets. Hosts that
-  want the LCARS look on these components include this alongside `styles()`;
-  hosts using a different theme can override the relevant CSS variables and
-  omit this mixin.
+Available themes: `lcars-dark`, `lcars-light`. Both expand to the same set
+of `--theme-*` properties so component CSS does not branch per-theme.
+
+### Activation pattern (host application)
+
+```scss
+:root, :root[data-theme="lcars-dark"] {
+  @include octo.variables();
+  @include octo.lcars-dark;
+  @include octo.derived;
+}
+
+:root[data-theme="lcars-light"] {
+  @include octo.lcars-light;
+  @include octo.derived;
+}
+```
+
+Switching themes at runtime is just `document.documentElement.setAttribute('data-theme', 'lcars-light')`.
+
+### The 19 semantic tokens (public theming surface)
+
+| Token | Role |
+|---|---|
+| `--theme-primary` / `--theme-on-primary` | Primary brand accent + foreground on it |
+| `--theme-secondary` / `--theme-on-secondary` | Secondary accent + foreground |
+| `--theme-surface` / `--theme-on-surface` | Panel/card background + foreground |
+| `--theme-app-bg` / `--theme-on-app-bg` | Page background + foreground |
+| `--theme-success` / `--theme-on-success` | Success state |
+| `--theme-warning` / `--theme-on-warning` | Warning state |
+| `--theme-error` / `--theme-on-error` | Error/destructive state |
+| `--theme-info` / `--theme-on-info` | Informational state |
+| `--theme-text-secondary` | Muted/secondary text (labels, hints) |
+| `--theme-border` | Standard borders |
+| `--theme-border-subtle` | Subtle dividers |
+| `--theme-accent-violet` | Decorative accent (LCARS bars, hover) |
+| `--theme-accent-amber` | Warm decorative accent |
+| `--theme-accent-pink` | Alert/highlight decorative accent |
+
+`--theme-*` is the public theming surface. The legacy `--octo-mint`,
+`--octo-mint-30`, etc. variables no longer exist — apps must consume
+`--theme-*`.
+
+### Derived tokens
+
+`@include octo.derived` emits hover/active/subtle/border/glow variants for
+each interactive role plus extensive alpha scales for `primary`, `secondary`,
+`error`, `warning`, `text-secondary`, `accent-violet`, `surface`, `app-bg`,
+and `surface-elevated`, plus `--theme-accent-violet-light`. All are computed
+from the 19 semantic tokens via `color-mix()` — theme authors only set the
+base colors; interaction states and alpha variants follow automatically.
+
+### Tenant / runtime overrides
+
+Semantic tokens are the override surface; derived tokens follow automatically
+because they reference the semantics via `color-mix()`. To rebrand at runtime:
+
+```typescript
+document.documentElement.style.setProperty('--theme-primary', '#ff6358');
+document.documentElement.style.setProperty('--theme-secondary', '#00a8dc');
+// derived tokens (--theme-primary-hover, alpha scales, etc.) update automatically
+```
+
+### Browser baseline
+
+`color-mix()` is required: Chromium 111+, Firefox 113+, Safari 16.2+ (all
+evergreen since early 2023).
+
+### Theme partials layout
 
 The theme partials live under `<...>/octo-ui/src/lib/lcars-theme/`:
 
 | Folder | Contents |
 |---|---|
-| `tokens/` | CSS-variable-emitting partials (palette, typography, alpha-scales, radius, motion, designer, components) |
-| `kendo/` | one partial per Kendo widget (drawer, dialog, button, grid, treeview, input, dialog, dropdown, window, tabs, card, tooltip, progress, chip, scrollbars, context-menu, listview, toolbar, tilelayout, popup, appbar, input-buttons) |
+| `tokens/` | `_semantic.scss` (19 role tokens), `_derived.scss` (color-mix expansions), plus typography, radius, motion, designer, components |
+| `themes/` | `_lcars-dark.scss`, `_lcars-light.scss` — palette providers that map brand colors onto `--theme-*` |
+| `kendo/` | one partial per Kendo widget (drawer, dialog, button, grid, treeview, input, dropdown, window, tabs, card, tooltip, progress, chip, scrollbars, context-menu, listview, toolbar, tilelayout, popup, appbar, input-buttons). The Kendo color map is rewired to runtime `var(--theme-*)` references — no Sass-time `k-generate-color-variations()` baking |
 | `primitives/` | LCARS-original UI patterns (panel, page-layout, layout, utilities) |
 | `thirdparty/` | third-party library overrides (currently `_dockview.scss`) |
 | `chrome/` | app-shell pieces (`_login-popup.scss`) |
 | `forms/` | composite forms (`_base-form.scss`, `_config-dialog.scss`) |
 | `host-overrides/` | opt-in host overrides (`_process-designer.scss`, `_process-widget.scss`, `_markdown-widget.scss`, `_meshboard.scss`) |
+
+Note: The legacy `_palette.scss` and `_alpha-scales.scss` partials no longer
+exist — they were superseded by `_semantic.scss` + `_derived.scss`.
 
 ## Drawer Hierarchy
 
@@ -90,10 +157,11 @@ Mini (collapsed) mode relies on the `mm-drawer-level-N` `cssClass` that
 `@meshmakers/shared-services` `CommandService` adds to every `DrawerItem`
 based on its nesting depth. Apps consuming `CommandService` get this for free.
 
-Colors and gradient defaults come from `octo.variables()` tokens
-(`--octo-text-color`, `--octo-mint`, `--octo-mint-10`, `--lcars-drawer-bg`,
-`--lcars-drawer-border`). Hosts can re-skin the drawer by overriding
-`--lcars-drawer-bg` and `--lcars-drawer-border` without forking the partial.
+Colors and gradient defaults come from the semantic tokens
+(`--theme-on-surface`, `--theme-primary`, `--theme-primary-10`,
+`--lcars-drawer-bg`, `--lcars-drawer-border`). Hosts can re-skin the drawer
+by overriding `--lcars-drawer-bg` and `--lcars-drawer-border`, or by
+overriding `--theme-primary` to recolor the accent line and active state.
 
 ## Runtime Browser Localization
 

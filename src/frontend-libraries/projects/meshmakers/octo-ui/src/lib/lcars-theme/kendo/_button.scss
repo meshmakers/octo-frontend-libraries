@@ -5,7 +5,6 @@
 @use "../variables" as *;
 @use "../lcars-button" as *;
 @use "../lcars-flat-btn" as *;
-@use "sass:color";
 
 @mixin button {
   // Buttons - LCARS style
@@ -20,34 +19,34 @@
     &.k-button-solid-primary {
       background: linear-gradient(
         180deg,
-        var(--octo-mint-30),
-        var(--octo-mint-15)
+        var(--theme-primary-alpha-30),
+        var(--theme-primary-alpha-15)
       );
-      border: 1px solid var(--octo-mint-50);
-      color: var(--octo-text-color);
+      border: 1px solid var(--theme-primary-alpha-50);
+      color: var(--theme-on-app-bg);
 
       .k-svg-icon,
       .k-icon,
       svg {
         fill: #ffffff;
-        color: var(--octo-text-color);
+        color: var(--theme-on-app-bg);
       }
 
       &:hover:not(:disabled) {
         background: linear-gradient(
           180deg,
-          var(--octo-mint-45),
-          var(--octo-mint-25)
+          var(--theme-primary-alpha-40),
+          var(--theme-primary-alpha-25)
         );
-        border-color: var(--octo-mint);
-        box-shadow: 0 0 15px var(--octo-mint-40);
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 15px var(--theme-primary-alpha-40);
       }
 
       &:active:not(:disabled) {
         background: linear-gradient(
           180deg,
-          var(--octo-mint-50),
-          var(--octo-mint-30)
+          var(--theme-primary-alpha-50),
+          var(--theme-primary-alpha-30)
         );
       }
     }
@@ -55,8 +54,8 @@
     &.k-button-solid-secondary {
       background: linear-gradient(
         180deg,
-        var(--neo-cyan),
-        color.adjust($neo-cyan, $lightness: -10%)
+        var(--theme-secondary),
+        color-mix(in srgb, var(--theme-secondary) 90%, black)
       );
 
       &:hover {
@@ -68,48 +67,48 @@
     &.k-button-solid-base {
       background: linear-gradient(
         180deg,
-        var(--octo-mint-15),
-        var(--octo-mint-05)
+        var(--theme-primary-alpha-15),
+        var(--theme-primary-alpha-5)
       );
-      border: 1px solid var(--octo-mint-30);
-      color: var(--octo-mint);
+      border: 1px solid var(--theme-primary-alpha-30);
+      color: var(--theme-primary);
 
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: var(--octo-mint);
-        color: var(--octo-mint);
+        fill: var(--theme-primary);
+        color: var(--theme-primary);
       }
 
       &:hover:not(:disabled) {
         background: linear-gradient(
           180deg,
-          var(--octo-mint-25),
-          var(--octo-mint-15)
+          var(--theme-primary-alpha-25),
+          var(--theme-primary-alpha-15)
         );
-        border-color: var(--octo-mint-50);
-        box-shadow: 0 0 10px var(--octo-mint-30);
+        border-color: var(--theme-primary-alpha-50);
+        box-shadow: 0 0 10px var(--theme-primary-alpha-30);
       }
 
       &:active:not(:disabled) {
         background: linear-gradient(
           180deg,
-          var(--octo-mint-30),
-          var(--octo-mint-20)
+          var(--theme-primary-alpha-30),
+          var(--theme-primary-alpha-20)
         );
       }
 
       &:disabled {
         opacity: 0.5;
-        color: var(--ash-blue);
-        border-color: var(--ash-blue-30);
-        background: var(--ash-blue-10);
+        color: var(--theme-text-secondary);
+        border-color: var(--theme-text-secondary-alpha-30);
+        background: var(--theme-text-secondary-alpha-10);
 
         .k-svg-icon,
         .k-icon,
         svg {
-          fill: var(--ash-blue);
-          color: var(--ash-blue);
+          fill: var(--theme-text-secondary);
+          color: var(--theme-text-secondary);
         }
       }
     }
@@ -118,34 +117,34 @@
     &.k-button-solid-error {
       background: linear-gradient(
         180deg,
-        var(--bubblegum-20),
-        var(--bubblegum-10)
+        var(--theme-error-alpha-20),
+        var(--theme-error-alpha-10)
       );
-      border: 1px solid var(--bubblegum-40);
-      color: var(--bubblegum);
+      border: 1px solid var(--theme-error-alpha-40);
+      color: var(--theme-error);
 
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: var(--bubblegum);
-        color: var(--bubblegum);
+        fill: var(--theme-error);
+        color: var(--theme-error);
       }
 
       &:hover:not(:disabled) {
         background: linear-gradient(
           180deg,
-          var(--bubblegum-30),
-          var(--bubblegum-20)
+          var(--theme-error-alpha-30),
+          var(--theme-error-alpha-20)
         );
-        border-color: var(--bubblegum-60);
-        box-shadow: 0 0 10px var(--bubblegum-40);
+        border-color: var(--theme-error-alpha-60);
+        box-shadow: 0 0 10px var(--theme-error-alpha-40);
       }
 
       &:active:not(:disabled) {
         background: linear-gradient(
           180deg,
-          var(--bubblegum-40),
-          var(--bubblegum-30)
+          var(--theme-error-alpha-40),
+          var(--theme-error-alpha-30)
         );
       }
 
@@ -164,100 +163,100 @@
 
     // Outline base buttons - ensure visibility on dark background
     &.k-button-outline-base {
-      color: var(--ash-blue);
-      border-color: var(--ash-blue-50);
+      color: var(--theme-text-secondary);
+      border-color: var(--theme-text-secondary-alpha-50);
       background: transparent;
 
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: var(--ash-blue);
-        color: var(--ash-blue);
+        fill: var(--theme-text-secondary);
+        color: var(--theme-text-secondary);
       }
 
       &:hover:not(:disabled) {
-        color: var(--octo-mint);
-        border-color: var(--octo-mint-50);
-        background: var(--octo-mint-10);
+        color: var(--theme-primary);
+        border-color: var(--theme-primary-alpha-50);
+        background: var(--theme-primary-alpha-10);
         box-shadow: var(--lcars-glow-primary);
 
         .k-svg-icon,
         .k-icon,
         svg {
-          fill: var(--octo-mint);
-          color: var(--octo-mint);
+          fill: var(--theme-primary);
+          color: var(--theme-primary);
         }
       }
 
       &:active:not(:disabled) {
-        background: var(--octo-mint-15);
+        background: var(--theme-primary-alpha-15);
       }
     }
 
     // Outline primary buttons - for selected state
     &.k-button-outline-primary {
-      color: var(--octo-mint);
-      border-color: var(--octo-mint-50);
+      color: var(--theme-primary);
+      border-color: var(--theme-primary-alpha-50);
       background: transparent;
 
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: var(--octo-mint);
-        color: var(--octo-mint);
+        fill: var(--theme-primary);
+        color: var(--theme-primary);
       }
 
       &:hover:not(:disabled) {
-        background: var(--octo-mint-15);
+        background: var(--theme-primary-alpha-15);
         box-shadow: var(--lcars-glow-primary);
       }
     }
 
     // Flat error buttons (delete/remove actions) - make visible on dark background
     &.k-button-flat-error {
-      color: var(--bubblegum) !important;
-      background: var(--bubblegum-10);
-      border: 1px solid var(--bubblegum-30);
+      color: var(--theme-error) !important;
+      background: var(--theme-error-alpha-10);
+      border: 1px solid var(--theme-error-alpha-30);
 
       .k-svg-icon,
       .k-icon,
       svg {
-        fill: var(--bubblegum) !important;
-        color: var(--bubblegum) !important;
+        fill: var(--theme-error) !important;
+        color: var(--theme-error) !important;
       }
 
       &:hover {
-        background: var(--bubblegum-20);
-        border-color: var(--bubblegum-50);
-        box-shadow: 0 0 8px var(--bubblegum-40);
+        background: var(--theme-error-alpha-20);
+        border-color: var(--theme-error-alpha-50);
+        box-shadow: 0 0 8px var(--theme-error-alpha-40);
       }
 
       &:active {
-        background: var(--bubblegum-30);
+        background: var(--theme-error-alpha-30);
       }
     }
 
     // General flat buttons - ensure visibility
     &.k-button-flat {
       &:not(.k-button-flat-error):not(.k-button-flat-primary) {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
 
         .k-svg-icon,
         .k-icon,
         svg {
-          fill: var(--ash-blue);
-          color: var(--ash-blue);
+          fill: var(--theme-text-secondary);
+          color: var(--theme-text-secondary);
         }
 
         &:hover {
-          background: var(--ash-blue-15);
-          color: var(--octo-mint);
+          background: var(--theme-text-secondary-alpha-15);
+          color: var(--theme-primary);
 
           .k-svg-icon,
           .k-icon,
           svg {
-            fill: var(--octo-mint);
-            color: var(--octo-mint);
+            fill: var(--theme-primary);
+            color: var(--theme-primary);
           }
         }
       }

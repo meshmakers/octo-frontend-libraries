@@ -8,32 +8,32 @@
   // Process Widget (MeshBoard) - LCARS overrides
   mm-process-widget {
     // Override CSS variables used by the process widget
-    --process-bg: #{$iron-navy};
-    --process-canvas-bg: #{$iron-navy};
+    --process-bg: var(--theme-surface);
+    --process-canvas-bg: var(--theme-surface);
 
     .process-widget {
-      background-color: #{$iron-navy};
+      background-color: var(--theme-surface);
     }
 
     .diagram-container {
-      background-color: #{$iron-navy};
+      background-color: var(--theme-surface);
     }
 
     .loading-overlay {
-      color: #{$ash-blue};
+      color: var(--theme-text-secondary);
     }
 
     .loading-spinner {
-      border-color: rgba(100, 206, 185, 0.2);
-      border-top-color: #{$octo-mint};
+      border-color: var(--theme-primary-alpha-20);
+      border-top-color: var(--theme-primary);
     }
 
     .error-container {
-      color: #{$bubblegum};
+      color: var(--theme-error);
     }
 
     .no-config {
-      color: #{$ash-blue};
+      color: var(--theme-text-secondary);
     }
   }
 }

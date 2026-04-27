@@ -11,17 +11,17 @@
     // Override form CSS custom properties for LCARS theme
     --mm-form-bg: rgba(31, 46, 64, 0.6);
     --mm-form-bg-alt: rgba(31, 46, 64, 0.8);
-    --mm-form-border: var(--octo-mint-20);
-    --mm-form-border-subtle: var(--octo-mint-15);
+    --mm-form-border: var(--theme-primary-alpha-20);
+    --mm-form-border-subtle: var(--theme-primary-alpha-15);
     --mm-form-text: #ffffff;
-    --mm-form-text-subtle: var(--ash-blue);
-    --mm-form-text-label: var(--ash-blue);
-    --mm-form-accent: var(--octo-mint);
+    --mm-form-text-subtle: var(--theme-text-secondary);
+    --mm-form-text-label: var(--theme-text-secondary);
+    --mm-form-accent: var(--theme-primary);
     --mm-form-error: #ec658f;
     --mm-form-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     --mm-form-overlay-bg: rgba(7, 23, 43, 0.95);
 
-    background: linear-gradient(180deg, var(--deep-sea-95), var(--deep-sea));
+    background: linear-gradient(180deg, var(--theme-app-bg-alpha-95), var(--theme-app-bg));
 
     // Extra padding at bottom for scroll visibility
     padding-bottom: 32px;
@@ -39,9 +39,9 @@
         height: 3px;
         background: linear-gradient(
           90deg,
-          var(--octo-mint),
-          var(--neo-cyan),
-          var(--royal-violet)
+          var(--theme-primary),
+          var(--theme-secondary),
+          var(--theme-accent-violet)
         );
         border-radius: 8px 8px 0 0;
       }
@@ -49,21 +49,21 @@
 
     // Form header LCARS styling
     .mm-form-header {
-      background: var(--octo-mint-05);
-      border-bottom-color: var(--octo-mint-20);
+      background: var(--theme-primary-alpha-5);
+      border-bottom-color: var(--theme-primary-alpha-20);
 
       .mm-form-title {
         font-family: var(--lcars-font-primary);
         text-transform: uppercase;
         letter-spacing: 1px;
-        color: var(--octo-text-color);
+        color: var(--theme-on-app-bg);
       }
     }
 
     // Form actions - LCARS button styling
     .mm-form-actions {
-      background: var(--octo-mint-05);
-      border-top-color: var(--octo-mint-20);
+      background: var(--theme-primary-alpha-5);
+      border-top-color: var(--theme-primary-alpha-20);
 
       .k-button {
         @include lcars-button;

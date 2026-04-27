@@ -14,29 +14,29 @@
 
     .form-field {
       > label {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
         font-family: var(--lcars-font-primary);
         font-weight: 500;
 
         .required {
-          color: var(--bubblegum);
+          color: var(--theme-error);
         }
       }
 
       .field-hint {
-        color: var(--ash-blue-70);
+        color: var(--theme-text-secondary-alpha-70);
       }
 
       .switch-label {
-        color: var(--octo-text-color);
+        color: var(--theme-on-app-bg);
       }
     }
 
     .form-section {
       h4 {
-        color: var(--octo-mint);
+        color: var(--theme-primary);
         font-family: var(--lcars-font-primary);
-        border-bottom-color: var(--octo-mint-20);
+        border-bottom-color: var(--theme-primary-alpha-20);
       }
     }
 
@@ -44,14 +44,14 @@
     .data-source-type {
       .radio-group {
         .radio-label {
-          color: var(--octo-text-color);
+          color: var(--theme-on-app-bg);
 
           span {
-            color: var(--octo-text-color);
+            color: var(--theme-on-app-bg);
           }
 
           input[type="radio"] {
-            accent-color: var(--octo-mint);
+            accent-color: var(--theme-primary);
           }
         }
       }
@@ -59,22 +59,22 @@
 
     // Config cards (Columns, Sorting, Filters, Options, Query Info)
     .config-card {
-      background: var(--surface-elevated-60);
-      border-color: var(--octo-mint-20);
+      background: var(--theme-surface-elevated-alpha-60);
+      border-color: var(--theme-primary-alpha-20);
 
       .card-header {
         .card-title {
-          color: var(--octo-mint);
+          color: var(--theme-primary);
           font-family: var(--lcars-font-primary);
         }
 
         .card-count {
-          color: var(--ash-blue);
+          color: var(--theme-text-secondary);
         }
 
         kendo-svgicon,
         .k-svg-icon {
-          color: var(--octo-mint) !important;
+          color: var(--theme-primary) !important;
         }
       }
 
@@ -89,11 +89,11 @@
       .query-info {
         .info-row {
           .info-label {
-            color: var(--ash-blue);
+            color: var(--theme-text-secondary);
           }
 
           .info-value {
-            color: var(--octo-text-color);
+            color: var(--theme-on-app-bg);
           }
         }
       }
@@ -101,7 +101,7 @@
       // Options card
       &.options-card {
         .checkbox-field label {
-          color: var(--octo-text-color);
+          color: var(--theme-on-app-bg);
         }
       }
     }
@@ -109,58 +109,58 @@
     // Query combobox items
     .query-item {
       .query-name {
-        color: var(--octo-text-color);
+        color: var(--theme-on-app-bg);
       }
 
       .query-description {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
     }
 
     // Loading indicator
     .loading-indicator {
-      color: var(--octo-mint);
+      color: var(--theme-primary);
     }
 
     // Config sections (used in Pie Chart, Bar Chart, etc.)
     .config-section {
-      background: var(--surface-elevated-60);
-      border-color: var(--octo-mint-20);
+      background: var(--theme-surface-elevated-alpha-60);
+      border-color: var(--theme-primary-alpha-20);
 
       .section-title {
-        color: var(--octo-mint);
+        color: var(--theme-primary);
         font-family: var(--lcars-font-primary);
       }
 
       .section-hint {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
     }
 
     // Form sections (used in Stats Grid Config Dialog, etc.)
     .form-section {
-      background: var(--surface-elevated-60);
-      border-color: var(--octo-mint-20);
+      background: var(--theme-surface-elevated-alpha-60);
+      border-color: var(--theme-primary-alpha-20);
 
       .section-header {
         h4 {
-          color: var(--octo-mint);
+          color: var(--theme-primary);
           font-family: var(--lcars-font-primary);
         }
       }
 
       .empty-state {
-        color: var(--ash-blue);
+        color: var(--theme-text-secondary);
       }
     }
 
     // Stat items (used in Stats Grid Config Dialog)
     .stat-item {
-      background: var(--surface-elevated-80);
-      border-color: var(--octo-mint-20);
+      background: var(--theme-surface-elevated-alpha-80);
+      border-color: var(--theme-primary-alpha-20);
 
       .stat-number {
-        color: var(--octo-mint);
+        color: var(--theme-primary);
       }
     }
   }

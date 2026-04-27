@@ -3,7 +3,6 @@
 // ============================================================================
 
 @use "../variables" as *;
-@use "sass:color";
 
 @mixin chip {
   // Chip/Badge - LCARS style
@@ -15,8 +14,8 @@
     &.k-chip-solid-primary {
       background: linear-gradient(
         180deg,
-        var(--octo-mint),
-        color.adjust($octo-mint, $lightness: -10%)
+        var(--theme-primary),
+        var(--theme-primary-active)
       );
     }
   }

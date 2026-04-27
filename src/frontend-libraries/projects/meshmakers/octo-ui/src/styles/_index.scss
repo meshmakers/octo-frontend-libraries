@@ -1,5 +1,8 @@
 // Global Octo UI styles entrypoint.
-// Forwards LCARS theme variables(), styles(), and host-overrides() mixins.
+// Forwards LCARS theme variables(), styles(), host-overrides(), individual
+// theme mixins, and the derived-tokens mixin.
 
 @forward "../lib/lcars-theme/index" show variables, styles;
 @forward "../lib/lcars-theme/host-overrides/index" show host-overrides;
+@forward "../lib/lcars-theme/themes/index" show lcars-dark, lcars-light;
+@forward "../lib/lcars-theme/tokens/derived" show derived;

@@ -1,44 +1,49 @@
 // ============================================================================
-// LCARS Theme - Variables mixin (recomposed from tokens/)
-// Public API: @include octo.variables() emits all CSS custom properties.
+// LCARS Theme - Variables mixin (recomposed from tokens/ + themes/)
+// Public API: @include octo.variables() emits all CSS custom properties for
+// the default theme (lcars-dark). Hosts that want light theme support add an
+// additional :root[data-theme="lcars-light"] block including themes.lcars-light.
 // ============================================================================
 
-@use "tokens/palette" as palette;
+@use "tokens/semantic" as semantic;
+@use "tokens/derived" as derived;
 @use "tokens/typography" as typography;
-@use "tokens/alpha-scales" as alpha-scales;
 @use "tokens/radius" as radius;
 @use "tokens/motion" as motion;
 @use "tokens/designer" as designer;
 @use "tokens/components" as components;
-
-@forward "tokens/palette" show $octo-mint, $neo-cyan, $indigogo, $toffee, $bubblegum, $lilac-glow, $royal-violet, $ash-blue, $iron-navy, $deep-sea, $surface-elevated, $octo-text-color, $lcars-border-color, $pink, $kendo-inverse, $kendo-success;
+@use "themes/lcars-dark" as lcars-dark;
 
 /// Applies CSS custom properties for the LCARS theme.
-/// Include this on :host or a container (e.g. .kendo-theme-provider).
-/// When Kendo is imported by the host, these variables override Kendo's defaults.
+/// Include this on :root or a container.
 @mixin variables {
-  // Typography font custom properties first (matching original order)
+  // 1. Semantic neutral defaults — guaranteed presence even before theme applies
+  @include semantic.semantic-defaults;
+
+  // 2. Default theme (lcars-dark) — overrides semantic defaults with LCARS values
+  @include lcars-dark.lcars-dark;
+
+  // 3. Derived tokens — computed from current semantic values
+  @include derived.derived;
+
+  // 4. Typography font custom properties
   @include typography.typography-vars;
-  // Brand palette, Kendo variable overrides
-  @include palette.palette;
-  // Apply font-family after palette vars (matching original order)
+
+  // 5. Apply font-family
   @include typography.typography-apply;
 
-  // Derived colors for gradients/overlays (theme-aware)
-  @include alpha-scales.alpha-scales;
-
-  // LCARS-specific design tokens (glows, buttons, focus)
+  // 7. LCARS-specific design tokens (glows, buttons, focus)
   @include motion.motion-glows;
 
-  // LCARS Border Radius (asymmetric is characteristic)
+  // 8. LCARS Border Radius
   @include radius.radius;
 
-  // Panel styling and transitions
+  // 9. Panel styling and transitions
   @include motion.motion-panel;
 
-  // Designer panel and cron cell variables
+  // 10. Designer panel and cron cell variables
   @include designer.designer;
 
-  // Component-level tokens (drawer, dialog, tabs, cards)
+  // 11. Component-level tokens (drawer, dialog, tabs, cards)
   @include components.components;
 }

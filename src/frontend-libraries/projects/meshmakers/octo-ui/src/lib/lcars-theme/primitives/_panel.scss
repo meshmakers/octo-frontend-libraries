@@ -16,8 +16,8 @@
   }
 
   body {
-    background-color: var(--kendo-color-app-surface, var(--deep-sea, #1a2230));
-    color: var(--kendo-color-on-app-surface, var(--octo-text-color, #ffffff));
+    background-color: var(--kendo-color-app-surface, var(--theme-app-bg, #1a2230));
+    color: var(--kendo-color-on-app-surface, var(--theme-on-app-bg, #ffffff));
     font-family: var(--lcars-font-primary);
   }
 
@@ -39,9 +39,9 @@
       height: 3px;
       background: linear-gradient(
         90deg,
-        var(--octo-mint),
-        var(--neo-cyan),
-        var(--royal-violet)
+        var(--theme-primary),
+        var(--theme-secondary),
+        var(--theme-accent-violet)
       );
       border-radius: var(--lcars-radius-md) var(--lcars-radius-md) 0 0;
     }
@@ -53,15 +53,15 @@
     align-items: center;
     gap: 12px;
     padding: 8px 16px;
-    background: linear-gradient(90deg, var(--iron-navy), transparent);
-    border-left: 4px solid var(--octo-mint);
+    background: linear-gradient(90deg, var(--theme-surface), transparent);
+    border-left: 4px solid var(--theme-primary);
     margin-bottom: 16px;
 
     &::after {
       content: "";
       flex: 1;
       height: 2px;
-      background: linear-gradient(90deg, var(--octo-mint), transparent);
+      background: linear-gradient(90deg, var(--theme-primary), transparent);
     }
   }
 

@@ -6,25 +6,25 @@
 
 @mixin designer {
   // Designer/Symbol Editor Panel Variables (LCARS theme)
-  --designer-panel-bg: var(--surface-elevated);
-  --designer-panel-bg-elevated: var(--iron-navy);
-  --designer-panel-border: var(--octo-mint-20);
-  --designer-panel-text: var(--octo-text-color);
-  --designer-panel-text-secondary: var(--ash-blue);
+  --designer-panel-bg: var(--theme-surface-elevated);
+  --designer-panel-bg-elevated: var(--theme-surface);
+  --designer-panel-border: var(--theme-primary-alpha-20);
+  --designer-panel-text: var(--theme-on-app-bg);
+  --designer-panel-text-secondary: var(--theme-text-secondary);
   --designer-panel-text-muted: color-mix(
     in srgb,
-    var(--ash-blue) 70%,
+    var(--theme-text-secondary) 70%,
     transparent
   );
-  --designer-panel-accent: var(--octo-mint);
-  --designer-panel-accent-hover-bg: var(--octo-mint-15);
-  --designer-panel-input-bg: var(--deep-sea);
-  --designer-panel-delete-hover-bg: var(--bubblegum-20);
-  --designer-panel-delete-color: var(--bubblegum);
+  --designer-panel-accent: var(--theme-primary);
+  --designer-panel-accent-hover-bg: var(--theme-primary-alpha-15);
+  --designer-panel-input-bg: var(--theme-app-bg);
+  --designer-panel-delete-hover-bg: var(--theme-error-alpha-20);
+  --designer-panel-delete-color: var(--theme-error);
 
   // Cron Expression Cell Variables (LCARS theme for list view)
-  --mm-cron-code-bg: var(--deep-sea-80);
-  --mm-cron-code-text: var(--octo-mint);
-  --mm-cron-text-secondary: var(--ash-blue);
-  --mm-cron-success: var(--kendo-success);
+  --mm-cron-code-bg: var(--theme-app-bg-alpha-80);
+  --mm-cron-code-text: var(--theme-primary);
+  --mm-cron-text-secondary: var(--theme-text-secondary);
+  --mm-cron-success: var(--theme-success);
 }

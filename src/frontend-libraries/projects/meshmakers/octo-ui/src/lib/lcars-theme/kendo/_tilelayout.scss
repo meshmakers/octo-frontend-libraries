@@ -18,8 +18,8 @@
     background: transparent !important;
 
     kendo-tilelayout-item {
-      background: var(--surface-elevated-60) !important;
-      border: 1px solid var(--octo-mint-20) !important;
+      background: var(--theme-surface-elevated-alpha-60) !important;
+      border: 1px solid var(--theme-primary-alpha-20) !important;
       border-radius: 8px !important;
       overflow: hidden;
       transition:
@@ -27,24 +27,24 @@
         box-shadow 0.2s ease;
 
       &:hover {
-        border-color: var(--octo-mint-40) !important;
+        border-color: var(--theme-primary-alpha-40) !important;
         box-shadow:
           0 4px 20px rgba(0, 0, 0, 0.3),
-          0 0 15px var(--octo-mint-10);
+          0 0 15px var(--theme-primary-alpha-10);
       }
 
       // Widget header
       kendo-tilelayout-item-header {
         background: linear-gradient(
           90deg,
-          var(--octo-mint-10),
+          var(--theme-primary-alpha-10),
           transparent
         ) !important;
-        border-bottom: 1px solid var(--octo-mint-20) !important;
+        border-bottom: 1px solid var(--theme-primary-alpha-20) !important;
 
         .widget-header {
           .widget-title {
-            color: var(--octo-mint) !important;
+            color: var(--theme-primary) !important;
             font-family: var(--lcars-font-primary);
             font-weight: 600;
             text-transform: uppercase;
@@ -53,33 +53,33 @@
           }
 
           &.unconfigured {
-            background: var(--toffee-15) !important;
+            background: var(--theme-warning-alpha-15) !important;
           }
 
           .unconfigured-badge {
-            background: var(--toffee) !important;
-            box-shadow: 0 0 8px var(--toffee-50);
+            background: var(--theme-warning) !important;
+            box-shadow: 0 0 8px var(--theme-warning-alpha-50);
           }
 
           .widget-actions {
             .k-button {
-              color: var(--ash-blue);
+              color: var(--theme-text-secondary);
 
               &:hover {
-                color: var(--octo-mint);
-                background: var(--octo-mint-15);
+                color: var(--theme-primary);
+                background: var(--theme-primary-alpha-15);
               }
             }
 
             .config-widget-btn.needs-config {
-              color: var(--toffee) !important;
+              color: var(--theme-warning) !important;
             }
 
             .remove-widget-btn {
-              color: var(--bubblegum) !important;
+              color: var(--theme-error) !important;
 
               &:hover {
-                background: var(--bubblegum-15);
+                background: var(--theme-error-alpha-15);
               }
             }
           }
@@ -88,7 +88,7 @@
 
       // Widget body
       kendo-tilelayout-item-body {
-        background: var(--deep-sea-50) !important;
+        background: var(--theme-app-bg-alpha-50) !important;
       }
     }
   }

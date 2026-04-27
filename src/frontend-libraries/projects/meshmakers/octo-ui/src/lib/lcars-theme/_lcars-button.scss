@@ -2,8 +2,8 @@
 
 @mixin lcars-button {
   background: var(--lcars-btn-base);
-  border: 1px solid var(--octo-mint-30);
-  color: var(--octo-mint);
+  border: 1px solid var(--theme-primary-alpha-30);
+  color: var(--theme-primary);
   font-family: var(--lcars-font-primary);
   font-weight: 600;
   font-size: 0.8rem;
@@ -14,15 +14,15 @@
 
   &:hover:not(:disabled) {
     background: var(--lcars-btn-base-hover);
-    border-color: var(--octo-mint-50);
-    box-shadow: 0 0 10px var(--octo-mint-30);
+    border-color: var(--theme-primary-alpha-50);
+    box-shadow: 0 0 10px var(--theme-primary-alpha-30);
   }
 
   &:active:not(:disabled) {
     background: linear-gradient(
       180deg,
-      var(--octo-mint-30),
-      var(--octo-mint-20)
+      var(--theme-primary-alpha-30),
+      var(--theme-primary-alpha-20)
     );
   }
 
@@ -36,20 +36,20 @@
   &[themecolor="primary"] {
     background: linear-gradient(
       180deg,
-      var(--octo-mint-30),
-      var(--octo-mint-15)
+      var(--theme-primary-alpha-30),
+      var(--theme-primary-alpha-15)
     );
-    border-color: var(--octo-mint-50);
-    color: var(--octo-text-color);
+    border-color: var(--theme-primary-alpha-50);
+    color: var(--theme-on-app-bg);
 
     &:hover:not(:disabled) {
       background: linear-gradient(
         180deg,
-        var(--octo-mint-45),
-        var(--octo-mint-25)
+        var(--theme-primary-alpha-40),
+        var(--theme-primary-alpha-25)
       );
-      border-color: var(--octo-mint);
-      box-shadow: 0 0 15px var(--octo-mint-40);
+      border-color: var(--theme-primary);
+      box-shadow: 0 0 15px var(--theme-primary-alpha-40);
     }
   }
 }

@@ -7,3 +7,5 @@
 @use "../lib/lcars-theme/kendo-theme";
 @forward "../lib/lcars-theme/index" show variables, styles;
 @forward "../lib/lcars-theme/host-overrides/index" show host-overrides;
+@forward "../lib/lcars-theme/themes/index" show lcars-dark, lcars-light;
+@forward "../lib/lcars-theme/tokens/derived" show derived;

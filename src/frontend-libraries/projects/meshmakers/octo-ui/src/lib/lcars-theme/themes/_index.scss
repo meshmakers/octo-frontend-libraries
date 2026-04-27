@@ -1,0 +1,10 @@
+// src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/lcars-theme/themes/_index.scss
+// ============================================================================
+// THEMES — palette providers. Each theme maps brand colors to the semantic
+// surface defined in tokens/_semantic.scss. Hosts pick a theme by including
+// the corresponding mixin under the appropriate :root[data-theme="..."]
+// selector.
+// ============================================================================
+
+@forward "lcars-dark";
+@forward "lcars-light";

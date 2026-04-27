@@ -14,10 +14,10 @@
     .k-grid-header {
       background: linear-gradient(
         180deg,
-        var(--iron-navy),
-        var(--surface-elevated)
+        var(--theme-surface),
+        var(--theme-surface-elevated)
       );
-      border-bottom: 2px solid var(--octo-mint-30);
+      border-bottom: 2px solid var(--theme-primary-alpha-30);
 
       th {
         font-family: var(--lcars-font-primary);
@@ -25,30 +25,30 @@
         text-transform: uppercase;
         font-size: 0.85em;
         letter-spacing: 0.5px;
-        color: var(--octo-mint);
+        color: var(--theme-primary);
       }
     }
 
     .k-grid-content {
-      background: var(--deep-sea-80);
+      background: var(--theme-app-bg-alpha-80);
 
       tr {
         transition: background var(--lcars-transition-fast);
 
         &:hover {
-          background: var(--octo-mint-08) !important;
+          background: var(--theme-primary-alpha-10) !important;
         }
 
         &.k-selected {
-          background: var(--octo-mint-15) !important;
-          border-left: 3px solid var(--octo-mint);
+          background: var(--theme-primary-alpha-15) !important;
+          border-left: 3px solid var(--theme-primary);
         }
       }
     }
 
     .k-pager {
-      background: var(--iron-navy);
-      border-top: 1px solid var(--octo-mint-20);
+      background: var(--theme-surface);
+      border-top: 1px solid var(--theme-primary-alpha-20);
     }
   }
 }

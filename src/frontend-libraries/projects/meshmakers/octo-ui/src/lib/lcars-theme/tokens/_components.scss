@@ -6,17 +6,17 @@
 
 @mixin components {
   // Drawer
-  --lcars-drawer-bg: linear-gradient(180deg, var(--iron-navy), var(--deep-sea));
-  --lcars-drawer-border: 1px solid var(--octo-mint-20);
+  --lcars-drawer-bg: linear-gradient(180deg, var(--theme-surface), var(--theme-app-bg));
+  --lcars-drawer-border: 1px solid var(--theme-primary-alpha-20);
 
   // Dialog
   --lcars-dialog-bg: none;
-  --lcars-dialog-border: 1px solid var(--octo-mint-30);
+  --lcars-dialog-border: 1px solid var(--theme-primary-alpha-30);
 
   // Tabs
-  --lcars-tabs-border: 2px solid var(--ash-blue-20);
-  --lcars-tabs-active-bg: var(--iron-navy);
-  --lcars-tabs-active-border: 3px solid var(--octo-mint);
+  --lcars-tabs-border: 2px solid var(--theme-text-secondary-alpha-20);
+  --lcars-tabs-active-bg: var(--theme-surface);
+  --lcars-tabs-active-border: 3px solid var(--theme-primary);
 
   // Cards
   --lcars-card-bg: var(--lcars-panel-bg);

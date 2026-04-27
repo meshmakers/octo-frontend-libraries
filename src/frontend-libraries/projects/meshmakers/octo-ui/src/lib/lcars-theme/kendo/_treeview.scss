@@ -13,13 +13,13 @@
         transition: all var(--lcars-transition-fast);
 
         &:hover {
-          background: var(--octo-mint-10);
+          background: var(--theme-primary-alpha-10);
         }
 
         &.k-selected {
-          background: var(--octo-mint-20);
-          border-left: 3px solid var(--octo-mint);
-          box-shadow: inset 0 0 10px var(--octo-mint-10);
+          background: var(--theme-primary-alpha-20);
+          border-left: 3px solid var(--theme-primary);
+          box-shadow: inset 0 0 10px var(--theme-primary-alpha-10);
         }
       }
     }

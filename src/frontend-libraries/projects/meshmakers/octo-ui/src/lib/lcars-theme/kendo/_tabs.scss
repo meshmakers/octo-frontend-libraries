@@ -19,13 +19,13 @@
         transition: all var(--lcars-transition-fast);
 
         &:hover {
-          background: var(--octo-mint-10);
+          background: var(--theme-primary-alpha-10);
         }
 
         &.k-active {
           background: var(--lcars-tabs-active-bg);
           border-bottom: var(--lcars-tabs-active-border);
-          color: var(--octo-mint);
+          color: var(--theme-primary);
         }
       }
     }

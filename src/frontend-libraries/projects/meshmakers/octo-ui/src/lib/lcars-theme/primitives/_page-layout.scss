@@ -18,9 +18,9 @@
   .lcars-header-accent {
     width: 8px;
     height: 56px;
-    background: linear-gradient(180deg, var(--octo-mint), var(--neo-cyan));
+    background: linear-gradient(180deg, var(--theme-primary), var(--theme-secondary));
     border-radius: 4px 0 0 4px;
-    box-shadow: 0 0 15px var(--octo-mint-50);
+    box-shadow: 0 0 15px var(--theme-primary-alpha-50);
     flex-shrink: 0;
   }
 
@@ -41,7 +41,7 @@
       font-size: 0.7rem;
       font-weight: 600;
       letter-spacing: 3px;
-      color: var(--ash-blue);
+      color: var(--theme-text-secondary);
       text-transform: uppercase;
     }
 
@@ -49,7 +49,7 @@
       font-size: 1.5rem;
       font-weight: 600;
       letter-spacing: 2px;
-      color: var(--octo-text-color);
+      color: var(--theme-on-app-bg);
       text-transform: uppercase;
     }
   }
@@ -64,20 +64,20 @@
     align-items: center;
     gap: 8px;
     padding: 4px 12px;
-    background: var(--octo-mint-10);
-    border: 1px solid var(--octo-mint-30);
+    background: var(--theme-primary-alpha-10);
+    border: 1px solid var(--theme-primary-alpha-30);
     border-radius: 4px;
 
     .badge-icon {
       font-size: 0.6rem;
-      color: var(--octo-mint);
+      color: var(--theme-primary);
       animation: lcars-pulse 2s ease-in-out infinite;
     }
 
     .badge-label {
       font-size: 0.75rem;
       font-weight: 500;
-      color: var(--octo-mint);
+      color: var(--theme-primary);
       text-transform: uppercase;
       letter-spacing: 1px;
     }
@@ -88,8 +88,8 @@
     height: 2px;
     background: linear-gradient(
       90deg,
-      var(--octo-mint),
-      var(--neo-cyan),
+      var(--theme-primary),
+      var(--theme-secondary),
       transparent
     );
     border-radius: 1px;
@@ -102,17 +102,17 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    background: var(--surface-elevated-40);
-    border: 1px solid var(--octo-mint-20);
+    background: var(--theme-surface-elevated-alpha-40);
+    border: 1px solid var(--theme-primary-alpha-20);
     border-radius: 8px;
     overflow: hidden;
     min-height: 0;
 
     &:hover {
-      border-color: var(--octo-mint-35);
+      border-color: var(--theme-primary-alpha-30);
       box-shadow:
         0 4px 30px rgba(0, 0, 0, 0.3),
-        0 0 30px var(--octo-mint-08);
+        0 0 30px var(--theme-primary-alpha-10);
     }
 
     // Ensure child components fill available space
@@ -129,9 +129,9 @@
     height: 3px;
     background: linear-gradient(
       90deg,
-      var(--octo-mint),
-      var(--neo-cyan),
-      var(--royal-violet)
+      var(--theme-primary),
+      var(--theme-secondary),
+      var(--theme-accent-violet)
     );
     flex-shrink: 0;
   }
@@ -141,7 +141,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      var(--octo-mint-30),
+      var(--theme-primary-alpha-30),
       transparent
     );
     flex-shrink: 0;
@@ -163,20 +163,20 @@
 
     &.bar-1 {
       width: 60px;
-      background: linear-gradient(90deg, var(--octo-mint), var(--neo-cyan));
-      box-shadow: 0 0 8px var(--octo-mint-40);
+      background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
+      box-shadow: 0 0 8px var(--theme-primary-alpha-40);
     }
 
     &.bar-2 {
       width: 40px;
-      background: var(--royal-violet);
-      box-shadow: 0 0 8px var(--royal-violet-40);
+      background: var(--theme-accent-violet);
+      box-shadow: 0 0 8px var(--theme-accent-violet-alpha-40);
     }
 
     &.bar-3 {
       width: 24px;
-      background: var(--toffee);
-      box-shadow: 0 0 8px var(--toffee-40);
+      background: var(--theme-accent-amber);
+      box-shadow: 0 0 8px color-mix(in srgb, var(--theme-accent-amber) 40%, transparent);
     }
   }
 

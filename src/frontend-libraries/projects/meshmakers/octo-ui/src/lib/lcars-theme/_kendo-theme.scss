@@ -6,7 +6,6 @@
 // ============================================================================
 
 @use "sass:map";
-@use "variables" as vars;
 
 // Slim Kendo theme: import only modules needed for runtime-browser components
 @use "@progress/kendo-theme-material/scss/core/_index.scss" as *;
@@ -80,83 +79,42 @@
 $kendo-colors: map.merge(
   $kendo-colors,
   (
-    primary: var(--octo-mint),
-    surface: var(--iron-navy),
-    surface-alt: var(--surface-elevated),
-    app-surface: var(--deep-sea),
-    on-app-surface: var(--octo-text-color),
-    subtle: var(--ash-blue),
+    // Core palette - runtime via --theme-*
+    primary:           var(--theme-primary),
+    primary-hover:     var(--theme-primary-hover),
+    primary-active:    var(--theme-primary-active),
+    primary-subtle:    var(--theme-primary-subtle),
+    secondary:         var(--theme-secondary),
+    secondary-hover:   var(--theme-secondary-hover),
+    secondary-active:  var(--theme-secondary-active),
+    secondary-subtle:  var(--theme-secondary-subtle),
+
+    // Status colors
+    success:           var(--theme-success),
+    success-hover:     var(--theme-success-hover),
+    success-subtle:    var(--theme-success-subtle),
+    warning:           var(--theme-warning),
+    warning-hover:     var(--theme-warning-hover),
+    warning-subtle:    var(--theme-warning-subtle),
+    error:             var(--theme-error),
+    error-hover:       var(--theme-error-hover),
+    error-subtle:      var(--theme-error-subtle),
+    info:              var(--theme-info),
+    info-hover:        var(--theme-info-hover),
+    info-subtle:       var(--theme-info-subtle),
+
+    // Surfaces
+    surface:           var(--theme-surface),
+    surface-alt:       var(--theme-surface-elevated),
+    app-surface:       var(--theme-app-bg),
+    on-app-surface:    var(--theme-on-app-bg),
+
+    // Text
+    subtle:            var(--theme-text-secondary),
+    on-base:           var(--theme-on-app-bg),
+    on-primary:        var(--theme-on-primary),
+    base-on-surface:   var(--theme-on-app-bg),
   )
-);
-
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("base", vars.$ash-blue, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("primary", vars.$octo-mint, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("secondary", vars.$neo-cyan, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("tertiary", vars.$toffee, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("light", vars.$ash-blue, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("dark", vars.$iron-navy, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("inverse", vars.$kendo-inverse, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("info", vars.$indigogo, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("success", vars.$kendo-success, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("warning", vars.$toffee, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("error", vars.$bubblegum, "material")
-);
-
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("series-a", vars.$octo-mint, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("series-b", vars.$neo-cyan, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("series-c", vars.$lilac-glow, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("series-d", vars.$royal-violet, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("series-e", vars.$bubblegum, "material")
-);
-$kendo-colors: map.merge(
-  $kendo-colors,
-  k-generate-color-variations("series-f", vars.$toffee, "material")
 );
 
 // Include Kendo component styles
