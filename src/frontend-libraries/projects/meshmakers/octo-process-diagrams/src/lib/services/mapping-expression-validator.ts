@@ -43,7 +43,7 @@ export type MappingExpressionValidatorFn = (expression: string) => MappingExpres
  */
 export function createMappingExpressionValidator(
   service: ExpressionEvaluatorService,
-  testValue: number = 42,
+  testValue = 42,
 ): MappingExpressionValidatorFn {
   return (expression: string): MappingExpressionValidationResult => {
     if (!expression || expression.trim() === '') {
