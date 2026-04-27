@@ -55,9 +55,11 @@
   --theme-info-glow:    color-mix(in srgb, var(--theme-info) 40%, transparent);
 
   // ---- Alpha scales (replacing today's --octo-mint-N tokens) ----
-  // Per-role alpha steps generated via @each. Step coverage matches existing
-  // usage across lcars-theme/ partials and refinery component SCSS (audit
-  // 2026-04-27).
+  // Per-role alpha steps generated via @each. Step coverage matches the
+  // explicit listings replaced in this commit; the next commit (A5) will
+  // refresh the per-role coverage based on a fresh audit of refinery
+  // component SCSS and the libraries-side LCARS partials, recording the
+  // frequency table directly above this @each block.
 
   @each $role, $steps in (
     primary:           (5, 10, 15, 20, 25, 30, 40, 50, 60, 80),
@@ -75,7 +77,13 @@
     }
   }
 
-  // accent-violet derived lighter variant (kept explicit — not a simple alpha)
+  // accent-violet derived lighter variants — kept explicit because they
+  // are white-blends, not transparency fades, and do not match the loop
+  // formula `color-mix(... var(--theme-X) N%, transparent)`:
+  //   --theme-accent-violet-light          = 70% violet + 30% white
+  //   --theme-accent-violet-light-alpha-20 = the same white-mix then
+  //                                          composited 30% over transparent
+  // Used by ck-models / query-builder badge text and some entity panels.
   --theme-accent-violet-light:           color-mix(in srgb, var(--theme-accent-violet) 70%, white);
   --theme-accent-violet-light-alpha-20:  color-mix(in srgb, var(--theme-accent-violet) 70%, white 30%);
 }
