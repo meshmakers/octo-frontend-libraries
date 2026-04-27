@@ -378,6 +378,17 @@ kendo-tilelayout {
   }
 }
 
+// Kendo TileLayout sets `position: relative; z-index: 0` on every tile, which
+// creates a stacking context. Dialogs/windows rendered inside a tile (e.g. the
+// record detail viewer opened from an entity card) inherit that context — their
+// high z-index becomes irrelevant and sibling tiles paint on top of them. While
+// a dialog/window is open inside a tile, lift that tile's stacking order above
+// its siblings so the fixed-positioned overlay clears the layout.
+:host ::ng-deep kendo-tilelayout-item:has(kendo-dialog),
+:host ::ng-deep kendo-tilelayout-item:has(kendo-window) {
+  z-index: 9999;
+}
+
 // Zone labels (visible in edit mode only)
 .zone-label {
   font-size: 0.65rem;
