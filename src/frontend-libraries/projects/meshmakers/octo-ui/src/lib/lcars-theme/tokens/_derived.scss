@@ -55,97 +55,29 @@
   --theme-info-glow:    color-mix(in srgb, var(--theme-info) 40%, transparent);
 
   // ---- Alpha scales (replacing today's --octo-mint-N tokens) ----
-  // Step coverage matches existing usage in lcars-theme/ partials (per grep
-  // analysis 2026-04-27). Outliers that don't match a listed step (mint-08,
-  // mint-35, mint-45) round to the nearest provided step at migration time.
+  // Per-role alpha steps generated via @each. Step coverage matches existing
+  // usage across lcars-theme/ partials and refinery component SCSS (audit
+  // 2026-04-27).
 
-  // PRIMARY — wide coverage (mint is the most prolific accent in LCARS)
-  --theme-primary-alpha-5:   color-mix(in srgb, var(--theme-primary) 5%, transparent);
-  --theme-primary-alpha-10:  color-mix(in srgb, var(--theme-primary) 10%, transparent);
-  --theme-primary-alpha-15:  color-mix(in srgb, var(--theme-primary) 15%, transparent);
-  --theme-primary-alpha-20:  color-mix(in srgb, var(--theme-primary) 20%, transparent);
-  --theme-primary-alpha-25:  color-mix(in srgb, var(--theme-primary) 25%, transparent);
-  --theme-primary-alpha-30:  color-mix(in srgb, var(--theme-primary) 30%, transparent);
-  --theme-primary-alpha-40:  color-mix(in srgb, var(--theme-primary) 40%, transparent);
-  --theme-primary-alpha-50:  color-mix(in srgb, var(--theme-primary) 50%, transparent);
-  --theme-primary-alpha-60:  color-mix(in srgb, var(--theme-primary) 60%, transparent);
-  --theme-primary-alpha-80:  color-mix(in srgb, var(--theme-primary) 80%, transparent);
+  @each $role, $steps in (
+    primary:           (5, 10, 15, 20, 25, 30, 40, 50, 60, 80),
+    secondary:         (5, 10, 15, 20, 25, 30, 40),
+    error:             (5, 10, 15, 20, 30, 40, 50, 60),
+    warning:           (15, 30, 40, 50),
+    accent-violet:     (15, 20, 30, 40, 50),
+    text-secondary:    (10, 15, 20, 30, 50, 70, 80),
+    surface:           (30, 40, 50, 60, 70, 80, 90),
+    app-bg:            (30, 40, 50, 60, 80, 90, 95),
+    surface-elevated:  (30, 40, 50, 60, 80, 90),
+  ) {
+    @each $step in $steps {
+      --theme-#{$role}-alpha-#{$step}: color-mix(in srgb, var(--theme-#{$role}) #{$step}%, transparent);
+    }
+  }
 
-  // SECONDARY — minimal coverage (only one site uses --neo-cyan-40 today)
-  --theme-secondary-alpha-5:   color-mix(in srgb, var(--theme-secondary) 5%, transparent);
-  --theme-secondary-alpha-10:  color-mix(in srgb, var(--theme-secondary) 10%, transparent);
-  --theme-secondary-alpha-15:  color-mix(in srgb, var(--theme-secondary) 15%, transparent);
-  --theme-secondary-alpha-20:  color-mix(in srgb, var(--theme-secondary) 20%, transparent);
-  --theme-secondary-alpha-25:  color-mix(in srgb, var(--theme-secondary) 25%, transparent);
-  --theme-secondary-alpha-30:  color-mix(in srgb, var(--theme-secondary) 30%, transparent);
-  --theme-secondary-alpha-40:  color-mix(in srgb, var(--theme-secondary) 40%, transparent);
-
-  // ERROR — wide coverage (bubblegum is used for alerts/danger states)
-  --theme-error-alpha-5:    color-mix(in srgb, var(--theme-error) 5%, transparent);
-  --theme-error-alpha-10:   color-mix(in srgb, var(--theme-error) 10%, transparent);
-  --theme-error-alpha-15:   color-mix(in srgb, var(--theme-error) 15%, transparent);
-  --theme-error-alpha-20:   color-mix(in srgb, var(--theme-error) 20%, transparent);
-  --theme-error-alpha-30:   color-mix(in srgb, var(--theme-error) 30%, transparent);
-  --theme-error-alpha-40:   color-mix(in srgb, var(--theme-error) 40%, transparent);
-  --theme-error-alpha-50:   color-mix(in srgb, var(--theme-error) 50%, transparent);
-  --theme-error-alpha-60:   color-mix(in srgb, var(--theme-error) 60%, transparent);
-
-  // WARNING — narrow coverage (only --toffee-15/40/50 today)
-  --theme-warning-alpha-15:  color-mix(in srgb, var(--theme-warning) 15%, transparent);
-  --theme-warning-alpha-30:  color-mix(in srgb, var(--theme-warning) 30%, transparent);
-  --theme-warning-alpha-40:  color-mix(in srgb, var(--theme-warning) 40%, transparent);
-  --theme-warning-alpha-50:  color-mix(in srgb, var(--theme-warning) 50%, transparent);
-
-  // ACCENT-VIOLET — wider coverage for runtime-browser-details
-  --theme-accent-violet-alpha-15:  color-mix(in srgb, var(--theme-accent-violet) 15%, transparent);
-  --theme-accent-violet-alpha-20:  color-mix(in srgb, var(--theme-accent-violet) 20%, transparent);
-  --theme-accent-violet-alpha-30:  color-mix(in srgb, var(--theme-accent-violet) 30%, transparent);
-  --theme-accent-violet-alpha-40:  color-mix(in srgb, var(--theme-accent-violet) 40%, transparent);
-  --theme-accent-violet-alpha-50:  color-mix(in srgb, var(--theme-accent-violet) 50%, transparent);
-
-  // ACCENT-VIOLET-LIGHT — derived lighter variant of accent-violet
-  // Used by ck-models / query-builder badge text and some entity panels
+  // accent-violet derived lighter variant (kept explicit — not a simple alpha)
   --theme-accent-violet-light:           color-mix(in srgb, var(--theme-accent-violet) 70%, white);
   --theme-accent-violet-light-alpha-20:  color-mix(in srgb, var(--theme-accent-violet) 70%, white 30%);
-
-  // TEXT-SECONDARY — wide coverage including high-alpha steps for muted text
-  --theme-text-secondary-alpha-10:  color-mix(in srgb, var(--theme-text-secondary) 10%, transparent);
-  --theme-text-secondary-alpha-15:  color-mix(in srgb, var(--theme-text-secondary) 15%, transparent);
-  --theme-text-secondary-alpha-20:  color-mix(in srgb, var(--theme-text-secondary) 20%, transparent);
-  --theme-text-secondary-alpha-30:  color-mix(in srgb, var(--theme-text-secondary) 30%, transparent);
-  --theme-text-secondary-alpha-50:  color-mix(in srgb, var(--theme-text-secondary) 50%, transparent);
-  --theme-text-secondary-alpha-70:  color-mix(in srgb, var(--theme-text-secondary) 70%, transparent);
-  --theme-text-secondary-alpha-80:  color-mix(in srgb, var(--theme-text-secondary) 80%, transparent);
-
-  // SURFACES — high-alpha steps for layered backgrounds and overlays.
-  // Auto-derived from --theme-surface, --theme-app-bg, --theme-surface-elevated;
-  // theme authors only set the base color, all alpha variants follow.
-
-  // SURFACE (iron-navy in LCARS dark)
-  --theme-surface-alpha-30:  color-mix(in srgb, var(--theme-surface) 30%, transparent);
-  --theme-surface-alpha-40:  color-mix(in srgb, var(--theme-surface) 40%, transparent);
-  --theme-surface-alpha-50:  color-mix(in srgb, var(--theme-surface) 50%, transparent);
-  --theme-surface-alpha-60:  color-mix(in srgb, var(--theme-surface) 60%, transparent);
-  --theme-surface-alpha-70:  color-mix(in srgb, var(--theme-surface) 70%, transparent);
-  --theme-surface-alpha-80:  color-mix(in srgb, var(--theme-surface) 80%, transparent);
-  --theme-surface-alpha-90:  color-mix(in srgb, var(--theme-surface) 90%, transparent);
-
-  // APP-BG (deep-sea in LCARS dark) — used for page-level gradient stops + overlays
-  --theme-app-bg-alpha-30:  color-mix(in srgb, var(--theme-app-bg) 30%, transparent);
-  --theme-app-bg-alpha-40:  color-mix(in srgb, var(--theme-app-bg) 40%, transparent);
-  --theme-app-bg-alpha-50:  color-mix(in srgb, var(--theme-app-bg) 50%, transparent);
-  --theme-app-bg-alpha-60:  color-mix(in srgb, var(--theme-app-bg) 60%, transparent);
-  --theme-app-bg-alpha-80:  color-mix(in srgb, var(--theme-app-bg) 80%, transparent);
-  --theme-app-bg-alpha-90:  color-mix(in srgb, var(--theme-app-bg) 90%, transparent);
-  --theme-app-bg-alpha-95:  color-mix(in srgb, var(--theme-app-bg) 95%, transparent);
-
-  // SURFACE-ELEVATED — used for elevated panels and tinted overlays
-  --theme-surface-elevated-alpha-30:  color-mix(in srgb, var(--theme-surface-elevated) 30%, transparent);
-  --theme-surface-elevated-alpha-40:  color-mix(in srgb, var(--theme-surface-elevated) 40%, transparent);
-  --theme-surface-elevated-alpha-50:  color-mix(in srgb, var(--theme-surface-elevated) 50%, transparent);
-  --theme-surface-elevated-alpha-60:  color-mix(in srgb, var(--theme-surface-elevated) 60%, transparent);
-  --theme-surface-elevated-alpha-80:  color-mix(in srgb, var(--theme-surface-elevated) 80%, transparent);
-  --theme-surface-elevated-alpha-90:  color-mix(in srgb, var(--theme-surface-elevated) 90%, transparent);
 }
 
 @mixin derived-light {
