@@ -76,44 +76,110 @@
 // ----------------------------------------------------------------------------
 // KENDO THEME COLOR CONFIGURATION (LCARS palette)
 // ----------------------------------------------------------------------------
+// Every entry resolves to a runtime CSS variable so theme swaps reach Kendo
+// widgets without recompiling Sass. Emphasis / subtle / on-* derivations are
+// computed via color-mix() of existing semantic tokens — no new theme-author
+// surface introduced.
+// ----------------------------------------------------------------------------
 $kendo-colors: map.merge(
   $kendo-colors,
   (
-    // Core palette - runtime via --theme-*
-    primary:           var(--theme-primary),
-    primary-hover:     var(--theme-primary-hover),
-    primary-active:    var(--theme-primary-active),
-    primary-subtle:    var(--theme-primary-subtle),
-    secondary:         var(--theme-secondary),
-    secondary-hover:   var(--theme-secondary-hover),
-    secondary-active:  var(--theme-secondary-active),
-    secondary-subtle:  var(--theme-secondary-subtle),
+    // --- Core role: PRIMARY ---
+    primary:                  var(--theme-primary),
+    primary-hover:            var(--theme-primary-hover),
+    primary-active:           var(--theme-primary-active),
+    primary-subtle:           var(--theme-primary-subtle),
+    primary-subtle-hover:     color-mix(in srgb, var(--theme-primary) 20%, transparent),
+    primary-subtle-active:    color-mix(in srgb, var(--theme-primary) 25%, transparent),
+    primary-emphasis:         color-mix(in srgb, var(--theme-primary), white 15%),
+    primary-emphasis-subtle:  color-mix(in srgb, var(--theme-primary), white 30%),
+    primary-on-base:          var(--theme-primary),
+    primary-on-emphasis:      var(--theme-on-primary),
+    primary-on-subtle:        var(--theme-primary),
+    on-primary:               var(--theme-on-primary),
 
-    // Status colors
-    success:           var(--theme-success),
-    success-hover:     var(--theme-success-hover),
-    success-subtle:    var(--theme-success-subtle),
-    warning:           var(--theme-warning),
-    warning-hover:     var(--theme-warning-hover),
-    warning-subtle:    var(--theme-warning-subtle),
-    error:             var(--theme-error),
-    error-hover:       var(--theme-error-hover),
-    error-subtle:      var(--theme-error-subtle),
-    info:              var(--theme-info),
-    info-hover:        var(--theme-info-hover),
-    info-subtle:       var(--theme-info-subtle),
+    // --- Core role: SECONDARY ---
+    secondary:                  var(--theme-secondary),
+    secondary-hover:            var(--theme-secondary-hover),
+    secondary-active:           var(--theme-secondary-active),
+    secondary-subtle:           var(--theme-secondary-subtle),
+    secondary-subtle-hover:     color-mix(in srgb, var(--theme-secondary) 20%, transparent),
+    secondary-subtle-active:    color-mix(in srgb, var(--theme-secondary) 25%, transparent),
+    secondary-emphasis:         color-mix(in srgb, var(--theme-secondary), white 15%),
+    secondary-emphasis-subtle:  color-mix(in srgb, var(--theme-secondary), white 30%),
+    secondary-on-base:          var(--theme-secondary),
+    secondary-on-emphasis:      var(--theme-on-secondary),
+    secondary-on-subtle:        var(--theme-secondary),
+    on-secondary:               var(--theme-on-secondary),
 
-    // Surfaces
+    // --- Status: SUCCESS ---
+    success:                  var(--theme-success),
+    success-hover:            var(--theme-success-hover),
+    success-active:           var(--theme-success-active),
+    success-subtle:           var(--theme-success-subtle),
+    success-subtle-hover:     color-mix(in srgb, var(--theme-success) 20%, transparent),
+    success-subtle-active:    color-mix(in srgb, var(--theme-success) 25%, transparent),
+    success-emphasis:         color-mix(in srgb, var(--theme-success), white 15%),
+    success-emphasis-subtle:  color-mix(in srgb, var(--theme-success), white 30%),
+    success-on-base:          var(--theme-success),
+    success-on-emphasis:      var(--theme-on-app-bg),
+    success-on-subtle:        var(--theme-success),
+
+    // --- Status: WARNING ---
+    warning:                  var(--theme-warning),
+    warning-hover:            var(--theme-warning-hover),
+    warning-active:           var(--theme-warning-active),
+    warning-subtle:           var(--theme-warning-subtle),
+    warning-subtle-hover:     color-mix(in srgb, var(--theme-warning) 20%, transparent),
+    warning-subtle-active:    color-mix(in srgb, var(--theme-warning) 25%, transparent),
+    warning-emphasis:         color-mix(in srgb, var(--theme-warning), white 15%),
+    warning-emphasis-subtle:  color-mix(in srgb, var(--theme-warning), white 30%),
+    warning-on-base:          var(--theme-warning),
+    warning-on-emphasis:      var(--theme-on-app-bg),
+    warning-on-subtle:        var(--theme-warning),
+
+    // --- Status: ERROR ---
+    error:                  var(--theme-error),
+    error-hover:            var(--theme-error-hover),
+    error-active:           var(--theme-error-active),
+    error-subtle:           var(--theme-error-subtle),
+    error-subtle-hover:     color-mix(in srgb, var(--theme-error) 20%, transparent),
+    error-subtle-active:    color-mix(in srgb, var(--theme-error) 25%, transparent),
+    error-emphasis:         color-mix(in srgb, var(--theme-error), white 15%),
+    error-emphasis-subtle:  color-mix(in srgb, var(--theme-error), white 30%),
+    error-on-base:          var(--theme-error),
+    error-on-emphasis:      var(--theme-on-app-bg),
+    error-on-subtle:        var(--theme-error),
+
+    // --- Status: INFO ---
+    info:                  var(--theme-info),
+    info-hover:            var(--theme-info-hover),
+    info-active:           var(--theme-info-active),
+    info-subtle:           var(--theme-info-subtle),
+    info-subtle-hover:     color-mix(in srgb, var(--theme-info) 20%, transparent),
+    info-subtle-active:    color-mix(in srgb, var(--theme-info) 25%, transparent),
+    info-emphasis:         color-mix(in srgb, var(--theme-info), white 15%),
+    info-emphasis-subtle:  color-mix(in srgb, var(--theme-info), white 30%),
+    info-on-base:          var(--theme-info),
+    info-on-emphasis:      var(--theme-on-app-bg),
+    info-on-subtle:        var(--theme-info),
+
+    // --- Surfaces & text ---
     surface:           var(--theme-surface),
     surface-alt:       var(--theme-surface-elevated),
     app-surface:       var(--theme-app-bg),
     on-app-surface:    var(--theme-on-app-bg),
-
-    // Text
     subtle:            var(--theme-text-secondary),
     on-base:           var(--theme-on-app-bg),
-    on-primary:        var(--theme-on-primary),
-    base-on-surface:   var(--theme-on-app-bg),
+    base-on-surface:   var(--theme-on-surface),
+
+    // --- Charts (series rotation; one per role) ---
+    series-a:          var(--theme-primary),
+    series-b:          var(--theme-secondary),
+    series-c:          var(--theme-accent-violet),
+    series-d:          var(--theme-accent-amber),
+    series-e:          var(--theme-accent-pink),
+    series-f:          var(--theme-info),
   )
 );
 
