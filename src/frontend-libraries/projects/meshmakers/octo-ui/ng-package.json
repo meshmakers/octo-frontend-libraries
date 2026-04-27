@@ -11,9 +11,9 @@
       "output": "styles"
     },
     {
-      "input": "src/lib/runtime-browser/styles",
+      "input": "src/lib/lcars-theme",
       "glob": "**/*.scss",
-      "output": "lib/runtime-browser/styles"
+      "output": "lib/lcars-theme"
     }
   ]
 }

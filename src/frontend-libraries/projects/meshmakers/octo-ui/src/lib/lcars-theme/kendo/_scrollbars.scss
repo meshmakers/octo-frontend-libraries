@@ -1,0 +1,35 @@
+// ============================================================================
+// Scrollbars — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin scrollbars {
+  // Scrollbars
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--deep-sea-50);
+    border-radius: var(--lcars-radius-sm);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--iron-navy), var(--ash-blue));
+    border-radius: var(--lcars-radius-sm);
+    border: 1px solid var(--octo-mint-20);
+
+    &:hover {
+      background: linear-gradient(180deg, var(--ash-blue), var(--octo-mint));
+    }
+  }
+
+  // Firefox scrollbar
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--iron-navy) var(--deep-sea-50);
+  }
+}

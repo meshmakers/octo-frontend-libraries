@@ -1,0 +1,134 @@
+// ============================================================================
+// LCARS PRIMITIVES — Utilities
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin utilities {
+  // LCARS utilities
+
+  // Glow effects
+  .lcars-glow-mint {
+    box-shadow: var(--lcars-glow-primary);
+  }
+  .lcars-glow-cyan {
+    box-shadow: var(--lcars-glow-cyan);
+  }
+  .lcars-glow-violet {
+    box-shadow: var(--lcars-glow-violet);
+  }
+  .lcars-glow-pink {
+    box-shadow: var(--lcars-glow-pink);
+  }
+
+  // Text colors
+  .lcars-text-mint {
+    color: var(--octo-mint);
+  }
+  .lcars-text-cyan {
+    color: var(--neo-cyan);
+  }
+  .lcars-text-violet {
+    color: var(--royal-violet);
+  }
+  .lcars-text-pink {
+    color: var(--bubblegum);
+  }
+  .lcars-text-toffee {
+    color: var(--toffee);
+  }
+
+  // Background colors
+  .lcars-bg-panel {
+    background: var(--lcars-panel-bg);
+  }
+  .lcars-bg-deep {
+    background: var(--deep-sea);
+  }
+  .lcars-bg-navy {
+    background: var(--iron-navy);
+  }
+
+  // Borders
+  .lcars-border-mint {
+    border-color: var(--octo-mint);
+  }
+  .lcars-border-glow {
+    border: 1px solid var(--octo-mint-40);
+    box-shadow: var(--lcars-glow-primary);
+  }
+
+  // LCARS decorative elements
+  .lcars-divider {
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--octo-mint),
+      var(--neo-cyan),
+      transparent
+    );
+    margin: 16px 0;
+  }
+
+  .lcars-corner-accent {
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 40px;
+      height: 40px;
+      border-left: 3px solid var(--octo-mint);
+      border-top: 3px solid var(--octo-mint);
+      border-radius: var(--lcars-radius-md) 0 0 0;
+    }
+  }
+
+  // Scan line animation (subtle LCARS effect)
+  .lcars-scanline {
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--octo-mint-05),
+        transparent
+      );
+      animation: lcars-scan 3s ease-in-out infinite;
+    }
+  }
+
+  @keyframes lcars-scan {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  // Pulse animation for active/alert elements
+  @keyframes lcars-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .lcars-pulse {
+    animation: lcars-pulse 2s ease-in-out infinite;
+  }
+}

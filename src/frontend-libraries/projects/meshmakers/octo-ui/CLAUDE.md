@@ -36,9 +36,51 @@ src/lib/
     └── services/                 # Property converter service
 ```
 
+## LCARS Theme Mixins
+
+The LCARS theme is exposed as three SCSS mixins, forwarded through the public
+entry `<...>/octo-ui/styles/_index.scss`:
+
+```scss
+@use "@meshmakers/octo-ui/styles" as octo;
+
+@include octo.variables();        // CSS custom properties (composed from tokens/)
+@include octo.styles();            // Global LCARS theme rules
+@include octo.host-overrides();   // Opt-in: LCARS overrides for library components
+```
+
+- **`variables()`** — emits the LCARS palette as CSS custom properties
+  (`--octo-*`, `--lcars-*`, `--designer-*`, `--mm-cron-*`, plus per-component
+  tokens like `--lcars-drawer-bg`, `--lcars-dialog-bg`). Composed from
+  `lib/lcars-theme/tokens/`.
+- **`styles()`** — global LCARS theme rules: Dockview overrides, LCARS
+  primitives (panels, page layout, footer, decorative effects, scrollbars),
+  Kendo widget overrides, login popup, context menu, base form, widget
+  config dialog. Theme-neutral library components inherit their look from
+  CSS variables.
+- **`host-overrides()`** — opt-in. LCARS-specific overrides for library
+  components that ship neutral by default: Process Designer / Symbol Editor,
+  Process Widget, Markdown Widget, MeshBoard view & widgets. Hosts that
+  want the LCARS look on these components include this alongside `styles()`;
+  hosts using a different theme can override the relevant CSS variables and
+  omit this mixin.
+
+The theme partials live under `<...>/octo-ui/src/lib/lcars-theme/`:
+
+| Folder | Contents |
+|---|---|
+| `tokens/` | CSS-variable-emitting partials (palette, typography, alpha-scales, radius, motion, designer, components) |
+| `kendo/` | one partial per Kendo widget (drawer, dialog, button, grid, treeview, input, dialog, dropdown, window, tabs, card, tooltip, progress, chip, scrollbars, context-menu, listview, toolbar, tilelayout, popup, appbar, input-buttons) |
+| `primitives/` | LCARS-original UI patterns (panel, page-layout, layout, utilities) |
+| `thirdparty/` | third-party library overrides (currently `_dockview.scss`) |
+| `chrome/` | app-shell pieces (`_login-popup.scss`) |
+| `forms/` | composite forms (`_base-form.scss`, `_config-dialog.scss`) |
+| `host-overrides/` | opt-in host overrides (`_process-designer.scss`, `_process-widget.scss`, `_markdown-widget.scss`, `_meshboard.scss`) |
+
 ## Drawer Hierarchy
 
-`@include octo.styles()` styles the Kendo Drawer with three levels of visual hierarchy:
+`@include octo.styles()` styles the Kendo Drawer (`lib/lcars-theme/kendo/_drawer.scss`)
+with three levels of visual hierarchy:
 - **Level 0** (top-level groups): white, uppercase, full-size icons.
 - **Level 1** (children): indented 36 px, dimmer text, icons at 0.85 scale, vertical guide line.
 - **Level 2** (grandchildren): indented 60 px, even dimmer, icons at 0.75 scale, guide line at 46 px.
@@ -48,9 +90,10 @@ Mini (collapsed) mode relies on the `mm-drawer-level-N` `cssClass` that
 `@meshmakers/shared-services` `CommandService` adds to every `DrawerItem`
 based on its nesting depth. Apps consuming `CommandService` get this for free.
 
-All colours come from existing `--octo-*` tokens declared by `octo.variables()`
-(`--octo-text-color`, `--octo-mint`, `--octo-mint-10`); no per-drawer token
-namespace is exposed.
+Colors and gradient defaults come from `octo.variables()` tokens
+(`--octo-text-color`, `--octo-mint`, `--octo-mint-10`, `--lcars-drawer-bg`,
+`--lcars-drawer-border`). Hosts can re-skin the drawer by overriding
+`--lcars-drawer-bg` and `--lcars-drawer-border` without forking the partial.
 
 ## Runtime Browser Localization
 

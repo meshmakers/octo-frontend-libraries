@@ -1,0 +1,24 @@
+// ============================================================================
+// LCARS DESIGN TOKENS - Component-level appearance tokens
+// Promoted from inline values in kendo/* partials so single-component
+// customization is one CSS-variable change, not a partial fork.
+// ============================================================================
+
+@mixin components {
+  // Drawer
+  --lcars-drawer-bg: linear-gradient(180deg, var(--iron-navy), var(--deep-sea));
+  --lcars-drawer-border: 1px solid var(--octo-mint-20);
+
+  // Dialog
+  --lcars-dialog-bg: none;
+  --lcars-dialog-border: 1px solid var(--octo-mint-30);
+
+  // Tabs
+  --lcars-tabs-border: 2px solid var(--ash-blue-20);
+  --lcars-tabs-active-bg: var(--iron-navy);
+  --lcars-tabs-active-border: 3px solid var(--octo-mint);
+
+  // Cards
+  --lcars-card-bg: var(--lcars-panel-bg);
+  --lcars-card-border: var(--lcars-panel-border);
+}

@@ -1,0 +1,82 @@
+// ============================================================================
+// LCARS PRIMITIVES — Layout
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin layout {
+  // Layout
+
+  .octo-body {
+    padding-left: 5px;
+    padding-right: 5px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    // Force always-visible scrollbar by using ::-webkit-scrollbar
+    // Reset standard properties so webkit pseudo-elements take effect (Chrome 121+)
+    scrollbar-width: initial;
+    scrollbar-color: auto;
+
+    &::-webkit-scrollbar {
+      width: 10px;
+      -webkit-appearance: none;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--ash-blue-80);
+      border-radius: 4px;
+      border: 1px solid var(--octo-mint-30);
+
+      &:hover {
+        background: var(--octo-mint);
+      }
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--iron-navy-60);
+      border-radius: 4px;
+    }
+
+    // Override form container to not handle its own scrolling -
+    // let .octo-body handle it to avoid broken height chains
+    .mm-base-form-container {
+      height: auto;
+      overflow: visible;
+    }
+  }
+
+  .octo-header {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  kendo-drawer-container {
+    display: flex;
+    height: calc(100vh - 56px);
+    align-items: stretch !important;
+  }
+
+  kendo-drawer-content {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    align-self: stretch !important;
+  }
+
+  .octo-full {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    min-height: 600px;
+  }
+}

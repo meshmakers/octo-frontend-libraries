@@ -1,0 +1,77 @@
+// ============================================================================
+// LCARS PRIMITIVES — Panel
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin panel {
+  // Global
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--kendo-color-app-surface, var(--deep-sea, #1a2230));
+    color: var(--kendo-color-on-app-surface, var(--octo-text-color, #ffffff));
+    font-family: var(--lcars-font-primary);
+  }
+
+  // LCARS panels
+
+  .lcars-panel {
+    background: var(--lcars-panel-bg);
+    border: var(--lcars-panel-border);
+    border-radius: var(--lcars-radius-md);
+    padding: 16px;
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(
+        90deg,
+        var(--octo-mint),
+        var(--neo-cyan),
+        var(--royal-violet)
+      );
+      border-radius: var(--lcars-radius-md) var(--lcars-radius-md) 0 0;
+    }
+  }
+
+  // LCARS-style header bar
+  .lcars-header-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: linear-gradient(90deg, var(--iron-navy), transparent);
+    border-left: 4px solid var(--octo-mint);
+    margin-bottom: 16px;
+
+    &::after {
+      content: "";
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, var(--octo-mint), transparent);
+    }
+  }
+
+  // LCARS asymmetric panel (characteristic rounded corner on one side)
+  .lcars-panel-asymmetric {
+    background: var(--lcars-panel-bg);
+    border: var(--lcars-panel-border);
+    border-radius: var(--lcars-radius-xl) var(--lcars-radius-sm)
+      var(--lcars-radius-sm) var(--lcars-radius-xl);
+    padding: 16px;
+    padding-left: 24px;
+  }
+}

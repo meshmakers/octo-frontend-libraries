@@ -1,0 +1,33 @@
+// ============================================================================
+// Kendo Tabs — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin tabs {
+  // Tabs - LCARS style
+  .k-tabstrip {
+    .k-tabstrip-items {
+      border-bottom: var(--lcars-tabs-border);
+
+      .k-item {
+        font-family: var(--lcars-font-primary);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: var(--lcars-radius-md) var(--lcars-radius-md) 0 0;
+        transition: all var(--lcars-transition-fast);
+
+        &:hover {
+          background: var(--octo-mint-10);
+        }
+
+        &.k-active {
+          background: var(--lcars-tabs-active-bg);
+          border-bottom: var(--lcars-tabs-active-border);
+          color: var(--octo-mint);
+        }
+      }
+    }
+  }
+}

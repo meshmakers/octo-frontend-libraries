@@ -1,0 +1,54 @@
+// ============================================================================
+// Kendo Grid — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin grid {
+  // Grid - LCARS style
+  .k-grid {
+    border: var(--lcars-panel-border);
+    border-radius: var(--lcars-radius-md);
+    overflow: hidden;
+
+    .k-grid-header {
+      background: linear-gradient(
+        180deg,
+        var(--iron-navy),
+        var(--surface-elevated)
+      );
+      border-bottom: 2px solid var(--octo-mint-30);
+
+      th {
+        font-family: var(--lcars-font-primary);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85em;
+        letter-spacing: 0.5px;
+        color: var(--octo-mint);
+      }
+    }
+
+    .k-grid-content {
+      background: var(--deep-sea-80);
+
+      tr {
+        transition: background var(--lcars-transition-fast);
+
+        &:hover {
+          background: var(--octo-mint-08) !important;
+        }
+
+        &.k-selected {
+          background: var(--octo-mint-15) !important;
+          border-left: 3px solid var(--octo-mint);
+        }
+      }
+    }
+
+    .k-pager {
+      background: var(--iron-navy);
+      border-top: 1px solid var(--octo-mint-20);
+    }
+  }
+}

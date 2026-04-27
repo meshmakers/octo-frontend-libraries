@@ -1,0 +1,62 @@
+// ============================================================================
+// Kendo Input — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+@use "../lcars-input" as *;
+
+@mixin input {
+  // Input fields - LCARS style
+  .k-input,
+  .k-picker,
+  .k-textbox {
+    background: var(--deep-sea-80);
+    border: 1px solid var(--ash-blue-30);
+    border-radius: var(--lcars-radius-sm);
+    transition: all var(--lcars-transition-fast);
+
+    &:hover {
+      border-color: var(--octo-mint-50);
+    }
+
+    &:focus,
+    &.k-focus {
+      border-color: var(--octo-mint);
+      box-shadow: var(--lcars-glow-primary);
+    }
+  }
+
+  // Form fields - LCARS style (global for all dialogs)
+  kendo-formfield,
+  .k-form-field {
+    kendo-label,
+    .k-label,
+    > label {
+      color: var(--ash-blue) !important;
+      font-family: var(--lcars-font-primary);
+      font-weight: 500;
+    }
+
+    kendo-formhint,
+    .k-form-hint {
+      color: var(--ash-blue-70) !important;
+    }
+
+    kendo-formerror,
+    .k-form-error {
+      color: var(--bubblegum) !important;
+    }
+  }
+
+  // Standalone labels - LCARS style
+  .k-label,
+  kendo-label {
+    color: var(--ash-blue) !important;
+  }
+
+  // Checkbox labels
+  .k-checkbox-label,
+  label.k-checkbox-label {
+    color: var(--octo-text-color) !important;
+  }
+}

@@ -1,0 +1,184 @@
+// ============================================================================
+// Forms — Widget config dialog form fields, cards, and proper sizing/scrolling
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin config-dialog {
+  // Config dialog form fields (custom classes used in widget config dialogs)
+  .config-form {
+    // Scrolling support - flex layout in .config-container handles sizing
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+
+    .form-field {
+      > label {
+        color: var(--ash-blue);
+        font-family: var(--lcars-font-primary);
+        font-weight: 500;
+
+        .required {
+          color: var(--bubblegum);
+        }
+      }
+
+      .field-hint {
+        color: var(--ash-blue-70);
+      }
+
+      .switch-label {
+        color: var(--octo-text-color);
+      }
+    }
+
+    .form-section {
+      h4 {
+        color: var(--octo-mint);
+        font-family: var(--lcars-font-primary);
+        border-bottom-color: var(--octo-mint-20);
+      }
+    }
+
+    // Data Source Type radio group
+    .data-source-type {
+      .radio-group {
+        .radio-label {
+          color: var(--octo-text-color);
+
+          span {
+            color: var(--octo-text-color);
+          }
+
+          input[type="radio"] {
+            accent-color: var(--octo-mint);
+          }
+        }
+      }
+    }
+
+    // Config cards (Columns, Sorting, Filters, Options, Query Info)
+    .config-card {
+      background: var(--surface-elevated-60);
+      border-color: var(--octo-mint-20);
+
+      .card-header {
+        .card-title {
+          color: var(--octo-mint);
+          font-family: var(--lcars-font-primary);
+        }
+
+        .card-count {
+          color: var(--ash-blue);
+        }
+
+        kendo-svgicon,
+        .k-svg-icon {
+          color: var(--octo-mint) !important;
+        }
+      }
+
+      .card-content {
+        .config-summary {
+          color: rgba(#ffffff, 0.9);
+        }
+      }
+
+      // Query info styling
+      &.query-info,
+      .query-info {
+        .info-row {
+          .info-label {
+            color: var(--ash-blue);
+          }
+
+          .info-value {
+            color: var(--octo-text-color);
+          }
+        }
+      }
+
+      // Options card
+      &.options-card {
+        .checkbox-field label {
+          color: var(--octo-text-color);
+        }
+      }
+    }
+
+    // Query combobox items
+    .query-item {
+      .query-name {
+        color: var(--octo-text-color);
+      }
+
+      .query-description {
+        color: var(--ash-blue);
+      }
+    }
+
+    // Loading indicator
+    .loading-indicator {
+      color: var(--octo-mint);
+    }
+
+    // Config sections (used in Pie Chart, Bar Chart, etc.)
+    .config-section {
+      background: var(--surface-elevated-60);
+      border-color: var(--octo-mint-20);
+
+      .section-title {
+        color: var(--octo-mint);
+        font-family: var(--lcars-font-primary);
+      }
+
+      .section-hint {
+        color: var(--ash-blue);
+      }
+    }
+
+    // Form sections (used in Stats Grid Config Dialog, etc.)
+    .form-section {
+      background: var(--surface-elevated-60);
+      border-color: var(--octo-mint-20);
+
+      .section-header {
+        h4 {
+          color: var(--octo-mint);
+          font-family: var(--lcars-font-primary);
+        }
+      }
+
+      .empty-state {
+        color: var(--ash-blue);
+      }
+    }
+
+    // Stat items (used in Stats Grid Config Dialog)
+    .stat-item {
+      background: var(--surface-elevated-80);
+      border-color: var(--octo-mint-20);
+
+      .stat-number {
+        color: var(--octo-mint);
+      }
+    }
+  }
+
+  // Widget Config Dialogs - proper sizing and scrolling (same pattern as meshboard-settings-dialog)
+  .k-window.k-dialog:has(.config-form),
+  .k-dialog:has(.config-form) {
+    max-height: 90vh !important;
+
+    .k-window-content.k-dialog-content,
+    .k-dialog-content {
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1 !important;
+      min-height: 0 !important;
+      height: auto !important;
+      max-height: none !important; // Override generic dialog max-height for resizable config dialogs
+    }
+  }
+}

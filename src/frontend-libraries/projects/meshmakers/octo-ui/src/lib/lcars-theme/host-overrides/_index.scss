@@ -1,0 +1,23 @@
+// ============================================================================
+// LCARS Theme — Host-overrides aggregator
+//
+// LCARS-specific overrides for library components that ship neutral by
+// default. Hosts (e.g., Refinery Studio) opt in via:
+//   @use "@meshmakers/octo-ui/styles" as octo;
+//   @include octo.host-overrides();
+//
+// Library components themselves remain theme-neutral; @include octo.styles()
+// alone does NOT emit these rules.
+// ============================================================================
+
+@use "process-designer" as process-designer;
+@use "process-widget" as process-widget;
+@use "markdown-widget" as markdown-widget;
+@use "meshboard" as meshboard;
+
+@mixin host-overrides {
+  @include process-designer.process-designer;
+  @include process-widget.process-widget;
+  @include markdown-widget.markdown-widget;
+  @include meshboard.meshboard;
+}

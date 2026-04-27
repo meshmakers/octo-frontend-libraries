@@ -1,0 +1,29 @@
+// ============================================================================
+// Kendo Popup — density-zoom workaround
+// ============================================================================
+
+@use "../variables" as *;
+
+// HACK: workaround for DensityService applying CSS zoom on kendo-drawer-content.
+//       Popups with appendTo:'root' are rendered as direct children of
+//       <app-root>, OUTSIDE the zoomed drawer-content container. The dropdown
+//       component uses wrapper.offsetWidth (inflated by the zoom factor) for
+//       min-width, causing popups to be too wide and mispositioned.
+//
+//       Using transform:scale() instead of CSS zoom because:
+//       - CSS zoom scales BOTH content AND the element's left/top position
+//         interpretation, causing the popup to shift up-left from its anchor.
+//       - transform:scale() only scales the visual rendering from
+//         transform-origin, keeping left/top positioning intact (calculated
+//         correctly by Kendo from getBoundingClientRect of the anchor).
+//
+//       Remove if DensityService switches to transform: scale().
+//
+//       See: spec docs/superpowers/specs/2026-04-26-octo-ui-lcars-theme-split-design.md §6.5
+
+@mixin popup {
+  app-root > .k-animation-container {
+    transform: scale(var(--density-zoom, 1));
+    transform-origin: top left;
+  }
+}

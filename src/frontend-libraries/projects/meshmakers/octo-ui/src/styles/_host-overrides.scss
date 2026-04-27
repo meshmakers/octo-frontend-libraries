@@ -1,0 +1,9 @@
+// Public entry — forwards the host-overrides() mixin.
+// Consumers normally reach this via the main entry:
+//   @use "@meshmakers/octo-ui/styles" as octo;
+//   @include octo.host-overrides();
+// (which forwards from this file).
+//
+// Direct imports of <...>/octo-ui/styles/host-overrides also work.
+
+@forward "../lib/lcars-theme/host-overrides/index" show host-overrides;

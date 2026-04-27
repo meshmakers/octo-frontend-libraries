@@ -1,0 +1,64 @@
+// ============================================================================
+// Kendo Window — LCARS overrides
+// (action buttons, widget config dialog, danger variant)
+// ============================================================================
+
+@use "../variables" as *;
+@use "../lcars-button" as *;
+@use "../lcars-flat-btn" as *;
+
+@mixin window {
+  // Window action buttons (WindowService dialogs) - LCARS style
+  .k-window > .k-actions {
+    background: var(--iron-navy);
+    border-top: 1px solid var(--octo-mint-20);
+
+    .k-button {
+      @include lcars-button;
+
+      &.k-button-flat,
+      &.k-button-outline {
+        @include lcars-flat-btn;
+      }
+    }
+  }
+
+  // Widget config dialog buttons (inside window content) - LCARS style
+  // MeshBoard library exposes `mm-dialog-actions` on all dialog button containers
+  // and `mm-toolbar-actions` on toolbar button areas for consistent host-app styling.
+  .k-window-content {
+    // Standard MeshBoard dialog actions + legacy class names for backward compat
+    .mm-dialog-actions .k-button,
+    .action-bar .k-button,
+    .dialog-actions .k-button,
+    .toolbar .k-button,
+    .dialog-button.k-button {
+      @include lcars-button;
+
+      &.k-button-flat {
+        @include lcars-flat-btn;
+      }
+    }
+  }
+
+  // Dialog Danger variant - for production/staging confirmation dialogs
+  .mm-dialog-danger .k-dialog {
+    border-color: var(--bubblegum-50);
+    box-shadow:
+      0 16px 64px rgba(0, 0, 0, 0.5),
+      0 0 40px var(--bubblegum-20);
+
+    .k-dialog-titlebar {
+      border-bottom-color: var(--bubblegum);
+      color: var(--bubblegum);
+
+      &::before {
+        background: var(--bubblegum);
+      }
+    }
+
+    .k-dialog-actions {
+      border-top-color: var(--bubblegum-30);
+    }
+  }
+}

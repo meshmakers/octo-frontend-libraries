@@ -1,0 +1,34 @@
+// ============================================================================
+// Kendo Dropdown / Popup — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin dropdown {
+  // Dropdown/Popup - LCARS style
+  .k-popup {
+    background: var(--iron-navy);
+    border: 1px solid var(--octo-mint-30);
+    border-radius: var(--lcars-radius-md);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 20px var(--octo-mint-10);
+
+    .k-list-item {
+      padding: 6px 12px !important;
+      font-size: 0.8125rem !important; // 13px - compact to match app styling
+      line-height: 1.4 !important;
+      min-height: auto !important;
+      transition: background var(--lcars-transition-fast);
+
+      &:hover {
+        background: var(--octo-mint-15);
+      }
+
+      &.k-selected {
+        background: var(--octo-mint-25);
+        color: var(--octo-mint);
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+// ============================================================================
+// Forms — mm-base-form LCARS theming and form actions styling
+// ============================================================================
+
+@use "../variables" as *;
+@use "../lcars-button" as *;
+
+@mixin base-form {
+  // mm-base-form
+  .mm-base-form-container {
+    // Override form CSS custom properties for LCARS theme
+    --mm-form-bg: rgba(31, 46, 64, 0.6);
+    --mm-form-bg-alt: rgba(31, 46, 64, 0.8);
+    --mm-form-border: var(--octo-mint-20);
+    --mm-form-border-subtle: var(--octo-mint-15);
+    --mm-form-text: #ffffff;
+    --mm-form-text-subtle: var(--ash-blue);
+    --mm-form-text-label: var(--ash-blue);
+    --mm-form-accent: var(--octo-mint);
+    --mm-form-error: #ec658f;
+    --mm-form-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --mm-form-overlay-bg: rgba(7, 23, 43, 0.95);
+
+    background: linear-gradient(180deg, var(--deep-sea-95), var(--deep-sea));
+
+    // Extra padding at bottom for scroll visibility
+    padding-bottom: 32px;
+
+    // Form wrapper LCARS styling
+    .mm-form-wrapper {
+      border-radius: 8px;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 0 64px 0; // Left-align with bottom margin for scroll space
+
+      &::before {
+        content: "";
+        display: block;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          var(--octo-mint),
+          var(--neo-cyan),
+          var(--royal-violet)
+        );
+        border-radius: 8px 8px 0 0;
+      }
+    }
+
+    // Form header LCARS styling
+    .mm-form-header {
+      background: var(--octo-mint-05);
+      border-bottom-color: var(--octo-mint-20);
+
+      .mm-form-title {
+        font-family: var(--lcars-font-primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--octo-text-color);
+      }
+    }
+
+    // Form actions - LCARS button styling
+    .mm-form-actions {
+      background: var(--octo-mint-05);
+      border-top-color: var(--octo-mint-20);
+
+      .k-button {
+        @include lcars-button;
+      }
+    }
+  }
+}

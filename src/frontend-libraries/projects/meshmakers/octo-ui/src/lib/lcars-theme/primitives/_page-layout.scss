@@ -1,0 +1,300 @@
+// ============================================================================
+// LCARS PRIMITIVES — Page Layout
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin page-layout {
+  // LCARS Page Layout Pattern
+  // Use for all page-level list components
+  .lcars-page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    flex-shrink: 0;
+  }
+
+  .lcars-header-accent {
+    width: 8px;
+    height: 56px;
+    background: linear-gradient(180deg, var(--octo-mint), var(--neo-cyan));
+    border-radius: 4px 0 0 4px;
+    box-shadow: 0 0 15px var(--octo-mint-50);
+    flex-shrink: 0;
+  }
+
+  .header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .page-title {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 0;
+    font-family: var(--lcars-font-primary);
+
+    .title-prefix {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: var(--ash-blue);
+      text-transform: uppercase;
+    }
+
+    .title-main {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--octo-text-color);
+      text-transform: uppercase;
+    }
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 16px;
+  }
+
+  .stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    background: var(--octo-mint-10);
+    border: 1px solid var(--octo-mint-30);
+    border-radius: 4px;
+
+    .badge-icon {
+      font-size: 0.6rem;
+      color: var(--octo-mint);
+      animation: lcars-pulse 2s ease-in-out infinite;
+    }
+
+    .badge-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--octo-mint);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+
+  .lcars-header-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--octo-mint),
+      var(--neo-cyan),
+      transparent
+    );
+    border-radius: 1px;
+    align-self: center;
+  }
+
+  // Content Panel
+  .lcars-content-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--surface-elevated-40);
+    border: 1px solid var(--octo-mint-20);
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 0;
+
+    &:hover {
+      border-color: var(--octo-mint-35);
+      box-shadow:
+        0 4px 30px rgba(0, 0, 0, 0.3),
+        0 0 30px var(--octo-mint-08);
+    }
+
+    // Ensure child components fill available space
+    mm-list-view,
+    mm-base-tree-detail {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+  }
+
+  .panel-accent-top {
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--octo-mint),
+      var(--neo-cyan),
+      var(--royal-violet)
+    );
+    flex-shrink: 0;
+  }
+
+  .panel-accent-bottom {
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--octo-mint-30),
+      transparent
+    );
+    flex-shrink: 0;
+  }
+
+  // LCARS Footer
+  .lcars-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    flex-shrink: 0;
+  }
+
+  .footer-bar {
+    height: 8px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+
+    &.bar-1 {
+      width: 60px;
+      background: linear-gradient(90deg, var(--octo-mint), var(--neo-cyan));
+      box-shadow: 0 0 8px var(--octo-mint-40);
+    }
+
+    &.bar-2 {
+      width: 40px;
+      background: var(--royal-violet);
+      box-shadow: 0 0 8px var(--royal-violet-40);
+    }
+
+    &.bar-3 {
+      width: 24px;
+      background: var(--toffee);
+      box-shadow: 0 0 8px var(--toffee-40);
+    }
+  }
+
+  .footer-spacer {
+    flex: 1;
+  }
+
+  .footer-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    background: rgba(55, 180, 0, 0.1);
+    border: 1px solid rgba(55, 180, 0, 0.3);
+    border-radius: 4px;
+
+    .indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #37b400;
+      box-shadow: 0 0 10px rgba(55, 180, 0, 0.6);
+      animation: lcars-pulse 2s ease-in-out infinite;
+    }
+
+    .indicator-text {
+      font-family: var(--lcars-font-primary);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #37b400;
+      text-transform: uppercase;
+    }
+  }
+
+  // Responsive LCARS Page Layout
+  @media (max-width: 1024px) {
+    .page-title .title-main {
+      font-size: 1.25rem;
+    }
+
+    .lcars-header-accent {
+      height: 48px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .lcars-page-header {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .lcars-header-accent {
+      width: 6px;
+      height: 40px;
+    }
+
+    .page-title {
+      flex-direction: column;
+      gap: 2px;
+
+      .title-prefix {
+        font-size: 0.6rem;
+      }
+
+      .title-main {
+        font-size: 1.1rem;
+      }
+    }
+
+    .header-stats {
+      display: none;
+    }
+
+    .lcars-header-line {
+      width: 100%;
+      order: 3;
+    }
+
+    .lcars-footer {
+      flex-wrap: wrap;
+      gap: 6px;
+
+      .footer-bar {
+        height: 6px;
+
+        &.bar-1 {
+          width: 40px;
+        }
+        &.bar-2 {
+          width: 28px;
+        }
+        &.bar-3 {
+          width: 18px;
+        }
+      }
+    }
+
+    .footer-indicator {
+      padding: 3px 8px;
+
+      .indicator-text {
+        font-size: 0.6rem;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-title .title-main {
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+    }
+
+    .footer-bar {
+      &.bar-2,
+      &.bar-3 {
+        display: none;
+      }
+    }
+  }
+}

@@ -19,5 +19,6 @@
 
   .browser-container ::ng-deep {
     @include octo.styles();
+    @include octo.host-overrides();
   }
 }

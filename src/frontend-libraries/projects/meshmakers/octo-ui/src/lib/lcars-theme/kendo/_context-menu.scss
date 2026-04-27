@@ -1,0 +1,139 @@
+// ============================================================================
+// Kendo Context Menu — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin context-menu {
+  // Context menu
+  .k-context-menu,
+  .k-menu.k-context-menu {
+    background: var(--iron-navy);
+    border: 1px solid var(--octo-mint-30);
+    border-radius: 8px;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      0 0 20px var(--octo-mint-15);
+    padding: 8px 0;
+    min-width: 180px;
+    overflow: hidden;
+
+    // Menu items
+    .k-menu-item {
+      margin: 0;
+
+      .k-menu-link {
+        padding: 10px 16px;
+        color: var(--ash-blue);
+        font-family: var(--lcars-font-primary);
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .k-menu-link-text {
+          flex: 1;
+        }
+
+        .k-svg-icon,
+        .k-icon,
+        svg {
+          fill: var(--ash-blue);
+          color: var(--ash-blue);
+          width: 18px;
+          height: 18px;
+          transition: all 0.15s ease;
+        }
+      }
+
+      // Hover state
+      &:hover > .k-menu-link,
+      &.k-hover > .k-menu-link {
+        background: linear-gradient(
+          90deg,
+          var(--octo-mint-20),
+          var(--octo-mint-05)
+        );
+        color: var(--octo-mint);
+
+        .k-svg-icon,
+        .k-icon,
+        svg {
+          fill: var(--octo-mint);
+          color: var(--octo-mint);
+        }
+      }
+
+      // Focus state
+      &:focus > .k-menu-link,
+      &.k-focus > .k-menu-link {
+        background: var(--octo-mint-15);
+        box-shadow: inset 3px 0 0 var(--octo-mint);
+      }
+
+      // Delete/destructive action styling
+      &[data-command="delete"],
+      &.destructive {
+        .k-menu-link {
+          color: var(--bubblegum);
+
+          .k-svg-icon,
+          .k-icon,
+          svg {
+            fill: var(--bubblegum);
+            color: var(--bubblegum);
+          }
+        }
+
+        &:hover > .k-menu-link {
+          background: linear-gradient(
+            90deg,
+            var(--bubblegum-20),
+            var(--bubblegum-05)
+          );
+          color: var(--bubblegum);
+
+          .k-svg-icon,
+          .k-icon,
+          svg {
+            fill: var(--bubblegum);
+            color: var(--bubblegum);
+          }
+        }
+      }
+    }
+
+    // Separator
+    .k-menu-separator,
+    .k-separator {
+      margin: 8px 12px;
+      height: 1px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--octo-mint-30),
+        transparent
+      );
+      border: none;
+    }
+  }
+
+  // Context menu popup wrapper
+  .k-menu-popup {
+    .k-context-menu {
+      background: var(--iron-navy);
+    }
+  }
+
+  // Animation container for context menu
+  .k-animation-container {
+    &:has(.k-context-menu) {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+  }
+}

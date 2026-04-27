@@ -354,3 +354,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 /.idea/indexLayout.xml
+
+# Local SCSS refactor baseline (not committed)
+baseline-css/

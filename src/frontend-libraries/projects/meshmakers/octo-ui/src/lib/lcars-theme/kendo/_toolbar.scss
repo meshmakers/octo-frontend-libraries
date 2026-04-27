@@ -1,0 +1,42 @@
+// ============================================================================
+// Page Toolbar — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+@use "../lcars-button" as *;
+
+@mixin toolbar {
+  // Page toolbar styling - for detail/editor pages
+  // Use this class on any toolbar div in detail components
+  .page-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    flex-shrink: 0;
+    gap: 8px;
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .k-button {
+      @include lcars-button;
+    }
+
+    // Responsive
+    @media (max-width: 768px) {
+      flex-direction: column;
+
+      .toolbar-left,
+      .toolbar-right {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+    }
+  }
+}

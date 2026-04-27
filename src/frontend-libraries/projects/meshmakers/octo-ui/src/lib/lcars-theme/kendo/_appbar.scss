@@ -1,0 +1,21 @@
+// ============================================================================
+// Kendo AppBar — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+@use "sass:color";
+
+@mixin appbar {
+  // AppBar
+  .k-appbar {
+    background: linear-gradient(
+      180deg,
+      var(--iron-navy),
+      color.adjust($iron-navy, $lightness: -5%)
+    ) !important;
+    border-bottom: 1px solid var(--octo-mint-30);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      0 0 20px var(--octo-mint-10);
+  }
+}

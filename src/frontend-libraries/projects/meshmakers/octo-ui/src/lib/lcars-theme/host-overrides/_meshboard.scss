@@ -1,0 +1,1082 @@
+@use "sass:color";
+@use "../variables" as *;
+@use "../lcars-button" as *;
+
+// ============================================================================
+// HOST OVERRIDE — MeshBoard view, toolbar, empty state, and widget styles
+// LCARS theming for octo-meshboard's view shell and individual widget cards.
+// ============================================================================
+
+@mixin meshboard {
+  // MeshBoard view
+
+  // MeshBoard View Container
+  .meshboard-view {
+    background: linear-gradient(
+      180deg,
+      var(--deep-sea-95),
+      var(--deep-sea)
+    );
+
+    // Loading state
+    .loading-container {
+      .k-loading-text {
+        color: var(--octo-mint);
+        font-family: var(--lcars-font-primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+    }
+
+    // Model unavailable / Not found state
+    .model-unavailable {
+      .message-card {
+        background: var(--surface-elevated-90);
+        border: 1px solid var(--octo-mint-30);
+        border-radius: 8px;
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.4),
+          0 0 20px var(--octo-mint-10);
+
+        &::before {
+          content: "";
+          display: block;
+          height: 3px;
+          background: linear-gradient(90deg, var(--bubblegum), var(--toffee));
+          border-radius: 8px 8px 0 0;
+          margin: -2rem -2rem 1.5rem -2rem;
+        }
+
+        h2 {
+          color: var(--octo-text-color);
+          font-family: var(--lcars-font-primary);
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        p {
+          color: var(--ash-blue);
+        }
+
+        ol {
+          color: var(--ash-blue);
+
+          a {
+            color: var(--octo-mint);
+
+            &:hover {
+              color: var(--neo-cyan);
+              text-shadow: 0 0 8px var(--octo-mint-50);
+            }
+          }
+        }
+
+        kendo-svg-icon {
+          color: var(--bubblegum);
+        }
+      }
+    }
+  }
+
+  // MeshBoard Toolbar - LCARS style
+  .meshboard-toolbar {
+    background: linear-gradient(
+      90deg,
+      var(--iron-navy),
+      var(--surface-elevated)
+    );
+    border-bottom: 2px solid var(--octo-mint-30);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    .toolbar-left {
+      .meshboard-title {
+        color: var(--octo-text-color);
+        font-family: var(--lcars-font-primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .meshboard-description {
+        color: var(--ash-blue);
+      }
+    }
+
+    .toolbar-right,
+    .mm-toolbar-actions {
+      .k-button {
+        @include lcars-button;
+      }
+    }
+  }
+
+  // MeshBoard Empty State - LCARS style
+  .meshboard-view .empty-state {
+    .empty-state-content {
+      background: var(--surface-elevated-60);
+      border: 1px solid var(--octo-mint-20);
+      border-radius: 12px;
+      padding: 3rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+      kendo-svg-icon {
+        color: var(--octo-mint) !important;
+        opacity: 0.6;
+      }
+
+      h3 {
+        color: var(--octo-text-color);
+        font-family: var(--lcars-font-primary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      p {
+        color: var(--ash-blue);
+      }
+
+      .k-button {
+        @include lcars-button;
+      }
+    }
+  }
+
+  // (Kendo TileLayout block intentionally omitted — moves to kendo/_tilelayout.scss in Phase 3e)
+
+  // Widget Error State
+  .widget-error {
+    color: var(--bubblegum);
+    font-family: var(--lcars-font-primary);
+  }
+
+  // MeshBoard widgets
+
+  // KPI Widget
+  .kpi-widget {
+    .kpi-value {
+      color: var(--octo-mint);
+      font-family: var(--lcars-font-primary);
+      text-shadow: 0 0 20px var(--octo-mint-30);
+    }
+
+    .kpi-prefix,
+    .kpi-suffix {
+      color: var(--ash-blue);
+    }
+
+    .kpi-label {
+      color: var(--ash-blue);
+      font-family: var(--lcars-font-primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .kpi-trend {
+      &.trend-up {
+        background: var(--octo-mint-15);
+        color: var(--octo-mint);
+      }
+
+      &.trend-down {
+        background: var(--bubblegum-15);
+        color: var(--bubblegum);
+      }
+
+      &.trend-neutral {
+        background: var(--ash-blue-15);
+        color: var(--ash-blue);
+      }
+    }
+  }
+
+  // Widget Group - LCARS item header styling
+  .widget-group-item-header {
+    background: var(--iron-navy-80);
+    border-bottom-color: var(--octo-mint-15);
+  }
+
+  .widget-group-item-title {
+    font-family: var(--lcars-font-primary);
+    letter-spacing: 0.5px;
+  }
+
+  // Entity Associations Widget - LCARS background styling
+  .group-header {
+    background: var(--iron-navy-60);
+
+    &:hover {
+      background: var(--iron-navy-80);
+    }
+  }
+
+  // Stats Grid Widget - LCARS theme via CSS variable overrides
+  mm-stats-grid-widget {
+    --mm-stat-mint-bg: rgba(#{$octo-mint}, 0.1);
+    --mm-stat-mint-border: #{$octo-mint};
+    --mm-stat-mint-text: #{$octo-mint};
+    --mm-stat-mint-glow: 0 0 15px rgba(#{$octo-mint}, 0.4);
+
+    --mm-stat-cyan-bg: rgba(#{$neo-cyan}, 0.1);
+    --mm-stat-cyan-border: #{$neo-cyan};
+    --mm-stat-cyan-text: #{$neo-cyan};
+    --mm-stat-cyan-glow: 0 0 15px rgba(#{$neo-cyan}, 0.4);
+
+    --mm-stat-violet-bg: rgba(#{$royal-violet}, 0.1);
+    --mm-stat-violet-border: #{$royal-violet};
+    --mm-stat-violet-text: #{$lilac-glow};
+    --mm-stat-violet-glow: 0 0 15px rgba(#{$royal-violet}, 0.4);
+
+    --mm-stat-toffee-bg: rgba(#{$toffee}, 0.1);
+    --mm-stat-toffee-border: #{$toffee};
+    --mm-stat-toffee-text: #{$toffee};
+    --mm-stat-toffee-glow: 0 0 15px rgba(#{$toffee}, 0.4);
+
+    --mm-stat-lilac-bg: rgba(#{$lilac-glow}, 0.1);
+    --mm-stat-lilac-border: #{$lilac-glow};
+    --mm-stat-lilac-text: #{$lilac-glow};
+    --mm-stat-lilac-glow: 0 0 15px rgba(#{$lilac-glow}, 0.4);
+
+    --mm-stat-bubblegum-bg: rgba(#{$bubblegum}, 0.1);
+    --mm-stat-bubblegum-border: #{$bubblegum};
+    --mm-stat-bubblegum-text: #{$bubblegum};
+    --mm-stat-bubblegum-glow: 0 0 15px rgba(#{$bubblegum}, 0.4);
+
+    --mm-stat-default-bg: rgba(#{$ash-blue}, 0.1);
+    --mm-stat-default-border: #{$ash-blue};
+    --mm-stat-default-text: #ffffff;
+    --mm-stat-default-glow: none;
+  }
+
+  // Additional stats-grid LCARS styling (hover, fonts, labels)
+  .stats-grid {
+    .stat-card {
+      background: var(--surface-elevated-40);
+      border: 1px solid var(--octo-mint-15);
+      border-radius: 8px;
+
+      &:hover {
+        box-shadow:
+          0 4px 16px rgba(0, 0, 0, 0.3),
+          0 0 10px var(--octo-mint-15);
+        border-color: var(--octo-mint-30);
+      }
+    }
+
+    .stat-value {
+      font-family: var(--lcars-font-primary);
+    }
+
+    .stat-label {
+      color: var(--ash-blue);
+      font-family: var(--lcars-font-primary);
+    }
+
+    .stats-error {
+      color: var(--bubblegum);
+    }
+  }
+
+  // Service Health Widget
+  .service-health {
+    background: var(--surface-elevated-40);
+    border: 1px solid var(--octo-mint-15);
+
+    &.clickable:hover {
+      background: var(--surface-elevated-60);
+      box-shadow:
+        0 2px 12px rgba(0, 0, 0, 0.3),
+        0 0 10px var(--octo-mint-10);
+      border-color: var(--octo-mint-30);
+    }
+
+    &.healthy {
+      .health-dot {
+        background: var(--octo-mint);
+        box-shadow: 0 0 12px var(--octo-mint-60);
+      }
+
+      .pulse-ring.pulse-active {
+        border-color: var(--octo-mint);
+      }
+
+      .health-status {
+        color: var(--octo-mint);
+      }
+    }
+
+    &.unhealthy {
+      .health-dot {
+        background: var(--bubblegum);
+        box-shadow: 0 0 12px var(--bubblegum-60);
+      }
+
+      .pulse-ring {
+        border-color: var(--bubblegum);
+      }
+
+      .health-status {
+        color: var(--bubblegum);
+      }
+    }
+
+    .service-name {
+      color: var(--octo-text-color);
+      font-family: var(--lcars-font-primary);
+    }
+
+    .health-status {
+      font-family: var(--lcars-font-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .last-checked {
+      color: var(--ash-blue-70);
+    }
+  }
+
+  // Entity Card Widget - UML style with LCARS colors
+  .entity-card {
+    background: var(--surface-elevated-60);
+    border: 1px solid var(--octo-mint-20);
+
+    .entity-header {
+      background: linear-gradient(
+        180deg,
+        var(--octo-mint-30),
+        var(--octo-mint-15)
+      );
+      border-bottom: 2px solid var(--octo-mint);
+
+      .entity-stereotype {
+        color: rgba(#ffffff, 0.8);
+      }
+
+      .entity-name {
+        color: var(--octo-text-color);
+        font-family: var(--lcars-font-primary);
+      }
+    }
+
+    .entity-attributes {
+      background: var(--deep-sea-50);
+
+      .attribute-row {
+        border-bottom-color: var(--octo-mint-10);
+
+        &:hover {
+          background: var(--octo-mint-08);
+        }
+      }
+
+      .attribute-name {
+        color: var(--ash-blue);
+      }
+
+      .attribute-value {
+        color: var(--octo-text-color);
+      }
+    }
+
+    .entity-footer {
+      background: var(--iron-navy-50);
+      border-top-color: var(--octo-mint-20);
+
+      .entity-id {
+        color: var(--ash-blue);
+        font-family: var(--lcars-font-mono);
+      }
+    }
+  }
+
+  // Status Indicator Widget
+  .status-indicator {
+    .status-badge {
+      font-family: var(--lcars-font-primary);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .status-text {
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .status-error {
+      color: var(--bubblegum);
+    }
+  }
+
+  // MeshBoard dialogs
+
+  // Add Widget Dialog
+  .add-widget-dialog {
+    .dialog-content {
+      .dialog-description {
+        color: var(--ash-blue);
+      }
+
+      .widget-types-list {
+        background: var(--deep-sea-50);
+        border-color: var(--octo-mint-20);
+
+        .list-header {
+          background: linear-gradient(
+            90deg,
+            var(--octo-mint-10),
+            transparent
+          );
+          border-bottom-color: var(--octo-mint-20);
+          color: var(--octo-mint);
+          font-family: var(--lcars-font-primary);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .widget-type-item {
+          border-bottom-color: var(--octo-mint-10);
+
+          &:hover {
+            background: var(--octo-mint-08);
+          }
+
+          &.selected {
+            background: var(--octo-mint-15);
+            box-shadow: inset 3px 0 0 var(--octo-mint);
+          }
+
+          .widget-icon {
+            background: var(--octo-mint-10);
+            color: var(--octo-mint);
+          }
+
+          &.selected .widget-icon {
+            background: var(--octo-mint);
+            color: var(--deep-sea);
+          }
+
+          .widget-info {
+            .widget-label {
+              color: var(--octo-text-color);
+            }
+
+            .widget-description {
+              color: var(--ash-blue);
+            }
+          }
+
+          .selected-indicator {
+            color: var(--octo-mint);
+          }
+        }
+      }
+    }
+
+    .dialog-actions {
+      border-top-color: var(--octo-mint-20);
+    }
+  }
+
+  // MeshBoard Manager Dialog
+  .meshboard-manager-dialog {
+    .dialog-header {
+      .dialog-description {
+        color: var(--ash-blue);
+      }
+
+      .header-actions .k-button {
+        @include lcars-button;
+      }
+    }
+
+    .create-form {
+      background: var(--surface-elevated-50);
+      border-color: var(--octo-mint-20);
+
+      .form-title {
+        color: var(--octo-mint);
+        font-family: var(--lcars-font-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .form-actions .k-button {
+        @include lcars-button;
+      }
+    }
+
+    .meshboards-list {
+      background: var(--deep-sea-50);
+      border-color: var(--octo-mint-20);
+
+      .loading-state,
+      .empty-state {
+        color: var(--ash-blue);
+
+        h3 {
+          color: var(--octo-text-color);
+        }
+
+        p {
+          color: var(--ash-blue);
+        }
+
+        kendo-svg-icon {
+          color: var(--octo-mint) !important;
+          opacity: 0.5;
+        }
+      }
+
+      .meshboard-item {
+        border-bottom-color: var(--octo-mint-10);
+
+        &:not(.active):not(.editing):hover {
+          background: var(--octo-mint-08);
+        }
+
+        &.active {
+          background: var(--octo-mint-15);
+          box-shadow: inset 4px 0 0 var(--octo-mint);
+        }
+
+        &.editing {
+          background: var(--surface-elevated-60);
+        }
+
+        .item-content {
+          .item-icon {
+            background: var(--octo-mint-10);
+            color: var(--octo-mint);
+          }
+
+          .item-info {
+            .item-name {
+              color: var(--octo-text-color);
+
+              .active-badge {
+                background: var(--octo-mint);
+                color: var(--deep-sea);
+              }
+            }
+
+            .item-description {
+              color: var(--ash-blue);
+            }
+          }
+
+          &::after {
+            color: var(--octo-mint-50);
+          }
+        }
+
+        &.active .item-content .item-icon {
+          background: var(--octo-mint);
+          color: var(--deep-sea);
+        }
+
+        .item-edit {
+          .edit-actions .k-button {
+            @include lcars-button;
+          }
+        }
+      }
+    }
+  }
+
+  // MeshBoard Settings Dialog
+  .meshboard-settings-dialog {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: none;
+
+    .settings-form {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 1.5rem;
+      max-height: calc(80vh - 140px); // Account for dialog header and footer
+
+      .form-group {
+        label {
+          color: var(--ash-blue);
+          font-family: var(--lcars-font-primary);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-size: 0.8rem;
+        }
+      }
+
+      .section-title {
+        color: var(--octo-mint);
+        border-bottom-color: var(--octo-mint-20);
+        font-family: var(--lcars-font-primary);
+      }
+
+      kendo-formfield {
+        kendo-label {
+          color: var(--ash-blue) !important;
+          font-family: var(--lcars-font-primary);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-size: 0.8rem;
+        }
+
+        kendo-formhint {
+          color: var(--ash-blue-70) !important;
+        }
+      }
+    }
+
+    kendo-dialog-actions {
+      flex-shrink: 0;
+      background: var(--iron-navy) !important;
+      border-top-color: var(--octo-mint-20) !important;
+    }
+  }
+
+  // MeshBoard Settings Dialog - proper sizing and scrolling
+  .k-window.k-dialog:has(.meshboard-settings-dialog),
+  .k-dialog:has(.meshboard-settings-dialog) {
+    width: 800px !important;
+    max-width: 90vw !important;
+    height: auto !important;
+    min-height: 400px !important;
+    max-height: 90vh !important;
+
+    .k-window-content.k-dialog-content,
+    .k-dialog-content {
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 0 !important;
+      flex: 1 !important;
+      min-height: 0 !important;
+      height: auto !important;
+    }
+  }
+
+  // MeshBoard Manager Dialog
+  .k-dialog:has(.meshboard-manager-dialog) {
+    .k-dialog-content {
+      overflow: hidden !important;
+      display: flex;
+      flex-direction: column;
+      padding: 0 !important;
+    }
+  }
+
+  // Variables Editor (in dialogs) - Override library component styles
+  mm-variables-editor .variables-editor,
+  .variables-editor {
+    background: var(--surface-elevated-60);
+    border: 1px solid var(--octo-mint-20);
+    border-radius: 8px;
+    padding: 1rem;
+
+    .variables-header {
+      border-bottom: 1px solid var(--octo-mint-20);
+
+      .section-title {
+        color: var(--octo-mint);
+        font-family: var(--lcars-font-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .variables-list {
+      background: var(--deep-sea-50);
+      border-color: var(--octo-mint-20);
+
+      .list-header {
+        background: var(--octo-mint-10);
+        border-bottom-color: var(--octo-mint-20);
+        color: var(--octo-mint);
+      }
+
+      .variable-row {
+        border-bottom-color: var(--octo-mint-10);
+
+        &:hover {
+          background: var(--octo-mint-05);
+        }
+
+        .error-text {
+          color: var(--bubblegum);
+        }
+      }
+    }
+
+    .empty-state {
+      background: var(--deep-sea-50);
+      border: 1px dashed var(--octo-mint-30);
+      color: var(--ash-blue);
+
+      p {
+        color: var(--ash-blue);
+      }
+
+      .hint {
+        color: var(--ash-blue-70);
+      }
+    }
+
+    .usage-hint {
+      background: var(--deep-sea-50);
+      border: 1px solid var(--octo-mint-15);
+      color: var(--ash-blue);
+
+      strong {
+        color: var(--octo-mint);
+      }
+
+      code {
+        background: var(--octo-mint-15);
+        color: var(--octo-mint);
+        font-family: var(--lcars-font-mono);
+      }
+    }
+  }
+
+  // Time Range Picker in MeshBoard toolbar
+  mm-time-range-picker {
+    .time-range-picker {
+      .k-button {
+        @include lcars-button;
+
+        &.active {
+          background: var(--octo-mint-25) !important;
+          border-color: var(--octo-mint) !important;
+          color: var(--octo-text-color) !important;
+        }
+      }
+
+      .date-range-display {
+        color: var(--ash-blue);
+        font-family: var(--lcars-font-mono);
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  // Cron builder
+  mm-cron-builder {
+    // Override CSS custom properties with LCARS theme colors
+    --mm-cron-bg: #{var(--surface-elevated-60)};
+    --mm-cron-border: #{var(--octo-mint-20)};
+    --mm-cron-border-radius: 8px;
+    --mm-cron-text: #ffffff;
+    --mm-cron-text-secondary: #{$ash-blue};
+    --mm-cron-accent: #{$octo-mint};
+    --mm-cron-accent-hover: #{color.adjust($octo-mint, $lightness: 10%)};
+    --mm-cron-preview-bg: #{var(--deep-sea-80)};
+    --mm-cron-tab-active-bg: #{var(--octo-mint-15)};
+    --mm-cron-tab-active-border: #{$octo-mint};
+    --mm-cron-error: #{$bubblegum};
+    --mm-cron-success: #37b400;
+    --mm-cron-code-bg: #{$deep-sea};
+    --mm-cron-code-text: #{$octo-mint};
+    --mm-cron-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px #{var(--octo-mint-08)};
+    --mm-cron-font-family: var(--lcars-font-primary);
+    --mm-cron-font-mono: var(--lcars-font-mono);
+
+    // Additional LCARS styling
+    .cron-builder {
+      border: 1px solid var(--octo-mint-25);
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+      &:hover:not(.disabled) {
+        border-color: var(--octo-mint-40);
+        box-shadow:
+          0 4px 30px rgba(0, 0, 0, 0.3),
+          0 0 25px var(--octo-mint-10);
+      }
+    }
+
+    // Expression display with LCARS glow
+    .expression-value {
+      border: 1px solid var(--octo-mint-30);
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+
+      &:not(.invalid) {
+        text-shadow: 0 0 8px var(--octo-mint-50);
+      }
+    }
+
+    // Human readable preview
+    .human-readable {
+      background: linear-gradient(
+        135deg,
+        var(--iron-navy-80),
+        var(--deep-sea-90)
+      );
+      border: 1px solid var(--octo-mint-15);
+      border-left: 3px solid var(--octo-mint);
+    }
+
+    // Preset buttons LCARS styling
+    .preset-button {
+      @include lcars-button;
+
+      &:hover:not(:disabled) {
+        border-color: var(--octo-mint);
+        color: var(--octo-mint);
+        box-shadow: 0 0 10px var(--octo-mint-30);
+      }
+    }
+
+    // Day toggle buttons
+    .day-button {
+      @include lcars-button;
+
+      &.k-selected,
+      &[ng-reflect-selected="true"] {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-30),
+          var(--octo-mint-20)
+        ) !important;
+        border-color: var(--octo-mint) !important;
+        color: var(--octo-text-color) !important;
+        box-shadow: 0 0 10px var(--octo-mint-40);
+      }
+    }
+
+    // Mode buttons (daily mode, monthly mode)
+    .mode-buttons button {
+      @include lcars-button;
+
+      &.k-selected,
+      &[ng-reflect-selected="true"] {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-30),
+          var(--octo-mint-20)
+        ) !important;
+        border-color: var(--octo-mint) !important;
+        color: var(--octo-text-color) !important;
+        box-shadow: 0 0 10px var(--octo-mint-40);
+      }
+    }
+
+    // TabStrip LCARS overrides
+    ::ng-deep .k-tabstrip {
+      .k-tabstrip-items-wrapper {
+        background: transparent;
+        border-bottom: 1px solid var(--octo-mint-20);
+      }
+
+      .k-tabstrip-items .k-item {
+        background: transparent;
+        color: var(--ash-blue);
+        font-family: var(--lcars-font-primary);
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        border: none;
+        transition: all 0.15s ease;
+
+        &:hover:not(.k-active) {
+          color: var(--octo-text-color);
+          background: var(--octo-mint-10);
+        }
+
+        &.k-active {
+          color: var(--octo-mint);
+          background: var(--octo-mint-15);
+          border-bottom: 2px solid var(--octo-mint);
+        }
+      }
+
+      .k-tabstrip-content {
+        background: transparent;
+        border: none;
+      }
+    }
+
+    // Dropdown styling
+    ::ng-deep .k-dropdownlist {
+      background: var(--deep-sea);
+      border: 1px solid var(--octo-mint-20);
+      color: var(--octo-text-color);
+
+      &:hover {
+        border-color: var(--octo-mint-40);
+      }
+
+      &.k-focus {
+        border-color: var(--octo-mint);
+        box-shadow: var(--lcars-input-focus);
+      }
+    }
+
+    // TextBox styling (custom tab)
+    ::ng-deep .k-textbox {
+      background: var(--deep-sea);
+      border: 1px solid var(--octo-mint-20);
+      color: var(--octo-mint);
+      font-family: var(--lcars-font-mono);
+
+      &:hover {
+        border-color: var(--octo-mint-40);
+      }
+
+      &:focus,
+      &.k-focus {
+        border-color: var(--octo-mint);
+        box-shadow: var(--lcars-input-focus);
+      }
+    }
+
+    // Syntax reference box
+    .syntax-reference {
+      background: linear-gradient(
+        135deg,
+        var(--iron-navy-60),
+        var(--deep-sea-80)
+      );
+      border: 1px solid var(--octo-mint-15);
+    }
+
+    // Next executions list
+    .next-executions-list li {
+      color: var(--ash-blue);
+
+      &::before {
+        color: var(--octo-mint);
+        text-shadow: 0 0 6px var(--octo-mint-50);
+      }
+    }
+
+    // Copy button success state
+    .copy-button.copied {
+      color: #37b400;
+      text-shadow: 0 0 8px rgba(55, 180, 0, 0.5);
+    }
+
+    // Labels
+    kendo-label {
+      color: var(--ash-blue);
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  // PDF export
+  .k-pdf-export {
+    --octo-text-color: #000;
+    // Reset all backgrounds and colors to simple black and white
+    &.k-grid,
+    .k-grid,
+    .k-grid-header,
+    .k-grid-content,
+    .k-grid-header-wrap,
+    .k-grid-content-locked,
+    .k-grid-header-locked,
+    .k-table {
+      background: #fff !important;
+      background-color: #fff !important;
+      background-image: none !important;
+      color: var(--octo-text-color) !important;
+      border-color: #000 !important;
+    }
+
+    &.k-grid,
+    .k-grid {
+      border: 1px solid #000 !important;
+      border-collapse: collapse !important;
+      font-family: Arial, sans-serif !important;
+      font-size: 8px !important;
+    }
+
+    // Table layout
+    .k-table,
+    table {
+      border-collapse: collapse !important;
+      table-layout: fixed !important;
+      width: 100% !important;
+    }
+
+    // Header cells
+    .k-grid-header th,
+    .k-grid-header td,
+    .k-header,
+    th.k-header,
+    .k-table-th {
+      background: #e0e0e0 !important;
+      background-color: #e0e0e0 !important;
+      background-image: none !important;
+      color: var(--octo-text-color) !important;
+      border: 1px solid #000 !important;
+      font-weight: bold !important;
+      font-size: 8px !important;
+      padding: 4px 6px !important;
+      text-transform: none !important;
+      letter-spacing: normal !important;
+      vertical-align: middle !important;
+      line-height: 1.3 !important;
+      overflow: visible !important;
+      white-space: normal !important;
+      word-wrap: break-word !important;
+    }
+
+    // Data cells
+    .k-grid td,
+    .k-grid-content td,
+    .k-master-row td,
+    .k-table-td {
+      background: #fff !important;
+      background-color: #fff !important;
+      background-image: none !important;
+      color: var(--octo-text-color) !important;
+      border: 1px solid #000 !important;
+      font-size: 8px !important;
+      padding: 4px 6px !important;
+      vertical-align: middle !important;
+      line-height: 1.3 !important;
+      overflow: visible !important;
+      white-space: normal !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+    }
+
+    // Rows
+    .k-grid tr,
+    .k-master-row,
+    .k-alt,
+    .k-table-row {
+      background: #fff !important;
+      background-color: #fff !important;
+      background-image: none !important;
+    }
+
+    // Remove any hover/selection styles
+    .k-grid tr:hover,
+    .k-grid tr.k-selected,
+    .k-grid td:hover,
+    .k-table-row:hover,
+    .k-selected {
+      background: #fff !important;
+      background-color: #fff !important;
+    }
+
+    // Hide elements that shouldn't be in PDF
+    .k-grid-toolbar,
+    .k-pager,
+    .k-grid-pager,
+    .k-command-cell,
+    .k-checkbox-column,
+    kendo-grid-checkbox-column,
+    .status-icons-cell,
+    .status-icon,
+    kendo-svg-icon,
+    svg {
+      display: none !important;
+    }
+  }
+}

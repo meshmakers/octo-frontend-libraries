@@ -1,0 +1,10 @@
+// Tokens aggregator. The variables() mixin at the lcars-theme/_index.scss
+// level composes from these per-concern token partials.
+
+@forward "palette";
+@forward "typography";
+@forward "alpha-scales";
+@forward "radius";
+@forward "motion";
+@forward "designer";
+@forward "components";

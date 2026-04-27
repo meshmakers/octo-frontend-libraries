@@ -1,0 +1,39 @@
+@use "../variables" as *;
+
+// ============================================================================
+// HOST OVERRIDE — Process Widget (MeshBoard) LCARS theming
+// ============================================================================
+
+@mixin process-widget {
+  // Process Widget (MeshBoard) - LCARS overrides
+  mm-process-widget {
+    // Override CSS variables used by the process widget
+    --process-bg: #{$iron-navy};
+    --process-canvas-bg: #{$iron-navy};
+
+    .process-widget {
+      background-color: #{$iron-navy};
+    }
+
+    .diagram-container {
+      background-color: #{$iron-navy};
+    }
+
+    .loading-overlay {
+      color: #{$ash-blue};
+    }
+
+    .loading-spinner {
+      border-color: rgba(100, 206, 185, 0.2);
+      border-top-color: #{$octo-mint};
+    }
+
+    .error-container {
+      color: #{$bubblegum};
+    }
+
+    .no-config {
+      color: #{$ash-blue};
+    }
+  }
+}

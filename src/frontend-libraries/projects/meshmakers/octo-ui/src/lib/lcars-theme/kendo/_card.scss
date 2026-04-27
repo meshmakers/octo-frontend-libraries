@@ -1,0 +1,22 @@
+// ============================================================================
+// Kendo Card — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin card {
+  // Cards - LCARS style
+  .k-card {
+    background: var(--lcars-card-bg);
+    border: var(--lcars-card-border);
+    border-radius: var(--lcars-radius-md);
+    overflow: hidden;
+
+    .k-card-header {
+      background: linear-gradient(90deg, var(--iron-navy), transparent);
+      border-left: 4px solid var(--octo-mint);
+      font-family: var(--lcars-font-primary);
+      font-weight: 600;
+    }
+  }
+}

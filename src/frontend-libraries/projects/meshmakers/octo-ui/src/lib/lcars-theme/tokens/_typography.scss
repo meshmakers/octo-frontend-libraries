@@ -1,0 +1,21 @@
+// ============================================================================
+// LCARS DESIGN TOKENS - Typography
+// ============================================================================
+
+// Emits only the CSS custom property declarations (no font-family application).
+// The font-family application is done via typography-apply after palette vars.
+@mixin typography-vars {
+  --lcars-font-primary: "Montserrat", "Roboto", "Helvetica Neue", sans-serif;
+  --lcars-font-mono: "Roboto Mono", "Consolas", monospace;
+}
+
+// Applies the font-family to the host element.
+@mixin typography-apply {
+  font-family: var(--lcars-font-primary);
+}
+
+// Convenience: emit vars + apply together (for non-ordering-sensitive contexts).
+@mixin typography {
+  @include typography-vars;
+  @include typography-apply;
+}

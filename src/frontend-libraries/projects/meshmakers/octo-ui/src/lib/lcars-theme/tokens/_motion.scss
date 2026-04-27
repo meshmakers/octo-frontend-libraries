@@ -1,0 +1,32 @@
+// ============================================================================
+// LCARS DESIGN TOKENS - Motion & Effect Composites
+// Transitions, glows, button gradients, focus states.
+// ============================================================================
+
+// Glow and button effect tokens (emitted before radius tokens).
+@mixin motion-glows {
+  --lcars-glow-primary: 0 0 10px var(--octo-mint-40);
+  --lcars-btn-base: linear-gradient(180deg, var(--octo-mint-15), var(--octo-mint-05));
+  --lcars-btn-base-hover: linear-gradient(180deg, var(--octo-mint-25), var(--octo-mint-15));
+  --lcars-input-focus: 0 0 8px var(--octo-mint-30);
+  --lcars-glow-cyan: 0 0 10px var(--neo-cyan-40);
+  --lcars-glow-violet: 0 0 10px var(--royal-violet-40);
+  --lcars-glow-pink: 0 0 10px var(--bubblegum-40);
+}
+
+// Panel styling and transition tokens (emitted after radius tokens).
+@mixin motion-panel {
+  // Panel styling tokens
+  --lcars-panel-border: 1px solid var(--octo-mint-20);
+  --lcars-panel-bg: var(--surface-elevated-60);
+
+  // Transitions
+  --lcars-transition-fast: 150ms ease;
+  --lcars-transition-normal: 250ms ease;
+}
+
+// Convenience: emit all motion tokens together.
+@mixin motion {
+  @include motion-glows;
+  @include motion-panel;
+}

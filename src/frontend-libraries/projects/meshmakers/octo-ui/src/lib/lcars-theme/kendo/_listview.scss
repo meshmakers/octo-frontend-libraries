@@ -1,0 +1,58 @@
+// ============================================================================
+// Kendo List View — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+@use "../lcars-button" as *;
+
+@mixin listview {
+  // List view
+
+  // Command cell (action buttons) - prevents ugly wrapping and ensures vertical centering
+  td.k-command-cell {
+    vertical-align: middle !important;
+
+    > div {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .k-button {
+      padding: 4px 8px;
+      min-width: auto;
+    }
+
+    // Context menu button (three-dot icon) - override Kendo default gray background
+    .k-icon-button {
+      background: transparent;
+      border-color: var(--octo-mint-30);
+      color: var(--octo-mint);
+
+      &:hover {
+        background: var(--octo-mint-10);
+        border-color: var(--octo-mint-50);
+      }
+    }
+  }
+
+  // List view toolbar styling
+  .list-view-toolbar {
+    background: linear-gradient(90deg, var(--octo-mint-10), transparent);
+    border-bottom: 1px solid var(--octo-mint-20);
+    padding: 12px 16px;
+
+    .k-button {
+      @include lcars-button;
+    }
+  }
+
+  // Kendo grid toolbar (rendered by mm-list-view / kendo-grid internally)
+  .k-grid-toolbar {
+    .k-button {
+      @include lcars-button;
+    }
+  }
+}

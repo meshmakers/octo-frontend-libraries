@@ -1,0 +1,23 @@
+// ============================================================================
+// Kendo Chip / Badge — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+@use "sass:color";
+
+@mixin chip {
+  // Chip/Badge - LCARS style
+  .k-chip {
+    font-family: var(--lcars-font-primary);
+    font-weight: 500;
+    border-radius: var(--lcars-radius-sm);
+
+    &.k-chip-solid-primary {
+      background: linear-gradient(
+        180deg,
+        var(--octo-mint),
+        color.adjust($octo-mint, $lightness: -10%)
+      );
+    }
+  }
+}

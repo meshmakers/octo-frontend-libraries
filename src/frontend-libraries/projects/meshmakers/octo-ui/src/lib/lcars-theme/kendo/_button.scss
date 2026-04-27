@@ -1,0 +1,266 @@
+// ============================================================================
+// Kendo Button — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+@use "../lcars-button" as *;
+@use "../lcars-flat-btn" as *;
+@use "sass:color";
+
+@mixin button {
+  // Buttons - LCARS style
+  .k-button {
+    font-family: var(--lcars-font-primary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: var(--lcars-radius-sm);
+    transition: all var(--lcars-transition-fast);
+
+    &.k-button-solid-primary {
+      background: linear-gradient(
+        180deg,
+        var(--octo-mint-30),
+        var(--octo-mint-15)
+      );
+      border: 1px solid var(--octo-mint-50);
+      color: var(--octo-text-color);
+
+      .k-svg-icon,
+      .k-icon,
+      svg {
+        fill: #ffffff;
+        color: var(--octo-text-color);
+      }
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-45),
+          var(--octo-mint-25)
+        );
+        border-color: var(--octo-mint);
+        box-shadow: 0 0 15px var(--octo-mint-40);
+      }
+
+      &:active:not(:disabled) {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-50),
+          var(--octo-mint-30)
+        );
+      }
+    }
+
+    &.k-button-solid-secondary {
+      background: linear-gradient(
+        180deg,
+        var(--neo-cyan),
+        color.adjust($neo-cyan, $lightness: -10%)
+      );
+
+      &:hover {
+        box-shadow: var(--lcars-glow-cyan);
+      }
+    }
+
+    // Default/base solid buttons (no themeColor specified)
+    &.k-button-solid-base {
+      background: linear-gradient(
+        180deg,
+        var(--octo-mint-15),
+        var(--octo-mint-05)
+      );
+      border: 1px solid var(--octo-mint-30);
+      color: var(--octo-mint);
+
+      .k-svg-icon,
+      .k-icon,
+      svg {
+        fill: var(--octo-mint);
+        color: var(--octo-mint);
+      }
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-25),
+          var(--octo-mint-15)
+        );
+        border-color: var(--octo-mint-50);
+        box-shadow: 0 0 10px var(--octo-mint-30);
+      }
+
+      &:active:not(:disabled) {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-30),
+          var(--octo-mint-20)
+        );
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        color: var(--ash-blue);
+        border-color: var(--ash-blue-30);
+        background: var(--ash-blue-10);
+
+        .k-svg-icon,
+        .k-icon,
+        svg {
+          fill: var(--ash-blue);
+          color: var(--ash-blue);
+        }
+      }
+    }
+
+    // Solid error buttons (themeColor="error")
+    &.k-button-solid-error {
+      background: linear-gradient(
+        180deg,
+        var(--bubblegum-20),
+        var(--bubblegum-10)
+      );
+      border: 1px solid var(--bubblegum-40);
+      color: var(--bubblegum);
+
+      .k-svg-icon,
+      .k-icon,
+      svg {
+        fill: var(--bubblegum);
+        color: var(--bubblegum);
+      }
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(
+          180deg,
+          var(--bubblegum-30),
+          var(--bubblegum-20)
+        );
+        border-color: var(--bubblegum-60);
+        box-shadow: 0 0 10px var(--bubblegum-40);
+      }
+
+      &:active:not(:disabled) {
+        background: linear-gradient(
+          180deg,
+          var(--bubblegum-40),
+          var(--bubblegum-30)
+        );
+      }
+
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+
+    &.k-button-outline {
+      border-width: 2px;
+
+      &:hover {
+        box-shadow: var(--lcars-glow-primary);
+      }
+    }
+
+    // Outline base buttons - ensure visibility on dark background
+    &.k-button-outline-base {
+      color: var(--ash-blue);
+      border-color: var(--ash-blue-50);
+      background: transparent;
+
+      .k-svg-icon,
+      .k-icon,
+      svg {
+        fill: var(--ash-blue);
+        color: var(--ash-blue);
+      }
+
+      &:hover:not(:disabled) {
+        color: var(--octo-mint);
+        border-color: var(--octo-mint-50);
+        background: var(--octo-mint-10);
+        box-shadow: var(--lcars-glow-primary);
+
+        .k-svg-icon,
+        .k-icon,
+        svg {
+          fill: var(--octo-mint);
+          color: var(--octo-mint);
+        }
+      }
+
+      &:active:not(:disabled) {
+        background: var(--octo-mint-15);
+      }
+    }
+
+    // Outline primary buttons - for selected state
+    &.k-button-outline-primary {
+      color: var(--octo-mint);
+      border-color: var(--octo-mint-50);
+      background: transparent;
+
+      .k-svg-icon,
+      .k-icon,
+      svg {
+        fill: var(--octo-mint);
+        color: var(--octo-mint);
+      }
+
+      &:hover:not(:disabled) {
+        background: var(--octo-mint-15);
+        box-shadow: var(--lcars-glow-primary);
+      }
+    }
+
+    // Flat error buttons (delete/remove actions) - make visible on dark background
+    &.k-button-flat-error {
+      color: var(--bubblegum) !important;
+      background: var(--bubblegum-10);
+      border: 1px solid var(--bubblegum-30);
+
+      .k-svg-icon,
+      .k-icon,
+      svg {
+        fill: var(--bubblegum) !important;
+        color: var(--bubblegum) !important;
+      }
+
+      &:hover {
+        background: var(--bubblegum-20);
+        border-color: var(--bubblegum-50);
+        box-shadow: 0 0 8px var(--bubblegum-40);
+      }
+
+      &:active {
+        background: var(--bubblegum-30);
+      }
+    }
+
+    // General flat buttons - ensure visibility
+    &.k-button-flat {
+      &:not(.k-button-flat-error):not(.k-button-flat-primary) {
+        color: var(--ash-blue);
+
+        .k-svg-icon,
+        .k-icon,
+        svg {
+          fill: var(--ash-blue);
+          color: var(--ash-blue);
+        }
+
+        &:hover {
+          background: var(--ash-blue-15);
+          color: var(--octo-mint);
+
+          .k-svg-icon,
+          .k-icon,
+          svg {
+            fill: var(--octo-mint);
+            color: var(--octo-mint);
+          }
+        }
+      }
+    }
+  }
+}

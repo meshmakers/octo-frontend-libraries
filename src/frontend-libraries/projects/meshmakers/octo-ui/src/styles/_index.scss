@@ -1,3 +1,5 @@
 // Global Octo UI styles entrypoint.
-// Forward runtime-browser styles so consumers can configure theme variables.
-@forward "../lib/runtime-browser/styles/index";
+// Forwards LCARS theme variables(), styles(), and host-overrides() mixins.
+
+@forward "../lib/lcars-theme/index" show variables, styles;
+@forward "../lib/lcars-theme/host-overrides/index" show host-overrides;

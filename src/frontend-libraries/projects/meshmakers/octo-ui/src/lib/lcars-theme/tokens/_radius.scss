@@ -1,0 +1,12 @@
+// ============================================================================
+// LCARS DESIGN TOKENS - Border Radius
+// LCARS asymmetric radii are characteristic of the design language.
+// ============================================================================
+
+@mixin radius {
+  --lcars-radius-sm: 4px;
+  --lcars-radius-md: 8px;
+  --lcars-radius-lg: 16px;
+  --lcars-radius-xl: 24px;
+  --lcars-radius-pill: 50px;
+}

@@ -1,0 +1,17 @@
+// ============================================================================
+// Kendo Tooltip — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+
+@mixin tooltip {
+  // Tooltip - LCARS style
+  .k-tooltip {
+    background: var(--iron-navy);
+    border: 1px solid var(--octo-mint-40);
+    border-radius: var(--lcars-radius-sm);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.3),
+      var(--lcars-glow-primary);
+  }
+}

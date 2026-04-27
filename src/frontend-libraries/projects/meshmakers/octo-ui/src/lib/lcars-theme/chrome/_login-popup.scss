@@ -1,0 +1,117 @@
+// ============================================================================
+// Chrome — Login popup styling (rendered in body, so direct selectors are needed)
+// ============================================================================
+
+@use "sass:color";
+@use "../variables" as *;
+
+@mixin login-popup {
+  // Login popup
+
+  mm-login-app-bar-section {
+    --mm-login-bg-start: #{$iron-navy};
+    --mm-login-bg-end: #{$surface-elevated};
+    --mm-login-accent: #{$octo-mint};
+    --mm-login-accent-rgb: 100, 206, 185;
+    --mm-login-text: #ffffff;
+    --mm-login-btn-primary-start: #{$octo-mint};
+    --mm-login-btn-primary-end: #{color.adjust($octo-mint, $lightness: -10%)};
+    --mm-login-btn-primary-text: #{$deep-sea};
+    --mm-login-font: var(--lcars-font-primary);
+  }
+
+  // Style the popup container itself
+  .k-popup {
+    background: var(--iron-navy) !important;
+    border: 1px solid var(--octo-mint-30) !important;
+    border-radius: 8px !important;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 20px var(--octo-mint-10) !important;
+    // Allow scrolling in dropdowns - do NOT use overflow: hidden
+
+    // Login popup content — rendered in body, so CSS variables from
+    // mm-login-app-bar-section :host don't cascade here. Style directly.
+    > .content {
+      --mm-login-bg-start: #{$iron-navy};
+      --mm-login-bg-end: #{$surface-elevated};
+      --mm-login-accent: #{$octo-mint};
+      --mm-login-accent-rgb: 100, 206, 185;
+      --mm-login-text: #ffffff;
+      --mm-login-btn-primary-start: #{$octo-mint};
+      --mm-login-btn-primary-end: #{color.adjust($octo-mint, $lightness: -10%)};
+      --mm-login-btn-primary-text: #{$deep-sea};
+      --mm-login-font: var(--lcars-font-primary);
+
+      background: linear-gradient(
+        180deg,
+        var(--iron-navy),
+        var(--surface-elevated)
+      );
+
+      .user-avatar {
+        border: 2px solid var(--octo-mint-40);
+        box-shadow: 0 0 15px var(--octo-mint-30);
+
+        .k-avatar-text {
+          font-family: var(
+            --lcars-font-primary,
+            "Montserrat",
+            sans-serif
+          ) !important;
+          font-weight: 600 !important;
+          text-transform: uppercase !important;
+        }
+      }
+
+      .user-name {
+        font-family: var(
+          --lcars-font-primary,
+          "Montserrat",
+          sans-serif
+        );
+        color: var(--octo-text-color);
+      }
+
+      .buttons {
+        .k-button {
+          font-family: var(
+            --lcars-font-primary,
+            "Montserrat",
+            sans-serif
+          ) !important;
+        }
+
+        button.k-button-solid-primary {
+          background: linear-gradient(
+            180deg,
+            var(--octo-mint),
+            color.adjust($octo-mint, $lightness: -10%)
+          ) !important;
+          border: none !important;
+          color: var(--deep-sea) !important;
+
+          &:hover {
+            background: linear-gradient(
+              180deg,
+              color.adjust($octo-mint, $lightness: 5%),
+              var(--octo-mint)
+            ) !important;
+            box-shadow: 0 0 15px var(--octo-mint-50) !important;
+          }
+        }
+
+        a.k-button-solid {
+          background: var(--octo-mint-10) !important;
+          border: 1px solid var(--octo-mint-30) !important;
+          color: var(--octo-mint) !important;
+
+          &:hover {
+            background: var(--octo-mint-20) !important;
+            box-shadow: 0 0 10px var(--octo-mint-30) !important;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,109 @@
+// ============================================================================
+// Kendo Dialog — LCARS overrides
+// ============================================================================
+
+@use "../variables" as *;
+@use "../lcars-button" as *;
+@use "../lcars-flat-btn" as *;
+
+@mixin dialog {
+  // Kendo dialog - scrolling fix
+
+  // Target the actual dialog element directly with high specificity
+  .k-dialog-wrapper .k-window.k-dialog,
+  .k-dialog-wrapper > .k-dialog,
+  div.k-window.k-dialog {
+    max-height: 85vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  // Title bar stays at top
+  .k-dialog-wrapper .k-window-titlebar,
+  .k-dialog-wrapper .k-dialog-titlebar,
+  .k-window.k-dialog > kendo-dialog-titlebar {
+    flex-shrink: 0 !important;
+  }
+
+  // Content area scrolls
+  .k-dialog-wrapper .k-window-content,
+  .k-dialog-wrapper .k-dialog-content,
+  .k-window.k-dialog > .k-dialog-content {
+    overflow-y: auto !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: calc(85vh - 110px) !important;
+  }
+
+  // Action buttons stay at bottom
+  .k-dialog-wrapper kendo-dialog-actions,
+  .k-dialog-wrapper .k-dialog-actions,
+  .k-window.k-dialog > .k-dialog-actions {
+    flex-shrink: 0 !important;
+  }
+
+  // Dialog - LCARS style
+  .k-dialog {
+    background: var(--lcars-dialog-bg);
+    border: var(--lcars-dialog-border);
+    border-radius: var(--lcars-radius-lg);
+    box-shadow:
+      0 16px 64px rgba(0, 0, 0, 0.5),
+      0 0 40px var(--octo-mint-15);
+    overflow: hidden;
+
+    .k-dialog-titlebar {
+      background: linear-gradient(
+        90deg,
+        var(--iron-navy),
+        var(--surface-elevated)
+      );
+      border-bottom: 2px solid var(--octo-mint);
+      font-family: var(--lcars-font-primary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+
+      &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--octo-mint);
+      }
+    }
+
+    .k-dialog-content,
+    .k-window-content {
+      background: var(--deep-sea);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      // Allow content to fill available space
+      > * {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+    }
+
+    .k-dialog-actions {
+      background: var(--iron-navy);
+      border-top: 1px solid var(--octo-mint-20);
+      flex-shrink: 0;
+
+      .k-button {
+        @include lcars-button;
+
+        // Override Kendo flat/outline button styles for consistent LCARS look
+        &.k-button-flat,
+        &.k-button-outline {
+          @include lcars-flat-btn;
+        }
+      }
+    }
+  }
+}

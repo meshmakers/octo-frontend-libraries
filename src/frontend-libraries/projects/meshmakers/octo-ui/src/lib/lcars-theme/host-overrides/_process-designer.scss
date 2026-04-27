@@ -1,0 +1,1476 @@
+@use "../variables" as *;
+@use "../lcars-input" as *;
+
+// ============================================================================
+// HOST OVERRIDE — Process Designer & Symbol Editor LCARS theming
+//
+// Library components (octo-process-diagrams, octo-meshboard) ship with neutral
+// styles. This mixin emits LCARS-specific overrides for hosts (Refinery Studio
+// etc.). Pulled in only via @include octo.host-overrides();
+// ============================================================================
+
+@mixin process-designer {
+  // Dockview panel content areas
+  mm-elements-panel,
+  mm-symbols-panel,
+  mm-properties-panel,
+  mm-transform-panel,
+  mm-animations-panel,
+  mm-simulation-panel-wrapper,
+  mm-settings-panel,
+  mm-exposures-panel,
+  mm-styles-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--surface-elevated);
+    color: var(--octo-text-color);
+  }
+
+  // Styles Panel LCARS theming (overrides library defaults)
+  // Use ::ng-deep to penetrate Angular's ViewEncapsulation
+  ::ng-deep mm-styles-panel {
+    .panel-container {
+      background: var(--surface-elevated);
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .panel-toolbar {
+      border-bottom-color: var(--octo-mint-20);
+      flex-shrink: 0;
+    }
+
+    .style-list {
+      flex: 0 0 auto;
+    }
+
+    .style-editor {
+      flex: 0 0 auto;
+    }
+
+    .panel-footer {
+      flex-shrink: 0;
+    }
+
+    .add-button {
+      background: var(--iron-navy);
+      border-color: var(--octo-mint-30);
+      color: var(--ash-blue);
+
+      &:hover {
+        background: var(--octo-mint-15);
+        border-color: var(--octo-mint);
+        color: var(--octo-mint);
+      }
+    }
+
+    .style-item {
+      background: var(--surface-elevated);
+      border-color: var(--octo-mint-20);
+
+      &:hover {
+        background: var(--iron-navy);
+        border-color: var(--octo-mint);
+      }
+
+      &.selected {
+        background: var(--octo-mint-15);
+        border-color: var(--octo-mint);
+      }
+    }
+
+    .style-name {
+      color: var(--octo-text-color);
+    }
+
+    .delete-button {
+      color: var(--ash-blue);
+
+      &:hover {
+        background: var(--bubblegum-20);
+        color: var(--bubblegum);
+      }
+    }
+
+    .empty-state {
+      color: var(--ash-blue);
+    }
+
+    .style-editor {
+      background: var(--iron-navy);
+      border-top-color: var(--octo-mint-20);
+    }
+
+    .editor-section h4 {
+      color: var(--ash-blue);
+    }
+
+    .form-group {
+      label {
+        color: var(--ash-blue);
+      }
+      input[type="text"],
+      input[type="number"] {
+        @include lcars-input;
+      }
+      input[type="color"] {
+        border-color: var(--octo-mint-30);
+      }
+    }
+    .line-type-select {
+      @include lcars-input;
+    }
+
+    .line-preview {
+      background: var(--deep-sea);
+      border-color: var(--octo-mint-30);
+    }
+
+    .opacity-value {
+      color: var(--ash-blue);
+    }
+
+    .panel-footer {
+      background: var(--iron-navy);
+      border-top-color: var(--octo-mint-20);
+
+      .hint {
+        color: var(--ash-blue-70);
+      }
+    }
+  }
+
+  // Element Palette styling (inside dockview panels)
+  .element-palette,
+  .symbols-palette {
+    background: var(--surface-elevated);
+
+    .palette-search input {
+      @include lcars-input;
+      &::placeholder {
+        color: var(--ash-blue);
+      }
+    }
+
+    .palette-content {
+      background: var(--surface-elevated);
+    }
+
+    .palette-category {
+      background: transparent;
+      border-bottom: 1px solid var(--octo-mint-10);
+
+      .category-header {
+        background: var(--iron-navy-50);
+        color: var(--ash-blue);
+        font-family: "Montserrat", "Roboto", sans-serif;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: var(--octo-mint-10);
+          color: var(--octo-text-color);
+        }
+
+        .category-icon {
+          color: var(--ash-blue);
+        }
+
+        .category-name {
+          color: inherit;
+        }
+
+        .category-count {
+          color: var(--ash-blue-70);
+        }
+      }
+
+      .category-elements {
+        background: var(--surface-elevated);
+        padding: 8px;
+      }
+    }
+
+    .palette-element {
+      background: var(--iron-navy-50);
+      border: 1px solid var(--octo-mint-15);
+      border-radius: 4px;
+      color: var(--octo-text-color);
+      transition: all 0.15s ease;
+      cursor: pointer;
+
+      &:hover {
+        background: var(--octo-mint-15);
+        border-color: var(--octo-mint-40);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .element-preview {
+        svg {
+          stroke: var(--octo-mint);
+          fill: none;
+        }
+      }
+
+      .element-label {
+        color: var(--ash-blue);
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+    }
+  }
+
+  // Property Inspector styling
+  .property-inspector {
+    background: var(--surface-elevated);
+
+    .inspector-content {
+      background: var(--surface-elevated);
+      color: var(--octo-text-color);
+    }
+
+    .no-selection,
+    .multi-selection {
+      color: var(--ash-blue);
+      font-family: "Montserrat", "Roboto", sans-serif;
+
+      .hint {
+        color: var(--ash-blue-70);
+      }
+    }
+
+    // Section headers
+    .section-header {
+      color: var(--octo-mint);
+      border-bottom-color: var(--octo-mint-20);
+      font-family: "Montserrat", "Roboto", sans-serif;
+    }
+
+    // Labels
+    .property-row label {
+      color: var(--ash-blue);
+    }
+
+    // Text inputs, number inputs, selects
+    .property-row input[type="text"],
+    .property-row input[type="number"],
+    .property-row select,
+    .style-class-select,
+    .line-type-select {
+      @include lcars-input;
+    }
+
+    .property-row select option,
+    .style-class-select option,
+    .line-type-select option {
+      background: var(--deep-sea);
+      color: var(--octo-text-color);
+    }
+
+    // Checkboxes
+    .property-row input[type="checkbox"] {
+      accent-color: var(--octo-mint);
+    }
+
+    // Color inputs
+    .property-row input[type="color"] {
+      background: var(--deep-sea);
+      border: 1px solid var(--octo-mint-30);
+      border-radius: 4px;
+    }
+
+    // Type badge
+    .type-badge {
+      background: var(--octo-mint-15);
+      color: var(--octo-mint);
+      border: 1px solid var(--octo-mint-30);
+    }
+
+    // Opacity value text
+    .opacity-value {
+      color: var(--ash-blue);
+    }
+
+    // Info values
+    .info-value {
+      color: var(--octo-text-color);
+    }
+
+    // Line preview
+    .line-preview {
+      background: var(--iron-navy);
+      border-color: var(--octo-mint-20);
+    }
+
+    // Opacity slider
+    .opacity-slider {
+      background: linear-gradient(
+        to right,
+        transparent,
+        var(--octo-mint)
+      );
+
+      &::-webkit-slider-thumb {
+        background: var(--octo-mint);
+        border-color: var(--surface-elevated);
+      }
+
+      &::-moz-range-thumb {
+        background: var(--octo-mint);
+        border-color: var(--surface-elevated);
+      }
+    }
+
+    // Image preview container
+    .image-preview-container {
+      background: var(--iron-navy);
+      border-color: var(--octo-mint-20);
+    }
+
+    // File upload button
+    .file-upload-button {
+      background: linear-gradient(
+        180deg,
+        var(--octo-mint-15),
+        var(--octo-mint-05)
+      );
+      border: 1px solid var(--octo-mint-30);
+      color: var(--octo-mint);
+
+      &:hover {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-25),
+          var(--octo-mint-15)
+        );
+        border-color: var(--octo-mint);
+      }
+    }
+
+    .file-type-hint {
+      color: var(--ash-blue-70);
+    }
+
+    // Exposed properties
+    .exposed-property label {
+      color: var(--octo-text-color);
+    }
+
+    .default-value {
+      color: var(--ash-blue);
+    }
+
+    .exposed-hint {
+      color: var(--ash-blue-70);
+    }
+  }
+
+  // Animation Editor styling
+  .animation-editor {
+    background: var(--surface-elevated);
+
+    .editor-toolbar {
+      background: var(--iron-navy);
+      border-bottom: 1px solid var(--octo-mint-20);
+    }
+
+    .section-content {
+      background: var(--surface-elevated);
+    }
+
+    .empty-state {
+      color: var(--ash-blue);
+
+      button {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-15),
+          var(--octo-mint-05)
+        );
+        border: 1px solid var(--octo-mint-30);
+        color: var(--octo-mint);
+
+        &:hover {
+          background: linear-gradient(
+            180deg,
+            var(--octo-mint-25),
+            var(--octo-mint-15)
+          );
+          border-color: var(--octo-mint);
+        }
+      }
+    }
+
+    // Animation items
+    .animation-item {
+      background: var(--iron-navy-50);
+      border-color: var(--octo-mint-15);
+
+      &:hover {
+        background: var(--iron-navy-70);
+      }
+
+      &.expanded {
+        border-color: var(--octo-mint-30);
+      }
+    }
+
+    .item-header {
+      color: var(--octo-text-color);
+
+      &:hover {
+        background: var(--octo-mint-10);
+      }
+    }
+
+    .item-info {
+      color: var(--ash-blue);
+    }
+
+    // Action buttons - always visible, not just on hover
+    .item-actions {
+      opacity: 1 !important;
+
+      .k-button {
+        background: transparent !important;
+        border: none !important;
+        color: var(--ash-blue) !important;
+
+        &:hover {
+          color: var(--octo-mint) !important;
+          background: var(--octo-mint-10) !important;
+        }
+
+        .k-svg-icon,
+        .k-icon {
+          color: inherit !important;
+        }
+      }
+
+      // Delete button with red/pink accent on hover
+      .k-button:last-child:hover {
+        color: #ec658f !important;
+        background: var(--bubblegum-10) !important;
+      }
+    }
+
+    // Edit form
+    .item-edit-form {
+      background: var(--iron-navy);
+      border-top-color: var(--octo-mint-20);
+    }
+
+    .form-row label {
+      color: var(--ash-blue);
+    }
+
+    .form-row.hint-row {
+      background: var(--octo-mint-10);
+    }
+
+    .hint-text {
+      color: var(--octo-mint);
+    }
+
+    .input-with-unit .unit {
+      color: var(--ash-blue);
+    }
+
+    // Anchor grid
+    .anchor-point {
+      background: var(--deep-sea);
+      border-color: var(--octo-mint-30);
+
+      &:hover {
+        border-color: var(--octo-mint);
+      }
+
+      &.selected {
+        border-color: var(--octo-mint);
+        background: var(--octo-mint-20);
+      }
+    }
+
+    .anchor-dot {
+      background: var(--ash-blue);
+    }
+
+    .anchor-point.selected .anchor-dot {
+      background: var(--octo-mint);
+    }
+
+    // Preset picker
+    .preset-picker {
+      background: var(--surface-elevated);
+      border-color: var(--octo-mint);
+    }
+
+    .preset-header {
+      background: var(--octo-mint-15);
+      border-bottom-color: var(--octo-mint-30);
+      color: var(--octo-text-color);
+    }
+
+    .group-name {
+      color: var(--ash-blue);
+    }
+
+    .preset-button {
+      background: var(--deep-sea);
+      border-color: var(--octo-mint-30);
+      color: var(--octo-text-color);
+
+      &:hover {
+        border-color: var(--octo-mint);
+        background: var(--octo-mint-15);
+      }
+    }
+
+    // Path textarea
+    .path-textarea {
+      background: var(--deep-sea);
+      border-color: var(--octo-mint-30);
+      color: var(--octo-text-color);
+
+      &:focus {
+        border-color: var(--octo-mint);
+        outline: none;
+      }
+    }
+  }
+
+  // Transform Property Editor (Exposures Panel) styling
+  .transform-property-editor {
+    background: var(--surface-elevated);
+
+    .editor-toolbar {
+      background: var(--iron-navy);
+      border-bottom: 1px solid var(--octo-mint-20);
+    }
+
+    .properties-list {
+      background: var(--surface-elevated);
+    }
+
+    .empty-state {
+      color: var(--ash-blue);
+
+      .hint {
+        color: var(--ash-blue-70);
+      }
+    }
+
+    // Property cards
+    .property-card {
+      background: var(--iron-navy);
+      border: 1px solid var(--octo-mint-20);
+      border-radius: 8px;
+
+      &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      &.editing {
+        border-color: var(--octo-mint);
+        box-shadow: 0 2px 8px var(--octo-mint-20);
+      }
+    }
+
+    .property-name {
+      color: var(--octo-text-color);
+    }
+
+    .property-type-badge {
+      background: var(--octo-mint-15);
+      color: var(--octo-mint);
+    }
+
+    .property-unit {
+      color: var(--ash-blue);
+    }
+
+    .property-details {
+      color: var(--ash-blue);
+    }
+
+    .bindings-count {
+      background: var(--octo-mint-10);
+      color: var(--ash-blue);
+    }
+
+    .property-description {
+      color: var(--ash-blue-70);
+    }
+
+    .color-swatch {
+      border-color: var(--octo-mint-30);
+    }
+
+    // Edit form
+    .property-edit-form {
+      background: var(--iron-navy);
+
+      .form-row label {
+        color: var(--ash-blue);
+      }
+
+      .form-row input[type="text"],
+      .form-row input[type="number"],
+      .form-row select {
+        background: var(--deep-sea);
+        border: 1px solid var(--octo-mint-30);
+        color: var(--octo-text-color);
+
+        &:focus {
+          border-color: var(--octo-mint);
+          box-shadow: var(--lcars-input-focus);
+          outline: none;
+        }
+
+        option {
+          background: var(--deep-sea);
+          color: var(--octo-text-color);
+        }
+      }
+
+      .form-row input[type="color"] {
+        background: var(--deep-sea);
+        border: 1px solid var(--octo-mint-30);
+      }
+
+      .form-row input[type="checkbox"] {
+        accent-color: var(--octo-mint);
+      }
+
+      .form-actions {
+        border-top-color: var(--octo-mint-20);
+      }
+    }
+  }
+
+  // Simulation Panel styling
+  .simulation-panel {
+    background: var(--surface-elevated);
+
+    .panel-toolbar {
+      background: var(--iron-navy);
+      border-bottom: 1px solid var(--octo-mint-20);
+
+      .k-button {
+        color: var(--ash-blue) !important;
+
+        &:hover {
+          color: var(--octo-mint) !important;
+          background: var(--octo-mint-10) !important;
+        }
+      }
+    }
+
+    .panel-content {
+      background: var(--surface-elevated);
+    }
+
+    // Property control cards
+    .property-control {
+      background: var(--iron-navy);
+      border: 1px solid var(--octo-mint-20);
+
+      &:hover {
+        border-color: var(--octo-mint-40);
+      }
+    }
+
+    .control-header {
+      .property-name {
+        color: var(--octo-text-color);
+      }
+
+      .property-unit {
+        color: var(--ash-blue);
+      }
+    }
+
+    // Number control (slider + input)
+    .number-control {
+      .value-slider {
+        background: linear-gradient(
+          to right,
+          var(--octo-mint-20),
+          var(--octo-mint)
+        );
+
+        &::-webkit-slider-thumb {
+          background: var(--octo-mint);
+          border-color: var(--deep-sea);
+          box-shadow: 0 0 8px var(--octo-mint-50);
+        }
+
+        &::-moz-range-thumb {
+          background: var(--octo-mint);
+          border-color: var(--deep-sea);
+          box-shadow: 0 0 8px var(--octo-mint-50);
+        }
+      }
+
+      .value-input {
+        background: var(--deep-sea);
+        border: 1px solid var(--octo-mint-30);
+        color: var(--octo-text-color);
+
+        &:focus {
+          border-color: var(--octo-mint);
+          box-shadow: var(--lcars-input-focus);
+        }
+      }
+    }
+
+    .value-range {
+      color: var(--ash-blue);
+    }
+
+    // Color control
+    .color-control {
+      input[type="color"] {
+        border-color: var(--octo-mint-30);
+      }
+
+      .color-input {
+        background: var(--deep-sea);
+        border: 1px solid var(--octo-mint-30);
+        color: var(--octo-mint);
+
+        &:focus {
+          border-color: var(--octo-mint);
+        }
+      }
+    }
+
+    // Boolean control
+    .boolean-control {
+      .toggle-label input[type="checkbox"] {
+        accent-color: var(--octo-mint);
+      }
+
+      .toggle-text {
+        color: var(--ash-blue);
+      }
+    }
+
+    // String control
+    .string-control input {
+      background: var(--deep-sea);
+      border: 1px solid var(--octo-mint-30);
+      color: var(--octo-text-color);
+
+      &:focus {
+        border-color: var(--octo-mint);
+        box-shadow: var(--lcars-input-focus);
+      }
+    }
+
+    // Reset button - always visible
+    .reset-button {
+      opacity: 1 !important;
+      color: var(--ash-blue);
+
+      &:hover {
+        color: var(--octo-mint);
+        background: var(--octo-mint-10);
+      }
+    }
+  }
+
+  // Styles Panel styling - CSS variables are now set globally in :root
+
+  // Settings Panel styling
+  .panel-container {
+    background: var(--surface-elevated);
+
+    .settings-section {
+      border-bottom-color: var(--octo-mint-20);
+
+      h4 {
+        color: var(--octo-mint);
+      }
+    }
+
+    .form-group {
+      label {
+        color: var(--ash-blue);
+      }
+
+      input,
+      textarea {
+        background: var(--deep-sea);
+        border: 1px solid var(--octo-mint-30);
+        color: var(--octo-text-color);
+
+        &::placeholder {
+          color: var(--ash-blue);
+        }
+
+        &:focus {
+          border-color: var(--octo-mint);
+          box-shadow: var(--lcars-input-focus);
+        }
+      }
+
+      // Kendo TextBox
+      .k-textbox,
+      .k-input {
+        background: var(--deep-sea) !important;
+        border-color: var(--octo-mint-30) !important;
+        color: var(--octo-text-color) !important;
+      }
+
+      // Kendo NumericTextBox
+      .k-numerictextbox,
+      kendo-numerictextbox {
+        background: var(--deep-sea) !important;
+        border-color: var(--octo-mint-30) !important;
+
+        .k-input-inner {
+          background: transparent !important;
+          color: var(--octo-text-color) !important;
+        }
+
+        .k-input-button,
+        .k-spinner-increase,
+        .k-spinner-decrease {
+          background: var(--octo-mint-10) !important;
+          border-color: var(--octo-mint-30) !important;
+          color: var(--octo-mint) !important;
+
+          &:hover {
+            background: var(--octo-mint-20) !important;
+          }
+        }
+      }
+
+      // Kendo TextArea
+      .k-textarea,
+      kendo-textarea {
+        background: var(--deep-sea) !important;
+        border-color: var(--octo-mint-30) !important;
+
+        textarea {
+          background: transparent !important;
+          color: var(--octo-text-color) !important;
+        }
+      }
+    }
+  }
+
+  // Symbol Library Panel styling
+  .symbol-library-panel {
+    background: var(--surface-elevated);
+
+    .panel-search {
+      border-bottom: 1px solid var(--octo-mint-20);
+
+      input {
+        background: var(--deep-sea);
+        border: 1px solid var(--octo-mint-30);
+        color: var(--octo-text-color);
+
+        &::placeholder {
+          color: var(--ash-blue);
+        }
+
+        &:focus {
+          border-color: var(--octo-mint);
+          box-shadow: var(--lcars-input-focus);
+        }
+      }
+    }
+
+    .panel-content {
+      background: var(--surface-elevated);
+    }
+
+    // Loading state
+    .loading {
+      color: var(--ash-blue);
+    }
+
+    .loading-spinner {
+      border-color: var(--octo-mint-20);
+      border-top-color: var(--octo-mint);
+    }
+
+    // Error state
+    .error {
+      color: #ec658f;
+    }
+
+    .error-icon {
+      background: rgba(236, 101, 143, 0.2);
+      color: #ec658f;
+    }
+
+    .retry-btn {
+      background: transparent;
+      border: 1px solid #ec658f;
+      color: #ec658f;
+
+      &:hover {
+        background: var(--bubblegum-10);
+      }
+    }
+
+    // Library sections
+    .library-section {
+      background: transparent;
+    }
+
+    .library-header {
+      background: var(--iron-navy);
+      border: 1px solid var(--octo-mint-20);
+
+      &:hover {
+        background: var(--octo-mint-10);
+        border-color: var(--octo-mint-40);
+      }
+    }
+
+    .expand-icon {
+      color: var(--octo-mint);
+    }
+
+    .library-name {
+      color: var(--octo-text-color);
+    }
+
+    .library-count {
+      color: var(--ash-blue);
+    }
+
+    // Symbol items
+    .library-symbols {
+      background: transparent;
+    }
+
+    .symbol-item {
+      background: var(--iron-navy);
+      border: 1px solid var(--octo-mint-20);
+
+      &:hover {
+        border-color: var(--octo-mint);
+        box-shadow: 0 0 12px var(--octo-mint-30);
+      }
+    }
+
+    .symbol-preview {
+      // Use a lighter background so dark symbols remain visible
+      background: #4a5568;
+      border: 1px solid var(--octo-mint-15);
+    }
+
+    .symbol-label {
+      color: var(--ash-blue);
+    }
+
+    // Empty/no results states
+    .empty-library,
+    .no-results {
+      color: var(--ash-blue);
+    }
+  }
+
+  // Binding Editor Dialog styling
+  .binding-editor-content {
+    background: var(--surface-elevated);
+
+    .list-header {
+      border-bottom-color: var(--octo-mint-20);
+      color: var(--octo-text-color);
+    }
+
+    .empty-state {
+      background: var(--iron-navy);
+      color: var(--ash-blue);
+
+      .hint {
+        color: var(--ash-blue-70);
+      }
+    }
+
+    // Binding cards
+    .binding-card {
+      background: var(--iron-navy);
+      border: 1px solid var(--octo-mint-20);
+
+      &.expanded {
+        border-color: var(--octo-mint);
+      }
+    }
+
+    .binding-header {
+      background: var(--iron-navy-80);
+
+      &:hover {
+        background: var(--octo-mint-10);
+      }
+    }
+
+    .target-name {
+      color: var(--octo-text-color);
+    }
+
+    .effect-badge {
+      background: var(--octo-mint-15);
+      color: var(--octo-mint);
+    }
+
+    // Binding form
+    .binding-form {
+      border-top-color: var(--octo-mint-20);
+      background: var(--surface-elevated);
+
+      .form-row label {
+        color: var(--ash-blue);
+      }
+
+      .form-row select,
+      .form-row input[type="text"],
+      .form-row input[type="number"] {
+        background: var(--deep-sea);
+        border: 1px solid var(--octo-mint-30);
+        color: var(--octo-text-color);
+
+        &:focus {
+          border-color: var(--octo-mint);
+          box-shadow: var(--lcars-input-focus);
+          outline: none;
+        }
+
+        option,
+        optgroup {
+          background: var(--deep-sea);
+          color: var(--octo-text-color);
+        }
+      }
+    }
+
+    // Expression hint
+    .expression-hint {
+      color: var(--ash-blue-70);
+
+      code {
+        background: var(--deep-sea);
+        color: var(--octo-mint);
+      }
+    }
+
+    // Expression preview
+    .expression-preview {
+      background: var(--iron-navy);
+      border-radius: 6px;
+
+      > label {
+        color: var(--ash-blue);
+      }
+
+      .preview-input,
+      .preview-output {
+        color: var(--ash-blue);
+      }
+
+      .preview-input input[type="number"] {
+        background: var(--deep-sea);
+        border: 1px solid var(--octo-mint-30);
+        color: var(--octo-text-color);
+      }
+
+      .preview-input input[type="checkbox"] {
+        accent-color: var(--octo-mint);
+      }
+
+      .boolean-label {
+        color: var(--octo-text-color);
+      }
+
+      .preview-arrow {
+        color: var(--ash-blue);
+      }
+
+      .preview-output .output-value {
+        color: var(--octo-mint);
+      }
+
+      .preview-output.error .output-value {
+        color: #ec658f;
+      }
+    }
+
+    // Anchor grid
+    .anchor-grid {
+      background: var(--octo-mint-10);
+    }
+
+    .anchor-point {
+      background: var(--deep-sea);
+      border: none;
+
+      &:hover {
+        background: var(--octo-mint-20);
+      }
+
+      &.selected {
+        background: var(--octo-mint);
+      }
+    }
+
+    .anchor-dot {
+      background: var(--ash-blue);
+    }
+
+    .anchor-point.selected .anchor-dot {
+      background: var(--deep-sea);
+    }
+
+    .anchor-point:hover .anchor-dot {
+      background: var(--octo-mint);
+    }
+
+    .anchor-point.selected:hover .anchor-dot {
+      background: var(--deep-sea);
+    }
+
+    .anchor-label {
+      color: var(--ash-blue);
+    }
+  }
+
+  // Global Kendo inputs styling for process designer panels
+  mm-process-designer,
+  mm-symbol-editor,
+  mm-symbol-editor-page {
+    // Kendo TextBox
+    .k-textbox,
+    .k-input,
+    kendo-textbox input,
+    kendo-numerictextbox input {
+      background: var(--deep-sea) !important;
+      border-color: var(--octo-mint-30) !important;
+      color: var(--octo-text-color) !important;
+
+      &:focus,
+      &.k-focus {
+        border-color: var(--octo-mint) !important;
+        box-shadow: var(--lcars-input-focus) !important;
+      }
+    }
+
+    // Kendo DropDownList
+    .k-dropdownlist,
+    kendo-dropdownlist {
+      background: var(--deep-sea) !important;
+      border-color: var(--octo-mint-30) !important;
+      color: var(--octo-text-color) !important;
+
+      .k-input-inner {
+        background: transparent !important;
+        color: var(--octo-text-color) !important;
+      }
+
+      .k-button {
+        background: transparent !important;
+        border-color: transparent !important;
+        color: var(--ash-blue) !important;
+
+        &:hover {
+          color: var(--octo-mint) !important;
+        }
+      }
+
+      &:focus,
+      &.k-focus {
+        border-color: var(--octo-mint) !important;
+        box-shadow: var(--lcars-input-focus) !important;
+      }
+    }
+
+    // Kendo NumericTextBox
+    .k-numerictextbox {
+      background: var(--deep-sea) !important;
+      border-color: var(--octo-mint-30) !important;
+
+      .k-input-inner {
+        background: transparent !important;
+        color: var(--octo-text-color) !important;
+      }
+
+      .k-input-button,
+      .k-spinner-increase,
+      .k-spinner-decrease {
+        background: var(--octo-mint-10) !important;
+        border-color: var(--octo-mint-30) !important;
+        color: var(--octo-mint) !important;
+
+        &:hover {
+          background: var(--octo-mint-20) !important;
+        }
+      }
+    }
+  }
+
+  // SVG Import Dialog styling
+  .svg-file-group,
+  .form-group.svg-file-group {
+    background: var(--surface-elevated);
+    border: 2px dashed var(--octo-mint-30);
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--octo-mint-50);
+      background: var(--octo-mint-05);
+    }
+
+    // File input button
+    button {
+      background: linear-gradient(
+        180deg,
+        var(--octo-mint-15),
+        var(--octo-mint-05)
+      );
+      border: 1px solid var(--octo-mint-30);
+      color: var(--octo-mint);
+
+      &:hover {
+        background: linear-gradient(
+          180deg,
+          var(--octo-mint-25),
+          var(--octo-mint-15)
+        );
+        border-color: var(--octo-mint);
+        box-shadow: 0 0 10px var(--octo-mint-30);
+      }
+    }
+  }
+
+  // SVG Scale group styling
+  .svg-scale-group,
+  .form-group.svg-scale-group {
+    background: var(--surface-elevated);
+    border: 1px solid var(--octo-mint-20);
+    border-radius: 8px;
+    padding: 12px 16px;
+
+    label {
+      color: var(--ash-blue);
+    }
+
+    .scale-info,
+    .dimension-info {
+      color: var(--ash-blue);
+    }
+
+    // Kendo numeric textbox
+    .k-numerictextbox {
+      background: var(--deep-sea) !important;
+      border-color: var(--octo-mint-30) !important;
+
+      .k-input-inner {
+        background: var(--deep-sea) !important;
+        color: var(--octo-text-color) !important;
+      }
+
+      .k-input-button {
+        background: var(--octo-mint-10) !important;
+        border-color: var(--octo-mint-30) !important;
+        color: var(--octo-mint) !important;
+
+        &:hover {
+          background: var(--octo-mint-20) !important;
+        }
+      }
+    }
+
+    // Reset button
+    button.reset-btn,
+    .reset-button {
+      background: transparent;
+      border: 1px solid var(--ash-blue-30);
+      color: var(--ash-blue);
+
+      &:hover {
+        background: var(--ash-blue-10);
+        border-color: var(--ash-blue);
+      }
+    }
+  }
+
+  // Symbol import dialog content
+  .import-svg-dialog,
+  .symbol-import-dialog {
+    .dialog-content {
+      background: var(--deep-sea);
+    }
+
+    .form-group {
+      label {
+        color: var(--ash-blue);
+      }
+
+      input[type="text"] {
+        background: var(--deep-sea);
+        border: 1px solid var(--octo-mint-30);
+        color: var(--octo-text-color);
+
+        &:focus {
+          border-color: var(--octo-mint);
+          box-shadow: var(--lcars-input-focus);
+        }
+      }
+    }
+
+    .preview-container {
+      background: var(--iron-navy);
+      border: 1px solid var(--octo-mint-20);
+    }
+  }
+
+  // Process Designer & Symbol Editor - LCARS overrides
+  mm-process-designer,
+  mm-symbol-editor,
+  mm-symbol-editor-page {
+    // Override designer CSS variables for LCARS theme
+    --designer-bg: #{$deep-sea};
+    --designer-surface: #{$surface-elevated};
+    --designer-surface-alt: #{$iron-navy};
+    --designer-border: rgba(100, 206, 185, 0.2);
+    --designer-text: #ffffff;
+    --designer-text-muted: #{$ash-blue};
+    --designer-accent: #{$octo-mint};
+    --designer-accent-secondary: #{$neo-cyan};
+    --designer-canvas-bg: #{$surface-elevated};
+    --designer-hover-bg: rgba(100, 206, 185, 0.1);
+
+    // Canvas-specific colors (SVG canvas fill and grid)
+    --designer-canvas-color: #{$iron-navy};
+    --designer-grid-color: rgba(100, 206, 185, 0.15);
+
+    // Editor-specific variables (inherited from designer)
+    --editor-bg: #{$deep-sea};
+    --editor-surface: #{$surface-elevated};
+    --editor-surface-alt: #{$iron-navy};
+    --editor-border: rgba(100, 206, 185, 0.2);
+    --editor-text: #ffffff;
+    --editor-text-muted: #{$ash-blue};
+    --editor-accent: #{$octo-mint};
+    --editor-hover-bg: rgba(100, 206, 185, 0.1);
+
+    // Force backgrounds directly on elements
+    background: #{$deep-sea};
+  }
+
+  // Force LCARS styling on process designer internal elements
+  ::ng-deep {
+    mm-process-designer,
+    mm-symbol-editor {
+      .process-designer {
+        background: #{$deep-sea};
+      }
+
+      .designer-canvas-container {
+        background: #{$surface-elevated};
+      }
+
+      // Canvas SVG background - LCARS dark theme
+      .canvas-background {
+        fill: #{$iron-navy};
+      }
+
+      // Grid lines - subtle mint-colored grid
+      .designer-grid-line {
+        stroke: rgba(100, 206, 185, 0.15);
+      }
+
+      .designer-sidebar,
+      .designer-inspector-container {
+        background: #{$surface-elevated};
+        border-color: rgba(100, 206, 185, 0.2);
+      }
+
+      .sidebar-tab {
+        background: #{$iron-navy};
+        color: #{$ash-blue};
+
+        &.active {
+          background: #{$surface-elevated};
+          color: #{$octo-mint};
+          border-bottom-color: #{$octo-mint};
+        }
+      }
+
+      .designer-statusbar {
+        background: #{$iron-navy};
+        border-color: rgba(100, 206, 185, 0.2);
+        color: #{$ash-blue};
+      }
+
+      .dockview-panels-container {
+        background: #{$surface-elevated};
+        border-color: rgba(100, 206, 185, 0.2);
+      }
+    }
+
+    mm-symbol-editor-page {
+      .symbol-editor-page-container {
+        background: #{$deep-sea};
+      }
+
+      .editor-header {
+        background: #{$iron-navy};
+        border-color: rgba(100, 206, 185, 0.2);
+      }
+
+      .symbol-title {
+        color: var(--octo-text-color);
+      }
+
+      .library-name {
+        color: #{$ash-blue};
+      }
+    }
+
+    // Symbol editor container
+    mm-symbol-editor {
+      .symbol-editor-container {
+        background: #{$deep-sea};
+      }
+
+      .properties-panel {
+        background: #{$surface-elevated};
+        border-color: rgba(100, 206, 185, 0.2);
+      }
+
+      .panel-header {
+        background: #{$iron-navy};
+        border-color: rgba(100, 206, 185, 0.2);
+      }
+
+      .panel-title {
+        color: var(--octo-text-color);
+      }
+
+      .panel-collapsed {
+        background: #{$iron-navy};
+        border-color: rgba(100, 206, 185, 0.2);
+      }
+
+      .collapsed-label,
+      .collapsed-icon {
+        color: #{$ash-blue};
+      }
+    }
+  }
+}

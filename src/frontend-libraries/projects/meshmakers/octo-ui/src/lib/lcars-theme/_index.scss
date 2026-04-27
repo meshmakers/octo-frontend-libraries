@@ -1,0 +1,87 @@
+// ============================================================================
+// LCARS Theme — public mixin API
+//
+// @include octo.variables();   // CSS custom properties (composed from tokens/)
+// @include octo.styles();      // Global LCARS theme rules
+//
+// Host-specific overrides (Process Designer / MeshBoard / Markdown Widget /
+// Process Widget) are NOT included by styles(). LCARS hosts opt in via:
+//   @include octo.host-overrides();
+// (forwarded from <octo-ui>/styles/_host-overrides.scss).
+// ============================================================================
+
+@use "variables" as v;
+@use "thirdparty/dockview" as dockview;
+
+@use "primitives/panel" as primitives-panel;
+@use "primitives/utilities" as primitives-utilities;
+@use "primitives/layout" as primitives-layout;
+@use "primitives/page-layout" as primitives-page-layout;
+
+@use "kendo/appbar" as kendo-appbar;
+@use "kendo/button" as kendo-button;
+@use "kendo/grid" as kendo-grid;
+@use "kendo/treeview" as kendo-treeview;
+@use "kendo/input" as kendo-input;
+@use "kendo/dialog" as kendo-dialog;
+@use "kendo/input-buttons" as kendo-input-buttons;
+@use "kendo/dropdown" as kendo-dropdown;
+@use "kendo/window" as kendo-window;
+@use "kendo/drawer" as kendo-drawer;
+@use "kendo/tabs" as kendo-tabs;
+@use "kendo/card" as kendo-card;
+@use "kendo/tooltip" as kendo-tooltip;
+@use "kendo/progress" as kendo-progress;
+@use "kendo/chip" as kendo-chip;
+@use "kendo/scrollbars" as kendo-scrollbars;
+@use "kendo/context-menu" as kendo-context-menu;
+@use "kendo/listview" as kendo-listview;
+@use "kendo/toolbar" as kendo-toolbar;
+@use "kendo/tilelayout" as kendo-tilelayout;
+@use "kendo/popup" as kendo-popup;
+
+@use "chrome/login-popup" as chrome-login-popup;
+
+@use "forms/config-dialog" as forms-config-dialog;
+@use "forms/base-form" as forms-base-form;
+
+// Host-overrides partials. NOT included in styles(); wired via host-overrides()
+// mixin in Phase 4. Imported here so they compile-check during Phase 3 builds.
+@use "host-overrides/process-designer" as host-process-designer;
+@use "host-overrides/process-widget" as host-process-widget;
+@use "host-overrides/markdown-widget" as host-markdown-widget;
+@use "host-overrides/meshboard" as host-meshboard;
+
+@forward "variables" show variables;
+
+@mixin styles {
+  @include dockview.dockview;
+  @include primitives-panel.panel;
+  @include primitives-utilities.utilities;
+  @include primitives-layout.layout;
+  @include primitives-page-layout.page-layout;
+  @include forms-config-dialog.config-dialog;
+  @include chrome-login-popup.login-popup;
+  @include forms-base-form.base-form;
+  @include kendo-appbar.appbar;
+  @include kendo-button.button;
+  @include kendo-grid.grid;
+  @include kendo-treeview.treeview;
+  @include kendo-input.input;
+  @include kendo-dialog.dialog;
+  @include kendo-input-buttons.input-buttons;
+  @include kendo-dropdown.dropdown;
+  @include kendo-window.window;
+  @include kendo-drawer.drawer;
+  @include kendo-tabs.tabs;
+  @include kendo-card.card;
+  @include kendo-tooltip.tooltip;
+  @include kendo-progress.progress;
+  @include kendo-chip.chip;
+  @include kendo-scrollbars.scrollbars;
+  @include kendo-context-menu.context-menu;
+  @include kendo-listview.listview;
+  @include kendo-toolbar.toolbar;
+  @include kendo-tilelayout.tilelayout;
+  @include kendo-popup.popup;
+}

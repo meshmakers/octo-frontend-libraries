@@ -1,0 +1,47 @@
+@use "../variables" as *;
+
+// ============================================================================
+// HOST OVERRIDE — Markdown Widget LCARS theming
+// CSS variable overrides for the markdown widget + its config dialog.
+// ============================================================================
+
+@mixin markdown-widget {
+  // Markdown Widget & Config Dialog - LCARS theme via CSS variable overrides
+  mm-markdown-widget,
+  mm-markdown-config-dialog {
+    --mm-prose-text: #c8d0d8;
+    --mm-prose-heading: #{$octo-mint};
+    --mm-prose-link: #{$neo-cyan};
+    --mm-prose-link-hover: #{$octo-mint};
+    --mm-prose-code-bg: rgba(#{$octo-mint}, 0.1);
+    --mm-prose-code-text: #{$octo-mint};
+    --mm-prose-pre-bg: #{$iron-navy};
+    --mm-prose-pre-border: rgba(#{$octo-mint}, 0.2);
+    --mm-prose-blockquote-border: #{$royal-violet};
+    --mm-prose-blockquote-bg: rgba(#{$royal-violet}, 0.1);
+    --mm-prose-table-header-bg: #{$iron-navy};
+    --mm-prose-table-header-text: #{$octo-mint};
+    --mm-prose-table-border: rgba(#{$octo-mint}, 0.2);
+    --mm-prose-table-row-even: rgba(#{$surface-elevated}, 0.3);
+    --mm-prose-strong: #ffffff;
+    --mm-prose-em: #{$neo-cyan};
+    --mm-prose-marker-ul: #{$octo-mint};
+    --mm-prose-marker-ol: #{$neo-cyan};
+    --mm-prose-hr-start: #{$octo-mint};
+    --mm-prose-hr-end: #{$neo-cyan};
+    --mm-prose-img-border: rgba(#{$octo-mint}, 0.2);
+    --mm-prose-font: var(--lcars-font-primary);
+  }
+
+  mm-markdown-config-dialog {
+    --mm-prose-editor-bg: #{$surface-elevated};
+    --mm-prose-editor-text: #c8d0d8;
+    --mm-prose-editor-placeholder: #6b7a8c;
+    --mm-prose-editor-border: rgba(#{$octo-mint}, 0.3);
+    --mm-prose-preview-border: rgba(#{$octo-mint}, 0.3);
+    --mm-prose-form-bg: #{$iron-navy};
+    --mm-prose-form-border: rgba(#{$octo-mint}, 0.2);
+    --mm-prose-label-text: #c8d0d8;
+    --mm-prose-hint-text: #{$ash-blue};
+  }
+}
