@@ -77,7 +77,7 @@ interface RecordArrayItem {
                 </span>
               </div>
               @if (record.expanded) {
-                <kendo-grid [data]="record.properties" [resizable]="true" class="detail-grid">
+                <kendo-grid [data]="record.properties" [resizable]="true" scrollable="none" class="detail-grid">
                   <kendo-grid-column field="key" title="Property" [width]="180">
                     <ng-template kendoGridCellTemplate let-dataItem="dataItem">
                       <div class="property-name-cell">
@@ -160,10 +160,13 @@ interface RecordArrayItem {
       min-height: 0;
     }
 
+    /* Block (not flex) — kendo-grid's flex-column host inside a flex-column */
+    /* parent collapses to ~1 px because both lack a defined height. Stacking */
+    /* the header + grid as normal blocks lets the grid size to its content */
+    /* (combined with scrollable="none" on kendo-grid). */
     .record-array-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      display: block;
+      flex-shrink: 0;
       border: 1px solid var(--kendo-color-border, #dee2e6);
       border-radius: 4px;
       overflow: hidden;
@@ -211,9 +214,20 @@ interface RecordArrayItem {
       font-style: italic;
     }
 
+    /* Kendo Grid defaults to display:flex with the inner aria-root taking */
+    /* its space via flex:1. Inside our column-flex item that collapses to */
+    /* 0 height because there's no constrained parent height to flex from. */
+    /* Force block layout + auto height so the grid simply sizes to its */
+    /* rows when scrollable="none". */
     .detail-grid {
+      display: block !important;
+      height: auto !important;
       border: none;
       border-top: 1px solid var(--kendo-color-border, #dee2e6);
+    }
+
+    :host ::ng-deep .detail-grid .k-grid-aria-root {
+      height: auto;
     }
 
     .property-name-cell {
