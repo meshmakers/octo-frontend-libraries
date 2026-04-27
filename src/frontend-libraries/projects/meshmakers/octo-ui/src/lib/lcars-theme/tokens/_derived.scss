@@ -147,3 +147,15 @@
   --theme-surface-elevated-alpha-80:  color-mix(in srgb, var(--theme-surface-elevated) 80%, transparent);
   --theme-surface-elevated-alpha-90:  color-mix(in srgb, var(--theme-surface-elevated) 90%, transparent);
 }
+
+@mixin derived-light {
+  // Light theme overrides: hover should darken (mix with black), not lighten.
+  // Activated under :root[data-theme="lcars-light"] from styles/_index.scss.
+  // Theme authors do not interact with this mixin.
+  --theme-primary-hover:    color-mix(in srgb, var(--theme-primary) 88%, black);
+  --theme-secondary-hover:  color-mix(in srgb, var(--theme-secondary) 88%, black);
+  --theme-success-hover:    color-mix(in srgb, var(--theme-success) 88%, black);
+  --theme-warning-hover:    color-mix(in srgb, var(--theme-warning) 88%, black);
+  --theme-error-hover:      color-mix(in srgb, var(--theme-error) 88%, black);
+  --theme-info-hover:       color-mix(in srgb, var(--theme-info) 88%, black);
+}
