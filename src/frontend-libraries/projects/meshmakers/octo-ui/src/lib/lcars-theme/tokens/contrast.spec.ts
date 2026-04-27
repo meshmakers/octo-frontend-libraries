@@ -8,11 +8,11 @@
 // same commit.
 //
 // Coverage (A2 final state):
-//   * 7 pairs asserted for each registered theme: on-primary/primary,
-//     on-secondary/secondary, on-surface/surface, on-app-bg/app-bg, plus
-//     error/warning/success text on --theme-app-bg (the actual usage
-//     pattern; --theme-on-{error,warning,success} are not declared on
-//     the semantic surface).
+//   * 8 pairs asserted for each registered theme: on-primary/primary,
+//     on-secondary/secondary, on-surface/surface, on-app-bg/app-bg,
+//     primary text/app-bg, plus error/warning/success text on
+//     --theme-app-bg (the actual usage pattern; --theme-on-{error,
+//     warning,success} are not declared on the semantic surface).
 //   * Adding a future theme means adding one constant block and a tuple
 //     entry in the `for` loop.
 // ============================================================================
@@ -57,6 +57,7 @@ describe('Theme contrast (WCAG-AA, ratio ≥ 4.5)', () => {
       it('on-secondary on secondary', () => expect(hexContrastRatio(p.onSecondary, p.secondary)).toBeGreaterThanOrEqual(AA_NORMAL));
       it('on-surface on surface',     () => expect(hexContrastRatio(p.onSurface, p.surface)).toBeGreaterThanOrEqual(AA_NORMAL));
       it('on-app-bg on app-bg',       () => expect(hexContrastRatio(p.onAppBg, p.appBg)).toBeGreaterThanOrEqual(AA_NORMAL));
+      it('primary text on app-bg',    () => expect(hexContrastRatio(p.primary, p.appBg)).toBeGreaterThanOrEqual(AA_NORMAL));
       it('error text on app-bg',      () => expect(hexContrastRatio(p.error, p.appBg)).toBeGreaterThanOrEqual(AA_NORMAL));
       it('warning text on app-bg',    () => expect(hexContrastRatio(p.warning, p.appBg)).toBeGreaterThanOrEqual(AA_NORMAL));
       it('success text on app-bg',    () => expect(hexContrastRatio(p.success, p.appBg)).toBeGreaterThanOrEqual(AA_NORMAL));
