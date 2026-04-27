@@ -151,6 +151,9 @@
 @mixin derived-light {
   // Light theme overrides: hover should darken (mix with black), not lighten.
   // Activated under :root[data-theme="lcars-light"] from styles/_index.scss.
+  // Must be @included AFTER `derived` so these declarations win.
+  // -active already mixes with black in `derived`; no override needed here.
+  // -subtle/-border/-glow are alpha-based and theme-direction-agnostic.
   // Theme authors do not interact with this mixin.
   --theme-primary-hover:    color-mix(in srgb, var(--theme-primary) 88%, black);
   --theme-secondary-hover:  color-mix(in srgb, var(--theme-secondary) 88%, black);
