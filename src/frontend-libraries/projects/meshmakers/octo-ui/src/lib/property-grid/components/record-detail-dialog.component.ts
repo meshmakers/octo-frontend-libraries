@@ -1,11 +1,11 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { GridModule } from '@progress/kendo-angular-grid';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import {
-  fileIcon, folderIcon, calendarIcon, checkboxCheckedIcon, listUnorderedIcon
+  fileIcon, folderIcon, calendarIcon, checkboxCheckedIcon, listUnorderedIcon,
+  chevronRightIcon, chevronDownIcon
 } from '@progress/kendo-svg-icons';
 import { AttributeValueTypeDto } from '../models/property-grid.models';
 
@@ -16,33 +16,67 @@ interface RecordProperty {
   type: AttributeValueTypeDto;
 }
 
+interface RecordArrayItem {
+  label: string | null;
+  properties: RecordProperty[];
+  expanded: boolean;
+}
+
 /**
- * Dialog component for displaying Record and RecordArray attribute values
- * in a Kendo Grid layout. This component intentionally does NOT import
- * PropertyGridComponent or PropertyValueDisplayComponent to avoid circular dependencies.
+ * Content component for displaying Record and RecordArray attribute values.
+ * Designed to be hosted inside a Kendo Window opened via `WindowService.open()`
+ * — this guarantees the window is mounted at the application root (escaping
+ * any tile/widget stacking context) and is fully resizable, draggable,
+ * minimizable and maximizable like the other dialogs in the studio.
+ *
+ * Inputs are set on the component instance after the window is created:
+ *   const ref = windowService.open({ content: RecordDetailDialogComponent, ... });
+ *   const c = ref.content.instance as RecordDetailDialogComponent;
+ *   c.attributeName = ...; c.value = ...; c.type = ...;
  */
 @Component({
   selector: 'mm-record-detail-dialog',
   standalone: true,
-  imports: [CommonModule, DialogsModule, ButtonModule, GridModule, SVGIconModule],
+  imports: [CommonModule, ButtonModule, GridModule, SVGIconModule],
   template: `
-    <kendo-dialog
-      [title]="dialogTitle"
-      [minWidth]="500"
-      [width]="700"
-      (close)="onClose()">
+    <div class="record-detail-content">
+      @if (isRecordArray && recordItems.length > 1) {
+        <div class="record-toolbar">
+          <button
+            kendoButton
+            fillMode="flat"
+            [svgIcon]="chevronDownIcon"
+            (click)="expandAll()">
+            Expand All
+          </button>
+          <button
+            kendoButton
+            fillMode="flat"
+            [svgIcon]="chevronRightIcon"
+            (click)="collapseAll()">
+            Collapse All
+          </button>
+        </div>
+      }
 
-      <div class="record-detail-content">
-        @if (isRecordArray && recordItems.length > 0) {
-          <div class="record-array-list">
-            @for (record of recordItems; track $index) {
-              <div class="record-array-item">
-                <div class="array-item-header">
-                  <span class="array-item-index">[{{ $index }}]</span>
-                  @if (record.label) {
-                    <span class="array-item-label">{{ record.label }}</span>
-                  }
-                </div>
+      @if (isRecordArray && recordItems.length > 0) {
+        <div class="record-array-list">
+          @for (record of recordItems; track $index) {
+            <div class="record-array-item">
+              <div class="array-item-header" (click)="toggleRecord($index)">
+                <kendo-svgicon
+                  [icon]="record.expanded ? chevronDownIcon : chevronRightIcon"
+                  class="record-chevron">
+                </kendo-svgicon>
+                <span class="array-item-index">[{{ $index }}]</span>
+                @if (record.label) {
+                  <span class="array-item-label">{{ record.label }}</span>
+                }
+                <span class="array-item-summary">
+                  {{ record.properties.length }} propert{{ record.properties.length === 1 ? 'y' : 'ies' }}
+                </span>
+              </div>
+              @if (record.expanded) {
                 <kendo-grid [data]="record.properties" [resizable]="true" class="detail-grid">
                   <kendo-grid-column field="key" title="Property" [width]="180">
                     <ng-template kendoGridCellTemplate let-dataItem="dataItem">
@@ -63,67 +97,98 @@ interface RecordProperty {
                     </ng-template>
                   </kendo-grid-column>
                 </kendo-grid>
-              </div>
-            }
-          </div>
-        } @else {
-          <kendo-grid [data]="singleRecordProperties" [resizable]="true" class="detail-grid">
-            <kendo-grid-column field="key" title="Property" [width]="180">
-              <ng-template kendoGridCellTemplate let-dataItem="dataItem">
-                <div class="property-name-cell">
-                  <kendo-svgicon [icon]="getTypeIcon(dataItem.type)" class="type-icon"></kendo-svgicon>
-                  <span class="property-name">{{ dataItem.key }}</span>
-                </div>
-              </ng-template>
-            </kendo-grid-column>
-            <kendo-grid-column field="formattedValue" title="Value">
-              <ng-template kendoGridCellTemplate let-dataItem="dataItem">
-                <span class="property-value" [title]="dataItem.formattedValue">{{ dataItem.formattedValue }}</span>
-              </ng-template>
-            </kendo-grid-column>
-            <kendo-grid-column field="type" title="Type" [width]="120">
-              <ng-template kendoGridCellTemplate let-dataItem="dataItem">
-                <span class="type-badge">{{ formatTypeName(dataItem.type) }}</span>
-              </ng-template>
-            </kendo-grid-column>
-          </kendo-grid>
-        }
-      </div>
-
-      <kendo-dialog-actions>
-        <div class="mm-dialog-actions">
-          <button kendoButton fillMode="flat" (click)="onClose()">Close</button>
+              }
+            </div>
+          }
         </div>
-      </kendo-dialog-actions>
-    </kendo-dialog>
+      } @else {
+        <kendo-grid [data]="singleRecordProperties" [resizable]="true" class="detail-grid">
+          <kendo-grid-column field="key" title="Property" [width]="180">
+            <ng-template kendoGridCellTemplate let-dataItem="dataItem">
+              <div class="property-name-cell">
+                <kendo-svgicon [icon]="getTypeIcon(dataItem.type)" class="type-icon"></kendo-svgicon>
+                <span class="property-name">{{ dataItem.key }}</span>
+              </div>
+            </ng-template>
+          </kendo-grid-column>
+          <kendo-grid-column field="formattedValue" title="Value">
+            <ng-template kendoGridCellTemplate let-dataItem="dataItem">
+              <span class="property-value" [title]="dataItem.formattedValue">{{ dataItem.formattedValue }}</span>
+            </ng-template>
+          </kendo-grid-column>
+          <kendo-grid-column field="type" title="Type" [width]="120">
+            <ng-template kendoGridCellTemplate let-dataItem="dataItem">
+              <span class="type-badge">{{ formatTypeName(dataItem.type) }}</span>
+            </ng-template>
+          </kendo-grid-column>
+        </kendo-grid>
+      }
+    </div>
   `,
   styles: [`
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
     .record-detail-content {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      min-height: 200px;
-      max-height: 500px;
-      overflow-y: auto;
+      height: 100%;
+      gap: 8px;
+      padding: 12px 16px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .record-toolbar {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
     }
 
     .record-array-list {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 8px;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 0;
     }
 
     .record-array-item {
       display: flex;
       flex-direction: column;
       gap: 4px;
+      border: 1px solid var(--kendo-color-border, #dee2e6);
+      border-radius: 4px;
+      overflow: hidden;
     }
 
     .array-item-header {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 4px 0;
+      padding: 6px 10px;
+      cursor: pointer;
+      user-select: none;
+      background: var(--kendo-color-surface-alt, #f8f9fa);
+      transition: background-color 0.15s ease;
+    }
+
+    .array-item-header:hover {
+      background: color-mix(in srgb, var(--kendo-color-on-app-surface, #1d1b20) 6%, transparent);
+    }
+
+    .record-chevron {
+      width: 14px;
+      height: 14px;
+      color: var(--kendo-color-subtle);
+      flex-shrink: 0;
     }
 
     .array-item-index {
@@ -135,12 +200,20 @@ interface RecordProperty {
 
     .array-item-label {
       font-size: 0.85em;
+      color: var(--kendo-color-on-app-surface, #1d1b20);
+      font-weight: 500;
+    }
+
+    .array-item-summary {
+      margin-left: auto;
+      font-size: 0.75em;
       color: var(--kendo-color-subtle, #6c757d);
       font-style: italic;
     }
 
     .detail-grid {
       border: none;
+      border-top: 1px solid var(--kendo-color-border, #dee2e6);
     }
 
     .property-name-cell {
@@ -170,13 +243,8 @@ interface RecordProperty {
       border-radius: 3px;
       text-transform: uppercase;
       font-weight: 500;
-      background: var(--kendo-color-base-subtle);
-      color: var(--kendo-color-on-base);
-    }
-
-    .mm-dialog-actions {
-      display: flex;
-      justify-content: flex-end;
+      background: color-mix(in srgb, var(--kendo-color-on-app-surface, #1d1b20) 12%, transparent);
+      color: var(--kendo-color-on-app-surface, #1d1b20);
     }
   `]
 })
@@ -185,10 +253,15 @@ export class RecordDetailDialogComponent implements OnInit {
   @Input() value: unknown;
   @Input() type: AttributeValueTypeDto = AttributeValueTypeDto.RecordDto;
 
+  /**
+   * Emitted when the user-visible state changes in a way the host might want
+   * to react to. Currently unused for closing — the host listens to
+   * `WindowRef.result` for that.
+   */
   @Output() closed = new EventEmitter<void>();
 
   singleRecordProperties: RecordProperty[] = [];
-  recordItems: { label: string | null; properties: RecordProperty[] }[] = [];
+  recordItems: RecordArrayItem[] = [];
 
   // Icons
   readonly fileIcon = fileIcon;
@@ -196,11 +269,17 @@ export class RecordDetailDialogComponent implements OnInit {
   readonly calendarIcon = calendarIcon;
   readonly checkboxCheckedIcon = checkboxCheckedIcon;
   readonly listUnorderedIcon = listUnorderedIcon;
+  readonly chevronRightIcon = chevronRightIcon;
+  readonly chevronDownIcon = chevronDownIcon;
 
   get isRecordArray(): boolean {
     return this.type === AttributeValueTypeDto.RecordArrayDto;
   }
 
+  /**
+   * Compute the title text for the host window. The host reads this via
+   * the component instance after construction.
+   */
   get dialogTitle(): string {
     const name = this.formatAttributeName(this.attributeName);
     if (this.isRecordArray && Array.isArray(this.value)) {
@@ -210,13 +289,44 @@ export class RecordDetailDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.recompute();
+  }
+
+  /**
+   * Recompute derived state. Public so the host can call it after late
+   * input assignment (WindowService.open() instantiates the component
+   * before inputs can be set on its instance).
+   */
+  recompute(): void {
     if (this.isRecordArray && Array.isArray(this.value)) {
       this.recordItems = this.value.map(item => ({
         label: this.getRecordLabel(item),
-        properties: this.toRecordProperties(item)
+        properties: this.toRecordProperties(item),
+        expanded: true
       }));
+      this.singleRecordProperties = [];
     } else {
       this.singleRecordProperties = this.toRecordProperties(this.value);
+      this.recordItems = [];
+    }
+  }
+
+  toggleRecord(index: number): void {
+    const item = this.recordItems[index];
+    if (item) {
+      item.expanded = !item.expanded;
+    }
+  }
+
+  expandAll(): void {
+    for (const item of this.recordItems) {
+      item.expanded = true;
+    }
+  }
+
+  collapseAll(): void {
+    for (const item of this.recordItems) {
+      item.expanded = false;
     }
   }
 
@@ -241,10 +351,6 @@ export class RecordDetailDialogComponent implements OnInit {
 
   formatTypeName(type: AttributeValueTypeDto): string {
     return type.replace('_DTO', '').replace('DTO', '').replace('_', ' ');
-  }
-
-  onClose(): void {
-    this.closed.emit();
   }
 
   private toRecordProperties(obj: unknown): RecordProperty[] {

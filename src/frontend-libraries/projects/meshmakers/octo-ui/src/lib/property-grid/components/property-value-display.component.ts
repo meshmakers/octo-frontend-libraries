@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
+import { WindowService } from '@progress/kendo-angular-dialog';
 import { chevronRightIcon, chevronDownIcon, downloadIcon, windowIcon } from '@progress/kendo-svg-icons';
 import { AttributeValueTypeDto, PropertyDisplayMode, BinaryDownloadEvent } from '../models/property-grid.models';
 import { RecordDetailDialogComponent } from './record-detail-dialog.component';
@@ -21,7 +22,7 @@ interface BinaryLinkedValue {
 @Component({
   selector: 'mm-property-value-display',
   standalone: true,
-  imports: [CommonModule, SVGIconModule, ButtonModule, RecordDetailDialogComponent],
+  imports: [CommonModule, SVGIconModule, ButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="property-value-display" [ngClass]="'type-' + type.toLowerCase()">
@@ -165,14 +166,6 @@ interface BinaryLinkedValue {
         }
       }
 
-      @if (showDetailDialog) {
-        <mm-record-detail-dialog
-          [attributeName]="attributeName"
-          [value]="value"
-          [type]="type"
-          (closed)="closeDetailDialog()">
-        </mm-record-detail-dialog>
-      }
     </div>
   `,
   styles: [`
@@ -410,7 +403,8 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
 
   // Expansion state
   isExpanded = false;
-  showDetailDialog = false;
+
+  private readonly windowService = inject(WindowService);
 
   // Pre-computed template properties — recomputed in ngOnInit and ngOnChanges so Kendo Grid row recycling (cell component reuse with new inputs) does not display stale values.
   expandableRecord = false;
@@ -725,18 +719,38 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Open detail dialog for record values
+   * Open the record-detail viewer in a Kendo Window. Using `WindowService.open`
+   * (instead of an inline `<kendo-window>`) is what makes the window mount at
+   * the application root with proper viewport positioning. An inline window
+   * inherits its tile's `position: relative` ancestor and ends up anchored
+   * inside that tile's box rather than on the meshboard surface.
    */
   openDetailDialog(event: Event): void {
     event.stopPropagation();
-    this.showDetailDialog = true;
+    const ref = this.windowService.open({
+      title: this.computeDialogTitle(),
+      content: RecordDetailDialogComponent,
+      width: 720,
+      height: 560,
+      minWidth: 420,
+      minHeight: 280,
+    });
+    const instance = ref.content.instance as RecordDetailDialogComponent;
+    instance.attributeName = this.attributeName;
+    instance.value = this.value;
+    instance.type = this.type;
+    instance.recompute();
   }
 
-  /**
-   * Close the detail dialog
-   */
-  closeDetailDialog(): void {
-    this.showDetailDialog = false;
+  private computeDialogTitle(): string {
+    const formatted = this.attributeName
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, s => s.toUpperCase())
+      .trim();
+    if (this.type === AttributeValueTypeDto.RecordArrayDto && Array.isArray(this.value)) {
+      return `${formatted} (${this.value.length} record${this.value.length !== 1 ? 's' : ''})`;
+    }
+    return formatted;
   }
 
   /**
