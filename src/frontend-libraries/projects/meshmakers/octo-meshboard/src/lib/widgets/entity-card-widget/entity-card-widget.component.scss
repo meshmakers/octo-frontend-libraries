@@ -78,13 +78,6 @@
     &:hover {
       background: var(--kendo-color-surface-alt, #f8f9fa);
     }
-
-    // The "Show details" button on record/record-array values opens a dialog that
-    // duplicates the inline expand-chevron — it adds clutter without value here.
-    // ::ng-deep pierces emulated encapsulation to reach mm-property-value-display.
-    ::ng-deep .detail-button {
-      display: none;
-    }
   }
 
   .attribute-name {
