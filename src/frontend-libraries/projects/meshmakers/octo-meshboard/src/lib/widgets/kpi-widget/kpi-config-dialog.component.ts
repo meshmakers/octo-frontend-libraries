@@ -839,7 +839,7 @@ export class KpiConfigDialogComponent implements OnInit {
 
     this.entityDataSource = new RuntimeEntitySelectDataSource(
       this.getEntitiesByCkTypeGQL,
-      ckType.fullName
+      ckType.rtCkTypeId
     );
     this.entityDialogDataSource = new RuntimeEntityDialogDataSource(
       this.getEntitiesByCkTypeGQL,
@@ -863,21 +863,37 @@ export class KpiConfigDialogComponent implements OnInit {
 
   private loadAvailableAttributes(ckTypeId: string): void {
     this.isLoadingAttributes.set(true);
-    this.attributeSelectorService.getAvailableAttributes(ckTypeId).subscribe({
-      next: (result) => {
-        this.availableAttributes.set(result.items);
-        this.filteredValueAttributes.set(result.items);
-        this.filteredLabelAttributes.set(result.items);
-        this.isLoadingAttributes.set(false);
-      },
-      error: (err) => {
-        console.error('Error loading attributes:', err);
-        this.availableAttributes.set([]);
-        this.filteredValueAttributes.set([]);
-        this.filteredLabelAttributes.set([]);
-        this.isLoadingAttributes.set(false);
-      }
-    });
+    // Restrict to direct attributes: navigation expansion explodes deeply (3+ hops)
+    // and the backend caps the result at `first` (1000), which crowds out direct
+    // attributes that sort later alphabetically (e.g. "temperature" is hidden behind
+    // many "containedInSpace.*->..." paths). Direct attributes are what users pick
+    // for a KPI value/label in the typical case.
+    const includeNavigationProperties = false;
+    this.attributeSelectorService
+      .getAvailableAttributes(
+        ckTypeId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        includeNavigationProperties
+      )
+      .subscribe({
+        next: (result) => {
+          this.availableAttributes.set(result.items);
+          this.filteredValueAttributes.set(result.items);
+          this.filteredLabelAttributes.set(result.items);
+          this.isLoadingAttributes.set(false);
+        },
+        error: (err) => {
+          console.error('Error loading attributes:', err);
+          this.availableAttributes.set([]);
+          this.filteredValueAttributes.set([]);
+          this.filteredLabelAttributes.set([]);
+          this.isLoadingAttributes.set(false);
+        }
+      });
   }
 
   onValueAttributeFilter(filter: string): void {
