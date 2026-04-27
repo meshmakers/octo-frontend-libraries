@@ -7,7 +7,7 @@
 
 @mixin lcars-light {
   // 1. Private Sass helpers (LCARS light palette)
-  $primary:           #4ba396;   // Darkened Octo Mint for AA contrast on light bg
+  $primary:           #2f7a6f;   // Darkened further for AA contrast on white surface and light app-bg
   $secondary:         #0077a8;   // Darkened Neo Cyan
   $surface:           #ffffff;
   $surface-elevated:  #e8eef3;
@@ -17,7 +17,7 @@
   $on-secondary:      #ffffff;
   $text-secondary:    #394555;   // Iron Navy as muted text on light
   $success:           #2d7300;
-  $warning:           #b3641a;   // Darker Toffee for light bg contrast
+  $warning:           #9a531a;   // Darker for AA contrast on white surface
   $error:             #c2185b;   // Darker Bubblegum
   $info:              #3f51b5;   // Darker Indigogo
   $accent-violet:     #5c3d98;
