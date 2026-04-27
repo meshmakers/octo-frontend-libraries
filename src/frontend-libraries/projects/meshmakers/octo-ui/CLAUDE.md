@@ -73,6 +73,7 @@ of `--theme-*` properties so component CSS does not branch per-theme.
 :root[data-theme="lcars-light"] {
   @include octo.lcars-light;
   @include octo.derived;
+  @include octo.derived-light;   // light hover formula override
 }
 ```
 
