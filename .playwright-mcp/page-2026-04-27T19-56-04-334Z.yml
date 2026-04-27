@@ -1,0 +1,301 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - button [ref=e6] [cursor=pointer]:
+      - generic [ref=e8]:
+        - img
+    - generic [ref=e10]:
+      - generic [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: ◆
+        - generic [ref=e14]: octosystem
+      - generic [ref=e17]: Environment unknown
+      - generic [ref=e19]:
+        - generic [ref=e20]: OCTO
+        - generic [ref=e21]: MESH
+        - generic [ref=e22]: Refinery Studio
+    - generic [ref=e23]:
+      - generic "UI Density" [ref=e24]:
+        - button "Compact" [ref=e25] [cursor=pointer]
+        - button "Comfortable" [ref=e27] [cursor=pointer]
+        - button "Spacious" [ref=e29] [cursor=pointer]
+      - generic [ref=e35]: v0.0.0
+    - button "Ro" [ref=e39] [cursor=pointer]:
+      - generic [ref=e42]: Ro
+  - generic [ref=e43]:
+    - menubar [ref=e46]:
+      - menuitem "Cockpit" [ref=e47] [cursor=pointer]:
+        - generic [ref=e49]:
+          - img
+        - generic [ref=e50]: Cockpit
+      - menuitem "Tenants" [ref=e51] [cursor=pointer]:
+        - generic [ref=e53]:
+          - img
+        - generic [ref=e54]: Tenants
+      - menuitem "Development" [ref=e55] [cursor=pointer]:
+        - generic [ref=e57]:
+          - img
+        - generic [ref=e58]: Development
+        - generic [ref=e60]:
+          - img
+      - menuitem "Identity" [ref=e61] [cursor=pointer]:
+        - generic [ref=e63]:
+          - img
+        - generic [ref=e64]: Identity
+        - generic [ref=e66]:
+          - img
+      - menuitem "General" [ref=e67] [cursor=pointer]:
+        - generic [ref=e69]:
+          - img
+        - generic [ref=e70]: General
+        - generic [ref=e72]:
+          - img
+      - menuitem "Apps" [ref=e73] [cursor=pointer]:
+        - generic [ref=e75]:
+          - img
+        - generic [ref=e76]: Apps
+        - generic [ref=e78]:
+          - img
+      - menuitem "Repository" [ref=e79] [cursor=pointer]:
+        - generic [ref=e81]:
+          - img
+        - generic [ref=e82]: Repository
+        - generic [ref=e84]:
+          - img
+      - menuitem "Communication" [ref=e85] [cursor=pointer]:
+        - generic [ref=e87]:
+          - img
+        - generic [ref=e88]: Communication
+        - generic [ref=e90]:
+          - img
+      - menuitem "Bot" [ref=e91] [cursor=pointer]:
+        - generic [ref=e93]:
+          - img
+        - generic [ref=e94]: Bot
+        - generic [ref=e96]:
+          - img
+      - menuitem "UI" [ref=e97] [cursor=pointer]:
+        - generic [ref=e99]:
+          - img
+        - generic [ref=e100]: UI
+        - generic [ref=e102]:
+          - img
+      - menuitem "Reporting" [ref=e103] [cursor=pointer]:
+        - generic [ref=e105]:
+          - img
+        - generic [ref=e106]: Reporting
+        - generic [ref=e108]:
+          - img
+    - generic [ref=e109]:
+      - generic [ref=e110]:
+        - generic "Breadcrumb" [ref=e111]:
+          - list [ref=e112]:
+            - listitem [ref=e113]:
+              - link "General" [ref=e114] [cursor=pointer]:
+                - generic [ref=e116]:
+                  - img
+                - generic [ref=e117]: General
+              - generic [ref=e120]:
+                - img
+            - listitem [ref=e121]:
+              - link "Configurations" [disabled]:
+                - generic:
+                  - generic:
+                    - img
+                - generic: Configurations
+        - generic:
+          - generic:
+            - menubar
+      - generic [ref=e125]:
+        - generic [ref=e128]:
+          - heading "GENERAL Configurations" [level=1] [ref=e129]:
+            - generic [ref=e130]: GENERAL
+            - generic [ref=e131]: Configurations
+          - generic [ref=e133]:
+            - generic [ref=e134]: ■
+            - generic [ref=e135]: System Settings
+        - generic [ref=e140]:
+          - toolbar "Top toolbar" [ref=e141]:
+            - button "New Configuration" [ref=e143] [cursor=pointer]:
+              - generic [ref=e145]:
+                - img
+              - generic [ref=e146]: New Configuration
+            - button "Change Tenant Mode" [ref=e147] [cursor=pointer]:
+              - generic [ref=e149]:
+                - img
+              - generic [ref=e150]: Change Tenant Mode
+            - textbox "Search in all columns..." [ref=e151]
+            - button "Show Row Filter" [ref=e152] [cursor=pointer]:
+              - generic [ref=e154]:
+                - img
+            - button "Export to Excel" [ref=e155] [cursor=pointer]:
+              - generic [ref=e157]:
+                - img
+            - button "Export to PDF" [ref=e158] [cursor=pointer]:
+              - generic [ref=e160]:
+                - img
+            - button "Refresh Data" [ref=e161] [cursor=pointer]:
+              - generic [ref=e163]:
+                - img
+          - grid "Data table" [ref=e164]:
+            - rowgroup [ref=e170]:
+              - row "Select All Rows Name Type Actions" [ref=e171]:
+                - columnheader "Select All Rows" [ref=e172]:
+                  - checkbox "Select All Rows" [ref=e176] [cursor=pointer]
+                - columnheader "Name" [ref=e177]:
+                  - generic [ref=e180] [cursor=pointer]: Name
+                - columnheader "Type" [ref=e181]:
+                  - generic [ref=e184] [cursor=pointer]: Type
+                - columnheader "Actions" [ref=e185]:
+                  - generic [ref=e188]: Actions
+            - rowgroup [ref=e195]:
+              - row "Select Row MailNotificationConfiguration System.Identity/MailNotificationConfiguration" [ref=e196]:
+                - gridcell "Select Row" [ref=e197]:
+                  - checkbox "Select Row" [ref=e199] [cursor=pointer]
+                - gridcell "MailNotificationConfiguration" [ref=e200]
+                - gridcell "System.Identity/MailNotificationConfiguration" [ref=e201]
+                - gridcell [ref=e202]:
+                  - button "Edit" [ref=e203] [cursor=pointer]:
+                    - generic [ref=e205]:
+                      - img
+                  - button [ref=e206] [cursor=pointer]:
+                    - generic [ref=e208]:
+                      - img
+              - row "Select Row IdentityService System/TenantConfiguration" [ref=e209]:
+                - gridcell "Select Row" [ref=e210]:
+                  - checkbox "Select Row" [ref=e212] [cursor=pointer]
+                - gridcell "IdentityService" [ref=e213]
+                - gridcell "System/TenantConfiguration" [ref=e214]
+                - gridcell [ref=e215]:
+                  - button "Edit" [ref=e216] [cursor=pointer]:
+                    - generic [ref=e218]:
+                      - img
+                  - button [ref=e219] [cursor=pointer]:
+                    - generic [ref=e221]:
+                      - img
+              - row "Select Row BotServicesIdentityData System/TenantConfiguration" [ref=e222]:
+                - gridcell "Select Row" [ref=e223]:
+                  - checkbox "Select Row" [ref=e225] [cursor=pointer]
+                - gridcell "BotServicesIdentityData" [ref=e226]
+                - gridcell "System/TenantConfiguration" [ref=e227]
+                - gridcell [ref=e228]:
+                  - button "Edit" [ref=e229] [cursor=pointer]:
+                    - generic [ref=e231]:
+                      - img
+                  - button [ref=e232] [cursor=pointer]:
+                    - generic [ref=e234]:
+                      - img
+              - row "Select Row BotServices System/TenantConfiguration" [ref=e235]:
+                - gridcell "Select Row" [ref=e236]:
+                  - checkbox "Select Row" [ref=e238] [cursor=pointer]
+                - gridcell "BotServices" [ref=e239]
+                - gridcell "System/TenantConfiguration" [ref=e240]
+                - gridcell [ref=e241]:
+                  - button "Edit" [ref=e242] [cursor=pointer]:
+                    - generic [ref=e244]:
+                      - img
+                  - button [ref=e245] [cursor=pointer]:
+                    - generic [ref=e247]:
+                      - img
+              - row "Select Row AssetServicesIdentityData System/TenantConfiguration" [ref=e248]:
+                - gridcell "Select Row" [ref=e249]:
+                  - checkbox "Select Row" [ref=e251] [cursor=pointer]
+                - gridcell "AssetServicesIdentityData" [ref=e252]
+                - gridcell "System/TenantConfiguration" [ref=e253]
+                - gridcell [ref=e254]:
+                  - button "Edit" [ref=e255] [cursor=pointer]:
+                    - generic [ref=e257]:
+                      - img
+                  - button [ref=e258] [cursor=pointer]:
+                    - generic [ref=e260]:
+                      - img
+              - row "Select Row CommunicationControllerServicesIdentityData System/TenantConfiguration" [ref=e261]:
+                - gridcell "Select Row" [ref=e262]:
+                  - checkbox "Select Row" [ref=e264] [cursor=pointer]
+                - gridcell "CommunicationControllerServicesIdentityData" [ref=e265]
+                - gridcell "System/TenantConfiguration" [ref=e266]
+                - gridcell [ref=e267]:
+                  - button "Edit" [ref=e268] [cursor=pointer]:
+                    - generic [ref=e270]:
+                      - img
+                  - button [ref=e271] [cursor=pointer]:
+                    - generic [ref=e273]:
+                      - img
+              - row "Select Row AdminPanelIdentityData System/TenantConfiguration" [ref=e274]:
+                - gridcell "Select Row" [ref=e275]:
+                  - checkbox "Select Row" [ref=e277] [cursor=pointer]
+                - gridcell "AdminPanelIdentityData" [ref=e278]
+                - gridcell "System/TenantConfiguration" [ref=e279]
+                - gridcell [ref=e280]:
+                  - button "Edit" [ref=e281] [cursor=pointer]:
+                    - generic [ref=e283]:
+                      - img
+                  - button [ref=e284] [cursor=pointer]:
+                    - generic [ref=e286]:
+                      - img
+              - row "Select Row AdminPanel System/TenantConfiguration" [ref=e287]:
+                - gridcell "Select Row" [ref=e288]:
+                  - checkbox "Select Row" [ref=e290] [cursor=pointer]
+                - gridcell "AdminPanel" [ref=e291]
+                - gridcell "System/TenantConfiguration" [ref=e292]
+                - gridcell [ref=e293]:
+                  - button "Edit" [ref=e294] [cursor=pointer]:
+                    - generic [ref=e296]:
+                      - img
+                  - button [ref=e297] [cursor=pointer]:
+                    - generic [ref=e299]:
+                      - img
+              - row "Select Row ReportingServicesIdentityData System/TenantConfiguration" [ref=e300]:
+                - gridcell "Select Row" [ref=e301]:
+                  - checkbox "Select Row" [ref=e303] [cursor=pointer]
+                - gridcell "ReportingServicesIdentityData" [ref=e304]
+                - gridcell "System/TenantConfiguration" [ref=e305]
+                - gridcell [ref=e306]:
+                  - button "Edit" [ref=e307] [cursor=pointer]:
+                    - generic [ref=e309]:
+                      - img
+                  - button [ref=e310] [cursor=pointer]:
+                    - generic [ref=e312]:
+                      - img
+              - row "Select Row IdentityServiceMigrations System/TenantConfiguration" [ref=e313]:
+                - gridcell "Select Row" [ref=e314]:
+                  - checkbox "Select Row" [ref=e316] [cursor=pointer]
+                - gridcell "IdentityServiceMigrations" [ref=e317]
+                - gridcell "System/TenantConfiguration" [ref=e318]
+                - gridcell [ref=e319]:
+                  - button "Edit" [ref=e320] [cursor=pointer]:
+                    - generic [ref=e322]:
+                      - img
+                  - button [ref=e323] [cursor=pointer]:
+                    - generic [ref=e325]:
+                      - img
+          - application "Page navigation, page 1 of 2" [ref=e326]:
+            - generic [ref=e327]:
+              - generic [ref=e328]:
+                - button "Go to the first page" [disabled]:
+                  - generic:
+                    - generic:
+                      - img
+                - button "Go to the previous page" [disabled]:
+                  - generic:
+                    - generic:
+                      - img
+              - generic [ref=e330]:
+                - button "Page 1" [ref=e331]:
+                  - generic [ref=e332]: "1"
+                - button "Page 2" [ref=e333] [cursor=pointer]:
+                  - generic [ref=e334]: "2"
+              - generic [ref=e335]:
+                - button "Go to the next page" [ref=e336] [cursor=pointer]:
+                  - generic [ref=e338]:
+                    - img
+                - button "Go to the last page" [ref=e339] [cursor=pointer]:
+                  - generic [ref=e341]:
+                    - img
+            - generic [ref=e342]:
+              - combobox "items per page" [ref=e343] [cursor=pointer]:
+                - generic [ref=e345]: "10"
+                - button "Select" [ref=e346]:
+                  - generic [ref=e348]:
+                    - img
+              - text: items per page
+            - generic [ref=e349]: 1 - 10 of 16 items
+        - generic [ref=e357]: READY

@@ -1,0 +1,158 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - button [ref=e6] [cursor=pointer]:
+      - generic [ref=e8]:
+        - img
+    - generic [ref=e10]:
+      - generic [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: ◆
+        - generic [ref=e14]: octosystem
+      - generic [ref=e17]: Environment unknown
+      - generic [ref=e19]:
+        - generic [ref=e20]: OCTO
+        - generic [ref=e21]: MESH
+        - generic [ref=e22]: Refinery Studio
+    - generic [ref=e23]:
+      - generic "UI Density" [ref=e24]:
+        - button "Compact" [ref=e25] [cursor=pointer]
+        - button "Comfortable" [ref=e27] [cursor=pointer]
+        - button "Spacious" [ref=e29] [cursor=pointer]
+      - generic [ref=e35]: v0.0.0
+    - button "Ro" [ref=e39] [cursor=pointer]:
+      - generic [ref=e42]: Ro
+  - generic [ref=e43]:
+    - menubar [ref=e46]:
+      - menuitem "Cockpit" [ref=e47] [cursor=pointer]:
+        - generic [ref=e49]:
+          - img
+        - generic [ref=e50]: Cockpit
+      - menuitem "Tenants" [ref=e51] [cursor=pointer]:
+        - generic [ref=e53]:
+          - img
+        - generic [ref=e54]: Tenants
+      - menuitem "Development" [ref=e55] [cursor=pointer]:
+        - generic [ref=e57]:
+          - img
+        - generic [ref=e58]: Development
+        - generic [ref=e60]:
+          - img
+      - menuitem "Identity" [ref=e61] [cursor=pointer]:
+        - generic [ref=e63]:
+          - img
+        - generic [ref=e64]: Identity
+        - generic [ref=e66]:
+          - img
+      - menuitem "General" [ref=e67] [cursor=pointer]:
+        - generic [ref=e69]:
+          - img
+        - generic [ref=e70]: General
+        - generic [ref=e72]:
+          - img
+      - menuitem "Apps" [ref=e73] [cursor=pointer]:
+        - generic [ref=e75]:
+          - img
+        - generic [ref=e76]: Apps
+        - generic [ref=e78]:
+          - img
+      - menuitem "Repository" [ref=e79] [cursor=pointer]:
+        - generic [ref=e81]:
+          - img
+        - generic [ref=e82]: Repository
+        - generic [ref=e84]:
+          - img
+      - menuitem "Communication" [ref=e85] [cursor=pointer]:
+        - generic [ref=e87]:
+          - img
+        - generic [ref=e88]: Communication
+        - generic [ref=e90]:
+          - img
+      - menuitem "Bot" [ref=e91] [cursor=pointer]:
+        - generic [ref=e93]:
+          - img
+        - generic [ref=e94]: Bot
+        - generic [ref=e96]:
+          - img
+      - menuitem "UI" [ref=e97] [cursor=pointer]:
+        - generic [ref=e99]:
+          - img
+        - generic [ref=e100]: UI
+        - generic [ref=e102]:
+          - img
+      - menuitem "Reporting" [ref=e103] [cursor=pointer]:
+        - generic [ref=e105]:
+          - img
+        - generic [ref=e106]: Reporting
+        - generic [ref=e108]:
+          - img
+    - generic [ref=e109]:
+      - generic [ref=e110]:
+        - generic "Breadcrumb" [ref=e111]:
+          - list [ref=e112]:
+            - listitem [ref=e399]:
+              - link "General" [ref=e400] [cursor=pointer]:
+                - generic [ref=e402]:
+                  - img
+                - generic [ref=e403]: General
+              - generic [ref=e406]:
+                - img
+            - listitem [ref=e407]:
+              - link "Configurations" [ref=e408] [cursor=pointer]:
+                - generic [ref=e410]:
+                  - img
+                - generic [ref=e411]: Configurations
+              - generic [ref=e414]:
+                - img
+            - listitem [ref=e415]:
+              - link "New AI Configuration" [disabled]:
+                - generic: New AI Configuration
+        - generic:
+          - generic:
+            - menubar
+      - generic [ref=e419]:
+        - heading "New" [level=2] [ref=e421]
+        - generic [ref=e424]:
+          - generic [ref=e425]:
+            - generic [ref=e427]: Configuration Name *
+            - textbox "Enter configuration name (required)" [ref=e429]
+          - generic [ref=e430]:
+            - generic [ref=e432]: API Key *
+            - textbox "Enter API key (required)" [ref=e434]
+          - generic [ref=e435]:
+            - generic [ref=e437]: AI Model
+            - textbox "Enter AI model name - e.g., claude-sonnet-4-20250514 (optional)" [ref=e439]
+          - generic [ref=e440]:
+            - generic [ref=e442]: Max Tokens
+            - generic [ref=e443]:
+              - spinbutton "Enter max tokens (optional)" [ref=e444]
+              - generic [ref=e445]:
+                - button [ref=e446] [cursor=pointer]:
+                  - generic [ref=e448]:
+                    - img
+                - button [ref=e449] [cursor=pointer]:
+                  - generic [ref=e451]:
+                    - img
+          - generic [ref=e452]:
+            - generic [ref=e454]: Temperature
+            - generic [ref=e455]:
+              - spinbutton "Enter temperature 0.0 - 2.0 (optional)" [ref=e456]
+              - generic [ref=e457]:
+                - button [ref=e458] [cursor=pointer]:
+                  - generic [ref=e460]:
+                    - img
+                - button [ref=e461] [cursor=pointer]:
+                  - generic [ref=e463]:
+                    - img
+          - generic [ref=e464]:
+            - generic [ref=e466]: MCP Server URL
+            - textbox "Enter MCP server URL (optional)" [ref=e468]
+        - generic [ref=e469]:
+          - generic [ref=e473]: READY
+          - generic [ref=e474]:
+            - button "Create" [ref=e475] [cursor=pointer]:
+              - generic [ref=e477]:
+                - img
+              - generic [ref=e478]: Create
+            - button "Cancel" [ref=e479] [cursor=pointer]:
+              - generic [ref=e481]:
+                - img
+              - generic [ref=e482]: Cancel
