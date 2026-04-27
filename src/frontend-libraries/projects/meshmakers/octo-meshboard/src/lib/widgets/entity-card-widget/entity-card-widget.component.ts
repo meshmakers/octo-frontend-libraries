@@ -4,12 +4,13 @@ import { EntityCardWidgetConfig, RuntimeEntityData } from '../../models/meshboar
 import { DashboardDataService } from '../../services/meshboard-data.service';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { PropertyValueDisplayComponent, AttributeValueTypeDto } from '@meshmakers/octo-ui';
 import { catchError, of } from 'rxjs';
 
 @Component({
   selector: 'mm-entity-card-widget',
   standalone: true,
-  imports: [CommonModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, WidgetNotConfiguredComponent, PropertyValueDisplayComponent],
   templateUrl: './entity-card-widget.component.html',
   styleUrl: './entity-card-widget.component.scss'
 })
@@ -121,18 +122,24 @@ export class EntityCardWidgetComponent implements DashboardWidget<EntityCardWidg
     }
   }
 
-  formatValue(value: unknown): string {
-    if (value === null || value === undefined) return '-';
+  inferAttributeType(value: unknown): AttributeValueTypeDto {
+    if (value === null || value === undefined) return AttributeValueTypeDto.StringDto;
+    if (typeof value === 'boolean') return AttributeValueTypeDto.BooleanDto;
     if (typeof value === 'number') {
-      return value.toLocaleString();
+      return Number.isInteger(value) ? AttributeValueTypeDto.IntegerDto : AttributeValueTypeDto.DoubleDto;
     }
-    if (typeof value === 'boolean') {
-      return value ? 'Yes' : 'No';
+    if (typeof value === 'string') {
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) return AttributeValueTypeDto.DateTimeDto;
+      return AttributeValueTypeDto.StringDto;
     }
-    if (value instanceof Date) {
-      return value.toLocaleDateString();
+    if (Array.isArray(value)) {
+      if (value.length > 0 && typeof value[0] === 'object') return AttributeValueTypeDto.RecordArrayDto;
+      if (value.length > 0 && typeof value[0] === 'string') return AttributeValueTypeDto.StringArrayDto;
+      if (value.length > 0 && typeof value[0] === 'number') return AttributeValueTypeDto.IntegerArrayDto;
+      return AttributeValueTypeDto.StringArrayDto;
     }
-    return String(value);
+    if (typeof value === 'object') return AttributeValueTypeDto.RecordDto;
+    return AttributeValueTypeDto.StringDto;
   }
 
   formatAttributeName(name: string): string {

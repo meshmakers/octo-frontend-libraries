@@ -2,8 +2,9 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChange
 import { CommonModule } from '@angular/common';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
-import { chevronRightIcon, chevronDownIcon, downloadIcon } from '@progress/kendo-svg-icons';
+import { chevronRightIcon, chevronDownIcon, downloadIcon, windowIcon } from '@progress/kendo-svg-icons';
 import { AttributeValueTypeDto, PropertyDisplayMode, BinaryDownloadEvent } from '../models/property-grid.models';
+import { RecordDetailDialogComponent } from './record-detail-dialog.component';
 
 /** Shape of binary linked value from OctoMesh */
 interface BinaryLinkedValue {
@@ -20,7 +21,7 @@ interface BinaryLinkedValue {
 @Component({
   selector: 'mm-property-value-display',
   standalone: true,
-  imports: [CommonModule, SVGIconModule, ButtonModule],
+  imports: [CommonModule, SVGIconModule, ButtonModule, RecordDetailDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="property-value-display" [ngClass]="'type-' + type.toLowerCase()">
@@ -34,6 +35,15 @@ interface BinaryLinkedValue {
               class="expand-icon">
             </kendo-svgicon>
             <span class="record-summary">{{ recordSummary }}</span>
+            <button
+              kendoButton
+              size="small"
+              fillMode="flat"
+              [svgIcon]="windowIcon"
+              title="Show details"
+              class="detail-button"
+              (click)="openDetailDialog($event)">
+            </button>
             <span class="type-indicator" [title]="typeDescription">
               {{ typeIndicator }}
             </span>
@@ -119,6 +129,15 @@ interface BinaryLinkedValue {
           </span>
         }
       }
+
+      @if (showDetailDialog) {
+        <mm-record-detail-dialog
+          [attributeName]="attributeName"
+          [value]="value"
+          [type]="type"
+          (closed)="closeDetailDialog()">
+        </mm-record-detail-dialog>
+      }
     </div>
   `,
   styles: [`
@@ -194,6 +213,16 @@ interface BinaryLinkedValue {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .detail-button {
+      flex-shrink: 0;
+      opacity: 0.6;
+      transition: opacity 0.15s ease;
+    }
+
+    .detail-button:hover {
+      opacity: 1;
     }
 
     .record-content {
@@ -274,12 +303,14 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   @Input() value: unknown;
   @Input() type: AttributeValueTypeDto = AttributeValueTypeDto.StringDto;
   @Input() displayMode: PropertyDisplayMode = PropertyDisplayMode.Text;
+  @Input() attributeName = 'Record';
 
   /** Emitted when a binary download is requested */
   @Output() binaryDownload = new EventEmitter<BinaryDownloadEvent>();
 
   // Expansion state
   isExpanded = false;
+  showDetailDialog = false;
 
   // Pre-computed template properties — recomputed in ngOnInit and ngOnChanges so Kendo Grid row recycling (cell component reuse with new inputs) does not display stale values.
   expandableRecord = false;
@@ -300,6 +331,7 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   readonly chevronRightIcon = chevronRightIcon;
   readonly chevronDownIcon = chevronDownIcon;
   readonly downloadIcon = downloadIcon;
+  readonly windowIcon = windowIcon;
 
   ngOnInit() {
     this.recomputeDerivedValues();
@@ -541,6 +573,21 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
    */
   toggleExpansion(): void {
     this.isExpanded = !this.isExpanded;
+  }
+
+  /**
+   * Open detail dialog for record values
+   */
+  openDetailDialog(event: Event): void {
+    event.stopPropagation();
+    this.showDetailDialog = true;
+  }
+
+  /**
+   * Close the detail dialog
+   */
+  closeDetailDialog(): void {
+    this.showDetailDialog = false;
   }
 
   /**

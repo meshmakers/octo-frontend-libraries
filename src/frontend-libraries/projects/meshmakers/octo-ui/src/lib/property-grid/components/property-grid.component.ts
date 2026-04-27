@@ -94,6 +94,7 @@ import { PropertyValueDisplayComponent } from './property-value-display.componen
             <mm-property-value-display
               [value]="dataItem.value"
               [type]="dataItem.type"
+              [attributeName]="dataItem.displayName || dataItem.name"
               (binaryDownload)="onBinaryDownload($event)">
             </mm-property-value-display>
           </ng-template>

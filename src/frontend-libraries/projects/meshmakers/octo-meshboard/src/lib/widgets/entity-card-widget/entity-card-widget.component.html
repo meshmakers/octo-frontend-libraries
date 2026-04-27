@@ -24,7 +24,13 @@
         @for (attr of filteredAttributes(); track attr.attributeName) {
           <div class="attribute-row">
             <span class="attribute-name">{{ formatAttributeName(attr.attributeName) }}</span>
-            <span class="attribute-value">{{ formatValue(attr.value) }}</span>
+            <span class="attribute-value">
+              <mm-property-value-display
+                [value]="attr.value"
+                [type]="inferAttributeType(attr.value)"
+                [attributeName]="attr.attributeName">
+              </mm-property-value-display>
+            </span>
           </div>
         }
       </div>

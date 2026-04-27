@@ -90,6 +90,8 @@
     font-weight: 500;
     text-align: right;
     word-break: break-word;
+    min-width: 0;
+    flex: 1;
   }
 }
 
