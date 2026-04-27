@@ -52,23 +52,58 @@ interface BinaryLinkedValue {
           <!-- Expanded Content -->
           @if (isExpanded) {
             <div class="record-content">
-              @if (type === AttributeValueTypeDto.RecordArrayDto && Array.isArray(value)) {
-                @for (item of value; track $index) {
-                  <div class="array-item">
-                    <span class="array-index">[{{ $index }}]</span>
-                    <div class="nested-properties">
-                      @for (prop of getObjectProperties(item); track prop.key) {
-                        <div class="nested-property">
-                          <span class="property-key">{{ prop.key }}:</span>
-                          <mm-property-value-display
-                            [value]="prop.value"
-                            [type]="getPropertyType(prop.value)">
-                          </mm-property-value-display>
-                        </div>
+              @if (useRecordArrayTable) {
+                <!-- Uniform record array → compact table with sticky header -->
+                <div class="record-table-container">
+                  <table class="record-table">
+                    <thead>
+                      <tr>
+                        <th class="row-index">#</th>
+                        @for (col of recordArrayColumns; track col) {
+                          <th>{{ col }}</th>
+                        }
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of recordArrayRows; track $index) {
+                        <tr>
+                          <td class="row-index">{{ $index }}</td>
+                          @for (col of recordArrayColumns; track col) {
+                            <td>
+                              @let v = row[col];
+                              @if (v !== null && v !== undefined) {
+                                <mm-property-value-display
+                                  [value]="v"
+                                  [type]="getPropertyType(v)">
+                                </mm-property-value-display>
+                              }
+                            </td>
+                          }
+                        </tr>
                       }
+                    </tbody>
+                  </table>
+                </div>
+              } @else if (type === AttributeValueTypeDto.RecordArrayDto && Array.isArray(value)) {
+                <!-- Heterogeneous array (or single item) — fallback to per-item nesting, capped height -->
+                <div class="record-array-list">
+                  @for (item of value; track $index) {
+                    <div class="array-item">
+                      <span class="array-index">[{{ $index }}]</span>
+                      <div class="nested-properties">
+                        @for (prop of getObjectProperties(item); track prop.key) {
+                          <div class="nested-property">
+                            <span class="property-key">{{ prop.key }}:</span>
+                            <mm-property-value-display
+                              [value]="prop.value"
+                              [type]="getPropertyType(prop.value)">
+                            </mm-property-value-display>
+                          </div>
+                        }
+                      </div>
                     </div>
-                  </div>
-                }
+                  }
+                </div>
               } @else {
                 <div class="nested-properties">
                   @for (prop of getObjectProperties(value); track prop.key) {
@@ -244,6 +279,68 @@ interface BinaryLinkedValue {
       color: var(--kendo-color-subtle);
     }
 
+    /* Record-array fallback list (used when records are heterogeneous) — */
+    /* cap height so 30+ items don't blow out the host card. */
+    .record-array-list {
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    /* Compact table for uniform record arrays. The container owns the */
+    /* scroll so the table header can remain sticky. */
+    .record-table-container {
+      max-height: 320px;
+      overflow: auto;
+      border: 1px solid var(--kendo-color-border, #dee2e6);
+      border-radius: 3px;
+      margin-top: 4px;
+    }
+
+    .record-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85em;
+      table-layout: auto;
+    }
+
+    .record-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--kendo-color-surface-alt, #f8f9fa);
+      color: var(--kendo-color-subtle);
+      text-align: left;
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
+      font-weight: 500;
+      font-size: 0.85em;
+      white-space: nowrap;
+    }
+
+    .record-table td {
+      padding: 3px 8px;
+      border-bottom: 1px solid color-mix(in srgb, var(--kendo-color-on-app-surface, #1d1b20) 8%, transparent);
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    .record-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .record-table tr:hover td {
+      background: color-mix(in srgb, var(--kendo-color-on-app-surface, #1d1b20) 6%, transparent);
+    }
+
+    .record-table .row-index {
+      color: var(--kendo-color-subtle);
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.85em;
+      text-align: right;
+      width: 1px;
+      white-space: nowrap;
+    }
+
     .nested-properties {
       margin-left: 8px;
     }
@@ -328,6 +425,15 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   binaryContentType: string | null = null;
   formattedBinarySize = '';
 
+  // RecordArray table-mode state — used when the array is uniform enough to be
+  // displayed as a compact table (one row per record, columns = union of keys).
+  // Falls back to the per-item nested-property layout otherwise.
+  useRecordArrayTable = false;
+  recordArrayColumns: string[] = [];
+  recordArrayRows: Record<string, unknown>[] = [];
+  /** Hard cap so we don't render a horizontally-unmanageable table. */
+  private static readonly MAX_TABLE_COLUMNS = 12;
+
   readonly PropertyDisplayMode = PropertyDisplayMode;
   readonly AttributeValueTypeDto = AttributeValueTypeDto;
   readonly Array = Array;
@@ -357,6 +463,7 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
     this.recordSummary = this.computeRecordSummary();
     this.typeIndicator = this.computeTypeIndicator();
     this.typeDescription = this.computeTypeDescription();
+    this.computeRecordArrayTable();
 
     if (this.binaryLinkedWithDownload) {
       const bv = this.value as BinaryLinkedValue;
@@ -426,6 +533,45 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
     const isRecordType = this.type === AttributeValueTypeDto.RecordDto
       || this.type === AttributeValueTypeDto.RecordArrayDto;
     return isRecordType && this.value != null && typeof this.value === 'object';
+  }
+
+  /**
+   * For RecordArray values, attempt to render as a compact table when the
+   * records share enough structure: ≥ 2 items, every item is object-like, and
+   * the union of keys stays within MAX_TABLE_COLUMNS. Columns are ordered by
+   * first appearance. Rows are stored as plain objects keyed by column name
+   * so the template can do `row[col]` lookups cheaply.
+   */
+  private computeRecordArrayTable(): void {
+    this.useRecordArrayTable = false;
+    this.recordArrayColumns = [];
+    this.recordArrayRows = [];
+
+    if (this.type !== AttributeValueTypeDto.RecordArrayDto) return;
+    if (!Array.isArray(this.value) || this.value.length < 2) return;
+    if (!this.value.every(item => item != null && typeof item === 'object')) return;
+
+    const cols: string[] = [];
+    const seen = new Set<string>();
+    const rows: Record<string, unknown>[] = [];
+    for (const item of this.value) {
+      const props = this.getObjectProperties(item);
+      const row: Record<string, unknown> = {};
+      for (const { key, value } of props) {
+        if (!seen.has(key)) {
+          seen.add(key);
+          cols.push(key);
+        }
+        row[key] = value;
+      }
+      rows.push(row);
+    }
+
+    if (cols.length === 0 || cols.length > PropertyValueDisplayComponent.MAX_TABLE_COLUMNS) return;
+
+    this.recordArrayColumns = cols;
+    this.recordArrayRows = rows;
+    this.useRecordArrayTable = true;
   }
 
   private computeIsComplexType(): boolean {
