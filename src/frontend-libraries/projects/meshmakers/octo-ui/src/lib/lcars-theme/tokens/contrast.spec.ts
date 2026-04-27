@@ -40,7 +40,7 @@ const DARK = {
   primary:        '#64ceb9',
   onPrimary:      '#07172b',
   secondary:      '#00a8dc',
-  onSecondary:    '#ffffff',
+  onSecondary:    '#07172b',   // updated for AA contrast
   surface:        '#394555',
   onSurface:      '#ffffff',
   appBg:          '#07172b',
