@@ -22,6 +22,7 @@ import { LoadingOverlayComponent } from '../../components/loading-overlay/loadin
 export interface EntityCardConfigResult {
   ckTypeId: string;
   rtId: string;
+  hideEmptyAttributes: boolean;
 }
 
 /**
@@ -94,6 +95,17 @@ export interface EntityCardConfigResult {
             </div>
           </div>
         }
+
+        <div class="form-field">
+          <label class="checkbox-row">
+            <input
+              type="checkbox"
+              kendoCheckBox
+              [(ngModel)]="hideEmptyAttributes" />
+            <span>Hide empty attributes</span>
+          </label>
+          <p class="field-hint">When enabled, attributes without a value (null, empty string, empty array/object) are not shown in the card.</p>
+        </div>
       </div>
 
       <div class="action-bar mm-dialog-actions">
@@ -174,6 +186,20 @@ export interface EntityCardConfigResult {
       font-size: 0.85rem;
     }
 
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--kendo-color-on-app-surface, #212529);
+    }
+
+    .checkbox-row input {
+      margin: 0;
+    }
+
     .action-bar {
       display: flex;
       justify-content: flex-end;
@@ -193,18 +219,21 @@ export class EntityCardConfigDialogComponent implements OnInit {
 
   @Input() initialCkTypeId?: string;
   @Input() initialRtId?: string;
+  @Input() initialHideEmptyAttributes = false;
 
   selectedCkType: CkTypeSelectorItem | null = null;
   selectedEntity: RuntimeEntityItem | null = null;
   entityDataSource?: RuntimeEntitySelectDataSource;
   entityDialogDataSource?: RuntimeEntityDialogDataSource;
   isLoadingInitial = false;
+  hideEmptyAttributes = false;
 
   get isValid(): boolean {
     return this.selectedCkType !== null && this.selectedEntity !== null;
   }
 
   async ngOnInit(): Promise<void> {
+    this.hideEmptyAttributes = this.initialHideEmptyAttributes;
     if (this.initialCkTypeId) {
       await this.loadInitialValues();
     }
@@ -309,7 +338,8 @@ export class EntityCardConfigDialogComponent implements OnInit {
     if (this.selectedCkType && this.selectedEntity) {
       this.windowRef.close({
         ckTypeId: this.selectedCkType.rtCkTypeId,
-        rtId: this.selectedEntity.rtId
+        rtId: this.selectedEntity.rtId,
+        hideEmptyAttributes: this.hideEmptyAttributes
       });
     }
   }

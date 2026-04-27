@@ -226,6 +226,8 @@ export interface EntityCardWidgetConfig extends WidgetConfig {
   showHeader?: boolean;
   showAttributes?: boolean;
   attributeFilter?: string[];
+  /** When true, attributes whose value is null/undefined/empty-string/empty-array/empty-object are hidden. */
+  hideEmptyAttributes?: boolean;
   headerColor?: string;
 }
 

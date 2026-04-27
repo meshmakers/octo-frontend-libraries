@@ -170,11 +170,13 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     supportedDataSources: ['runtimeEntity'],
     getInitialConfig: (widget) => ({
       initialCkTypeId: getDataSourceInfo(widget).ckTypeId,
-      initialRtId: getDataSourceInfo(widget).rtId
+      initialRtId: getDataSourceInfo(widget).rtId,
+      initialHideEmptyAttributes: (widget as EntityCardWidgetConfig).hideEmptyAttributes ?? false
     }),
     applyConfigResult: (widget, result) => ({
       ...widget,
-      dataSource: createDataSource(result, true)
+      dataSource: createDataSource(result, true),
+      hideEmptyAttributes: result.hideEmptyAttributes
     }),
 
     // SOLID: Factory function
@@ -184,7 +186,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       rowSpan: 2,
       dataSource: createDefaultRuntimeDataSource(),
       showHeader: true,
-      showAttributes: true
+      showAttributes: true,
+      hideEmptyAttributes: false
     }),
 
     // SOLID: Serialization for persistence
@@ -195,7 +198,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       config: {
         showHeader: widget.showHeader,
         showAttributes: widget.showAttributes,
-        attributeFilter: widget.attributeFilter
+        attributeFilter: widget.attributeFilter,
+        hideEmptyAttributes: widget.hideEmptyAttributes
       }
     }),
 
@@ -213,7 +217,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         },
         showHeader: (config['showHeader'] as boolean) ?? true,
         showAttributes: (config['showAttributes'] as boolean) ?? true,
-        attributeFilter: config['attributeFilter'] as string[] | undefined
+        attributeFilter: config['attributeFilter'] as string[] | undefined,
+        hideEmptyAttributes: (config['hideEmptyAttributes'] as boolean) ?? false
       };
     }
   });

@@ -61,14 +61,33 @@ export class EntityCardWidgetComponent implements DashboardWidget<EntityCardWidg
     const data = this._data();
     if (!data?.attributes) return [];
 
+    let attrs = data.attributes;
+
     if (this.config?.attributeFilter?.length) {
-      return data.attributes.filter(attr =>
+      attrs = attrs.filter(attr =>
         this.config.attributeFilter!.includes(attr.attributeName)
       );
     }
 
-    return data.attributes;
+    if (this.config?.hideEmptyAttributes) {
+      attrs = attrs.filter(attr => !this.isEmptyValue(attr.value));
+    }
+
+    return attrs;
   });
+
+  /**
+   * Treat null, undefined, empty string, empty array and empty object as
+   * "no value". Numeric 0, boolean false and valid dates remain visible —
+   * those are real values that the user typically still wants to see.
+   */
+  private isEmptyValue(value: unknown): boolean {
+    if (value === null || value === undefined) return true;
+    if (value === '') return true;
+    if (Array.isArray(value)) return value.length === 0;
+    if (typeof value === 'object') return Object.keys(value as object).length === 0;
+    return false;
+  }
 
   ngOnInit(): void {
     this.loadData();

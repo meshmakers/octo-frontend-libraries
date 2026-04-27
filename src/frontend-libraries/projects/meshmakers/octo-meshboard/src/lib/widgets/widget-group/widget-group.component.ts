@@ -306,6 +306,7 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
       showHeader: staticConfig?.showHeader ?? true,
       showAttributes: staticConfig?.showAttributes ?? true,
       attributeFilter: staticConfig?.attributeFilter,
+      hideEmptyAttributes: staticConfig?.hideEmptyAttributes ?? false,
       headerColor: staticConfig?.headerColor
     };
   }
