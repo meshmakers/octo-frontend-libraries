@@ -172,9 +172,12 @@ interface BinaryLinkedValue {
       font-family: 'Roboto Mono', monospace;
       font-size: 0.7em;
       padding: 1px 5px;
-      background: var(--kendo-color-base-subtle);
+      /* Derive both bg and text from the app surface text color so the badge stays */
+      /* readable in both light and dark themes — the previous base-subtle/subtle pair */
+      /* collapsed to nearly the same luminance on dark backgrounds. */
+      background: color-mix(in srgb, var(--kendo-color-on-app-surface, #1d1b20) 12%, transparent);
       border-radius: 3px;
-      color: var(--kendo-color-subtle);
+      color: var(--kendo-color-on-app-surface, #1d1b20);
       white-space: nowrap;
       flex-shrink: 0;
     }
