@@ -29,7 +29,7 @@
       flex: 1;
       font-family: "Roboto Mono", "Consolas", "Monaco", monospace;
       font-size: 0.875rem;
-      color: var(--theme-text-primary, rgba(#{var(--octo-text-color)}, 0.9));
+      color: var(--theme-on-app-bg);
       word-break: break-all;
       user-select: text;
     }

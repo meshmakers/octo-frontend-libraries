@@ -489,21 +489,21 @@
 
   /* Hover state */
   &:hover {
-    background: rgba(100, 206, 185, 0.1);
+    background: var(--theme-primary-alpha-10);
 
     &::before {
       width: 4px;
-      background: var(--octo-mint, #64ceb9);
+      background: var(--theme-primary);
     }
   }
 
   /* Active/dragging state */
   &:active {
-    background: rgba(100, 206, 185, 0.15);
+    background: var(--theme-primary-alpha-15);
 
     &::before {
       width: 4px;
-      background: var(--octo-mint, #64ceb9);
+      background: var(--theme-primary);
     }
   }
 }

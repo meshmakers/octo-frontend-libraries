@@ -172,11 +172,11 @@ import {Component, Input} from '@angular/core';
     }
 
     .octo-orbit {
-      stroke: var(--neo-cyan, #00a8dc);
+      stroke: var(--theme-secondary);
     }
 
     .octo-data {
-      fill: var(--neo-cyan, #00a8dc);
+      fill: var(--theme-secondary);
     }
   `]
 })

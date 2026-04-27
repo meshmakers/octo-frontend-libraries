@@ -1,56 +1,65 @@
-# Runtime Browser Styles
+# LCARS Theme
 
-LCARS-inspired theme styles for the runtime-browser and related components. The styles are **Kendo-independent** by default and integrate with Kendo when the host app already imports a Kendo theme.
+The LCARS theme for the OctoMesh suite. Implemented as a two-tier
+semantic-token model with a pluggable themes registry — see the
+parent library's `octo-ui/CLAUDE.md` for the complete architecture
+and usage docs.
 
-## File Structure
+## File structure
 
-| File | Purpose |
-|------|---------|
-| `_variables.scss` | Design tokens (SCSS variables) and `variables` mixin (CSS custom properties). No Kendo dependency. |
-| `_lcars-flat-btn.scss` | Mixin for flat/outline button overrides in dialogs. |
-| `_lcars-input.scss` | Mixin for LCARS input styling (text, number, select). |
-| `_lcars-button.scss` | Mixin for LCARS button styles (toolbars, dialogs). |
-| `_styles.scss` | Main `styles` mixin – dockview, panels, Kendo overrides. Uses the LCARS mixins. |
-| `_index.scss` | Entry point. Forwards `variables` and `styles`. No Kendo imports. |
-| `_kendo-theme.scss` | Optional. Imports Kendo Material theme and applies LCARS color configuration. |
-| `_with-kendo.scss` | Optional entry point for apps that don't import Kendo. Loads Kendo + base styles. |
+```
+lcars-theme/
+├─ _index.scss              styles() mixin (theme rules)
+├─ _variables.scss          variables() mixin (token composition)
+├─ _kendo-theme.scss        Kendo color map → var(--theme-*) wiring
+│
+├─ tokens/
+│   ├─ _semantic.scss       19 role tokens (--theme-primary, etc.)
+│   ├─ _derived.scss        ~110 hover/active/alpha vars via color-mix()
+│   ├─ _typography.scss
+│   ├─ _radius.scss
+│   ├─ _motion.scss
+│   ├─ _designer.scss
+│   ├─ _components.scss
+│   └─ _index.scss
+│
+├─ themes/                  palette providers (plug-in registry)
+│   ├─ _lcars-dark.scss     LCARS palette → semantic surface
+│   ├─ _lcars-light.scss    LCARS light variant
+│   └─ _index.scss
+│
+├─ primitives/              LCARS-original UI patterns
+├─ kendo/                   per-widget Kendo overrides
+├─ chrome/                  app-shell pieces (login popup)
+├─ forms/                   composite forms
+├─ thirdparty/              third-party library overrides (dockview)
+└─ host-overrides/          opt-in LCARS overrides for library
+                            components that ship neutral by default
+```
 
-## Usage
-
-### When Kendo is already imported (recommended)
-
-Use the main octo-ui styles entry:
+## Usage (host applications)
 
 ```scss
 @use "@meshmakers/octo-ui/styles" as octo;
 
-:host {
+:root, :root[data-theme="lcars-dark"] {
   @include octo.variables();
+  @include octo.lcars-dark;
+  @include octo.derived;
 }
 
-.container ::ng-deep {
-  @include octo.styles();
+:root[data-theme="lcars-light"] {
+  @include octo.lcars-light;
+  @include octo.derived;
 }
+
+@include octo.styles();
+@include octo.host-overrides();   // opt-in: LCARS look for library widgets
 ```
 
-### When Kendo is not imported
+The public theming surface is `--theme-*` (19 role tokens). Tenants
+override at runtime via `documentElement.style.setProperty(...)`;
+all derived tokens follow automatically via `color-mix()`.
 
-Use the with-kendo entry to load Kendo Material + LCARS theme:
-
-```scss
-@use "@meshmakers/octo-ui/lib/runtime-browser/styles/with-kendo" as octo;
-
-:host {
-  @include octo.variables();
-}
-
-.container ::ng-deep {
-  @include octo.styles();
-}
-```
-
-## How it works
-
-- **`variables` mixin**: Applies CSS custom properties (`--octo-mint`, `--kendo-color-primary`, etc.) to the element. When Kendo is present, these override Kendo's defaults.
-- **`styles` mixin**: Outputs dockview, LCARS panels, and Kendo component overrides. Kendo-specific selectors (`.k-*`) only apply when those elements exist.
-- **Fallbacks**: Body and global styles use `var(--kendo-color-app-surface, var(--deep-sea, #1a2230))` so they work even when variables aren't applied to an ancestor.
+Browser baseline: `color-mix()` requires Chromium 111+, Firefox 113+,
+Safari 16.2+ (all evergreen since early 2023).
