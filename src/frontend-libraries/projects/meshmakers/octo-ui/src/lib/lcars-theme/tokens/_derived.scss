@@ -130,9 +130,14 @@
   //   --theme-app-bg-raised:        #07172b + 25% surface-elevated → ~(13,29,48)
   //                                 vs target #0d1b2a (13,27,42); ΔE ≈ 3 (dark range)
   //   --theme-text-secondary-muted: #9292a6 darkened 27% with black → (107,107,121)
-  //                                 vs target #6a6a7a (106,106,122); ΔE < 0.5
-  //   --theme-app-bg-banner:        #07172b + 50% surface-elevated → (19,35,54)
-  //                                 vs target #132a45 (19,42,69); ΔE ≈ 5 (gradient stop)
+  //                                 vs target #6a6a7a (106,106,122); ΔE ≈ 1.25 under lcars-dark;
+  //                                 under lcars-light overridden via derived-light
+  //   --theme-app-bg-banner:        #07172b + 50% surface-elevated → (19,34,54)
+  //                                 vs target #132a45 (19,42,69); ΔE ≈ 6 under lcars-dark
+  //                                 (best achievable; target hex blue channel exceeds available
+  //                                  token range — perceptually compressed in dark range);
+  //                                 50% mix chosen as semantic midpoint (between raised and
+  //                                 surface-elevated); minimum-distance would be 79%.
   //
   // Note: #0d1b2a and #132a45 lie outside the interpolation range of any
   // two available semantic tokens, so perfect ΔE ≤ 1 is mathematically
@@ -156,4 +161,10 @@
   --theme-warning-hover:    color-mix(in srgb, var(--theme-warning) 88%, black);
   --theme-error-hover:      color-mix(in srgb, var(--theme-error) 88%, black);
   --theme-info-hover:       color-mix(in srgb, var(--theme-info) 88%, black);
+
+  // Surface-tone muted text under light theme: mix with white instead of black
+  // so muting always pulls text away from full prominence regardless of theme.
+  // Under lcars-light, --theme-text-secondary = #394555 (57,69,85);
+  // mix(...white 27%) → lighter navy, less prominent on near-white app-bg.
+  --theme-text-secondary-muted: color-mix(in srgb, var(--theme-text-secondary), white 27%);
 }
