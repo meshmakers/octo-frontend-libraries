@@ -17,6 +17,8 @@ interface RecordProperty {
 }
 
 interface RecordArrayItem {
+  /** Stable position in the original array — preserved when filtering shrinks the visible list. */
+  originalIndex: number;
   label: string | null;
   properties: RecordProperty[];
   expanded: boolean;
@@ -42,6 +44,25 @@ interface RecordArrayItem {
     <div class="record-detail-content">
       @if (isRecordArray && recordItems.length > 1) {
         <div class="record-toolbar">
+          <input
+            type="text"
+            class="search-input"
+            [value]="searchTerm"
+            (input)="onSearchInput($event)"
+            placeholder="Search records, keys, values…"
+            aria-label="Search" />
+          @if (searchTerm) {
+            <button
+              type="button"
+              class="search-clear"
+              (click)="clearSearch()"
+              aria-label="Clear search"
+              title="Clear search">×</button>
+            <span class="match-count">
+              {{ visibleRecords.length }} of {{ recordItems.length }}
+            </span>
+          }
+          <span class="toolbar-spacer"></span>
           <button
             kendoButton
             fillMode="flat"
@@ -59,16 +80,18 @@ interface RecordArrayItem {
         </div>
       }
 
-      @if (isRecordArray && recordItems.length > 0) {
+      @if (isRecordArray && searchTerm && visibleRecords.length === 0) {
+        <div class="no-matches">No records match "{{ searchTerm }}".</div>
+      } @else if (isRecordArray && visibleRecords.length > 0) {
         <div class="record-array-list">
-          @for (record of recordItems; track $index) {
+          @for (record of visibleRecords; track record.originalIndex) {
             <div class="record-array-item">
-              <div class="array-item-header" (click)="toggleRecord($index)">
+              <div class="array-item-header" (click)="toggleRecord(record.originalIndex)">
                 <kendo-svgicon
-                  [icon]="record.expanded ? chevronDownIcon : chevronRightIcon"
+                  [icon]="isRecordExpanded(record) ? chevronDownIcon : chevronRightIcon"
                   class="record-chevron">
                 </kendo-svgicon>
-                <span class="array-item-index">[{{ $index }}]</span>
+                <span class="array-item-index">[{{ record.originalIndex }}]</span>
                 @if (record.label) {
                   <span class="array-item-label">{{ record.label }}</span>
                 }
@@ -76,7 +99,7 @@ interface RecordArrayItem {
                   {{ record.properties.length }} propert{{ record.properties.length === 1 ? 'y' : 'ies' }}
                 </span>
               </div>
-              @if (record.expanded) {
+              @if (isRecordExpanded(record)) {
                 <kendo-grid [data]="record.properties" [resizable]="true" scrollable="none" class="detail-grid">
                   <kendo-grid-column field="key" title="Property" [width]="180">
                     <ng-template kendoGridCellTemplate let-dataItem="dataItem">
@@ -145,10 +168,68 @@ interface RecordArrayItem {
 
     .record-toolbar {
       display: flex;
+      align-items: center;
       gap: 8px;
       flex-shrink: 0;
       padding-bottom: 4px;
       border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
+    }
+
+    .toolbar-spacer {
+      flex: 1;
+    }
+
+    .search-input {
+      flex: 0 1 220px;
+      min-width: 0;
+      padding: 4px 8px;
+      font: inherit;
+      color: var(--kendo-color-on-app-surface, #1d1b20);
+      background: color-mix(in srgb, var(--kendo-color-on-app-surface, #1d1b20) 6%, transparent);
+      border: 1px solid var(--kendo-color-border, #dee2e6);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    .search-input::placeholder {
+      color: var(--kendo-color-subtle, #6c757d);
+    }
+
+    .search-input:focus {
+      border-color: var(--kendo-color-primary, #0d6efd);
+    }
+
+    .search-clear {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1em;
+      line-height: 1;
+      color: var(--kendo-color-subtle, #6c757d);
+      border-radius: 3px;
+    }
+
+    .search-clear:hover {
+      color: var(--kendo-color-on-app-surface, #1d1b20);
+      background: color-mix(in srgb, var(--kendo-color-on-app-surface, #1d1b20) 8%, transparent);
+    }
+
+    .match-count {
+      flex-shrink: 0;
+      font-size: 0.8em;
+      color: var(--kendo-color-subtle, #6c757d);
+      font-style: italic;
+    }
+
+    .no-matches {
+      padding: 16px;
+      text-align: center;
+      color: var(--kendo-color-subtle, #6c757d);
+      font-style: italic;
     }
 
     .record-array-list {
@@ -276,6 +357,7 @@ export class RecordDetailDialogComponent implements OnInit {
 
   singleRecordProperties: RecordProperty[] = [];
   recordItems: RecordArrayItem[] = [];
+  searchTerm = '';
 
   // Icons
   readonly fileIcon = fileIcon;
@@ -313,7 +395,8 @@ export class RecordDetailDialogComponent implements OnInit {
    */
   recompute(): void {
     if (this.isRecordArray && Array.isArray(this.value)) {
-      this.recordItems = this.value.map(item => ({
+      this.recordItems = this.value.map((item, originalIndex) => ({
+        originalIndex,
         label: this.getRecordLabel(item),
         properties: this.toRecordProperties(item),
         expanded: true
@@ -323,6 +406,45 @@ export class RecordDetailDialogComponent implements OnInit {
       this.singleRecordProperties = this.toRecordProperties(this.value);
       this.recordItems = [];
     }
+    this.searchTerm = '';
+  }
+
+  /**
+   * Records visible after applying the search filter. With no search term
+   * this is just the full list. The matcher checks the record's label and
+   * every property's key + formatted value (case-insensitive substring).
+   */
+  get visibleRecords(): RecordArrayItem[] {
+    const q = this.searchTerm.trim().toLowerCase();
+    if (!q) return this.recordItems;
+    return this.recordItems.filter(r => this.recordMatches(r, q));
+  }
+
+  /**
+   * When search is active, force matching records open so their content is
+   * visible without an extra click. Outside search mode the user's manual
+   * expanded state wins.
+   */
+  isRecordExpanded(record: RecordArrayItem): boolean {
+    if (this.searchTerm.trim()) return true;
+    return record.expanded;
+  }
+
+  onSearchInput(event: Event): void {
+    this.searchTerm = (event.target as HTMLInputElement).value;
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+  }
+
+  private recordMatches(record: RecordArrayItem, q: string): boolean {
+    if (record.label && record.label.toLowerCase().includes(q)) return true;
+    for (const p of record.properties) {
+      if (p.key.toLowerCase().includes(q)) return true;
+      if (p.formattedValue.toLowerCase().includes(q)) return true;
+    }
+    return false;
   }
 
   toggleRecord(index: number): void {
