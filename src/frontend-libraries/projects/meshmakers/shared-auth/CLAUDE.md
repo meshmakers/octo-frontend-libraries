@@ -98,7 +98,6 @@ mm-login-app-bar-section {
   --mm-login-bg-start: #394555;
   --mm-login-bg-end: #1f2e40;
   --mm-login-accent: #64ceb9;
-  --mm-login-accent-rgb: 100, 206, 185;
   --mm-login-text: #ffffff;
   --mm-login-btn-primary-start: #64ceb9;
   --mm-login-btn-primary-end: #4db8a4;
