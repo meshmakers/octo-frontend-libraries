@@ -127,6 +127,31 @@ document.documentElement.style.setProperty('--theme-secondary', '#00a8dc');
 `color-mix()` is required: Chromium 111+, Firefox 113+, Safari 16.2+ (all
 evergreen since early 2023).
 
+### Known limitation: Monaco editor SVG accents
+
+Some Monaco editor decoration accents (validation underlines, breadcrumb
+chevrons, status icons) are baked into `data:image/svg+xml,...` URIs in
+`octo-mesh-refinery-studio`'s Monaco component SCSS. CSS custom properties
+do not resolve inside `data:` URIs, so these accents stay LCARS-mint
+regardless of the active theme.
+
+Sunset trigger: revisit when the second dark theme ships, or when an
+LCARS-mint accent inside the editor becomes a customer-visible
+regression (whichever comes first).
+
+Three resolution paths exist when this limitation is taken on:
+
+1. **Defer (current).** Document the limitation; accept LCARS-mint
+   accents under any theme.
+2. **Generate `data:` URIs in TypeScript at runtime.** Read computed
+   values of theme tokens via `getComputedStyle()`, build the SVG
+   string, encode as `data:` URI, re-run on theme change via the
+   existing `TenantThemeService` hook. Medium effort; needs careful
+   cache-invalidation when theme switches.
+3. **Inline SVG as Angular template.** Replace `data:` URIs with
+   Angular `<svg>` markup styled via CSS variables. Heaviest;
+   cleanest architectural endpoint.
+
 ### Theme partials layout
 
 The theme partials live under `<...>/octo-ui/src/lib/lcars-theme/`:
