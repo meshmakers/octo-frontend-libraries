@@ -91,7 +91,13 @@ $kendo-colors: map.merge(
     primary-subtle:           var(--theme-primary-subtle),
     primary-subtle-hover:     color-mix(in srgb, var(--theme-primary) 20%, transparent),
     primary-subtle-active:    color-mix(in srgb, var(--theme-primary) 25%, transparent),
-    primary-emphasis:         color-mix(in srgb, var(--theme-primary), white 15%),
+    primary-emphasis:         var(--theme-primary-hover),
+    // NOTE: `{role}-emphasis-subtle` mixes 30% white directly. This is
+    // dark-correct (mint + white = brighter mint) but produces a washed-out
+    // value on lcars-light surfaces. No bundled Kendo widget reads it today;
+    // when one does, mirror the `derived-light` pattern with a Kendo-side
+    // override (e.g., a `derived-light-kendo` mixin) rather than baking
+    // theme-direction into this static map.
     primary-emphasis-subtle:  color-mix(in srgb, var(--theme-primary), white 30%),
     primary-on-base:          var(--theme-primary),
     primary-on-emphasis:      var(--theme-on-primary),
@@ -105,7 +111,7 @@ $kendo-colors: map.merge(
     secondary-subtle:           var(--theme-secondary-subtle),
     secondary-subtle-hover:     color-mix(in srgb, var(--theme-secondary) 20%, transparent),
     secondary-subtle-active:    color-mix(in srgb, var(--theme-secondary) 25%, transparent),
-    secondary-emphasis:         color-mix(in srgb, var(--theme-secondary), white 15%),
+    secondary-emphasis:         var(--theme-secondary-hover),
     secondary-emphasis-subtle:  color-mix(in srgb, var(--theme-secondary), white 30%),
     secondary-on-base:          var(--theme-secondary),
     secondary-on-emphasis:      var(--theme-on-secondary),
@@ -119,9 +125,17 @@ $kendo-colors: map.merge(
     success-subtle:           var(--theme-success-subtle),
     success-subtle-hover:     color-mix(in srgb, var(--theme-success) 20%, transparent),
     success-subtle-active:    color-mix(in srgb, var(--theme-success) 25%, transparent),
-    success-emphasis:         color-mix(in srgb, var(--theme-success), white 15%),
+    success-emphasis:         var(--theme-success-hover),
     success-emphasis-subtle:  color-mix(in srgb, var(--theme-success), white 30%),
     success-on-base:          var(--theme-success),
+    // NOTE: `{status}-on-emphasis` falls back to `--theme-on-app-bg` because
+    // `--theme-on-{success,warning,error,info}` are not declared on the
+    // semantic surface. Under lcars-dark this gives white-on-status (~5.9:1
+    // for success). Under lcars-light it gives deep-navy-on-status which
+    // drops to ~2.6:1 — below AA. No bundled widget reads these keys today;
+    // when one does, the right fix is to add real `--theme-on-{status}`
+    // tokens to the semantic surface (which IS a public API change requiring
+    // a separate spec) and assert them in the contrast suite.
     success-on-emphasis:      var(--theme-on-app-bg),
     success-on-subtle:        var(--theme-success),
 
@@ -132,7 +146,7 @@ $kendo-colors: map.merge(
     warning-subtle:           var(--theme-warning-subtle),
     warning-subtle-hover:     color-mix(in srgb, var(--theme-warning) 20%, transparent),
     warning-subtle-active:    color-mix(in srgb, var(--theme-warning) 25%, transparent),
-    warning-emphasis:         color-mix(in srgb, var(--theme-warning), white 15%),
+    warning-emphasis:         var(--theme-warning-hover),
     warning-emphasis-subtle:  color-mix(in srgb, var(--theme-warning), white 30%),
     warning-on-base:          var(--theme-warning),
     warning-on-emphasis:      var(--theme-on-app-bg),
@@ -145,7 +159,7 @@ $kendo-colors: map.merge(
     error-subtle:           var(--theme-error-subtle),
     error-subtle-hover:     color-mix(in srgb, var(--theme-error) 20%, transparent),
     error-subtle-active:    color-mix(in srgb, var(--theme-error) 25%, transparent),
-    error-emphasis:         color-mix(in srgb, var(--theme-error), white 15%),
+    error-emphasis:         var(--theme-error-hover),
     error-emphasis-subtle:  color-mix(in srgb, var(--theme-error), white 30%),
     error-on-base:          var(--theme-error),
     error-on-emphasis:      var(--theme-on-app-bg),
@@ -158,7 +172,7 @@ $kendo-colors: map.merge(
     info-subtle:           var(--theme-info-subtle),
     info-subtle-hover:     color-mix(in srgb, var(--theme-info) 20%, transparent),
     info-subtle-active:    color-mix(in srgb, var(--theme-info) 25%, transparent),
-    info-emphasis:         color-mix(in srgb, var(--theme-info), white 15%),
+    info-emphasis:         var(--theme-info-hover),
     info-emphasis-subtle:  color-mix(in srgb, var(--theme-info), white 30%),
     info-on-base:          var(--theme-info),
     info-on-emphasis:      var(--theme-on-app-bg),
