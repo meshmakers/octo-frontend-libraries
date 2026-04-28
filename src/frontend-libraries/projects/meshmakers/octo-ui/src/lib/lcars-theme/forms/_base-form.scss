@@ -9,15 +9,15 @@
   // mm-base-form
   .mm-base-form-container {
     // Override form CSS custom properties for LCARS theme
-    --mm-form-bg: rgba(31, 46, 64, 0.6);
-    --mm-form-bg-alt: rgba(31, 46, 64, 0.8);
+    --mm-form-bg:     color-mix(in srgb, var(--theme-surface) 60%, transparent);
+    --mm-form-bg-alt: color-mix(in srgb, var(--theme-surface) 80%, transparent);
     --mm-form-border: var(--theme-primary-alpha-20);
     --mm-form-border-subtle: var(--theme-primary-alpha-15);
     --mm-form-text: #ffffff;
     --mm-form-text-subtle: var(--theme-text-secondary);
     --mm-form-text-label: var(--theme-text-secondary);
     --mm-form-accent: var(--theme-primary);
-    --mm-form-error: #ec658f;
+    --mm-form-error:  var(--theme-error);
     --mm-form-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     --mm-form-overlay-bg: rgba(7, 23, 43, 0.95);
 
