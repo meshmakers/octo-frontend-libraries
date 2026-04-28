@@ -123,6 +123,24 @@
   // Used by ck-models / query-builder badge text and some entity panels.
   --theme-accent-violet-light:           color-mix(in srgb, var(--theme-accent-violet) 70%, white);
   --theme-accent-violet-light-alpha-20:  color-mix(in srgb, var(--theme-accent-violet) 70%, white 30%);
+
+  // ---- Surface-tone derived tokens (B3: refinery surface tone migration) ----
+  // Promoted because each formula appears at 3+ sites across refinery SCSS.
+  // Resolved under lcars-dark:
+  //   --theme-app-bg-raised:        #07172b + 25% surface-elevated → ~(13,29,48)
+  //                                 vs target #0d1b2a (13,27,42); ΔE ≈ 3 (dark range)
+  //   --theme-text-secondary-muted: #9292a6 darkened 27% with black → (107,107,121)
+  //                                 vs target #6a6a7a (106,106,122); ΔE < 0.5
+  //   --theme-app-bg-banner:        #07172b + 50% surface-elevated → (19,35,54)
+  //                                 vs target #132a45 (19,42,69); ΔE ≈ 5 (gradient stop)
+  //
+  // Note: #0d1b2a and #132a45 lie outside the interpolation range of any
+  // two available semantic tokens, so perfect ΔE ≤ 1 is mathematically
+  // unachievable. The formulas chosen minimise perceptual distance; the dark
+  // region compresses perceptual differences.
+  --theme-app-bg-raised:        color-mix(in srgb, var(--theme-app-bg), var(--theme-surface-elevated) 25%);
+  --theme-text-secondary-muted: color-mix(in srgb, var(--theme-text-secondary), black 27%);
+  --theme-app-bg-banner:        color-mix(in srgb, var(--theme-app-bg), var(--theme-surface-elevated) 50%);
 }
 
 @mixin derived-light {
