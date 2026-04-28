@@ -6,6 +6,12 @@
 
 @mixin designer {
   // Designer/Symbol Editor Panel Variables (LCARS theme)
+  // LCARS Process Designer convention: the "panel" is the brightest layer;
+  // "elevated panel" sits below it as a recessed surface. This reads
+  // counter to typical Material/elevation language but is faithful to
+  // the original LCARS visuals — verified pre-A1 in browser walk-through.
+  // Do NOT swap values without a paired browser walk-through; consumer
+  // styles depend on this specific brightness ordering.
   --designer-panel-bg: var(--theme-surface-elevated);
   --designer-panel-bg-elevated: var(--theme-surface);
   --designer-panel-border: var(--theme-primary-alpha-20);
