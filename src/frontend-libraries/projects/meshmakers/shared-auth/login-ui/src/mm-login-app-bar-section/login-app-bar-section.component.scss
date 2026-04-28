@@ -13,9 +13,9 @@
 //   --mm-login-btn-primary-end   (default: #1565c0)
 //   --mm-login-btn-primary-text  (default: #ffffff)
 //   --mm-login-font            (default: 'Roboto', sans-serif)
-//   --mm-login-avatar-bg       (default: color-mix(srgb, accent 15%, transparent))
+//   --mm-login-avatar-bg       (default: color-mix(in srgb, var(--mm-login-accent) 15%, transparent))
 //   --mm-login-avatar-text     (default: --mm-login-accent)
-//   --mm-login-avatar-border   (default: color-mix(srgb, accent 50%, transparent))
+//   --mm-login-avatar-border   (default: color-mix(in srgb, var(--mm-login-accent) 50%, transparent))
 // ============================================================================
 
 .content {
