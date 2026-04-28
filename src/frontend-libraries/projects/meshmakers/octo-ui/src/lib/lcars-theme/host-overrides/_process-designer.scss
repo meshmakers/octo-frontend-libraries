@@ -1347,7 +1347,7 @@
     --designer-surface: var(--theme-surface-elevated);
     --designer-surface-alt: var(--theme-surface);
     --designer-border: var(--theme-primary-alpha-20);
-    --designer-text: #ffffff;
+    --designer-text: var(--theme-on-app-bg);
     --designer-text-muted: var(--theme-text-secondary);
     --designer-accent: var(--theme-primary);
     --designer-accent-secondary: var(--theme-secondary);
@@ -1363,7 +1363,7 @@
     --editor-surface: var(--theme-surface-elevated);
     --editor-surface-alt: var(--theme-surface);
     --editor-border: var(--theme-primary-alpha-20);
-    --editor-text: #ffffff;
+    --editor-text:   var(--theme-on-app-bg);
     --editor-text-muted: var(--theme-text-secondary);
     --editor-accent: var(--theme-primary);
     --editor-hover-bg: var(--theme-primary-alpha-10);
