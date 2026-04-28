@@ -967,7 +967,7 @@
 
     .symbol-preview {
       // Use a lighter background so dark symbols remain visible
-      background: #4a5568;
+      background: color-mix(in srgb, var(--theme-app-bg), var(--theme-on-app-bg) 27%);
       border: 1px solid var(--theme-primary-alpha-15);
     }
 
