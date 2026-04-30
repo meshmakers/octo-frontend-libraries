@@ -227,4 +227,34 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./runtime-browser/runtime-browser.routes').then((m) => m.routes),
   },
+  {
+    path: 'branding',
+    loadComponent: () =>
+      import('./branding/branding-demo.component').then(
+        (m) => m.BrandingDemoComponent,
+      ),
+    data: {
+      breadcrumb: [
+        {
+          label: 'Branding components',
+          url: 'demos/branding',
+        },
+      ],
+    },
+  },
+  {
+    path: 'branding-settings',
+    loadComponent: () =>
+      import('./branding-settings/branding-settings-demo.component').then(
+        (m) => m.BrandingSettingsDemoComponent,
+      ),
+    data: {
+      breadcrumb: [
+        {
+          label: 'Branding settings',
+          url: 'demos/branding-settings',
+        },
+      ],
+    },
+  },
 ];

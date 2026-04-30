@@ -21,6 +21,7 @@ import {MyCommandSettingsService} from './services/my-command-settings.service';
 import { registerLocaleData } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
 import {provideOctoUi} from '@meshmakers/octo-ui';
+import {provideOctoBranding} from '@meshmakers/octo-ui/branding';
 import { MessageListenerService } from '@meshmakers/shared-ui';
 import {ApolloClient} from '@apollo/client';
 import {HttpLink} from 'apollo-angular/http';
@@ -48,6 +49,10 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideRouter(routes),
     provideOctoUi(),
+    provideOctoBranding({
+      defaults: { appName: 'Octo Demo', appTitle: 'Octo Frontend Demo' },
+      fallbackAssets: { headerLogo: 'favicon.svg', favicon: 'favicon.svg' },
+    }),
     provideMeshBoard(),
     provideProcessWidget(),
     provideMarkdown(),

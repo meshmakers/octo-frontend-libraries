@@ -1,4 +1,4 @@
-<kendo-appbar position="top">
+<kendo-appbar position="top" themeColor="inherit">
   <kendo-appbar-section>
     <button kendoButton fillMode="flat" (click)="drawer.toggle()">
       <kendo-svgicon [icon]="menuIcon"></kendo-svgicon>
@@ -23,6 +23,10 @@
 
   <kendo-appbar-section>
     <span class="version-label">v{{ version }}</span>
+  </kendo-appbar-section>
+
+  <kendo-appbar-section>
+    <mm-theme-switcher />
   </kendo-appbar-section>
 
   <kendo-appbar-section>

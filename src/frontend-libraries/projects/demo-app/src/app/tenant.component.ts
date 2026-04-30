@@ -4,7 +4,6 @@ import { Apollo } from 'apollo-angular';
 import { InMemoryCache } from '@apollo/client/core';
 import { HttpLink } from 'apollo-angular/http';
 import { CONFIGURATION_SERVICE } from '@meshmakers/octo-services';
-import { Title } from '@angular/platform-browser';
 import { AuthorizeService } from "@meshmakers/shared-auth";
 import { defaultAuthorizeOptions } from "./config/defaultAuthorizeOptions";
 import {AppTitleService} from '@meshmakers/shared-services';
@@ -27,7 +26,6 @@ export class TenantComponent {
     const authorizeService = inject(AuthorizeService);
     const httpLink = inject(HttpLink);
     const apollo = inject(Apollo);
-    const titleService = inject(Title);
     const appTitleService = inject(AppTitleService);
     const octoErrorLink = inject(OctoErrorLink);
 
@@ -35,7 +33,9 @@ export class TenantComponent {
     activatedRoute.params.subscribe(async (params) => {
       const tenantId = params['tenantId'];
       console.log(`Used tenant: '${tenantId}'`);
-      titleService.setTitle(`${tenantId} - OctoMesh Template App`);
+      // document.title is owned by AppTitleService (TitleStrategy from
+      // @meshmakers/octo-ui) — it composes ${branding.appTitle} | ${route}.
+      // The shared-services AppTitleService still drives the in-app <h1>.
       appTitleService.setTitle(`${tenantId} - OctoMesh Template App`);
 
       const service = configurationService.config.assetServices ?? '';
@@ -68,6 +68,10 @@ export class TenantComponent {
       defaultAuthorizeOptions.redirectUri = `${configurationService.config.redirectUri}${tenantId}`;
       defaultAuthorizeOptions.postLogoutRedirectUri = `${configurationService.config.postLogoutRedirectUri}${tenantId}`;
       await authorizeService.initialize(defaultAuthorizeOptions);
+
+      // Branding load is driven by the auth-aware effect in AppComponent —
+      // see comment there. Triggering load() here would race authorizeService
+      // initialize() and hit Apollo before the bearer token is available.
     });
   }
 }
