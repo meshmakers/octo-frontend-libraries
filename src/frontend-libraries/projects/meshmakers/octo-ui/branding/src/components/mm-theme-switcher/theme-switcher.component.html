@@ -1,0 +1,8 @@
+<button
+  type="button"
+  [attr.aria-label]="ariaLabel()"
+  [disabled]="!available()"
+  (click)="onToggle()"
+>
+  <kendo-svg-icon [icon]="isDark() ? lightIcon : darkIcon" />
+</button>

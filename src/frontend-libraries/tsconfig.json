@@ -16,6 +16,9 @@
       "@meshmakers/octo-ui": [
         "./dist/meshmakers/octo-ui"
       ],
+      "@meshmakers/octo-ui/*": [
+        "./dist/meshmakers/octo-ui/*"
+      ],
       "@meshmakers/shared-auth": [
         "./dist/meshmakers/shared-auth"
       ],

@@ -13,6 +13,13 @@ import { RuntimeEntityVariableDialogService } from './lib/runtime-entity-variabl
 
 export * from './lib/attribute-selector-dialog';
 export * from './lib/attribute-sort-selector-dialog';
+// Branding feature lives in the secondary entry point `@meshmakers/octo-ui/branding`
+// to avoid pulling in the entire primary FESM (RuntimeBrowser, FieldFilterEditor,
+// AttributeSelectors, etc.) for apps that only need the lightweight branding
+// pieces (logo, theme switcher, services). The re-export below preserves
+// backwards compatibility for consumers importing branding symbols from
+// `@meshmakers/octo-ui` directly.
+export * from '@meshmakers/octo-ui/branding';
 export * from './lib/ck-type-selector-dialog';
 export * from './lib/ck-type-selector-input';
 export * from './lib/data-sources/octo-graph-ql-data-source';

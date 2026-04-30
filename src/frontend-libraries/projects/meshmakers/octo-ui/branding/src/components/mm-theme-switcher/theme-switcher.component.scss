@@ -1,0 +1,22 @@
+:host {
+  display: inline-flex;
+}
+
+button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: var(--kendo-spacing-2);
+  cursor: pointer;
+  color: inherit;
+
+  &[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
