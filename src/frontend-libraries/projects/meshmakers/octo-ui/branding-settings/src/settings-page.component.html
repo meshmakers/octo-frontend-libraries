@@ -32,19 +32,20 @@
         <div class="logo-upload-row">
           @for (slot of logoSlotNames; track slot) {
             <div class="file-upload-section">
-              <label class="upload-label">
+              <label class="upload-label" [attr.for]="'logo-' + slot">
                 {{ logoLabel(slot) }}
               </label>
               <input
                 type="file"
                 accept="image/*"
+                [id]="'logo-' + slot"
                 (change)="onLogoSelected(slot, $event)"
                 class="logo-input"
               />
               @let url = previewUrl(slot);
               @if (url) {
                 <div class="logo-preview">
-                  <img [src]="url" alt="preview" />
+                  <img [src]="url" [alt]="logoLabel(slot) + ' preview'" />
                   <button
                     kendoButton
                     type="button"

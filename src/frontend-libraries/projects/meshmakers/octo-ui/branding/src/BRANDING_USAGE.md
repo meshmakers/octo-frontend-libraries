@@ -38,14 +38,12 @@ chooses which to import from based on where the symbols are loaded:
 | `@meshmakers/octo-ui/branding` | `BrandingDataSource`, `BrandingApplicationService`, `ThemeService`, `AppTitleService`, `<mm-theme-switcher>`, `provideOctoBranding`, `OCTO_BRANDING_DEFAULTS`, `OCTO_BRANDING_FALLBACK_ASSETS`, `OCTO_TITLE_TRANSLATOR`, `NEUTRAL_BRANDING_DEFAULTS`, `BrandingData`, `ThemePalette`, `BrandingUpdate`, … | **Eager** imports in `app.config.ts`, `app.component.ts`, header/footer/menu/login-panel/error-panel components |
 | `@meshmakers/octo-ui/branding-settings` | `SettingsPageComponent`, `BrandingSettingsMessages`, `BRANDING_ROUTES` | **Lazy** import in the host's `/settings` route wrapper |
 
-> **Critical for bundle size:** `@meshmakers/octo-ui` (the primary entry)
-> still re-exports every branding symbol for backwards compatibility, but
-> importing from there pulls the **entire primary FESM** (RuntimeBrowser,
-> FieldFilterEditor, AttributeSelectors, PropertyGrid, …) into whichever
-> chunk consumes it. In maco-app, switching the eager-side imports from
-> `@meshmakers/octo-ui` to `@meshmakers/octo-ui/branding` shrunk the initial
-> bundle from **5.6 MB → 2.3 MB**. The snippets below already use the
-> correct paths — keep them.
+> **Always import from the secondary entries.** The primary
+> `@meshmakers/octo-ui` does **not** re-export branding symbols — branding
+> lives in its own FESM so consumers don't pay for `RuntimeBrowser`,
+> `FieldFilterEditor`, `AttributeSelectors`, `PropertyGrid`, … just to get
+> a theme switcher. In maco-app this split shrunk the initial bundle from
+> **5.6 MB → 2.3 MB**. The snippets below already use the correct paths.
 
 The library does **not** ship a `<mm-theme-header>` / `<mm-theme-footer>`
 component — shell composition (drawer, search bar, version chip,
@@ -494,13 +492,12 @@ single-locale apps.
   `toSignal(t.onLangChange, { initialValue: null })` as shown in Step 5 —
   `onLangChange` only emits *after* the new translation file is loaded, so
   `t.instant(...)` returns fresh strings on the same tick.
-- **Eager bundle is many MB heavier than expected after wiring branding.** →
-  Eager-side files (`app.config.ts`, header, footer, login-panel,
-  error-panel, AppComponent) are importing branding symbols from the
-  primary entry `@meshmakers/octo-ui`, which pulls in the entire primary
-  FESM (RuntimeBrowser, FieldFilterEditor, …). Switch those imports to
-  `@meshmakers/octo-ui/branding`. The `/settings` route wrapper similarly
-  belongs on `@meshmakers/octo-ui/branding-settings`.
+- **Compile error: `BrandingDataSource` / `provideOctoBranding` / etc. is
+  not exported by `@meshmakers/octo-ui`.** → The primary entry does not
+  re-export branding symbols. Import from `@meshmakers/octo-ui/branding`
+  for the runtime stack (services, theme switcher, provider) and from
+  `@meshmakers/octo-ui/branding-settings` for the admin editor +
+  `BRANDING_ROUTES`.
 
 ---
 

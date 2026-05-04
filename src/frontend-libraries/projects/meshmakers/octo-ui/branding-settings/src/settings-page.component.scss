@@ -9,7 +9,7 @@
   box-sizing: border-box;
 }
 
-:host ::ng-deep kendo-card.settings-card {
+kendo-card.settings-card {
   margin-bottom: 16px;
   width: 100% !important;
 }

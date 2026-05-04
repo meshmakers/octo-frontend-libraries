@@ -66,7 +66,6 @@ export class BrandingApplicationService {
     effect(() => {
       const isDark = this.themeService.isDark();
       const data = this.brandingDataSource.branding();
-      if (!data.rtId) return;
 
       // Tenant disabled dark-theme override (single-theme app) — force light
       // mode. Without this guard a stale 'dark' in localStorage (or system

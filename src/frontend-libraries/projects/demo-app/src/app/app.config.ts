@@ -51,7 +51,7 @@ export const appConfig: ApplicationConfig = {
     provideOctoUi(),
     provideOctoBranding({
       defaults: { appName: 'Octo Demo', appTitle: 'Octo Frontend Demo' },
-      fallbackAssets: { headerLogo: 'favicon.svg', favicon: 'favicon.svg' },
+      fallbackAssets: { headerLogo: '/favicon.svg', favicon: '/favicon.svg' },
     }),
     provideMeshBoard(),
     provideProcessWidget(),

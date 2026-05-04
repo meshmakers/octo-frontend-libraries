@@ -1,6 +1,7 @@
 <button
   type="button"
   [attr.aria-label]="ariaLabel()"
+  [attr.aria-pressed]="isDark()"
   [disabled]="!available()"
   (click)="onToggle()"
 >

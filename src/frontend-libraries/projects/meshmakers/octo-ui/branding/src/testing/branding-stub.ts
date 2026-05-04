@@ -1,20 +1,22 @@
-/// <reference types="jasmine" />
 import { Provider, signal, WritableSignal } from '@angular/core';
 import { NEUTRAL_BRANDING_DEFAULTS } from '../branding.tokens';
 import { BrandingData, BrandingUpdate } from '../models/branding.models';
 import { BrandingDataSource } from '../services/branding-data-source.service';
 
+/**
+ * Framework-agnostic stub matching the runtime shape of `BrandingDataSource`.
+ * The async methods are plain functions; consumers wrap them in their own
+ * spy primitive (`jasmine.createSpy`, `jest.fn`, `vi.fn`) when they need
+ * call assertions. Casting `branding` back to `WritableSignal` lets specs
+ * drive state changes.
+ */
 export interface BrandingDataSourceStub {
   branding: WritableSignal<BrandingData>;
-  load: jasmine.Spy<() => Promise<void>>;
-  save: jasmine.Spy<(u: BrandingUpdate) => Promise<BrandingData>>;
-  resetToDefaults: jasmine.Spy<() => Promise<void>>;
+  load: () => Promise<void>;
+  save: (u: BrandingUpdate) => Promise<BrandingData>;
+  resetToDefaults: () => Promise<void>;
 }
 
-/**
- * Build a stub matching the runtime shape of BrandingDataSource. Cast
- * `branding` back to WritableSignal in specs to drive state changes.
- */
 export function createBrandingStub(
   overrides?: Partial<BrandingData>,
 ): BrandingDataSourceStub {
@@ -24,9 +26,9 @@ export function createBrandingStub(
   });
   return {
     branding,
-    load: jasmine.createSpy('load').and.resolveTo(),
-    save: jasmine.createSpy('save').and.callFake(async () => branding()),
-    resetToDefaults: jasmine.createSpy('resetToDefaults').and.resolveTo(),
+    load: () => Promise.resolve(),
+    save: () => Promise.resolve(branding()),
+    resetToDefaults: () => Promise.resolve(),
   };
 }
 

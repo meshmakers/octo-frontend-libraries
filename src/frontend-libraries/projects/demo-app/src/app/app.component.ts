@@ -57,7 +57,7 @@ export class AppComponent {
   protected readonly version = VERSION.version;
 
   private readonly brandingDataSource = inject(BrandingDataSource);
-  private brandingLoadTriggered = false;
+  private lastBrandingTenant: string | null = null;
 
   protected async onSelect(event: DrawerSelectEvent): Promise<void> {
 
@@ -89,19 +89,21 @@ export class AppComponent {
     // consumer touches the service later (e.g. by opening Settings).
     inject(BrandingApplicationService);
 
-    // Wait for auth before loading branding — Apollo bakes
-    // /tenants/{tenantId}/GraphQL at request time, and calling load() before
-    // the bearer token is available targets /tenants/undefined/GraphQL.
-    // Fires once when isAuthenticated flips to true. Mirrors maco-app's
-    // shell pattern.
+    // Reload branding whenever auth flips on or the active tenantId changes.
+    // Apollo bakes /tenants/{tenantId}/GraphQL at request time, so loading
+    // before auth targets /tenants/undefined/GraphQL; on tenant switch the
+    // TenantComponent recreates the Apollo client and the previous tenant's
+    // branding becomes stale until reloaded.
     effect(() => {
+      const tenantId = this.tenantId();
       if (
         this.authorizeService.isAuthenticated() &&
-        !this.brandingLoadTriggered
+        tenantId &&
+        tenantId !== this.lastBrandingTenant
       ) {
-        this.brandingLoadTriggered = true;
+        this.lastBrandingTenant = tenantId;
         this.brandingDataSource.load().catch((error) => {
-          console.error('[AppComponent] Initial branding load failed', error);
+          console.error('[AppComponent] Branding load failed', error);
         });
       }
     });
