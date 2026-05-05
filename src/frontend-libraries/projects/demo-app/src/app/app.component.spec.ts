@@ -5,6 +5,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
 import { AppTitleService, BreadCrumbService, CommandService, ComponentMenuService } from '@meshmakers/shared-services';
 import { AuthorizeService } from '@meshmakers/shared-auth';
+import { BrandingApplicationService, provideBrandingTesting } from '@meshmakers/octo-ui/branding';
 
 describe('AppComponent', () => {
   let mockAppTitleService: jasmine.SpyObj<AppTitleService>;
@@ -51,7 +52,9 @@ describe('AppComponent', () => {
         { provide: ComponentMenuService, useValue: mockComponentMenuService },
         { provide: Router, useValue: mockRouter },
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
-        { provide: AuthorizeService, useValue: mockAuthorizeService }
+        { provide: AuthorizeService, useValue: mockAuthorizeService },
+        provideBrandingTesting(),
+        { provide: BrandingApplicationService, useValue: {} },
       ]
     }).compileComponents();
   });

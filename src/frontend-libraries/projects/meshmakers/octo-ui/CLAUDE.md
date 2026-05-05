@@ -59,6 +59,22 @@ namespace is exposed.
 `DEFAULT_RUNTIME_BROWSER_MESSAGES` for English defaults or build translated values using the
 app's translation system.
 
+## Branding (theming + per-tenant identity)
+
+`@meshmakers/octo-ui` exports a complete branding subsystem:
+
+- **Provider:** `provideOctoBranding({ defaults?, fallbackAssets? })` — registers all services and an `APP_INITIALIZER` that loads the tenant's branding record on bootstrap.
+- **Components:** `<mm-theme-switcher>` and `SettingsPageComponent` (mounted via `BRANDING_ROUTES`). Hosts compose their own header/footer/menu shells and bind to `--app-header-gradient-*` / `--app-footer-gradient-*` / `--app-*-text`. The logo is rendered inline by the host (`<img [src]="branding().headerLogoUrl ?? fallback">`) — no library component.
+- **Services:** `BrandingDataSource` (signal-based GraphQL CRUD), `ThemeService` (light/dark toggle), `BrandingApplicationService` (palette generation + CSS variable application), `AppTitleService` (document title sync).
+- **i18n:** components accept `[messages]` inputs with English defaults; `SettingsPageComponent` requires a `BrandingSettingsMessages` object.
+- **Test utilities:** `createBrandingStub()` and `provideBrandingTesting()` for spec setup.
+
+Source: `src/lib/branding/`. Detailed usage in `src/lib/branding/BRANDING_USAGE.md`.
+
+The feature couples directly to the `SystemUIBranding` CK runtime type
+(`rtWellKnownName = "Branding"`), which is service-managed and auto-distributed
+to every tenant by `octo-admin-panel`.
+
 ## Documentation and Testing Standards
 
 - **All developer documentation must be written in English**

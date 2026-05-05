@@ -1,6 +1,52 @@
 /* Kendo UI Theme */
 @use "@progress/kendo-theme-default/dist/all.scss";
 
+/* ---------------------------------------------------------------------------
+ * Branding surface ladder — host-app contract for @meshmakers/octo-ui's
+ * BrandingApplicationService. The service writes the tenant's Background
+ * picker value to --kendo-color-app-surface; we derive a shade ladder from
+ * it via color-mix and feed Kendo's surface tokens. Without these aliases
+ * the Background field in Settings is inert — Kendo Grid/Card/Dialog read
+ * --kendo-color-surface, not the abstract app-surface var.
+ *
+ * Drawer/AppBar chrome stays neutral on purpose (uses --kendo-color-base
+ * which is driven by the Neutral picker, not Background).
+ * ------------------------------------------------------------------------- */
+:root {
+  --color-surface: var(--kendo-color-app-surface, #ffffff);
+  --color-on-surface: var(--kendo-color-on-app-surface, #1a1a1a);
+
+  --color-surface-50:  color-mix(in oklch, var(--color-surface), black 3%);
+  --color-surface-100: color-mix(in oklch, var(--color-surface), black 6%);
+  --color-surface-200: color-mix(in oklch, var(--color-surface), black 12%);
+  --color-surface-300: color-mix(in oklch, var(--color-surface), black 20%);
+
+  --kendo-color-surface: var(--color-surface-50);
+  --kendo-color-surface-alt: var(--color-surface-100);
+  --kendo-color-on-surface: var(--color-on-surface);
+  --kendo-color-base-subtle: var(--color-surface-100);
+  --kendo-color-base-subtle-hover: var(--color-surface-200);
+  --kendo-color-base-subtle-active: var(--color-surface-300);
+  --kendo-color-base-on-subtle: var(--color-on-surface);
+  --kendo-color-border: var(--color-surface-200);
+  --kendo-color-border-alt: var(--color-surface-100);
+}
+
+/* Dark mode: flip the shade direction so card/panel tints stay above the
+ * page surface (lighten) instead of beneath it (darken). Mirrors maco-app.
+ */
+html[data-theme='dark'] {
+  --color-surface-50:  color-mix(in oklch, var(--color-surface), white 8%);
+  --color-surface-100: color-mix(in oklch, var(--color-surface), white 12%);
+  --color-surface-200: color-mix(in oklch, var(--color-surface), white 18%);
+  --color-surface-300: color-mix(in oklch, var(--color-surface), white 24%);
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+}
+
 /* Global styles */
 html,
 body {

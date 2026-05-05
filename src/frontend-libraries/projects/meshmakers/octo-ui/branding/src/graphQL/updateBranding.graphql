@@ -1,0 +1,45 @@
+mutation updateBranding($branding: SystemUIBrandingInputUpdate!) {
+  runtime {
+    systemUIBrandings {
+      update(entities: [$branding]) {
+        rtId
+        rtWellKnownName
+        appName
+        appTitle
+        headerLogo
+        footerLogo
+        favicon
+        lightTheme {
+          primaryColor
+          secondaryColor
+          tertiaryColor
+          neutralColor
+          backgroundColor
+          headerGradient {
+            startColor
+            endColor
+          }
+          footerGradient {
+            startColor
+            endColor
+          }
+        }
+        darkTheme {
+          primaryColor
+          secondaryColor
+          tertiaryColor
+          neutralColor
+          backgroundColor
+          headerGradient {
+            startColor
+            endColor
+          }
+          footerGradient {
+            startColor
+            endColor
+          }
+        }
+      }
+    }
+  }
+}

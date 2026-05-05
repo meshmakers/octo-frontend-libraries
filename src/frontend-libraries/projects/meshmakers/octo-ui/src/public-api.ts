@@ -11,6 +11,13 @@ import { CkTypeSelectorDialogService } from './lib/ck-type-selector-dialog';
 import { PropertyConverterService } from './lib/property-grid';
 import { RuntimeEntityVariableDialogService } from './lib/runtime-entity-variable-dialog';
 
+// Branding lives in the secondary entry point `@meshmakers/octo-ui/branding`
+// (logo / theme switcher / services / provideOctoBranding) and the heavy
+// admin editor in `@meshmakers/octo-ui/branding-settings`. Import directly
+// from those paths — the primary entry intentionally does not re-export
+// branding to keep its FESM independent of `<mm-theme-switcher>` and the
+// branding GraphQL operations.
+
 export * from './lib/attribute-selector-dialog';
 export * from './lib/attribute-sort-selector-dialog';
 export * from './lib/ck-type-selector-dialog';

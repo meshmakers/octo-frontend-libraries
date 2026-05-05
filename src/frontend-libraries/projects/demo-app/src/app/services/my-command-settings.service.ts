@@ -202,6 +202,20 @@ export class MyCommandSettingsService extends CommandSettingsService {
             link: 'demos/runtime-browser',
             text: 'Runtime Browser',
           },
+          {
+            id: 'demos-branding',
+            type: 'link',
+            svgIcon: settings,
+            link: 'demos/branding',
+            text: 'Branding Components',
+          },
+          {
+            id: 'demos-branding-settings',
+            type: 'link',
+            svgIcon: settings,
+            link: 'demos/branding-settings',
+            text: 'Branding Settings',
+          },
           { id: 'sep1', type: 'separator' },
           {
             id: 'demos-graphql-editor',

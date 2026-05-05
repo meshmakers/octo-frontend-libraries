@@ -1,0 +1,293 @@
+<div class="settings-page">
+  <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
+
+    <!-- General -->
+    <kendo-card class="settings-card">
+      <kendo-card-header>
+        <h3 class="card-title">{{ messages().sectionGeneral }}</h3>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="form-row">
+          <kendo-formfield [title]="messages().appName">
+            <kendo-label [text]="messages().appName" [optional]="false" />
+            <input kendoTextBox formControlName="appName" [required]="true" />
+            <kendo-formerror>
+              {{ messages().appName }} {{ messages().required }}
+            </kendo-formerror>
+          </kendo-formfield>
+          <kendo-formfield [title]="messages().appTitle">
+            <kendo-label [text]="messages().appTitle" [optional]="true" />
+            <input kendoTextBox formControlName="appTitle" />
+          </kendo-formfield>
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+
+    <!-- Logos -->
+    <kendo-card class="settings-card">
+      <kendo-card-header>
+        <h3 class="card-title">{{ messages().sectionLogos }}</h3>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="logo-upload-row">
+          @for (slot of logoSlotNames; track slot) {
+            <div class="file-upload-section">
+              <label class="upload-label" [attr.for]="'logo-' + slot">
+                {{ logoLabel(slot) }}
+              </label>
+              <div
+                class="logo-dropzone"
+                [class.logo-dropzone--active]="isDragOver(slot)"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="logoLabel(slot)"
+                (click)="logoInput.click()"
+                (keydown.enter)="logoInput.click()"
+                (keydown.space)="$event.preventDefault(); logoInput.click()"
+                (dragover)="onLogoDragOver(slot, $event)"
+                (dragleave)="onLogoDragLeave(slot)"
+                (drop)="onLogoDropped(slot, $event)"
+              >
+                <span class="logo-dropzone__label">
+                  {{ slot === 'favicon' ? messages().uploadFavicon : messages().uploadLogo }}
+                </span>
+                <input
+                  #logoInput
+                  type="file"
+                  accept="image/*"
+                  [id]="'logo-' + slot"
+                  (change)="onLogoSelected(slot, $event)"
+                  class="logo-dropzone__input"
+                />
+              </div>
+              @let url = previewUrl(slot);
+              @if (url) {
+                <div class="logo-preview">
+                  <img [src]="url" [alt]="logoLabel(slot) + ' preview'" />
+                  <button
+                    kendoButton
+                    type="button"
+                    fillMode="flat"
+                    [svgIcon]="xIcon"
+                    (click)="clearLogo(slot)"
+                    [attr.aria-label]="messages().logoRemove"
+                  ></button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+
+    <!-- Light Theme -->
+    <kendo-card class="settings-card">
+      <kendo-card-header>
+        <h3 class="card-title">{{ messages().sectionLightTheme }}</h3>
+      </kendo-card-header>
+      <kendo-card-body>
+        <div class="color-grid">
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorPrimary }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('lightPrimaryColor')"
+            ></kendo-colorpicker>
+          </div>
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorSecondary }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('lightSecondaryColor')"
+            ></kendo-colorpicker>
+          </div>
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorTertiary }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('lightTertiaryColor')"
+            ></kendo-colorpicker>
+          </div>
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorNeutral }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('lightNeutralColor')"
+            ></kendo-colorpicker>
+          </div>
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorBackground }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('lightBackgroundColor')"
+            ></kendo-colorpicker>
+          </div>
+        </div>
+
+        <div class="gradient-section">
+          <h4 class="subsection-title">{{ messages().gradientHeader }}</h4>
+          <div class="gradient-row">
+            <div class="color-field">
+              <label class="color-label">{{ messages().gradientStart }}</label>
+              <kendo-colorpicker
+                [formControl]="colorCtrl('lightHeaderGradientStart')"
+              ></kendo-colorpicker>
+            </div>
+            <div class="color-field gradient-preview-col">
+              <span class="color-label" aria-hidden="true">&nbsp;</span>
+              <div
+                class="gradient-preview"
+                [style.background]="'linear-gradient(to right, ' + settingsForm.get('lightHeaderGradientStart')?.value + ', ' + settingsForm.get('lightHeaderGradientEnd')?.value + ')'"
+              ></div>
+            </div>
+            <div class="color-field">
+              <label class="color-label">{{ messages().gradientEnd }}</label>
+              <kendo-colorpicker
+                [formControl]="colorCtrl('lightHeaderGradientEnd')"
+              ></kendo-colorpicker>
+            </div>
+          </div>
+        </div>
+
+        <div class="gradient-section">
+          <h4 class="subsection-title">{{ messages().gradientFooter }}</h4>
+          <div class="gradient-row">
+            <div class="color-field">
+              <label class="color-label">{{ messages().gradientStart }}</label>
+              <kendo-colorpicker
+                [formControl]="colorCtrl('lightFooterGradientStart')"
+              ></kendo-colorpicker>
+            </div>
+            <div class="color-field gradient-preview-col">
+              <span class="color-label" aria-hidden="true">&nbsp;</span>
+              <div
+                class="gradient-preview"
+                [style.background]="'linear-gradient(to right, ' + settingsForm.get('lightFooterGradientStart')?.value + ', ' + settingsForm.get('lightFooterGradientEnd')?.value + ')'"
+              ></div>
+            </div>
+            <div class="color-field">
+              <label class="color-label">{{ messages().gradientEnd }}</label>
+              <kendo-colorpicker
+                [formControl]="colorCtrl('lightFooterGradientEnd')"
+              ></kendo-colorpicker>
+            </div>
+          </div>
+        </div>
+      </kendo-card-body>
+    </kendo-card>
+
+    <!-- Dark Theme -->
+    <kendo-card class="settings-card">
+      <kendo-card-header class="dark-theme-header">
+        <h3 class="card-title">{{ messages().sectionDarkTheme }}</h3>
+        <label class="dark-theme-toggle">
+          <kendo-switch formControlName="darkThemeEnabled"></kendo-switch>
+          <span>{{ messages().enableDarkTheme }}</span>
+        </label>
+      </kendo-card-header>
+      @if (darkThemeEnabled()) {
+      <kendo-card-body>
+        <div class="color-grid">
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorPrimary }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('darkPrimaryColor')"
+            ></kendo-colorpicker>
+          </div>
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorSecondary }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('darkSecondaryColor')"
+            ></kendo-colorpicker>
+          </div>
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorTertiary }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('darkTertiaryColor')"
+            ></kendo-colorpicker>
+          </div>
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorNeutral }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('darkNeutralColor')"
+            ></kendo-colorpicker>
+          </div>
+          <div class="color-field">
+            <label class="color-label">{{ messages().colorBackground }}</label>
+            <kendo-colorpicker
+              [formControl]="colorCtrl('darkBackgroundColor')"
+            ></kendo-colorpicker>
+          </div>
+        </div>
+
+        <div class="gradient-section">
+          <h4 class="subsection-title">{{ messages().gradientHeader }}</h4>
+          <div class="gradient-row">
+            <div class="color-field">
+              <label class="color-label">{{ messages().gradientStart }}</label>
+              <kendo-colorpicker
+                [formControl]="colorCtrl('darkHeaderGradientStart')"
+              ></kendo-colorpicker>
+            </div>
+            <div class="color-field gradient-preview-col">
+              <span class="color-label" aria-hidden="true">&nbsp;</span>
+              <div
+                class="gradient-preview"
+                [style.background]="'linear-gradient(to right, ' + settingsForm.get('darkHeaderGradientStart')?.value + ', ' + settingsForm.get('darkHeaderGradientEnd')?.value + ')'"
+              ></div>
+            </div>
+            <div class="color-field">
+              <label class="color-label">{{ messages().gradientEnd }}</label>
+              <kendo-colorpicker
+                [formControl]="colorCtrl('darkHeaderGradientEnd')"
+              ></kendo-colorpicker>
+            </div>
+          </div>
+        </div>
+
+        <div class="gradient-section">
+          <h4 class="subsection-title">{{ messages().gradientFooter }}</h4>
+          <div class="gradient-row">
+            <div class="color-field">
+              <label class="color-label">{{ messages().gradientStart }}</label>
+              <kendo-colorpicker
+                [formControl]="colorCtrl('darkFooterGradientStart')"
+              ></kendo-colorpicker>
+            </div>
+            <div class="color-field gradient-preview-col">
+              <span class="color-label" aria-hidden="true">&nbsp;</span>
+              <div
+                class="gradient-preview"
+                [style.background]="'linear-gradient(to right, ' + settingsForm.get('darkFooterGradientStart')?.value + ', ' + settingsForm.get('darkFooterGradientEnd')?.value + ')'"
+              ></div>
+            </div>
+            <div class="color-field">
+              <label class="color-label">{{ messages().gradientEnd }}</label>
+              <kendo-colorpicker
+                [formControl]="colorCtrl('darkFooterGradientEnd')"
+              ></kendo-colorpicker>
+            </div>
+          </div>
+        </div>
+      </kendo-card-body>
+      }
+    </kendo-card>
+
+    <div class="form-actions-bar">
+      <button
+        kendoButton
+        type="button"
+        themeColor="base"
+        [svgIcon]="undoIcon"
+        [disabled]="saving()"
+        (click)="onResetDefaults()"
+      >
+        {{ messages().resetDefaults }}
+      </button>
+      <button
+        kendoButton
+        type="submit"
+        themeColor="primary"
+        [svgIcon]="saveIcon"
+        [disabled]="!settingsForm.valid || saving()"
+      >
+        {{ messages().save }}
+      </button>
+    </div>
+  </form>
+</div>

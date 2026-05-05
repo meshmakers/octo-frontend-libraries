@@ -155,6 +155,58 @@ export class CustomerDataSourceDirective extends OctoGraphQlDataSource<CustomerD
 | `OctoGraphQlHierarchyDataSource` | Base class for tree/hierarchy data sources |
 | `FetchResultTyped` | Typed result wrapper with items and totalCount |
 
+## Branding
+
+Per-tenant branding (logo, title, palette) with light/dark mode and a configurable
+Settings page. See [`src/lib/branding/BRANDING_USAGE.md`](./src/lib/branding/BRANDING_USAGE.md).
+
+```typescript
+// app.config.ts
+import { provideOctoBranding } from '@meshmakers/octo-ui';
+
+providers: [
+  provideOctoBranding({
+    defaults: { appName: 'MyApp', appTitle: 'MyApp' },
+    fallbackAssets: { headerLogo: '/logo.svg', favicon: '/favicon.ico' },
+  }),
+];
+```
+
+Wire `/settings` route:
+
+```typescript
+// app.routes.ts
+import { BRANDING_ROUTES } from '@meshmakers/octo-ui';
+
+{ path: 'settings', canActivate: [adminGuard], children: BRANDING_ROUTES }
+```
+
+Drop the standalone components into your shell wherever they belong, and
+bind your header/footer chrome to the CSS vars the library writes:
+
+```html
+<header class="my-header">
+  <mm-theme-switcher />
+  <!-- Render the logo inline; inject BrandingDataSource and bind .branding().headerLogoUrl -->
+  <img [src]="logoUrl()" alt="" class="my-header-logo" />
+</header>
+```
+
+```scss
+.my-header {
+  background: linear-gradient(
+    to right,
+    var(--app-header-gradient-start),
+    var(--app-header-gradient-end)
+  );
+  color: var(--app-header-text);
+}
+```
+
+See [`src/lib/branding/BRANDING_USAGE.md`](./src/lib/branding/BRANDING_USAGE.md)
+for the full list of CSS variables the library updates and the host-app
+contract for the surface ladder.
+
 ## Build
 
 ```bash

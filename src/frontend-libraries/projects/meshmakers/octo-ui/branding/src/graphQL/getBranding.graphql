@@ -1,0 +1,55 @@
+query getBranding {
+  runtime {
+    systemUIBranding(
+      first: 1
+      fieldFilter: [
+        {
+          attributePath: "rtWellKnownName"
+          operator: EQUALS
+          comparisonValue: "Branding"
+        }
+      ]
+    ) {
+      totalCount
+      items {
+        rtId
+        rtWellKnownName
+        appName
+        appTitle
+        headerLogo
+        footerLogo
+        favicon
+        lightTheme {
+          primaryColor
+          secondaryColor
+          tertiaryColor
+          neutralColor
+          backgroundColor
+          headerGradient {
+            startColor
+            endColor
+          }
+          footerGradient {
+            startColor
+            endColor
+          }
+        }
+        darkTheme {
+          primaryColor
+          secondaryColor
+          tertiaryColor
+          neutralColor
+          backgroundColor
+          headerGradient {
+            startColor
+            endColor
+          }
+          footerGradient {
+            startColor
+            endColor
+          }
+        }
+      }
+    }
+  }
+}
