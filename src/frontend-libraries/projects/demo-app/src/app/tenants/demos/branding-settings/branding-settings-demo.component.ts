@@ -16,6 +16,8 @@ const DEMO_MESSAGES: BrandingSettingsMessages = {
   logoFooter: 'Footer logo',
   logoFavicon: 'Favicon',
   logoRemove: 'Remove',
+  uploadLogo: 'Drop or click to upload logo',
+  uploadFavicon: 'Drop or click to upload favicon',
   colorPrimary: 'Primary',
   colorSecondary: 'Secondary',
   colorTertiary: 'Tertiary',

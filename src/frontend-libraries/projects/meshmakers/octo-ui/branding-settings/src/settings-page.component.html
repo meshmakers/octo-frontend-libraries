@@ -35,13 +35,31 @@
               <label class="upload-label" [attr.for]="'logo-' + slot">
                 {{ logoLabel(slot) }}
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                [id]="'logo-' + slot"
-                (change)="onLogoSelected(slot, $event)"
-                class="logo-input"
-              />
+              <div
+                class="logo-dropzone"
+                [class.logo-dropzone--active]="isDragOver(slot)"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="logoLabel(slot)"
+                (click)="logoInput.click()"
+                (keydown.enter)="logoInput.click()"
+                (keydown.space)="$event.preventDefault(); logoInput.click()"
+                (dragover)="onLogoDragOver(slot, $event)"
+                (dragleave)="onLogoDragLeave(slot)"
+                (drop)="onLogoDropped(slot, $event)"
+              >
+                <span class="logo-dropzone__label">
+                  {{ slot === 'favicon' ? messages().uploadFavicon : messages().uploadLogo }}
+                </span>
+                <input
+                  #logoInput
+                  type="file"
+                  accept="image/*"
+                  [id]="'logo-' + slot"
+                  (change)="onLogoSelected(slot, $event)"
+                  class="logo-dropzone__input"
+                />
+              </div>
               @let url = previewUrl(slot);
               @if (url) {
                 <div class="logo-preview">
@@ -110,10 +128,13 @@
                 [formControl]="colorCtrl('lightHeaderGradientStart')"
               ></kendo-colorpicker>
             </div>
-            <div
-              class="gradient-preview"
-              [style.background]="'linear-gradient(to right, ' + settingsForm.get('lightHeaderGradientStart')?.value + ', ' + settingsForm.get('lightHeaderGradientEnd')?.value + ')'"
-            ></div>
+            <div class="color-field gradient-preview-col">
+              <span class="color-label" aria-hidden="true">&nbsp;</span>
+              <div
+                class="gradient-preview"
+                [style.background]="'linear-gradient(to right, ' + settingsForm.get('lightHeaderGradientStart')?.value + ', ' + settingsForm.get('lightHeaderGradientEnd')?.value + ')'"
+              ></div>
+            </div>
             <div class="color-field">
               <label class="color-label">{{ messages().gradientEnd }}</label>
               <kendo-colorpicker
@@ -132,10 +153,13 @@
                 [formControl]="colorCtrl('lightFooterGradientStart')"
               ></kendo-colorpicker>
             </div>
-            <div
-              class="gradient-preview"
-              [style.background]="'linear-gradient(to right, ' + settingsForm.get('lightFooterGradientStart')?.value + ', ' + settingsForm.get('lightFooterGradientEnd')?.value + ')'"
-            ></div>
+            <div class="color-field gradient-preview-col">
+              <span class="color-label" aria-hidden="true">&nbsp;</span>
+              <div
+                class="gradient-preview"
+                [style.background]="'linear-gradient(to right, ' + settingsForm.get('lightFooterGradientStart')?.value + ', ' + settingsForm.get('lightFooterGradientEnd')?.value + ')'"
+              ></div>
+            </div>
             <div class="color-field">
               <label class="color-label">{{ messages().gradientEnd }}</label>
               <kendo-colorpicker
@@ -200,10 +224,13 @@
                 [formControl]="colorCtrl('darkHeaderGradientStart')"
               ></kendo-colorpicker>
             </div>
-            <div
-              class="gradient-preview"
-              [style.background]="'linear-gradient(to right, ' + settingsForm.get('darkHeaderGradientStart')?.value + ', ' + settingsForm.get('darkHeaderGradientEnd')?.value + ')'"
-            ></div>
+            <div class="color-field gradient-preview-col">
+              <span class="color-label" aria-hidden="true">&nbsp;</span>
+              <div
+                class="gradient-preview"
+                [style.background]="'linear-gradient(to right, ' + settingsForm.get('darkHeaderGradientStart')?.value + ', ' + settingsForm.get('darkHeaderGradientEnd')?.value + ')'"
+              ></div>
+            </div>
             <div class="color-field">
               <label class="color-label">{{ messages().gradientEnd }}</label>
               <kendo-colorpicker
@@ -222,10 +249,13 @@
                 [formControl]="colorCtrl('darkFooterGradientStart')"
               ></kendo-colorpicker>
             </div>
-            <div
-              class="gradient-preview"
-              [style.background]="'linear-gradient(to right, ' + settingsForm.get('darkFooterGradientStart')?.value + ', ' + settingsForm.get('darkFooterGradientEnd')?.value + ')'"
-            ></div>
+            <div class="color-field gradient-preview-col">
+              <span class="color-label" aria-hidden="true">&nbsp;</span>
+              <div
+                class="gradient-preview"
+                [style.background]="'linear-gradient(to right, ' + settingsForm.get('darkFooterGradientStart')?.value + ', ' + settingsForm.get('darkFooterGradientEnd')?.value + ')'"
+              ></div>
+            </div>
             <div class="color-field">
               <label class="color-label">{{ messages().gradientEnd }}</label>
               <kendo-colorpicker

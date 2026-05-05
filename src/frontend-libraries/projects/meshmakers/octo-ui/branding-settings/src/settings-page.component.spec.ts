@@ -23,6 +23,8 @@ const TEST_MESSAGES: BrandingSettingsMessages = {
   logoFooter: 'Footer',
   logoFavicon: 'Favicon',
   logoRemove: 'Remove',
+  uploadLogo: 'Upload logo',
+  uploadFavicon: 'Upload favicon',
   colorPrimary: 'Primary',
   colorSecondary: 'Secondary',
   colorTertiary: 'Tertiary',

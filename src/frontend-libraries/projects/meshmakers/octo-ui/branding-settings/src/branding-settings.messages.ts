@@ -25,6 +25,8 @@ export interface BrandingSettingsMessages {
   logoFooter: string;
   logoFavicon: string;
   logoRemove: string;
+  uploadLogo: string;
+  uploadFavicon: string;
 
   // Colors
   colorPrimary: string;

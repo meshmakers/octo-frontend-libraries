@@ -131,12 +131,40 @@ export class SettingsPageComponent implements OnInit {
     this.hydrate(this.branding.branding());
   }
 
+  private readonly dragOverSlot = signal<LogoSlotName | null>(null);
+
+  protected isDragOver(slot: LogoSlotName): boolean {
+    return this.dragOverSlot() === slot;
+  }
+
   protected onLogoSelected(slot: LogoSlotName, event: Event): void {
     const input = event.target;
     if (!(input instanceof HTMLInputElement)) return;
     const file = input.files?.[0] ?? null;
-    if (!file) return;
+    this.applyLogoFile(slot, file);
+    input.value = '';
+  }
 
+  protected onLogoDragOver(slot: LogoSlotName, event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+    this.dragOverSlot.set(slot);
+  }
+
+  protected onLogoDragLeave(slot: LogoSlotName): void {
+    if (this.dragOverSlot() === slot) this.dragOverSlot.set(null);
+  }
+
+  protected onLogoDropped(slot: LogoSlotName, event: DragEvent): void {
+    event.preventDefault();
+    this.dragOverSlot.set(null);
+    const file = event.dataTransfer?.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    this.applyLogoFile(slot, file);
+  }
+
+  private applyLogoFile(slot: LogoSlotName, file: File | null): void {
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = (): void => {
       const result = reader.result;
@@ -147,8 +175,6 @@ export class SettingsPageComponent implements OnInit {
       });
     };
     reader.readAsDataURL(file);
-
-    input.value = '';
   }
 
   protected clearLogo(slot: LogoSlotName): void {
