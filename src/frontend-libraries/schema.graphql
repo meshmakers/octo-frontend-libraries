@@ -291,7 +291,7 @@ interface RtQueryRow {
   ckTypeId: RtCkTypeId
 }
 
-"Interface for runtime entities of construction kit type 'System.Communication-3.13.1/DeployableEntity-1'"
+"Interface for runtime entities of construction kit type 'System.Communication-3.13.2/DeployableEntity-1'"
 interface SystemCommunicationDeployableEntityInterface {
   ckTypeId: RtCkTypeId!
   configuredBy(
@@ -18519,7 +18519,7 @@ type SystemBotFixupUpdateMessage {
   items: [SystemBotFixupUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/Adapter-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/Adapter-1'"
 type SystemCommunicationAdapter implements SystemCommunicationDeployableEntityInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -18860,7 +18860,7 @@ type SystemCommunicationAdapter_ManagesUnionEdge {
   node: SystemCommunicationAdapter_ManagesUnion
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/AiConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/AiConfiguration-1'"
 type SystemCommunicationAiConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   aiModel: String
   apiKey: String!
@@ -19083,7 +19083,7 @@ type SystemCommunicationAiConfigurationUpdateMessage {
   items: [SystemCommunicationAiConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/DataFlow-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/DataFlow-1'"
 type SystemCommunicationDataFlow implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -19336,7 +19336,7 @@ type SystemCommunicationDataPoint {
   name: String!
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/DataPointMapping-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/DataPointMapping-1'"
 type SystemCommunicationDataPointMapping implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -19627,7 +19627,7 @@ type SystemCommunicationDataPointMapping_MapsToUnionEdge {
   node: SystemCommunicationDataPointMapping_MapsToUnion
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/DeployableEntity-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/DeployableEntity-1'"
 type SystemCommunicationDeployableEntity implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -19822,7 +19822,7 @@ type SystemCommunicationDeployableEntityUpdateMessage {
   items: [SystemCommunicationDeployableEntityUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/DiscordConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/DiscordConfiguration-1'"
 type SystemCommunicationDiscordConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -20042,7 +20042,7 @@ type SystemCommunicationDiscordConfigurationUpdateMessage {
   items: [SystemCommunicationDiscordConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/EMailReceiverConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/EMailReceiverConfiguration-1'"
 type SystemCommunicationEMailReceiverConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -20266,7 +20266,7 @@ type SystemCommunicationEMailReceiverConfigurationUpdateMessage {
   items: [SystemCommunicationEMailReceiverConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/EMailSenderConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/EMailSenderConfiguration-1'"
 type SystemCommunicationEMailSenderConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -20490,7 +20490,7 @@ type SystemCommunicationEMailSenderConfigurationUpdateMessage {
   items: [SystemCommunicationEMailSenderConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/EdaConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/EdaConfiguration-1'"
 type SystemCommunicationEdaConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -20709,7 +20709,7 @@ type SystemCommunicationEdaConfigurationUpdateMessage {
   items: [SystemCommunicationEdaConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/EnergyCommunityConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/EnergyCommunityConfiguration-1'"
 type SystemCommunicationEnergyCommunityConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   appHeading: String
   appTitle: String
@@ -20947,7 +20947,7 @@ type SystemCommunicationEnergyCommunityConfigurationUpdateMessage {
   items: [SystemCommunicationEnergyCommunityConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/FinApiConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/FinApiConfiguration-1'"
 type SystemCommunicationFinApiConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -21171,7 +21171,7 @@ type SystemCommunicationFinApiConfigurationUpdateMessage {
   items: [SystemCommunicationFinApiConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/GrafanaConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/GrafanaConfiguration-1'"
 type SystemCommunicationGrafanaConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   adminPassword: String!
   adminUser: String!
@@ -21395,7 +21395,7 @@ type SystemCommunicationGrafanaConfigurationUpdateMessage {
   items: [SystemCommunicationGrafanaConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/LoxoneConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/LoxoneConfiguration-1'"
 type SystemCommunicationLoxoneConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -21628,7 +21628,7 @@ type SystemCommunicationMappingTarget {
   sourceIdentifier: String!
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/MicrosoftGraphConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/MicrosoftGraphConfiguration-1'"
 type SystemCommunicationMicrosoftGraphConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -21849,7 +21849,7 @@ type SystemCommunicationMicrosoftGraphConfigurationUpdateMessage {
   items: [SystemCommunicationMicrosoftGraphConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/Pipeline-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/Pipeline-1'"
 type SystemCommunicationPipeline implements SystemCommunicationDeployableEntityInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -22196,7 +22196,7 @@ type SystemCommunicationPipelineEdge {
   node: SystemCommunicationPipeline
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/PipelineExecution-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/PipelineExecution-1'"
 type SystemCommunicationPipelineExecution implements SystemEntityInterface {
   adapterExecutions(
     "Only return edges after the specified cursor."
@@ -22498,7 +22498,7 @@ type SystemCommunicationPipelineMutations {
   update(entities: [SystemCommunicationPipelineInputUpdate]!): [SystemCommunicationPipeline]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/PipelineStatistics-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/PipelineStatistics-1'"
 type SystemCommunicationPipelineStatistics implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -22754,7 +22754,7 @@ type SystemCommunicationPipelineStatistics_StatisticsForPipelineUnionEdge {
   node: SystemCommunicationPipelineStatistics_StatisticsForPipelineUnion
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/PipelineTrigger-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/PipelineTrigger-1'"
 type SystemCommunicationPipelineTrigger implements SystemCommunicationDeployableEntityInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -23225,7 +23225,7 @@ type SystemCommunicationPipeline_UsedByUnionEdge {
   node: SystemCommunicationPipeline_UsedByUnion
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/Pool-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/Pool-1'"
 type SystemCommunicationPool implements SystemCommunicationDeployableEntityInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -23474,7 +23474,7 @@ type SystemCommunicationPool_ManagedByUnionEdge {
   node: SystemCommunicationPool_ManagedByUnion
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/SapConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/SapConfiguration-1'"
 type SystemCommunicationSapConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   appServerHost: String!
   associations(
@@ -23704,7 +23704,7 @@ type SystemCommunicationSapConfigurationUpdateMessage {
   items: [SystemCommunicationSapConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/ServiceAccountConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/ServiceAccountConfiguration-1'"
 type SystemCommunicationServiceAccountConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -23926,7 +23926,7 @@ type SystemCommunicationServiceAccountConfigurationUpdateMessage {
   items: [SystemCommunicationServiceAccountConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/SftpConfiguration-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/SftpConfiguration-1'"
 type SystemCommunicationSftpConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -24151,7 +24151,7 @@ type SystemCommunicationSftpConfigurationUpdateMessage {
   items: [SystemCommunicationSftpConfigurationUpdate]
 }
 
-"Runtime entities of construction kit type 'System.Communication-3.13.1/Tag-1'"
+"Runtime entities of construction kit type 'System.Communication-3.13.2/Tag-1'"
 type SystemCommunicationTag implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
