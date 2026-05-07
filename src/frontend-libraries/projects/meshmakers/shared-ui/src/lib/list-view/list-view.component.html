@@ -194,6 +194,9 @@
         }
       </ng-template>
       <ng-template kendoGridCellTemplate let-dataItem>
+        @if (column.formatter) {
+          {{ getFormattedValue(dataItem, column) }}
+        } @else {
         @switch (column.dataType) {
           @case ('boolean') {
             <kendo-checkbox type="checkbox" [checkedState]="$any(getValue(dataItem, column))" [disabled]="true" />
@@ -238,6 +241,7 @@
           @default {
             {{ getValue(dataItem, column) }}
           }
+        }
         }
       </ng-template>
     </kendo-grid-column>

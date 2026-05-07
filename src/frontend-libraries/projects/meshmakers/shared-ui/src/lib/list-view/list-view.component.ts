@@ -260,6 +260,17 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return value;
   }
 
+  /**
+   * Produces the formatted cell content when a column defines a `formatter` callback.
+   * Returns `null` when no formatter is configured so the template can fall back to
+   * the dataType-driven rendering.
+   */
+  protected getFormattedValue(element: Record<string, unknown>, column: TableColumn): string | null {
+    if (!column.formatter) return null;
+    const value = this.getValue(element, column);
+    return column.formatter(value, element);
+  }
+
   protected getFilterType(column: TableColumn): 'text' | 'numeric' | 'boolean' | 'date' {
     switch (column.dataType) {
       case 'text':

@@ -71,6 +71,20 @@ export interface TableColumn {
    * Each option has a display text and a value used for filtering.
    */
   filterOptions?: { text: string; value: string }[];
+  /**
+   * Optional callback that produces the cell's display string.
+   * When set, this overrides the default rendering selected by `dataType`.
+   * Filter/sort behaviour still follow `dataType` and the underlying `field` value,
+   * so sorting on a numeric column with a currency formatter still sorts numerically.
+   *
+   * @example
+   * ```ts
+   * { field: 'grossTotal', dataType: 'numeric',
+   *   formatter: (value) => new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' })
+   *     .format(Number(value)) }
+   * ```
+   */
+  formatter?: (value: unknown, item: unknown) => string;
 }
 
 export type ColumnDefinition =

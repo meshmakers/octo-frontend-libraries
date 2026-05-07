@@ -108,10 +108,24 @@ interface TableColumn {
   displayName: string;
   dataType: 'text' | 'numeric' | 'boolean' | 'date' | 'bytes' | 'statusIcons' | 'cronExpression';
   // ... width, sortable, filterable, hidden, etc.
+  formatter?: (value: unknown, item: unknown) => string;
 }
 ```
 
 Status icon columns use `StatusIconMapping` for icon/color/tooltip per value.
+
+**Custom cell formatting (`formatter`)**
+
+Use the optional `formatter` callback when the standard `dataType` rendering is not enough — currency, units, conditional labels, etc. The callback receives the raw field value and the full row item, and returns the cell's display string. Filtering and sorting still operate on the underlying field, so a numeric column with a currency formatter still sorts numerically and filters via the numeric input cell.
+
+```typescript
+{
+  field: 'grossTotal',
+  dataType: 'numeric',
+  formatter: (value) => new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' })
+    .format(Number(value))
+}
+```
 
 ### Styling
 
