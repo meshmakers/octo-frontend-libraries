@@ -85,6 +85,40 @@ describe('CommunicationService', () => {
     });
   });
 
+  describe('deployPool', () => {
+    it('should call the correct endpoint with poolRtId param', async () => {
+      const poolRtId = 'pool-123';
+
+      const promise = service.deployPool(tenantId, poolRtId);
+
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/deploy` &&
+        request.params.get('poolRtId') === poolRtId
+      );
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await promise;
+    });
+  });
+
+  describe('undeployPool', () => {
+    it('should call the correct endpoint with poolRtId param', async () => {
+      const poolRtId = 'pool-123';
+
+      const promise = service.undeployPool(tenantId, poolRtId);
+
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/undeploy` &&
+        request.params.get('poolRtId') === poolRtId
+      );
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await promise;
+    });
+  });
+
   describe('deployAllAdaptersOfPool', () => {
     it('should call the correct endpoint with poolRtId param', async () => {
       const poolRtId = 'pool-123';

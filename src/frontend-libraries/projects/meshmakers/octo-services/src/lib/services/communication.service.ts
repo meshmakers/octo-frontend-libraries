@@ -80,6 +80,39 @@ export class CommunicationService {
   // ============================================================================
 
   /**
+   * Deploys a pool. For Cloud-environment pools, this triggers the central
+   * Communication Operator to provision the corresponding CommunicationPool
+   * CR and broker secret. Edge-environment pools transition state without
+   * any operator notification.
+   */
+  async deployPool(tenantId: string, poolRtId: string): Promise<void> {
+    if (this.communicationServicesUrl) {
+      const params = new HttpParams().set('poolRtId', poolRtId);
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pool/deploy`;
+
+      await firstValueFrom(
+        this.httpClient.post<void>(uri, null, {params, observe: 'response'})
+      );
+    }
+  }
+
+  /**
+   * Undeploys a pool. For Cloud-environment pools, this notifies the central
+   * Communication Operator to remove the CommunicationPool CR and broker
+   * secret.
+   */
+  async undeployPool(tenantId: string, poolRtId: string): Promise<void> {
+    if (this.communicationServicesUrl) {
+      const params = new HttpParams().set('poolRtId', poolRtId);
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pool/undeploy`;
+
+      await firstValueFrom(
+        this.httpClient.post<void>(uri, null, {params, observe: 'response'})
+      );
+    }
+  }
+
+  /**
    * Deploys all adapters of a pool.
    */
   async deployAllAdaptersOfPool(tenantId: string, poolRtId: string): Promise<void> {
