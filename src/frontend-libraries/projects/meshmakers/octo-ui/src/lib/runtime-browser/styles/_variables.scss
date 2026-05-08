@@ -48,13 +48,14 @@ $kendo-success: #37b400;
   --iron-navy: #{$iron-navy};
   --deep-sea: #{$deep-sea};
   --surface-elevated: #{$surface-elevated};
-  --octo-text-color: #{$octo-text-color};
+  // Theme-aware text/surface tokens — fall back to LCARS-dark when host has no theme tokens
+  --octo-text-color: var(--theme-text-primary, #{$octo-text-color});
   --kendo-success: #{$kendo-success};
 
   // Kendo variable overrides - applied when Kendo is imported by host
   --kendo-color-primary: var(--octo-mint);
   --kendo-color-primary-on-surface: var(--octo-mint);
-  --kendo-color-app-surface: var(--deep-sea);
+  --kendo-color-app-surface: var(--theme-bg-app, var(--deep-sea));
   --kendo-color-on-app-surface: var(--octo-text-color);
   font-family: var(--lcars-font-primary);
 
@@ -174,20 +175,20 @@ $kendo-success: #37b400;
   --lcars-transition-fast: 150ms ease;
   --lcars-transition-normal: 250ms ease;
 
-  // Designer/Symbol Editor Panel Variables (LCARS theme)
-  --designer-panel-bg: var(--surface-elevated);
-  --designer-panel-bg-elevated: var(--iron-navy);
+  // Designer/Symbol Editor Panel Variables (theme-aware with LCARS fallbacks)
+  --designer-panel-bg: var(--theme-bg-elevated, var(--surface-elevated));
+  --designer-panel-bg-elevated: var(--theme-bg-surface, var(--iron-navy));
   --designer-panel-border: var(--octo-mint-20);
   --designer-panel-text: var(--octo-text-color);
-  --designer-panel-text-secondary: var(--ash-blue);
+  --designer-panel-text-secondary: var(--theme-text-secondary, var(--ash-blue));
   --designer-panel-text-muted: color-mix(
     in srgb,
-    var(--ash-blue) 70%,
+    var(--theme-text-secondary, var(--ash-blue)) 70%,
     transparent
   );
   --designer-panel-accent: var(--octo-mint);
   --designer-panel-accent-hover-bg: var(--octo-mint-15);
-  --designer-panel-input-bg: var(--deep-sea);
+  --designer-panel-input-bg: var(--theme-bg-input, var(--deep-sea));
   --designer-panel-delete-hover-bg: var(--bubblegum-20);
   --designer-panel-delete-color: var(--bubblegum);
 

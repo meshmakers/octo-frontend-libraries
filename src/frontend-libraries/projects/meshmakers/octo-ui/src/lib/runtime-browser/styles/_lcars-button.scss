@@ -2,8 +2,10 @@
 
 @mixin lcars-button {
   background: var(--lcars-btn-base);
-  border: 1px solid var(--octo-mint-30);
-  color: var(--octo-mint);
+  // Use theme-aware border + text so the secondary "ghost" style stays
+  // legible on light surfaces. Brand-mint at low alpha washes out on white.
+  border: 1px solid var(--theme-border-strong, var(--octo-mint-30));
+  color: var(--theme-text-accent, var(--octo-mint));
   font-family: var(--lcars-font-primary);
   font-weight: 600;
   font-size: 0.8rem;
@@ -14,7 +16,7 @@
 
   &:hover:not(:disabled) {
     background: var(--lcars-btn-base-hover);
-    border-color: var(--octo-mint-50);
+    border-color: var(--theme-text-accent, var(--octo-mint-50));
     box-shadow: 0 0 10px var(--octo-mint-30);
   }
 

@@ -83,6 +83,13 @@ Key CSS variables:
 
 Set `[useDockview]="true"` on `ProcessDesignerComponent` or `SymbolEditorComponent`. Layout is saved/restored via `DesignerLayoutService` in localStorage.
 
+The `lcars-theme()` mixin in `styles/_dockview-lcars-theme.scss` is theme-agnostic:
+it emits `--dv-*` variables that reference `--theme-*` host tokens with neutral
+fallbacks. Hosts that define `--theme-*` (per their app's theming convention) get
+a fully themed dockview; hosts that don't get a sensible neutral default. The
+mixin name (`lcars-theme`) is preserved for backward compatibility — existing
+`@include dockview.lcars-theme();` calls continue to work.
+
 ### Keyboard Shortcuts
 
 | Key | Action |
