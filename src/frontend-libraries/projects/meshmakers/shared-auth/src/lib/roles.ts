@@ -7,5 +7,7 @@ export enum Roles {
   CommunicationManagement = 'CommunicationManagement',
   TenantManagement = 'TenantManagement',
   Development = 'Development',
-  StreamDataAdmin = 'StreamDataAdmin'
+  StreamDataAdmin = 'StreamDataAdmin',
+  StreamDataWriter = 'StreamDataWriter',
+  StreamDataReader = 'StreamDataReader'
 }
