@@ -63,6 +63,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -72,6 +73,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -254,6 +256,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -263,6 +266,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -420,9 +424,6 @@
     "SystemCommunicationAdapter_ExecutedByUnion": [
       "SystemCommunicationAdapter"
     ],
-    "SystemCommunicationAdapter_ManagesUnion": [
-      "SystemCommunicationAdapter"
-    ],
     "SystemCommunicationDataFlow_ParentUnion": [
       "SystemCommunicationDataFlow"
     ],
@@ -434,9 +435,27 @@
     ],
     "SystemCommunicationDeployableEntityInterface": [
       "SystemCommunicationAdapter",
+      "SystemCommunicationApplication",
+      "SystemCommunicationDeployableWorkload",
       "SystemCommunicationPipeline",
       "SystemCommunicationPipelineTrigger",
       "SystemCommunicationPool"
+    ],
+    "SystemCommunicationDeployableWorkloadInterface": [
+      "SystemCommunicationAdapter",
+      "SystemCommunicationApplication"
+    ],
+    "SystemCommunicationDeployableWorkload_ManagesUnion": [
+      "SystemCommunicationAdapter",
+      "SystemCommunicationApplication"
+    ],
+    "SystemCommunicationDeployableWorkload_UsedByUnion": [
+      "SystemCommunicationAdapter",
+      "SystemCommunicationApplication",
+      "SystemCommunicationPipeline"
+    ],
+    "SystemCommunicationHelmRepositoryConfiguration_IsUsingUnion": [
+      "SystemCommunicationHelmRepositoryConfiguration"
     ],
     "SystemCommunicationPipelineExecution_ExecutedPipelineUnion": [
       "SystemCommunicationPipelineExecution"
@@ -510,6 +529,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationSapConfiguration",
@@ -547,9 +567,11 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDeployableEntity",
+      "SystemCommunicationDeployableWorkload",
       "SystemCommunicationDiscordConfiguration",
       "SystemCommunicationEMailReceiverConfiguration",
       "SystemCommunicationEMailSenderConfiguration",
@@ -557,6 +579,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -665,6 +688,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -674,6 +698,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -774,6 +799,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -783,6 +809,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -883,6 +910,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -892,6 +920,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -992,6 +1021,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -1001,6 +1031,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -1101,6 +1132,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -1110,6 +1142,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -1210,6 +1243,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -1219,6 +1253,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -1428,6 +1463,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -1437,6 +1473,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -1619,6 +1656,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -1628,6 +1666,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -1785,9 +1824,6 @@
     "SystemCommunicationAdapter_ExecutedByUnion": [
       "SystemCommunicationAdapter"
     ],
-    "SystemCommunicationAdapter_ManagesUnion": [
-      "SystemCommunicationAdapter"
-    ],
     "SystemCommunicationDataFlow_ParentUnion": [
       "SystemCommunicationDataFlow"
     ],
@@ -1799,9 +1835,27 @@
     ],
     "SystemCommunicationDeployableEntityInterface": [
       "SystemCommunicationAdapter",
+      "SystemCommunicationApplication",
+      "SystemCommunicationDeployableWorkload",
       "SystemCommunicationPipeline",
       "SystemCommunicationPipelineTrigger",
       "SystemCommunicationPool"
+    ],
+    "SystemCommunicationDeployableWorkloadInterface": [
+      "SystemCommunicationAdapter",
+      "SystemCommunicationApplication"
+    ],
+    "SystemCommunicationDeployableWorkload_ManagesUnion": [
+      "SystemCommunicationAdapter",
+      "SystemCommunicationApplication"
+    ],
+    "SystemCommunicationDeployableWorkload_UsedByUnion": [
+      "SystemCommunicationAdapter",
+      "SystemCommunicationApplication",
+      "SystemCommunicationPipeline"
+    ],
+    "SystemCommunicationHelmRepositoryConfiguration_IsUsingUnion": [
+      "SystemCommunicationHelmRepositoryConfiguration"
     ],
     "SystemCommunicationPipelineExecution_ExecutedPipelineUnion": [
       "SystemCommunicationPipelineExecution"
@@ -1875,6 +1929,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationSapConfiguration",
@@ -1912,9 +1967,11 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDeployableEntity",
+      "SystemCommunicationDeployableWorkload",
       "SystemCommunicationDiscordConfiguration",
       "SystemCommunicationEMailReceiverConfiguration",
       "SystemCommunicationEMailSenderConfiguration",
@@ -1922,6 +1979,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -2030,6 +2088,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -2039,6 +2098,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -2139,6 +2199,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -2148,6 +2209,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -2248,6 +2310,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -2257,6 +2320,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -2357,6 +2421,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -2366,6 +2431,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -2466,6 +2532,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -2475,6 +2542,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -2575,6 +2643,7 @@
       "SystemBotFixup",
       "SystemCommunicationAdapter",
       "SystemCommunicationAiConfiguration",
+      "SystemCommunicationApplication",
       "SystemCommunicationDataFlow",
       "SystemCommunicationDataPointMapping",
       "SystemCommunicationDiscordConfiguration",
@@ -2584,6 +2653,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
