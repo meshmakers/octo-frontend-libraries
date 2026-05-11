@@ -113,6 +113,24 @@ export class CommunicationService {
   }
 
   /**
+   * Encrypts a plaintext value via the controller's at-rest encryption key
+   * and returns the sentinel-prefixed ciphertext (`enc:v1:...`). Use this
+   * before saving Helm ValueOverride entries flagged IsSecret so the
+   * plaintext is never persisted in MongoDB. Already-encrypted values pass
+   * through unchanged.
+   */
+  async encryptValue(tenantId: string, plaintext: string): Promise<string> {
+    if (!this.communicationServicesUrl) {
+      throw new Error('Communication services URL is not configured');
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/communication/encrypt-value`;
+    const response = await firstValueFrom(
+      this.httpClient.post<{ciphertext: string}>(uri, {plaintext})
+    );
+    return response.ciphertext;
+  }
+
+  /**
    * Deploys all adapters of a pool.
    */
   async deployAllAdaptersOfPool(tenantId: string, poolRtId: string): Promise<void> {
