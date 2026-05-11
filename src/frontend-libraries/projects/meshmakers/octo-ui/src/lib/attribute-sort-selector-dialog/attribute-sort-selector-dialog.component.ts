@@ -40,6 +40,12 @@ export interface AttributeSortSelectorDialogData {
   hideNavigationControls?: boolean;
   /** When set, restricts the available attributes to only these attribute paths (filtered client-side after fetching) */
   attributePaths?: string[];
+  /**
+   * Virtual attributes appended to the available list — useful for stream-data fields
+   * like `timestamp` that aren't part of the CK type's attribute graph but are sortable
+   * on the per-archive CrateDB table. Bypasses the `attributePaths` restriction.
+   */
+  additionalAttributes?: AttributeItem[];
 }
 
 export interface AttributeSortSelectorDialogResult {
@@ -454,7 +460,18 @@ export class AttributeSortSelectorDialogComponent implements OnInit {
         ? result.items.filter(item => this.attributePathsSet!.has(item.attributePath))
         : result.items;
 
-      this.availableAttributes = filteredItems.filter(item => !selectedPaths.has(item.attributePath));
+      // Append virtual attributes (e.g. stream-data `timestamp`) — these bypass the
+      // attributePaths restriction since they're not part of the CK type's graph.
+      const virtuals = (this.data?.additionalAttributes ?? []).filter(a =>
+        !selectedPaths.has(a.attributePath) &&
+        !filteredItems.some(i => i.attributePath === a.attributePath) &&
+        (searchTerm ? a.attributePath.toLowerCase().includes(searchTerm.toLowerCase()) : true)
+      );
+
+      this.availableAttributes = [
+        ...filteredItems.filter(item => !selectedPaths.has(item.attributePath)),
+        ...virtuals
+      ];
       this.updateAvailableGrid();
     });
   }

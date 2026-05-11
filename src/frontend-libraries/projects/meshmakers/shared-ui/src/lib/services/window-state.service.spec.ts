@@ -59,6 +59,21 @@ describe('WindowStateService', () => {
     expect(service.resolveWindowSize('saved-dialog', defaults)).toEqual(saved);
   });
 
+  it('should fall back to defaults when saved dimensions are below min', () => {
+    service.saveDimensions('stale-dialog', { width: 400, height: 300 });
+    const defaults: WindowDimensions = { width: 900, height: 640 };
+    const min: WindowDimensions = { width: 550, height: 400 };
+    expect(service.resolveWindowSize('stale-dialog', defaults, min)).toEqual(defaults);
+  });
+
+  it('should return saved dimensions unchanged when above min', () => {
+    const saved: WindowDimensions = { width: 1000, height: 700 };
+    service.saveDimensions('valid-dialog', saved);
+    const defaults: WindowDimensions = { width: 900, height: 640 };
+    const min: WindowDimensions = { width: 550, height: 400 };
+    expect(service.resolveWindowSize('valid-dialog', defaults, min)).toEqual(saved);
+  });
+
   it('should keep multiple dialog keys independent', () => {
     service.saveDimensions('dialog-1', { width: 100, height: 200 });
     service.saveDimensions('dialog-2', { width: 300, height: 400 });
@@ -73,31 +88,28 @@ describe('WindowStateService', () => {
   });
 
   describe('captureAndSave', () => {
-    it('should capture element bounds and save', () => {
-      const mockElement = {
-        getBoundingClientRect: () => ({ width: 850, height: 700, x: 0, y: 0, top: 0, left: 0, right: 850, bottom: 700, toJSON: () => ({}) })
-      } as HTMLElement;
+    function mockElementWithStyle(width: string, height: string): HTMLElement {
+      return { style: { width, height } } as HTMLElement;
+    }
 
-      service.captureAndSave('captured-dialog', mockElement);
+    it('should capture inline style dimensions and save', () => {
+      service.captureAndSave('captured-dialog', mockElementWithStyle('850px', '700px'));
       expect(service.getDimensions('captured-dialog')).toEqual({ width: 850, height: 700 });
     });
 
     it('should round captured dimensions', () => {
-      const mockElement = {
-        getBoundingClientRect: () => ({ width: 850.7, height: 700.3, x: 0, y: 0, top: 0, left: 0, right: 850.7, bottom: 700.3, toJSON: () => ({}) })
-      } as HTMLElement;
-
-      service.captureAndSave('rounded-dialog', mockElement);
+      service.captureAndSave('rounded-dialog', mockElementWithStyle('850.7px', '700.3px'));
       expect(service.getDimensions('rounded-dialog')).toEqual({ width: 851, height: 700 });
     });
 
     it('should not save zero-size elements', () => {
-      const mockElement = {
-        getBoundingClientRect: () => ({ width: 0, height: 0, x: 0, y: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({}) })
-      } as HTMLElement;
-
-      service.captureAndSave('zero-dialog', mockElement);
+      service.captureAndSave('zero-dialog', mockElementWithStyle('0px', '0px'));
       expect(service.getDimensions('zero-dialog')).toBeNull();
+    });
+
+    it('should not save when inline style is missing', () => {
+      service.captureAndSave('empty-dialog', mockElementWithStyle('', ''));
+      expect(service.getDimensions('empty-dialog')).toBeNull();
     });
   });
 
@@ -110,7 +122,7 @@ describe('WindowStateService', () => {
     function createMockWindowRef(): { windowRef: Partial<WindowRef>; resultSubject: Subject<WindowCloseResult> } {
       const resultSubject = new Subject<WindowCloseResult>();
       const mockNativeElement = {
-        getBoundingClientRect: () => ({ width: 800, height: 600, x: 0, y: 0, top: 0, left: 0, right: 800, bottom: 600, toJSON: () => ({}) })
+        style: { width: '800px', height: '600px' }
       };
       return {
         resultSubject,

@@ -20,7 +20,7 @@ describe('EntitySelectDialogService', () => {
     resultSubject = new Subject<EntitySelectDialogResult<string> | WindowCloseResult>();
 
     const mockNativeElement = {
-      getBoundingClientRect: () => ({ width: 800, height: 600, x: 0, y: 0, top: 0, left: 0, right: 800, bottom: 600, toJSON: () => ({}) })
+      style: { width: '800px', height: '600px' }
     };
 
     mockWindowRef = {
@@ -149,8 +149,8 @@ describe('EntitySelectDialogService', () => {
       });
 
       const openCall = windowServiceMock.open.calls.mostRecent().args[0];
-      expect(openCall.width).toBe(800);
-      expect(openCall.height).toBe(600);
+      expect(openCall.width).toBe(900);
+      expect(openCall.height).toBe(640);
 
       resultSubject.next(new WindowCloseResult());
       resultSubject.complete();

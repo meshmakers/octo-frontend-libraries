@@ -120,7 +120,8 @@ describe('AttributeSortSelectorDialogService', () => {
         dialogTitle: 'Custom Title',
         includeNavigationProperties: undefined,
         hideNavigationControls: undefined,
-        attributePaths: undefined
+        attributePaths: undefined,
+        additionalAttributes: undefined
       });
     });
 
@@ -250,7 +251,8 @@ describe('AttributeSortSelectorDialogService', () => {
         dialogTitle: undefined,
         includeNavigationProperties: undefined,
         hideNavigationControls: undefined,
-        attributePaths: undefined
+        attributePaths: undefined,
+        additionalAttributes: undefined
       });
     });
 

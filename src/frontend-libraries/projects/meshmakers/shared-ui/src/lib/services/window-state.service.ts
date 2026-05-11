@@ -28,39 +28,101 @@ export class WindowStateService {
     this.saveStates(states);
   }
 
-  resolveWindowSize(dialogKey: string, defaults: WindowDimensions): WindowDimensions {
-    return this.getDimensions(dialogKey) ?? defaults;
+  resolveWindowSize(
+    dialogKey: string,
+    defaults: WindowDimensions,
+    min?: WindowDimensions
+  ): WindowDimensions {
+    const stored = this.getDimensions(dialogKey);
+    if (!stored) {
+      return defaults;
+    }
+    // Sub-min stored values are presumed corrupt (e.g. captured before the dialog's current
+    // min was raised, or under a CSS zoom that distorted the saved rect). Fall back to the
+    // caller's defaults instead of clamping to min — clamping would trap the dialog at min
+    // permanently, since the next captureAndSave would store min and resolveWindowSize would
+    // happily return it forever after.
+    if (min && (stored.width < min.width || stored.height < min.height)) {
+      return defaults;
+    }
+    return stored;
   }
 
-  captureAndSave(dialogKey: string, windowElement: HTMLElement): void {
-    const rect = windowElement.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) {
-      this.saveDimensions(dialogKey, {
-        width: Math.round(rect.width),
-        height: Math.round(rect.height)
-      });
+  captureAndSave(
+    dialogKey: string,
+    windowElement: HTMLElement,
+    min?: WindowDimensions
+  ): void {
+    // Inline style holds the document-pixel dimensions Kendo sets when the user resizes;
+    // getBoundingClientRect would return zoom-adjusted values (e.g. parent CSS zoom: 0.75
+    // shrinks the rect by 25%) and saving those would cause the window to shrink on every
+    // open/close cycle.
+    const styleW = this.parsePixels(windowElement.style.width);
+    const styleH = this.parsePixels(windowElement.style.height);
+    if (styleW <= 0 || styleH <= 0) {
+      return;
     }
+    this.saveDimensions(dialogKey, {
+      width: Math.max(Math.round(styleW), min?.width ?? 0),
+      height: Math.max(Math.round(styleH), min?.height ?? 0)
+    });
+  }
+
+  private parsePixels(value: string | null | undefined): number {
+    if (!value) return 0;
+    const n = parseFloat(value);
+    return Number.isFinite(n) ? n : 0;
   }
 
   /**
    * Applies modal behavior to a Kendo WindowRef: shows a dark backdrop overlay
    * that blocks interaction with the background, and removes it when the window closes.
    * Also captures and saves window dimensions on close.
+   *
+   * Reads minWidth/minHeight from the Kendo Window instance and clamps stored sizes
+   * accordingly — both on save (so future captures never fall below min) and as a
+   * self-healing pass on entry (so a previously-stored size below the current min is
+   * cleared on first open, falling back to the dialog's configured defaults next time).
    */
   applyModalBehavior(dialogKey: string, windowRef: WindowRef): void {
     const windowEl = windowRef.window.location.nativeElement;
+    const min = this.readMinDimensions(windowRef);
+    this.healStaleDimensions(dialogKey, min);
     this.showBackdrop();
 
     windowRef.result.subscribe({
       next: () => {
-        this.captureAndSave(dialogKey, windowEl);
+        this.captureAndSave(dialogKey, windowEl, min);
         this.hideBackdrop();
       },
       error: () => {
-        this.captureAndSave(dialogKey, windowEl);
+        this.captureAndSave(dialogKey, windowEl, min);
         this.hideBackdrop();
       }
     });
+  }
+
+  private readMinDimensions(windowRef: WindowRef): WindowDimensions | undefined {
+    const instance = (windowRef.window as { instance?: { minWidth?: number; minHeight?: number } }).instance;
+    if (!instance) return undefined;
+    const minWidth = instance.minWidth ?? 0;
+    const minHeight = instance.minHeight ?? 0;
+    if (minWidth <= 0 && minHeight <= 0) return undefined;
+    return { width: minWidth, height: minHeight };
+  }
+
+  /**
+   * Drops stored dimensions that fall below the current minimum so the next open uses
+   * the caller's defaults instead of a too-small persisted size. The current open is
+   * unaffected (it already resolved at open time), but the next one is healed.
+   */
+  private healStaleDimensions(dialogKey: string, min: WindowDimensions | undefined): void {
+    if (!min) return;
+    const stored = this.getDimensions(dialogKey);
+    if (!stored) return;
+    if (stored.width < min.width || stored.height < min.height) {
+      this.clearDimensions(dialogKey);
+    }
   }
 
   private showBackdrop(): void {

@@ -8,6 +8,7 @@ import {
   AttributeSortSelectorDialogResult,
   AttributeSortItem
 } from './attribute-sort-selector-dialog.component';
+import { AttributeItem } from '@meshmakers/octo-services';
 
 export interface AttributeSortSelectorResult {
   confirmed: boolean;
@@ -34,7 +35,8 @@ export class AttributeSortSelectorDialogService {
     dialogTitle?: string,
     includeNavigationProperties?: boolean,
     hideNavigationControls?: boolean,
-    attributePaths?: string[]
+    attributePaths?: string[],
+    additionalAttributes?: AttributeItem[]
   ): Promise<AttributeSortSelectorResult> {
     const data: AttributeSortSelectorDialogData = {
       ckTypeId,
@@ -42,7 +44,8 @@ export class AttributeSortSelectorDialogService {
       dialogTitle,
       includeNavigationProperties,
       hideNavigationControls,
-      attributePaths
+      attributePaths,
+      additionalAttributes
     };
 
     const size = this.windowStateService.resolveWindowSize('attribute-sort-selector', { width: 1200, height: 750 });

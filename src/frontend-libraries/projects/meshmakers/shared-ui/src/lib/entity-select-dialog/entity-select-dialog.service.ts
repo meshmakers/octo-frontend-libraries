@@ -24,17 +24,25 @@ export class EntitySelectDialogService {
     dataSource: EntitySelectDialogDataSource<T>,
     options: EntitySelectDialogOptions<T>
   ): Promise<EntitySelectDialogResult<T> | null> {
-    const defaultWidth = options.width ?? 800;
-    const defaultHeight = options.height ?? 600;
-    const size = this.windowStateService.resolveWindowSize('entity-select', { width: defaultWidth, height: defaultHeight });
+    const defaultWidth = options.width ?? 900;
+    const defaultHeight = options.height ?? 640;
+    const minWidth = 550;
+    const minHeight = 400;
+    // Pass min so stale persisted sizes get clamped on the current open too. The
+    // applyModalBehavior pass below will also drop sub-min entries from storage.
+    const size = this.windowStateService.resolveWindowSize(
+      'entity-select',
+      { width: defaultWidth, height: defaultHeight },
+      { width: minWidth, height: minHeight }
+    );
 
     const windowRef = this.windowService.open({
       title: options.title,
       content: EntitySelectDialogComponent,
       width: size.width,
       height: size.height,
-      minWidth: 550,
-      minHeight: 400,
+      minWidth,
+      minHeight,
       resizable: true
     });
 
