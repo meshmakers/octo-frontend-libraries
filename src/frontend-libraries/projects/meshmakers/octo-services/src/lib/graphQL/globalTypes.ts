@@ -2990,7 +2990,6 @@ export type CkAttributeDto = {
   /** Optional description of the attribute. */
   description?: Maybe<Scalars['String']['output']>;
   /** Optional flag that tells if an attribute is a data stream. */
-  isDataStream?: Maybe<Scalars['Boolean']['output']>;
   /** Optional meta data of the attribute. */
   metaData?: Maybe<Array<Maybe<CkAttributeMetaDataDto>>>;
 };
@@ -3479,7 +3478,6 @@ export type CkTypeQueryColumnDto = {
   /** Description of the attribute. */
   description?: Maybe<Scalars['String']['output']>;
   /** Whether this column is available in stream data (CrateDB) queries. */
-  isDataStream: Scalars['Boolean']['output'];
 };
 
 /** A connection from an object to a list of objects of type `CkTypeQueryColumnDto`. */

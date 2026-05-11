@@ -4448,7 +4448,6 @@ type CkAttribute {
   "Optional description of the attribute."
   description: String
   "Optional flag that tells if an attribute is a data stream."
-  isDataStream: Boolean
   "Optional meta data of the attribute."
   metaData: [CkAttributeMetaData]
 }
@@ -4897,7 +4896,6 @@ type CkTypeQueryColumn {
   "Description of the attribute."
   description: String
   "Whether this column is available in stream data (CrateDB) queries."
-  isDataStream: Boolean!
 }
 
 "A connection from an object to a list of objects of type `CkTypeQueryColumnDto`."
