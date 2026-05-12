@@ -17,7 +17,7 @@ import {
 } from '@progress/kendo-angular-grid';
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
-import {ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
+import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
@@ -311,6 +311,22 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       return null;
     }
     return fieldConfig.statusMapping[String(value)] ?? null;
+  }
+
+  /**
+   * Resolves the badge appearance for a cell from the column's `badgeMapping`. Returns null when
+   * no mapping is configured or no entry matches the cell's value — the template falls back to a
+   * neutral default badge in that case so missing-mapping entries don't blank out the column.
+   */
+  protected getBadgeMapping(dataItem: Record<string, unknown>, column: TableColumn): BadgeMapping | null {
+    if (!column.badgeMapping) {
+      return null;
+    }
+    const value = this.getFieldValue(dataItem, column.field);
+    if (value === null || value === undefined) {
+      return null;
+    }
+    return column.badgeMapping[String(value)] ?? null;
   }
 
   /**

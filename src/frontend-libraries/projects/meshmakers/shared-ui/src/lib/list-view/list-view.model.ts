@@ -28,10 +28,31 @@ export interface StatusFieldConfig {
   statusMapping: StatusMapping;
 }
 
+/**
+ * Visual configuration for one possible value in a `badge` column. Lets host apps map enum-style
+ * cell values onto a tinted text pill — e.g. health states, lifecycle statuses, severity levels —
+ * without forcing every consumer to roll their own custom cell template.
+ */
+export interface BadgeMapping {
+  /** Foreground text colour (CSS colour). Defaults to the host theme's `--badge-text-default`. */
+  color?: string;
+  /** Background colour (CSS colour). Defaults to the host theme's `--badge-bg-default`. */
+  backgroundColor?: string;
+  /** Border colour. Defaults to the resolved background. */
+  borderColor?: string;
+  /** Optional tooltip shown on hover. */
+  tooltip?: string;
+  /** Override the displayed label. When omitted, the cell renders the raw field value. */
+  label?: string;
+}
+
+/** Maps an enum-style cell value to its badge appearance. Keys compared with the raw value via String(). */
+export type BadgeMappingTable = Record<string, BadgeMapping>;
+
 export interface TableColumn {
   displayName?: string | null;
   field: string;
-  dataType?: 'text' | 'numeric' | 'numericRange' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression' | 'progressBar';
+  dataType?: 'text' | 'numeric' | 'numericRange' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression' | 'progressBar' | 'badge';
   format?: string;
   /**
    * Column width in pixels. If not set, the column will auto-size.
@@ -71,6 +92,12 @@ export interface TableColumn {
    * Each option has a display text and a value used for filtering.
    */
   filterOptions?: { text: string; value: string }[];
+  /**
+   * Mapping of raw cell values to badge appearances (only consulted for `dataType: 'badge'`).
+   * Values not in the mapping fall back to the neutral default badge styling, so callers don't
+   * have to handle every possible enum value explicitly.
+   */
+  badgeMapping?: BadgeMappingTable;
   /**
    * Optional callback that produces the cell's display string.
    * When set, this overrides the default rendering selected by `dataType`.

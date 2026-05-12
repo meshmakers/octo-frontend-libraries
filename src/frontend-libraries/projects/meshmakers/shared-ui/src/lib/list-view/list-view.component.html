@@ -238,6 +238,20 @@
               <span class="progress-bar-label">{{ getValue(dataItem, column) }}%</span>
             </span>
           }
+          @case ('badge') {
+            @if (getBadgeMapping(dataItem, column); as badge) {
+              <span
+                class="badge-cell"
+                [title]="badge.tooltip ?? ''"
+                [style.color]="badge.color"
+                [style.background]="badge.backgroundColor"
+                [style.borderColor]="badge.borderColor ?? badge.backgroundColor">
+                {{ badge.label ?? getValue(dataItem, column) }}
+              </span>
+            } @else {
+              <span class="badge-cell badge-cell-default">{{ getValue(dataItem, column) }}</span>
+            }
+          }
           @default {
             {{ getValue(dataItem, column) }}
           }
