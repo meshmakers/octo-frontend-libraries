@@ -102,13 +102,6 @@ export enum AssociationModOptionsDto {
   DeleteDto = 'DELETE'
 }
 
-export type AttributeArgumentDto = {
-  aggregationType?: InputMaybe<AggregationTypeDto>;
-  sortOrder?: InputMaybe<SortOrderDto>;
-  /**  Defines the priority of the sort. Lower values are sorted first; null values aren't sorted at all. */
-  sortPriority?: InputMaybe<Scalars['Int']['input']>;
-};
-
 /** Enum of valid attribute types */
 export enum AttributeValueTypeDto {
   BinaryDto = 'BINARY',
@@ -461,7 +454,7 @@ export type BasicAsset_EventSourceUnionEdgeDto = {
 };
 
 /** Union of types derived from Basic/Asset for RelatesFrom association */
-export type BasicAsset_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataCkArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type BasicAsset_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `BasicAsset_RelatesFromUnion`. */
 export type BasicAsset_RelatesFromUnionConnectionDto = {
@@ -2826,7 +2819,7 @@ export type BasicTreeNode_ParentUnionEdgeDto = {
 };
 
 /** Union of types derived from Basic/TreeNode for RelatesTo association */
-export type BasicTreeNode_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataCkArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type BasicTreeNode_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `BasicTreeNode_RelatesToUnion`. */
 export type BasicTreeNode_RelatesToUnionConnectionDto = {
@@ -2989,7 +2982,6 @@ export type CkAttributeDto = {
   defaultValues?: Maybe<Array<Maybe<Scalars['SimpleScalar']['output']>>>;
   /** Optional description of the attribute. */
   description?: Maybe<Scalars['String']['output']>;
-  /** Optional flag that tells if an attribute is a data stream. */
   /** Optional meta data of the attribute. */
   metaData?: Maybe<Array<Maybe<CkAttributeMetaDataDto>>>;
 };
@@ -3477,7 +3469,6 @@ export type CkTypeQueryColumnDto = {
   attributeValueType: AttributeValueTypeDto;
   /** Description of the attribute. */
   description?: Maybe<Scalars['String']['output']>;
-  /** Whether this column is available in stream data (CrateDB) queries. */
 };
 
 /** A connection from an object to a list of objects of type `CkTypeQueryColumnDto`. */
@@ -8689,9 +8680,11 @@ export type OctoSubscriptionsDto = {
   systemBotFixupEvents?: Maybe<SystemBotFixupUpdateMessageDto>;
   systemCommunicationAdapterEvents?: Maybe<SystemCommunicationAdapterUpdateMessageDto>;
   systemCommunicationAiConfigurationEvents?: Maybe<SystemCommunicationAiConfigurationUpdateMessageDto>;
+  systemCommunicationApplicationEvents?: Maybe<SystemCommunicationApplicationUpdateMessageDto>;
   systemCommunicationDataFlowEvents?: Maybe<SystemCommunicationDataFlowUpdateMessageDto>;
   systemCommunicationDataPointMappingEvents?: Maybe<SystemCommunicationDataPointMappingUpdateMessageDto>;
   systemCommunicationDeployableEntityEvents?: Maybe<SystemCommunicationDeployableEntityUpdateMessageDto>;
+  systemCommunicationDeployableWorkloadEvents?: Maybe<SystemCommunicationDeployableWorkloadUpdateMessageDto>;
   systemCommunicationDiscordConfigurationEvents?: Maybe<SystemCommunicationDiscordConfigurationUpdateMessageDto>;
   systemCommunicationEMailReceiverConfigurationEvents?: Maybe<SystemCommunicationEMailReceiverConfigurationUpdateMessageDto>;
   systemCommunicationEMailSenderConfigurationEvents?: Maybe<SystemCommunicationEMailSenderConfigurationUpdateMessageDto>;
@@ -8699,6 +8692,7 @@ export type OctoSubscriptionsDto = {
   systemCommunicationEnergyCommunityConfigurationEvents?: Maybe<SystemCommunicationEnergyCommunityConfigurationUpdateMessageDto>;
   systemCommunicationFinApiConfigurationEvents?: Maybe<SystemCommunicationFinApiConfigurationUpdateMessageDto>;
   systemCommunicationGrafanaConfigurationEvents?: Maybe<SystemCommunicationGrafanaConfigurationUpdateMessageDto>;
+  systemCommunicationHelmRepositoryConfigurationEvents?: Maybe<SystemCommunicationHelmRepositoryConfigurationUpdateMessageDto>;
   systemCommunicationLoxoneConfigurationEvents?: Maybe<SystemCommunicationLoxoneConfigurationUpdateMessageDto>;
   systemCommunicationMicrosoftGraphConfigurationEvents?: Maybe<SystemCommunicationMicrosoftGraphConfigurationUpdateMessageDto>;
   systemCommunicationPipelineEvents?: Maybe<SystemCommunicationPipelineUpdateMessageDto>;
@@ -8751,7 +8745,7 @@ export type OctoSubscriptionsDto = {
   systemReportingFolderRootEvents?: Maybe<SystemReportingFolderRootUpdateMessageDto>;
   systemSimpleRtQueryEvents?: Maybe<SystemSimpleRtQueryUpdateMessageDto>;
   systemSimpleSdQueryEvents?: Maybe<SystemSimpleSdQueryUpdateMessageDto>;
-  systemStreamDataCkArchiveEvents?: Maybe<SystemStreamDataCkArchiveUpdateMessageDto>;
+  systemStreamDataRawArchiveEvents?: Maybe<SystemStreamDataRawArchiveUpdateMessageDto>;
   systemStreamDataQueryEvents?: Maybe<SystemStreamDataQueryUpdateMessageDto>;
   systemTenantConfigurationEvents?: Maybe<SystemTenantConfigurationUpdateMessageDto>;
   systemTenantEvents?: Maybe<SystemTenantUpdateMessageDto>;
@@ -9046,6 +9040,14 @@ export type OctoSubscriptionsSystemCommunicationAiConfigurationEventsArgsDto = {
 };
 
 
+export type OctoSubscriptionsSystemCommunicationApplicationEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
 export type OctoSubscriptionsSystemCommunicationDataFlowEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -9063,6 +9065,14 @@ export type OctoSubscriptionsSystemCommunicationDataPointMappingEventsArgsDto = 
 
 
 export type OctoSubscriptionsSystemCommunicationDeployableEntityEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemCommunicationDeployableWorkloadEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
@@ -9119,6 +9129,14 @@ export type OctoSubscriptionsSystemCommunicationFinApiConfigurationEventsArgsDto
 
 
 export type OctoSubscriptionsSystemCommunicationGrafanaConfigurationEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemCommunicationHelmRepositoryConfigurationEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
@@ -9542,7 +9560,7 @@ export type OctoSubscriptionsSystemSimpleSdQueryEventsArgsDto = {
 };
 
 
-export type OctoSubscriptionsSystemStreamDataCkArchiveEventsArgsDto = {
+export type OctoSubscriptionsSystemStreamDataRawArchiveEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
@@ -9714,6 +9732,29 @@ export type ResultAggregationInputDto = {
   maxValueAttributePaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   minValueAttributePaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   sumAttributePaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+/** Rollup archive attached to a source CkArchive, with its schedule and current watermark. */
+export type RollupArchiveInfoDto = {
+  __typename?: 'RollupArchiveInfo';
+  /** Number of aggregation specs configured on this rollup. */
+  aggregationCount: Scalars['Int']['output'];
+  /** Bucket width in milliseconds. */
+  bucketSizeMs: Scalars['Long']['output'];
+  /** Upper bound of the frozen range, if set. Buckets ending at or before this point are not re-aggregated by the orchestrator. */
+  frozenUntil?: Maybe<Scalars['DateTime']['output']>;
+  /** Exclusive end timestamp of the most recently committed bucket. Null before the first orchestrator tick. */
+  lastAggregatedBucketEnd?: Maybe<Scalars['DateTime']['output']>;
+  /** Runtime id of the rollup archive. */
+  rtId: Scalars['OctoObjectId']['output'];
+  /** Optional well-known name of the rollup archive. */
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  /** Runtime id of the source archive this rollup aggregates from. */
+  sourceArchiveRtId: Scalars['OctoObjectId']['output'];
+  /** Current lifecycle status: Created / Activated / Disabled / Failed. */
+  status: Scalars['String']['output'];
+  /** Watermark lag in milliseconds — how far behind real-time the orchestrator stays before closing a bucket. */
+  watermarkLagMs: Scalars['Long']['output'];
 };
 
 /** Represents a row within a runtime query execution */
@@ -10329,6 +10370,8 @@ export type RuntimeDto = {
   systemCommunicationAdapters?: Maybe<SystemCommunicationAdapterMutationsDto>;
   /** Mutation for entities of type 'SystemCommunicationAiConfiguration'. */
   systemCommunicationAiConfigurations?: Maybe<SystemCommunicationAiConfigurationMutationsDto>;
+  /** Mutation for entities of type 'SystemCommunicationApplication'. */
+  systemCommunicationApplications?: Maybe<SystemCommunicationApplicationMutationsDto>;
   /** Mutation for entities of type 'SystemCommunicationDataFlow'. */
   systemCommunicationDataFlows?: Maybe<SystemCommunicationDataFlowMutationsDto>;
   /** Mutation for entities of type 'SystemCommunicationDataPointMapping'. */
@@ -10347,6 +10390,8 @@ export type RuntimeDto = {
   systemCommunicationFinApiConfigurations?: Maybe<SystemCommunicationFinApiConfigurationMutationsDto>;
   /** Mutation for entities of type 'SystemCommunicationGrafanaConfiguration'. */
   systemCommunicationGrafanaConfigurations?: Maybe<SystemCommunicationGrafanaConfigurationMutationsDto>;
+  /** Mutation for entities of type 'SystemCommunicationHelmRepositoryConfiguration'. */
+  systemCommunicationHelmRepositoryConfigurations?: Maybe<SystemCommunicationHelmRepositoryConfigurationMutationsDto>;
   /** Mutation for entities of type 'SystemCommunicationLoxoneConfiguration'. */
   systemCommunicationLoxoneConfigurations?: Maybe<SystemCommunicationLoxoneConfigurationMutationsDto>;
   /** Mutation for entities of type 'SystemCommunicationMicrosoftGraphConfiguration'. */
@@ -10437,8 +10482,8 @@ export type RuntimeDto = {
   systemSimpleRtQuerys?: Maybe<SystemSimpleRtQueryMutationsDto>;
   /** Mutation for entities of type 'SystemSimpleSdQuery'. */
   systemSimpleSdQuerys?: Maybe<SystemSimpleSdQueryMutationsDto>;
-  /** Mutation for entities of type 'SystemStreamDataCkArchive'. */
-  systemStreamDataCkArchives?: Maybe<SystemStreamDataCkArchiveMutationsDto>;
+  /** Mutation for entities of type 'SystemStreamDataRawArchive'. */
+  systemStreamDataRawArchives?: Maybe<SystemStreamDataRawArchiveMutationsDto>;
   /** Mutation for entities of type 'SystemTenantConfiguration'. */
   systemTenantConfigurations?: Maybe<SystemTenantConfigurationMutationsDto>;
   /** Mutation for entities of type 'SystemTenantModeConfiguration'. */
@@ -10503,9 +10548,11 @@ export type RuntimeModelQueryDto = {
   systemBotFixup?: Maybe<SystemBotFixupConnectionDto>;
   systemCommunicationAdapter?: Maybe<SystemCommunicationAdapterConnectionDto>;
   systemCommunicationAiConfiguration?: Maybe<SystemCommunicationAiConfigurationConnectionDto>;
+  systemCommunicationApplication?: Maybe<SystemCommunicationApplicationConnectionDto>;
   systemCommunicationDataFlow?: Maybe<SystemCommunicationDataFlowConnectionDto>;
   systemCommunicationDataPointMapping?: Maybe<SystemCommunicationDataPointMappingConnectionDto>;
   systemCommunicationDeployableEntity?: Maybe<SystemCommunicationDeployableEntityConnectionDto>;
+  systemCommunicationDeployableWorkload?: Maybe<SystemCommunicationDeployableWorkloadConnectionDto>;
   systemCommunicationDiscordConfiguration?: Maybe<SystemCommunicationDiscordConfigurationConnectionDto>;
   systemCommunicationEMailReceiverConfiguration?: Maybe<SystemCommunicationEMailReceiverConfigurationConnectionDto>;
   systemCommunicationEMailSenderConfiguration?: Maybe<SystemCommunicationEMailSenderConfigurationConnectionDto>;
@@ -10513,6 +10560,7 @@ export type RuntimeModelQueryDto = {
   systemCommunicationEnergyCommunityConfiguration?: Maybe<SystemCommunicationEnergyCommunityConfigurationConnectionDto>;
   systemCommunicationFinApiConfiguration?: Maybe<SystemCommunicationFinApiConfigurationConnectionDto>;
   systemCommunicationGrafanaConfiguration?: Maybe<SystemCommunicationGrafanaConfigurationConnectionDto>;
+  systemCommunicationHelmRepositoryConfiguration?: Maybe<SystemCommunicationHelmRepositoryConfigurationConnectionDto>;
   systemCommunicationLoxoneConfiguration?: Maybe<SystemCommunicationLoxoneConfigurationConnectionDto>;
   systemCommunicationMicrosoftGraphConfiguration?: Maybe<SystemCommunicationMicrosoftGraphConfigurationConnectionDto>;
   systemCommunicationPipeline?: Maybe<SystemCommunicationPipelineConnectionDto>;
@@ -10565,7 +10613,7 @@ export type RuntimeModelQueryDto = {
   systemReportingFolderRoot?: Maybe<SystemReportingFolderRootConnectionDto>;
   systemSimpleRtQuery?: Maybe<SystemSimpleRtQueryConnectionDto>;
   systemSimpleSdQuery?: Maybe<SystemSimpleSdQueryConnectionDto>;
-  systemStreamDataCkArchive?: Maybe<SystemStreamDataCkArchiveConnectionDto>;
+  systemStreamDataRawArchive?: Maybe<SystemStreamDataRawArchiveConnectionDto>;
   systemStreamDataQuery?: Maybe<SystemStreamDataQueryConnectionDto>;
   systemTenant?: Maybe<SystemTenantConnectionDto>;
   systemTenantConfiguration?: Maybe<SystemTenantConfigurationConnectionDto>;
@@ -11093,6 +11141,20 @@ export type RuntimeModelQuerySystemCommunicationAiConfigurationArgsDto = {
 };
 
 
+export type RuntimeModelQuerySystemCommunicationApplicationArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
 export type RuntimeModelQuerySystemCommunicationDataFlowArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -11122,6 +11184,20 @@ export type RuntimeModelQuerySystemCommunicationDataPointMappingArgsDto = {
 
 
 export type RuntimeModelQuerySystemCommunicationDeployableEntityArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemCommunicationDeployableWorkloadArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -11220,6 +11296,20 @@ export type RuntimeModelQuerySystemCommunicationFinApiConfigurationArgsDto = {
 
 
 export type RuntimeModelQuerySystemCommunicationGrafanaConfigurationArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemCommunicationHelmRepositoryConfigurationArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -11961,7 +12051,7 @@ export type RuntimeModelQuerySystemSimpleSdQueryArgsDto = {
 };
 
 
-export type RuntimeModelQuerySystemStreamDataCkArchiveArgsDto = {
+export type RuntimeModelQuerySystemStreamDataRawArchiveArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -12147,12 +12237,6 @@ export type SortDto = {
 };
 
 /** Defines the sort order */
-export enum SortOrderDto {
-  AscendingDto = 'ASCENDING',
-  DescendingDto = 'DESCENDING'
-}
-
-/** Defines the sort order */
 export enum SortOrdersDto {
   AscendingDto = 'ASCENDING',
   DefaultDto = 'DEFAULT',
@@ -12167,280 +12251,108 @@ export type StreamDataArgumentsDto = {
   to?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
-/** A stream-data row returned by the generic StreamDataEntities endpoint. */
-export type StreamDataEntityGenericDto = {
-  __typename?: 'StreamDataEntityGeneric';
-  /** Selected attribute cells for this row. */
-  cells?: Maybe<RtQueryCellDtoConnectionDto>;
-  ckTypeId?: Maybe<Scalars['RtCkTypeId']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId?: Maybe<Scalars['OctoObjectId']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** A stream-data row returned by the generic StreamDataEntities endpoint. */
-export type StreamDataEntityGenericCellsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-/** A connection from an object to a list of objects of type `StreamDataEntityGenericDto`. */
-export type StreamDataEntityGenericDtoConnectionDto = {
-  __typename?: 'StreamDataEntityGenericDtoConnection';
-  /** A list of all of the edges returned in the connection. */
-  edges?: Maybe<Array<Maybe<StreamDataEntityGenericDtoEdgeDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<StreamDataEntityGenericDto>>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfoDto;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `StreamDataEntityGenericDto`. */
-export type StreamDataEntityGenericDtoEdgeDto = {
-  __typename?: 'StreamDataEntityGenericDtoEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: StreamDataEntityGenericDto;
-};
-
 export type StreamDataModelQueryDto = {
   __typename?: 'StreamDataModelQuery';
-  industryBasicAlarm?: Maybe<StreamIndustryBasicAlarmConnectionDto>;
-  industryBasicEvent?: Maybe<StreamIndustryBasicEventConnectionDto>;
-  industryBasicMachine?: Maybe<StreamIndustryBasicMachineConnectionDto>;
-  industryBasicRuntimeVariable?: Maybe<StreamIndustryBasicRuntimeVariableConnectionDto>;
-  industryEnergyEnergyConsumer?: Maybe<StreamIndustryEnergyEnergyConsumerConnectionDto>;
-  industryEnergyEnergyCost?: Maybe<StreamIndustryEnergyEnergyCostConnectionDto>;
-  industryEnergyEnergyForecast?: Maybe<StreamIndustryEnergyEnergyForecastConnectionDto>;
-  industryEnergyEnergyMeter?: Maybe<StreamIndustryEnergyEnergyMeterConnectionDto>;
-  industryEnergyEnergyPerformanceIndicator?: Maybe<StreamIndustryEnergyEnergyPerformanceIndicatorConnectionDto>;
-  industryEnergyEnergyStorage?: Maybe<StreamIndustryEnergyEnergyStorageConnectionDto>;
-  industryEnergyInverter?: Maybe<StreamIndustryEnergyInverterConnectionDto>;
-  industryEnergyPhotovoltaicSystemModule?: Maybe<StreamIndustryEnergyPhotovoltaicSystemModuleConnectionDto>;
-  industryEnergyPhotovoltaicSystemString?: Maybe<StreamIndustryEnergyPhotovoltaicSystemStringConnectionDto>;
-  /** Generic stream-data entity connection. Supply the CK type at query time. */
-  streamDataEntities?: Maybe<StreamDataEntityGenericDtoConnectionDto>;
+  /** Returns every non-soft-deleted rollup archive attached to the given source archive — runtime id, status, schedule, watermark, freeze state. Rollup-archives concept §9. */
+  rollupsFor: Array<RollupArchiveInfoDto>;
   streamDataQuery?: Maybe<StreamDataQueryDtoConnectionDto>;
   /** Transient stream-data queries */
   transientStreamDataQuery: StreamDataTransientDto;
 };
 
 
-export type StreamDataModelQueryIndustryBasicAlarmArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryBasicEventArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryBasicMachineArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryBasicRuntimeVariableArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryEnergyEnergyConsumerArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryEnergyEnergyCostArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryEnergyEnergyForecastArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryEnergyEnergyMeterArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryEnergyEnergyPerformanceIndicatorArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryEnergyEnergyStorageArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryEnergyInverterArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryEnergyPhotovoltaicSystemModuleArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryIndustryEnergyPhotovoltaicSystemStringArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type StreamDataModelQueryStreamDataEntitiesArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
-  arg?: InputMaybe<StreamDataArgumentsDto>;
-  ckId: Scalars['String']['input'];
-  columnPaths: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+export type StreamDataModelQueryRollupsForArgsDto = {
+  rtId: Scalars['OctoObjectId']['input'];
 };
 
 
 export type StreamDataModelQueryStreamDataQueryArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
-  archiveRtId: Scalars['OctoObjectId']['input'];
   first?: InputMaybe<Scalars['Int']['input']>;
   rtId: Scalars['OctoObjectId']['input'];
 };
 
-/** Archive lifecycle mutations: activate, disable, enable, retry activation. */
+/** Archive lifecycle mutations: activate, disable, enable, retry activation, delete. */
 export type StreamDataMutationsDto = {
   __typename?: 'StreamDataMutations';
   /** Provisions the Crate table and transitions the archive to Activated. Allowed from Created/Disabled/Failed; idempotent on Activated. */
   activateArchive: ArchiveTransitionResultDto;
+  /** Drops the per-archive CrateDB table (idempotent) and soft-deletes the CkArchive entity. Destructive — historical data is lost. Allowed from any status. Returns true when the archive was deleted. */
+  deleteArchive: Scalars['Boolean']['output'];
   /** Transitions the archive to Disabled. Allowed only from Activated; the Crate table is preserved. */
   disableArchive: ArchiveTransitionResultDto;
   /** Transitions the archive from Disabled back to Activated. Re-validates column paths against the current CK model. */
   enableArchive: ArchiveTransitionResultDto;
+  /** Sets FrozenUntil on the rollup archive. Monotonic — rejected when the new value is earlier than the current FrozenUntil (use unfreezeRollupArchive instead). When set, the orchestrator stops producing buckets whose bucketEnd falls within the frozen range. */
+  freezeRollupArchive: ArchiveTransitionResultDto;
   /** Retries activation after a previous DDL failure. Allowed only from Failed. */
   retryArchiveActivation: ArchiveTransitionResultDto;
+  /** Resets LastAggregatedBucketEnd to the given timestamp (truncated to the bucket boundary). Subsequent orchestrator ticks re-aggregate the rewound range. Destructive: previously committed rows in that range are temporarily out of sync until the orchestrator catches up. */
+  rewindRollupWatermark: ArchiveTransitionResultDto;
+  /** Clears FrozenUntil on the rollup archive. Idempotent. The optional acceptGaps flag is recorded but the gap-detection guard is not yet enforced (concept §9 follow-up). */
+  unfreezeRollupArchive: ArchiveTransitionResultDto;
 };
 
 
-/** Archive lifecycle mutations: activate, disable, enable, retry activation. */
+/** Archive lifecycle mutations: activate, disable, enable, retry activation, delete. */
 export type StreamDataMutationsActivateArchiveArgsDto = {
   rtId: Scalars['OctoObjectId']['input'];
 };
 
 
-/** Archive lifecycle mutations: activate, disable, enable, retry activation. */
+/** Archive lifecycle mutations: activate, disable, enable, retry activation, delete. */
+export type StreamDataMutationsDeleteArchiveArgsDto = {
+  rtId: Scalars['OctoObjectId']['input'];
+};
+
+
+/** Archive lifecycle mutations: activate, disable, enable, retry activation, delete. */
 export type StreamDataMutationsDisableArchiveArgsDto = {
   rtId: Scalars['OctoObjectId']['input'];
 };
 
 
-/** Archive lifecycle mutations: activate, disable, enable, retry activation. */
+/** Archive lifecycle mutations: activate, disable, enable, retry activation, delete. */
 export type StreamDataMutationsEnableArchiveArgsDto = {
   rtId: Scalars['OctoObjectId']['input'];
 };
 
 
-/** Archive lifecycle mutations: activate, disable, enable, retry activation. */
+/** Archive lifecycle mutations: activate, disable, enable, retry activation, delete. */
+export type StreamDataMutationsFreezeRollupArchiveArgsDto = {
+  rtId: Scalars['OctoObjectId']['input'];
+  until: Scalars['DateTime']['input'];
+};
+
+
+/** Archive lifecycle mutations: activate, disable, enable, retry activation, delete. */
 export type StreamDataMutationsRetryArchiveActivationArgsDto = {
+  rtId: Scalars['OctoObjectId']['input'];
+};
+
+
+/** Archive lifecycle mutations: activate, disable, enable, retry activation, delete. */
+export type StreamDataMutationsRewindRollupWatermarkArgsDto = {
+  rtId: Scalars['OctoObjectId']['input'];
+  toBucketEnd: Scalars['DateTime']['input'];
+};
+
+
+/** Archive lifecycle mutations: activate, disable, enable, retry activation, delete. */
+export type StreamDataMutationsUnfreezeRollupArchiveArgsDto = {
+  acceptGaps?: InputMaybe<Scalars['Boolean']['input']>;
   rtId: Scalars['OctoObjectId']['input'];
 };
 
 /** Descriptor for a persisted stream-data query. Use the Rows sub-connection to execute the query and the Aggregations sub-connection to compute statistics over the same data. */
 export type StreamDataQueryDto = {
   __typename?: 'StreamDataQuery';
-  /** Computes statistical aggregations over the same data set as the persisted query. */
+  /** Computes statistical aggregations over the same data set as the persisted query. Accepts optional runtime field filters AND-combined with the persisted FieldFilter. */
   aggregations?: Maybe<QueryAggregationResultConnectionDto>;
   associatedCkTypeId: Scalars['RtCkTypeId']['output'];
   columns: Array<RtQueryColumnDto>;
   queryRtId: Scalars['OctoObjectId']['output'];
-  /** Executes the persisted stream-data query and returns the result rows. Accepts optional runtime overrides for the time range, limit, and sort order. */
+  /** Executes the persisted stream-data query and returns the result rows. Accepts optional runtime overrides for the time range, limit, and sort order, plus additional field filters AND-combined with the persisted FieldFilter. */
   rows?: Maybe<StreamDataQueryRowDtoConnectionDto>;
 };
 
@@ -12449,6 +12361,7 @@ export type StreamDataQueryDto = {
 export type StreamDataQueryAggregationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations: ResultAggregationInputDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   first?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -12457,6 +12370,7 @@ export type StreamDataQueryAggregationsArgsDto = {
 export type StreamDataQueryRowsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   arg?: InputMaybe<StreamDataArgumentsDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   first?: InputMaybe<Scalars['Int']['input']>;
   sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
 };
@@ -12549,7 +12463,6 @@ export type StreamDataTransientAggregationArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   archiveRtId: Scalars['OctoObjectId']['input'];
   arg?: InputMaybe<StreamDataArgumentsDto>;
-  ckId: Scalars['String']['input'];
   columnPaths: Array<StreamDataQueryColumnInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -12561,7 +12474,6 @@ export type StreamDataTransientAggregationArgsDto = {
 export type StreamDataTransientDownsamplingArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   archiveRtId: Scalars['OctoObjectId']['input'];
-  ckId: Scalars['String']['input'];
   columnPaths: Array<StreamDataQueryColumnInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -12577,7 +12489,6 @@ export type StreamDataTransientGroupingAggregationArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   archiveRtId: Scalars['OctoObjectId']['input'];
   arg?: InputMaybe<StreamDataArgumentsDto>;
-  ckId: Scalars['String']['input'];
   columnPaths: Array<StreamDataQueryColumnInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -12591,7 +12502,6 @@ export type StreamDataTransientSimpleArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   archiveRtId: Scalars['OctoObjectId']['input'];
   arg?: InputMaybe<StreamDataArgumentsDto>;
-  ckId: Scalars['String']['input'];
   columnPaths: Array<Scalars['String']['input']>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -13787,10 +13697,12 @@ export type SystemBotFixupUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemBotFixupUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
-export type SystemCommunicationAdapterDto = SystemCommunicationDeployableEntityInterfaceDto & SystemEntityInterfaceDto & {
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
+export type SystemCommunicationAdapterDto = SystemCommunicationDeployableEntityInterfaceDto & SystemCommunicationDeployableWorkloadInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationAdapter';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  chartName?: Maybe<Scalars['String']['output']>;
+  chartVersion?: Maybe<Scalars['String']['output']>;
   ckTypeId: Scalars['RtCkTypeId']['output'];
   communicationState: SystemCommunicationCommunicationStateDto;
   communicationStateTimestamp?: Maybe<Scalars['DateTime']['output']>;
@@ -13802,6 +13714,7 @@ export type SystemCommunicationAdapterDto = SystemCommunicationDeployableEntityI
   description?: Maybe<Scalars['String']['output']>;
   executes?: Maybe<SystemCommunicationPipeline_ExecutesUnionConnectionDto>;
   executingAdapter?: Maybe<SystemCommunicationPipelineExecution_ExecutingAdapterUnionConnectionDto>;
+  helmRepository?: Maybe<SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionConnectionDto>;
   imageName?: Maybe<Scalars['String']['output']>;
   imageVersion?: Maybe<Scalars['String']['output']>;
   lastSyncedSequenceNumber: Scalars['Int']['output'];
@@ -13821,10 +13734,12 @@ export type SystemCommunicationAdapterDto = SystemCommunicationDeployableEntityI
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
   statusMessage?: Maybe<Scalars['String']['output']>;
   taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  values?: Maybe<Array<SystemCommunicationValueOverrideDto>>;
+  valuesYaml?: Maybe<Scalars['String']['output']>;
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13839,7 +13754,7 @@ export type SystemCommunicationAdapterAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13853,7 +13768,7 @@ export type SystemCommunicationAdapterConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterExecutesArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13867,7 +13782,7 @@ export type SystemCommunicationAdapterExecutesArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterExecutingAdapterArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13881,7 +13796,21 @@ export type SystemCommunicationAdapterExecutingAdapterArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
+export type SystemCommunicationAdapterHelmRepositoryArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterManagedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13895,7 +13824,7 @@ export type SystemCommunicationAdapterManagedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13909,7 +13838,7 @@ export type SystemCommunicationAdapterMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13923,7 +13852,7 @@ export type SystemCommunicationAdapterMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13937,7 +13866,7 @@ export type SystemCommunicationAdapterRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13951,7 +13880,7 @@ export type SystemCommunicationAdapterRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Adapter-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Adapter-1' */
 export type SystemCommunicationAdapterTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13991,6 +13920,8 @@ export type SystemCommunicationAdapterEdgeDto = {
 };
 
 export type SystemCommunicationAdapterInputDto = {
+  chartName?: InputMaybe<Scalars['String']['input']>;
+  chartVersion?: InputMaybe<Scalars['String']['input']>;
   communicationState?: InputMaybe<SystemCommunicationCommunicationStateDto>;
   communicationStateTimestamp?: InputMaybe<Scalars['DateTime']['input']>;
   configuration?: InputMaybe<Scalars['String']['input']>;
@@ -14000,6 +13931,7 @@ export type SystemCommunicationAdapterInputDto = {
   description?: InputMaybe<Scalars['String']['input']>;
   executes?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   executingAdapter?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  helmRepository?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   imageName?: InputMaybe<Scalars['String']['input']>;
   imageVersion?: InputMaybe<Scalars['String']['input']>;
   lastSyncedSequenceNumber?: InputMaybe<Scalars['Int']['input']>;
@@ -14015,6 +13947,8 @@ export type SystemCommunicationAdapterInputDto = {
   rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
   statusMessage?: InputMaybe<Scalars['String']['input']>;
   taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  values?: InputMaybe<Array<InputMaybe<SystemCommunicationValueOverrideInputDto>>>;
+  valuesYaml?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type SystemCommunicationAdapterInputUpdateDto = {
@@ -14112,36 +14046,7 @@ export type SystemCommunicationAdapter_ExecutedByUnionEdgeDto = {
   node?: Maybe<SystemCommunicationAdapter_ExecutedByUnionDto>;
 };
 
-/** Union of types derived from System.Communication/Adapter for Manages association */
-export type SystemCommunicationAdapter_ManagesUnionDto = SystemCommunicationAdapterDto;
-
-/** A connection to `SystemCommunicationAdapter_ManagesUnion`. */
-export type SystemCommunicationAdapter_ManagesUnionConnectionDto = {
-  __typename?: 'SystemCommunicationAdapter_ManagesUnionConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<SystemCommunicationAdapter_ManagesUnionEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<SystemCommunicationAdapter_ManagesUnionDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `SystemCommunicationAdapter_ManagesUnion`. */
-export type SystemCommunicationAdapter_ManagesUnionEdgeDto = {
-  __typename?: 'SystemCommunicationAdapter_ManagesUnionEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<SystemCommunicationAdapter_ManagesUnionDto>;
-};
-
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/AiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/AiConfiguration-1' */
 export type SystemCommunicationAiConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationAiConfiguration';
   aiModel?: Maybe<Scalars['String']['output']>;
@@ -14170,7 +14075,7 @@ export type SystemCommunicationAiConfigurationDto = SystemConfigurationInterface
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/AiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/AiConfiguration-1' */
 export type SystemCommunicationAiConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14185,7 +14090,7 @@ export type SystemCommunicationAiConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/AiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/AiConfiguration-1' */
 export type SystemCommunicationAiConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14199,7 +14104,7 @@ export type SystemCommunicationAiConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/AiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/AiConfiguration-1' */
 export type SystemCommunicationAiConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14213,7 +14118,7 @@ export type SystemCommunicationAiConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/AiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/AiConfiguration-1' */
 export type SystemCommunicationAiConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14227,7 +14132,7 @@ export type SystemCommunicationAiConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/AiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/AiConfiguration-1' */
 export type SystemCommunicationAiConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14241,7 +14146,7 @@ export type SystemCommunicationAiConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/AiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/AiConfiguration-1' */
 export type SystemCommunicationAiConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14255,7 +14160,7 @@ export type SystemCommunicationAiConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/AiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/AiConfiguration-1' */
 export type SystemCommunicationAiConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14269,7 +14174,7 @@ export type SystemCommunicationAiConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/AiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/AiConfiguration-1' */
 export type SystemCommunicationAiConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14364,6 +14269,253 @@ export type SystemCommunicationAiConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationAiConfigurationUpdateDto>>>;
 };
 
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationDto = SystemCommunicationDeployableEntityInterfaceDto & SystemCommunicationDeployableWorkloadInterfaceDto & SystemEntityInterfaceDto & {
+  __typename?: 'SystemCommunicationApplication';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  chartName?: Maybe<Scalars['String']['output']>;
+  chartVersion?: Maybe<Scalars['String']['output']>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  deploymentState: SystemCommunicationDeploymentStateDto;
+  description?: Maybe<Scalars['String']['output']>;
+  helmRepository?: Maybe<SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionConnectionDto>;
+  hostname?: Maybe<Scalars['String']['output']>;
+  managedBy?: Maybe<SystemCommunicationPool_ManagedByUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name?: Maybe<Scalars['String']['output']>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  statusMessage?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  values?: Maybe<Array<SystemCommunicationValueOverrideDto>>;
+  valuesYaml?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationHelmRepositoryArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationManagedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Application-1' */
+export type SystemCommunicationApplicationTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemCommunicationApplication`. */
+export type SystemCommunicationApplicationConnectionDto = {
+  __typename?: 'SystemCommunicationApplicationConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemCommunicationApplicationEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemCommunicationApplicationDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemCommunicationApplication`. */
+export type SystemCommunicationApplicationEdgeDto = {
+  __typename?: 'SystemCommunicationApplicationEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemCommunicationApplicationDto>;
+};
+
+export type SystemCommunicationApplicationInputDto = {
+  chartName?: InputMaybe<Scalars['String']['input']>;
+  chartVersion?: InputMaybe<Scalars['String']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  deploymentState?: InputMaybe<SystemCommunicationDeploymentStateDto>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  helmRepository?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  hostname?: InputMaybe<Scalars['String']['input']>;
+  managedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  statusMessage?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  values?: InputMaybe<Array<InputMaybe<SystemCommunicationValueOverrideInputDto>>>;
+  valuesYaml?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SystemCommunicationApplicationInputUpdateDto = {
+  /** Item to update */
+  item: SystemCommunicationApplicationInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemCommunicationApplicationMutationsDto = {
+  __typename?: 'SystemCommunicationApplicationMutations';
+  /** Creates new entities of type 'SystemCommunicationApplication'. */
+  create?: Maybe<Array<Maybe<SystemCommunicationApplicationDto>>>;
+  /** Updates existing entity of type 'SystemCommunicationApplication'. */
+  update?: Maybe<Array<Maybe<SystemCommunicationApplicationDto>>>;
+};
+
+
+export type SystemCommunicationApplicationMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemCommunicationApplicationInputDto>>;
+};
+
+
+export type SystemCommunicationApplicationMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemCommunicationApplicationInputUpdateDto>>;
+};
+
+export type SystemCommunicationApplicationUpdateDto = {
+  __typename?: 'SystemCommunicationApplicationUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemCommunicationApplicationDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemCommunicationApplicationUpdateMessageDto = {
+  __typename?: 'SystemCommunicationApplicationUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemCommunicationApplicationUpdateDto>>>;
+};
+
 /** Runtime entities of construction kit enum 'System.Communication/CommunicationState' */
 export enum SystemCommunicationCommunicationStateDto {
   OfflineDto = 'OFFLINE',
@@ -14379,7 +14531,7 @@ export enum SystemCommunicationConfigurationStateDto {
   UnconfiguredDto = 'UNCONFIGURED'
 }
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataFlow-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataFlow-1' */
 export type SystemCommunicationDataFlowDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationDataFlow';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -14405,7 +14557,7 @@ export type SystemCommunicationDataFlowDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataFlow-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataFlow-1' */
 export type SystemCommunicationDataFlowAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14420,7 +14572,7 @@ export type SystemCommunicationDataFlowAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataFlow-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataFlow-1' */
 export type SystemCommunicationDataFlowChildrenArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14434,7 +14586,7 @@ export type SystemCommunicationDataFlowChildrenArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataFlow-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataFlow-1' */
 export type SystemCommunicationDataFlowConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14448,7 +14600,7 @@ export type SystemCommunicationDataFlowConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataFlow-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataFlow-1' */
 export type SystemCommunicationDataFlowMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14462,7 +14614,7 @@ export type SystemCommunicationDataFlowMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataFlow-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataFlow-1' */
 export type SystemCommunicationDataFlowMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14476,7 +14628,7 @@ export type SystemCommunicationDataFlowMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataFlow-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataFlow-1' */
 export type SystemCommunicationDataFlowRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14490,7 +14642,7 @@ export type SystemCommunicationDataFlowRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataFlow-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataFlow-1' */
 export type SystemCommunicationDataFlowRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14504,7 +14656,7 @@ export type SystemCommunicationDataFlowRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataFlow-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataFlow-1' */
 export type SystemCommunicationDataFlowTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14642,7 +14794,7 @@ export type SystemCommunicationDataPointInputDto = {
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationDataPointMapping';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -14672,7 +14824,7 @@ export type SystemCommunicationDataPointMappingDto = SystemEntityInterfaceDto & 
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14687,7 +14839,7 @@ export type SystemCommunicationDataPointMappingAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14701,7 +14853,7 @@ export type SystemCommunicationDataPointMappingConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingMappedAsSourceArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14715,7 +14867,7 @@ export type SystemCommunicationDataPointMappingMappedAsSourceArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingMappedAsTargetArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14729,7 +14881,7 @@ export type SystemCommunicationDataPointMappingMappedAsTargetArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14743,7 +14895,7 @@ export type SystemCommunicationDataPointMappingMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14757,7 +14909,7 @@ export type SystemCommunicationDataPointMappingMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14771,7 +14923,7 @@ export type SystemCommunicationDataPointMappingRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14785,7 +14937,7 @@ export type SystemCommunicationDataPointMappingRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DataPointMapping-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DataPointMapping-1' */
 export type SystemCommunicationDataPointMappingTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14939,7 +15091,7 @@ export type SystemCommunicationDataPointMapping_MapsToUnionEdgeDto = {
   node?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationDeployableEntity';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -14966,7 +15118,7 @@ export type SystemCommunicationDeployableEntityDto = SystemEntityInterfaceDto & 
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14981,7 +15133,7 @@ export type SystemCommunicationDeployableEntityAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -14995,7 +15147,7 @@ export type SystemCommunicationDeployableEntityConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15009,7 +15161,7 @@ export type SystemCommunicationDeployableEntityMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15023,7 +15175,7 @@ export type SystemCommunicationDeployableEntityMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15037,7 +15189,7 @@ export type SystemCommunicationDeployableEntityRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15051,7 +15203,7 @@ export type SystemCommunicationDeployableEntityRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15090,7 +15242,7 @@ export type SystemCommunicationDeployableEntityEdgeDto = {
   node?: Maybe<SystemCommunicationDeployableEntityDto>;
 };
 
-/** Interface for runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityInterfaceDto = {
   ckTypeId: Scalars['RtCkTypeId']['output'];
   configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
@@ -15114,7 +15266,7 @@ export type SystemCommunicationDeployableEntityInterfaceDto = {
 };
 
 
-/** Interface for runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityInterfaceConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15128,7 +15280,7 @@ export type SystemCommunicationDeployableEntityInterfaceConfiguredByArgsDto = {
 };
 
 
-/** Interface for runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityInterfaceMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15142,7 +15294,7 @@ export type SystemCommunicationDeployableEntityInterfaceMapsFromArgsDto = {
 };
 
 
-/** Interface for runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityInterfaceMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15156,7 +15308,7 @@ export type SystemCommunicationDeployableEntityInterfaceMapsToArgsDto = {
 };
 
 
-/** Interface for runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityInterfaceRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15170,7 +15322,7 @@ export type SystemCommunicationDeployableEntityInterfaceRelatesFromArgsDto = {
 };
 
 
-/** Interface for runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityInterfaceRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15184,7 +15336,7 @@ export type SystemCommunicationDeployableEntityInterfaceRelatesToArgsDto = {
 };
 
 
-/** Interface for runtime entities of construction kit type 'System.Communication-3.14.0/DeployableEntity-1' */
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableEntity-1' */
 export type SystemCommunicationDeployableEntityInterfaceTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15210,6 +15362,403 @@ export type SystemCommunicationDeployableEntityUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationDeployableEntityUpdateDto>>>;
 };
 
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadDto = SystemCommunicationDeployableEntityInterfaceDto & SystemEntityInterfaceDto & {
+  __typename?: 'SystemCommunicationDeployableWorkload';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  chartName?: Maybe<Scalars['String']['output']>;
+  chartVersion?: Maybe<Scalars['String']['output']>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  deploymentState: SystemCommunicationDeploymentStateDto;
+  description?: Maybe<Scalars['String']['output']>;
+  helmRepository?: Maybe<SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionConnectionDto>;
+  managedBy?: Maybe<SystemCommunicationPool_ManagedByUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name?: Maybe<Scalars['String']['output']>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  statusMessage?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  values?: Maybe<Array<SystemCommunicationValueOverrideDto>>;
+  valuesYaml?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadHelmRepositoryArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadManagedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemCommunicationDeployableWorkload`. */
+export type SystemCommunicationDeployableWorkloadConnectionDto = {
+  __typename?: 'SystemCommunicationDeployableWorkloadConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemCommunicationDeployableWorkloadEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemCommunicationDeployableWorkloadDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemCommunicationDeployableWorkload`. */
+export type SystemCommunicationDeployableWorkloadEdgeDto = {
+  __typename?: 'SystemCommunicationDeployableWorkloadEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemCommunicationDeployableWorkloadDto>;
+};
+
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadInterfaceDto = {
+  chartName?: Maybe<Scalars['String']['output']>;
+  chartVersion?: Maybe<Scalars['String']['output']>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  deploymentState: SystemCommunicationDeploymentStateDto;
+  description?: Maybe<Scalars['String']['output']>;
+  helmRepository?: Maybe<SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionConnectionDto>;
+  managedBy?: Maybe<SystemCommunicationPool_ManagedByUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name?: Maybe<Scalars['String']['output']>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  statusMessage?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  values?: Maybe<Array<SystemCommunicationValueOverrideDto>>;
+  valuesYaml?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadInterfaceConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadInterfaceHelmRepositoryArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadInterfaceManagedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadInterfaceMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadInterfaceMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadInterfaceRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadInterfaceRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Interface for runtime entities of construction kit type 'System.Communication-3.15.0/DeployableWorkload-1' */
+export type SystemCommunicationDeployableWorkloadInterfaceTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+export type SystemCommunicationDeployableWorkloadUpdateDto = {
+  __typename?: 'SystemCommunicationDeployableWorkloadUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemCommunicationDeployableWorkloadDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemCommunicationDeployableWorkloadUpdateMessageDto = {
+  __typename?: 'SystemCommunicationDeployableWorkloadUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemCommunicationDeployableWorkloadUpdateDto>>>;
+};
+
+/** Union of types derived from System.Communication/DeployableWorkload for HelmRepositoryUsedBy association */
+export type SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionDto = SystemCommunicationAdapterDto | SystemCommunicationApplicationDto;
+
+/** A connection to `SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnion`. */
+export type SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionConnectionDto = {
+  __typename?: 'SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnion`. */
+export type SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionEdgeDto = {
+  __typename?: 'SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionDto>;
+};
+
+/** Union of types derived from System.Communication/DeployableWorkload for Manages association */
+export type SystemCommunicationDeployableWorkload_ManagesUnionDto = SystemCommunicationAdapterDto | SystemCommunicationApplicationDto;
+
+/** A connection to `SystemCommunicationDeployableWorkload_ManagesUnion`. */
+export type SystemCommunicationDeployableWorkload_ManagesUnionConnectionDto = {
+  __typename?: 'SystemCommunicationDeployableWorkload_ManagesUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemCommunicationDeployableWorkload_ManagesUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemCommunicationDeployableWorkload_ManagesUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemCommunicationDeployableWorkload_ManagesUnion`. */
+export type SystemCommunicationDeployableWorkload_ManagesUnionEdgeDto = {
+  __typename?: 'SystemCommunicationDeployableWorkload_ManagesUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemCommunicationDeployableWorkload_ManagesUnionDto>;
+};
+
 /** Runtime entities of construction kit enum 'System.Communication/DeploymentState' */
 export enum SystemCommunicationDeploymentStateDto {
   DeployedDto = 'DEPLOYED',
@@ -15218,7 +15767,7 @@ export enum SystemCommunicationDeploymentStateDto {
   UndeployedDto = 'UNDEPLOYED'
 }
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DiscordConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationDiscordConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -15244,7 +15793,7 @@ export type SystemCommunicationDiscordConfigurationDto = SystemConfigurationInte
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DiscordConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15259,7 +15808,7 @@ export type SystemCommunicationDiscordConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DiscordConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15273,7 +15822,7 @@ export type SystemCommunicationDiscordConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DiscordConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15287,7 +15836,7 @@ export type SystemCommunicationDiscordConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DiscordConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15301,7 +15850,7 @@ export type SystemCommunicationDiscordConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DiscordConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15315,7 +15864,7 @@ export type SystemCommunicationDiscordConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DiscordConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15329,7 +15878,7 @@ export type SystemCommunicationDiscordConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DiscordConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15343,7 +15892,7 @@ export type SystemCommunicationDiscordConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/DiscordConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15435,7 +15984,7 @@ export type SystemCommunicationDiscordConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationDiscordConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailReceiverConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailReceiverConfiguration-1' */
 export type SystemCommunicationEMailReceiverConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationEMailReceiverConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -15465,7 +16014,7 @@ export type SystemCommunicationEMailReceiverConfigurationDto = SystemConfigurati
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailReceiverConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailReceiverConfiguration-1' */
 export type SystemCommunicationEMailReceiverConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15480,7 +16029,7 @@ export type SystemCommunicationEMailReceiverConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailReceiverConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailReceiverConfiguration-1' */
 export type SystemCommunicationEMailReceiverConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15494,7 +16043,7 @@ export type SystemCommunicationEMailReceiverConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailReceiverConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailReceiverConfiguration-1' */
 export type SystemCommunicationEMailReceiverConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15508,7 +16057,7 @@ export type SystemCommunicationEMailReceiverConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailReceiverConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailReceiverConfiguration-1' */
 export type SystemCommunicationEMailReceiverConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15522,7 +16071,7 @@ export type SystemCommunicationEMailReceiverConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailReceiverConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailReceiverConfiguration-1' */
 export type SystemCommunicationEMailReceiverConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15536,7 +16085,7 @@ export type SystemCommunicationEMailReceiverConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailReceiverConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailReceiverConfiguration-1' */
 export type SystemCommunicationEMailReceiverConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15550,7 +16099,7 @@ export type SystemCommunicationEMailReceiverConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailReceiverConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailReceiverConfiguration-1' */
 export type SystemCommunicationEMailReceiverConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15564,7 +16113,7 @@ export type SystemCommunicationEMailReceiverConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailReceiverConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailReceiverConfiguration-1' */
 export type SystemCommunicationEMailReceiverConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15660,7 +16209,7 @@ export type SystemCommunicationEMailReceiverConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationEMailReceiverConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailSenderConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailSenderConfiguration-1' */
 export type SystemCommunicationEMailSenderConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationEMailSenderConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -15690,7 +16239,7 @@ export type SystemCommunicationEMailSenderConfigurationDto = SystemConfiguration
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailSenderConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailSenderConfiguration-1' */
 export type SystemCommunicationEMailSenderConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15705,7 +16254,7 @@ export type SystemCommunicationEMailSenderConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailSenderConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailSenderConfiguration-1' */
 export type SystemCommunicationEMailSenderConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15719,7 +16268,7 @@ export type SystemCommunicationEMailSenderConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailSenderConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailSenderConfiguration-1' */
 export type SystemCommunicationEMailSenderConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15733,7 +16282,7 @@ export type SystemCommunicationEMailSenderConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailSenderConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailSenderConfiguration-1' */
 export type SystemCommunicationEMailSenderConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15747,7 +16296,7 @@ export type SystemCommunicationEMailSenderConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailSenderConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailSenderConfiguration-1' */
 export type SystemCommunicationEMailSenderConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15761,7 +16310,7 @@ export type SystemCommunicationEMailSenderConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailSenderConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailSenderConfiguration-1' */
 export type SystemCommunicationEMailSenderConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15775,7 +16324,7 @@ export type SystemCommunicationEMailSenderConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailSenderConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailSenderConfiguration-1' */
 export type SystemCommunicationEMailSenderConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15789,7 +16338,7 @@ export type SystemCommunicationEMailSenderConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EMailSenderConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EMailSenderConfiguration-1' */
 export type SystemCommunicationEMailSenderConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15885,7 +16434,7 @@ export type SystemCommunicationEMailSenderConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationEMailSenderConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EdaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EdaConfiguration-1' */
 export type SystemCommunicationEdaConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationEdaConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -15910,7 +16459,7 @@ export type SystemCommunicationEdaConfigurationDto = SystemConfigurationInterfac
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EdaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EdaConfiguration-1' */
 export type SystemCommunicationEdaConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15925,7 +16474,7 @@ export type SystemCommunicationEdaConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EdaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EdaConfiguration-1' */
 export type SystemCommunicationEdaConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15939,7 +16488,7 @@ export type SystemCommunicationEdaConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EdaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EdaConfiguration-1' */
 export type SystemCommunicationEdaConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15953,7 +16502,7 @@ export type SystemCommunicationEdaConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EdaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EdaConfiguration-1' */
 export type SystemCommunicationEdaConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15967,7 +16516,7 @@ export type SystemCommunicationEdaConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EdaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EdaConfiguration-1' */
 export type SystemCommunicationEdaConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15981,7 +16530,7 @@ export type SystemCommunicationEdaConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EdaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EdaConfiguration-1' */
 export type SystemCommunicationEdaConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -15995,7 +16544,7 @@ export type SystemCommunicationEdaConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EdaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EdaConfiguration-1' */
 export type SystemCommunicationEdaConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16009,7 +16558,7 @@ export type SystemCommunicationEdaConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EdaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EdaConfiguration-1' */
 export type SystemCommunicationEdaConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16100,7 +16649,7 @@ export type SystemCommunicationEdaConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationEdaConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EnergyCommunityConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EnergyCommunityConfiguration-1' */
 export type SystemCommunicationEnergyCommunityConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationEnergyCommunityConfiguration';
   appHeading?: Maybe<Scalars['String']['output']>;
@@ -16144,7 +16693,7 @@ export type SystemCommunicationEnergyCommunityConfigurationDto = SystemConfigura
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EnergyCommunityConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EnergyCommunityConfiguration-1' */
 export type SystemCommunicationEnergyCommunityConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16159,7 +16708,7 @@ export type SystemCommunicationEnergyCommunityConfigurationAssociationsArgsDto =
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EnergyCommunityConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EnergyCommunityConfiguration-1' */
 export type SystemCommunicationEnergyCommunityConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16173,7 +16722,7 @@ export type SystemCommunicationEnergyCommunityConfigurationConfiguredByArgsDto =
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EnergyCommunityConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EnergyCommunityConfiguration-1' */
 export type SystemCommunicationEnergyCommunityConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16187,7 +16736,7 @@ export type SystemCommunicationEnergyCommunityConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EnergyCommunityConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EnergyCommunityConfiguration-1' */
 export type SystemCommunicationEnergyCommunityConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16201,7 +16750,7 @@ export type SystemCommunicationEnergyCommunityConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EnergyCommunityConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EnergyCommunityConfiguration-1' */
 export type SystemCommunicationEnergyCommunityConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16215,7 +16764,7 @@ export type SystemCommunicationEnergyCommunityConfigurationRelatesFromArgsDto = 
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EnergyCommunityConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EnergyCommunityConfiguration-1' */
 export type SystemCommunicationEnergyCommunityConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16229,7 +16778,7 @@ export type SystemCommunicationEnergyCommunityConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EnergyCommunityConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EnergyCommunityConfiguration-1' */
 export type SystemCommunicationEnergyCommunityConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16243,7 +16792,7 @@ export type SystemCommunicationEnergyCommunityConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/EnergyCommunityConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/EnergyCommunityConfiguration-1' */
 export type SystemCommunicationEnergyCommunityConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16359,7 +16908,7 @@ export enum SystemCommunicationEnvironmentDto {
   EdgeDto = 'EDGE'
 }
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/FinApiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/FinApiConfiguration-1' */
 export type SystemCommunicationFinApiConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationFinApiConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -16389,7 +16938,7 @@ export type SystemCommunicationFinApiConfigurationDto = SystemConfigurationInter
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/FinApiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/FinApiConfiguration-1' */
 export type SystemCommunicationFinApiConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16404,7 +16953,7 @@ export type SystemCommunicationFinApiConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/FinApiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/FinApiConfiguration-1' */
 export type SystemCommunicationFinApiConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16418,7 +16967,7 @@ export type SystemCommunicationFinApiConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/FinApiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/FinApiConfiguration-1' */
 export type SystemCommunicationFinApiConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16432,7 +16981,7 @@ export type SystemCommunicationFinApiConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/FinApiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/FinApiConfiguration-1' */
 export type SystemCommunicationFinApiConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16446,7 +16995,7 @@ export type SystemCommunicationFinApiConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/FinApiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/FinApiConfiguration-1' */
 export type SystemCommunicationFinApiConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16460,7 +17009,7 @@ export type SystemCommunicationFinApiConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/FinApiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/FinApiConfiguration-1' */
 export type SystemCommunicationFinApiConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16474,7 +17023,7 @@ export type SystemCommunicationFinApiConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/FinApiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/FinApiConfiguration-1' */
 export type SystemCommunicationFinApiConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16488,7 +17037,7 @@ export type SystemCommunicationFinApiConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/FinApiConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/FinApiConfiguration-1' */
 export type SystemCommunicationFinApiConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16584,7 +17133,7 @@ export type SystemCommunicationFinApiConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationFinApiConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/GrafanaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationGrafanaConfiguration';
   adminPassword: Scalars['String']['output'];
@@ -16614,7 +17163,7 @@ export type SystemCommunicationGrafanaConfigurationDto = SystemConfigurationInte
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/GrafanaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16629,7 +17178,7 @@ export type SystemCommunicationGrafanaConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/GrafanaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16643,7 +17192,7 @@ export type SystemCommunicationGrafanaConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/GrafanaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16657,7 +17206,7 @@ export type SystemCommunicationGrafanaConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/GrafanaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16671,7 +17220,7 @@ export type SystemCommunicationGrafanaConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/GrafanaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16685,7 +17234,7 @@ export type SystemCommunicationGrafanaConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/GrafanaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16699,7 +17248,7 @@ export type SystemCommunicationGrafanaConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/GrafanaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16713,7 +17262,7 @@ export type SystemCommunicationGrafanaConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/GrafanaConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16809,7 +17358,279 @@ export type SystemCommunicationGrafanaConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationGrafanaConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/LoxoneConfiguration-1' */
+/** Runtime entities of construction kit enum 'System.Communication/HelmChannel' */
+export enum SystemCommunicationHelmChannelDto {
+  DevDto = 'DEV',
+  ReleaseDto = 'RELEASE'
+}
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
+  __typename?: 'SystemCommunicationHelmRepositoryConfiguration';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  channel: SystemCommunicationHelmChannelDto;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  helmRepositoryUsedBy?: Maybe<SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  password?: Maybe<Scalars['String']['output']>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  repositoryUrl: Scalars['String']['output'];
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  usedBy?: Maybe<SystemCommunicationPipeline_UsedByUnionConnectionDto>;
+  username?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationHelmRepositoryUsedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/HelmRepositoryConfiguration-1' */
+export type SystemCommunicationHelmRepositoryConfigurationUsedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemCommunicationHelmRepositoryConfiguration`. */
+export type SystemCommunicationHelmRepositoryConfigurationConnectionDto = {
+  __typename?: 'SystemCommunicationHelmRepositoryConfigurationConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemCommunicationHelmRepositoryConfigurationEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemCommunicationHelmRepositoryConfigurationDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemCommunicationHelmRepositoryConfiguration`. */
+export type SystemCommunicationHelmRepositoryConfigurationEdgeDto = {
+  __typename?: 'SystemCommunicationHelmRepositoryConfigurationEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemCommunicationHelmRepositoryConfigurationDto>;
+};
+
+export type SystemCommunicationHelmRepositoryConfigurationInputDto = {
+  channel?: InputMaybe<SystemCommunicationHelmChannelDto>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  helmRepositoryUsedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  password?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  repositoryUrl?: InputMaybe<Scalars['String']['input']>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  usedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  username?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SystemCommunicationHelmRepositoryConfigurationInputUpdateDto = {
+  /** Item to update */
+  item: SystemCommunicationHelmRepositoryConfigurationInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemCommunicationHelmRepositoryConfigurationMutationsDto = {
+  __typename?: 'SystemCommunicationHelmRepositoryConfigurationMutations';
+  /** Creates new entities of type 'SystemCommunicationHelmRepositoryConfiguration'. */
+  create?: Maybe<Array<Maybe<SystemCommunicationHelmRepositoryConfigurationDto>>>;
+  /** Updates existing entity of type 'SystemCommunicationHelmRepositoryConfiguration'. */
+  update?: Maybe<Array<Maybe<SystemCommunicationHelmRepositoryConfigurationDto>>>;
+};
+
+
+export type SystemCommunicationHelmRepositoryConfigurationMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemCommunicationHelmRepositoryConfigurationInputDto>>;
+};
+
+
+export type SystemCommunicationHelmRepositoryConfigurationMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemCommunicationHelmRepositoryConfigurationInputUpdateDto>>;
+};
+
+export type SystemCommunicationHelmRepositoryConfigurationUpdateDto = {
+  __typename?: 'SystemCommunicationHelmRepositoryConfigurationUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemCommunicationHelmRepositoryConfigurationDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemCommunicationHelmRepositoryConfigurationUpdateMessageDto = {
+  __typename?: 'SystemCommunicationHelmRepositoryConfigurationUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemCommunicationHelmRepositoryConfigurationUpdateDto>>>;
+};
+
+/** Union of types derived from System.Communication/HelmRepositoryConfiguration for HelmRepository association */
+export type SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionDto = SystemCommunicationHelmRepositoryConfigurationDto;
+
+/** A connection to `SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnion`. */
+export type SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionConnectionDto = {
+  __typename?: 'SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnion`. */
+export type SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionEdgeDto = {
+  __typename?: 'SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionDto>;
+};
+
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/LoxoneConfiguration-1' */
 export type SystemCommunicationLoxoneConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationLoxoneConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -16840,7 +17661,7 @@ export type SystemCommunicationLoxoneConfigurationDto = SystemConfigurationInter
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/LoxoneConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/LoxoneConfiguration-1' */
 export type SystemCommunicationLoxoneConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16855,7 +17676,7 @@ export type SystemCommunicationLoxoneConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/LoxoneConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/LoxoneConfiguration-1' */
 export type SystemCommunicationLoxoneConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16869,7 +17690,7 @@ export type SystemCommunicationLoxoneConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/LoxoneConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/LoxoneConfiguration-1' */
 export type SystemCommunicationLoxoneConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16883,7 +17704,7 @@ export type SystemCommunicationLoxoneConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/LoxoneConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/LoxoneConfiguration-1' */
 export type SystemCommunicationLoxoneConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16897,7 +17718,7 @@ export type SystemCommunicationLoxoneConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/LoxoneConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/LoxoneConfiguration-1' */
 export type SystemCommunicationLoxoneConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16911,7 +17732,7 @@ export type SystemCommunicationLoxoneConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/LoxoneConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/LoxoneConfiguration-1' */
 export type SystemCommunicationLoxoneConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16925,7 +17746,7 @@ export type SystemCommunicationLoxoneConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/LoxoneConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/LoxoneConfiguration-1' */
 export type SystemCommunicationLoxoneConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -16939,7 +17760,7 @@ export type SystemCommunicationLoxoneConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/LoxoneConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/LoxoneConfiguration-1' */
 export type SystemCommunicationLoxoneConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17051,7 +17872,7 @@ export type SystemCommunicationMappingTargetInputDto = {
   sourceIdentifier?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/MicrosoftGraphConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/MicrosoftGraphConfiguration-1' */
 export type SystemCommunicationMicrosoftGraphConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationMicrosoftGraphConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -17078,7 +17899,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationDto = SystemConfigurat
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/MicrosoftGraphConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/MicrosoftGraphConfiguration-1' */
 export type SystemCommunicationMicrosoftGraphConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17093,7 +17914,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationAssociationsArgsDto = 
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/MicrosoftGraphConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/MicrosoftGraphConfiguration-1' */
 export type SystemCommunicationMicrosoftGraphConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17107,7 +17928,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationConfiguredByArgsDto = 
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/MicrosoftGraphConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/MicrosoftGraphConfiguration-1' */
 export type SystemCommunicationMicrosoftGraphConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17121,7 +17942,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/MicrosoftGraphConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/MicrosoftGraphConfiguration-1' */
 export type SystemCommunicationMicrosoftGraphConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17135,7 +17956,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/MicrosoftGraphConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/MicrosoftGraphConfiguration-1' */
 export type SystemCommunicationMicrosoftGraphConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17149,7 +17970,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/MicrosoftGraphConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/MicrosoftGraphConfiguration-1' */
 export type SystemCommunicationMicrosoftGraphConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17163,7 +17984,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/MicrosoftGraphConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/MicrosoftGraphConfiguration-1' */
 export type SystemCommunicationMicrosoftGraphConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17177,7 +17998,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/MicrosoftGraphConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/MicrosoftGraphConfiguration-1' */
 export type SystemCommunicationMicrosoftGraphConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17270,7 +18091,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationMicrosoftGraphConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineDto = SystemCommunicationDeployableEntityInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationPipeline';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -17308,7 +18129,7 @@ export type SystemCommunicationPipelineDto = SystemCommunicationDeployableEntity
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17323,7 +18144,7 @@ export type SystemCommunicationPipelineAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17337,7 +18158,7 @@ export type SystemCommunicationPipelineConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineExecutedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17351,7 +18172,7 @@ export type SystemCommunicationPipelineExecutedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineExecutedPipelineArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17365,7 +18186,7 @@ export type SystemCommunicationPipelineExecutedPipelineArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineIsUsingArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17379,7 +18200,7 @@ export type SystemCommunicationPipelineIsUsingArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17393,7 +18214,7 @@ export type SystemCommunicationPipelineMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17407,7 +18228,7 @@ export type SystemCommunicationPipelineMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineParentArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17421,7 +18242,7 @@ export type SystemCommunicationPipelineParentArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineReceivesDataFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17435,7 +18256,7 @@ export type SystemCommunicationPipelineReceivesDataFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17449,7 +18270,7 @@ export type SystemCommunicationPipelineRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17463,7 +18284,7 @@ export type SystemCommunicationPipelineRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineSendsDataToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17477,7 +18298,7 @@ export type SystemCommunicationPipelineSendsDataToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineStatisticsForPipelineArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17491,7 +18312,7 @@ export type SystemCommunicationPipelineStatisticsForPipelineArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17505,7 +18326,7 @@ export type SystemCommunicationPipelineTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pipeline-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pipeline-1' */
 export type SystemCommunicationPipelineTriggersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17544,7 +18365,7 @@ export type SystemCommunicationPipelineEdgeDto = {
   node?: Maybe<SystemCommunicationPipelineDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationPipelineExecution';
   adapterExecutions?: Maybe<SystemCommunicationAdapter_AdapterExecutionsUnionConnectionDto>;
@@ -17578,7 +18399,7 @@ export type SystemCommunicationPipelineExecutionDto = SystemEntityInterfaceDto &
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionAdapterExecutionsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17592,7 +18413,7 @@ export type SystemCommunicationPipelineExecutionAdapterExecutionsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17607,7 +18428,7 @@ export type SystemCommunicationPipelineExecutionAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17621,7 +18442,7 @@ export type SystemCommunicationPipelineExecutionConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17635,7 +18456,7 @@ export type SystemCommunicationPipelineExecutionMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17649,7 +18470,7 @@ export type SystemCommunicationPipelineExecutionMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionPipelineExecutionsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17663,7 +18484,7 @@ export type SystemCommunicationPipelineExecutionPipelineExecutionsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17677,7 +18498,7 @@ export type SystemCommunicationPipelineExecutionRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17691,7 +18512,7 @@ export type SystemCommunicationPipelineExecutionRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineExecution-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineExecution-1' */
 export type SystemCommunicationPipelineExecutionTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17910,7 +18731,7 @@ export type SystemCommunicationPipelineMutationsUpdateArgsDto = {
   entities: Array<InputMaybe<SystemCommunicationPipelineInputUpdateDto>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineStatistics-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineStatistics-1' */
 export type SystemCommunicationPipelineStatisticsDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationPipelineStatistics';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -17948,7 +18769,7 @@ export type SystemCommunicationPipelineStatisticsDto = SystemEntityInterfaceDto 
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineStatistics-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineStatistics-1' */
 export type SystemCommunicationPipelineStatisticsAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17963,7 +18784,7 @@ export type SystemCommunicationPipelineStatisticsAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineStatistics-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineStatistics-1' */
 export type SystemCommunicationPipelineStatisticsConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17977,7 +18798,7 @@ export type SystemCommunicationPipelineStatisticsConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineStatistics-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineStatistics-1' */
 export type SystemCommunicationPipelineStatisticsMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -17991,7 +18812,7 @@ export type SystemCommunicationPipelineStatisticsMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineStatistics-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineStatistics-1' */
 export type SystemCommunicationPipelineStatisticsMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18005,7 +18826,7 @@ export type SystemCommunicationPipelineStatisticsMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineStatistics-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineStatistics-1' */
 export type SystemCommunicationPipelineStatisticsPipelineStatisticsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18019,7 +18840,7 @@ export type SystemCommunicationPipelineStatisticsPipelineStatisticsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineStatistics-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineStatistics-1' */
 export type SystemCommunicationPipelineStatisticsRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18033,7 +18854,7 @@ export type SystemCommunicationPipelineStatisticsRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineStatistics-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineStatistics-1' */
 export type SystemCommunicationPipelineStatisticsRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18047,7 +18868,7 @@ export type SystemCommunicationPipelineStatisticsRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineStatistics-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineStatistics-1' */
 export type SystemCommunicationPipelineStatisticsTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18180,7 +19001,7 @@ export type SystemCommunicationPipelineStatistics_StatisticsForPipelineUnionEdge
   node?: Maybe<SystemCommunicationPipelineStatistics_StatisticsForPipelineUnionDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerDto = SystemCommunicationDeployableEntityInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationPipelineTrigger';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -18211,7 +19032,7 @@ export type SystemCommunicationPipelineTriggerDto = SystemCommunicationDeployabl
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18226,7 +19047,7 @@ export type SystemCommunicationPipelineTriggerAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18240,7 +19061,7 @@ export type SystemCommunicationPipelineTriggerConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18254,7 +19075,7 @@ export type SystemCommunicationPipelineTriggerMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18268,7 +19089,7 @@ export type SystemCommunicationPipelineTriggerMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerParentArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18282,7 +19103,7 @@ export type SystemCommunicationPipelineTriggerParentArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18296,7 +19117,7 @@ export type SystemCommunicationPipelineTriggerRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18310,7 +19131,7 @@ export type SystemCommunicationPipelineTriggerRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18324,7 +19145,7 @@ export type SystemCommunicationPipelineTriggerTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/PipelineTrigger-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/PipelineTrigger-1' */
 export type SystemCommunicationPipelineTriggerTriggeredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18703,7 +19524,7 @@ export type SystemCommunicationPipeline_UsedByUnionEdgeDto = {
   node?: Maybe<SystemCommunicationPipeline_UsedByUnionDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pool-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pool-1' */
 export type SystemCommunicationPoolDto = SystemCommunicationDeployableEntityInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationPool';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -18716,7 +19537,7 @@ export type SystemCommunicationPoolDto = SystemCommunicationDeployableEntityInte
   deploymentState: SystemCommunicationDeploymentStateDto;
   description?: Maybe<Scalars['String']['output']>;
   environment: SystemCommunicationEnvironmentDto;
-  manages?: Maybe<SystemCommunicationAdapter_ManagesUnionConnectionDto>;
+  manages?: Maybe<SystemCommunicationDeployableWorkload_ManagesUnionConnectionDto>;
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name?: Maybe<Scalars['String']['output']>;
@@ -18735,7 +19556,7 @@ export type SystemCommunicationPoolDto = SystemCommunicationDeployableEntityInte
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pool-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pool-1' */
 export type SystemCommunicationPoolAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18750,7 +19571,7 @@ export type SystemCommunicationPoolAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pool-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pool-1' */
 export type SystemCommunicationPoolConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18764,7 +19585,7 @@ export type SystemCommunicationPoolConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pool-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pool-1' */
 export type SystemCommunicationPoolManagesArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18778,7 +19599,7 @@ export type SystemCommunicationPoolManagesArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pool-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pool-1' */
 export type SystemCommunicationPoolMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18792,7 +19613,7 @@ export type SystemCommunicationPoolMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pool-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pool-1' */
 export type SystemCommunicationPoolMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18806,7 +19627,7 @@ export type SystemCommunicationPoolMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pool-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pool-1' */
 export type SystemCommunicationPoolRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18820,7 +19641,7 @@ export type SystemCommunicationPoolRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pool-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pool-1' */
 export type SystemCommunicationPoolRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18834,7 +19655,7 @@ export type SystemCommunicationPoolRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Pool-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Pool-1' */
 export type SystemCommunicationPoolTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18961,7 +19782,7 @@ export type SystemCommunicationPool_ManagedByUnionEdgeDto = {
   node?: Maybe<SystemCommunicationPool_ManagedByUnionDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SapConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SapConfiguration-1' */
 export type SystemCommunicationSapConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationSapConfiguration';
   appServerHost: Scalars['String']['output'];
@@ -18997,7 +19818,7 @@ export type SystemCommunicationSapConfigurationDto = SystemConfigurationInterfac
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SapConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SapConfiguration-1' */
 export type SystemCommunicationSapConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19012,7 +19833,7 @@ export type SystemCommunicationSapConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SapConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SapConfiguration-1' */
 export type SystemCommunicationSapConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19026,7 +19847,7 @@ export type SystemCommunicationSapConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SapConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SapConfiguration-1' */
 export type SystemCommunicationSapConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19040,7 +19861,7 @@ export type SystemCommunicationSapConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SapConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SapConfiguration-1' */
 export type SystemCommunicationSapConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19054,7 +19875,7 @@ export type SystemCommunicationSapConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SapConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SapConfiguration-1' */
 export type SystemCommunicationSapConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19068,7 +19889,7 @@ export type SystemCommunicationSapConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SapConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SapConfiguration-1' */
 export type SystemCommunicationSapConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19082,7 +19903,7 @@ export type SystemCommunicationSapConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SapConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SapConfiguration-1' */
 export type SystemCommunicationSapConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19096,7 +19917,7 @@ export type SystemCommunicationSapConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SapConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SapConfiguration-1' */
 export type SystemCommunicationSapConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19198,7 +20019,7 @@ export type SystemCommunicationSapConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationSapConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/ServiceAccountConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/ServiceAccountConfiguration-1' */
 export type SystemCommunicationServiceAccountConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationServiceAccountConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -19226,7 +20047,7 @@ export type SystemCommunicationServiceAccountConfigurationDto = SystemConfigurat
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/ServiceAccountConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/ServiceAccountConfiguration-1' */
 export type SystemCommunicationServiceAccountConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19241,7 +20062,7 @@ export type SystemCommunicationServiceAccountConfigurationAssociationsArgsDto = 
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/ServiceAccountConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/ServiceAccountConfiguration-1' */
 export type SystemCommunicationServiceAccountConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19255,7 +20076,7 @@ export type SystemCommunicationServiceAccountConfigurationConfiguredByArgsDto = 
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/ServiceAccountConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/ServiceAccountConfiguration-1' */
 export type SystemCommunicationServiceAccountConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19269,7 +20090,7 @@ export type SystemCommunicationServiceAccountConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/ServiceAccountConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/ServiceAccountConfiguration-1' */
 export type SystemCommunicationServiceAccountConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19283,7 +20104,7 @@ export type SystemCommunicationServiceAccountConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/ServiceAccountConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/ServiceAccountConfiguration-1' */
 export type SystemCommunicationServiceAccountConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19297,7 +20118,7 @@ export type SystemCommunicationServiceAccountConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/ServiceAccountConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/ServiceAccountConfiguration-1' */
 export type SystemCommunicationServiceAccountConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19311,7 +20132,7 @@ export type SystemCommunicationServiceAccountConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/ServiceAccountConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/ServiceAccountConfiguration-1' */
 export type SystemCommunicationServiceAccountConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19325,7 +20146,7 @@ export type SystemCommunicationServiceAccountConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/ServiceAccountConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/ServiceAccountConfiguration-1' */
 export type SystemCommunicationServiceAccountConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19419,7 +20240,7 @@ export type SystemCommunicationServiceAccountConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationServiceAccountConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SftpConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SftpConfiguration-1' */
 export type SystemCommunicationSftpConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationSftpConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -19450,7 +20271,7 @@ export type SystemCommunicationSftpConfigurationDto = SystemConfigurationInterfa
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SftpConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SftpConfiguration-1' */
 export type SystemCommunicationSftpConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19465,7 +20286,7 @@ export type SystemCommunicationSftpConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SftpConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SftpConfiguration-1' */
 export type SystemCommunicationSftpConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19479,7 +20300,7 @@ export type SystemCommunicationSftpConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SftpConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SftpConfiguration-1' */
 export type SystemCommunicationSftpConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19493,7 +20314,7 @@ export type SystemCommunicationSftpConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SftpConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SftpConfiguration-1' */
 export type SystemCommunicationSftpConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19507,7 +20328,7 @@ export type SystemCommunicationSftpConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SftpConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SftpConfiguration-1' */
 export type SystemCommunicationSftpConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19521,7 +20342,7 @@ export type SystemCommunicationSftpConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SftpConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SftpConfiguration-1' */
 export type SystemCommunicationSftpConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19535,7 +20356,7 @@ export type SystemCommunicationSftpConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SftpConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SftpConfiguration-1' */
 export type SystemCommunicationSftpConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19549,7 +20370,7 @@ export type SystemCommunicationSftpConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/SftpConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/SftpConfiguration-1' */
 export type SystemCommunicationSftpConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19646,7 +20467,7 @@ export type SystemCommunicationSftpConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemCommunicationSftpConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Tag-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Tag-1' */
 export type SystemCommunicationTagDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationTag';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -19672,7 +20493,7 @@ export type SystemCommunicationTagDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Tag-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Tag-1' */
 export type SystemCommunicationTagAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19687,7 +20508,7 @@ export type SystemCommunicationTagAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Tag-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Tag-1' */
 export type SystemCommunicationTagConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19701,7 +20522,7 @@ export type SystemCommunicationTagConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Tag-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Tag-1' */
 export type SystemCommunicationTagIsTaggingArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19715,7 +20536,7 @@ export type SystemCommunicationTagIsTaggingArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Tag-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Tag-1' */
 export type SystemCommunicationTagMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19729,7 +20550,7 @@ export type SystemCommunicationTagMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Tag-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Tag-1' */
 export type SystemCommunicationTagMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19743,7 +20564,7 @@ export type SystemCommunicationTagMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Tag-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Tag-1' */
 export type SystemCommunicationTagRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19757,7 +20578,7 @@ export type SystemCommunicationTagRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Tag-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Tag-1' */
 export type SystemCommunicationTagRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19771,7 +20592,7 @@ export type SystemCommunicationTagRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Communication-3.14.0/Tag-1' */
+/** Runtime entities of construction kit type 'System.Communication-3.15.0/Tag-1' */
 export type SystemCommunicationTagTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -19907,6 +20728,21 @@ export type SystemCommunicationUiThemeColorsInputDto = {
   primaryColor?: InputMaybe<Scalars['String']['input']>;
   secondaryColor?: InputMaybe<Scalars['String']['input']>;
   tertiaryColor?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Runtime entities of construction kit record 'System.Communication/ValueOverride' */
+export type SystemCommunicationValueOverrideDto = {
+  __typename?: 'SystemCommunicationValueOverride';
+  constructionKitType?: Maybe<CkTypeDto>;
+  isSecret: Scalars['Boolean']['output'];
+  path: Scalars['String']['output'];
+  value: Scalars['String']['output'];
+};
+
+export type SystemCommunicationValueOverrideInputDto = {
+  isSecret?: InputMaybe<Scalars['Boolean']['input']>;
+  path?: InputMaybe<Scalars['String']['input']>;
+  value?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Runtime entities of construction kit type 'System-2.0.10/Configuration-1' */
@@ -20203,7 +21039,7 @@ export type SystemConfigurationUpdateMessageDto = {
 };
 
 /** Union of types derived from System/Configuration for IsUsing association */
-export type SystemConfiguration_IsUsingUnionDto = SystemCommunicationAiConfigurationDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemIdentityMailNotificationConfigurationDto | SystemNotificationCssTemplateConfigurationDto | SystemReportingConnectionInfoDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto;
+export type SystemConfiguration_IsUsingUnionDto = SystemCommunicationAiConfigurationDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemIdentityMailNotificationConfigurationDto | SystemNotificationCssTemplateConfigurationDto | SystemReportingConnectionInfoDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto;
 
 /** A connection to `SystemConfiguration_IsUsingUnion`. */
 export type SystemConfiguration_IsUsingUnionConnectionDto = {
@@ -20714,7 +21550,7 @@ export type SystemEntityUpdateMessageDto = {
 };
 
 /** Union of types derived from System/Entity for Configures association */
-export type SystemEntity_ConfiguresUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataCkArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_ConfiguresUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_ConfiguresUnion`. */
 export type SystemEntity_ConfiguresUnionConnectionDto = {
@@ -20743,7 +21579,7 @@ export type SystemEntity_ConfiguresUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for IsTagging association */
-export type SystemEntity_IsTaggingUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataCkArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_IsTaggingUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_IsTaggingUnion`. */
 export type SystemEntity_IsTaggingUnionConnectionDto = {
@@ -20772,7 +21608,7 @@ export type SystemEntity_IsTaggingUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for MappedAsSource association */
-export type SystemEntity_MappedAsSourceUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataCkArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_MappedAsSourceUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_MappedAsSourceUnion`. */
 export type SystemEntity_MappedAsSourceUnionConnectionDto = {
@@ -20801,7 +21637,7 @@ export type SystemEntity_MappedAsSourceUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for MappedAsTarget association */
-export type SystemEntity_MappedAsTargetUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataCkArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_MappedAsTargetUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_MappedAsTargetUnion`. */
 export type SystemEntity_MappedAsTargetUnionConnectionDto = {
@@ -20830,7 +21666,7 @@ export type SystemEntity_MappedAsTargetUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for RelatesFrom association */
-export type SystemEntity_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataCkArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_RelatesFromUnion`. */
 export type SystemEntity_RelatesFromUnionConnectionDto = {
@@ -20859,7 +21695,7 @@ export type SystemEntity_RelatesFromUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for RelatesTo association */
-export type SystemEntity_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataCkArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_RelatesToUnion`. */
 export type SystemEntity_RelatesToUnionConnectionDto = {
@@ -30048,8 +30884,8 @@ export enum SystemSortOrdersDto {
 }
 
 /** Runtime entities of construction kit type 'System.StreamData-1.0.0/CkArchive-1' */
-export type SystemStreamDataCkArchiveDto = SystemEntityInterfaceDto & {
-  __typename?: 'SystemStreamDataCkArchive';
+export type SystemStreamDataRawArchiveDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemStreamDataRawArchive';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
   ckTypeId: Scalars['RtCkTypeId']['output'];
   columns: Array<SystemStreamDataCkArchiveColumnDto>;
@@ -30074,7 +30910,7 @@ export type SystemStreamDataCkArchiveDto = SystemEntityInterfaceDto & {
 
 
 /** Runtime entities of construction kit type 'System.StreamData-1.0.0/CkArchive-1' */
-export type SystemStreamDataCkArchiveAssociationsArgsDto = {
+export type SystemStreamDataRawArchiveAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckId: Scalars['String']['input'];
@@ -30089,7 +30925,7 @@ export type SystemStreamDataCkArchiveAssociationsArgsDto = {
 
 
 /** Runtime entities of construction kit type 'System.StreamData-1.0.0/CkArchive-1' */
-export type SystemStreamDataCkArchiveConfiguredByArgsDto = {
+export type SystemStreamDataRawArchiveConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -30103,7 +30939,7 @@ export type SystemStreamDataCkArchiveConfiguredByArgsDto = {
 
 
 /** Runtime entities of construction kit type 'System.StreamData-1.0.0/CkArchive-1' */
-export type SystemStreamDataCkArchiveMapsFromArgsDto = {
+export type SystemStreamDataRawArchiveMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -30117,7 +30953,7 @@ export type SystemStreamDataCkArchiveMapsFromArgsDto = {
 
 
 /** Runtime entities of construction kit type 'System.StreamData-1.0.0/CkArchive-1' */
-export type SystemStreamDataCkArchiveMapsToArgsDto = {
+export type SystemStreamDataRawArchiveMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -30131,7 +30967,7 @@ export type SystemStreamDataCkArchiveMapsToArgsDto = {
 
 
 /** Runtime entities of construction kit type 'System.StreamData-1.0.0/CkArchive-1' */
-export type SystemStreamDataCkArchiveRelatesFromArgsDto = {
+export type SystemStreamDataRawArchiveRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -30145,7 +30981,7 @@ export type SystemStreamDataCkArchiveRelatesFromArgsDto = {
 
 
 /** Runtime entities of construction kit type 'System.StreamData-1.0.0/CkArchive-1' */
-export type SystemStreamDataCkArchiveRelatesToArgsDto = {
+export type SystemStreamDataRawArchiveRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -30159,7 +30995,7 @@ export type SystemStreamDataCkArchiveRelatesToArgsDto = {
 
 
 /** Runtime entities of construction kit type 'System.StreamData-1.0.0/CkArchive-1' */
-export type SystemStreamDataCkArchiveTaggedByArgsDto = {
+export type SystemStreamDataRawArchiveTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -30186,33 +31022,33 @@ export type SystemStreamDataCkArchiveColumnInputDto = {
   required?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
-/** A connection to `SystemStreamDataCkArchive`. */
-export type SystemStreamDataCkArchiveConnectionDto = {
-  __typename?: 'SystemStreamDataCkArchiveConnection';
+/** A connection to `SystemStreamDataRawArchive`. */
+export type SystemStreamDataRawArchiveConnectionDto = {
+  __typename?: 'SystemStreamDataRawArchiveConnection';
   /** Result of aggregating the items of the result set. */
   aggregation?: Maybe<AggregationDto>;
   /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<SystemStreamDataCkArchiveEdgeDto>>>;
+  edges?: Maybe<Array<Maybe<SystemStreamDataRawArchiveEdgeDto>>>;
   /** Result of aggregating the items by fields. */
   fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
   /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<SystemStreamDataCkArchiveDto>>>;
+  items?: Maybe<Array<Maybe<SystemStreamDataRawArchiveDto>>>;
   /** Information to aid in pagination. */
   pageInfo?: Maybe<PageInfoDto>;
   /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
   totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
-/** An edge in a connection from an object to another object of type `SystemStreamDataCkArchive`. */
-export type SystemStreamDataCkArchiveEdgeDto = {
-  __typename?: 'SystemStreamDataCkArchiveEdge';
+/** An edge in a connection from an object to another object of type `SystemStreamDataRawArchive`. */
+export type SystemStreamDataRawArchiveEdgeDto = {
+  __typename?: 'SystemStreamDataRawArchiveEdge';
   /** A cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
-  node?: Maybe<SystemStreamDataCkArchiveDto>;
+  node?: Maybe<SystemStreamDataRawArchiveDto>;
 };
 
-export type SystemStreamDataCkArchiveInputDto = {
+export type SystemStreamDataRawArchiveInputDto = {
   columns?: InputMaybe<Array<InputMaybe<SystemStreamDataCkArchiveColumnInputDto>>>;
   configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -30228,28 +31064,28 @@ export type SystemStreamDataCkArchiveInputDto = {
   targetCkTypeId?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type SystemStreamDataCkArchiveInputUpdateDto = {
+export type SystemStreamDataRawArchiveInputUpdateDto = {
   /** Item to update */
-  item: SystemStreamDataCkArchiveInputDto;
+  item: SystemStreamDataRawArchiveInputDto;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
 };
 
-export type SystemStreamDataCkArchiveMutationsDto = {
-  __typename?: 'SystemStreamDataCkArchiveMutations';
-  /** Creates new entities of type 'SystemStreamDataCkArchive'. */
-  create?: Maybe<Array<Maybe<SystemStreamDataCkArchiveDto>>>;
-  /** Updates existing entity of type 'SystemStreamDataCkArchive'. */
-  update?: Maybe<Array<Maybe<SystemStreamDataCkArchiveDto>>>;
+export type SystemStreamDataRawArchiveMutationsDto = {
+  __typename?: 'SystemStreamDataRawArchiveMutations';
+  /** Creates new entities of type 'SystemStreamDataRawArchive'. */
+  create?: Maybe<Array<Maybe<SystemStreamDataRawArchiveDto>>>;
+  /** Updates existing entity of type 'SystemStreamDataRawArchive'. */
+  update?: Maybe<Array<Maybe<SystemStreamDataRawArchiveDto>>>;
 };
 
 
-export type SystemStreamDataCkArchiveMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<SystemStreamDataCkArchiveInputDto>>;
+export type SystemStreamDataRawArchiveMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemStreamDataRawArchiveInputDto>>;
 };
 
 
-export type SystemStreamDataCkArchiveMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<SystemStreamDataCkArchiveInputUpdateDto>>;
+export type SystemStreamDataRawArchiveMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemStreamDataRawArchiveInputUpdateDto>>;
 };
 
 /** Runtime entities of construction kit enum 'System.StreamData/CkArchiveStatus' */
@@ -30264,17 +31100,17 @@ export enum SystemStreamDataCkArchiveStatusDto {
   FailedDto = 'FAILED'
 }
 
-export type SystemStreamDataCkArchiveUpdateDto = {
-  __typename?: 'SystemStreamDataCkArchiveUpdate';
+export type SystemStreamDataRawArchiveUpdateDto = {
+  __typename?: 'SystemStreamDataRawArchiveUpdate';
   /** The corresponding item */
-  item?: Maybe<SystemStreamDataCkArchiveDto>;
+  item?: Maybe<SystemStreamDataRawArchiveDto>;
   updateState?: Maybe<UpdateTypeDto>;
 };
 
-export type SystemStreamDataCkArchiveUpdateMessageDto = {
-  __typename?: 'SystemStreamDataCkArchiveUpdateMessage';
+export type SystemStreamDataRawArchiveUpdateMessageDto = {
+  __typename?: 'SystemStreamDataRawArchiveUpdateMessage';
   /** The corresponding items */
-  items?: Maybe<Array<Maybe<SystemStreamDataCkArchiveUpdateDto>>>;
+  items?: Maybe<Array<Maybe<SystemStreamDataRawArchiveUpdateDto>>>;
 };
 
 /** Runtime entities of construction kit type 'System-2.0.10/StreamDataQuery-1' */
@@ -33041,1129 +33877,4 @@ export type StatisticsDto = {
   attributePath?: Maybe<Scalars['String']['output']>;
   /** Statistic value */
   value?: Maybe<Scalars['SimpleScalar']['output']>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmDto = {
-  __typename?: 'streamIndustryBasicAlarm';
-  acknowledged?: Maybe<Scalars['DateTime']['output']>;
-  category?: Maybe<Scalars['String']['output']>;
-  cause?: Maybe<Scalars['String']['output']>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  cleared?: Maybe<Scalars['DateTime']['output']>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  lastModified?: Maybe<Scalars['DateTime']['output']>;
-  message?: Maybe<Scalars['String']['output']>;
-  priority?: Maybe<IndustryBasicAlarmPriorityDto>;
-  reactivated?: Maybe<Scalars['DateTime']['output']>;
-  reactivatedCount?: Maybe<Scalars['Int']['output']>;
-  received?: Maybe<Scalars['DateTime']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  source?: Maybe<IndustryBasicAlarmSourceTypeDto>;
-  state?: Maybe<IndustryBasicAlarmStateDto>;
-  tagName?: Maybe<Scalars['String']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-  type?: Maybe<IndustryBasicAlarmTypeDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmAcknowledgedArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmCategoryArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmCauseArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmClearedArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmLastModifiedArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmMessageArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmPriorityArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmReactivatedArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmReactivatedCountArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmReceivedArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmSourceArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmStateArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmTagNameArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
-export type StreamIndustryBasicAlarmTypeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryBasicAlarm`. */
-export type StreamIndustryBasicAlarmConnectionDto = {
-  __typename?: 'streamIndustryBasicAlarmConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryBasicAlarmEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryBasicAlarmDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryBasicAlarm`. */
-export type StreamIndustryBasicAlarmEdgeDto = {
-  __typename?: 'streamIndustryBasicAlarmEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryBasicAlarmDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Event-1' */
-export type StreamIndustryBasicEventDto = {
-  __typename?: 'streamIndustryBasicEvent';
-  category?: Maybe<Scalars['String']['output']>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  message?: Maybe<Scalars['String']['output']>;
-  received?: Maybe<Scalars['DateTime']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  tagName?: Maybe<Scalars['String']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Event-1' */
-export type StreamIndustryBasicEventCategoryArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Event-1' */
-export type StreamIndustryBasicEventMessageArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Event-1' */
-export type StreamIndustryBasicEventReceivedArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Event-1' */
-export type StreamIndustryBasicEventRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Event-1' */
-export type StreamIndustryBasicEventTagNameArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryBasicEvent`. */
-export type StreamIndustryBasicEventConnectionDto = {
-  __typename?: 'streamIndustryBasicEventConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryBasicEventEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryBasicEventDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryBasicEvent`. */
-export type StreamIndustryBasicEventEdgeDto = {
-  __typename?: 'streamIndustryBasicEventEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryBasicEventDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Machine-1' */
-export type StreamIndustryBasicMachineDto = {
-  __typename?: 'streamIndustryBasicMachine';
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  machineState?: Maybe<IndustryBasicMachineStateDto>;
-  operatingHours?: Maybe<Scalars['Int']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  standStillCounter?: Maybe<Scalars['Int']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Machine-1' */
-export type StreamIndustryBasicMachineMachineStateArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Machine-1' */
-export type StreamIndustryBasicMachineOperatingHoursArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Machine-1' */
-export type StreamIndustryBasicMachineRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/Machine-1' */
-export type StreamIndustryBasicMachineStandStillCounterArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryBasicMachine`. */
-export type StreamIndustryBasicMachineConnectionDto = {
-  __typename?: 'streamIndustryBasicMachineConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryBasicMachineEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryBasicMachineDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryBasicMachine`. */
-export type StreamIndustryBasicMachineEdgeDto = {
-  __typename?: 'streamIndustryBasicMachineEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryBasicMachineDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableDto = {
-  __typename?: 'streamIndustryBasicRuntimeVariable';
-  booleanValue?: Maybe<Scalars['Boolean']['output']>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  dateTimeValue?: Maybe<Scalars['DateTime']['output']>;
-  doubleValue?: Maybe<Scalars['Decimal']['output']>;
-  iecDataType?: Maybe<IndustryBasicIecDataTypeDto>;
-  int64Value?: Maybe<Scalars['Long']['output']>;
-  intValue?: Maybe<Scalars['Int']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  stringValue?: Maybe<Scalars['String']['output']>;
-  timeSpanValue?: Maybe<Scalars['Seconds']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableBooleanValueArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableDateTimeValueArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableDoubleValueArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableIecDataTypeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableInt64ValueArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableIntValueArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableStringValueArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Basic-2.1.0/RuntimeVariable-1' */
-export type StreamIndustryBasicRuntimeVariableTimeSpanValueArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryBasicRuntimeVariable`. */
-export type StreamIndustryBasicRuntimeVariableConnectionDto = {
-  __typename?: 'streamIndustryBasicRuntimeVariableConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryBasicRuntimeVariableEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryBasicRuntimeVariableDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryBasicRuntimeVariable`. */
-export type StreamIndustryBasicRuntimeVariableEdgeDto = {
-  __typename?: 'streamIndustryBasicRuntimeVariableEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryBasicRuntimeVariableDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
-export type StreamIndustryEnergyEnergyConsumerDto = {
-  __typename?: 'streamIndustryEnergyEnergyConsumer';
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  importedEnergy?: Maybe<Scalars['Decimal']['output']>;
-  loadPercent?: Maybe<Scalars['Decimal']['output']>;
-  machineState?: Maybe<IndustryBasicMachineStateDto>;
-  operatingHours?: Maybe<Scalars['Int']['output']>;
-  power?: Maybe<Scalars['Decimal']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  standStillCounter?: Maybe<Scalars['Int']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
-export type StreamIndustryEnergyEnergyConsumerImportedEnergyArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
-export type StreamIndustryEnergyEnergyConsumerLoadPercentArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
-export type StreamIndustryEnergyEnergyConsumerMachineStateArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
-export type StreamIndustryEnergyEnergyConsumerOperatingHoursArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
-export type StreamIndustryEnergyEnergyConsumerPowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
-export type StreamIndustryEnergyEnergyConsumerRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
-export type StreamIndustryEnergyEnergyConsumerStandStillCounterArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryEnergyEnergyConsumer`. */
-export type StreamIndustryEnergyEnergyConsumerConnectionDto = {
-  __typename?: 'streamIndustryEnergyEnergyConsumerConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyConsumerEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyConsumerDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryEnergyEnergyConsumer`. */
-export type StreamIndustryEnergyEnergyConsumerEdgeDto = {
-  __typename?: 'streamIndustryEnergyEnergyConsumerEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryEnergyEnergyConsumerDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyCost-1' */
-export type StreamIndustryEnergyEnergyCostDto = {
-  __typename?: 'streamIndustryEnergyEnergyCost';
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  costAmount?: Maybe<Scalars['Decimal']['output']>;
-  forecastAmount?: Maybe<Scalars['Decimal']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyCost-1' */
-export type StreamIndustryEnergyEnergyCostCostAmountArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyCost-1' */
-export type StreamIndustryEnergyEnergyCostForecastAmountArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyCost-1' */
-export type StreamIndustryEnergyEnergyCostRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryEnergyEnergyCost`. */
-export type StreamIndustryEnergyEnergyCostConnectionDto = {
-  __typename?: 'streamIndustryEnergyEnergyCostConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyCostEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyCostDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryEnergyEnergyCost`. */
-export type StreamIndustryEnergyEnergyCostEdgeDto = {
-  __typename?: 'streamIndustryEnergyEnergyCostEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryEnergyEnergyCostDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyForecast-1' */
-export type StreamIndustryEnergyEnergyForecastDto = {
-  __typename?: 'streamIndustryEnergyEnergyForecast';
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  confidence?: Maybe<Scalars['Decimal']['output']>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  predictedLoad?: Maybe<Scalars['Decimal']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyForecast-1' */
-export type StreamIndustryEnergyEnergyForecastConfidenceArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyForecast-1' */
-export type StreamIndustryEnergyEnergyForecastPredictedLoadArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyForecast-1' */
-export type StreamIndustryEnergyEnergyForecastRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryEnergyEnergyForecast`. */
-export type StreamIndustryEnergyEnergyForecastConnectionDto = {
-  __typename?: 'streamIndustryEnergyEnergyForecastConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyForecastEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyForecastDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryEnergyEnergyForecast`. */
-export type StreamIndustryEnergyEnergyForecastEdgeDto = {
-  __typename?: 'streamIndustryEnergyEnergyForecastEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryEnergyEnergyForecastDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterDto = {
-  __typename?: 'streamIndustryEnergyEnergyMeter';
-  ampere?: Maybe<Scalars['Decimal']['output']>;
-  apparentPower?: Maybe<Scalars['Decimal']['output']>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  exportedEnergy?: Maybe<Scalars['Decimal']['output']>;
-  frequency?: Maybe<Scalars['Decimal']['output']>;
-  importedEnergy?: Maybe<Scalars['Decimal']['output']>;
-  machineState?: Maybe<IndustryBasicMachineStateDto>;
-  operatingHours?: Maybe<Scalars['Int']['output']>;
-  power?: Maybe<Scalars['Decimal']['output']>;
-  reactivePower?: Maybe<Scalars['Decimal']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  standStillCounter?: Maybe<Scalars['Int']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-  voltage?: Maybe<Scalars['Decimal']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterAmpereArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterApparentPowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterExportedEnergyArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterFrequencyArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterImportedEnergyArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterMachineStateArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterOperatingHoursArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterPowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterReactivePowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterStandStillCounterArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
-export type StreamIndustryEnergyEnergyMeterVoltageArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryEnergyEnergyMeter`. */
-export type StreamIndustryEnergyEnergyMeterConnectionDto = {
-  __typename?: 'streamIndustryEnergyEnergyMeterConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyMeterEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyMeterDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryEnergyEnergyMeter`. */
-export type StreamIndustryEnergyEnergyMeterEdgeDto = {
-  __typename?: 'streamIndustryEnergyEnergyMeterEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryEnergyEnergyMeterDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyPerformanceIndicator-1' */
-export type StreamIndustryEnergyEnergyPerformanceIndicatorDto = {
-  __typename?: 'streamIndustryEnergyEnergyPerformanceIndicator';
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  indicatorValue?: Maybe<Scalars['Decimal']['output']>;
-  referenceValue?: Maybe<Scalars['Decimal']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyPerformanceIndicator-1' */
-export type StreamIndustryEnergyEnergyPerformanceIndicatorIndicatorValueArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyPerformanceIndicator-1' */
-export type StreamIndustryEnergyEnergyPerformanceIndicatorReferenceValueArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyPerformanceIndicator-1' */
-export type StreamIndustryEnergyEnergyPerformanceIndicatorRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryEnergyEnergyPerformanceIndicator`. */
-export type StreamIndustryEnergyEnergyPerformanceIndicatorConnectionDto = {
-  __typename?: 'streamIndustryEnergyEnergyPerformanceIndicatorConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyPerformanceIndicatorEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyPerformanceIndicatorDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryEnergyEnergyPerformanceIndicator`. */
-export type StreamIndustryEnergyEnergyPerformanceIndicatorEdgeDto = {
-  __typename?: 'streamIndustryEnergyEnergyPerformanceIndicatorEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryEnergyEnergyPerformanceIndicatorDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageDto = {
-  __typename?: 'streamIndustryEnergyEnergyStorage';
-  ampere?: Maybe<Scalars['Decimal']['output']>;
-  capacity?: Maybe<Scalars['Decimal']['output']>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  exportedEnergy?: Maybe<Scalars['Decimal']['output']>;
-  importedEnergy?: Maybe<Scalars['Decimal']['output']>;
-  machineState?: Maybe<IndustryBasicMachineStateDto>;
-  numOfCycles?: Maybe<Scalars['Int']['output']>;
-  operatingHours?: Maybe<Scalars['Int']['output']>;
-  power?: Maybe<Scalars['Decimal']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  soC?: Maybe<Scalars['Int']['output']>;
-  soH?: Maybe<Scalars['Int']['output']>;
-  standStillCounter?: Maybe<Scalars['Int']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-  voltage?: Maybe<Scalars['Decimal']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageAmpereArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageCapacityArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageExportedEnergyArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageImportedEnergyArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageMachineStateArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageNumOfCyclesArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageOperatingHoursArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStoragePowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageSoCArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageSoHArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageStandStillCounterArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
-export type StreamIndustryEnergyEnergyStorageVoltageArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryEnergyEnergyStorage`. */
-export type StreamIndustryEnergyEnergyStorageConnectionDto = {
-  __typename?: 'streamIndustryEnergyEnergyStorageConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyStorageEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryEnergyEnergyStorageDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryEnergyEnergyStorage`. */
-export type StreamIndustryEnergyEnergyStorageEdgeDto = {
-  __typename?: 'streamIndustryEnergyEnergyStorageEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryEnergyEnergyStorageDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterDto = {
-  __typename?: 'streamIndustryEnergyInverter';
-  ampere?: Maybe<Scalars['Decimal']['output']>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  dCAmpere?: Maybe<Scalars['Decimal']['output']>;
-  dCVoltage?: Maybe<Scalars['Decimal']['output']>;
-  machineState?: Maybe<IndustryBasicMachineStateDto>;
-  maximumPower?: Maybe<Scalars['Decimal']['output']>;
-  operatingHours?: Maybe<Scalars['Int']['output']>;
-  power?: Maybe<Scalars['Decimal']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  standStillCounter?: Maybe<Scalars['Int']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-  voltage?: Maybe<Scalars['Decimal']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterAmpereArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterDcAmpereArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterDcVoltageArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterMachineStateArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterMaximumPowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterOperatingHoursArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterPowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterStandStillCounterArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
-export type StreamIndustryEnergyInverterVoltageArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryEnergyInverter`. */
-export type StreamIndustryEnergyInverterConnectionDto = {
-  __typename?: 'streamIndustryEnergyInverterConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryEnergyInverterEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryEnergyInverterDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryEnergyInverter`. */
-export type StreamIndustryEnergyInverterEdgeDto = {
-  __typename?: 'streamIndustryEnergyInverterEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryEnergyInverterDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.Module-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemModuleDto = {
-  __typename?: 'streamIndustryEnergyPhotovoltaicSystemModule';
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  machineState?: Maybe<IndustryBasicMachineStateDto>;
-  operatingHours?: Maybe<Scalars['Int']['output']>;
-  peakPower?: Maybe<Scalars['Decimal']['output']>;
-  power?: Maybe<Scalars['Decimal']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  standStillCounter?: Maybe<Scalars['Int']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.Module-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemModuleMachineStateArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.Module-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemModuleOperatingHoursArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.Module-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemModulePeakPowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.Module-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemModulePowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.Module-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemModuleRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.Module-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemModuleStandStillCounterArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryEnergyPhotovoltaicSystemModule`. */
-export type StreamIndustryEnergyPhotovoltaicSystemModuleConnectionDto = {
-  __typename?: 'streamIndustryEnergyPhotovoltaicSystemModuleConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryEnergyPhotovoltaicSystemModuleEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryEnergyPhotovoltaicSystemModuleDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryEnergyPhotovoltaicSystemModule`. */
-export type StreamIndustryEnergyPhotovoltaicSystemModuleEdgeDto = {
-  __typename?: 'streamIndustryEnergyPhotovoltaicSystemModuleEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryEnergyPhotovoltaicSystemModuleDto>;
-};
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.String-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemStringDto = {
-  __typename?: 'streamIndustryEnergyPhotovoltaicSystemString';
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  power?: Maybe<Scalars['Decimal']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.String-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemStringPowerArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-
-/** Stream data entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.String-1' */
-export type StreamIndustryEnergyPhotovoltaicSystemStringRtChangedDateTimeArgsDto = {
-  arg?: InputMaybe<AttributeArgumentDto>;
-};
-
-/** A connection to `streamIndustryEnergyPhotovoltaicSystemString`. */
-export type StreamIndustryEnergyPhotovoltaicSystemStringConnectionDto = {
-  __typename?: 'streamIndustryEnergyPhotovoltaicSystemStringConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<StreamIndustryEnergyPhotovoltaicSystemStringEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<StreamIndustryEnergyPhotovoltaicSystemStringDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `streamIndustryEnergyPhotovoltaicSystemString`. */
-export type StreamIndustryEnergyPhotovoltaicSystemStringEdgeDto = {
-  __typename?: 'streamIndustryEnergyPhotovoltaicSystemStringEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<StreamIndustryEnergyPhotovoltaicSystemStringDto>;
 };

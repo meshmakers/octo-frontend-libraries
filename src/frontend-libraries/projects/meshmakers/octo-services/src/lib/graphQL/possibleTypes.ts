@@ -103,7 +103,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -253,7 +253,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -339,16 +339,15 @@
       "SystemCommunicationAdapter",
       "SystemCommunicationApplication"
     ],
+    "SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnion": [
+      "SystemCommunicationAdapter",
+      "SystemCommunicationApplication"
+    ],
     "SystemCommunicationDeployableWorkload_ManagesUnion": [
       "SystemCommunicationAdapter",
       "SystemCommunicationApplication"
     ],
-    "SystemCommunicationDeployableWorkload_UsedByUnion": [
-      "SystemCommunicationAdapter",
-      "SystemCommunicationApplication",
-      "SystemCommunicationPipeline"
-    ],
-    "SystemCommunicationHelmRepositoryConfiguration_IsUsingUnion": [
+    "SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnion": [
       "SystemCommunicationHelmRepositoryConfiguration"
     ],
     "SystemCommunicationPipelineExecution_ExecutedPipelineUnion": [
@@ -403,6 +402,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationSapConfiguration",
@@ -519,7 +519,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemStreamDataQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -622,7 +622,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -723,7 +723,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -824,7 +824,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -925,7 +925,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -1026,7 +1026,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -1127,7 +1127,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -1332,7 +1332,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -1482,7 +1482,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -1568,16 +1568,15 @@
       "SystemCommunicationAdapter",
       "SystemCommunicationApplication"
     ],
+    "SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnion": [
+      "SystemCommunicationAdapter",
+      "SystemCommunicationApplication"
+    ],
     "SystemCommunicationDeployableWorkload_ManagesUnion": [
       "SystemCommunicationAdapter",
       "SystemCommunicationApplication"
     ],
-    "SystemCommunicationDeployableWorkload_UsedByUnion": [
-      "SystemCommunicationAdapter",
-      "SystemCommunicationApplication",
-      "SystemCommunicationPipeline"
-    ],
-    "SystemCommunicationHelmRepositoryConfiguration_IsUsingUnion": [
+    "SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnion": [
       "SystemCommunicationHelmRepositoryConfiguration"
     ],
     "SystemCommunicationPipelineExecution_ExecutedPipelineUnion": [
@@ -1632,6 +1631,7 @@
       "SystemCommunicationEnergyCommunityConfiguration",
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
+      "SystemCommunicationHelmRepositoryConfiguration",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationSapConfiguration",
@@ -1748,7 +1748,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemStreamDataQuery",
       "SystemTenant",
       "SystemTenantConfiguration",
@@ -1851,7 +1851,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -1952,7 +1952,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -2053,7 +2053,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -2154,7 +2154,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -2255,7 +2255,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
@@ -2356,7 +2356,7 @@
       "SystemReportingFolderRoot",
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
-      "SystemStreamDataCkArchive",
+      "SystemStreamDataRawArchive",
       "SystemTenant",
       "SystemTenantConfiguration",
       "SystemTenantModeConfiguration",
