@@ -79,7 +79,8 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
         <kendo-grid-column
           *ngFor="let column of columns"
           [field]="column.field"
-          [title]="getDisplayName(column) | pascalCase">
+          [title]="getDisplayName(column) | pascalCase"
+          [width]="column.width!">
         </kendo-grid-column>
 
       </kendo-grid>
