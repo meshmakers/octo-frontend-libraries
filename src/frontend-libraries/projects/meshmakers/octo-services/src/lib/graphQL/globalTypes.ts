@@ -221,6 +221,7 @@ export type BasicAssetDto = {
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<BasicTreeNode_RelatesToUnionConnectionDto>;
@@ -322,6 +323,20 @@ export type BasicAssetMapsToArgsDto = {
 
 
 /** Runtime entities of construction kit type 'Basic-2.0.2/Asset-1' */
+export type BasicAssetOrdersArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Basic-2.0.2/Asset-1' */
 export type BasicAssetParentArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -410,6 +425,7 @@ export type BasicAssetInputDto = {
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -458,7 +474,7 @@ export type BasicAssetUpdateMessageDto = {
 };
 
 /** Union of types derived from Basic/Asset for EventSource association */
-export type BasicAsset_EventSourceUnionDto = BasicAssetDto | IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | OctoSdkDemoMeteringPointDto;
+export type BasicAsset_EventSourceUnionDto = BasicAssetDto | IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoMeteringPointDto;
 
 /** A connection to `BasicAsset_EventSourceUnion`. */
 export type BasicAsset_EventSourceUnionConnectionDto = {
@@ -487,7 +503,7 @@ export type BasicAsset_EventSourceUnionEdgeDto = {
 };
 
 /** Union of types derived from Basic/Asset for RelatesFrom association */
-export type BasicAsset_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqDoorDto | EnergyIqInverterDto | EnergyIqLuminaireDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqShadingDeviceDto | EnergyIqSiteDto | EnergyIqSpaceDto | EnergyIqWallDto | EnergyIqWindowDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneMiniserverDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type BasicAsset_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `BasicAsset_RelatesFromUnion`. */
 export type BasicAsset_RelatesFromUnionConnectionDto = {
@@ -544,6 +560,7 @@ export type BasicCityDto = {
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
@@ -619,6 +636,20 @@ export type BasicCityMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Basic-2.0.2/City-1' */
 export type BasicCityMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Basic-2.0.2/City-1' */
+export type BasicCityOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -719,6 +750,7 @@ export type BasicCityInputDto = {
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -810,6 +842,7 @@ export type BasicCountryDto = {
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
@@ -884,6 +917,20 @@ export type BasicCountryMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Basic-2.0.2/Country-1' */
 export type BasicCountryMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Basic-2.0.2/Country-1' */
+export type BasicCountryOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -984,6 +1031,7 @@ export type BasicCountryInputDto = {
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -1043,6 +1091,7 @@ export type BasicDistrictDto = {
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
@@ -1117,6 +1166,20 @@ export type BasicDistrictMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Basic-2.0.2/District-1' */
 export type BasicDistrictMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Basic-2.0.2/District-1' */
+export type BasicDistrictOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -1217,6 +1280,7 @@ export type BasicDistrictInputDto = {
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -2122,6 +2186,7 @@ export type BasicStateDto = {
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
@@ -2196,6 +2261,20 @@ export type BasicStateMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Basic-2.0.2/State-1' */
 export type BasicStateMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Basic-2.0.2/State-1' */
+export type BasicStateOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -2296,6 +2375,7 @@ export type BasicStateInputDto = {
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -2572,6 +2652,7 @@ export type BasicTreeNodeDto = {
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
@@ -2646,6 +2727,20 @@ export type BasicTreeNodeMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Basic-2.0.2/TreeNode-1' */
 export type BasicTreeNodeMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Basic-2.0.2/TreeNode-1' */
+export type BasicTreeNodeOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -2746,6 +2841,7 @@ export type BasicTreeNodeInputDto = {
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -2794,7 +2890,7 @@ export type BasicTreeNodeUpdateMessageDto = {
 };
 
 /** Union of types derived from Basic/TreeNode for Children association */
-export type BasicTreeNode_ChildrenUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicStateDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqInverterDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqSpaceDto | IndustryBasicMachineDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto;
+export type BasicTreeNode_ChildrenUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicStateDto | BasicTreeNodeDto | IndustryBasicMachineDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto;
 
 /** A connection to `BasicTreeNode_ChildrenUnion`. */
 export type BasicTreeNode_ChildrenUnionConnectionDto = {
@@ -2822,8 +2918,37 @@ export type BasicTreeNode_ChildrenUnionEdgeDto = {
   node?: Maybe<BasicTreeNode_ChildrenUnionDto>;
 };
 
+/** Union of types derived from Basic/TreeNode for Machine association */
+export type BasicTreeNode_MachineUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicStateDto | BasicTreeNodeDto | IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto;
+
+/** A connection to `BasicTreeNode_MachineUnion`. */
+export type BasicTreeNode_MachineUnionConnectionDto = {
+  __typename?: 'BasicTreeNode_MachineUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<BasicTreeNode_MachineUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<BasicTreeNode_MachineUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `BasicTreeNode_MachineUnion`. */
+export type BasicTreeNode_MachineUnionEdgeDto = {
+  __typename?: 'BasicTreeNode_MachineUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<BasicTreeNode_MachineUnionDto>;
+};
+
 /** Union of types derived from Basic/TreeNode for Parent association */
-export type BasicTreeNode_ParentUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicStateDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqInverterDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqSpaceDto | IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto;
+export type BasicTreeNode_ParentUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicStateDto | BasicTreeNodeDto | IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto;
 
 /** A connection to `BasicTreeNode_ParentUnion`. */
 export type BasicTreeNode_ParentUnionConnectionDto = {
@@ -2852,7 +2977,7 @@ export type BasicTreeNode_ParentUnionEdgeDto = {
 };
 
 /** Union of types derived from Basic/TreeNode for RelatesTo association */
-export type BasicTreeNode_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqDoorDto | EnergyIqInverterDto | EnergyIqLuminaireDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqShadingDeviceDto | EnergyIqSiteDto | EnergyIqSpaceDto | EnergyIqWallDto | EnergyIqWindowDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneMiniserverDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type BasicTreeNode_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `BasicTreeNode_RelatesToUnion`. */
 export type BasicTreeNode_RelatesToUnionConnectionDto = {
@@ -2894,7 +3019,7 @@ export type BasicTreeUpdateMessageDto = {
 };
 
 /** Union of types derived from Basic/Tree for Parent association */
-export type BasicTree_ParentUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqInverterDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqSiteDto | EnergyIqSpaceDto | IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneMiniserverDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto;
+export type BasicTree_ParentUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto;
 
 /** A connection to `BasicTree_ParentUnion`. */
 export type BasicTree_ParentUnionConnectionDto = {
@@ -3671,5600 +3796,6 @@ export enum DeleteStrategiesDto {
   EraseDto = 'ERASE'
 }
 
-/** Runtime entities of construction kit record 'EnergyIQ/Address' */
-export type EnergyIqAddressDto = {
-  __typename?: 'EnergyIQAddress';
-  city: Scalars['String']['output'];
-  constructionKitType?: Maybe<CkTypeDto>;
-  country: Scalars['String']['output'];
-  postalCode: Scalars['String']['output'];
-  street: Scalars['String']['output'];
-};
-
-export type EnergyIqAddressInputDto = {
-  city?: InputMaybe<Scalars['String']['input']>;
-  country?: InputMaybe<Scalars['String']['input']>;
-  postalCode?: InputMaybe<Scalars['String']['input']>;
-  street?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitDto = EnergyIqTechnicalSystemInterfaceDto & {
-  __typename?: 'EnergyIQAirHandlingUnit';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  coolingCoilPosition?: Maybe<Scalars['Decimal']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  fanSpeedReturn?: Maybe<Scalars['Decimal']['output']>;
-  fanSpeedSupply?: Maybe<Scalars['Decimal']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  filterDifferentialPressure?: Maybe<Scalars['Decimal']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  heatRecoveryEfficiency?: Maybe<Scalars['Decimal']['output']>;
-  heatingCoilPosition?: Maybe<Scalars['Decimal']['output']>;
-  identifier: Scalars['String']['output'];
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  outdoorAirTemp?: Maybe<Scalars['Decimal']['output']>;
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  returnAirTemp?: Maybe<Scalars['Decimal']['output']>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  servedBy?: Maybe<EnergyIqSpace_ServedByUnionConnectionDto>;
-  servesSpaces?: Maybe<EnergyIqSpace_ServesSpacesUnionConnectionDto>;
-  supplyAirFlow?: Maybe<Scalars['Decimal']['output']>;
-  supplyAirTemp?: Maybe<Scalars['Decimal']['output']>;
-  supplyAirTempSetpoint?: Maybe<Scalars['Decimal']['output']>;
-  systemType?: Maybe<EnergyIqSystemTypeDto>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitServedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitServesSpacesArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/AirHandlingUnit-1' */
-export type EnergyIqAirHandlingUnitTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQAirHandlingUnit`. */
-export type EnergyIqAirHandlingUnitConnectionDto = {
-  __typename?: 'EnergyIQAirHandlingUnitConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqAirHandlingUnitEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqAirHandlingUnitDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQAirHandlingUnit`. */
-export type EnergyIqAirHandlingUnitEdgeDto = {
-  __typename?: 'EnergyIQAirHandlingUnitEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqAirHandlingUnitDto>;
-};
-
-export type EnergyIqAirHandlingUnitInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  coolingCoilPosition?: InputMaybe<Scalars['Decimal']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  fanSpeedReturn?: InputMaybe<Scalars['Decimal']['input']>;
-  fanSpeedSupply?: InputMaybe<Scalars['Decimal']['input']>;
-  faultState?: InputMaybe<Scalars['Boolean']['input']>;
-  filterDifferentialPressure?: InputMaybe<Scalars['Decimal']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  heatRecoveryEfficiency?: InputMaybe<Scalars['Decimal']['input']>;
-  heatingCoilPosition?: InputMaybe<Scalars['Decimal']['input']>;
-  identifier?: InputMaybe<Scalars['String']['input']>;
-  isRunning?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  outdoorAirTemp?: InputMaybe<Scalars['Decimal']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  returnAirTemp?: InputMaybe<Scalars['Decimal']['input']>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  servedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  servesSpaces?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  supplyAirFlow?: InputMaybe<Scalars['Decimal']['input']>;
-  supplyAirTemp?: InputMaybe<Scalars['Decimal']['input']>;
-  supplyAirTempSetpoint?: InputMaybe<Scalars['Decimal']['input']>;
-  systemType?: InputMaybe<EnergyIqSystemTypeDto>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqAirHandlingUnitInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqAirHandlingUnitInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqAirHandlingUnitMutationsDto = {
-  __typename?: 'EnergyIQAirHandlingUnitMutations';
-  /** Creates new entities of type 'EnergyIQAirHandlingUnit'. */
-  create?: Maybe<Array<Maybe<EnergyIqAirHandlingUnitDto>>>;
-  /** Updates existing entity of type 'EnergyIQAirHandlingUnit'. */
-  update?: Maybe<Array<Maybe<EnergyIqAirHandlingUnitDto>>>;
-};
-
-
-export type EnergyIqAirHandlingUnitMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqAirHandlingUnitInputDto>>;
-};
-
-
-export type EnergyIqAirHandlingUnitMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqAirHandlingUnitInputUpdateDto>>;
-};
-
-export type EnergyIqAirHandlingUnitUpdateDto = {
-  __typename?: 'EnergyIQAirHandlingUnitUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqAirHandlingUnitDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqAirHandlingUnitUpdateMessageDto = {
-  __typename?: 'EnergyIQAirHandlingUnitUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqAirHandlingUnitUpdateDto>>>;
-};
-
-/** Union of types derived from EnergyIQ/AirHandlingUnit for ServesSpaces association */
-export type EnergyIqAirHandlingUnit_ServesSpacesUnionDto = EnergyIqAirHandlingUnitDto | EnergyIqBoilerDto | EnergyIqChillerDto | EnergyIqPumpDto;
-
-/** A connection to `EnergyIQAirHandlingUnit_ServesSpacesUnion`. */
-export type EnergyIqAirHandlingUnit_ServesSpacesUnionConnectionDto = {
-  __typename?: 'EnergyIQAirHandlingUnit_ServesSpacesUnionConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqAirHandlingUnit_ServesSpacesUnionEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqAirHandlingUnit_ServesSpacesUnionDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQAirHandlingUnit_ServesSpacesUnion`. */
-export type EnergyIqAirHandlingUnit_ServesSpacesUnionEdgeDto = {
-  __typename?: 'EnergyIQAirHandlingUnit_ServesSpacesUnionEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqAirHandlingUnit_ServesSpacesUnionDto>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageDto = {
-  __typename?: 'EnergyIQBatteryStorage';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  chargingPower?: Maybe<Scalars['Decimal']['output']>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  cycleCount?: Maybe<Scalars['Int']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  dischargingPower?: Maybe<Scalars['Decimal']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  identifier: Scalars['String']['output'];
-  isCharging?: Maybe<Scalars['Boolean']['output']>;
-  isDischarging?: Maybe<Scalars['Boolean']['output']>;
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  maxChargePower?: Maybe<Scalars['Decimal']['output']>;
-  maxDischargePower?: Maybe<Scalars['Decimal']['output']>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  ratedCapacity?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  stateOfCharge?: Maybe<Scalars['Decimal']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-  temperature?: Maybe<Scalars['Decimal']['output']>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BatteryStorage-1' */
-export type EnergyIqBatteryStorageTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQBatteryStorage`. */
-export type EnergyIqBatteryStorageConnectionDto = {
-  __typename?: 'EnergyIQBatteryStorageConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqBatteryStorageEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqBatteryStorageDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQBatteryStorage`. */
-export type EnergyIqBatteryStorageEdgeDto = {
-  __typename?: 'EnergyIQBatteryStorageEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqBatteryStorageDto>;
-};
-
-export type EnergyIqBatteryStorageInputDto = {
-  chargingPower?: InputMaybe<Scalars['Decimal']['input']>;
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  cycleCount?: InputMaybe<Scalars['Int']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  dischargingPower?: InputMaybe<Scalars['Decimal']['input']>;
-  faultState?: InputMaybe<Scalars['Boolean']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  identifier?: InputMaybe<Scalars['String']['input']>;
-  isCharging?: InputMaybe<Scalars['Boolean']['input']>;
-  isDischarging?: InputMaybe<Scalars['Boolean']['input']>;
-  isRunning?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  maxChargePower?: InputMaybe<Scalars['Decimal']['input']>;
-  maxDischargePower?: InputMaybe<Scalars['Decimal']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  ratedCapacity?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  stateOfCharge?: InputMaybe<Scalars['Decimal']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  temperature?: InputMaybe<Scalars['Decimal']['input']>;
-};
-
-export type EnergyIqBatteryStorageInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqBatteryStorageInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqBatteryStorageMutationsDto = {
-  __typename?: 'EnergyIQBatteryStorageMutations';
-  /** Creates new entities of type 'EnergyIQBatteryStorage'. */
-  create?: Maybe<Array<Maybe<EnergyIqBatteryStorageDto>>>;
-  /** Updates existing entity of type 'EnergyIQBatteryStorage'. */
-  update?: Maybe<Array<Maybe<EnergyIqBatteryStorageDto>>>;
-};
-
-
-export type EnergyIqBatteryStorageMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqBatteryStorageInputDto>>;
-};
-
-
-export type EnergyIqBatteryStorageMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqBatteryStorageInputUpdateDto>>;
-};
-
-export type EnergyIqBatteryStorageUpdateDto = {
-  __typename?: 'EnergyIQBatteryStorageUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqBatteryStorageDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqBatteryStorageUpdateMessageDto = {
-  __typename?: 'EnergyIQBatteryStorageUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqBatteryStorageUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerDto = EnergyIqTechnicalSystemInterfaceDto & {
-  __typename?: 'EnergyIQBoiler';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  efficiency?: Maybe<Scalars['Decimal']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  fuelConsumption?: Maybe<Scalars['Decimal']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  identifier: Scalars['String']['output'];
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  modulationLevel?: Maybe<Scalars['Decimal']['output']>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  returnTemp?: Maybe<Scalars['Decimal']['output']>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  servedBy?: Maybe<EnergyIqSpace_ServedByUnionConnectionDto>;
-  servesSpaces?: Maybe<EnergyIqSpace_ServesSpacesUnionConnectionDto>;
-  supplyTemp?: Maybe<Scalars['Decimal']['output']>;
-  supplyTempSetpoint?: Maybe<Scalars['Decimal']['output']>;
-  systemType?: Maybe<EnergyIqSystemTypeDto>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerServedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerServesSpacesArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Boiler-1' */
-export type EnergyIqBoilerTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQBoiler`. */
-export type EnergyIqBoilerConnectionDto = {
-  __typename?: 'EnergyIQBoilerConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqBoilerEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqBoilerDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQBoiler`. */
-export type EnergyIqBoilerEdgeDto = {
-  __typename?: 'EnergyIQBoilerEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqBoilerDto>;
-};
-
-export type EnergyIqBoilerInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  efficiency?: InputMaybe<Scalars['Decimal']['input']>;
-  faultState?: InputMaybe<Scalars['Boolean']['input']>;
-  fuelConsumption?: InputMaybe<Scalars['Decimal']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  identifier?: InputMaybe<Scalars['String']['input']>;
-  isRunning?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  modulationLevel?: InputMaybe<Scalars['Decimal']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  returnTemp?: InputMaybe<Scalars['Decimal']['input']>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  servedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  servesSpaces?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  supplyTemp?: InputMaybe<Scalars['Decimal']['input']>;
-  supplyTempSetpoint?: InputMaybe<Scalars['Decimal']['input']>;
-  systemType?: InputMaybe<EnergyIqSystemTypeDto>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqBoilerInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqBoilerInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqBoilerMutationsDto = {
-  __typename?: 'EnergyIQBoilerMutations';
-  /** Creates new entities of type 'EnergyIQBoiler'. */
-  create?: Maybe<Array<Maybe<EnergyIqBoilerDto>>>;
-  /** Updates existing entity of type 'EnergyIQBoiler'. */
-  update?: Maybe<Array<Maybe<EnergyIqBoilerDto>>>;
-};
-
-
-export type EnergyIqBoilerMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqBoilerInputDto>>;
-};
-
-
-export type EnergyIqBoilerMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqBoilerInputUpdateDto>>;
-};
-
-export type EnergyIqBoilerUpdateDto = {
-  __typename?: 'EnergyIQBoilerUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqBoilerDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqBoilerUpdateMessageDto = {
-  __typename?: 'EnergyIQBoilerUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqBoilerUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingDto = {
-  __typename?: 'EnergyIQBuilding';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  buildingAddress?: Maybe<EnergyIqAddressDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  elevationOfRefHeight?: Maybe<Scalars['Decimal']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  grossFloorArea?: Maybe<Scalars['Decimal']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  longName?: Maybe<Scalars['String']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-  yearOfConstruction?: Maybe<Scalars['Int']['output']>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Building-1' */
-export type EnergyIqBuildingTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQBuilding`. */
-export type EnergyIqBuildingConnectionDto = {
-  __typename?: 'EnergyIQBuildingConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqBuildingEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqBuildingDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQBuilding`. */
-export type EnergyIqBuildingEdgeDto = {
-  __typename?: 'EnergyIQBuildingEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqBuildingDto>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementDto = BasicNamedEntityInterfaceDto & SystemEntityInterfaceDto & {
-  __typename?: 'EnergyIQBuildingElement';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  containedElements?: Maybe<EnergyIqSpace_ContainedElementsUnionConnectionDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  objectType?: Maybe<Scalars['String']['output']>;
-  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementContainedElementsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQBuildingElement`. */
-export type EnergyIqBuildingElementConnectionDto = {
-  __typename?: 'EnergyIQBuildingElementConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqBuildingElementEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqBuildingElementDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQBuildingElement`. */
-export type EnergyIqBuildingElementEdgeDto = {
-  __typename?: 'EnergyIQBuildingElementEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqBuildingElementDto>;
-};
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementInterfaceDto = {
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  containedElements?: Maybe<EnergyIqSpace_ContainedElementsUnionConnectionDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  objectType?: Maybe<Scalars['String']['output']>;
-  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementInterfaceConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementInterfaceContainedElementsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementInterfaceMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementInterfaceMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementInterfaceRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementInterfaceRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingElement-1' */
-export type EnergyIqBuildingElementInterfaceTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-export type EnergyIqBuildingElementUpdateDto = {
-  __typename?: 'EnergyIQBuildingElementUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqBuildingElementDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqBuildingElementUpdateMessageDto = {
-  __typename?: 'EnergyIQBuildingElementUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqBuildingElementUpdateDto>>>;
-};
-
-/** Union of types derived from EnergyIQ/BuildingElement for ContainedInSpace association */
-export type EnergyIqBuildingElement_ContainedInSpaceUnionDto = EnergyIqDoorDto | EnergyIqLuminaireDto | EnergyIqShadingDeviceDto | EnergyIqWallDto | EnergyIqWindowDto;
-
-/** A connection to `EnergyIQBuildingElement_ContainedInSpaceUnion`. */
-export type EnergyIqBuildingElement_ContainedInSpaceUnionConnectionDto = {
-  __typename?: 'EnergyIQBuildingElement_ContainedInSpaceUnionConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqBuildingElement_ContainedInSpaceUnionEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqBuildingElement_ContainedInSpaceUnionDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQBuildingElement_ContainedInSpaceUnion`. */
-export type EnergyIqBuildingElement_ContainedInSpaceUnionEdgeDto = {
-  __typename?: 'EnergyIQBuildingElement_ContainedInSpaceUnionEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqBuildingElement_ContainedInSpaceUnionDto>;
-};
-
-export type EnergyIqBuildingInputDto = {
-  buildingAddress?: InputMaybe<EnergyIqAddressInputDto>;
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  elevationOfRefHeight?: InputMaybe<Scalars['Decimal']['input']>;
-  globalId?: InputMaybe<Scalars['String']['input']>;
-  grossFloorArea?: InputMaybe<Scalars['Decimal']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  longName?: InputMaybe<Scalars['String']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  yearOfConstruction?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type EnergyIqBuildingInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqBuildingInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqBuildingMutationsDto = {
-  __typename?: 'EnergyIQBuildingMutations';
-  /** Creates new entities of type 'EnergyIQBuilding'. */
-  create?: Maybe<Array<Maybe<EnergyIqBuildingDto>>>;
-  /** Updates existing entity of type 'EnergyIQBuilding'. */
-  update?: Maybe<Array<Maybe<EnergyIqBuildingDto>>>;
-};
-
-
-export type EnergyIqBuildingMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqBuildingInputDto>>;
-};
-
-
-export type EnergyIqBuildingMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqBuildingInputUpdateDto>>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyDto = {
-  __typename?: 'EnergyIQBuildingStorey';
-  aboveGround?: Maybe<Scalars['Boolean']['output']>;
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  elevation: Scalars['Decimal']['output'];
-  floorDesignation?: Maybe<Scalars['String']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  grossFloorArea?: Maybe<Scalars['Decimal']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  longName?: Maybe<Scalars['String']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  netFloorArea?: Maybe<Scalars['Decimal']['output']>;
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  storeyNumber?: Maybe<Scalars['Int']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/BuildingStorey-1' */
-export type EnergyIqBuildingStoreyTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQBuildingStorey`. */
-export type EnergyIqBuildingStoreyConnectionDto = {
-  __typename?: 'EnergyIQBuildingStoreyConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqBuildingStoreyEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqBuildingStoreyDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQBuildingStorey`. */
-export type EnergyIqBuildingStoreyEdgeDto = {
-  __typename?: 'EnergyIQBuildingStoreyEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqBuildingStoreyDto>;
-};
-
-export type EnergyIqBuildingStoreyInputDto = {
-  aboveGround?: InputMaybe<Scalars['Boolean']['input']>;
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  elevation?: InputMaybe<Scalars['Decimal']['input']>;
-  floorDesignation?: InputMaybe<Scalars['String']['input']>;
-  globalId?: InputMaybe<Scalars['String']['input']>;
-  grossFloorArea?: InputMaybe<Scalars['Decimal']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  longName?: InputMaybe<Scalars['String']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  netFloorArea?: InputMaybe<Scalars['Decimal']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  storeyNumber?: InputMaybe<Scalars['Int']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqBuildingStoreyInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqBuildingStoreyInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqBuildingStoreyMutationsDto = {
-  __typename?: 'EnergyIQBuildingStoreyMutations';
-  /** Creates new entities of type 'EnergyIQBuildingStorey'. */
-  create?: Maybe<Array<Maybe<EnergyIqBuildingStoreyDto>>>;
-  /** Updates existing entity of type 'EnergyIQBuildingStorey'. */
-  update?: Maybe<Array<Maybe<EnergyIqBuildingStoreyDto>>>;
-};
-
-
-export type EnergyIqBuildingStoreyMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqBuildingStoreyInputDto>>;
-};
-
-
-export type EnergyIqBuildingStoreyMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqBuildingStoreyInputUpdateDto>>;
-};
-
-export type EnergyIqBuildingStoreyUpdateDto = {
-  __typename?: 'EnergyIQBuildingStoreyUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqBuildingStoreyDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqBuildingStoreyUpdateMessageDto = {
-  __typename?: 'EnergyIQBuildingStoreyUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqBuildingStoreyUpdateDto>>>;
-};
-
-export type EnergyIqBuildingUpdateDto = {
-  __typename?: 'EnergyIQBuildingUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqBuildingDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqBuildingUpdateMessageDto = {
-  __typename?: 'EnergyIQBuildingUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqBuildingUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerDto = EnergyIqTechnicalSystemInterfaceDto & {
-  __typename?: 'EnergyIQChiller';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  efficiency?: Maybe<Scalars['Decimal']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  identifier: Scalars['String']['output'];
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  modulationLevel?: Maybe<Scalars['Decimal']['output']>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  powerConsumption?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  returnTemp?: Maybe<Scalars['Decimal']['output']>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  servedBy?: Maybe<EnergyIqSpace_ServedByUnionConnectionDto>;
-  servesSpaces?: Maybe<EnergyIqSpace_ServesSpacesUnionConnectionDto>;
-  supplyTemp?: Maybe<Scalars['Decimal']['output']>;
-  supplyTempSetpoint?: Maybe<Scalars['Decimal']['output']>;
-  systemType?: Maybe<EnergyIqSystemTypeDto>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerServedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerServesSpacesArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Chiller-1' */
-export type EnergyIqChillerTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQChiller`. */
-export type EnergyIqChillerConnectionDto = {
-  __typename?: 'EnergyIQChillerConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqChillerEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqChillerDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQChiller`. */
-export type EnergyIqChillerEdgeDto = {
-  __typename?: 'EnergyIQChillerEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqChillerDto>;
-};
-
-export type EnergyIqChillerInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  efficiency?: InputMaybe<Scalars['Decimal']['input']>;
-  faultState?: InputMaybe<Scalars['Boolean']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  identifier?: InputMaybe<Scalars['String']['input']>;
-  isRunning?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  modulationLevel?: InputMaybe<Scalars['Decimal']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  powerConsumption?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  returnTemp?: InputMaybe<Scalars['Decimal']['input']>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  servedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  servesSpaces?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  supplyTemp?: InputMaybe<Scalars['Decimal']['input']>;
-  supplyTempSetpoint?: InputMaybe<Scalars['Decimal']['input']>;
-  systemType?: InputMaybe<EnergyIqSystemTypeDto>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqChillerInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqChillerInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqChillerMutationsDto = {
-  __typename?: 'EnergyIQChillerMutations';
-  /** Creates new entities of type 'EnergyIQChiller'. */
-  create?: Maybe<Array<Maybe<EnergyIqChillerDto>>>;
-  /** Updates existing entity of type 'EnergyIQChiller'. */
-  update?: Maybe<Array<Maybe<EnergyIqChillerDto>>>;
-};
-
-
-export type EnergyIqChillerMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqChillerInputDto>>;
-};
-
-
-export type EnergyIqChillerMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqChillerInputUpdateDto>>;
-};
-
-export type EnergyIqChillerUpdateDto = {
-  __typename?: 'EnergyIQChillerUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqChillerDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqChillerUpdateMessageDto = {
-  __typename?: 'EnergyIQChillerUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqChillerUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit enum 'EnergyIQ/DayOfWeek' */
-export enum EnergyIqDayOfWeekDto {
-  FridayDto = 'FRIDAY',
-  MondayDto = 'MONDAY',
-  SaturdayDto = 'SATURDAY',
-  SundayDto = 'SUNDAY',
-  ThursdayDto = 'THURSDAY',
-  TuesdayDto = 'TUESDAY',
-  WednesdayDto = 'WEDNESDAY'
-}
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorDto = BasicNamedEntityInterfaceDto & EnergyIqBuildingElementInterfaceDto & SystemEntityInterfaceDto & {
-  __typename?: 'EnergyIQDoor';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  containedElements?: Maybe<EnergyIqSpace_ContainedElementsUnionConnectionDto>;
-  containedInSpace?: Maybe<EnergyIqSpace_ContainedInSpaceUnionConnectionDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  isExternal?: Maybe<Scalars['Boolean']['output']>;
-  isLocked?: Maybe<Scalars['Boolean']['output']>;
-  isOpen?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  objectType?: Maybe<Scalars['String']['output']>;
-  overallHeight?: Maybe<Scalars['Decimal']['output']>;
-  overallWidth?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorContainedElementsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorContainedInSpaceArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Door-1' */
-export type EnergyIqDoorTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQDoor`. */
-export type EnergyIqDoorConnectionDto = {
-  __typename?: 'EnergyIQDoorConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqDoorEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqDoorDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQDoor`. */
-export type EnergyIqDoorEdgeDto = {
-  __typename?: 'EnergyIQDoorEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqDoorDto>;
-};
-
-export type EnergyIqDoorInputDto = {
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedElements?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedInSpace?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  globalId?: InputMaybe<Scalars['String']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  isExternal?: InputMaybe<Scalars['Boolean']['input']>;
-  isLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  isOpen?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  objectType?: InputMaybe<Scalars['String']['input']>;
-  overallHeight?: InputMaybe<Scalars['Decimal']['input']>;
-  overallWidth?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqDoorInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqDoorInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqDoorMutationsDto = {
-  __typename?: 'EnergyIQDoorMutations';
-  /** Creates new entities of type 'EnergyIQDoor'. */
-  create?: Maybe<Array<Maybe<EnergyIqDoorDto>>>;
-  /** Updates existing entity of type 'EnergyIQDoor'. */
-  update?: Maybe<Array<Maybe<EnergyIqDoorDto>>>;
-};
-
-
-export type EnergyIqDoorMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqDoorInputDto>>;
-};
-
-
-export type EnergyIqDoorMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqDoorInputUpdateDto>>;
-};
-
-export type EnergyIqDoorUpdateDto = {
-  __typename?: 'EnergyIQDoorUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqDoorDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqDoorUpdateMessageDto = {
-  __typename?: 'EnergyIQDoorUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqDoorUpdateDto>>>;
-};
-
-/** Union of types derived from EnergyIQ/Door for ContainedElements association */
-export type EnergyIqDoor_ContainedElementsUnionDto = EnergyIqDoorDto | EnergyIqLuminaireDto | EnergyIqShadingDeviceDto | EnergyIqWallDto | EnergyIqWindowDto;
-
-/** A connection to `EnergyIQDoor_ContainedElementsUnion`. */
-export type EnergyIqDoor_ContainedElementsUnionConnectionDto = {
-  __typename?: 'EnergyIQDoor_ContainedElementsUnionConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqDoor_ContainedElementsUnionEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqDoor_ContainedElementsUnionDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQDoor_ContainedElementsUnion`. */
-export type EnergyIqDoor_ContainedElementsUnionEdgeDto = {
-  __typename?: 'EnergyIQDoor_ContainedElementsUnionEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqDoor_ContainedElementsUnionDto>;
-};
-
-/** Runtime entities of construction kit record 'EnergyIQ/HaystackRef' */
-export type EnergyIqHaystackRefDto = {
-  __typename?: 'EnergyIQHaystackRef';
-  constructionKitType?: Maybe<CkTypeDto>;
-  refName: Scalars['String']['output'];
-  targetId: Scalars['String']['output'];
-};
-
-export type EnergyIqHaystackRefInputDto = {
-  refName?: InputMaybe<Scalars['String']['input']>;
-  targetId?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterDto = {
-  __typename?: 'EnergyIQInverter';
-  acPower?: Maybe<Scalars['Decimal']['output']>;
-  acVoltage?: Maybe<Scalars['Decimal']['output']>;
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  dcPower?: Maybe<Scalars['Decimal']['output']>;
-  dcVoltage?: Maybe<Scalars['Decimal']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  efficiency?: Maybe<Scalars['Decimal']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  frequency?: Maybe<Scalars['Decimal']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  identifier: Scalars['String']['output'];
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  ratedPower?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-  temperature?: Maybe<Scalars['Decimal']['output']>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Inverter-1' */
-export type EnergyIqInverterTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQInverter`. */
-export type EnergyIqInverterConnectionDto = {
-  __typename?: 'EnergyIQInverterConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqInverterEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqInverterDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQInverter`. */
-export type EnergyIqInverterEdgeDto = {
-  __typename?: 'EnergyIQInverterEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqInverterDto>;
-};
-
-export type EnergyIqInverterInputDto = {
-  acPower?: InputMaybe<Scalars['Decimal']['input']>;
-  acVoltage?: InputMaybe<Scalars['Decimal']['input']>;
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  dcPower?: InputMaybe<Scalars['Decimal']['input']>;
-  dcVoltage?: InputMaybe<Scalars['Decimal']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  efficiency?: InputMaybe<Scalars['Decimal']['input']>;
-  faultState?: InputMaybe<Scalars['Boolean']['input']>;
-  frequency?: InputMaybe<Scalars['Decimal']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  identifier?: InputMaybe<Scalars['String']['input']>;
-  isRunning?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  ratedPower?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  temperature?: InputMaybe<Scalars['Decimal']['input']>;
-};
-
-export type EnergyIqInverterInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqInverterInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqInverterMutationsDto = {
-  __typename?: 'EnergyIQInverterMutations';
-  /** Creates new entities of type 'EnergyIQInverter'. */
-  create?: Maybe<Array<Maybe<EnergyIqInverterDto>>>;
-  /** Updates existing entity of type 'EnergyIQInverter'. */
-  update?: Maybe<Array<Maybe<EnergyIqInverterDto>>>;
-};
-
-
-export type EnergyIqInverterMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqInverterInputDto>>;
-};
-
-
-export type EnergyIqInverterMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqInverterInputUpdateDto>>;
-};
-
-export type EnergyIqInverterUpdateDto = {
-  __typename?: 'EnergyIQInverterUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqInverterDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqInverterUpdateMessageDto = {
-  __typename?: 'EnergyIQInverterUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqInverterUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireDto = BasicNamedEntityInterfaceDto & EnergyIqBuildingElementInterfaceDto & SystemEntityInterfaceDto & {
-  __typename?: 'EnergyIQLuminaire';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  containedElements?: Maybe<EnergyIqSpace_ContainedElementsUnionConnectionDto>;
-  containedInSpace?: Maybe<EnergyIqSpace_ContainedInSpaceUnionConnectionDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  dimmingLevel?: Maybe<Scalars['Decimal']['output']>;
-  dimmingLevelSetpoint?: Maybe<Scalars['Decimal']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  isOn?: Maybe<Scalars['Boolean']['output']>;
-  luminaireType?: Maybe<EnergyIqLuminaireTypeDto>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  objectType?: Maybe<Scalars['String']['output']>;
-  ratedPower?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireContainedElementsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireContainedInSpaceArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Luminaire-1' */
-export type EnergyIqLuminaireTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQLuminaire`. */
-export type EnergyIqLuminaireConnectionDto = {
-  __typename?: 'EnergyIQLuminaireConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqLuminaireEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqLuminaireDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQLuminaire`. */
-export type EnergyIqLuminaireEdgeDto = {
-  __typename?: 'EnergyIQLuminaireEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqLuminaireDto>;
-};
-
-export type EnergyIqLuminaireInputDto = {
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedElements?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedInSpace?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  dimmingLevel?: InputMaybe<Scalars['Decimal']['input']>;
-  dimmingLevelSetpoint?: InputMaybe<Scalars['Decimal']['input']>;
-  globalId?: InputMaybe<Scalars['String']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  isOn?: InputMaybe<Scalars['Boolean']['input']>;
-  luminaireType?: InputMaybe<EnergyIqLuminaireTypeDto>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  objectType?: InputMaybe<Scalars['String']['input']>;
-  ratedPower?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqLuminaireInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqLuminaireInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqLuminaireMutationsDto = {
-  __typename?: 'EnergyIQLuminaireMutations';
-  /** Creates new entities of type 'EnergyIQLuminaire'. */
-  create?: Maybe<Array<Maybe<EnergyIqLuminaireDto>>>;
-  /** Updates existing entity of type 'EnergyIQLuminaire'. */
-  update?: Maybe<Array<Maybe<EnergyIqLuminaireDto>>>;
-};
-
-
-export type EnergyIqLuminaireMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqLuminaireInputDto>>;
-};
-
-
-export type EnergyIqLuminaireMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqLuminaireInputUpdateDto>>;
-};
-
-/** Runtime entities of construction kit enum 'EnergyIQ/LuminaireType' */
-export enum EnergyIqLuminaireTypeDto {
-  CeilingDto = 'CEILING',
-  DeskDto = 'DESK',
-  EmergencyDto = 'EMERGENCY',
-  FloorDto = 'FLOOR',
-  PendantDto = 'PENDANT',
-  RecessedDto = 'RECESSED',
-  WallDto = 'WALL'
-}
-
-export type EnergyIqLuminaireUpdateDto = {
-  __typename?: 'EnergyIQLuminaireUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqLuminaireDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqLuminaireUpdateMessageDto = {
-  __typename?: 'EnergyIQLuminaireUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqLuminaireUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit enum 'EnergyIQ/OperatingMode' */
-export enum EnergyIqOperatingModeDto {
-  AutoDto = 'AUTO',
-  ComfortDto = 'COMFORT',
-  EconomyDto = 'ECONOMY',
-  OffDto = 'OFF',
-  ProtectionDto = 'PROTECTION',
-  StandbyDto = 'STANDBY'
-}
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringDto = {
-  __typename?: 'EnergyIQPVString';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  currentPower?: Maybe<Scalars['Decimal']['output']>;
-  dcVoltage?: Maybe<Scalars['Decimal']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  energyProduced?: Maybe<Scalars['Decimal']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  identifier: Scalars['String']['output'];
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  moduleCount?: Maybe<Scalars['Int']['output']>;
-  moduleType?: Maybe<Scalars['String']['output']>;
-  name: Scalars['String']['output'];
-  orientation?: Maybe<Scalars['Decimal']['output']>;
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  ratedPower?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-  tilt?: Maybe<Scalars['Decimal']['output']>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PVString-1' */
-export type EnergyIqpvStringTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQPVString`. */
-export type EnergyIqpvStringConnectionDto = {
-  __typename?: 'EnergyIQPVStringConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqpvStringEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqpvStringDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQPVString`. */
-export type EnergyIqpvStringEdgeDto = {
-  __typename?: 'EnergyIQPVStringEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqpvStringDto>;
-};
-
-export type EnergyIqpvStringInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  currentPower?: InputMaybe<Scalars['Decimal']['input']>;
-  dcVoltage?: InputMaybe<Scalars['Decimal']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  energyProduced?: InputMaybe<Scalars['Decimal']['input']>;
-  faultState?: InputMaybe<Scalars['Boolean']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  identifier?: InputMaybe<Scalars['String']['input']>;
-  isRunning?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  moduleCount?: InputMaybe<Scalars['Int']['input']>;
-  moduleType?: InputMaybe<Scalars['String']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  orientation?: InputMaybe<Scalars['Decimal']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  ratedPower?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  tilt?: InputMaybe<Scalars['Decimal']['input']>;
-};
-
-export type EnergyIqpvStringInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqpvStringInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqpvStringMutationsDto = {
-  __typename?: 'EnergyIQPVStringMutations';
-  /** Creates new entities of type 'EnergyIQPVString'. */
-  create?: Maybe<Array<Maybe<EnergyIqpvStringDto>>>;
-  /** Updates existing entity of type 'EnergyIQPVString'. */
-  update?: Maybe<Array<Maybe<EnergyIqpvStringDto>>>;
-};
-
-
-export type EnergyIqpvStringMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqpvStringInputDto>>;
-};
-
-
-export type EnergyIqpvStringMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqpvStringInputUpdateDto>>;
-};
-
-export type EnergyIqpvStringUpdateDto = {
-  __typename?: 'EnergyIQPVStringUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqpvStringDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqpvStringUpdateMessageDto = {
-  __typename?: 'EnergyIQPVStringUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqpvStringUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemDto = {
-  __typename?: 'EnergyIQPhotovoltaicSystem';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  gridFeedIn?: Maybe<Scalars['Decimal']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  identifier: Scalars['String']['output'];
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  selfConsumption?: Maybe<Scalars['Decimal']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-  totalCurrentPower?: Maybe<Scalars['Decimal']['output']>;
-  totalEnergyProduced?: Maybe<Scalars['Decimal']['output']>;
-  totalRatedPower?: Maybe<Scalars['Decimal']['output']>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/PhotovoltaicSystem-1' */
-export type EnergyIqPhotovoltaicSystemTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQPhotovoltaicSystem`. */
-export type EnergyIqPhotovoltaicSystemConnectionDto = {
-  __typename?: 'EnergyIQPhotovoltaicSystemConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqPhotovoltaicSystemEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqPhotovoltaicSystemDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQPhotovoltaicSystem`. */
-export type EnergyIqPhotovoltaicSystemEdgeDto = {
-  __typename?: 'EnergyIQPhotovoltaicSystemEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqPhotovoltaicSystemDto>;
-};
-
-export type EnergyIqPhotovoltaicSystemInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  faultState?: InputMaybe<Scalars['Boolean']['input']>;
-  gridFeedIn?: InputMaybe<Scalars['Decimal']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  identifier?: InputMaybe<Scalars['String']['input']>;
-  isRunning?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  selfConsumption?: InputMaybe<Scalars['Decimal']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  totalCurrentPower?: InputMaybe<Scalars['Decimal']['input']>;
-  totalEnergyProduced?: InputMaybe<Scalars['Decimal']['input']>;
-  totalRatedPower?: InputMaybe<Scalars['Decimal']['input']>;
-};
-
-export type EnergyIqPhotovoltaicSystemInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqPhotovoltaicSystemInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqPhotovoltaicSystemMutationsDto = {
-  __typename?: 'EnergyIQPhotovoltaicSystemMutations';
-  /** Creates new entities of type 'EnergyIQPhotovoltaicSystem'. */
-  create?: Maybe<Array<Maybe<EnergyIqPhotovoltaicSystemDto>>>;
-  /** Updates existing entity of type 'EnergyIQPhotovoltaicSystem'. */
-  update?: Maybe<Array<Maybe<EnergyIqPhotovoltaicSystemDto>>>;
-};
-
-
-export type EnergyIqPhotovoltaicSystemMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqPhotovoltaicSystemInputDto>>;
-};
-
-
-export type EnergyIqPhotovoltaicSystemMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqPhotovoltaicSystemInputUpdateDto>>;
-};
-
-export type EnergyIqPhotovoltaicSystemUpdateDto = {
-  __typename?: 'EnergyIQPhotovoltaicSystemUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqPhotovoltaicSystemDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqPhotovoltaicSystemUpdateMessageDto = {
-  __typename?: 'EnergyIQPhotovoltaicSystemUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqPhotovoltaicSystemUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpDto = EnergyIqTechnicalSystemInterfaceDto & {
-  __typename?: 'EnergyIQPump';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  flowRate?: Maybe<Scalars['Decimal']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  identifier: Scalars['String']['output'];
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  powerConsumption?: Maybe<Scalars['Decimal']['output']>;
-  pressure?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  servedBy?: Maybe<EnergyIqSpace_ServedByUnionConnectionDto>;
-  servesSpaces?: Maybe<EnergyIqSpace_ServesSpacesUnionConnectionDto>;
-  speedSetpoint?: Maybe<Scalars['Decimal']['output']>;
-  systemType?: Maybe<EnergyIqSystemTypeDto>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpServedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpServesSpacesArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Pump-1' */
-export type EnergyIqPumpTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQPump`. */
-export type EnergyIqPumpConnectionDto = {
-  __typename?: 'EnergyIQPumpConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqPumpEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqPumpDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQPump`. */
-export type EnergyIqPumpEdgeDto = {
-  __typename?: 'EnergyIQPumpEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqPumpDto>;
-};
-
-export type EnergyIqPumpInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  faultState?: InputMaybe<Scalars['Boolean']['input']>;
-  flowRate?: InputMaybe<Scalars['Decimal']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  identifier?: InputMaybe<Scalars['String']['input']>;
-  isRunning?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  powerConsumption?: InputMaybe<Scalars['Decimal']['input']>;
-  pressure?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  servedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  servesSpaces?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  speedSetpoint?: InputMaybe<Scalars['Decimal']['input']>;
-  systemType?: InputMaybe<EnergyIqSystemTypeDto>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqPumpInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqPumpInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqPumpMutationsDto = {
-  __typename?: 'EnergyIQPumpMutations';
-  /** Creates new entities of type 'EnergyIQPump'. */
-  create?: Maybe<Array<Maybe<EnergyIqPumpDto>>>;
-  /** Updates existing entity of type 'EnergyIQPump'. */
-  update?: Maybe<Array<Maybe<EnergyIqPumpDto>>>;
-};
-
-
-export type EnergyIqPumpMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqPumpInputDto>>;
-};
-
-
-export type EnergyIqPumpMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqPumpInputUpdateDto>>;
-};
-
-export type EnergyIqPumpUpdateDto = {
-  __typename?: 'EnergyIQPumpUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqPumpDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqPumpUpdateMessageDto = {
-  __typename?: 'EnergyIQPumpUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqPumpUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit record 'EnergyIQ/ScheduleEntry' */
-export type EnergyIqScheduleEntryDto = {
-  __typename?: 'EnergyIQScheduleEntry';
-  constructionKitType?: Maybe<CkTypeDto>;
-  daysOfWeek: Array<Scalars['Int']['output']>;
-  endTime: Scalars['String']['output'];
-  mode: EnergyIqOperatingModeDto;
-  startTime: Scalars['String']['output'];
-};
-
-export type EnergyIqScheduleEntryInputDto = {
-  daysOfWeek?: InputMaybe<Array<Scalars['Int']['input']>>;
-  endTime?: InputMaybe<Scalars['String']['input']>;
-  mode?: InputMaybe<EnergyIqOperatingModeDto>;
-  startTime?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceDto = BasicNamedEntityInterfaceDto & EnergyIqBuildingElementInterfaceDto & SystemEntityInterfaceDto & {
-  __typename?: 'EnergyIQShadingDevice';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  containedElements?: Maybe<EnergyIqSpace_ContainedElementsUnionConnectionDto>;
-  containedInSpace?: Maybe<EnergyIqSpace_ContainedInSpaceUnionConnectionDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  objectType?: Maybe<Scalars['String']['output']>;
-  position?: Maybe<Scalars['Decimal']['output']>;
-  positionSetpoint?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  shadingType?: Maybe<EnergyIqShadingTypeDto>;
-  slatAngle?: Maybe<Scalars['Decimal']['output']>;
-  slatAngleSetpoint?: Maybe<Scalars['Decimal']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceContainedElementsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceContainedInSpaceArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/ShadingDevice-1' */
-export type EnergyIqShadingDeviceTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQShadingDevice`. */
-export type EnergyIqShadingDeviceConnectionDto = {
-  __typename?: 'EnergyIQShadingDeviceConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqShadingDeviceEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqShadingDeviceDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQShadingDevice`. */
-export type EnergyIqShadingDeviceEdgeDto = {
-  __typename?: 'EnergyIQShadingDeviceEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqShadingDeviceDto>;
-};
-
-export type EnergyIqShadingDeviceInputDto = {
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedElements?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedInSpace?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  globalId?: InputMaybe<Scalars['String']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  objectType?: InputMaybe<Scalars['String']['input']>;
-  position?: InputMaybe<Scalars['Decimal']['input']>;
-  positionSetpoint?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  shadingType?: InputMaybe<EnergyIqShadingTypeDto>;
-  slatAngle?: InputMaybe<Scalars['Decimal']['input']>;
-  slatAngleSetpoint?: InputMaybe<Scalars['Decimal']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqShadingDeviceInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqShadingDeviceInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqShadingDeviceMutationsDto = {
-  __typename?: 'EnergyIQShadingDeviceMutations';
-  /** Creates new entities of type 'EnergyIQShadingDevice'. */
-  create?: Maybe<Array<Maybe<EnergyIqShadingDeviceDto>>>;
-  /** Updates existing entity of type 'EnergyIQShadingDevice'. */
-  update?: Maybe<Array<Maybe<EnergyIqShadingDeviceDto>>>;
-};
-
-
-export type EnergyIqShadingDeviceMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqShadingDeviceInputDto>>;
-};
-
-
-export type EnergyIqShadingDeviceMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqShadingDeviceInputUpdateDto>>;
-};
-
-export type EnergyIqShadingDeviceUpdateDto = {
-  __typename?: 'EnergyIQShadingDeviceUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqShadingDeviceDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqShadingDeviceUpdateMessageDto = {
-  __typename?: 'EnergyIQShadingDeviceUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqShadingDeviceUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit enum 'EnergyIQ/ShadingType' */
-export enum EnergyIqShadingTypeDto {
-  AwningDto = 'AWNING',
-  BlindDto = 'BLIND',
-  CurtainDto = 'CURTAIN',
-  ScreenDto = 'SCREEN',
-  ShutterDto = 'SHUTTER'
-}
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Site-1' */
-export type EnergyIqSiteDto = BasicNamedEntityInterfaceDto & SystemEntityInterfaceDto & {
-  __typename?: 'EnergyIQSite';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  longName?: Maybe<Scalars['String']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  refElevation?: Maybe<Scalars['Decimal']['output']>;
-  refLatitude?: Maybe<Scalars['Decimal']['output']>;
-  refLongitude?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Site-1' */
-export type EnergyIqSiteAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Site-1' */
-export type EnergyIqSiteChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Site-1' */
-export type EnergyIqSiteConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Site-1' */
-export type EnergyIqSiteMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Site-1' */
-export type EnergyIqSiteMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Site-1' */
-export type EnergyIqSiteRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Site-1' */
-export type EnergyIqSiteRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Site-1' */
-export type EnergyIqSiteTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQSite`. */
-export type EnergyIqSiteConnectionDto = {
-  __typename?: 'EnergyIQSiteConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqSiteEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqSiteDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQSite`. */
-export type EnergyIqSiteEdgeDto = {
-  __typename?: 'EnergyIQSiteEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqSiteDto>;
-};
-
-export type EnergyIqSiteInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  globalId?: InputMaybe<Scalars['String']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  longName?: InputMaybe<Scalars['String']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  refElevation?: InputMaybe<Scalars['Decimal']['input']>;
-  refLatitude?: InputMaybe<Scalars['Decimal']['input']>;
-  refLongitude?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqSiteInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqSiteInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqSiteMutationsDto = {
-  __typename?: 'EnergyIQSiteMutations';
-  /** Creates new entities of type 'EnergyIQSite'. */
-  create?: Maybe<Array<Maybe<EnergyIqSiteDto>>>;
-  /** Updates existing entity of type 'EnergyIQSite'. */
-  update?: Maybe<Array<Maybe<EnergyIqSiteDto>>>;
-};
-
-
-export type EnergyIqSiteMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqSiteInputDto>>;
-};
-
-
-export type EnergyIqSiteMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqSiteInputUpdateDto>>;
-};
-
-export type EnergyIqSiteUpdateDto = {
-  __typename?: 'EnergyIQSiteUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqSiteDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqSiteUpdateMessageDto = {
-  __typename?: 'EnergyIQSiteUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqSiteUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceDto = {
-  __typename?: 'EnergyIQSpace';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  cO2Level?: Maybe<Scalars['Decimal']['output']>;
-  cO2Setpoint?: Maybe<Scalars['Decimal']['output']>;
-  ceilingHeight?: Maybe<Scalars['Decimal']['output']>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  containedElements?: Maybe<EnergyIqDoor_ContainedElementsUnionConnectionDto>;
-  containedInSpace?: Maybe<EnergyIqBuildingElement_ContainedInSpaceUnionConnectionDto>;
-  coolingValvePosition?: Maybe<Scalars['Decimal']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  designOccupancy?: Maybe<Scalars['Int']['output']>;
-  energyConsumptionCooling?: Maybe<Scalars['Decimal']['output']>;
-  energyConsumptionHeating?: Maybe<Scalars['Decimal']['output']>;
-  energyConsumptionLighting?: Maybe<Scalars['Decimal']['output']>;
-  energyConsumptionTotal?: Maybe<Scalars['Decimal']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  grossFloorArea?: Maybe<Scalars['Decimal']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  heatingValvePosition?: Maybe<Scalars['Decimal']['output']>;
-  humidity?: Maybe<Scalars['Decimal']['output']>;
-  illuminance?: Maybe<Scalars['Decimal']['output']>;
-  illuminanceSetpoint?: Maybe<Scalars['Decimal']['output']>;
-  lightingLevel?: Maybe<Scalars['Decimal']['output']>;
-  longName?: Maybe<Scalars['String']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  netFloorArea?: Maybe<Scalars['Decimal']['output']>;
-  occupancySchedule?: Maybe<Array<EnergyIqScheduleEntryDto>>;
-  operatingMode?: Maybe<EnergyIqOperatingModeDto>;
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  presenceDetected?: Maybe<Scalars['Boolean']['output']>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  roomIdentifier?: Maybe<Scalars['String']['output']>;
-  roomNumber?: Maybe<Scalars['String']['output']>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  servedBy?: Maybe<EnergyIqTechnicalSystem_ServedByUnionConnectionDto>;
-  servesSpaces?: Maybe<EnergyIqAirHandlingUnit_ServesSpacesUnionConnectionDto>;
-  shadingPosition?: Maybe<Scalars['Decimal']['output']>;
-  spaceType?: Maybe<EnergyIqSpaceTypeDto>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-  temperature?: Maybe<Scalars['Decimal']['output']>;
-  temperatureSetpointCooling?: Maybe<Scalars['Decimal']['output']>;
-  temperatureSetpointHeating?: Maybe<Scalars['Decimal']['output']>;
-  ventilationLevel?: Maybe<Scalars['Decimal']['output']>;
-  windowOpen?: Maybe<Scalars['Boolean']['output']>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceContainedElementsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceContainedInSpaceArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceServedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceServesSpacesArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Space-1' */
-export type EnergyIqSpaceTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQSpace`. */
-export type EnergyIqSpaceConnectionDto = {
-  __typename?: 'EnergyIQSpaceConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqSpaceEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqSpaceDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQSpace`. */
-export type EnergyIqSpaceEdgeDto = {
-  __typename?: 'EnergyIQSpaceEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqSpaceDto>;
-};
-
-export type EnergyIqSpaceInputDto = {
-  cO2Level?: InputMaybe<Scalars['Decimal']['input']>;
-  cO2Setpoint?: InputMaybe<Scalars['Decimal']['input']>;
-  ceilingHeight?: InputMaybe<Scalars['Decimal']['input']>;
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedElements?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedInSpace?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  coolingValvePosition?: InputMaybe<Scalars['Decimal']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  designOccupancy?: InputMaybe<Scalars['Int']['input']>;
-  energyConsumptionCooling?: InputMaybe<Scalars['Decimal']['input']>;
-  energyConsumptionHeating?: InputMaybe<Scalars['Decimal']['input']>;
-  energyConsumptionLighting?: InputMaybe<Scalars['Decimal']['input']>;
-  energyConsumptionTotal?: InputMaybe<Scalars['Decimal']['input']>;
-  globalId?: InputMaybe<Scalars['String']['input']>;
-  grossFloorArea?: InputMaybe<Scalars['Decimal']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  heatingValvePosition?: InputMaybe<Scalars['Decimal']['input']>;
-  humidity?: InputMaybe<Scalars['Decimal']['input']>;
-  illuminance?: InputMaybe<Scalars['Decimal']['input']>;
-  illuminanceSetpoint?: InputMaybe<Scalars['Decimal']['input']>;
-  lightingLevel?: InputMaybe<Scalars['Decimal']['input']>;
-  longName?: InputMaybe<Scalars['String']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  netFloorArea?: InputMaybe<Scalars['Decimal']['input']>;
-  occupancySchedule?: InputMaybe<Array<InputMaybe<EnergyIqScheduleEntryInputDto>>>;
-  operatingMode?: InputMaybe<EnergyIqOperatingModeDto>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  presenceDetected?: InputMaybe<Scalars['Boolean']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  roomIdentifier?: InputMaybe<Scalars['String']['input']>;
-  roomNumber?: InputMaybe<Scalars['String']['input']>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  servedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  servesSpaces?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  shadingPosition?: InputMaybe<Scalars['Decimal']['input']>;
-  spaceType?: InputMaybe<EnergyIqSpaceTypeDto>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  temperature?: InputMaybe<Scalars['Decimal']['input']>;
-  temperatureSetpointCooling?: InputMaybe<Scalars['Decimal']['input']>;
-  temperatureSetpointHeating?: InputMaybe<Scalars['Decimal']['input']>;
-  ventilationLevel?: InputMaybe<Scalars['Decimal']['input']>;
-  windowOpen?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type EnergyIqSpaceInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqSpaceInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqSpaceMutationsDto = {
-  __typename?: 'EnergyIQSpaceMutations';
-  /** Creates new entities of type 'EnergyIQSpace'. */
-  create?: Maybe<Array<Maybe<EnergyIqSpaceDto>>>;
-  /** Updates existing entity of type 'EnergyIQSpace'. */
-  update?: Maybe<Array<Maybe<EnergyIqSpaceDto>>>;
-};
-
-
-export type EnergyIqSpaceMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqSpaceInputDto>>;
-};
-
-
-export type EnergyIqSpaceMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqSpaceInputUpdateDto>>;
-};
-
-/** Runtime entities of construction kit enum 'EnergyIQ/SpaceType' */
-export enum EnergyIqSpaceTypeDto {
-  CorridorDto = 'CORRIDOR',
-  ElevatorDto = 'ELEVATOR',
-  KitchenDto = 'KITCHEN',
-  LaboratoryDto = 'LABORATORY',
-  LobbyDto = 'LOBBY',
-  MeetingRoomDto = 'MEETING_ROOM',
-  OfficeDto = 'OFFICE',
-  OtherDto = 'OTHER',
-  ParkingDto = 'PARKING',
-  ServerRoomDto = 'SERVER_ROOM',
-  StaircaseDto = 'STAIRCASE',
-  StorageDto = 'STORAGE',
-  TechnicalRoomDto = 'TECHNICAL_ROOM',
-  ToiletDto = 'TOILET',
-  WorkshopDto = 'WORKSHOP'
-}
-
-export type EnergyIqSpaceUpdateDto = {
-  __typename?: 'EnergyIQSpaceUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqSpaceDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqSpaceUpdateMessageDto = {
-  __typename?: 'EnergyIQSpaceUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqSpaceUpdateDto>>>;
-};
-
-/** Union of types derived from EnergyIQ/Space for ContainedElements association */
-export type EnergyIqSpace_ContainedElementsUnionDto = EnergyIqSpaceDto;
-
-/** A connection to `EnergyIQSpace_ContainedElementsUnion`. */
-export type EnergyIqSpace_ContainedElementsUnionConnectionDto = {
-  __typename?: 'EnergyIQSpace_ContainedElementsUnionConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqSpace_ContainedElementsUnionEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqSpace_ContainedElementsUnionDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQSpace_ContainedElementsUnion`. */
-export type EnergyIqSpace_ContainedElementsUnionEdgeDto = {
-  __typename?: 'EnergyIQSpace_ContainedElementsUnionEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqSpace_ContainedElementsUnionDto>;
-};
-
-/** Union of types derived from EnergyIQ/Space for ContainedInSpace association */
-export type EnergyIqSpace_ContainedInSpaceUnionDto = EnergyIqSpaceDto;
-
-/** A connection to `EnergyIQSpace_ContainedInSpaceUnion`. */
-export type EnergyIqSpace_ContainedInSpaceUnionConnectionDto = {
-  __typename?: 'EnergyIQSpace_ContainedInSpaceUnionConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqSpace_ContainedInSpaceUnionEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqSpace_ContainedInSpaceUnionDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQSpace_ContainedInSpaceUnion`. */
-export type EnergyIqSpace_ContainedInSpaceUnionEdgeDto = {
-  __typename?: 'EnergyIQSpace_ContainedInSpaceUnionEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqSpace_ContainedInSpaceUnionDto>;
-};
-
-/** Union of types derived from EnergyIQ/Space for ServedBy association */
-export type EnergyIqSpace_ServedByUnionDto = EnergyIqSpaceDto;
-
-/** A connection to `EnergyIQSpace_ServedByUnion`. */
-export type EnergyIqSpace_ServedByUnionConnectionDto = {
-  __typename?: 'EnergyIQSpace_ServedByUnionConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqSpace_ServedByUnionEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqSpace_ServedByUnionDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQSpace_ServedByUnion`. */
-export type EnergyIqSpace_ServedByUnionEdgeDto = {
-  __typename?: 'EnergyIQSpace_ServedByUnionEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqSpace_ServedByUnionDto>;
-};
-
-/** Union of types derived from EnergyIQ/Space for ServesSpaces association */
-export type EnergyIqSpace_ServesSpacesUnionDto = EnergyIqSpaceDto;
-
-/** A connection to `EnergyIQSpace_ServesSpacesUnion`. */
-export type EnergyIqSpace_ServesSpacesUnionConnectionDto = {
-  __typename?: 'EnergyIQSpace_ServesSpacesUnionConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqSpace_ServesSpacesUnionEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqSpace_ServesSpacesUnionDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQSpace_ServesSpacesUnion`. */
-export type EnergyIqSpace_ServesSpacesUnionEdgeDto = {
-  __typename?: 'EnergyIQSpace_ServesSpacesUnionEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqSpace_ServesSpacesUnionDto>;
-};
-
-/** Runtime entities of construction kit enum 'EnergyIQ/SystemType' */
-export enum EnergyIqSystemTypeDto {
-  CombinedDto = 'COMBINED',
-  CoolingDto = 'COOLING',
-  HeatingDto = 'HEATING',
-  LightingDto = 'LIGHTING',
-  ShadingDto = 'SHADING',
-  VentilationDto = 'VENTILATION'
-}
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemDto = {
-  __typename?: 'EnergyIQTechnicalSystem';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  identifier: Scalars['String']['output'];
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  servesSpaces?: Maybe<EnergyIqSpace_ServesSpacesUnionConnectionDto>;
-  systemType?: Maybe<EnergyIqSystemTypeDto>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemServesSpacesArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQTechnicalSystem`. */
-export type EnergyIqTechnicalSystemConnectionDto = {
-  __typename?: 'EnergyIQTechnicalSystemConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqTechnicalSystemEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqTechnicalSystemDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQTechnicalSystem`. */
-export type EnergyIqTechnicalSystemEdgeDto = {
-  __typename?: 'EnergyIQTechnicalSystemEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqTechnicalSystemDto>;
-};
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceDto = {
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  faultState?: Maybe<Scalars['Boolean']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  identifier: Scalars['String']['output'];
-  isRunning?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  servesSpaces?: Maybe<EnergyIqSpace_ServesSpacesUnionConnectionDto>;
-  systemType?: Maybe<EnergyIqSystemTypeDto>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceServesSpacesArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Interface for runtime entities of construction kit type 'EnergyIQ-1.0.1/TechnicalSystem-1' */
-export type EnergyIqTechnicalSystemInterfaceTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-export type EnergyIqTechnicalSystemUpdateDto = {
-  __typename?: 'EnergyIQTechnicalSystemUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqTechnicalSystemDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqTechnicalSystemUpdateMessageDto = {
-  __typename?: 'EnergyIQTechnicalSystemUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqTechnicalSystemUpdateDto>>>;
-};
-
-/** Union of types derived from EnergyIQ/TechnicalSystem for ServedBy association */
-export type EnergyIqTechnicalSystem_ServedByUnionDto = EnergyIqAirHandlingUnitDto | EnergyIqBoilerDto | EnergyIqChillerDto | EnergyIqPumpDto;
-
-/** A connection to `EnergyIQTechnicalSystem_ServedByUnion`. */
-export type EnergyIqTechnicalSystem_ServedByUnionConnectionDto = {
-  __typename?: 'EnergyIQTechnicalSystem_ServedByUnionConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqTechnicalSystem_ServedByUnionEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqTechnicalSystem_ServedByUnionDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQTechnicalSystem_ServedByUnion`. */
-export type EnergyIqTechnicalSystem_ServedByUnionEdgeDto = {
-  __typename?: 'EnergyIQTechnicalSystem_ServedByUnionEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqTechnicalSystem_ServedByUnionDto>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallDto = BasicNamedEntityInterfaceDto & EnergyIqBuildingElementInterfaceDto & SystemEntityInterfaceDto & {
-  __typename?: 'EnergyIQWall';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  containedElements?: Maybe<EnergyIqSpace_ContainedElementsUnionConnectionDto>;
-  containedInSpace?: Maybe<EnergyIqSpace_ContainedInSpaceUnionConnectionDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  objectType?: Maybe<Scalars['String']['output']>;
-  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallContainedElementsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallContainedInSpaceArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Wall-1' */
-export type EnergyIqWallTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQWall`. */
-export type EnergyIqWallConnectionDto = {
-  __typename?: 'EnergyIQWallConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqWallEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqWallDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQWall`. */
-export type EnergyIqWallEdgeDto = {
-  __typename?: 'EnergyIQWallEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqWallDto>;
-};
-
-export type EnergyIqWallInputDto = {
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedElements?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedInSpace?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  globalId?: InputMaybe<Scalars['String']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  objectType?: InputMaybe<Scalars['String']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqWallInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqWallInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqWallMutationsDto = {
-  __typename?: 'EnergyIQWallMutations';
-  /** Creates new entities of type 'EnergyIQWall'. */
-  create?: Maybe<Array<Maybe<EnergyIqWallDto>>>;
-  /** Updates existing entity of type 'EnergyIQWall'. */
-  update?: Maybe<Array<Maybe<EnergyIqWallDto>>>;
-};
-
-
-export type EnergyIqWallMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqWallInputDto>>;
-};
-
-
-export type EnergyIqWallMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqWallInputUpdateDto>>;
-};
-
-export type EnergyIqWallUpdateDto = {
-  __typename?: 'EnergyIQWallUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqWallDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqWallUpdateMessageDto = {
-  __typename?: 'EnergyIQWallUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqWallUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowDto = BasicNamedEntityInterfaceDto & EnergyIqBuildingElementInterfaceDto & SystemEntityInterfaceDto & {
-  __typename?: 'EnergyIQWindow';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  containedElements?: Maybe<EnergyIqSpace_ContainedElementsUnionConnectionDto>;
-  containedInSpace?: Maybe<EnergyIqSpace_ContainedInSpaceUnionConnectionDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  globalId?: Maybe<Scalars['String']['output']>;
-  haystackMeta?: Maybe<Scalars['String']['output']>;
-  haystackRefs?: Maybe<Array<EnergyIqHaystackRefDto>>;
-  haystackTags?: Maybe<Array<Scalars['String']['output']>>;
-  isOpen?: Maybe<Scalars['Boolean']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  objectType?: Maybe<Scalars['String']['output']>;
-  openingPosition?: Maybe<Scalars['Decimal']['output']>;
-  overallHeight?: Maybe<Scalars['Decimal']['output']>;
-  overallWidth?: Maybe<Scalars['Decimal']['output']>;
-  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowContainedElementsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowContainedInSpaceArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'EnergyIQ-1.0.1/Window-1' */
-export type EnergyIqWindowTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `EnergyIQWindow`. */
-export type EnergyIqWindowConnectionDto = {
-  __typename?: 'EnergyIQWindowConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<EnergyIqWindowEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<EnergyIqWindowDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `EnergyIQWindow`. */
-export type EnergyIqWindowEdgeDto = {
-  __typename?: 'EnergyIQWindowEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<EnergyIqWindowDto>;
-};
-
-export type EnergyIqWindowInputDto = {
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedElements?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  containedInSpace?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  globalId?: InputMaybe<Scalars['String']['input']>;
-  haystackMeta?: InputMaybe<Scalars['String']['input']>;
-  haystackRefs?: InputMaybe<Array<InputMaybe<EnergyIqHaystackRefInputDto>>>;
-  haystackTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  isOpen?: InputMaybe<Scalars['Boolean']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  objectType?: InputMaybe<Scalars['String']['input']>;
-  openingPosition?: InputMaybe<Scalars['Decimal']['input']>;
-  overallHeight?: InputMaybe<Scalars['Decimal']['input']>;
-  overallWidth?: InputMaybe<Scalars['Decimal']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type EnergyIqWindowInputUpdateDto = {
-  /** Item to update */
-  item: EnergyIqWindowInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type EnergyIqWindowMutationsDto = {
-  __typename?: 'EnergyIQWindowMutations';
-  /** Creates new entities of type 'EnergyIQWindow'. */
-  create?: Maybe<Array<Maybe<EnergyIqWindowDto>>>;
-  /** Updates existing entity of type 'EnergyIQWindow'. */
-  update?: Maybe<Array<Maybe<EnergyIqWindowDto>>>;
-};
-
-
-export type EnergyIqWindowMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqWindowInputDto>>;
-};
-
-
-export type EnergyIqWindowMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<EnergyIqWindowInputUpdateDto>>;
-};
-
-export type EnergyIqWindowUpdateDto = {
-  __typename?: 'EnergyIQWindowUpdate';
-  /** The corresponding item */
-  item?: Maybe<EnergyIqWindowDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type EnergyIqWindowUpdateMessageDto = {
-  __typename?: 'EnergyIQWindowUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<EnergyIqWindowUpdateDto>>>;
-};
-
 export type FieldFilterDto = {
   attributePath: Scalars['String']['input'];
   comparisonValue?: InputMaybe<Scalars['SimpleScalar']['input']>;
@@ -9332,6 +3863,7 @@ export type IndustryBasicAlarmDto = BasicNamedEntityInterfaceDto & SystemEntityI
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   message: Scalars['String']['output'];
   name: Scalars['String']['output'];
+  order?: Maybe<IndustryMaintenanceOrder_OrderUnionConnectionDto>;
   priority: IndustryBasicAlarmPriorityDto;
   reactivated?: Maybe<Scalars['DateTime']['output']>;
   reactivatedCount: Scalars['Int']['output'];
@@ -9426,6 +3958,20 @@ export type IndustryBasicAlarmMapsToArgsDto = {
 
 
 /** Runtime entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
+export type IndustryBasicAlarmOrderArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Basic-2.1.0/Alarm-1' */
 export type IndustryBasicAlarmRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -9505,6 +4051,7 @@ export type IndustryBasicAlarmInputDto = {
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   message?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  order?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   priority?: InputMaybe<IndustryBasicAlarmPriorityDto>;
   reactivated?: InputMaybe<Scalars['DateTime']['input']>;
   reactivatedCount?: InputMaybe<Scalars['Int']['input']>;
@@ -9659,6 +4206,7 @@ export type IndustryBasicEventDto = BasicNamedEntityInterfaceDto & SystemEntityI
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   message: Scalars['String']['output'];
   name: Scalars['String']['output'];
+  order?: Maybe<IndustryMaintenanceOrder_OrderUnionConnectionDto>;
   received: Scalars['DateTime']['output'];
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
@@ -9747,6 +4295,20 @@ export type IndustryBasicEventMapsToArgsDto = {
 
 
 /** Runtime entities of construction kit type 'Industry.Basic-2.1.0/Event-1' */
+export type IndustryBasicEventOrderArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Basic-2.1.0/Event-1' */
 export type IndustryBasicEventRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -9822,6 +4384,7 @@ export type IndustryBasicEventInputDto = {
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   message?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  order?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   received?: InputMaybe<Scalars['DateTime']['input']>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -9868,6 +4431,35 @@ export type IndustryBasicEventUpdateMessageDto = {
   __typename?: 'IndustryBasicEventUpdateMessage';
   /** The corresponding items */
   items?: Maybe<Array<Maybe<IndustryBasicEventUpdateDto>>>;
+};
+
+/** Union of types derived from Industry.Basic/Event for Event association */
+export type IndustryBasicEvent_EventUnionDto = IndustryBasicAlarmDto | IndustryBasicEventDto;
+
+/** A connection to `IndustryBasicEvent_EventUnion`. */
+export type IndustryBasicEvent_EventUnionConnectionDto = {
+  __typename?: 'IndustryBasicEvent_EventUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryBasicEvent_EventUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryBasicEvent_EventUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryBasicEvent_EventUnion`. */
+export type IndustryBasicEvent_EventUnionEdgeDto = {
+  __typename?: 'IndustryBasicEvent_EventUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryBasicEvent_EventUnionDto>;
 };
 
 /** Union of types derived from Industry.Basic/Event for Events association */
@@ -9962,6 +4554,7 @@ export type IndustryBasicMachineDto = {
   name: Scalars['String']['output'];
   namePlate?: Maybe<BasicNamePlateDto>;
   operatingHours?: Maybe<Scalars['Int']['output']>;
+  orders?: Maybe<IndustryMaintenanceOrder_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<BasicTreeNode_RelatesToUnionConnectionDto>;
@@ -10052,6 +4645,20 @@ export type IndustryBasicMachineMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Industry.Basic-2.1.0/Machine-1' */
 export type IndustryBasicMachineMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Basic-2.1.0/Machine-1' */
+export type IndustryBasicMachineOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -10176,6 +4783,7 @@ export type IndustryBasicMachineInputDto = {
   name?: InputMaybe<Scalars['String']['input']>;
   namePlate?: InputMaybe<BasicNamePlateInputDto>;
   operatingHours?: InputMaybe<Scalars['Int']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -10235,7 +4843,7 @@ export type IndustryBasicMachineUpdateMessageDto = {
 };
 
 /** Union of types derived from Industry.Basic/Machine for Machine association */
-export type IndustryBasicMachine_MachineUnionDto = IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemModuleDto;
+export type IndustryBasicMachine_MachineUnionDto = IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto;
 
 /** A connection to `IndustryBasicMachine_MachineUnion`. */
 export type IndustryBasicMachine_MachineUnionConnectionDto = {
@@ -10788,6 +5396,7 @@ export type IndustryEnergyEnergyConsumerDto = {
   namePlate?: Maybe<BasicNamePlateDto>;
   nominalPower: Scalars['Decimal']['output'];
   operatingHours?: Maybe<Scalars['Int']['output']>;
+  orders?: Maybe<IndustryMaintenanceOrder_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   power: Scalars['Decimal']['output'];
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
@@ -10879,6 +5488,20 @@ export type IndustryEnergyEnergyConsumerMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
 export type IndustryEnergyEnergyConsumerMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Energy-3.1.0/EnergyConsumer-1' */
+export type IndustryEnergyEnergyConsumerOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -11001,6 +5624,7 @@ export type IndustryEnergyEnergyConsumerInputDto = {
   namePlate?: InputMaybe<BasicNamePlateInputDto>;
   nominalPower?: InputMaybe<Scalars['Decimal']['input']>;
   operatingHours?: InputMaybe<Scalars['Int']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   power?: InputMaybe<Scalars['Decimal']['input']>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -11518,6 +6142,7 @@ export type IndustryEnergyEnergyMeterDto = {
   name: Scalars['String']['output'];
   namePlate?: Maybe<BasicNamePlateDto>;
   operatingHours?: Maybe<Scalars['Int']['output']>;
+  orders?: Maybe<IndustryMaintenanceOrder_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   power: Scalars['Decimal']['output'];
   reactivePower?: Maybe<Scalars['Decimal']['output']>;
@@ -11611,6 +6236,20 @@ export type IndustryEnergyEnergyMeterMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
 export type IndustryEnergyEnergyMeterMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Energy-3.1.0/EnergyMeter-1' */
+export type IndustryEnergyEnergyMeterOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -11738,6 +6377,7 @@ export type IndustryEnergyEnergyMeterInputDto = {
   name?: InputMaybe<Scalars['String']['input']>;
   namePlate?: InputMaybe<BasicNamePlateInputDto>;
   operatingHours?: InputMaybe<Scalars['Int']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   power?: InputMaybe<Scalars['Decimal']['input']>;
   reactivePower?: InputMaybe<Scalars['Decimal']['input']>;
@@ -12037,6 +6677,7 @@ export type IndustryEnergyEnergyStorageDto = {
   namePlate?: Maybe<BasicNamePlateDto>;
   numOfCycles?: Maybe<Scalars['Int']['output']>;
   operatingHours?: Maybe<Scalars['Int']['output']>;
+  orders?: Maybe<IndustryMaintenanceOrder_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   power: Scalars['Decimal']['output'];
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
@@ -12132,6 +6773,20 @@ export type IndustryEnergyEnergyStorageMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
 export type IndustryEnergyEnergyStorageMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Energy-3.1.0/EnergyStorage-1' */
+export type IndustryEnergyEnergyStorageOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -12256,6 +6911,7 @@ export type IndustryEnergyEnergyStorageInputDto = {
   namePlate?: InputMaybe<BasicNamePlateInputDto>;
   numOfCycles?: InputMaybe<Scalars['Int']['input']>;
   operatingHours?: InputMaybe<Scalars['Int']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   power?: InputMaybe<Scalars['Decimal']['input']>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -12334,6 +6990,7 @@ export type IndustryEnergyInverterDto = {
   name: Scalars['String']['output'];
   namePlate?: Maybe<BasicNamePlateDto>;
   operatingHours?: Maybe<Scalars['Int']['output']>;
+  orders?: Maybe<IndustryMaintenanceOrder_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   power: Scalars['Decimal']['output'];
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
@@ -12426,6 +7083,20 @@ export type IndustryEnergyInverterMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
 export type IndustryEnergyInverterMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Energy-3.1.0/Inverter-1' */
+export type IndustryEnergyInverterOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -12552,6 +7223,7 @@ export type IndustryEnergyInverterInputDto = {
   name?: InputMaybe<Scalars['String']['input']>;
   namePlate?: InputMaybe<BasicNamePlateInputDto>;
   operatingHours?: InputMaybe<Scalars['Int']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   power?: InputMaybe<Scalars['Decimal']['input']>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -12633,6 +7305,7 @@ export type IndustryEnergyPhotovoltaicSystemDto = {
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<BasicTreeNode_RelatesToUnionConnectionDto>;
@@ -12734,6 +7407,20 @@ export type IndustryEnergyPhotovoltaicSystemMapsToArgsDto = {
 
 
 /** Runtime entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem-1' */
+export type IndustryEnergyPhotovoltaicSystemOrdersArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem-1' */
 export type IndustryEnergyPhotovoltaicSystemParentArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -12822,6 +7509,7 @@ export type IndustryEnergyPhotovoltaicSystemInputDto = {
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -12855,6 +7543,7 @@ export type IndustryEnergyPhotovoltaicSystemModuleDto = {
   name: Scalars['String']['output'];
   namePlate?: Maybe<BasicNamePlateDto>;
   operatingHours?: Maybe<Scalars['Int']['output']>;
+  orders?: Maybe<IndustryMaintenanceOrder_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   peakPower: Scalars['Decimal']['output'];
   power?: Maybe<Scalars['Decimal']['output']>;
@@ -12947,6 +7636,20 @@ export type IndustryEnergyPhotovoltaicSystemModuleMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.Module-1' */
 export type IndustryEnergyPhotovoltaicSystemModuleMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.Module-1' */
+export type IndustryEnergyPhotovoltaicSystemModuleOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -13066,6 +7769,7 @@ export type IndustryEnergyPhotovoltaicSystemModuleInputDto = {
   name?: InputMaybe<Scalars['String']['input']>;
   namePlate?: InputMaybe<BasicNamePlateInputDto>;
   operatingHours?: InputMaybe<Scalars['Int']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   peakPower?: InputMaybe<Scalars['Decimal']['input']>;
   power?: InputMaybe<Scalars['Decimal']['input']>;
@@ -13149,6 +7853,7 @@ export type IndustryEnergyPhotovoltaicSystemStringDto = {
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name: Scalars['String']['output'];
   numOfModules: Scalars['Int']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   power?: Maybe<Scalars['Decimal']['output']>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
@@ -13251,6 +7956,20 @@ export type IndustryEnergyPhotovoltaicSystemStringMapsToArgsDto = {
 
 
 /** Runtime entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.String-1' */
+export type IndustryEnergyPhotovoltaicSystemStringOrdersArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Energy-3.1.0/PhotovoltaicSystem.String-1' */
 export type IndustryEnergyPhotovoltaicSystemStringParentArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -13340,6 +8059,7 @@ export type IndustryEnergyPhotovoltaicSystemStringInputDto = {
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   name?: InputMaybe<Scalars['String']['input']>;
   numOfModules?: InputMaybe<Scalars['Int']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   power?: InputMaybe<Scalars['Decimal']['input']>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -13408,6 +8128,3250 @@ export enum IndustryEnergyTariffTypeDto {
   StandardDto = 'STANDARD'
 }
 
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterDto = {
+  __typename?: 'IndustryFluidHeatMeter';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  description?: Maybe<Scalars['String']['output']>;
+  events?: Maybe<IndustryBasicEvent_EventsUnionConnectionDto>;
+  flow?: Maybe<Scalars['Decimal']['output']>;
+  flowTemperature?: Maybe<Scalars['Decimal']['output']>;
+  importedEnergy: Scalars['Decimal']['output'];
+  machineCapabilities?: Maybe<IndustryBasicMachineCapabilitiesDto>;
+  machineState: IndustryBasicMachineStateDto;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name: Scalars['String']['output'];
+  namePlate?: Maybe<BasicNamePlateDto>;
+  operatingHours?: Maybe<Scalars['Int']['output']>;
+  orders?: Maybe<IndustryMaintenanceOrder_OrdersUnionConnectionDto>;
+  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
+  power?: Maybe<Scalars['Decimal']['output']>;
+  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<BasicTreeNode_RelatesToUnionConnectionDto>;
+  returnTemperature?: Maybe<Scalars['Decimal']['output']>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  runtimeVariables?: Maybe<IndustryBasicRuntimeVariable_RuntimeVariablesUnionConnectionDto>;
+  standStillCounter?: Maybe<Scalars['Int']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  volume?: Maybe<Scalars['Decimal']['output']>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterChildrenArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterEventsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterOrdersArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterParentArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterRuntimeVariablesArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/HeatMeter-1' */
+export type IndustryFluidHeatMeterTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryFluidHeatMeter`. */
+export type IndustryFluidHeatMeterConnectionDto = {
+  __typename?: 'IndustryFluidHeatMeterConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryFluidHeatMeterEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryFluidHeatMeterDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryFluidHeatMeter`. */
+export type IndustryFluidHeatMeterEdgeDto = {
+  __typename?: 'IndustryFluidHeatMeterEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryFluidHeatMeterDto>;
+};
+
+export type IndustryFluidHeatMeterInputDto = {
+  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  events?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  flow?: InputMaybe<Scalars['Decimal']['input']>;
+  flowTemperature?: InputMaybe<Scalars['Decimal']['input']>;
+  importedEnergy?: InputMaybe<Scalars['Decimal']['input']>;
+  machineCapabilities?: InputMaybe<IndustryBasicMachineCapabilitiesDto>;
+  machineState?: InputMaybe<IndustryBasicMachineStateDto>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  namePlate?: InputMaybe<BasicNamePlateInputDto>;
+  operatingHours?: InputMaybe<Scalars['Int']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  power?: InputMaybe<Scalars['Decimal']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  returnTemperature?: InputMaybe<Scalars['Decimal']['input']>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  runtimeVariables?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  standStillCounter?: InputMaybe<Scalars['Int']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  volume?: InputMaybe<Scalars['Decimal']['input']>;
+};
+
+export type IndustryFluidHeatMeterInputUpdateDto = {
+  /** Item to update */
+  item: IndustryFluidHeatMeterInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryFluidHeatMeterMutationsDto = {
+  __typename?: 'IndustryFluidHeatMeterMutations';
+  /** Creates new entities of type 'IndustryFluidHeatMeter'. */
+  create?: Maybe<Array<Maybe<IndustryFluidHeatMeterDto>>>;
+  /** Updates existing entity of type 'IndustryFluidHeatMeter'. */
+  update?: Maybe<Array<Maybe<IndustryFluidHeatMeterDto>>>;
+};
+
+
+export type IndustryFluidHeatMeterMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryFluidHeatMeterInputDto>>;
+};
+
+
+export type IndustryFluidHeatMeterMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryFluidHeatMeterInputUpdateDto>>;
+};
+
+export type IndustryFluidHeatMeterUpdateDto = {
+  __typename?: 'IndustryFluidHeatMeterUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryFluidHeatMeterDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryFluidHeatMeterUpdateMessageDto = {
+  __typename?: 'IndustryFluidHeatMeterUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryFluidHeatMeterUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterDto = {
+  __typename?: 'IndustryFluidWaterMeter';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  avgWaterTemperature?: Maybe<Scalars['Decimal']['output']>;
+  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  description?: Maybe<Scalars['String']['output']>;
+  events?: Maybe<IndustryBasicEvent_EventsUnionConnectionDto>;
+  machineCapabilities?: Maybe<IndustryBasicMachineCapabilitiesDto>;
+  machineState: IndustryBasicMachineStateDto;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  maxWaterTemperature?: Maybe<Scalars['Decimal']['output']>;
+  minWaterTemperature?: Maybe<Scalars['Decimal']['output']>;
+  name: Scalars['String']['output'];
+  namePlate?: Maybe<BasicNamePlateDto>;
+  netVolume: Scalars['Decimal']['output'];
+  operatingHours?: Maybe<Scalars['Int']['output']>;
+  orders?: Maybe<IndustryMaintenanceOrder_OrdersUnionConnectionDto>;
+  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
+  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<BasicTreeNode_RelatesToUnionConnectionDto>;
+  reverseVolume?: Maybe<Scalars['Decimal']['output']>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  runtimeVariables?: Maybe<IndustryBasicRuntimeVariable_RuntimeVariablesUnionConnectionDto>;
+  standStillCounter?: Maybe<Scalars['Int']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  volume?: Maybe<Scalars['Decimal']['output']>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterChildrenArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterEventsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterOrdersArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterParentArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterRuntimeVariablesArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Fluid-2.0.0/WaterMeter-1' */
+export type IndustryFluidWaterMeterTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryFluidWaterMeter`. */
+export type IndustryFluidWaterMeterConnectionDto = {
+  __typename?: 'IndustryFluidWaterMeterConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryFluidWaterMeterEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryFluidWaterMeterDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryFluidWaterMeter`. */
+export type IndustryFluidWaterMeterEdgeDto = {
+  __typename?: 'IndustryFluidWaterMeterEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryFluidWaterMeterDto>;
+};
+
+export type IndustryFluidWaterMeterInputDto = {
+  avgWaterTemperature?: InputMaybe<Scalars['Decimal']['input']>;
+  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  events?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  machineCapabilities?: InputMaybe<IndustryBasicMachineCapabilitiesDto>;
+  machineState?: InputMaybe<IndustryBasicMachineStateDto>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  maxWaterTemperature?: InputMaybe<Scalars['Decimal']['input']>;
+  minWaterTemperature?: InputMaybe<Scalars['Decimal']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  namePlate?: InputMaybe<BasicNamePlateInputDto>;
+  netVolume?: InputMaybe<Scalars['Decimal']['input']>;
+  operatingHours?: InputMaybe<Scalars['Int']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  reverseVolume?: InputMaybe<Scalars['Decimal']['input']>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  runtimeVariables?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  standStillCounter?: InputMaybe<Scalars['Int']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  volume?: InputMaybe<Scalars['Decimal']['input']>;
+};
+
+export type IndustryFluidWaterMeterInputUpdateDto = {
+  /** Item to update */
+  item: IndustryFluidWaterMeterInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryFluidWaterMeterMutationsDto = {
+  __typename?: 'IndustryFluidWaterMeterMutations';
+  /** Creates new entities of type 'IndustryFluidWaterMeter'. */
+  create?: Maybe<Array<Maybe<IndustryFluidWaterMeterDto>>>;
+  /** Updates existing entity of type 'IndustryFluidWaterMeter'. */
+  update?: Maybe<Array<Maybe<IndustryFluidWaterMeterDto>>>;
+};
+
+
+export type IndustryFluidWaterMeterMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryFluidWaterMeterInputDto>>;
+};
+
+
+export type IndustryFluidWaterMeterMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryFluidWaterMeterInputUpdateDto>>;
+};
+
+export type IndustryFluidWaterMeterUpdateDto = {
+  __typename?: 'IndustryFluidWaterMeterUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryFluidWaterMeterDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryFluidWaterMeterUpdateMessageDto = {
+  __typename?: 'IndustryFluidWaterMeterUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryFluidWaterMeterUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Account-1' */
+export type IndustryMaintenanceAccountDto = SystemEntityInterfaceDto & {
+  __typename?: 'IndustryMaintenanceAccount';
+  accountNumber: Scalars['String']['output'];
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  children?: Maybe<IndustryMaintenanceJournalEntry_ChildrenUnionConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  costCategory: IndustryMaintenanceCostCategoryDto;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Account-1' */
+export type IndustryMaintenanceAccountAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Account-1' */
+export type IndustryMaintenanceAccountChildrenArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Account-1' */
+export type IndustryMaintenanceAccountConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Account-1' */
+export type IndustryMaintenanceAccountMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Account-1' */
+export type IndustryMaintenanceAccountMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Account-1' */
+export type IndustryMaintenanceAccountRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Account-1' */
+export type IndustryMaintenanceAccountRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Account-1' */
+export type IndustryMaintenanceAccountTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryMaintenanceAccount`. */
+export type IndustryMaintenanceAccountConnectionDto = {
+  __typename?: 'IndustryMaintenanceAccountConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceAccountEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceAccountDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceAccount`. */
+export type IndustryMaintenanceAccountEdgeDto = {
+  __typename?: 'IndustryMaintenanceAccountEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceAccountDto>;
+};
+
+export type IndustryMaintenanceAccountInputDto = {
+  accountNumber?: InputMaybe<Scalars['String']['input']>;
+  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  costCategory?: InputMaybe<IndustryMaintenanceCostCategoryDto>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type IndustryMaintenanceAccountInputUpdateDto = {
+  /** Item to update */
+  item: IndustryMaintenanceAccountInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryMaintenanceAccountMutationsDto = {
+  __typename?: 'IndustryMaintenanceAccountMutations';
+  /** Creates new entities of type 'IndustryMaintenanceAccount'. */
+  create?: Maybe<Array<Maybe<IndustryMaintenanceAccountDto>>>;
+  /** Updates existing entity of type 'IndustryMaintenanceAccount'. */
+  update?: Maybe<Array<Maybe<IndustryMaintenanceAccountDto>>>;
+};
+
+
+export type IndustryMaintenanceAccountMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceAccountInputDto>>;
+};
+
+
+export type IndustryMaintenanceAccountMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceAccountInputUpdateDto>>;
+};
+
+export type IndustryMaintenanceAccountUpdateDto = {
+  __typename?: 'IndustryMaintenanceAccountUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryMaintenanceAccountDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryMaintenanceAccountUpdateMessageDto = {
+  __typename?: 'IndustryMaintenanceAccountUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceAccountUpdateDto>>>;
+};
+
+/** Union of types derived from Industry.Maintenance/Account for Parent association */
+export type IndustryMaintenanceAccount_ParentUnionDto = IndustryMaintenanceAccountDto;
+
+/** A connection to `IndustryMaintenanceAccount_ParentUnion`. */
+export type IndustryMaintenanceAccount_ParentUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceAccount_ParentUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceAccount_ParentUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceAccount_ParentUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceAccount_ParentUnion`. */
+export type IndustryMaintenanceAccount_ParentUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceAccount_ParentUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceAccount_ParentUnionDto>;
+};
+
+/** Runtime entities of construction kit enum 'Industry.Maintenance/AggregationType' */
+export enum IndustryMaintenanceAggregationTypeDto {
+  FiscalYearDto = 'FISCAL_YEAR',
+  MonthDto = 'MONTH',
+  WeekDto = 'WEEK'
+}
+
+/** Runtime entities of construction kit enum 'Industry.Maintenance/CostCategory' */
+export enum IndustryMaintenanceCostCategoryDto {
+  ExternalDto = 'EXTERNAL',
+  InternalDto = 'INTERNAL',
+  MaterialDto = 'MATERIAL'
+}
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterDto = {
+  __typename?: 'IndustryMaintenanceCostCenter';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  description?: Maybe<Scalars['String']['output']>;
+  events?: Maybe<IndustryBasicEvent_EventsUnionConnectionDto>;
+  journalEntries?: Maybe<IndustryMaintenanceJournalEntry_JournalEntriesUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
+  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
+  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<BasicTreeNode_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterChildrenArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterEventsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterJournalEntriesArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterOrdersArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterParentArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/CostCenter-1' */
+export type IndustryMaintenanceCostCenterTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryMaintenanceCostCenter`. */
+export type IndustryMaintenanceCostCenterConnectionDto = {
+  __typename?: 'IndustryMaintenanceCostCenterConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceCostCenterEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceCostCenterDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceCostCenter`. */
+export type IndustryMaintenanceCostCenterEdgeDto = {
+  __typename?: 'IndustryMaintenanceCostCenterEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceCostCenterDto>;
+};
+
+export type IndustryMaintenanceCostCenterInputDto = {
+  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  events?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  journalEntries?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type IndustryMaintenanceCostCenterInputUpdateDto = {
+  /** Item to update */
+  item: IndustryMaintenanceCostCenterInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryMaintenanceCostCenterMutationsDto = {
+  __typename?: 'IndustryMaintenanceCostCenterMutations';
+  /** Creates new entities of type 'IndustryMaintenanceCostCenter'. */
+  create?: Maybe<Array<Maybe<IndustryMaintenanceCostCenterDto>>>;
+  /** Updates existing entity of type 'IndustryMaintenanceCostCenter'. */
+  update?: Maybe<Array<Maybe<IndustryMaintenanceCostCenterDto>>>;
+};
+
+
+export type IndustryMaintenanceCostCenterMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceCostCenterInputDto>>;
+};
+
+
+export type IndustryMaintenanceCostCenterMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceCostCenterInputUpdateDto>>;
+};
+
+export type IndustryMaintenanceCostCenterUpdateDto = {
+  __typename?: 'IndustryMaintenanceCostCenterUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryMaintenanceCostCenterDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryMaintenanceCostCenterUpdateMessageDto = {
+  __typename?: 'IndustryMaintenanceCostCenterUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceCostCenterUpdateDto>>>;
+};
+
+/** Union of types derived from Industry.Maintenance/CostCenter for CostCenter association */
+export type IndustryMaintenanceCostCenter_CostCenterUnionDto = IndustryMaintenanceCostCenterDto;
+
+/** A connection to `IndustryMaintenanceCostCenter_CostCenterUnion`. */
+export type IndustryMaintenanceCostCenter_CostCenterUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceCostCenter_CostCenterUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceCostCenter_CostCenterUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceCostCenter_CostCenterUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceCostCenter_CostCenterUnion`. */
+export type IndustryMaintenanceCostCenter_CostCenterUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceCostCenter_CostCenterUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceCostCenter_CostCenterUnionDto>;
+};
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeDto = {
+  __typename?: 'IndustryMaintenanceEmployee';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  description?: Maybe<Scalars['String']['output']>;
+  events?: Maybe<IndustryBasicEvent_EventsUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name: Scalars['String']['output'];
+  orderFeedbacks?: Maybe<IndustryMaintenanceOrderFeedback_OrderFeedbacksUnionConnectionDto>;
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
+  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
+  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<BasicTreeNode_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  staffNumber: Scalars['Int']['output'];
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeChildrenArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeEventsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeOrderFeedbacksArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeOrdersArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeParentArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Employee-1' */
+export type IndustryMaintenanceEmployeeTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryMaintenanceEmployee`. */
+export type IndustryMaintenanceEmployeeConnectionDto = {
+  __typename?: 'IndustryMaintenanceEmployeeConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceEmployeeEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceEmployeeDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceEmployee`. */
+export type IndustryMaintenanceEmployeeEdgeDto = {
+  __typename?: 'IndustryMaintenanceEmployeeEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceEmployeeDto>;
+};
+
+export type IndustryMaintenanceEmployeeInputDto = {
+  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  events?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orderFeedbacks?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  staffNumber?: InputMaybe<Scalars['Int']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type IndustryMaintenanceEmployeeInputUpdateDto = {
+  /** Item to update */
+  item: IndustryMaintenanceEmployeeInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryMaintenanceEmployeeMutationsDto = {
+  __typename?: 'IndustryMaintenanceEmployeeMutations';
+  /** Creates new entities of type 'IndustryMaintenanceEmployee'. */
+  create?: Maybe<Array<Maybe<IndustryMaintenanceEmployeeDto>>>;
+  /** Updates existing entity of type 'IndustryMaintenanceEmployee'. */
+  update?: Maybe<Array<Maybe<IndustryMaintenanceEmployeeDto>>>;
+};
+
+
+export type IndustryMaintenanceEmployeeMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceEmployeeInputDto>>;
+};
+
+
+export type IndustryMaintenanceEmployeeMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceEmployeeInputUpdateDto>>;
+};
+
+export type IndustryMaintenanceEmployeeUpdateDto = {
+  __typename?: 'IndustryMaintenanceEmployeeUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryMaintenanceEmployeeDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryMaintenanceEmployeeUpdateMessageDto = {
+  __typename?: 'IndustryMaintenanceEmployeeUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceEmployeeUpdateDto>>>;
+};
+
+/** Union of types derived from Industry.Maintenance/Employee for Employee association */
+export type IndustryMaintenanceEmployee_EmployeeUnionDto = IndustryMaintenanceEmployeeDto;
+
+/** A connection to `IndustryMaintenanceEmployee_EmployeeUnion`. */
+export type IndustryMaintenanceEmployee_EmployeeUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceEmployee_EmployeeUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceEmployee_EmployeeUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceEmployee_EmployeeUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceEmployee_EmployeeUnion`. */
+export type IndustryMaintenanceEmployee_EmployeeUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceEmployee_EmployeeUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceEmployee_EmployeeUnionDto>;
+};
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/EnergyBalance-1' */
+export type IndustryMaintenanceEnergyBalanceDto = SystemEntityInterfaceDto & {
+  __typename?: 'IndustryMaintenanceEnergyBalance';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  description?: Maybe<Scalars['String']['output']>;
+  group: IndustryMaintenanceEnergyBalanceGroupDto;
+  machine?: Maybe<BasicTreeNode_MachineUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  product: IndustryMaintenanceEnergyBalanceProductDto;
+  quantity: Scalars['Decimal']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  time: Scalars['DateTime']['output'];
+  unit: IndustryMaintenanceEnergyBalanceUnitDto;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/EnergyBalance-1' */
+export type IndustryMaintenanceEnergyBalanceAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/EnergyBalance-1' */
+export type IndustryMaintenanceEnergyBalanceConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/EnergyBalance-1' */
+export type IndustryMaintenanceEnergyBalanceMachineArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/EnergyBalance-1' */
+export type IndustryMaintenanceEnergyBalanceMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/EnergyBalance-1' */
+export type IndustryMaintenanceEnergyBalanceMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/EnergyBalance-1' */
+export type IndustryMaintenanceEnergyBalanceRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/EnergyBalance-1' */
+export type IndustryMaintenanceEnergyBalanceRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/EnergyBalance-1' */
+export type IndustryMaintenanceEnergyBalanceTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryMaintenanceEnergyBalance`. */
+export type IndustryMaintenanceEnergyBalanceConnectionDto = {
+  __typename?: 'IndustryMaintenanceEnergyBalanceConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceEnergyBalanceEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceEnergyBalanceDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceEnergyBalance`. */
+export type IndustryMaintenanceEnergyBalanceEdgeDto = {
+  __typename?: 'IndustryMaintenanceEnergyBalanceEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceEnergyBalanceDto>;
+};
+
+/** Runtime entities of construction kit enum 'Industry.Maintenance/EnergyBalanceGroup' */
+export enum IndustryMaintenanceEnergyBalanceGroupDto {
+  UndefinedDto = 'UNDEFINED'
+}
+
+export type IndustryMaintenanceEnergyBalanceInputDto = {
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  group?: InputMaybe<IndustryMaintenanceEnergyBalanceGroupDto>;
+  machine?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  product?: InputMaybe<IndustryMaintenanceEnergyBalanceProductDto>;
+  quantity?: InputMaybe<Scalars['Decimal']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  time?: InputMaybe<Scalars['DateTime']['input']>;
+  unit?: InputMaybe<IndustryMaintenanceEnergyBalanceUnitDto>;
+};
+
+export type IndustryMaintenanceEnergyBalanceInputUpdateDto = {
+  /** Item to update */
+  item: IndustryMaintenanceEnergyBalanceInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryMaintenanceEnergyBalanceMutationsDto = {
+  __typename?: 'IndustryMaintenanceEnergyBalanceMutations';
+  /** Creates new entities of type 'IndustryMaintenanceEnergyBalance'. */
+  create?: Maybe<Array<Maybe<IndustryMaintenanceEnergyBalanceDto>>>;
+  /** Updates existing entity of type 'IndustryMaintenanceEnergyBalance'. */
+  update?: Maybe<Array<Maybe<IndustryMaintenanceEnergyBalanceDto>>>;
+};
+
+
+export type IndustryMaintenanceEnergyBalanceMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceEnergyBalanceInputDto>>;
+};
+
+
+export type IndustryMaintenanceEnergyBalanceMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceEnergyBalanceInputUpdateDto>>;
+};
+
+/** Runtime entities of construction kit enum 'Industry.Maintenance/EnergyBalanceProduct' */
+export enum IndustryMaintenanceEnergyBalanceProductDto {
+  UndefinedDto = 'UNDEFINED'
+}
+
+/** Runtime entities of construction kit enum 'Industry.Maintenance/EnergyBalanceUnit' */
+export enum IndustryMaintenanceEnergyBalanceUnitDto {
+  UndefinedDto = 'UNDEFINED'
+}
+
+export type IndustryMaintenanceEnergyBalanceUpdateDto = {
+  __typename?: 'IndustryMaintenanceEnergyBalanceUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryMaintenanceEnergyBalanceDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryMaintenanceEnergyBalanceUpdateMessageDto = {
+  __typename?: 'IndustryMaintenanceEnergyBalanceUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceEnergyBalanceUpdateDto>>>;
+};
+
+/** Union of types derived from Industry.Maintenance/EnergyBalance for Orders association */
+export type IndustryMaintenanceEnergyBalance_OrdersUnionDto = IndustryMaintenanceEnergyBalanceDto;
+
+/** A connection to `IndustryMaintenanceEnergyBalance_OrdersUnion`. */
+export type IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceEnergyBalance_OrdersUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceEnergyBalance_OrdersUnion`. */
+export type IndustryMaintenanceEnergyBalance_OrdersUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceEnergyBalance_OrdersUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionDto>;
+};
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryDto = SystemEntityInterfaceDto & {
+  __typename?: 'IndustryMaintenanceJournalEntry';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  costCenter?: Maybe<IndustryMaintenanceCostCenter_CostCenterUnionConnectionDto>;
+  journalValue: Scalars['Decimal']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  parent?: Maybe<IndustryMaintenanceAccount_ParentUnionConnectionDto>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  time: Scalars['DateTime']['output'];
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryCostCenterArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryParentArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/JournalEntry-1' */
+export type IndustryMaintenanceJournalEntryTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryMaintenanceJournalEntry`. */
+export type IndustryMaintenanceJournalEntryConnectionDto = {
+  __typename?: 'IndustryMaintenanceJournalEntryConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceJournalEntryEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceJournalEntryDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceJournalEntry`. */
+export type IndustryMaintenanceJournalEntryEdgeDto = {
+  __typename?: 'IndustryMaintenanceJournalEntryEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceJournalEntryDto>;
+};
+
+export type IndustryMaintenanceJournalEntryInputDto = {
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  costCenter?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  journalValue?: InputMaybe<Scalars['Decimal']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  time?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type IndustryMaintenanceJournalEntryInputUpdateDto = {
+  /** Item to update */
+  item: IndustryMaintenanceJournalEntryInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryMaintenanceJournalEntryMutationsDto = {
+  __typename?: 'IndustryMaintenanceJournalEntryMutations';
+  /** Creates new entities of type 'IndustryMaintenanceJournalEntry'. */
+  create?: Maybe<Array<Maybe<IndustryMaintenanceJournalEntryDto>>>;
+  /** Updates existing entity of type 'IndustryMaintenanceJournalEntry'. */
+  update?: Maybe<Array<Maybe<IndustryMaintenanceJournalEntryDto>>>;
+};
+
+
+export type IndustryMaintenanceJournalEntryMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceJournalEntryInputDto>>;
+};
+
+
+export type IndustryMaintenanceJournalEntryMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceJournalEntryInputUpdateDto>>;
+};
+
+export type IndustryMaintenanceJournalEntryUpdateDto = {
+  __typename?: 'IndustryMaintenanceJournalEntryUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryMaintenanceJournalEntryDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryMaintenanceJournalEntryUpdateMessageDto = {
+  __typename?: 'IndustryMaintenanceJournalEntryUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceJournalEntryUpdateDto>>>;
+};
+
+/** Union of types derived from Industry.Maintenance/JournalEntry for Children association */
+export type IndustryMaintenanceJournalEntry_ChildrenUnionDto = IndustryMaintenanceJournalEntryDto;
+
+/** A connection to `IndustryMaintenanceJournalEntry_ChildrenUnion`. */
+export type IndustryMaintenanceJournalEntry_ChildrenUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceJournalEntry_ChildrenUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceJournalEntry_ChildrenUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceJournalEntry_ChildrenUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceJournalEntry_ChildrenUnion`. */
+export type IndustryMaintenanceJournalEntry_ChildrenUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceJournalEntry_ChildrenUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceJournalEntry_ChildrenUnionDto>;
+};
+
+/** Union of types derived from Industry.Maintenance/JournalEntry for JournalEntries association */
+export type IndustryMaintenanceJournalEntry_JournalEntriesUnionDto = IndustryMaintenanceJournalEntryDto;
+
+/** A connection to `IndustryMaintenanceJournalEntry_JournalEntriesUnion`. */
+export type IndustryMaintenanceJournalEntry_JournalEntriesUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceJournalEntry_JournalEntriesUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceJournalEntry_JournalEntriesUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceJournalEntry_JournalEntriesUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceJournalEntry_JournalEntriesUnion`. */
+export type IndustryMaintenanceJournalEntry_JournalEntriesUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceJournalEntry_JournalEntriesUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceJournalEntry_JournalEntriesUnionDto>;
+};
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderDto = SystemEntityInterfaceDto & {
+  __typename?: 'IndustryMaintenanceOrder';
+  actualCosts?: Maybe<Scalars['Decimal']['output']>;
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  children?: Maybe<IndustryMaintenanceOrderFeedback_ChildrenUnionConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  costs?: Maybe<IndustryMaintenanceOrderCosts_CostsUnionConnectionDto>;
+  createdAt: Scalars['DateTime']['output'];
+  event?: Maybe<IndustryBasicEvent_EventUnionConnectionDto>;
+  machine?: Maybe<IndustryBasicMachine_MachineUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  orderNumber: Scalars['String']['output'];
+  orderPriority: IndustryMaintenanceOrderPriorityDto;
+  orderState?: Maybe<IndustryMaintenanceOrderStateDto>;
+  orderText?: Maybe<Scalars['String']['output']>;
+  orderType: IndustryMaintenanceOrderTypeDto;
+  plannedCosts?: Maybe<Scalars['Decimal']['output']>;
+  projectNumber?: Maybe<Scalars['String']['output']>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  serviceType: IndustryMaintenanceServiceTypeDto;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderChildrenArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderCostsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderEventArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderMachineArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Order-1' */
+export type IndustryMaintenanceOrderTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryMaintenanceOrder`. */
+export type IndustryMaintenanceOrderConnectionDto = {
+  __typename?: 'IndustryMaintenanceOrderConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceOrderEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrderDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderCosts-1' */
+export type IndustryMaintenanceOrderCostsDto = SystemEntityInterfaceDto & {
+  __typename?: 'IndustryMaintenanceOrderCosts';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  externalCosts: Scalars['Decimal']['output'];
+  internalCosts: Scalars['Decimal']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  materialCosts: Scalars['Decimal']['output'];
+  order?: Maybe<IndustryMaintenanceOrder_OrderUnionConnectionDto>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  totalCosts: Scalars['Decimal']['output'];
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderCosts-1' */
+export type IndustryMaintenanceOrderCostsAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderCosts-1' */
+export type IndustryMaintenanceOrderCostsConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderCosts-1' */
+export type IndustryMaintenanceOrderCostsMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderCosts-1' */
+export type IndustryMaintenanceOrderCostsMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderCosts-1' */
+export type IndustryMaintenanceOrderCostsOrderArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderCosts-1' */
+export type IndustryMaintenanceOrderCostsRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderCosts-1' */
+export type IndustryMaintenanceOrderCostsRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderCosts-1' */
+export type IndustryMaintenanceOrderCostsTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryMaintenanceOrderCosts`. */
+export type IndustryMaintenanceOrderCostsConnectionDto = {
+  __typename?: 'IndustryMaintenanceOrderCostsConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceOrderCostsEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrderCostsDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceOrderCosts`. */
+export type IndustryMaintenanceOrderCostsEdgeDto = {
+  __typename?: 'IndustryMaintenanceOrderCostsEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceOrderCostsDto>;
+};
+
+export type IndustryMaintenanceOrderCostsInputDto = {
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  externalCosts?: InputMaybe<Scalars['Decimal']['input']>;
+  internalCosts?: InputMaybe<Scalars['Decimal']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  materialCosts?: InputMaybe<Scalars['Decimal']['input']>;
+  order?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  totalCosts?: InputMaybe<Scalars['Decimal']['input']>;
+};
+
+export type IndustryMaintenanceOrderCostsInputUpdateDto = {
+  /** Item to update */
+  item: IndustryMaintenanceOrderCostsInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryMaintenanceOrderCostsMutationsDto = {
+  __typename?: 'IndustryMaintenanceOrderCostsMutations';
+  /** Creates new entities of type 'IndustryMaintenanceOrderCosts'. */
+  create?: Maybe<Array<Maybe<IndustryMaintenanceOrderCostsDto>>>;
+  /** Updates existing entity of type 'IndustryMaintenanceOrderCosts'. */
+  update?: Maybe<Array<Maybe<IndustryMaintenanceOrderCostsDto>>>;
+};
+
+
+export type IndustryMaintenanceOrderCostsMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceOrderCostsInputDto>>;
+};
+
+
+export type IndustryMaintenanceOrderCostsMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceOrderCostsInputUpdateDto>>;
+};
+
+export type IndustryMaintenanceOrderCostsUpdateDto = {
+  __typename?: 'IndustryMaintenanceOrderCostsUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryMaintenanceOrderCostsDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryMaintenanceOrderCostsUpdateMessageDto = {
+  __typename?: 'IndustryMaintenanceOrderCostsUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrderCostsUpdateDto>>>;
+};
+
+/** Union of types derived from Industry.Maintenance/OrderCosts for Costs association */
+export type IndustryMaintenanceOrderCosts_CostsUnionDto = IndustryMaintenanceOrderCostsDto;
+
+/** A connection to `IndustryMaintenanceOrderCosts_CostsUnion`. */
+export type IndustryMaintenanceOrderCosts_CostsUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceOrderCosts_CostsUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceOrderCosts_CostsUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrderCosts_CostsUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceOrderCosts_CostsUnion`. */
+export type IndustryMaintenanceOrderCosts_CostsUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceOrderCosts_CostsUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceOrderCosts_CostsUnionDto>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceOrder`. */
+export type IndustryMaintenanceOrderEdgeDto = {
+  __typename?: 'IndustryMaintenanceOrderEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceOrderDto>;
+};
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackDto = SystemEntityInterfaceDto & {
+  __typename?: 'IndustryMaintenanceOrderFeedback';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  employee?: Maybe<IndustryMaintenanceEmployee_EmployeeUnionConnectionDto>;
+  endDateTime?: Maybe<Scalars['DateTime']['output']>;
+  feedbackNumber: Scalars['String']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  parent?: Maybe<IndustryMaintenanceOrder_ParentUnionConnectionDto>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  startDateTime: Scalars['DateTime']['output'];
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackEmployeeArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackParentArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/OrderFeedback-1' */
+export type IndustryMaintenanceOrderFeedbackTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryMaintenanceOrderFeedback`. */
+export type IndustryMaintenanceOrderFeedbackConnectionDto = {
+  __typename?: 'IndustryMaintenanceOrderFeedbackConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceOrderFeedbackEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrderFeedbackDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceOrderFeedback`. */
+export type IndustryMaintenanceOrderFeedbackEdgeDto = {
+  __typename?: 'IndustryMaintenanceOrderFeedbackEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceOrderFeedbackDto>;
+};
+
+export type IndustryMaintenanceOrderFeedbackInputDto = {
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  employee?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  endDateTime?: InputMaybe<Scalars['DateTime']['input']>;
+  feedbackNumber?: InputMaybe<Scalars['String']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  startDateTime?: InputMaybe<Scalars['DateTime']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type IndustryMaintenanceOrderFeedbackInputUpdateDto = {
+  /** Item to update */
+  item: IndustryMaintenanceOrderFeedbackInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryMaintenanceOrderFeedbackMutationsDto = {
+  __typename?: 'IndustryMaintenanceOrderFeedbackMutations';
+  /** Creates new entities of type 'IndustryMaintenanceOrderFeedback'. */
+  create?: Maybe<Array<Maybe<IndustryMaintenanceOrderFeedbackDto>>>;
+  /** Updates existing entity of type 'IndustryMaintenanceOrderFeedback'. */
+  update?: Maybe<Array<Maybe<IndustryMaintenanceOrderFeedbackDto>>>;
+};
+
+
+export type IndustryMaintenanceOrderFeedbackMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceOrderFeedbackInputDto>>;
+};
+
+
+export type IndustryMaintenanceOrderFeedbackMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceOrderFeedbackInputUpdateDto>>;
+};
+
+export type IndustryMaintenanceOrderFeedbackUpdateDto = {
+  __typename?: 'IndustryMaintenanceOrderFeedbackUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryMaintenanceOrderFeedbackDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryMaintenanceOrderFeedbackUpdateMessageDto = {
+  __typename?: 'IndustryMaintenanceOrderFeedbackUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrderFeedbackUpdateDto>>>;
+};
+
+/** Union of types derived from Industry.Maintenance/OrderFeedback for Children association */
+export type IndustryMaintenanceOrderFeedback_ChildrenUnionDto = IndustryMaintenanceOrderFeedbackDto;
+
+/** A connection to `IndustryMaintenanceOrderFeedback_ChildrenUnion`. */
+export type IndustryMaintenanceOrderFeedback_ChildrenUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceOrderFeedback_ChildrenUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceOrderFeedback_ChildrenUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrderFeedback_ChildrenUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceOrderFeedback_ChildrenUnion`. */
+export type IndustryMaintenanceOrderFeedback_ChildrenUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceOrderFeedback_ChildrenUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceOrderFeedback_ChildrenUnionDto>;
+};
+
+/** Union of types derived from Industry.Maintenance/OrderFeedback for OrderFeedbacks association */
+export type IndustryMaintenanceOrderFeedback_OrderFeedbacksUnionDto = IndustryMaintenanceOrderFeedbackDto;
+
+/** A connection to `IndustryMaintenanceOrderFeedback_OrderFeedbacksUnion`. */
+export type IndustryMaintenanceOrderFeedback_OrderFeedbacksUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceOrderFeedback_OrderFeedbacksUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceOrderFeedback_OrderFeedbacksUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrderFeedback_OrderFeedbacksUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceOrderFeedback_OrderFeedbacksUnion`. */
+export type IndustryMaintenanceOrderFeedback_OrderFeedbacksUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceOrderFeedback_OrderFeedbacksUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceOrderFeedback_OrderFeedbacksUnionDto>;
+};
+
+export type IndustryMaintenanceOrderInputDto = {
+  actualCosts?: InputMaybe<Scalars['Decimal']['input']>;
+  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  costs?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  createdAt?: InputMaybe<Scalars['DateTime']['input']>;
+  event?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  machine?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  orderNumber?: InputMaybe<Scalars['String']['input']>;
+  orderPriority?: InputMaybe<IndustryMaintenanceOrderPriorityDto>;
+  orderState?: InputMaybe<IndustryMaintenanceOrderStateDto>;
+  orderText?: InputMaybe<Scalars['String']['input']>;
+  orderType?: InputMaybe<IndustryMaintenanceOrderTypeDto>;
+  plannedCosts?: InputMaybe<Scalars['Decimal']['input']>;
+  projectNumber?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  serviceType?: InputMaybe<IndustryMaintenanceServiceTypeDto>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type IndustryMaintenanceOrderInputUpdateDto = {
+  /** Item to update */
+  item: IndustryMaintenanceOrderInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryMaintenanceOrderMutationsDto = {
+  __typename?: 'IndustryMaintenanceOrderMutations';
+  /** Creates new entities of type 'IndustryMaintenanceOrder'. */
+  create?: Maybe<Array<Maybe<IndustryMaintenanceOrderDto>>>;
+  /** Updates existing entity of type 'IndustryMaintenanceOrder'. */
+  update?: Maybe<Array<Maybe<IndustryMaintenanceOrderDto>>>;
+};
+
+
+export type IndustryMaintenanceOrderMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceOrderInputDto>>;
+};
+
+
+export type IndustryMaintenanceOrderMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceOrderInputUpdateDto>>;
+};
+
+/** Runtime entities of construction kit enum 'Industry.Maintenance/OrderPriority' */
+export enum IndustryMaintenanceOrderPriorityDto {
+  UndefinedDto = 'UNDEFINED'
+}
+
+/** Runtime entities of construction kit enum 'Industry.Maintenance/OrderState' */
+export enum IndustryMaintenanceOrderStateDto {
+  UndefinedDto = 'UNDEFINED'
+}
+
+/** Runtime entities of construction kit enum 'Industry.Maintenance/OrderType' */
+export enum IndustryMaintenanceOrderTypeDto {
+  UndefinedDto = 'UNDEFINED'
+}
+
+export type IndustryMaintenanceOrderUpdateDto = {
+  __typename?: 'IndustryMaintenanceOrderUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryMaintenanceOrderDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryMaintenanceOrderUpdateMessageDto = {
+  __typename?: 'IndustryMaintenanceOrderUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrderUpdateDto>>>;
+};
+
+/** Union of types derived from Industry.Maintenance/Order for Order association */
+export type IndustryMaintenanceOrder_OrderUnionDto = IndustryMaintenanceOrderDto;
+
+/** A connection to `IndustryMaintenanceOrder_OrderUnion`. */
+export type IndustryMaintenanceOrder_OrderUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceOrder_OrderUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceOrder_OrderUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrder_OrderUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceOrder_OrderUnion`. */
+export type IndustryMaintenanceOrder_OrderUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceOrder_OrderUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceOrder_OrderUnionDto>;
+};
+
+/** Union of types derived from Industry.Maintenance/Order for Orders association */
+export type IndustryMaintenanceOrder_OrdersUnionDto = IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceOrderDto;
+
+/** A connection to `IndustryMaintenanceOrder_OrdersUnion`. */
+export type IndustryMaintenanceOrder_OrdersUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceOrder_OrdersUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceOrder_OrdersUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrder_OrdersUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceOrder_OrdersUnion`. */
+export type IndustryMaintenanceOrder_OrdersUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceOrder_OrdersUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceOrder_OrdersUnionDto>;
+};
+
+/** Union of types derived from Industry.Maintenance/Order for Parent association */
+export type IndustryMaintenanceOrder_ParentUnionDto = IndustryMaintenanceOrderDto;
+
+/** A connection to `IndustryMaintenanceOrder_ParentUnion`. */
+export type IndustryMaintenanceOrder_ParentUnionConnectionDto = {
+  __typename?: 'IndustryMaintenanceOrder_ParentUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceOrder_ParentUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceOrder_ParentUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceOrder_ParentUnion`. */
+export type IndustryMaintenanceOrder_ParentUnionEdgeDto = {
+  __typename?: 'IndustryMaintenanceOrder_ParentUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceOrder_ParentUnionDto>;
+};
+
+/** Runtime entities of construction kit enum 'Industry.Maintenance/ServiceType' */
+export enum IndustryMaintenanceServiceTypeDto {
+  UndefinedDto = 'UNDEFINED'
+}
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceDto = {
+  __typename?: 'IndustryMaintenanceWorkplace';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  description?: Maybe<Scalars['String']['output']>;
+  events?: Maybe<IndustryBasicEvent_EventsUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
+  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
+  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<BasicTreeNode_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceChildrenArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceEventsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceOrdersArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceParentArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'Industry.Maintenance-2.0.0/Workplace-1' */
+export type IndustryMaintenanceWorkplaceTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `IndustryMaintenanceWorkplace`. */
+export type IndustryMaintenanceWorkplaceConnectionDto = {
+  __typename?: 'IndustryMaintenanceWorkplaceConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<IndustryMaintenanceWorkplaceEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceWorkplaceDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `IndustryMaintenanceWorkplace`. */
+export type IndustryMaintenanceWorkplaceEdgeDto = {
+  __typename?: 'IndustryMaintenanceWorkplaceEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<IndustryMaintenanceWorkplaceDto>;
+};
+
+export type IndustryMaintenanceWorkplaceInputDto = {
+  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  events?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type IndustryMaintenanceWorkplaceInputUpdateDto = {
+  /** Item to update */
+  item: IndustryMaintenanceWorkplaceInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type IndustryMaintenanceWorkplaceMutationsDto = {
+  __typename?: 'IndustryMaintenanceWorkplaceMutations';
+  /** Creates new entities of type 'IndustryMaintenanceWorkplace'. */
+  create?: Maybe<Array<Maybe<IndustryMaintenanceWorkplaceDto>>>;
+  /** Updates existing entity of type 'IndustryMaintenanceWorkplace'. */
+  update?: Maybe<Array<Maybe<IndustryMaintenanceWorkplaceDto>>>;
+};
+
+
+export type IndustryMaintenanceWorkplaceMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceWorkplaceInputDto>>;
+};
+
+
+export type IndustryMaintenanceWorkplaceMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<IndustryMaintenanceWorkplaceInputUpdateDto>>;
+};
+
+export type IndustryMaintenanceWorkplaceUpdateDto = {
+  __typename?: 'IndustryMaintenanceWorkplaceUpdate';
+  /** The corresponding item */
+  item?: Maybe<IndustryMaintenanceWorkplaceDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type IndustryMaintenanceWorkplaceUpdateMessageDto = {
+  __typename?: 'IndustryMaintenanceWorkplaceUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<IndustryMaintenanceWorkplaceUpdateDto>>>;
+};
+
 /** Meta information for large binaries */
 export type LargeBinaryInfoDto = {
   __typename?: 'LargeBinaryInfo';
@@ -13421,1213 +11385,6 @@ export type LargeBinaryInfoDto = {
   filename: Scalars['String']['output'];
   /** Returns the size of the binary */
   size: Scalars['BigInt']['output'];
-};
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryDto = {
-  __typename?: 'LoxoneCategory';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  categoryType?: Maybe<Scalars['String']['output']>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  color?: Maybe<Scalars['String']['output']>;
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  image?: Maybe<Scalars['String']['output']>;
-  loxoneUuid: Scalars['String']['output'];
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Category-1' */
-export type LoxoneCategoryTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `LoxoneCategory`. */
-export type LoxoneCategoryConnectionDto = {
-  __typename?: 'LoxoneCategoryConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<LoxoneCategoryEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<LoxoneCategoryDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `LoxoneCategory`. */
-export type LoxoneCategoryEdgeDto = {
-  __typename?: 'LoxoneCategoryEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<LoxoneCategoryDto>;
-};
-
-export type LoxoneCategoryInputDto = {
-  categoryType?: InputMaybe<Scalars['String']['input']>;
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  color?: InputMaybe<Scalars['String']['input']>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  image?: InputMaybe<Scalars['String']['input']>;
-  loxoneUuid?: InputMaybe<Scalars['String']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type LoxoneCategoryInputUpdateDto = {
-  /** Item to update */
-  item: LoxoneCategoryInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type LoxoneCategoryMutationsDto = {
-  __typename?: 'LoxoneCategoryMutations';
-  /** Creates new entities of type 'LoxoneCategory'. */
-  create?: Maybe<Array<Maybe<LoxoneCategoryDto>>>;
-  /** Updates existing entity of type 'LoxoneCategory'. */
-  update?: Maybe<Array<Maybe<LoxoneCategoryDto>>>;
-};
-
-
-export type LoxoneCategoryMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<LoxoneCategoryInputDto>>;
-};
-
-
-export type LoxoneCategoryMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<LoxoneCategoryInputUpdateDto>>;
-};
-
-export type LoxoneCategoryUpdateDto = {
-  __typename?: 'LoxoneCategoryUpdate';
-  /** The corresponding item */
-  item?: Maybe<LoxoneCategoryDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type LoxoneCategoryUpdateMessageDto = {
-  __typename?: 'LoxoneCategoryUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<LoxoneCategoryUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit enum 'Loxone/ConnectionState' */
-export enum LoxoneConnectionStateDto {
-  ConnectedDto = 'CONNECTED',
-  DisconnectedDto = 'DISCONNECTED',
-  ErrorDto = 'ERROR',
-  ReconnectingDto = 'RECONNECTING'
-}
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlDto = {
-  __typename?: 'LoxoneControl';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  controlType: Scalars['String']['output'];
-  currentValue?: Maybe<Scalars['String']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  isEnabled: Scalars['Boolean']['output'];
-  lastStateUpdate?: Maybe<Scalars['DateTime']['output']>;
-  loxoneUuid: Scalars['String']['output'];
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  states?: Maybe<Array<SystemCommunicationDataPointDto>>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Control-1' */
-export type LoxoneControlTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `LoxoneControl`. */
-export type LoxoneControlConnectionDto = {
-  __typename?: 'LoxoneControlConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<LoxoneControlEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<LoxoneControlDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `LoxoneControl`. */
-export type LoxoneControlEdgeDto = {
-  __typename?: 'LoxoneControlEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<LoxoneControlDto>;
-};
-
-export type LoxoneControlInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  controlType?: InputMaybe<Scalars['String']['input']>;
-  currentValue?: InputMaybe<Scalars['String']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  isEnabled?: InputMaybe<Scalars['Boolean']['input']>;
-  lastStateUpdate?: InputMaybe<Scalars['DateTime']['input']>;
-  loxoneUuid?: InputMaybe<Scalars['String']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  states?: InputMaybe<Array<InputMaybe<SystemCommunicationDataPointInputDto>>>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type LoxoneControlInputUpdateDto = {
-  /** Item to update */
-  item: LoxoneControlInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type LoxoneControlMutationsDto = {
-  __typename?: 'LoxoneControlMutations';
-  /** Creates new entities of type 'LoxoneControl'. */
-  create?: Maybe<Array<Maybe<LoxoneControlDto>>>;
-  /** Updates existing entity of type 'LoxoneControl'. */
-  update?: Maybe<Array<Maybe<LoxoneControlDto>>>;
-};
-
-
-export type LoxoneControlMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<LoxoneControlInputDto>>;
-};
-
-
-export type LoxoneControlMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<LoxoneControlInputUpdateDto>>;
-};
-
-export type LoxoneControlUpdateDto = {
-  __typename?: 'LoxoneControlUpdate';
-  /** The corresponding item */
-  item?: Maybe<LoxoneControlDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type LoxoneControlUpdateMessageDto = {
-  __typename?: 'LoxoneControlUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<LoxoneControlUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Miniserver-1' */
-export type LoxoneMiniserverDto = BasicNamedEntityInterfaceDto & SystemEntityInterfaceDto & {
-  __typename?: 'LoxoneMiniserver';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  connectionState?: Maybe<LoxoneConnectionStateDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  firmwareVersion?: Maybe<Scalars['String']['output']>;
-  host?: Maybe<Scalars['String']['output']>;
-  lastSyncTimestamp?: Maybe<Scalars['DateTime']['output']>;
-  macAddress?: Maybe<Scalars['String']['output']>;
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  port?: Maybe<Scalars['Int']['output']>;
-  projectName?: Maybe<Scalars['String']['output']>;
-  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  serialNumber?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Miniserver-1' */
-export type LoxoneMiniserverAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Miniserver-1' */
-export type LoxoneMiniserverChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Miniserver-1' */
-export type LoxoneMiniserverConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Miniserver-1' */
-export type LoxoneMiniserverMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Miniserver-1' */
-export type LoxoneMiniserverMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Miniserver-1' */
-export type LoxoneMiniserverRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Miniserver-1' */
-export type LoxoneMiniserverRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Miniserver-1' */
-export type LoxoneMiniserverTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `LoxoneMiniserver`. */
-export type LoxoneMiniserverConnectionDto = {
-  __typename?: 'LoxoneMiniserverConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<LoxoneMiniserverEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<LoxoneMiniserverDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `LoxoneMiniserver`. */
-export type LoxoneMiniserverEdgeDto = {
-  __typename?: 'LoxoneMiniserverEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<LoxoneMiniserverDto>;
-};
-
-export type LoxoneMiniserverInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  connectionState?: InputMaybe<LoxoneConnectionStateDto>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  firmwareVersion?: InputMaybe<Scalars['String']['input']>;
-  host?: InputMaybe<Scalars['String']['input']>;
-  lastSyncTimestamp?: InputMaybe<Scalars['DateTime']['input']>;
-  macAddress?: InputMaybe<Scalars['String']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  port?: InputMaybe<Scalars['Int']['input']>;
-  projectName?: InputMaybe<Scalars['String']['input']>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  serialNumber?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type LoxoneMiniserverInputUpdateDto = {
-  /** Item to update */
-  item: LoxoneMiniserverInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type LoxoneMiniserverMutationsDto = {
-  __typename?: 'LoxoneMiniserverMutations';
-  /** Creates new entities of type 'LoxoneMiniserver'. */
-  create?: Maybe<Array<Maybe<LoxoneMiniserverDto>>>;
-  /** Updates existing entity of type 'LoxoneMiniserver'. */
-  update?: Maybe<Array<Maybe<LoxoneMiniserverDto>>>;
-};
-
-
-export type LoxoneMiniserverMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<LoxoneMiniserverInputDto>>;
-};
-
-
-export type LoxoneMiniserverMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<LoxoneMiniserverInputUpdateDto>>;
-};
-
-export type LoxoneMiniserverUpdateDto = {
-  __typename?: 'LoxoneMiniserverUpdate';
-  /** The corresponding item */
-  item?: Maybe<LoxoneMiniserverDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type LoxoneMiniserverUpdateMessageDto = {
-  __typename?: 'LoxoneMiniserverUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<LoxoneMiniserverUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomDto = {
-  __typename?: 'LoxoneRoom';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  description?: Maybe<Scalars['String']['output']>;
-  image?: Maybe<Scalars['String']['output']>;
-  loxoneUuid: Scalars['String']['output'];
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  roomType?: Maybe<Scalars['Int']['output']>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/Room-1' */
-export type LoxoneRoomTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `LoxoneRoom`. */
-export type LoxoneRoomConnectionDto = {
-  __typename?: 'LoxoneRoomConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<LoxoneRoomEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<LoxoneRoomDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `LoxoneRoom`. */
-export type LoxoneRoomEdgeDto = {
-  __typename?: 'LoxoneRoomEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<LoxoneRoomDto>;
-};
-
-export type LoxoneRoomInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  image?: InputMaybe<Scalars['String']['input']>;
-  loxoneUuid?: InputMaybe<Scalars['String']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  roomType?: InputMaybe<Scalars['Int']['input']>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type LoxoneRoomInputUpdateDto = {
-  /** Item to update */
-  item: LoxoneRoomInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type LoxoneRoomMutationsDto = {
-  __typename?: 'LoxoneRoomMutations';
-  /** Creates new entities of type 'LoxoneRoom'. */
-  create?: Maybe<Array<Maybe<LoxoneRoomDto>>>;
-  /** Updates existing entity of type 'LoxoneRoom'. */
-  update?: Maybe<Array<Maybe<LoxoneRoomDto>>>;
-};
-
-
-export type LoxoneRoomMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<LoxoneRoomInputDto>>;
-};
-
-
-export type LoxoneRoomMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<LoxoneRoomInputUpdateDto>>;
-};
-
-export type LoxoneRoomUpdateDto = {
-  __typename?: 'LoxoneRoomUpdate';
-  /** The corresponding item */
-  item?: Maybe<LoxoneRoomDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type LoxoneRoomUpdateMessageDto = {
-  __typename?: 'LoxoneRoomUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<LoxoneRoomUpdateDto>>>;
-};
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlDto = {
-  __typename?: 'LoxoneSubControl';
-  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  children?: Maybe<BasicTreeNode_ChildrenUnionConnectionDto>;
-  ckTypeId: Scalars['RtCkTypeId']['output'];
-  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
-  constructionKitType?: Maybe<CkTypeDto>;
-  controlType: Scalars['String']['output'];
-  currentValue?: Maybe<Scalars['String']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  loxoneUuid: Scalars['String']['output'];
-  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
-  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  name: Scalars['String']['output'];
-  parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
-  relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
-  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
-  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
-  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
-  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
-  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
-  rtId: Scalars['OctoObjectId']['output'];
-  rtVersion?: Maybe<Scalars['ULong']['output']>;
-  rtWellKnownName?: Maybe<Scalars['String']['output']>;
-  states?: Maybe<Array<SystemCommunicationDataPointDto>>;
-  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlAssociationsArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckId: Scalars['String']['input'];
-  direction: GraphDirectionDto;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
-  roleId: Scalars['String']['input'];
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlChildrenArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlConfiguredByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlMapsFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlMapsToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlParentArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlRelatesFromArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlRelatesToArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-/** Runtime entities of construction kit type 'Loxone-4.3.0/SubControl-1' */
-export type LoxoneSubControlTaggedByArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  ckTypeIds: Array<Scalars['String']['input']>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-/** A connection to `LoxoneSubControl`. */
-export type LoxoneSubControlConnectionDto = {
-  __typename?: 'LoxoneSubControlConnection';
-  /** Result of aggregating the items of the result set. */
-  aggregation?: Maybe<AggregationDto>;
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<LoxoneSubControlEdgeDto>>>;
-  /** Result of aggregating the items by fields. */
-  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
-  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
-  items?: Maybe<Array<Maybe<LoxoneSubControlDto>>>;
-  /** Information to aid in pagination. */
-  pageInfo?: Maybe<PageInfoDto>;
-  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
-
-/** An edge in a connection from an object to another object of type `LoxoneSubControl`. */
-export type LoxoneSubControlEdgeDto = {
-  __typename?: 'LoxoneSubControlEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node?: Maybe<LoxoneSubControlDto>;
-};
-
-export type LoxoneSubControlInputDto = {
-  children?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  controlType?: InputMaybe<Scalars['String']['input']>;
-  currentValue?: InputMaybe<Scalars['String']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  loxoneUuid?: InputMaybe<Scalars['String']['input']>;
-  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
-  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
-  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
-  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
-  states?: InputMaybe<Array<InputMaybe<SystemCommunicationDataPointInputDto>>>;
-  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
-};
-
-export type LoxoneSubControlInputUpdateDto = {
-  /** Item to update */
-  item: LoxoneSubControlInputDto;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-};
-
-export type LoxoneSubControlMutationsDto = {
-  __typename?: 'LoxoneSubControlMutations';
-  /** Creates new entities of type 'LoxoneSubControl'. */
-  create?: Maybe<Array<Maybe<LoxoneSubControlDto>>>;
-  /** Updates existing entity of type 'LoxoneSubControl'. */
-  update?: Maybe<Array<Maybe<LoxoneSubControlDto>>>;
-};
-
-
-export type LoxoneSubControlMutationsCreateArgsDto = {
-  entities: Array<InputMaybe<LoxoneSubControlInputDto>>;
-};
-
-
-export type LoxoneSubControlMutationsUpdateArgsDto = {
-  entities: Array<InputMaybe<LoxoneSubControlInputUpdateDto>>;
-};
-
-export type LoxoneSubControlUpdateDto = {
-  __typename?: 'LoxoneSubControlUpdate';
-  /** The corresponding item */
-  item?: Maybe<LoxoneSubControlDto>;
-  updateState?: Maybe<UpdateTypeDto>;
-};
-
-export type LoxoneSubControlUpdateMessageDto = {
-  __typename?: 'LoxoneSubControlUpdateMessage';
-  /** The corresponding items */
-  items?: Maybe<Array<Maybe<LoxoneSubControlUpdateDto>>>;
 };
 
 /** Enum of the availability states of models. */
@@ -14981,6 +11738,7 @@ export type OctoSdkDemoMeteringPointDto = {
   name: Scalars['String']['output'];
   networkOperator?: Maybe<OctoSdkDemoNetworkOperatorDto>;
   operatingStatus: OctoSdkDemoOperatingStatusDto;
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<BasicTreeNode_RelatesToUnionConnectionDto>;
@@ -15069,6 +11827,20 @@ export type OctoSdkDemoMeteringPointMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'OctoSdkDemo-2.0.1/MeteringPoint-1' */
 export type OctoSdkDemoMeteringPointMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'OctoSdkDemo-2.0.1/MeteringPoint-1' */
+export type OctoSdkDemoMeteringPointOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -15175,6 +11947,7 @@ export type OctoSdkDemoMeteringPointInputDto = {
   name?: InputMaybe<Scalars['String']['input']>;
   networkOperator?: InputMaybe<OctoSdkDemoNetworkOperatorDto>;
   operatingStatus?: InputMaybe<OctoSdkDemoOperatingStatusDto>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -15239,6 +12012,7 @@ export type OctoSdkDemoOperatingFacilityDto = {
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   name: Scalars['String']['output'];
+  orders?: Maybe<IndustryMaintenanceEnergyBalance_OrdersUnionConnectionDto>;
   ownedBy?: Maybe<OctoSdkDemoCustomer_OwnedByUnionConnectionDto>;
   parent?: Maybe<BasicTree_ParentUnionConnectionDto>;
   relatesFrom?: Maybe<BasicAsset_RelatesFromUnionConnectionDto>;
@@ -15314,6 +12088,20 @@ export type OctoSdkDemoOperatingFacilityMapsFromArgsDto = {
 
 /** Runtime entities of construction kit type 'OctoSdkDemo-2.0.1/OperatingFacility-1' */
 export type OctoSdkDemoOperatingFacilityMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'OctoSdkDemo-2.0.1/OperatingFacility-1' */
+export type OctoSdkDemoOperatingFacilityOrdersArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -15428,6 +12216,7 @@ export type OctoSdkDemoOperatingFacilityInputDto = {
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  orders?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   ownedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   parent?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -15524,25 +12313,6 @@ export type OctoSubscriptionsDto = {
   basicStateEvents?: Maybe<BasicStateUpdateMessageDto>;
   basicTreeEvents?: Maybe<BasicTreeUpdateMessageDto>;
   basicTreeNodeEvents?: Maybe<BasicTreeNodeUpdateMessageDto>;
-  energyIQAirHandlingUnitEvents?: Maybe<EnergyIqAirHandlingUnitUpdateMessageDto>;
-  energyIQBatteryStorageEvents?: Maybe<EnergyIqBatteryStorageUpdateMessageDto>;
-  energyIQBoilerEvents?: Maybe<EnergyIqBoilerUpdateMessageDto>;
-  energyIQBuildingElementEvents?: Maybe<EnergyIqBuildingElementUpdateMessageDto>;
-  energyIQBuildingEvents?: Maybe<EnergyIqBuildingUpdateMessageDto>;
-  energyIQBuildingStoreyEvents?: Maybe<EnergyIqBuildingStoreyUpdateMessageDto>;
-  energyIQChillerEvents?: Maybe<EnergyIqChillerUpdateMessageDto>;
-  energyIQDoorEvents?: Maybe<EnergyIqDoorUpdateMessageDto>;
-  energyIQInverterEvents?: Maybe<EnergyIqInverterUpdateMessageDto>;
-  energyIQLuminaireEvents?: Maybe<EnergyIqLuminaireUpdateMessageDto>;
-  energyIQPVStringEvents?: Maybe<EnergyIqpvStringUpdateMessageDto>;
-  energyIQPhotovoltaicSystemEvents?: Maybe<EnergyIqPhotovoltaicSystemUpdateMessageDto>;
-  energyIQPumpEvents?: Maybe<EnergyIqPumpUpdateMessageDto>;
-  energyIQShadingDeviceEvents?: Maybe<EnergyIqShadingDeviceUpdateMessageDto>;
-  energyIQSiteEvents?: Maybe<EnergyIqSiteUpdateMessageDto>;
-  energyIQSpaceEvents?: Maybe<EnergyIqSpaceUpdateMessageDto>;
-  energyIQTechnicalSystemEvents?: Maybe<EnergyIqTechnicalSystemUpdateMessageDto>;
-  energyIQWallEvents?: Maybe<EnergyIqWallUpdateMessageDto>;
-  energyIQWindowEvents?: Maybe<EnergyIqWindowUpdateMessageDto>;
   industryBasicAlarmEvents?: Maybe<IndustryBasicAlarmUpdateMessageDto>;
   industryBasicEventEvents?: Maybe<IndustryBasicEventUpdateMessageDto>;
   industryBasicMachineEvents?: Maybe<IndustryBasicMachineUpdateMessageDto>;
@@ -15558,11 +12328,17 @@ export type OctoSubscriptionsDto = {
   industryEnergyPhotovoltaicSystemEvents?: Maybe<IndustryEnergyPhotovoltaicSystemUpdateMessageDto>;
   industryEnergyPhotovoltaicSystemModuleEvents?: Maybe<IndustryEnergyPhotovoltaicSystemModuleUpdateMessageDto>;
   industryEnergyPhotovoltaicSystemStringEvents?: Maybe<IndustryEnergyPhotovoltaicSystemStringUpdateMessageDto>;
-  loxoneCategoryEvents?: Maybe<LoxoneCategoryUpdateMessageDto>;
-  loxoneControlEvents?: Maybe<LoxoneControlUpdateMessageDto>;
-  loxoneMiniserverEvents?: Maybe<LoxoneMiniserverUpdateMessageDto>;
-  loxoneRoomEvents?: Maybe<LoxoneRoomUpdateMessageDto>;
-  loxoneSubControlEvents?: Maybe<LoxoneSubControlUpdateMessageDto>;
+  industryFluidHeatMeterEvents?: Maybe<IndustryFluidHeatMeterUpdateMessageDto>;
+  industryFluidWaterMeterEvents?: Maybe<IndustryFluidWaterMeterUpdateMessageDto>;
+  industryMaintenanceAccountEvents?: Maybe<IndustryMaintenanceAccountUpdateMessageDto>;
+  industryMaintenanceCostCenterEvents?: Maybe<IndustryMaintenanceCostCenterUpdateMessageDto>;
+  industryMaintenanceEmployeeEvents?: Maybe<IndustryMaintenanceEmployeeUpdateMessageDto>;
+  industryMaintenanceEnergyBalanceEvents?: Maybe<IndustryMaintenanceEnergyBalanceUpdateMessageDto>;
+  industryMaintenanceJournalEntryEvents?: Maybe<IndustryMaintenanceJournalEntryUpdateMessageDto>;
+  industryMaintenanceOrderCostsEvents?: Maybe<IndustryMaintenanceOrderCostsUpdateMessageDto>;
+  industryMaintenanceOrderEvents?: Maybe<IndustryMaintenanceOrderUpdateMessageDto>;
+  industryMaintenanceOrderFeedbackEvents?: Maybe<IndustryMaintenanceOrderFeedbackUpdateMessageDto>;
+  industryMaintenanceWorkplaceEvents?: Maybe<IndustryMaintenanceWorkplaceUpdateMessageDto>;
   octoSdkDemoCustomerEvents?: Maybe<OctoSdkDemoCustomerUpdateMessageDto>;
   octoSdkDemoMeteringPointEvents?: Maybe<OctoSdkDemoMeteringPointUpdateMessageDto>;
   octoSdkDemoOperatingFacilityEvents?: Maybe<OctoSdkDemoOperatingFacilityUpdateMessageDto>;
@@ -15736,158 +12512,6 @@ export type OctoSubscriptionsBasicTreeNodeEventsArgsDto = {
 };
 
 
-export type OctoSubscriptionsEnergyIqAirHandlingUnitEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqBatteryStorageEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqBoilerEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqBuildingElementEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqBuildingEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqBuildingStoreyEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqChillerEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqDoorEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqInverterEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqLuminaireEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqpvStringEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqPhotovoltaicSystemEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqPumpEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqShadingDeviceEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqSiteEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqSpaceEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqTechnicalSystemEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqWallEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
-export type OctoSubscriptionsEnergyIqWindowEventsArgsDto = {
-  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
-};
-
-
 export type OctoSubscriptionsIndustryBasicAlarmEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -16008,7 +12632,7 @@ export type OctoSubscriptionsIndustryEnergyPhotovoltaicSystemStringEventsArgsDto
 };
 
 
-export type OctoSubscriptionsLoxoneCategoryEventsArgsDto = {
+export type OctoSubscriptionsIndustryFluidHeatMeterEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
@@ -16016,7 +12640,7 @@ export type OctoSubscriptionsLoxoneCategoryEventsArgsDto = {
 };
 
 
-export type OctoSubscriptionsLoxoneControlEventsArgsDto = {
+export type OctoSubscriptionsIndustryFluidWaterMeterEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
@@ -16024,7 +12648,7 @@ export type OctoSubscriptionsLoxoneControlEventsArgsDto = {
 };
 
 
-export type OctoSubscriptionsLoxoneMiniserverEventsArgsDto = {
+export type OctoSubscriptionsIndustryMaintenanceAccountEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
@@ -16032,7 +12656,7 @@ export type OctoSubscriptionsLoxoneMiniserverEventsArgsDto = {
 };
 
 
-export type OctoSubscriptionsLoxoneRoomEventsArgsDto = {
+export type OctoSubscriptionsIndustryMaintenanceCostCenterEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
@@ -16040,7 +12664,55 @@ export type OctoSubscriptionsLoxoneRoomEventsArgsDto = {
 };
 
 
-export type OctoSubscriptionsLoxoneSubControlEventsArgsDto = {
+export type OctoSubscriptionsIndustryMaintenanceEmployeeEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsIndustryMaintenanceEnergyBalanceEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsIndustryMaintenanceJournalEntryEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsIndustryMaintenanceOrderCostsEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsIndustryMaintenanceOrderEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsIndustryMaintenanceOrderFeedbackEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsIndustryMaintenanceWorkplaceEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
@@ -17440,40 +14112,6 @@ export type RuntimeDto = {
   basicTreeNodes?: Maybe<BasicTreeNodeMutationsDto>;
   /** Mutation for entities of type 'BasicTree'. */
   basicTrees?: Maybe<BasicTreeMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQAirHandlingUnit'. */
-  energyIQAirHandlingUnits?: Maybe<EnergyIqAirHandlingUnitMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQBatteryStorage'. */
-  energyIQBatteryStorages?: Maybe<EnergyIqBatteryStorageMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQBoiler'. */
-  energyIQBoilers?: Maybe<EnergyIqBoilerMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQBuildingStorey'. */
-  energyIQBuildingStoreys?: Maybe<EnergyIqBuildingStoreyMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQBuilding'. */
-  energyIQBuildings?: Maybe<EnergyIqBuildingMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQChiller'. */
-  energyIQChillers?: Maybe<EnergyIqChillerMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQDoor'. */
-  energyIQDoors?: Maybe<EnergyIqDoorMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQInverter'. */
-  energyIQInverters?: Maybe<EnergyIqInverterMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQLuminaire'. */
-  energyIQLuminaires?: Maybe<EnergyIqLuminaireMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQPVString'. */
-  energyIQPVStrings?: Maybe<EnergyIqpvStringMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQPhotovoltaicSystem'. */
-  energyIQPhotovoltaicSystems?: Maybe<EnergyIqPhotovoltaicSystemMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQPump'. */
-  energyIQPumps?: Maybe<EnergyIqPumpMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQShadingDevice'. */
-  energyIQShadingDevices?: Maybe<EnergyIqShadingDeviceMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQSite'. */
-  energyIQSites?: Maybe<EnergyIqSiteMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQSpace'. */
-  energyIQSpaces?: Maybe<EnergyIqSpaceMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQWall'. */
-  energyIQWalls?: Maybe<EnergyIqWallMutationsDto>;
-  /** Mutation for entities of type 'EnergyIQWindow'. */
-  energyIQWindows?: Maybe<EnergyIqWindowMutationsDto>;
   /** Mutation for entities of type 'IndustryBasicAlarm'. */
   industryBasicAlarms?: Maybe<IndustryBasicAlarmMutationsDto>;
   /** Mutation for entities of type 'IndustryBasicEvent'. */
@@ -17504,16 +14142,28 @@ export type RuntimeDto = {
   industryEnergyPhotovoltaicSystemStrings?: Maybe<IndustryEnergyPhotovoltaicSystemStringMutationsDto>;
   /** Mutation for entities of type 'IndustryEnergyPhotovoltaicSystem'. */
   industryEnergyPhotovoltaicSystems?: Maybe<IndustryEnergyPhotovoltaicSystemMutationsDto>;
-  /** Mutation for entities of type 'LoxoneCategory'. */
-  loxoneCategorys?: Maybe<LoxoneCategoryMutationsDto>;
-  /** Mutation for entities of type 'LoxoneControl'. */
-  loxoneControls?: Maybe<LoxoneControlMutationsDto>;
-  /** Mutation for entities of type 'LoxoneMiniserver'. */
-  loxoneMiniservers?: Maybe<LoxoneMiniserverMutationsDto>;
-  /** Mutation for entities of type 'LoxoneRoom'. */
-  loxoneRooms?: Maybe<LoxoneRoomMutationsDto>;
-  /** Mutation for entities of type 'LoxoneSubControl'. */
-  loxoneSubControls?: Maybe<LoxoneSubControlMutationsDto>;
+  /** Mutation for entities of type 'IndustryFluidHeatMeter'. */
+  industryFluidHeatMeters?: Maybe<IndustryFluidHeatMeterMutationsDto>;
+  /** Mutation for entities of type 'IndustryFluidWaterMeter'. */
+  industryFluidWaterMeters?: Maybe<IndustryFluidWaterMeterMutationsDto>;
+  /** Mutation for entities of type 'IndustryMaintenanceAccount'. */
+  industryMaintenanceAccounts?: Maybe<IndustryMaintenanceAccountMutationsDto>;
+  /** Mutation for entities of type 'IndustryMaintenanceCostCenter'. */
+  industryMaintenanceCostCenters?: Maybe<IndustryMaintenanceCostCenterMutationsDto>;
+  /** Mutation for entities of type 'IndustryMaintenanceEmployee'. */
+  industryMaintenanceEmployees?: Maybe<IndustryMaintenanceEmployeeMutationsDto>;
+  /** Mutation for entities of type 'IndustryMaintenanceEnergyBalance'. */
+  industryMaintenanceEnergyBalances?: Maybe<IndustryMaintenanceEnergyBalanceMutationsDto>;
+  /** Mutation for entities of type 'IndustryMaintenanceJournalEntry'. */
+  industryMaintenanceJournalEntrys?: Maybe<IndustryMaintenanceJournalEntryMutationsDto>;
+  /** Mutation for entities of type 'IndustryMaintenanceOrderCosts'. */
+  industryMaintenanceOrderCostss?: Maybe<IndustryMaintenanceOrderCostsMutationsDto>;
+  /** Mutation for entities of type 'IndustryMaintenanceOrderFeedback'. */
+  industryMaintenanceOrderFeedbacks?: Maybe<IndustryMaintenanceOrderFeedbackMutationsDto>;
+  /** Mutation for entities of type 'IndustryMaintenanceOrder'. */
+  industryMaintenanceOrders?: Maybe<IndustryMaintenanceOrderMutationsDto>;
+  /** Mutation for entities of type 'IndustryMaintenanceWorkplace'. */
+  industryMaintenanceWorkplaces?: Maybe<IndustryMaintenanceWorkplaceMutationsDto>;
   /** Mutation for entities of type 'OctoSdkDemoCustomer'. */
   octoSdkDemoCustomers?: Maybe<OctoSdkDemoCustomerMutationsDto>;
   /** Mutation for entities of type 'OctoSdkDemoMeteringPoint'. */
@@ -17691,25 +14341,6 @@ export type RuntimeModelQueryDto = {
   basicState?: Maybe<BasicStateConnectionDto>;
   basicTree?: Maybe<BasicTreeConnectionDto>;
   basicTreeNode?: Maybe<BasicTreeNodeConnectionDto>;
-  energyIQAirHandlingUnit?: Maybe<EnergyIqAirHandlingUnitConnectionDto>;
-  energyIQBatteryStorage?: Maybe<EnergyIqBatteryStorageConnectionDto>;
-  energyIQBoiler?: Maybe<EnergyIqBoilerConnectionDto>;
-  energyIQBuilding?: Maybe<EnergyIqBuildingConnectionDto>;
-  energyIQBuildingElement?: Maybe<EnergyIqBuildingElementConnectionDto>;
-  energyIQBuildingStorey?: Maybe<EnergyIqBuildingStoreyConnectionDto>;
-  energyIQChiller?: Maybe<EnergyIqChillerConnectionDto>;
-  energyIQDoor?: Maybe<EnergyIqDoorConnectionDto>;
-  energyIQInverter?: Maybe<EnergyIqInverterConnectionDto>;
-  energyIQLuminaire?: Maybe<EnergyIqLuminaireConnectionDto>;
-  energyIQPVString?: Maybe<EnergyIqpvStringConnectionDto>;
-  energyIQPhotovoltaicSystem?: Maybe<EnergyIqPhotovoltaicSystemConnectionDto>;
-  energyIQPump?: Maybe<EnergyIqPumpConnectionDto>;
-  energyIQShadingDevice?: Maybe<EnergyIqShadingDeviceConnectionDto>;
-  energyIQSite?: Maybe<EnergyIqSiteConnectionDto>;
-  energyIQSpace?: Maybe<EnergyIqSpaceConnectionDto>;
-  energyIQTechnicalSystem?: Maybe<EnergyIqTechnicalSystemConnectionDto>;
-  energyIQWall?: Maybe<EnergyIqWallConnectionDto>;
-  energyIQWindow?: Maybe<EnergyIqWindowConnectionDto>;
   industryBasicAlarm?: Maybe<IndustryBasicAlarmConnectionDto>;
   industryBasicEvent?: Maybe<IndustryBasicEventConnectionDto>;
   industryBasicMachine?: Maybe<IndustryBasicMachineConnectionDto>;
@@ -17725,11 +14356,17 @@ export type RuntimeModelQueryDto = {
   industryEnergyPhotovoltaicSystem?: Maybe<IndustryEnergyPhotovoltaicSystemConnectionDto>;
   industryEnergyPhotovoltaicSystemModule?: Maybe<IndustryEnergyPhotovoltaicSystemModuleConnectionDto>;
   industryEnergyPhotovoltaicSystemString?: Maybe<IndustryEnergyPhotovoltaicSystemStringConnectionDto>;
-  loxoneCategory?: Maybe<LoxoneCategoryConnectionDto>;
-  loxoneControl?: Maybe<LoxoneControlConnectionDto>;
-  loxoneMiniserver?: Maybe<LoxoneMiniserverConnectionDto>;
-  loxoneRoom?: Maybe<LoxoneRoomConnectionDto>;
-  loxoneSubControl?: Maybe<LoxoneSubControlConnectionDto>;
+  industryFluidHeatMeter?: Maybe<IndustryFluidHeatMeterConnectionDto>;
+  industryFluidWaterMeter?: Maybe<IndustryFluidWaterMeterConnectionDto>;
+  industryMaintenanceAccount?: Maybe<IndustryMaintenanceAccountConnectionDto>;
+  industryMaintenanceCostCenter?: Maybe<IndustryMaintenanceCostCenterConnectionDto>;
+  industryMaintenanceEmployee?: Maybe<IndustryMaintenanceEmployeeConnectionDto>;
+  industryMaintenanceEnergyBalance?: Maybe<IndustryMaintenanceEnergyBalanceConnectionDto>;
+  industryMaintenanceJournalEntry?: Maybe<IndustryMaintenanceJournalEntryConnectionDto>;
+  industryMaintenanceOrder?: Maybe<IndustryMaintenanceOrderConnectionDto>;
+  industryMaintenanceOrderCosts?: Maybe<IndustryMaintenanceOrderCostsConnectionDto>;
+  industryMaintenanceOrderFeedback?: Maybe<IndustryMaintenanceOrderFeedbackConnectionDto>;
+  industryMaintenanceWorkplace?: Maybe<IndustryMaintenanceWorkplaceConnectionDto>;
   octoSdkDemoCustomer?: Maybe<OctoSdkDemoCustomerConnectionDto>;
   octoSdkDemoMeteringPoint?: Maybe<OctoSdkDemoMeteringPointConnectionDto>;
   octoSdkDemoOperatingFacility?: Maybe<OctoSdkDemoOperatingFacilityConnectionDto>;
@@ -17967,272 +14604,6 @@ export type RuntimeModelQueryBasicTreeNodeArgsDto = {
 };
 
 
-export type RuntimeModelQueryEnergyIqAirHandlingUnitArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqBatteryStorageArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqBoilerArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqBuildingArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqBuildingElementArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqBuildingStoreyArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqChillerArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqDoorArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqInverterArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqLuminaireArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqpvStringArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqPhotovoltaicSystemArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqPumpArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqShadingDeviceArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqSiteArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqSpaceArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqTechnicalSystemArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqWallArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
-export type RuntimeModelQueryEnergyIqWindowArgsDto = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  aggregations?: InputMaybe<ResultAggregationInputDto>;
-  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
-  options?: InputMaybe<GlobalQueryOptionsDto>;
-  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
-  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
-  searchFilter?: InputMaybe<SearchFilterDto>;
-  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
-};
-
-
 export type RuntimeModelQueryIndustryBasicAlarmArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -18443,7 +14814,7 @@ export type RuntimeModelQueryIndustryEnergyPhotovoltaicSystemStringArgsDto = {
 };
 
 
-export type RuntimeModelQueryLoxoneCategoryArgsDto = {
+export type RuntimeModelQueryIndustryFluidHeatMeterArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -18457,7 +14828,7 @@ export type RuntimeModelQueryLoxoneCategoryArgsDto = {
 };
 
 
-export type RuntimeModelQueryLoxoneControlArgsDto = {
+export type RuntimeModelQueryIndustryFluidWaterMeterArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -18471,7 +14842,7 @@ export type RuntimeModelQueryLoxoneControlArgsDto = {
 };
 
 
-export type RuntimeModelQueryLoxoneMiniserverArgsDto = {
+export type RuntimeModelQueryIndustryMaintenanceAccountArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -18485,7 +14856,7 @@ export type RuntimeModelQueryLoxoneMiniserverArgsDto = {
 };
 
 
-export type RuntimeModelQueryLoxoneRoomArgsDto = {
+export type RuntimeModelQueryIndustryMaintenanceCostCenterArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -18499,7 +14870,91 @@ export type RuntimeModelQueryLoxoneRoomArgsDto = {
 };
 
 
-export type RuntimeModelQueryLoxoneSubControlArgsDto = {
+export type RuntimeModelQueryIndustryMaintenanceEmployeeArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQueryIndustryMaintenanceEnergyBalanceArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQueryIndustryMaintenanceJournalEntryArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQueryIndustryMaintenanceOrderArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQueryIndustryMaintenanceOrderCostsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQueryIndustryMaintenanceOrderFeedbackArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQueryIndustryMaintenanceWorkplaceArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -29148,7 +25603,7 @@ export type SystemEntityUpdateMessageDto = {
 };
 
 /** Union of types derived from System/Entity for Configures association */
-export type SystemEntity_ConfiguresUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqDoorDto | EnergyIqInverterDto | EnergyIqLuminaireDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqShadingDeviceDto | EnergyIqSiteDto | EnergyIqSpaceDto | EnergyIqWallDto | EnergyIqWindowDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneMiniserverDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_ConfiguresUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_ConfiguresUnion`. */
 export type SystemEntity_ConfiguresUnionConnectionDto = {
@@ -29177,7 +25632,7 @@ export type SystemEntity_ConfiguresUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for IsTagging association */
-export type SystemEntity_IsTaggingUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqDoorDto | EnergyIqInverterDto | EnergyIqLuminaireDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqShadingDeviceDto | EnergyIqSiteDto | EnergyIqSpaceDto | EnergyIqWallDto | EnergyIqWindowDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneMiniserverDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_IsTaggingUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_IsTaggingUnion`. */
 export type SystemEntity_IsTaggingUnionConnectionDto = {
@@ -29206,7 +25661,7 @@ export type SystemEntity_IsTaggingUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for MappedAsSource association */
-export type SystemEntity_MappedAsSourceUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqDoorDto | EnergyIqInverterDto | EnergyIqLuminaireDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqShadingDeviceDto | EnergyIqSiteDto | EnergyIqSpaceDto | EnergyIqWallDto | EnergyIqWindowDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneMiniserverDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_MappedAsSourceUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_MappedAsSourceUnion`. */
 export type SystemEntity_MappedAsSourceUnionConnectionDto = {
@@ -29235,7 +25690,7 @@ export type SystemEntity_MappedAsSourceUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for MappedAsTarget association */
-export type SystemEntity_MappedAsTargetUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqDoorDto | EnergyIqInverterDto | EnergyIqLuminaireDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqShadingDeviceDto | EnergyIqSiteDto | EnergyIqSpaceDto | EnergyIqWallDto | EnergyIqWindowDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneMiniserverDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_MappedAsTargetUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_MappedAsTargetUnion`. */
 export type SystemEntity_MappedAsTargetUnionConnectionDto = {
@@ -29264,7 +25719,7 @@ export type SystemEntity_MappedAsTargetUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for RelatesFrom association */
-export type SystemEntity_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqDoorDto | EnergyIqInverterDto | EnergyIqLuminaireDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqShadingDeviceDto | EnergyIqSiteDto | EnergyIqSpaceDto | EnergyIqWallDto | EnergyIqWindowDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneMiniserverDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_RelatesFromUnion`. */
 export type SystemEntity_RelatesFromUnionConnectionDto = {
@@ -29293,7 +25748,7 @@ export type SystemEntity_RelatesFromUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for RelatesTo association */
-export type SystemEntity_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyIqAirHandlingUnitDto | EnergyIqBatteryStorageDto | EnergyIqBoilerDto | EnergyIqBuildingDto | EnergyIqBuildingStoreyDto | EnergyIqChillerDto | EnergyIqDoorDto | EnergyIqInverterDto | EnergyIqLuminaireDto | EnergyIqpvStringDto | EnergyIqPhotovoltaicSystemDto | EnergyIqPumpDto | EnergyIqShadingDeviceDto | EnergyIqSiteDto | EnergyIqSpaceDto | EnergyIqWallDto | EnergyIqWindowDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | LoxoneCategoryDto | LoxoneControlDto | LoxoneMiniserverDto | LoxoneRoomDto | LoxoneSubControlDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
+export type SystemEntity_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationTagDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMailNotificationConfigurationDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityUserDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto;
 
 /** A connection to `SystemEntity_RelatesToUnion`. */
 export type SystemEntity_RelatesToUnionConnectionDto = {
