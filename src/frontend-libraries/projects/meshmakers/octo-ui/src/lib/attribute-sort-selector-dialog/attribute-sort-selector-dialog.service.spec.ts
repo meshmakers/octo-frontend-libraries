@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
+import { AttributeItem } from '@meshmakers/octo-services';
 import { AttributeSortSelectorDialogService } from './attribute-sort-selector-dialog.service';
 import {
   AttributeSortSelectorDialogComponent,
@@ -16,6 +17,7 @@ interface MockComponentInstance {
     includeNavigationProperties?: boolean;
     hideNavigationControls?: boolean;
     attributePaths?: string[];
+    additionalAttributes?: AttributeItem[];
   };
 }
 
