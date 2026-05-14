@@ -44,6 +44,7 @@ describe('CkTypeSelectorDialogService', () => {
       window: {
         location: {
           nativeElement: {
+            style: { width: '', height: '' },
             getBoundingClientRect: () => ({
               width: 800, height: 600, x: 0, y: 0, top: 0, left: 0, right: 800, bottom: 600,
               toJSON: () => ({})
