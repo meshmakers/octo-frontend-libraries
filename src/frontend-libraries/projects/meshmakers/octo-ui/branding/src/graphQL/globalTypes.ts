@@ -24734,6 +24734,7 @@ export type SystemCommunicationDeployableWorkload_ManagesUnionEdgeDto = {
 /** Runtime entities of construction kit enum 'System.Communication/DeploymentState' */
 export enum SystemCommunicationDeploymentStateDto {
   DeployedDto = 'DEPLOYED',
+  DisabledDto = 'DISABLED',
   ErrorDto = 'ERROR',
   PendingDto = 'PENDING',
   UndeployedDto = 'UNDEPLOYED'

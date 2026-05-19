@@ -43395,6 +43395,7 @@ enum SystemCommunicationConfigurationState {
 "Runtime entities of construction kit enum 'System.Communication/DeploymentState'"
 enum SystemCommunicationDeploymentState {
   DEPLOYED
+  DISABLED
   ERROR
   PENDING
   UNDEPLOYED
