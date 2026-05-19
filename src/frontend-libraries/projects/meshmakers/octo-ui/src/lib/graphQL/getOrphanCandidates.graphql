@@ -1,0 +1,42 @@
+query getOrphanCandidates(
+  $ckTypeId: String!
+  $mapsFromRoleId: String!
+  $mappingCkTypeId: String!
+  $first: Int
+  $after: String
+  $searchFilter: SearchFilter
+) {
+  runtime {
+    runtimeEntities(
+      ckId: $ckTypeId
+      first: $first
+      after: $after
+      searchFilter: $searchFilter
+    ) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        attributes(attributeNames: ["name", "description"]) {
+          items {
+            attributeName
+            value
+          }
+        }
+        # Counts inbound MapsFrom associations from any DataPointMapping. An
+        # entity is "orphan" (= unmapped) when totalCount === 0.
+        associations {
+          mappings: targets(
+            roleId: $mapsFromRoleId
+            ckId: $mappingCkTypeId
+            direction: INBOUND
+            first: 0
+          ) {
+            totalCount
+          }
+        }
+      }
+    }
+  }
+}

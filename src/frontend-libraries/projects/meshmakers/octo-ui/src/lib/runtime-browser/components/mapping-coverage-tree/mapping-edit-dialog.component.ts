@@ -6,9 +6,10 @@ import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ComboBoxModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { SwitchModule, TextBoxModule } from '@progress/kendo-angular-inputs';
-import { hyperlinkOpenIcon } from '@progress/kendo-svg-icons';
+import { folderOpenIcon, hyperlinkOpenIcon } from '@progress/kendo-svg-icons';
 import { AttributeItem, AttributeSelectorService } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
+import { AttributeSelectorDialogService } from '../../../attribute-selector-dialog/attribute-selector-dialog.service';
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
 
 /**
@@ -113,28 +114,36 @@ export type MappingEditDialogResult =
           Source Attribute Path
           @if (sourceAttributesLoading()) { <span class="loading-pill">loading…</span> }
         </label>
-        <kendo-combobox
-          [data]="sourceAttributeList()"
-          [value]="model().sourceAttributePath"
-          (valueChange)="onSourceAttributePathChange($event)"
-          [textField]="'attributePath'"
-          [valueField]="'attributePath'"
-          [valuePrimitive]="true"
-          [allowCustom]="true"
-          [filterable]="true"
-          (filterChange)="onSourceAttributeFilter($event)"
-          [popupSettings]="{ appendTo: 'root', animate: true }"
-          placeholder="e.g. tempActual, CurrentValue">
-          <ng-template kendoComboBoxItemTemplate let-item>
-            <div class="attribute-option">
-              <span class="attribute-path">{{ item.attributePath }}</span>
-              <span class="attribute-type">{{ item.attributeValueType }}</span>
-            </div>
-          </ng-template>
-        </kendo-combobox>
+        <div class="combo-row">
+          <kendo-combobox
+            [data]="sourceAttributeList()"
+            [value]="model().sourceAttributePath"
+            (valueChange)="onSourceAttributePathChange($event)"
+            [textField]="'attributePath'"
+            [valueField]="'attributePath'"
+            [valuePrimitive]="true"
+            [allowCustom]="true"
+            [filterable]="true"
+            (filterChange)="onSourceAttributeFilter($event)"
+            [popupSettings]="{ appendTo: 'root', animate: true }"
+            placeholder="e.g. tempActual, CurrentValue">
+            <ng-template kendoComboBoxItemTemplate let-item>
+              <div class="attribute-option">
+                <span class="attribute-path">{{ item.attributePath }}</span>
+                <span class="attribute-type">{{ item.attributeValueType }}</span>
+              </div>
+            </ng-template>
+          </kendo-combobox>
+          <button kendoButton fillMode="flat" size="small"
+            [svgIcon]="icons.browse"
+            [disabled]="!model().sourceCkTypeId"
+            (click)="browseSourceAttribute()"
+            title="Browse all attributes (incl. navigation properties)"></button>
+        </div>
         <span class="hint">
           @if (model().sourceCkTypeId) {
-            Attribute on <code>{{ model().sourceCkTypeId }}</code> that emits the value.
+            Direct attributes on <code>{{ model().sourceCkTypeId }}</code>. Click
+            the browse button for navigation properties or to escape autocomplete.
           } @else {
             Pick a source entity above to see available attribute paths.
           }
@@ -154,28 +163,36 @@ export type MappingEditDialogResult =
           Target Attribute Path
           @if (targetAttributesLoading()) { <span class="loading-pill">loading…</span> }
         </label>
-        <kendo-combobox
-          [data]="targetAttributeList()"
-          [value]="model().targetAttributePath"
-          (valueChange)="onTargetAttributePathChange($event)"
-          [textField]="'attributePath'"
-          [valueField]="'attributePath'"
-          [valuePrimitive]="true"
-          [allowCustom]="true"
-          [filterable]="true"
-          (filterChange)="onTargetAttributeFilter($event)"
-          [popupSettings]="{ appendTo: 'root', animate: true }"
-          placeholder="e.g. Temperature, CO2Level">
-          <ng-template kendoComboBoxItemTemplate let-item>
-            <div class="attribute-option">
-              <span class="attribute-path">{{ item.attributePath }}</span>
-              <span class="attribute-type">{{ item.attributeValueType }}</span>
-            </div>
-          </ng-template>
-        </kendo-combobox>
+        <div class="combo-row">
+          <kendo-combobox
+            [data]="targetAttributeList()"
+            [value]="model().targetAttributePath"
+            (valueChange)="onTargetAttributePathChange($event)"
+            [textField]="'attributePath'"
+            [valueField]="'attributePath'"
+            [valuePrimitive]="true"
+            [allowCustom]="true"
+            [filterable]="true"
+            (filterChange)="onTargetAttributeFilter($event)"
+            [popupSettings]="{ appendTo: 'root', animate: true }"
+            placeholder="e.g. Temperature, CO2Level">
+            <ng-template kendoComboBoxItemTemplate let-item>
+              <div class="attribute-option">
+                <span class="attribute-path">{{ item.attributePath }}</span>
+                <span class="attribute-type">{{ item.attributeValueType }}</span>
+              </div>
+            </ng-template>
+          </kendo-combobox>
+          <button kendoButton fillMode="flat" size="small"
+            [svgIcon]="icons.browse"
+            [disabled]="!targetCkTypeId"
+            (click)="browseTargetAttribute()"
+            title="Browse all attributes (incl. navigation properties)"></button>
+        </div>
         <span class="hint">
           @if (targetCkTypeId) {
-            Attribute on <code>{{ targetCkTypeId }}</code> to update.
+            Direct attributes on <code>{{ targetCkTypeId }}</code>. Click the
+            browse button for navigation properties or to escape autocomplete.
           } @else {
             Attribute on the target entity to update.
           }
@@ -291,6 +308,16 @@ export type MappingEditDialogResult =
         transparent);
     }
 
+    .combo-row {
+      display: flex;
+      align-items: stretch;
+      gap: 4px;
+
+      kendo-combobox {
+        flex: 1;
+      }
+    }
+
     .attribute-option {
       display: flex;
       justify-content: space-between;
@@ -332,9 +359,13 @@ export type MappingEditDialogResult =
 export class MappingEditDialogComponent {
   private readonly windowRef = inject(WindowRef);
   private readonly entitySelector = inject(EntitySelectorDialogService);
+  private readonly attributeSelectorDialog = inject(AttributeSelectorDialogService);
   private readonly attributeService = inject(AttributeSelectorService);
 
-  protected readonly icons = { link: hyperlinkOpenIcon };
+  protected readonly icons = {
+    link: hyperlinkOpenIcon,
+    browse: folderOpenIcon,
+  };
 
   /** Set by the service before the dialog content is shown. */
   public data: MappingEditDialogData = {
@@ -440,8 +471,14 @@ export class MappingEditDialogComponent {
 
   /**
    * Fetches the attribute catalogue for one CK type and stores it for the
-   * combobox dropdown. The combobox already does client-side substring
-   * filtering on the populated list, so we don't refetch on every keystroke.
+   * combobox dropdown. Navigation properties are explicitly excluded — they
+   * drown out the actual direct attributes (the column resolver expands one
+   * row per association target, which can produce hundreds of paths even on
+   * a small type like EnergyIQ/Space). Users who really want a navigation
+   * path can open the full Attribute Selector dialog via the browse button.
+   *
+   * The combobox already does client-side substring filtering on the
+   * populated list, so we don't refetch on every keystroke.
    */
   private async loadAttributes(ckTypeId: string, slot: 'source' | 'target'): Promise<void> {
     const loadingSig = slot === 'source' ? this.sourceAttributesLoading : this.targetAttributesLoading;
@@ -449,7 +486,16 @@ export class MappingEditDialogComponent {
     loadingSig.set(true);
     try {
       const result = await firstValueFrom(
-        this.attributeService.getAvailableAttributes(ckTypeId, undefined, 500),
+        this.attributeService.getAvailableAttributes(
+          ckTypeId,
+          undefined, // filter
+          500,       // first
+          undefined, // after
+          undefined, // attributeValueType
+          undefined, // searchTerm
+          false,     // includeNavigationProperties — keep the list focused
+          0,         // maxDepth — direct attributes only
+        ),
       );
       dataSig.set(result.items);
     } catch (err) {
@@ -457,6 +503,48 @@ export class MappingEditDialogComponent {
       dataSig.set([]);
     } finally {
       loadingSig.set(false);
+    }
+  }
+
+  /**
+   * Opens the full AttributeSelectorDialog in single-select mode for the
+   * configured CK type. The dialog exposes its own controls for navigation
+   * properties and max depth, so power users who need a deep path can find
+   * it there even though the inline combobox keeps things flat.
+   */
+  protected async browseSourceAttribute(): Promise<void> {
+    const ckTypeId = this.model().sourceCkTypeId;
+    if (!ckTypeId) return;
+    const current = this.model().sourceAttributePath;
+    const result = await this.attributeSelectorDialog.openAttributeSelector(
+      ckTypeId,
+      current ? [current] : undefined,
+      'Select Source Attribute Path',
+      true, // singleSelect
+    );
+    if (result.confirmed && result.selectedAttributes.length > 0) {
+      this.model.update(m => ({
+        ...m,
+        sourceAttributePath: result.selectedAttributes[0].attributePath,
+      }));
+    }
+  }
+
+  protected async browseTargetAttribute(): Promise<void> {
+    const ckTypeId = this.data.targetCkTypeId;
+    if (!ckTypeId) return;
+    const current = this.model().targetAttributePath;
+    const result = await this.attributeSelectorDialog.openAttributeSelector(
+      ckTypeId,
+      current ? [current] : undefined,
+      'Select Target Attribute Path',
+      true, // singleSelect
+    );
+    if (result.confirmed && result.selectedAttributes.length > 0) {
+      this.model.update(m => ({
+        ...m,
+        targetAttributePath: result.selectedAttributes[0].attributePath,
+      }));
     }
   }
 

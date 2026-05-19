@@ -1,4 +1,25 @@
 <div class="coverage-root">
+  @if (config.sourceCandidateCkTypeIds.length > 0) {
+    <div class="coverage-tabs" role="tablist">
+      <button class="coverage-tab"
+              [class.active]="activeTab() === 'coverage'"
+              role="tab"
+              [attr.aria-selected]="activeTab() === 'coverage'"
+              (click)="selectTab('coverage')">Coverage Tree</button>
+      <button class="coverage-tab"
+              [class.active]="activeTab() === 'orphans'"
+              role="tab"
+              [attr.aria-selected]="activeTab() === 'orphans'"
+              (click)="selectTab('orphans')">
+        Orphan Sources
+        @if (orphanStats(); as s) {
+          @if (s.unmapped > 0) { <span class="tab-badge">{{ s.unmapped }}</span> }
+        }
+      </button>
+    </div>
+  }
+
+  @if (activeTab() === 'coverage') {
   <div class="coverage-toolbar">
     <label class="toolbar-label">Tree:</label>
     <select class="root-select"
@@ -33,8 +54,16 @@
         <option [value]="p.rtId">{{ p.name }}</option>
       }
     </select>
-    <button kendoButton themeColor="primary" size="small" [svgIcon]="icons.refresh"
-            [disabled]="!selectedPipeline() || validationLoading()"
+    @if (tenantId) {
+      <button kendoButton themeColor="primary" size="small"
+              [disabled]="!selectedPipeline() || validationRunning() || validationLoading()"
+              (click)="runValidation()"
+              [title]="validationRunning() ? 'Validation running…' : 'Run pipeline + load report'">
+        @if (validationRunning()) { Running… } @else { Run }
+      </button>
+    }
+    <button kendoButton fillMode="solid" size="small" [svgIcon]="icons.refresh"
+            [disabled]="!selectedPipeline() || validationLoading() || validationRunning()"
             (click)="refreshValidation()">Load Report</button>
     @if (validationSummary()) {
       <button kendoButton fillMode="flat" size="small"
@@ -163,4 +192,82 @@
       }
     </div>
   </div>
+  }
+
+  @if (activeTab() === 'orphans') {
+    <div class="coverage-toolbar">
+      <label class="toolbar-label">Source type:</label>
+      <select class="root-select"
+              [value]="orphanCkType() ?? ''"
+              (change)="onOrphanCkTypeChange($any($event.target).value)">
+        @for (ckType of config.sourceCandidateCkTypeIds; track ckType) {
+          <option [value]="ckType">{{ ckType }}</option>
+        }
+      </select>
+      <button kendoButton fillMode="flat" size="small" [svgIcon]="icons.refresh"
+              [disabled]="!orphanCkType() || orphanLoading()"
+              (click)="refreshOrphans()" title="Reload"></button>
+      <label class="orphan-toggle">
+        <input type="checkbox" [checked]="orphanHideMapped()" (change)="toggleOrphanHideMapped()" />
+        Hide already-mapped
+      </label>
+
+      <div class="toolbar-spacer"></div>
+
+      @if (orphanStats(); as s) {
+        <span class="validation-summary">
+          <span class="badge badge-error" title="unmapped — no DataPointMapping yet">{{ s.unmapped }} unmapped</span>
+          <span class="badge badge-ok" title="already covered by at least one mapping">{{ s.mapped }} mapped</span>
+          <span class="badge">{{ s.total }} total</span>
+        </span>
+      }
+    </div>
+
+    <div class="orphan-body">
+      @if (orphanLoading()) {
+        <div class="empty-hint">Loading source candidates…</div>
+      } @else if (orphanError(); as err) {
+        <div class="error-hint">{{ err }}</div>
+      } @else if (orphanFilteredList().length === 0) {
+        <div class="empty-hint">
+          @if (orphanHideMapped()) {
+            All {{ orphanCkType() }} entities are mapped at least once. 🎉
+          } @else {
+            No entities of type {{ orphanCkType() }} found.
+          }
+        </div>
+      } @else {
+        <ul class="orphan-list">
+          @for (item of orphanFilteredList(); track trackOrphanByRtId($index, item)) {
+            <li class="orphan-row" [class.orphan-mapped]="item.mappingCount > 0">
+              <div class="orphan-line">
+                <span class="orphan-name">{{ item.name }}</span>
+                @if (item.mappingCount > 0) {
+                  <span class="orphan-badge orphan-badge-mapped">
+                    {{ item.mappingCount }} mapping{{ item.mappingCount === 1 ? '' : 's' }}
+                  </span>
+                } @else {
+                  <span class="orphan-badge orphan-badge-unmapped">unmapped</span>
+                }
+              </div>
+              <div class="orphan-meta">
+                <span class="kv-val">{{ item.ckTypeId }}@{{ item.rtId }}</span>
+              </div>
+              @if (item.description) {
+                <div class="orphan-description">{{ item.description }}</div>
+              }
+              <div class="orphan-actions">
+                <button kendoButton themeColor="primary" fillMode="flat" size="small"
+                        [svgIcon]="icons.plus"
+                        (click)="createMappingFromOrphan(item)"
+                        title="Create mapping pre-linked to this source">
+                  Map…
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
 </div>

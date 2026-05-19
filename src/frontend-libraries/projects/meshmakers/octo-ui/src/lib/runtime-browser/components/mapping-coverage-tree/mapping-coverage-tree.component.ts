@@ -14,6 +14,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
+import { LayoutModule } from '@progress/kendo-angular-layout';
 import {
   arrowRotateCwIcon,
   folderOpenIcon,
@@ -30,12 +31,14 @@ import { CreateEntitiesDtoGQL } from '../../../graphQL/createEntities';
 import { DeleteEntitiesDtoGQL } from '../../../graphQL/deleteEntities';
 import {
   AssociationModOptionsDto,
+  CommunicationService,
   DeleteStrategiesDto,
   GetEntitiesByCkTypeDtoGQL,
   GraphQL,
 } from '@meshmakers/octo-services';
 import { GetLatestValidationExecutionDtoGQL } from '../../../graphQL/getLatestValidationExecution';
 import { GetNodeMappingsDtoGQL } from '../../../graphQL/getNodeMappings';
+import { GetOrphanCandidatesDtoGQL } from '../../../graphQL/getOrphanCandidates';
 import { GetRuntimeEntityByIdDtoGQL } from '../../../graphQL/getRuntimeEntityById';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../../graphQL/updateRuntimeEntities';
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
@@ -50,6 +53,7 @@ import {
   CoverageValidationDetail,
   DEFAULT_MAPPING_COVERAGE_TREE_CONFIG,
   MappingCoverageTreeConfig,
+  OrphanCandidate,
 } from './mapping-coverage-tree.models';
 
 interface RootCandidate {
@@ -82,6 +86,7 @@ interface PipelineCandidate {
     CommonModule,
     FormsModule,
     ButtonModule,
+    LayoutModule,
     SVGIconModule,
     TreeComponent,
   ],
@@ -93,10 +98,12 @@ export class MappingCoverageTreeComponent implements OnInit {
   private readonly entitySelector = inject(EntitySelectorDialogService);
   private readonly editDialog = inject(MappingEditDialogService);
   private readonly confirmation = inject(ConfirmationService);
+  private readonly communicationService = inject(CommunicationService);
   private readonly getEntitiesByCkType = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly getNodeMappingsGQL = inject(GetNodeMappingsDtoGQL);
   private readonly getRuntimeEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
   private readonly getLatestValidationGQL = inject(GetLatestValidationExecutionDtoGQL);
+  private readonly getOrphanCandidatesGQL = inject(GetOrphanCandidatesDtoGQL);
   private readonly createEntitiesGQL = inject(CreateEntitiesDtoGQL);
   private readonly deleteEntitiesGQL = inject(DeleteEntitiesDtoGQL);
   private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
@@ -111,6 +118,14 @@ export class MappingCoverageTreeComponent implements OnInit {
 
   /** Pre-select a root on first show (e.g. via route param). */
   @Input() initialRoot: CoverageEntityRef | null = null;
+
+  /**
+   * Current tenant ID. Required for the "Run Validation" pipeline trigger
+   * which calls a tenant-scoped REST endpoint on the Communication Controller.
+   * When not provided, the Run button is hidden and the user has to trigger
+   * the pipeline externally.
+   */
+  @Input() tenantId: string | null = null;
 
   @Output() readonly entitySelected = new EventEmitter<CoverageEntityRef>();
 
@@ -136,6 +151,27 @@ export class MappingCoverageTreeComponent implements OnInit {
   protected readonly validationExecutedAt = signal<string | null>(null);
   protected readonly validationLoading = signal<boolean>(false);
   protected readonly validationError = signal<string | null>(null);
+  protected readonly validationRunning = signal<boolean>(false);
+
+  /** Active tab: 'coverage' shows the tree, 'orphans' shows the unmapped sources. */
+  protected readonly activeTab = signal<'coverage' | 'orphans'>('coverage');
+
+  /** Source CK type currently inspected for orphans. */
+  protected readonly orphanCkType = signal<string | null>(null);
+  protected readonly orphanCandidates = signal<OrphanCandidate[]>([]);
+  protected readonly orphanLoading = signal<boolean>(false);
+  protected readonly orphanError = signal<string | null>(null);
+  protected readonly orphanHideMapped = signal<boolean>(true);
+
+  protected readonly orphanFilteredList = computed(() => {
+    const all = this.orphanCandidates();
+    return this.orphanHideMapped() ? all.filter(c => c.mappingCount === 0) : all;
+  });
+  protected readonly orphanStats = computed(() => {
+    const all = this.orphanCandidates();
+    const unmapped = all.filter(c => c.mappingCount === 0).length;
+    return { total: all.length, unmapped, mapped: all.length - unmapped };
+  });
 
   protected readonly summaryLine = computed(() => {
     const node = this.selectedNode();
@@ -147,6 +183,9 @@ export class MappingCoverageTreeComponent implements OnInit {
 
   public async ngOnInit(): Promise<void> {
     this.dataSource.setConfig(this.config);
+    if (this.config.sourceCandidateCkTypeIds.length > 0) {
+      this.orphanCkType.set(this.config.sourceCandidateCkTypeIds[0]);
+    }
     await Promise.all([this.loadRootCandidates(), this.loadValidationPipelines()]);
 
     if (this.initialRoot) {
@@ -219,6 +258,219 @@ export class MappingCoverageTreeComponent implements OnInit {
     this.validationExecutedAt.set(null);
     this.validationError.set(null);
     void this.refreshTreeOverlay();
+  }
+
+  // ─── Orphan-Sources Tab ────────────────────────────────────────────────────
+
+  protected selectTab(tab: 'coverage' | 'orphans'): void {
+    this.activeTab.set(tab);
+    if (tab === 'orphans' && this.orphanCkType() && this.orphanCandidates().length === 0) {
+      void this.loadOrphanCandidates();
+    }
+  }
+
+  protected onOrphanCkTypeChange(ckTypeId: string): void {
+    this.orphanCkType.set(ckTypeId || null);
+    this.orphanCandidates.set([]);
+    if (ckTypeId) void this.loadOrphanCandidates();
+  }
+
+  protected async refreshOrphans(): Promise<void> {
+    await this.loadOrphanCandidates();
+  }
+
+  protected toggleOrphanHideMapped(): void {
+    this.orphanHideMapped.update(v => !v);
+  }
+
+  /**
+   * Fetches all entities of the selected source CK type and tags each with
+   * its inbound MapsFrom DataPointMapping count. The view filters the list
+   * down to mappingCount === 0 by default, but the user can flip the toggle
+   * to see all candidates (mapped + unmapped) for verification.
+   */
+  private async loadOrphanCandidates(): Promise<void> {
+    const ckTypeId = this.orphanCkType();
+    if (!ckTypeId) return;
+
+    this.orphanLoading.set(true);
+    this.orphanError.set(null);
+    try {
+      const result = await firstValueFrom(
+        this.getOrphanCandidatesGQL
+          .fetch({
+            variables: {
+              ckTypeId,
+              mapsFromRoleId: this.config.mappingSourceRoleId,
+              mappingCkTypeId: this.config.mappingCkTypeId,
+              first: 1000,
+              after: GraphQL.offsetToCursor(0),
+            },
+            fetchPolicy: 'network-only',
+          })
+          .pipe(map(r => r.data?.runtime?.runtimeEntities?.items ?? [])),
+      );
+
+      const candidates: OrphanCandidate[] = (result ?? [])
+        .filter((e): e is NonNullable<typeof e> => !!e && !!e.rtId && !!e.ckTypeId)
+        .map(e => ({
+          rtId: e.rtId as string,
+          ckTypeId: e.ckTypeId as string,
+          name: readAttr(e.attributes?.items, 'name') ?? e.rtWellKnownName ?? (e.rtId as string),
+          description: readAttr(e.attributes?.items, 'description') ?? undefined,
+          mappingCount: e.associations?.mappings?.totalCount ?? 0,
+        }));
+      candidates.sort((a, b) => {
+        // Show unmapped first, then alphabetical.
+        if (a.mappingCount === 0 && b.mappingCount > 0) return -1;
+        if (a.mappingCount > 0 && b.mappingCount === 0) return 1;
+        return a.name.localeCompare(b.name);
+      });
+      this.orphanCandidates.set(candidates);
+    } catch (error) {
+      console.error('Failed to load orphan candidates:', error);
+      this.orphanError.set('Failed to load source candidates.');
+      this.orphanCandidates.set([]);
+    } finally {
+      this.orphanLoading.set(false);
+    }
+  }
+
+  /**
+   * Bootstrap a new DataPointMapping pre-linked to an orphan source. The
+   * MapsTo side is left empty — the user finishes the wiring in the edit
+   * dialog (pick target node + target attribute).
+   */
+  protected async createMappingFromOrphan(orphan: OrphanCandidate): Promise<void> {
+    try {
+      const created = await firstValueFrom(
+        this.createEntitiesGQL.mutate({
+          variables: {
+            entities: [
+              {
+                ckTypeId: this.config.mappingCkTypeId,
+                attributes: [
+                  { attributeName: 'Name', value: `${orphan.name} mapping` },
+                  { attributeName: 'Enabled', value: true },
+                ],
+                associations: [
+                  {
+                    roleName: this.config.mappingSourceOutboundRoleName,
+                    targets: [
+                      {
+                        modOption: AssociationModOptionsDto.CreateDto,
+                        target: { rtId: orphan.rtId, ckTypeId: orphan.ckTypeId },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      );
+      const newRtId = created.data?.runtime?.runtimeEntities?.create?.[0]?.rtId;
+      if (newRtId) {
+        await this.loadOrphanCandidates();
+        // Open the edit dialog so the user can immediately pick the MapsTo
+        // target + target attribute path.
+        const skeleton: CoverageMappingItem = {
+          rtId: String(newRtId),
+          ckTypeId: this.config.mappingCkTypeId,
+          name: `${orphan.name} mapping`,
+          enabled: true,
+          sourceAttributePath: '',
+          targetAttributePath: '',
+          mappingExpression: '',
+          sourceRtId: orphan.rtId,
+          sourceCkTypeId: orphan.ckTypeId,
+          sourceName: orphan.name,
+        };
+        await this.editMapping(skeleton);
+      }
+    } catch (error) {
+      console.error('Failed to create mapping for orphan:', error);
+      this.orphanError.set('Failed to create mapping.');
+    }
+  }
+
+  protected trackOrphanByRtId(_index: number, item: OrphanCandidate): string {
+    return item.rtId;
+  }
+
+  /**
+   * Triggers the selected validation pipeline on the Communication Controller
+   * and, when it completes, automatically refreshes the coverage report so the
+   * tree colour-codes update. Requires {@link tenantId} to be set.
+   *
+   * Polling strategy: every 1.5 s, fetch the latest execution metadata for the
+   * pipeline. When `dateTime` differs from the snapshot taken before the run,
+   * we know a new execution finished — refresh and stop. Aborts after 60 s.
+   */
+  protected async runValidation(): Promise<void> {
+    const pipeline = this.selectedPipeline();
+    const tenant = this.tenantId;
+    if (!pipeline || !tenant) {
+      this.validationError.set(
+        !pipeline ? 'Pick a validation pipeline first.' : 'Tenant context missing — Run is unavailable.',
+      );
+      return;
+    }
+
+    this.validationRunning.set(true);
+    this.validationError.set(null);
+
+    // Snapshot the latest execution's id so we can detect the new one finishing.
+    let previousExecutionId: string | null = null;
+    try {
+      const previous = await this.communicationService.getLatestPipelineExecution(
+        tenant, pipeline.rtId, pipeline.ckTypeId,
+      );
+      previousExecutionId = previous?.id ?? null;
+    } catch {
+      // Non-fatal: we'll still detect completion by polling and falling back
+      // to "any latest execution" being non-Running.
+    }
+
+    try {
+      await this.communicationService.executePipeline(tenant, pipeline.rtId);
+    } catch (error) {
+      console.error('Failed to start validation pipeline:', error);
+      this.validationError.set('Failed to start validation pipeline.');
+      this.validationRunning.set(false);
+      return;
+    }
+
+    // Poll for completion. We accept that the new execution id may equal
+    // previousExecutionId for a brief moment until the controller flushes it
+    // — that's why we also accept any latest execution whose status leaves
+    // Running (Completed / Failed / Interrupted / Cancelled).
+    const startedAt = Date.now();
+    const timeoutMs = 60_000;
+    const pollIntervalMs = 1500;
+
+    while (Date.now() - startedAt < timeoutMs) {
+      await sleep(pollIntervalMs);
+      try {
+        const latest = await this.communicationService.getLatestPipelineExecution(
+          tenant, pipeline.rtId, pipeline.ckTypeId,
+        );
+        const isNew = latest && latest.id !== previousExecutionId;
+        const isFinished = latest && latest.status && latest.status !== 'Running';
+        if (isNew && isFinished) {
+          this.validationRunning.set(false);
+          await this.refreshValidation();
+          return;
+        }
+      } catch (error) {
+        console.warn('Polling validation execution failed:', error);
+      }
+    }
+
+    // Timeout: leave running flag off so the button is usable again; user can
+    // hit Load Report manually if the pipeline is just slow.
+    this.validationRunning.set(false);
+    this.validationError.set('Validation is still running — use Load Report to refresh later.');
   }
 
   private async refreshTreeOverlay(): Promise<void> {
@@ -715,4 +967,8 @@ function normaliseStatus(value: string | undefined): CoverageNodeStatus {
     default:
       return 'info';
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

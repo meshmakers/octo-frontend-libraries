@@ -42,6 +42,13 @@ export interface MappingCoverageTreeConfig {
 
   /** Association role linking a PipelineExecution to its Pipeline (defaults to System.Communication/ExecutedPipeline). */
   validationExecutesRoleId: string;
+
+  /**
+   * CK types whose entities can act as mapping sources. Used by the Orphan
+   * Sources tab to list unmapped candidates (e.g. `Loxone/Control`,
+   * `MQTT/Topic`, `OpcUa/Node`). Empty list hides the tab.
+   */
+  sourceCandidateCkTypeIds: string[];
 }
 
 /**
@@ -60,6 +67,7 @@ export const DEFAULT_MAPPING_COVERAGE_TREE_CONFIG: MappingCoverageTreeConfig = {
   validationPipelineCkTypeId: 'System.Communication/Pipeline',
   validationExecutionCkTypeId: 'System.Communication/PipelineExecution',
   validationExecutesRoleId: 'System.Communication/ExecutedPipeline',
+  sourceCandidateCkTypeIds: [],
 };
 
 /**
@@ -144,4 +152,17 @@ export interface CoverageReportSummary {
   error: number;
   info: number;
   total: number;
+}
+
+/**
+ * Source candidate listed in the Orphan Sources tab. Carries the inbound
+ * MapsFrom mapping count so the tab can split the catalogue into mapped vs
+ * unmapped entries without an extra round trip.
+ */
+export interface OrphanCandidate {
+  rtId: string;
+  ckTypeId: string;
+  name: string;
+  description?: string;
+  mappingCount: number;
 }
