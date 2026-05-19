@@ -1,0 +1,296 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.coverage-root {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+}
+
+.coverage-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border: 1px solid var(--theme-border-subtle, var(--kendo-color-border, #dee2e6));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--theme-bg-surface, var(--kendo-color-surface-alt, #f8f9fa)) 70%, transparent);
+
+  // Fix label width so the Tree and Validation rows align vertically.
+  .toolbar-label {
+    flex: 0 0 96px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
+  }
+
+  .root-select {
+    flex: 0 0 280px;
+    min-width: 0;
+    padding: 4px 8px;
+    border: 1px solid var(--theme-border-subtle, var(--kendo-color-border, #dee2e6));
+    border-radius: 4px;
+    background: var(--theme-bg-elevated, var(--kendo-color-surface, #fff));
+    color: var(--theme-text-primary, inherit);
+    font-size: 0.9rem;
+    height: 30px;
+  }
+
+  .toolbar-spacer {
+    flex: 1;
+  }
+
+  .toolbar-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.1;
+
+    .meta-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .meta-type {
+      font-size: 0.7rem;
+      font-family: monospace;
+      color: var(--kendo-color-subtle, #6c757d);
+    }
+  }
+}
+
+.coverage-body {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  min-height: 0;
+}
+
+.coverage-tree-pane {
+  flex: 0 0 40%;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--theme-border-subtle, var(--kendo-color-border, #dee2e6));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--theme-bg-surface, var(--kendo-color-surface, #fff)) 60%, transparent);
+  color: var(--theme-text-primary, inherit);
+  overflow: auto;
+}
+
+.coverage-detail-pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--theme-border-subtle, var(--kendo-color-border, #dee2e6));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--theme-bg-surface, var(--kendo-color-surface, #fff)) 60%, transparent);
+  color: var(--theme-text-primary, inherit);
+  padding: 12px 14px;
+  gap: 12px;
+  overflow: auto;
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  .detail-titles {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .detail-name {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .detail-subtitle {
+    font-size: 0.72rem;
+    font-family: monospace;
+    color: var(--kendo-color-subtle, #6c757d);
+    word-break: break-all;
+  }
+}
+
+.detail-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--kendo-color-subtle, #6c757d);
+
+  .toolbar-spacer {
+    flex: 1;
+  }
+
+  .detail-summary {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    color: var(--kendo-color-on-app-surface, inherit);
+    font-size: 0.78rem;
+  }
+}
+
+.mapping-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mapping-row {
+  border: 1px solid var(--theme-border-subtle, var(--kendo-color-border, #dee2e6));
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: color-mix(in srgb, var(--theme-bg-elevated, var(--kendo-color-surface-alt, #f8f9fa)) 65%, transparent);
+
+  &.mapping-disabled {
+    opacity: 0.55;
+  }
+}
+
+.mapping-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .mapping-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+}
+
+.mapping-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--kendo-color-border, #dee2e6);
+
+  &.mapping-badge-off {
+    color: var(--kendo-color-subtle, #6c757d);
+  }
+}
+
+.mapping-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.8rem;
+
+  .kv {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .kv-key {
+    font-weight: 600;
+    color: var(--kendo-color-subtle, #6c757d);
+  }
+
+  code.kv-val {
+    font-family: monospace;
+    background: var(--kendo-color-surface, transparent);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+}
+
+.mapping-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.empty-hint,
+.error-hint {
+  padding: 12px;
+  font-size: 0.85rem;
+  color: var(--kendo-color-subtle, #6c757d);
+  text-align: center;
+}
+
+.error-hint {
+  color: var(--kendo-color-error, #dc3545);
+}
+
+.coverage-toolbar-validation {
+  .validation-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--kendo-color-surface, #f1f3f5);
+    border: 1px solid var(--kendo-color-border, #dee2e6);
+  }
+
+  .badge-error {
+    background: color-mix(in srgb, var(--kendo-color-error, #dc3545) 18%, transparent);
+    border-color: var(--kendo-color-error, #dc3545);
+    color: var(--kendo-color-error, #dc3545);
+    font-weight: 600;
+  }
+
+  .badge-warning {
+    background: color-mix(in srgb, var(--kendo-color-warning, #ffc107) 22%, transparent);
+    border-color: var(--kendo-color-warning, #ffc107);
+    color: var(--kendo-color-warning-on, #6b5500);
+    font-weight: 600;
+  }
+
+  .badge-ok {
+    background: color-mix(in srgb, var(--kendo-color-success, #28a745) 18%, transparent);
+    border-color: var(--kendo-color-success, #28a745);
+    color: var(--kendo-color-success, #28a745);
+    font-weight: 600;
+  }
+
+  .badge-info {
+    background: color-mix(in srgb, var(--kendo-color-info, #0dcaf0) 18%, transparent);
+    border-color: var(--kendo-color-info, #0dcaf0);
+    color: var(--kendo-color-info, #0dcaf0);
+  }
+
+  .validation-error-text {
+    color: var(--kendo-color-error, #dc3545);
+    font-size: 0.8rem;
+  }
+
+  .validation-timestamp {
+    font-size: 0.7rem;
+    color: var(--kendo-color-subtle, #6c757d);
+    margin-left: 4px;
+  }
+}

@@ -12,3 +12,4 @@ export * from './services/runtime-browser-state.service';
 export type { DataPointMappingItem, ExpressionValidatorFn, ExpressionValidationResult } from './components/data-mapping/data-mapping-list.component';
 export { DataMappingOverviewComponent } from './components/data-mapping-overview/data-mapping-overview.component';
 export type { DataPointMappingOverviewItem, MappingOverviewSummary, ValidationMessage } from './components/data-mapping-overview/data-mapping-overview.models';
+export * from './components/mapping-coverage-tree';

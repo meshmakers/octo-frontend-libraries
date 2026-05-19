@@ -1,0 +1,66 @@
+query getMappingCoverageNode(
+  $rtId: OctoObjectId!
+  $ckTypeId: String!
+  $childRoleId: String!
+  $childCkTypeId: String!
+  $mappingRoleId: String!
+  $mappingCkTypeId: String!
+) {
+  runtime {
+    runtimeEntities(rtId: $rtId, ckId: $ckTypeId) {
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        attributes(attributeNames: ["name", "description"]) {
+          items {
+            attributeName
+            value
+          }
+        }
+        associations {
+          ownMappings: targets(
+            roleId: $mappingRoleId
+            ckId: $mappingCkTypeId
+            direction: INBOUND
+          ) {
+            totalCount
+          }
+          children: targets(
+            roleId: $childRoleId
+            ckId: $childCkTypeId
+            direction: INBOUND
+          ) {
+            totalCount
+            items {
+              rtId
+              ckTypeId
+              attributes(attributeNames: ["name", "description"]) {
+                items {
+                  attributeName
+                  value
+                }
+              }
+              associations {
+                grandChildren: targets(
+                  roleId: $childRoleId
+                  ckId: $childCkTypeId
+                  direction: INBOUND
+                ) {
+                  totalCount
+                }
+                mappings: targets(
+                  roleId: $mappingRoleId
+                  ckId: $mappingCkTypeId
+                  direction: INBOUND
+                ) {
+                  totalCount
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
