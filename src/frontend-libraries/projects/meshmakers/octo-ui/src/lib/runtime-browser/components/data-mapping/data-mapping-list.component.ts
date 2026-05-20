@@ -6,6 +6,7 @@ import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { TextBoxModule } from '@progress/kendo-angular-inputs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { hyperlinkOpenIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
+import { RuntimeBrowserMessages } from '../../runtime-browser.model';
 
 /**
  * Result of validating a mapping expression.
@@ -61,25 +62,25 @@ export interface DataPointMappingItem {
     <div class="mapping-list">
       <div class="mapping-toolbar">
         <button kendoButton themeColor="primary" size="small" [svgIcon]="plusIcon"
-          (click)="addMapping.emit()">Add Mapping</button>
+          (click)="addMapping.emit()">{{ messages?.mappingAddMapping ?? '+ Add Mapping' }}</button>
       </div>
 
       @if (mappings.length === 0) {
         <div class="mapping-empty-hint">
-          No data point mappings configured yet.
+          {{ messages?.mappingNoneConfigured ?? 'No data point mappings configured yet.' }}
         </div>
       }
 
       @for (mapping of mappings; track mapping.rtId ?? $index) {
         <div class="mapping-card">
           <div class="mapping-card-header">
-            <span class="mapping-name">{{ mapping.name || 'Mapping ' + ($index + 1) }}</span>
+            <span class="mapping-name">{{ mapping.name || ((messages?.mappingHeader ?? 'MAPPING') + ' ' + ($index + 1)) }}</span>
             <button kendoButton fillMode="flat" size="small" [svgIcon]="trashIcon"
               (click)="removeMapping.emit(mapping)"></button>
           </div>
           <div class="mapping-card-body">
             <div class="mapping-row">
-              <label>Source Data Point</label>
+              <label>{{ messages?.mappingSourceDataPoint ?? 'Source Data Point' }}</label>
               @if (sourceDataPoints.length > 0) {
                 <kendo-dropdownlist
                   [data]="sourceDataPoints"
@@ -89,16 +90,16 @@ export interface DataPointMappingItem {
                 </kendo-dropdownlist>
               } @else {
                 <div class="target-display">
-                  <span class="target-info">{{ mapping.sourceAttributePath || '(not set)' }}</span>
+                  <span class="target-info">{{ mapping.sourceAttributePath || (messages?.mappingNotSet ?? '(not set)') }}</span>
                   <button kendoButton fillMode="flat" size="small"
-                    (click)="selectSourceAttribute.emit(mapping)">Select...</button>
+                    (click)="selectSourceAttribute.emit(mapping)">{{ messages?.mappingSelect ?? 'Select...' }}</button>
                 </div>
               }
             </div>
             <div class="mapping-row">
-              <label>Expression</label>
+              <label>{{ messages?.mappingExpression ?? 'Expression' }}</label>
               <kendo-textbox [(value)]="mapping.mappingExpression"
-                placeholder="e.g. value > 0 ? value : 0"
+                [placeholder]="messages?.mappingExpressionHint ?? 'e.g. value > 0 ? value : 0'"
                 (valueChange)="onExpressionChange(mapping, $event)">
               </kendo-textbox>
               @if (mapping.mappingExpression && expressionValidator) {
@@ -110,7 +111,7 @@ export interface DataPointMappingItem {
               }
             </div>
             <div class="mapping-row">
-              <label>Target Entity</label>
+              <label>{{ messages?.mappingTarget ?? 'Target Entity' }}</label>
               @if (mapping.targetRtId) {
                 <div class="entity-info-display">
                   <div class="entity-info-main">
@@ -127,23 +128,23 @@ export interface DataPointMappingItem {
                     <span class="entity-detail-item">{{ mapping.targetRtId }}</span>
                   </div>
                   <button kendoButton fillMode="flat" size="small"
-                    (click)="selectTarget.emit(mapping)">Change...</button>
+                    (click)="selectTarget.emit(mapping)">{{ messages?.mappingSelect ?? 'Select...' }}</button>
                 </div>
               } @else {
                 <div class="target-display">
-                  <span class="target-info">(not set)</span>
+                  <span class="target-info">{{ messages?.mappingNotSet ?? '(not set)' }}</span>
                   <button kendoButton fillMode="flat" size="small"
-                    (click)="selectTarget.emit(mapping)">Select...</button>
+                    (click)="selectTarget.emit(mapping)">{{ messages?.mappingSelect ?? 'Select...' }}</button>
                 </div>
               }
             </div>
             <div class="mapping-row">
-              <label>Target Attribute</label>
+              <label>{{ messages?.mappingTargetAttributePath ?? 'Target Attribute' }}</label>
               <div class="target-display">
-                <span class="target-info">{{ mapping.targetAttributePath || '(not set)' }}</span>
+                <span class="target-info">{{ mapping.targetAttributePath || (messages?.mappingNotSet ?? '(not set)') }}</span>
                 <button kendoButton fillMode="flat" size="small"
                   [disabled]="!mapping.targetCkTypeId"
-                  (click)="selectTargetAttribute.emit(mapping)">Select...</button>
+                  (click)="selectTargetAttribute.emit(mapping)">{{ messages?.mappingSelect ?? 'Select...' }}</button>
               </div>
             </div>
           </div>
@@ -153,7 +154,7 @@ export interface DataPointMappingItem {
       @if (mappings.length > 0) {
         <div class="mapping-actions">
           <button kendoButton themeColor="primary" (click)="saveAll.emit()">
-            Save All Mappings
+            {{ messages?.mappingSaveAll ?? 'Save All Mappings' }}
           </button>
         </div>
       }
@@ -296,6 +297,7 @@ export interface DataPointMappingItem {
   `],
 })
 export class DataMappingListComponent {
+  @Input() messages?: Partial<RuntimeBrowserMessages>;
   @Input() mappings: DataPointMappingItem[] = [];
   @Input() sourceDataPoints: string[] = [];
   /**

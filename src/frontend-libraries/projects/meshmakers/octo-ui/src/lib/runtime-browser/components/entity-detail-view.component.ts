@@ -293,6 +293,7 @@ interface DirectionOption {
             <ng-template kendoTabContent>
               <div class="tab-content mapping-tab">
                 <mm-data-mapping-list
+                  [messages]="_messages"
                   [mappings]="dataMappings"
                   [sourceDataPoints]="sourceDataPoints"
                   [expressionValidator]="expressionValidator"

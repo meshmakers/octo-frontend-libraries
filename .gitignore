@@ -354,3 +354,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 /.idea/indexLayout.xml
+
+# Claude Code per-user / per-project local settings
+.claude/

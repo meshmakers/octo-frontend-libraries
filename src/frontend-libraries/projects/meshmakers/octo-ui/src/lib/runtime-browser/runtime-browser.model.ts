@@ -50,28 +50,6 @@ export interface RuntimeBrowserMessages {
   latitudeHint?: string;
 
   /**
-   * Messages forwarded to <kendo-datetimepicker-messages> for date/time
-   * attribute fields. Each slot maps 1:1 to a Kendo DateTimePicker message
-   * (toggle popup tooltip, today button, calendar/clock tabs, now/accept/
-   * cancel button + their aria labels, parent-view button title).
-   */
-  datetimePicker?: {
-    toggle?: string;
-    today?: string;
-    dateTab?: string;
-    dateTabLabel?: string;
-    timeTab?: string;
-    timeTabLabel?: string;
-    now?: string;
-    nowLabel?: string;
-    accept?: string;
-    acceptLabel?: string;
-    cancel?: string;
-    cancelLabel?: string;
-    parentViewButtonTitle?: string;
-  };
-
-  /**
    * Drag-and-drop messages for the binary attribute drop zone
    * (forwarded to <kendo-fileselect-messages>).
    */
@@ -208,6 +186,26 @@ export interface RuntimeBrowserMessages {
   mappingRemoved: string;
   failedToSaveMapping: string;
   failedToLoadMapping: string;
+
+  /** Toast text emitted when user tries to move a tree item INTO the root. */
+  treeMoveToRootUnsupported?: string;
+  /** Toast text emitted when user tries to drop a tree item directly ON the root node. */
+  treeMoveOnRootUnsupported?: string;
+
+  /** Card header prefix for each mapping card: "MAPPING N". Default: "MAPPING" */
+  mappingHeader?: string;
+  /** Label for the source data point row. Default: "Source Data Point" */
+  mappingSourceDataPoint?: string;
+  /** Label for the "Add Mapping" toolbar button. Default: "+ Add Mapping" */
+  mappingAddMapping?: string;
+  /** Label for the "Save All Mappings" button. Default: "Save All Mappings" */
+  mappingSaveAll?: string;
+  /** Placeholder shown when a target entity or attribute is not configured. Default: "(not set)" */
+  mappingNotSet?: string;
+  /** Label for the "Select..." / "Change..." picker buttons. Default: "Select..." */
+  mappingSelect?: string;
+  /** Empty-state hint shown when no mappings exist. Default: "No data point mappings configured yet." */
+  mappingNoneConfigured?: string;
 }
 
 /**
@@ -323,4 +321,13 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   mappingRemoved: 'Data mapping removed',
   failedToSaveMapping: 'Failed to save data mapping',
   failedToLoadMapping: 'Failed to load data mapping',
+  treeMoveToRootUnsupported: 'Moving item to the root of the tree is not supported',
+  treeMoveOnRootUnsupported: 'Moving item on the root of the tree is not supported',
+  mappingHeader: 'MAPPING',
+  mappingSourceDataPoint: 'Source Data Point',
+  mappingAddMapping: '+ Add Mapping',
+  mappingSaveAll: 'Save All Mappings',
+  mappingNotSet: '(not set)',
+  mappingSelect: 'Select...',
+  mappingNoneConfigured: 'No data point mappings configured yet.',
 };

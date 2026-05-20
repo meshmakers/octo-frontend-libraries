@@ -116,6 +116,7 @@ import {
                               [isRecord]="true"
                               [parentFormGroup]="asFormGroup(item)"
                               [initialValues]="getRawInitialValue(attr.attributeName, $index)"
+                              [messages]="_messages"
                             />
                           </div>
                         </ng-template>
@@ -171,6 +172,7 @@ import {
                         asFormGroup(parentFormGroup().get(attr.attributeName)!)
                       "
                       [initialValues]="getRawInitialValue(attr.attributeName)"
+                      [messages]="_messages"
                     />
                   </div>
                 }
@@ -277,23 +279,7 @@ import {
                   <kendo-datetimepicker
                     [focusableId]="attr.attributeName"
                     [formControlName]="attr.attributeName"
-                  >
-                    <kendo-datetimepicker-messages
-                      [toggle]="_messages.datetimePicker?.toggle ?? 'Toggle popup'"
-                      [today]="_messages.datetimePicker?.today ?? 'TODAY'"
-                      [dateTab]="_messages.datetimePicker?.dateTab ?? 'Date'"
-                      [dateTabLabel]="_messages.datetimePicker?.dateTabLabel ?? 'Date tab'"
-                      [timeTab]="_messages.datetimePicker?.timeTab ?? 'Time'"
-                      [timeTabLabel]="_messages.datetimePicker?.timeTabLabel ?? 'Time tab'"
-                      [now]="_messages.datetimePicker?.now ?? 'NOW'"
-                      [nowLabel]="_messages.datetimePicker?.nowLabel ?? 'Select now'"
-                      [accept]="_messages.datetimePicker?.accept ?? 'Set'"
-                      [acceptLabel]="_messages.datetimePicker?.acceptLabel ?? 'Set date'"
-                      [cancel]="_messages.datetimePicker?.cancel ?? 'Cancel'"
-                      [cancelLabel]="_messages.datetimePicker?.cancelLabel ?? 'Cancel selection'"
-                      [parentViewButtonTitle]="_messages.datetimePicker?.parentViewButtonTitle ?? 'Navigate to parent view'"
-                    />
-                  </kendo-datetimepicker>
+                  />
                 } @else if (recognition.isTime(attr.attributeValueType)) {
                   <kendo-timepicker
                     [focusableId]="attr.attributeName"

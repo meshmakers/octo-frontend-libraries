@@ -375,14 +375,14 @@ export class RuntimeBrowserComponent implements AfterViewInit {
     console.debug('Runtime Browser - Node dropped:', event);
 
     if (!event.destinationItem) {
-      const msg = 'Moving item to the root of the tree is not supported';
+      const msg = this.resolvedMessages().treeMoveToRootUnsupported ?? 'Moving item to the root of the tree is not supported';
       this._showWarningNotification(msg);
       console.debug(msg, event);
       return;
     }
 
     if (!event.sourceParent) {
-      const msg = 'Moving item on the root of the tree is not supported';
+      const msg = this.resolvedMessages().treeMoveOnRootUnsupported ?? 'Moving item on the root of the tree is not supported';
       this._showWarningNotification(msg);
       console.debug(msg, event);
       return;
