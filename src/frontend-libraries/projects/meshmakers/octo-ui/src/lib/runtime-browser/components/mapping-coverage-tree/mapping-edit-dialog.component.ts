@@ -13,11 +13,16 @@ import { AttributeSelectorDialogService } from '../../../attribute-selector-dial
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
 
 /**
- * Editable view-model for one DataPointMapping. The fields here mirror the
- * CK attributes (Name, Enabled, SourceAttributePath, MappingExpression,
- * TargetAttributePath) plus the MapsFrom source-entity reference. The
- * `_originalSourceRtId`/`_originalSourceCkTypeId` snapshots let the caller
- * decide whether the MapsFrom association needs an update on save.
+ * Editable view-model for one DataPointMapping. The fields mirror the CK
+ * attributes (Name, Enabled, SourceAttributePath, MappingExpression,
+ * TargetAttributePath) plus both the MapsFrom source-entity reference and
+ * the MapsTo target-entity reference. The `_originalSource*` and
+ * `_originalTarget*` snapshots let the caller decide whether the
+ * corresponding association needs an update on save.
+ *
+ * `rtId === ''` denotes a not-yet-persisted mapping (orphan-tab "Map…"
+ * flow). The caller branches on this to choose CreateEntities vs.
+ * UpdateRuntimeEntities.
  */
 export interface MappingEditValue {
   rtId: string;
@@ -29,18 +34,29 @@ export interface MappingEditValue {
   sourceName?: string;
   sourceAttributePath: string;
   mappingExpression: string;
+  /** MapsTo target entity reference. Empty for new mappings until the user picks one. */
+  targetRtId?: string;
+  targetCkTypeId?: string;
+  targetName?: string;
   targetAttributePath: string;
   /** Source rtId at dialog-open time — used to detect MapsFrom changes. */
   _originalSourceRtId?: string;
   _originalSourceCkTypeId?: string;
+  /** Target rtId at dialog-open time — used to detect MapsTo changes. */
+  _originalTargetRtId?: string;
+  _originalTargetCkTypeId?: string;
 }
 
 export interface MappingEditDialogData {
   mapping: MappingEditValue;
   title?: string;
   /**
-   * CK type id of the target entity (the tree node the mapping points to via
-   * MapsTo). Used to populate the Target Attribute Path autocomplete.
+   * Default CK type id for the Target Attribute Path autocomplete when the
+   * mapping has no target picked yet. Once the user picks a target entity,
+   * the model's `targetCkTypeId` takes over.
+   * @deprecated Set `mapping.targetCkTypeId` instead; this is kept for
+   *   backward compatibility with the original (target-fixed) usage where
+   *   the dialog was always opened for a specific tree node.
    */
   targetCkTypeId?: string;
 }
@@ -159,6 +175,30 @@ export type MappingEditDialogResult =
       </div>
 
       <div class="field-row">
+        <label>Target Entity</label>
+        @if (model().targetRtId) {
+          <div class="entity-display">
+            <div class="entity-main">
+              <span class="entity-name">{{ model().targetName || model().targetRtId }}</span>
+              <button kendoButton fillMode="flat" size="small"
+                (click)="pickTarget()">Change…</button>
+            </div>
+            <div class="entity-meta">
+              <span>{{ model().targetCkTypeId }}</span>
+              <span class="sep">&#64;</span>
+              <span>{{ model().targetRtId }}</span>
+            </div>
+          </div>
+        } @else {
+          <div class="entity-display empty">
+            <span class="hint">No target entity linked.</span>
+            <button kendoButton fillMode="flat" size="small"
+              (click)="pickTarget()">Select…</button>
+          </div>
+        }
+      </div>
+
+      <div class="field-row">
         <label>
           Target Attribute Path
           @if (targetAttributesLoading()) { <span class="loading-pill">loading…</span> }
@@ -185,16 +225,16 @@ export type MappingEditDialogResult =
           </kendo-combobox>
           <button kendoButton fillMode="flat" size="small"
             [svgIcon]="icons.browse"
-            [disabled]="!targetCkTypeId"
+            [disabled]="!effectiveTargetCkTypeId()"
             (click)="browseTargetAttribute()"
             title="Browse all attributes (incl. navigation properties)"></button>
         </div>
         <span class="hint">
-          @if (targetCkTypeId) {
-            Direct attributes on <code>{{ targetCkTypeId }}</code>. Click the
-            browse button for navigation properties or to escape autocomplete.
+          @if (effectiveTargetCkTypeId(); as t) {
+            Direct attributes on <code>{{ t }}</code>. Click the browse button
+            for navigation properties or to escape autocomplete.
           } @else {
-            Attribute on the target entity to update.
+            Pick a target entity above to see available attribute paths.
           }
         </span>
       </div>
@@ -393,28 +433,43 @@ export class MappingEditDialogComponent {
     filterAttributes(this.targetAttributes(), this.targetFilter()),
   );
 
-  /** Exposes ck type to the template hint without needing data() re-reads. */
-  protected get targetCkTypeId(): string | undefined {
-    return this.data.targetCkTypeId;
-  }
+  /**
+   * Effective target CK type id — prefers the value picked by the user via
+   * {@link pickTarget}; falls back to the optional {@link MappingEditDialogData.targetCkTypeId}
+   * legacy default. Drives the Target Attribute Path autocomplete dropdown.
+   */
+  protected readonly effectiveTargetCkTypeId = computed<string | undefined>(() =>
+    this.model().targetCkTypeId ?? this.data.targetCkTypeId,
+  );
 
   public initialise(data: MappingEditDialogData): void {
     this.data = data;
+    // Seed mapping.targetCkTypeId from the legacy data field when the caller
+    // hasn't set it yet — covers the tree-context flow where the dialog was
+    // opened for a fixed target node and the value was passed via data.
+    const seededTargetCkTypeId = data.mapping.targetCkTypeId ?? data.targetCkTypeId;
     this.model.set({
       ...data.mapping,
+      targetCkTypeId: seededTargetCkTypeId,
       _originalSourceRtId: data.mapping.sourceRtId,
       _originalSourceCkTypeId: data.mapping.sourceCkTypeId,
+      _originalTargetRtId: data.mapping.targetRtId,
+      _originalTargetCkTypeId: data.mapping.targetCkTypeId,
     });
     if (data.mapping.sourceCkTypeId) {
       void this.loadAttributes(data.mapping.sourceCkTypeId, 'source');
     }
-    if (data.targetCkTypeId) {
-      void this.loadAttributes(data.targetCkTypeId, 'target');
+    if (seededTargetCkTypeId) {
+      void this.loadAttributes(seededTargetCkTypeId, 'target');
     }
   }
 
   protected isValid(): boolean {
     const m = this.model();
+    // Both ends must be linked and the target attribute path filled — a
+    // mapping without these can't actually fire on the runtime side.
+    if (!m.sourceRtId || !m.sourceCkTypeId) return false;
+    if (!m.targetRtId || !m.targetCkTypeId) return false;
     return !!m.targetAttributePath && m.targetAttributePath.trim().length > 0;
   }
 
@@ -439,6 +494,28 @@ export class MappingEditDialogComponent {
     if (changedType) {
       this.sourceFilter.set('');
       void this.loadAttributes(result.entity.ckTypeId, 'source');
+    }
+  }
+
+  protected async pickTarget(): Promise<void> {
+    const current = this.model();
+    const result = await this.entitySelector.openEntitySelector({
+      title: 'Select Target Entity',
+      currentTargetRtId: current.targetRtId,
+      currentTargetCkTypeId: current.targetCkTypeId,
+    });
+    if (!result.confirmed || !result.entity) return;
+    const changedType = result.entity.ckTypeId !== current.targetCkTypeId;
+    this.model.update(m => ({
+      ...m,
+      targetRtId: result.entity!.rtId,
+      targetCkTypeId: result.entity!.ckTypeId,
+      targetName: result.entity!.name ?? result.entity!.rtId,
+      targetAttributePath: changedType ? '' : m.targetAttributePath,
+    }));
+    if (changedType) {
+      this.targetFilter.set('');
+      void this.loadAttributes(result.entity.ckTypeId, 'target');
     }
   }
 
@@ -531,7 +608,7 @@ export class MappingEditDialogComponent {
   }
 
   protected async browseTargetAttribute(): Promise<void> {
-    const ckTypeId = this.data.targetCkTypeId;
+    const ckTypeId = this.effectiveTargetCkTypeId();
     if (!ckTypeId) return;
     const current = this.model().targetAttributePath;
     const result = await this.attributeSelectorDialog.openAttributeSelector(

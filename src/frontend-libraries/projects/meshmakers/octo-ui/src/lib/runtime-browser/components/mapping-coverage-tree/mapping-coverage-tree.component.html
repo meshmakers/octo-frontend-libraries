@@ -211,6 +211,15 @@
         <input type="checkbox" [checked]="orphanHideMapped()" (change)="toggleOrphanHideMapped()" />
         Hide already-mapped
       </label>
+      <label class="toolbar-label">Group by:</label>
+      <select class="root-select"
+              [value]="orphanGroupParentType() ?? ''"
+              (change)="onOrphanGroupParentTypeChange($any($event.target).value)">
+        <option value="">(no grouping)</option>
+        @for (t of orphanAvailableParentTypes(); track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
 
       <div class="toolbar-spacer"></div>
 
@@ -236,38 +245,64 @@
             No entities of type {{ orphanCkType() }} found.
           }
         </div>
+      } @else if (orphanGroupParentType()) {
+        @for (group of orphanGroupedList(); track group.key) {
+          <div class="orphan-group">
+            <div class="orphan-group-header">
+              <span class="orphan-group-label">{{ group.label }}</span>
+              <span class="orphan-group-count">{{ group.items.length }}</span>
+            </div>
+            <ul class="orphan-list">
+              @for (item of group.items; track trackOrphanByRtId($index, item)) {
+                <ng-container *ngTemplateOutlet="orphanRowTpl; context: { $implicit: item }"></ng-container>
+              }
+            </ul>
+          </div>
+        }
       } @else {
         <ul class="orphan-list">
           @for (item of orphanFilteredList(); track trackOrphanByRtId($index, item)) {
-            <li class="orphan-row" [class.orphan-mapped]="item.mappingCount > 0">
-              <div class="orphan-line">
-                <span class="orphan-name">{{ item.name }}</span>
-                @if (item.mappingCount > 0) {
-                  <span class="orphan-badge orphan-badge-mapped">
-                    {{ item.mappingCount }} mapping{{ item.mappingCount === 1 ? '' : 's' }}
-                  </span>
-                } @else {
-                  <span class="orphan-badge orphan-badge-unmapped">unmapped</span>
-                }
-              </div>
-              <div class="orphan-meta">
-                <span class="kv-val">{{ item.ckTypeId }}@{{ item.rtId }}</span>
-              </div>
-              @if (item.description) {
-                <div class="orphan-description">{{ item.description }}</div>
-              }
-              <div class="orphan-actions">
-                <button kendoButton themeColor="primary" fillMode="flat" size="small"
-                        [svgIcon]="icons.plus"
-                        (click)="createMappingFromOrphan(item)"
-                        title="Create mapping pre-linked to this source">
-                  Map…
-                </button>
-              </div>
-            </li>
+            <ng-container *ngTemplateOutlet="orphanRowTpl; context: { $implicit: item }"></ng-container>
           }
         </ul>
       }
+
+      <ng-template #orphanRowTpl let-item>
+        <li class="orphan-row" [class.orphan-mapped]="item.mappingCount > 0">
+          <div class="orphan-line">
+            <span class="orphan-name">{{ item.name }}</span>
+            @if (item.mappingCount > 0) {
+              <span class="orphan-badge orphan-badge-mapped">
+                {{ item.mappingCount }} mapping{{ item.mappingCount === 1 ? '' : 's' }}
+              </span>
+            } @else {
+              <span class="orphan-badge orphan-badge-unmapped">unmapped</span>
+            }
+          </div>
+          @if (item.parentPath.length > 0) {
+            <div class="orphan-breadcrumb" [attr.title]="'Parent chain (root-first)'">
+              @for (parent of breadcrumbFor(item); track parent.rtId; let last = $last) {
+                <span class="crumb">{{ parent.name }}</span>
+                @if (!last) { <span class="crumb-sep">›</span> }
+              }
+            </div>
+          }
+          <div class="orphan-meta">
+            <span class="kv-val">{{ item.ckTypeId }}&#64;{{ item.rtId }}</span>
+          </div>
+          @if (item.description) {
+            <div class="orphan-description">{{ item.description }}</div>
+          }
+          <div class="orphan-actions">
+            <button kendoButton themeColor="primary" fillMode="flat" size="small"
+                    [svgIcon]="icons.plus"
+                    (click)="createMappingFromOrphan(item)"
+                    title="Create mapping pre-linked to this source">
+              Map…
+            </button>
+          </div>
+        </li>
+      </ng-template>
     </div>
   }
 </div>

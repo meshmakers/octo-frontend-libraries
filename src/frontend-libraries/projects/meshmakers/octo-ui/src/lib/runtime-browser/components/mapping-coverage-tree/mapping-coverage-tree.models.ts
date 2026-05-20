@@ -155,6 +155,18 @@ export interface CoverageReportSummary {
 }
 
 /**
+ * One step in the parent chain of an OrphanCandidate (closest parent first).
+ * Loaded via 3 nested `targets(direction: OUTBOUND, role: $childRoleId)` hops
+ * in `getOrphanCandidates.graphql` so the orphan tab can show where each
+ * source sits in the structural tree without a follow-up query.
+ */
+export interface OrphanCandidateParent {
+  rtId: string;
+  ckTypeId: string;
+  name: string;
+}
+
+/**
  * Source candidate listed in the Orphan Sources tab. Carries the inbound
  * MapsFrom mapping count so the tab can split the catalogue into mapped vs
  * unmapped entries without an extra round trip.
@@ -165,4 +177,13 @@ export interface OrphanCandidate {
   name: string;
   description?: string;
   mappingCount: number;
+  /**
+   * Ancestors via the configured `childRoleId` (default System/ParentChild),
+   * ordered from immediate parent (index 0) to root-most known ancestor.
+   * Empty when the source has no parents reachable within 3 hops or when
+   * the parent walk failed (e.g. `childCkTypeId` did not match the parent's
+   * concrete type). The UI displays this as a breadcrumb under the entity
+   * name; absence is silent (no parent → no breadcrumb).
+   */
+  parentPath: OrphanCandidateParent[];
 }
