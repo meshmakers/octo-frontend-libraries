@@ -7,6 +7,7 @@ import {UserDto} from '../shared/userDto';
 import {RoleDto} from '../shared/roleDto';
 import {PagedResultDto} from '@meshmakers/shared-services';
 import {ClientDto} from '../shared/clientDto';
+import {ClientMirrorBackfillResponseDto, ClientMirrorDto, ClientMirrorProvisionResponseDto} from '../shared/clientMirrorDto';
 import {IdentityProviderDto, IdentityProvidersResult} from '../shared/identityProviderDto';
 import {EmailDomainGroupRuleDto, EmailDomainGroupRulesResult} from '../shared/emailDomainGroupRuleDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
@@ -250,6 +251,96 @@ export class IdentityService {
       await firstValueFrom(this.httpClient.delete<void>(baseUrl + `clients/${clientId}`, {
         observe: 'response'
       }));
+    }
+  }
+
+  // ---- Multi-tenant client mirrors (Epic 3054 #4045) -----------------------
+
+  /**
+   * Lists the sub-tenants this `ClientCredentials` client has been
+   * auto-provisioned into. Empty array when the client has no mirrors.
+   */
+  async getClientMirrors(clientId: string): Promise<ClientMirrorDto[]> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<ClientMirrorDto[]>(baseUrl + `clients/${clientId}/mirrors`, {
+          observe: 'response'
+        })
+      );
+      return response.body ?? [];
+    }
+    return [];
+  }
+
+  /**
+   * Backfill: provisions a flagged client into every existing sub-tenant of
+   * the calling tenant. Server returns `400` if the client is not flagged.
+   */
+  async provisionClientInExistingTenants(clientId: string): Promise<ClientMirrorBackfillResponseDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<ClientMirrorBackfillResponseDto>(
+          baseUrl + `clients/${clientId}/mirrors/provisionInExistingTenants`,
+          null,
+          { observe: 'response' }
+        )
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  /**
+   * Manually provisions a flagged client into one specific sub-tenant.
+   */
+  async provisionClientInTenant(clientId: string, childTenantId: string): Promise<ClientMirrorProvisionResponseDto | null> {
+    const params = new HttpParams().set('childTenantId', childTenantId);
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<ClientMirrorProvisionResponseDto>(
+          baseUrl + `clients/${clientId}/mirrors/provisionInTenant`,
+          null,
+          { params, observe: 'response' }
+        )
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  /**
+   * Removes a single mirror (drops both the child-side client and the parent's
+   * tracking row).
+   */
+  async unprovisionClientFromTenant(clientId: string, childTenantId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `clients/${clientId}/mirrors/${childTenantId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  /**
+   * Flips the `AutoProvisionInChildTenants` flag on a client without rewriting
+   * the full client object. Flipping `false → true` does NOT auto-backfill —
+   * use {@link provisionClientInExistingTenants} for that.
+   */
+  async setClientAutoProvisionInChildTenants(clientId: string, enabled: boolean): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.patch<void>(
+          baseUrl + `clients/${clientId}/autoProvisionInChildTenants`,
+          { enabled },
+          { observe: 'response' }
+        )
+      );
     }
   }
 
