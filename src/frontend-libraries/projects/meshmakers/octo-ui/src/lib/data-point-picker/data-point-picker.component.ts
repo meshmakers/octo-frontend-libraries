@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, model, output, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, output, signal, untracked } from '@angular/core';
 import { ComboBoxModule } from '@progress/kendo-angular-dropdowns';
 import { RtEntityDto } from '../graphQL/globalTypes';
 import { AttributeItemLike } from './data-point-picker.utils';
@@ -31,7 +31,7 @@ import { DataPointResolverService } from './data-point-resolver.service';
   imports: [ComboBoxModule],
   template: `
     <kendo-combobox
-      [data]="options()"
+      [data]="filteredOptions()"
       [value]="value()"
       [valuePrimitive]="true"
       [allowCustom]="true"
@@ -95,6 +95,22 @@ export class DataPointPickerComponent {
   protected readonly options = signal<string[]>([]);
   protected readonly loading = signal<boolean>(false);
 
+  /**
+   * Current filter text entered into the combobox. Drives the case-insensitive
+   * *contains* match below. Kendo's combobox by default does not filter the
+   * `[data]` it is given — when `filterable` is true it just emits
+   * `filterChange` events and expects the consumer to refilter. Without this,
+   * typing "co2" would show every data point regardless of name.
+   */
+  protected readonly filter = signal<string>('');
+
+  protected readonly filteredOptions = computed<string[]>(() => {
+    const all = this.options();
+    const needle = this.filter().trim().toLowerCase();
+    if (!needle) return all;
+    return all.filter(o => o.toLowerCase().includes(needle));
+  });
+
   constructor() {
     // Re-resolve whenever the entity or its identifying ids change. We use
     // `untracked` around the actual mutation/IO to keep the effect's read
@@ -132,6 +148,7 @@ export class DataPointPickerComponent {
   }
 
   protected onFilterChange(filter: string): void {
+    this.filter.set(filter);
     this.filterChange.emit(filter);
   }
 }
