@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { DialogRef } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { TreeItemData } from '@meshmakers/shared-services';
 import { TreeComponent } from '@meshmakers/shared-ui';
@@ -19,52 +19,72 @@ import { EntitySelectorDialogData, EntitySelectorDialogResult } from './entity-s
   providers: [RuntimeBrowserDataSource],
   template: `
     <div class="entity-selector">
-      <div class="tree-section">
-        <mm-tree-view
-          [dataSource]="treeDataSource"
-          (nodeSelected)="onNodeSelected($event)"
-        ></mm-tree-view>
+      <div class="entity-selector-body">
+        <div class="tree-section">
+          <mm-tree-view
+            [dataSource]="treeDataSource"
+            (nodeSelected)="onNodeSelected($event)"
+          ></mm-tree-view>
+        </div>
+
+        @if (selectedEntity) {
+          <div class="selection-preview">
+            <div class="preview-row">
+              <span class="preview-label">Name:</span>
+              <span class="preview-value">{{ selectedEntity.name || '\u2014' }}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Type:</span>
+              <span class="preview-value monospace">{{ selectedEntity.ckTypeId }}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">RtId:</span>
+              <span class="preview-value monospace">{{ selectedEntity.rtId }}</span>
+            </div>
+          </div>
+        } @else {
+          <div class="selection-hint">
+            Select an entity from the tree above.
+          </div>
+        }
       </div>
 
-      @if (selectedEntity) {
-        <div class="selection-preview">
-          <div class="preview-row">
-            <span class="preview-label">Name:</span>
-            <span class="preview-value">{{ selectedEntity.name || '\u2014' }}</span>
-          </div>
-          <div class="preview-row">
-            <span class="preview-label">Type:</span>
-            <span class="preview-value monospace">{{ selectedEntity.ckTypeId }}</span>
-          </div>
-          <div class="preview-row">
-            <span class="preview-label">RtId:</span>
-            <span class="preview-value monospace">{{ selectedEntity.rtId }}</span>
-          </div>
-        </div>
-      }
-
-      @if (!selectedEntity) {
-        <div class="selection-hint">
-          Select an entity from the tree above.
-        </div>
-      }
-
       <div class="dialog-actions">
+        <button kendoButton (click)="onCancel()">Cancel</button>
         <button kendoButton themeColor="primary" [disabled]="!selectedEntity" (click)="onConfirm()">
           Select
-        </button>
-        <button kendoButton (click)="onCancel()">
-          Cancel
         </button>
       </div>
     </div>
   `,
   styles: [`
-    .entity-selector {
+    :host {
       display: flex;
       flex-direction: column;
       height: 100%;
+      min-height: 0;
+    }
+
+    .entity-selector {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      box-sizing: border-box;
+    }
+
+    /* Scrollable body \u2014 tree + selection preview live here so the action row
+       always stays pinned to the bottom of the dialog, even on small heights.
+       This matches the mapping-edit-dialog's body/actions split (the previous
+       Kendo Dialog layout sometimes cut the buttons off when the dialog body
+       didn't get full height). */
+    .entity-selector-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
       padding: 12px;
+      display: flex;
+      flex-direction: column;
       gap: 12px;
     }
 
@@ -85,6 +105,7 @@ import { EntitySelectorDialogData, EntitySelectorDialogResult } from './entity-s
       display: flex;
       flex-direction: column;
       gap: 4px;
+      flex-shrink: 0;
     }
 
     .preview-row {
@@ -112,17 +133,22 @@ import { EntitySelectorDialogData, EntitySelectorDialogResult } from './entity-s
       padding: 8px;
       color: var(--kendo-color-subtle, #6c757d);
       font-size: 0.85rem;
+      flex-shrink: 0;
     }
 
     .dialog-actions {
+      flex: 0 0 auto;
       display: flex;
       gap: 8px;
       justify-content: flex-end;
+      padding: 10px 14px;
+      border-top: 1px solid var(--kendo-color-border, #dee2e6);
+      background: var(--kendo-color-surface, transparent);
     }
   `],
 })
 export class EntitySelectorDialogComponent {
-  private readonly dialogRef = inject(DialogRef);
+  private readonly windowRef = inject(WindowRef);
   readonly treeDataSource = inject(RuntimeBrowserDataSource);
 
   data: EntitySelectorDialogData = {};
@@ -152,11 +178,11 @@ export class EntitySelectorDialogComponent {
         ckTypeId: this.selectedEntity.ckTypeId,
         name: this.selectedEntity.name,
       };
-      this.dialogRef.close(result);
+      this.windowRef.close(result);
     }
   }
 
   onCancel(): void {
-    this.dialogRef.close();
+    this.windowRef.close();
   }
 }

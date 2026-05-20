@@ -113,6 +113,37 @@ export class CommunicationService {
   }
 
   /**
+   * Deploys a single workload (Adapter or Application) via its parent
+   * pool. Independent of pool deploy — the workload's pool must already
+   * be deployed, but only this workload's helm-install fires.
+   */
+  async deployWorkload(tenantId: string, workloadRtId: string): Promise<void> {
+    if (this.communicationServicesUrl) {
+      const params = new HttpParams().set('workloadRtId', workloadRtId);
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pool/workloads/deploy`;
+
+      await firstValueFrom(
+        this.httpClient.post<void>(uri, null, {params, observe: 'response'})
+      );
+    }
+  }
+
+  /**
+   * Undeploys a single workload (Adapter or Application). Triggers a
+   * helm-uninstall for the workload only; the pool itself stays deployed.
+   */
+  async undeployWorkload(tenantId: string, workloadRtId: string): Promise<void> {
+    if (this.communicationServicesUrl) {
+      const params = new HttpParams().set('workloadRtId', workloadRtId);
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pool/workloads/undeploy`;
+
+      await firstValueFrom(
+        this.httpClient.post<void>(uri, null, {params, observe: 'response'})
+      );
+    }
+  }
+
+  /**
    * Encrypts a plaintext value via the controller's at-rest encryption key
    * and returns the sentinel-prefixed ciphertext (`enc:v1:...`). Use this
    * before saving Helm ValueOverride entries flagged IsSecret so the

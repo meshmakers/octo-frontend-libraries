@@ -1,0 +1,52 @@
+query getNodeMappings(
+  $rtId: OctoObjectId!
+  $ckTypeId: String!
+  $mapsToRoleId: String!
+  $mapsFromRoleId: String!
+  $mappingCkTypeId: String!
+) {
+  runtime {
+    runtimeEntities(rtId: $rtId, ckId: $ckTypeId) {
+      items {
+        rtId
+        ckTypeId
+        associations {
+          mappings: targets(
+            roleId: $mapsToRoleId
+            ckId: $mappingCkTypeId
+            direction: INBOUND
+          ) {
+            totalCount
+            items {
+              rtId
+              ckTypeId
+              attributes(resolveEnumValuesToNames: true) {
+                items {
+                  attributeName
+                  value
+                }
+              }
+              # Use `definitions` instead of `targets` because the source entity
+              # can be of any concrete derived type. `targets(ckId: ...)` requires
+              # a concrete CK type with its own MongoDB collection, which the
+              # abstract `System/Entity` base type doesn't have. Names are
+              # resolved by the host with a follow-up query per source rtId.
+              associations {
+                sources: definitions(
+                  roleId: $mapsFromRoleId
+                  direction: OUTBOUND
+                  first: 1
+                ) {
+                  items {
+                    targetRtId
+                    targetCkTypeId
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+query getLatestValidationExecution(
+  $pipelineRtId: OctoObjectId!
+  $pipelineCkTypeId: String!
+  $executesRoleId: String!
+  $executionCkTypeId: String!
+) {
+  runtime {
+    runtimeEntities(rtId: $pipelineRtId, ckId: $pipelineCkTypeId) {
+      items {
+        rtId
+        ckTypeId
+        associations {
+          executions: targets(
+            roleId: $executesRoleId
+            ckId: $executionCkTypeId
+            direction: INBOUND
+            first: 1
+            sortOrder: [{ attributePath: "CompletedAt", sortOrder: DESCENDING }]
+          ) {
+            items {
+              rtId
+              ckTypeId
+              attributes(resolveEnumValuesToNames: true) {
+                items {
+                  attributeName
+                  value
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

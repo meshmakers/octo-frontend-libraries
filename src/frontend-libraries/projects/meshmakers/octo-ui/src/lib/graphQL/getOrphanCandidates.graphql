@@ -1,0 +1,113 @@
+query getOrphanCandidates(
+  $ckTypeId: String!
+  $mapsFromRoleId: String!
+  $mappingCkTypeId: String!
+  $childRoleId: String!
+  $childCkTypeId: String!
+  $first: Int
+  $after: String
+  $searchFilter: SearchFilter
+) {
+  runtime {
+    runtimeEntities(
+      ckId: $ckTypeId
+      first: $first
+      after: $after
+      searchFilter: $searchFilter
+    ) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        attributes(attributeNames: ["name", "description"]) {
+          items {
+            attributeName
+            value
+          }
+        }
+        # Counts inbound MapsFrom associations from any DataPointMapping. An
+        # entity is "orphan" (= unmapped) when totalCount === 0.
+        # NOTE: `first: 1` (not 0) — MongoDB's $slice rejects 0 as page size.
+        # We only read totalCount, so loading a single item per row is fine.
+        associations {
+          mappings: targets(
+            roleId: $mapsFromRoleId
+            ckId: $mappingCkTypeId
+            direction: INBOUND
+            first: 1
+          ) {
+            totalCount
+          }
+          # Three-level parent walk via $childRoleId (default System/ParentChild).
+          # Outbound direction returns the parent (origin → target = child → parent).
+          # The ckId filter uses the tree node base type (e.g. Basic/TreeNode) which
+          # matches polymorphically — Loxone/Room, Loxone/Category and Loxone/Miniserver
+          # all derive from it, so a single query resolves heterogeneous hierarchies.
+          # GraphQL has no recursion, so the depth is hardcoded — three hops cover
+          # the common cases (Miniserver/Room/Category/Control, MQTT topic trees,
+          # OPC-UA node trees). Deeper trees see the upper levels truncated but still
+          # get useful context.
+          parent: targets(
+            roleId: $childRoleId
+            ckId: $childCkTypeId
+            direction: OUTBOUND
+            first: 1
+          ) {
+            items {
+              rtId
+              ckTypeId
+              rtWellKnownName
+              attributes(attributeNames: ["name"]) {
+                items {
+                  attributeName
+                  value
+                }
+              }
+              associations {
+                parent: targets(
+                  roleId: $childRoleId
+                  ckId: $childCkTypeId
+                  direction: OUTBOUND
+                  first: 1
+                ) {
+                  items {
+                    rtId
+                    ckTypeId
+                    rtWellKnownName
+                    attributes(attributeNames: ["name"]) {
+                      items {
+                        attributeName
+                        value
+                      }
+                    }
+                    associations {
+                      parent: targets(
+                        roleId: $childRoleId
+                        ckId: $childCkTypeId
+                        direction: OUTBOUND
+                        first: 1
+                      ) {
+                        items {
+                          rtId
+                          ckTypeId
+                          rtWellKnownName
+                          attributes(attributeNames: ["name"]) {
+                            items {
+                              attributeName
+                              value
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

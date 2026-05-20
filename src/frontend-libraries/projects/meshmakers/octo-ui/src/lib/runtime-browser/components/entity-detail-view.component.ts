@@ -295,12 +295,11 @@ interface DirectionOption {
                 <mm-data-mapping-list
                   [messages]="_messages"
                   [mappings]="dataMappings"
-                  [sourceDataPoints]="sourceDataPoints"
+                  [sourceEntity]="entity"
                   [expressionValidator]="expressionValidator"
                   (addMapping)="addMappingRequested.emit()"
                   (removeMapping)="removeMappingRequested.emit($event)"
                   (selectTarget)="selectMappingTarget.emit($event)"
-                  (selectSourceAttribute)="selectSourceAttributeRequested.emit($event)"
                   (selectTargetAttribute)="selectTargetAttributeRequested.emit($event)"
                   (mappingChanged)="mappingChanged.emit($event)"
                   (navigateToTarget)="onNavigateToMappingTarget($event)"
@@ -327,7 +326,6 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   @Input() showDataMapping = true;
   @Input() dataMappings: DataPointMappingItem[] = [];
-  @Input() sourceDataPoints: string[] = [];
   /**
    * Optional expression validator function passed through to DataMappingListComponent.
    * When provided, mapping expressions are validated on change with visual feedback.
@@ -343,6 +341,11 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   @Output() addMappingRequested = new EventEmitter<void>();
   @Output() removeMappingRequested = new EventEmitter<DataPointMappingItem>();
   @Output() selectMappingTarget = new EventEmitter<DataPointMappingItem>();
+  /**
+   * @deprecated The source attribute is now picked inline by the
+   *   DataPointPickerComponent; this output is no longer emitted.
+   *   Kept for binding compatibility with existing hosts.
+   */
   @Output() selectSourceAttributeRequested = new EventEmitter<DataPointMappingItem>();
   @Output() selectTargetAttributeRequested = new EventEmitter<DataPointMappingItem>();
   @Output() mappingChanged = new EventEmitter<DataPointMappingItem>();
