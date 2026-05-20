@@ -265,12 +265,45 @@ function buildTooltip(
   return lines.join('\n');
 }
 
+/**
+ * Wraps a Kendo SVG icon's <path> markup in a coloured group so the rendered
+ * icon picks up a semantic colour at the SVG layer — no CSS hooks needed.
+ *
+ * Kendo's `kendo-svgicon` writes the icon content as-is inside an outer
+ * `<svg>`, and the path has no fill of its own (so it inherits currentColor).
+ * Wrapping in `<g fill="…">` forces a literal colour and survives the
+ * surrounding `color: inherit` in the tree template.
+ *
+ * We embed the hex value rather than a CSS variable because SVG attributes
+ * inside the content string aren't resolved by CSS — they're literal.
+ */
+function colorize(icon: SVGIcon, color: string): SVGIcon {
+  return {
+    name: `${icon.name}-${color.replace('#', '')}`,
+    viewBox: icon.viewBox,
+    content: `<g fill="${color}">${icon.content}</g>`,
+  };
+}
+
+// Semantic palette — matches the badge colours used in the toolbar summary
+// (badge-error/-warning/-ok/-info) so the legend and the tree agree.
+const STATUS_COLORS: Record<CoverageNodeStatus, string> = {
+  ok: '#28a745',       // success green
+  warning: '#ffc107',  // amber
+  error: '#dc3545',    // red
+  info: '#0dcaf0',     // info cyan
+};
+
+const COLORED_STATUS_ICONS: Record<CoverageNodeStatus, SVGIcon> = {
+  ok: colorize(checkCircleIcon, STATUS_COLORS.ok),
+  warning: colorize(warningCircleIcon, STATUS_COLORS.warning),
+  error: colorize(exclamationCircleIcon, STATUS_COLORS.error),
+  info: colorize(infoCircleIcon, STATUS_COLORS.info),
+};
+
 function resolveIcon(status: CoverageNodeStatus | null, isRoot: boolean): SVGIcon {
-  switch (status) {
-    case 'ok': return checkCircleIcon;
-    case 'warning': return warningCircleIcon;
-    case 'error': return exclamationCircleIcon;
-    case 'info': return infoCircleIcon;
-    default: return isRoot ? folderIcon : gridIcon;
+  if (status && COLORED_STATUS_ICONS[status]) {
+    return COLORED_STATUS_ICONS[status];
   }
+  return isRoot ? folderIcon : gridIcon;
 }
