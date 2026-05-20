@@ -1,8 +1,121 @@
+import type { ListViewMessages } from '@meshmakers/shared-ui';
+import type { CkTypeSelectorInputMessages } from '../ck-type-selector-input/ck-type-selector-input.messages';
+import type { PropertyGridMessages } from '../property-grid/property-grid.messages';
+
 /**
  * Translatable messages for the RuntimeBrowser components.
  * Pass translated strings to override the English defaults.
  */
 export interface RuntimeBrowserMessages {
+  /**
+   * Messages forwarded to the embedded ck-type-selector-input
+   * (rendered by the create-editor flow).
+   */
+  ckTypeSelectorInput?: Partial<CkTypeSelectorInputMessages>;
+
+  /**
+   * Messages forwarded to the embedded property-grid
+   * (attributes tab in entity detail view).
+   */
+  propertyGrid?: Partial<PropertyGridMessages>;
+
+  /**
+   * Messages forwarded to the embedded list-view
+   * (associations tab in entity detail view: column headers, pager,
+   * Excel/PDF/Refresh tooltips).
+   */
+  listView?: Partial<ListViewMessages>;
+
+  /** Header label for record card in attributes-group. Default: "Record" */
+  recordLabel?: string;
+
+  /** Back button on the standalone entity-detail page. Default: "Back" */
+  back?: string;
+
+  /** Hint above a RECORD_ARRAY tabstrip in attributes-group. */
+  recordArrayHint?: string;
+  /** Hint above an optional RECORD section in attributes-group. */
+  recordHint?: string;
+  /** "Add" button for RECORD_ARRAY items. Default: "Add" */
+  addRecord?: string;
+  /** "Remove" button for RECORD_ARRAY items. Default: "Remove" */
+  removeRecord?: string;
+  /** "Load" button for optional RECORD. Default: "Load" */
+  loadRecord?: string;
+  /** "Unload" button for optional RECORD. Default: "Unload" */
+  unloadRecord?: string;
+  /** Hint for GEO longitude input. */
+  longitudeHint?: string;
+  /** Hint for GEO latitude input. */
+  latitudeHint?: string;
+
+  /**
+   * Messages forwarded to <kendo-datetimepicker-messages> for date/time
+   * attribute fields. Each slot maps 1:1 to a Kendo DateTimePicker message
+   * (toggle popup tooltip, today button, calendar/clock tabs, now/accept/
+   * cancel button + their aria labels, parent-view button title).
+   */
+  datetimePicker?: {
+    toggle?: string;
+    today?: string;
+    dateTab?: string;
+    dateTabLabel?: string;
+    timeTab?: string;
+    timeTabLabel?: string;
+    now?: string;
+    nowLabel?: string;
+    accept?: string;
+    acceptLabel?: string;
+    cancel?: string;
+    cancelLabel?: string;
+    parentViewButtonTitle?: string;
+  };
+
+  /**
+   * Drag-and-drop messages for the binary attribute drop zone
+   * (forwarded to <kendo-fileselect-messages>).
+   */
+  dragDrop?: {
+    /** Drop-zone hint label. Default: 'Drop files here to upload' */
+    dropZone?: string;
+    /** Error shown when a file exceeds the size limit. Default: 'File size too large.' */
+    errorFileTooBig?: string;
+    /** Error shown when the file extension is not allowed. Default: 'File type not allowed.' */
+    errorInvalidType?: string;
+    /** Error shown when file upload fails. Default: 'File failed to upload.' */
+    errorUploadFailed?: string;
+  };
+
+  /**
+   * Labels/tooltips for the binary reference (file picker) editor,
+   * shown when a BINARY attribute is restored from stored base64 data.
+   */
+  binaryReference?: {
+    /** Inline label text. Default: 'Preview (restored from stored data)' */
+    label?: string;
+    /** Tooltip on the label span. Default: 'Content and size are from stored data. File name is a placeholder because the original name is not stored.' */
+    tooltip?: string;
+  };
+
+  /**
+   * Labels/tooltips for the reference preview component,
+   * shown when a BINARY_LINKED attribute is a synthetic reference file.
+   */
+  referencePreview?: {
+    /** Inline label text. Default: 'Preview (reference file)' */
+    label?: string;
+    /** Tooltip on the label span. Default: 'Shows metadata of an existing file in the system; content is not loaded. Replace with a file to change.' */
+    tooltip?: string;
+  };
+
+  /**
+   * Generic error messages emitted by mm-attribute-field.
+   */
+  attributeField?: {
+    /** Validation error shown below a field when it is invalid and dirty/touched. Default: 'This field is required or invalid.' */
+    errorMessage?: string;
+  };
+
   title: string;
   badgeLabel: string;
   titlePrefix: string;
@@ -67,6 +180,8 @@ export interface RuntimeBrowserMessages {
   attributesFor: string;
   couldNotLoadEntityDetails: string;
   failedToLoadEntityDetails: string;
+  entityNotFound?: string;
+  entityIdInvalidFormat?: string;
   copiedToClipboard: string;
   failedToCopyToClipboard: string;
   downloadNotAvailable: string;
@@ -99,6 +214,20 @@ export interface RuntimeBrowserMessages {
  * Default English messages for the RuntimeBrowser components.
  */
 export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
+  recordLabel: 'Record',
+  back: 'Back',
+  recordArrayHint:
+    'Add records to this array. Remove to delete the selected record. Empty arrays are not saved.',
+  recordHint:
+    'Load attributes to edit this optional record. Unload to remove all data and clear validation.',
+  addRecord: 'Add',
+  removeRecord: 'Remove',
+  loadRecord: 'Load',
+  unloadRecord: 'Unload',
+  longitudeHint:
+    'The longitude of the point on the Earth surface (-180 to 180 degrees).',
+  latitudeHint:
+    'The latitude of the point on the Earth surface (-90 to 90 degrees).',
   title: 'Runtime Browser',
   badgeLabel: 'Entities & Data',
   titlePrefix: 'REPOSITORY',
@@ -165,6 +294,8 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   attributesFor: 'Attributes for',
   couldNotLoadEntityDetails: 'Could not load entity details',
   failedToLoadEntityDetails: 'Failed to load entity details',
+  entityNotFound: 'Entity not found',
+  entityIdInvalidFormat: 'Invalid entity ID format',
   copiedToClipboard: 'copied to clipboard',
   failedToCopyToClipboard: 'Failed to copy to clipboard',
   downloadNotAvailable: 'Download not available for this file',

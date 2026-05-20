@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WindowRef, WindowModule } from '@progress/kendo-angular-dialog';
@@ -16,6 +16,10 @@ import {
 } from '@meshmakers/octo-services';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import {
+  CkTypeSelectorDialogMessages,
+  DEFAULT_CK_TYPE_SELECTOR_DIALOG_MESSAGES,
+} from './ck-type-selector-dialog.messages';
 
 export interface CkTypeSelectorDialogData {
   selectedCkTypeId?: string;
@@ -23,6 +27,7 @@ export interface CkTypeSelectorDialogData {
   dialogTitle?: string;
   allowAbstract?: boolean;
   derivedFromRtCkTypeId?: string;
+  messages?: Partial<CkTypeSelectorDialogMessages>;
 }
 
 export interface CkTypeSelectorDialogResult {
@@ -48,23 +53,23 @@ export interface CkTypeSelectorDialogResult {
       <div class="filter-container">
         <div class="filter-row">
           <div class="filter-item" *ngIf="!derivedFromRtCkTypeId">
-            <label>Model Filter</label>
+            <label>{{ _messages.modelFilterLabel }}</label>
             <kendo-combobox
               [data]="availableModels"
               [(ngModel)]="selectedModel"
               (valueChange)="onModelFilterChange($event)"
               [allowCustom]="false"
               [clearButton]="true"
-              placeholder="All Models"
+              [placeholder]="_messages.modelFilterPlaceholder"
               class="filter-input">
             </kendo-combobox>
           </div>
           <div class="filter-item flex-grow">
-            <label>Type Search</label>
+            <label>{{ _messages.typeSearchLabel }}</label>
             <kendo-textbox
               [(ngModel)]="searchText"
               (ngModelChange)="onSearchChange($event)"
-              placeholder="Search types..."
+              [placeholder]="_messages.typeSearchPlaceholder"
               class="filter-input">
               <ng-template kendoTextBoxSuffixTemplate>
                 <button kendoButton [svgIcon]="searchIcon" fillMode="clear" size="small"></button>
@@ -73,7 +78,7 @@ export interface CkTypeSelectorDialogResult {
           </div>
           <div class="filter-item filter-actions">
             <label>&nbsp;</label>
-            <button kendoButton [svgIcon]="filterClearIcon" (click)="clearFilters()" title="Clear filters"></button>
+            <button kendoButton [svgIcon]="filterClearIcon" (click)="clearFilters()" [title]="_messages.clearFiltersTitle"></button>
           </div>
         </div>
       </div>
@@ -92,35 +97,46 @@ export interface CkTypeSelectorDialogResult {
           [kendoGridSelectBy]="selectItemBy"
           [(selectedKeys)]="selectedKeys"
           class="type-grid">
-          <kendo-grid-column field="rtCkTypeId" title="Type" [width]="300">
+          <kendo-grid-column field="rtCkTypeId" [title]="_messages.columnTypeTitle" [width]="300">
             <ng-template kendoGridCellTemplate let-dataItem>
               <span [class.abstract-type]="dataItem.isAbstract" [class.final-type]="dataItem.isFinal">
                 {{ dataItem.rtCkTypeId }}
               </span>
-              <span *ngIf="dataItem.isAbstract" class="type-badge abstract">abstract</span>
-              <span *ngIf="dataItem.isFinal" class="type-badge final">final</span>
+              <span *ngIf="dataItem.isAbstract" class="type-badge abstract">{{ _messages.badgeAbstract }}</span>
+              <span *ngIf="dataItem.isFinal" class="type-badge final">{{ _messages.badgeFinal }}</span>
             </ng-template>
           </kendo-grid-column>
-          <kendo-grid-column field="baseTypeRtCkTypeId" title="Base Type" [width]="200">
+          <kendo-grid-column field="baseTypeRtCkTypeId" [title]="_messages.columnBaseTypeTitle" [width]="200">
             <ng-template kendoGridCellTemplate let-dataItem>
               {{ dataItem.baseTypeRtCkTypeId || '-' }}
             </ng-template>
           </kendo-grid-column>
-          <kendo-grid-column field="description" title="Description">
+          <kendo-grid-column field="description" [title]="_messages.columnDescriptionTitle">
             <ng-template kendoGridCellTemplate let-dataItem>
               {{ dataItem.description || '-' }}
             </ng-template>
           </kendo-grid-column>
+          <kendo-grid-messages
+            [pagerItemsPerPage]="_messages.pagerItemsPerPage"
+            [pagerOf]="_messages.pagerOf"
+            [pagerItems]="_messages.pagerItems"
+            [pagerPage]="_messages.pagerPage"
+            [pagerFirstPage]="_messages.pagerFirstPage"
+            [pagerLastPage]="_messages.pagerLastPage"
+            [pagerPreviousPage]="_messages.pagerPreviousPage"
+            [pagerNextPage]="_messages.pagerNextPage"
+            [noRecords]="_messages.noRecords"
+          />
         </kendo-grid>
       </div>
 
       <div class="selection-info" *ngIf="selectedType">
-        <strong>Selected:</strong> {{ selectedType.rtCkTypeId }}
+        <strong>{{ _messages.selectedLabel }}</strong> {{ selectedType.rtCkTypeId }}
       </div>
 
       <div class="dialog-actions">
-        <button kendoButton (click)="onCancel()">Cancel</button>
-        <button kendoButton themeColor="primary" [disabled]="!selectedType || (selectedType.isAbstract && !allowAbstract)" (click)="onConfirm()">OK</button>
+        <button kendoButton (click)="onCancel()">{{ _messages.cancel }}</button>
+        <button kendoButton themeColor="primary" [disabled]="!selectedType || (selectedType.isAbstract && !allowAbstract)" (click)="onConfirm()">{{ _messages.ok }}</button>
       </div>
     </div>
   `,
@@ -254,8 +270,14 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
   protected readonly searchIcon = searchIcon;
   protected readonly filterClearIcon = filterClearIcon;
 
-  public dialogTitle = 'Select Construction Kit Type';
+  public dialogTitle = DEFAULT_CK_TYPE_SELECTOR_DIALOG_MESSAGES.defaultDialogTitle;
   public allowAbstract = true;
+
+  public _messages: CkTypeSelectorDialogMessages = { ...DEFAULT_CK_TYPE_SELECTOR_DIALOG_MESSAGES };
+
+  @Input() set messages(value: Partial<CkTypeSelectorDialogMessages> | undefined) {
+    this._messages = { ...DEFAULT_CK_TYPE_SELECTOR_DIALOG_MESSAGES, ...(value ?? {}) };
+  }
 
   public searchText = '';
   public selectedModel: string | null = null;
@@ -282,7 +304,10 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.data) {
-      this.dialogTitle = this.data.dialogTitle || 'Select Construction Kit Type';
+      if (this.data.messages) {
+        this._messages = { ...DEFAULT_CK_TYPE_SELECTOR_DIALOG_MESSAGES, ...this.data.messages };
+      }
+      this.dialogTitle = this.data.dialogTitle || this._messages.defaultDialogTitle;
       this.allowAbstract = this.data.allowAbstract ?? true;
       this.initialCkModelIds = this.data.ckModelIds;
       this.derivedFromRtCkTypeId = this.data.derivedFromRtCkTypeId;

@@ -9,6 +9,10 @@ import {
 import { ProgressBarComponent } from '@progress/kendo-angular-progressbar';
 import { Observable, Subscription } from 'rxjs';
 import { ProgressValue } from '../models/progressValue';
+import {
+  ProgressWindowMessages,
+  DEFAULT_PROGRESS_WINDOW_MESSAGES,
+} from './progress-window.messages';
 
 export interface ProgressWindowData {
   title: string;
@@ -43,6 +47,12 @@ export class ProgressWindowComponent extends DialogContentBase implements OnDest
 
   public statusText: string | null = null;
   public progressValue = 0;
+
+  public _messages: ProgressWindowMessages = { ...DEFAULT_PROGRESS_WINDOW_MESSAGES };
+
+  @Input() set messages(value: Partial<ProgressWindowMessages> | undefined) {
+    this._messages = { ...DEFAULT_PROGRESS_WINDOW_MESSAGES, ...(value ?? {}) };
+  }
 
   constructor() {
     const dialogRef = inject(DialogRef);

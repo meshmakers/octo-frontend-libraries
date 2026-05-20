@@ -17,6 +17,7 @@ import {
 
 import { PropertyGridItem, PropertyGridConfig, PropertyChangeEvent, AttributeValueTypeDto, BinaryDownloadEvent } from '../models/property-grid.models';
 import { PropertyValueDisplayComponent } from './property-value-display.component';
+import { DEFAULT_PROPERTY_GRID_MESSAGES, PropertyGridMessages } from '../property-grid.messages';
 
 /**
  * Generic property grid component for OctoMesh
@@ -41,7 +42,7 @@ import { PropertyValueDisplayComponent } from './property-value-display.componen
         <div class="search-toolbar">
           <kendo-textbox
             [(ngModel)]="searchTerm"
-            placeholder="Search attributes..."
+            [placeholder]="_messages.searchPlaceholder"
             (input)="onSearch()"
             [clearButton]="true">
           </kendo-textbox>
@@ -59,7 +60,7 @@ import { PropertyValueDisplayComponent } from './property-value-display.componen
         <!-- Property Name Column -->
         <kendo-grid-column
           field="displayName"
-          title="Property"
+          [title]="_messages.columnPropertyTitle"
           [width]="200"
           [sortable]="true">
           <ng-template kendoGridCellTemplate let-dataItem="dataItem">
@@ -78,7 +79,7 @@ import { PropertyValueDisplayComponent } from './property-value-display.componen
                   <span class="required-indicator">*</span>
                 }
                 @if (dataItem.readOnly) {
-                  <span class="readonly-indicator" title="Read-only">🔒</span>
+                  <span class="readonly-indicator" [title]="_messages.readOnlyTooltip">🔒</span>
                 }
               </div>
             </div>
@@ -88,7 +89,7 @@ import { PropertyValueDisplayComponent } from './property-value-display.componen
         <!-- Property Value Column -->
         <kendo-grid-column
           field="value"
-          title="Value"
+          [title]="_messages.columnValueTitle"
           [sortable]="false">
           <ng-template kendoGridCellTemplate let-dataItem="dataItem">
             <mm-property-value-display
@@ -104,7 +105,7 @@ import { PropertyValueDisplayComponent } from './property-value-display.componen
         @if (showTypeColumn) {
           <kendo-grid-column
             field="type"
-            title="Type"
+            [title]="_messages.columnTypeTitle"
             [width]="120"
             [sortable]="true">
             <ng-template kendoGridCellTemplate let-dataItem="dataItem">
@@ -215,6 +216,11 @@ export class PropertyGridComponent implements OnInit, OnChanges {
   @Input() data: PropertyGridItem[] = [];
   @Input() config: PropertyGridConfig = {};
   @Input() showTypeColumn = false;
+
+  protected _messages: PropertyGridMessages = { ...DEFAULT_PROPERTY_GRID_MESSAGES };
+  @Input() set messages(value: Partial<PropertyGridMessages> | undefined) {
+    this._messages = { ...DEFAULT_PROPERTY_GRID_MESSAGES, ...(value ?? {}) };
+  }
 
   @Output() propertyChange = new EventEmitter<PropertyChangeEvent>();
   @Output() saveRequested = new EventEmitter<PropertyGridItem[]>();

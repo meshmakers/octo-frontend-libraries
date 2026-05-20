@@ -1,5 +1,6 @@
 // Models
 export * from './models/property-grid.models';
+export * from './property-grid.messages';
 
 // Services
 export * from './services/property-converter.service';

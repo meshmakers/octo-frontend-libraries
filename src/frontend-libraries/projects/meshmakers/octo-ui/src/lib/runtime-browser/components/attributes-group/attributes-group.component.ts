@@ -1,11 +1,16 @@
 import {
   Component,
+  Input,
   inject,
   forwardRef,
   computed,
   input,
   effect,
 } from "@angular/core";
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from "../../runtime-browser.model";
 import { CommonModule } from "@angular/common";
 import {
   FormArray,
@@ -60,7 +65,7 @@ import {
       <kendo-card [style.margin-bottom.px]="10">
         <kendo-card-header>
           <div class="header-title">
-            <strong>{{ isRecord() ? 'Record' : 'Attributes' }}:</strong>
+            <strong>{{ isRecord() ? (_messages.recordLabel ?? 'Record') : _messages.attributes }}:</strong>
             {{ ckId() }}
           </div>
         </kendo-card-header>
@@ -86,8 +91,7 @@ import {
                   @if (attr.isOptional) {
                     <div class="record-actions-info">
                       <p class="record-actions-description">
-                        Add records to this array. Remove to delete the selected
-                        record. Empty arrays are not saved.
+                        {{ _messages.recordArrayHint }}
                       </p>
                     </div>
                   }
@@ -124,7 +128,7 @@ import {
                     style="margin-top: 10px; display: flex; gap: 8px;"
                   >
                     <button kendoButton size="small" (click)="addRecord(attr)">
-                      Add
+                      {{ _messages.addRecord }}
                     </button>
                     <button
                       kendoButton
@@ -134,7 +138,7 @@ import {
                       [disabled]="!canRemoveRecord(attr)"
                       (click)="removeRecord(attr)"
                     >
-                      Remove
+                      {{ _messages.removeRecord }}
                     </button>
                   </div>
                 </div>
@@ -153,8 +157,7 @@ import {
                 @if (attr.isOptional) {
                   <div class="record-actions-info">
                     <p class="record-actions-description">
-                      Load attributes to edit this optional record. Unload to
-                      remove all data and clear validation.
+                      {{ _messages.recordHint }}
                     </p>
                   </div>
                 }
@@ -180,7 +183,7 @@ import {
                       [disabled]="isRecordLoaded(attr.attributeName)"
                       (click)="loadRecord(attr)"
                     >
-                      Load
+                      {{ _messages.loadRecord }}
                     </button>
                     <button
                       kendoButton
@@ -190,7 +193,7 @@ import {
                       [disabled]="!isRecordLoaded(attr.attributeName)"
                       (click)="unloadRecord(attr)"
                     >
-                      Unload
+                      {{ _messages.unloadRecord }}
                     </button>
                   </div>
                 }
@@ -214,14 +217,15 @@ import {
                     class="geospatial-grid"
                   >
                     <mm-attribute-field
-                      [hintText]="'The longitude of the point on the Earth surface (-180 to 180 degrees).'"
+                      [hintText]="_messages.longitudeHint ?? ''"
                       [attribute]="attr"
-                      [overrideLabelText]="'Longitude (X)'"
+                      [overrideLabelText]="_messages.longitude"
                       [control]="
                         parentFormGroup().get(attr.attributeName + '.longitude')!
                       "
                       [baselineValue]="getBaselineValue(attr.attributeName + '.longitude')"
                       [fieldId]="attr.attributeName + '_lon'"
+                      [errorMessage]="_messages.attributeField?.errorMessage ?? 'This field is required or invalid.'"
                     >
                       <kendo-numerictextbox
                         [focusableId]="attr.attributeName + '_lon'"
@@ -234,14 +238,15 @@ import {
                     </mm-attribute-field>
 
                     <mm-attribute-field
-                      [hintText]="'The latitude of the point on the Earth surface (-90 to 90 degrees).'"
+                      [hintText]="_messages.latitudeHint ?? ''"
                       [attribute]="attr"
-                      [overrideLabelText]="'Latitude (Y)'"
+                      [overrideLabelText]="_messages.latitude"
                       [control]="
                         parentFormGroup().get(attr.attributeName + '.latitude')!
                       "
                       [baselineValue]="getBaselineValue(attr.attributeName + '.latitude')"
                       [fieldId]="attr.attributeName + '_lat'"
+                      [errorMessage]="_messages.attributeField?.errorMessage ?? 'This field is required or invalid.'"
                     >
                       <kendo-numerictextbox
                         [focusableId]="attr.attributeName + '_lat'"
@@ -261,6 +266,7 @@ import {
                 [control]="parentFormGroup().get(attr.attributeName)!"
                 [baselineValue]="getBaselineValue(attr.attributeName)"
                 [fieldId]="attr.attributeName"
+                [errorMessage]="_messages.attributeField?.errorMessage ?? 'This field is required or invalid.'"
               >
                 @if (recognition.isNumber(attr.attributeValueType)) {
                   <kendo-numerictextbox
@@ -271,7 +277,23 @@ import {
                   <kendo-datetimepicker
                     [focusableId]="attr.attributeName"
                     [formControlName]="attr.attributeName"
-                  />
+                  >
+                    <kendo-datetimepicker-messages
+                      [toggle]="_messages.datetimePicker?.toggle ?? 'Toggle popup'"
+                      [today]="_messages.datetimePicker?.today ?? 'TODAY'"
+                      [dateTab]="_messages.datetimePicker?.dateTab ?? 'Date'"
+                      [dateTabLabel]="_messages.datetimePicker?.dateTabLabel ?? 'Date tab'"
+                      [timeTab]="_messages.datetimePicker?.timeTab ?? 'Time'"
+                      [timeTabLabel]="_messages.datetimePicker?.timeTabLabel ?? 'Time tab'"
+                      [now]="_messages.datetimePicker?.now ?? 'NOW'"
+                      [nowLabel]="_messages.datetimePicker?.nowLabel ?? 'Select now'"
+                      [accept]="_messages.datetimePicker?.accept ?? 'Set'"
+                      [acceptLabel]="_messages.datetimePicker?.acceptLabel ?? 'Set date'"
+                      [cancel]="_messages.datetimePicker?.cancel ?? 'Cancel'"
+                      [cancelLabel]="_messages.datetimePicker?.cancelLabel ?? 'Cancel selection'"
+                      [parentViewButtonTitle]="_messages.datetimePicker?.parentViewButtonTitle ?? 'Navigate to parent view'"
+                    />
+                  </kendo-datetimepicker>
                 } @else if (recognition.isTime(attr.attributeValueType)) {
                   <kendo-timepicker
                     [focusableId]="attr.attributeName"
@@ -289,10 +311,17 @@ import {
                       [focusableId]="attr.attributeName"
                       [formControlName]="attr.attributeName"
                       [restrictions]="binaryRestrictions"
-                    />
+                    >
+                      <kendo-fileselect-messages
+                        [dropFilesHere]="_messages.dragDrop?.dropZone ?? 'Drop files here to upload'"
+                        [invalidMaxFileSize]="_messages.dragDrop?.errorFileTooBig ?? 'File size too large.'"
+                        [invalidFileExtension]="_messages.dragDrop?.errorInvalidType ?? 'File type not allowed.'"
+                        [fileStatusFailed]="_messages.dragDrop?.errorUploadFailed ?? 'File failed to upload.'"
+                      />
+                    </kendo-fileselect>
                     @if (isBinaryReferenceFile(attr.attributeName)) {
-                      <span class="binary-linked-reference-hint" [title]="binaryReferenceTooltip">
-                        {{ binaryReferenceLabel }}
+                      <span class="binary-linked-reference-hint" [title]="_messages.binaryReference?.tooltip ?? 'Content and size are from stored data. File name is a placeholder because the original name is not stored.'">
+                        {{ _messages.binaryReference?.label ?? 'Preview (restored from stored data)' }}
                       </span>
                     }
                   </div>
@@ -302,10 +331,17 @@ import {
                       [multiple]="false"
                       [focusableId]="attr.attributeName"
                       [formControlName]="attr.attributeName"
-                    />
+                    >
+                      <kendo-fileselect-messages
+                        [dropFilesHere]="_messages.dragDrop?.dropZone ?? 'Drop files here to upload'"
+                        [invalidMaxFileSize]="_messages.dragDrop?.errorFileTooBig ?? 'File size too large.'"
+                        [invalidFileExtension]="_messages.dragDrop?.errorInvalidType ?? 'File type not allowed.'"
+                        [fileStatusFailed]="_messages.dragDrop?.errorUploadFailed ?? 'File failed to upload.'"
+                      />
+                    </kendo-fileselect>
                     @if (isReferencePreviewFile(attr.attributeName)) {
-                      <span class="binary-linked-reference-hint" [title]="referencePreviewTooltip">
-                        {{ referencePreviewLabel }}
+                      <span class="binary-linked-reference-hint" [title]="_messages.referencePreview?.tooltip ?? 'Shows metadata of an existing file in the system; content is not loaded. Replace with a file to change.'">
+                        {{ _messages.referencePreview?.label ?? 'Preview (reference file)' }}
                       </span>
                     }
                   </div>
@@ -364,23 +400,17 @@ export class AttributesGroupComponent {
   isRecord = input<boolean>(false);
   initialValues = input<RawInitialValue[]>();
 
+  protected _messages: RuntimeBrowserMessages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES };
+  @Input() set messages(value: Partial<RuntimeBrowserMessages> | undefined) {
+    this._messages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES, ...(value ?? {}) };
+  }
+
   // ─── Derived state & resource ────────────────────────────────────────────────────
   protected attributes = computed(() => this.attributesResource.value() ?? []);
   private selectedIndices = new Map<string, number>();
   private loadedRecords = new Map<string, boolean>();
   private baselineValues = new Map<string, unknown>();
   protected readonly binaryRestrictions = { maxFileSize: 16 * 1024 * 1024 };
-
-  /** Label and tooltip for BINARY when value was restored from base64 (content is real; file name is a placeholder). */
-  protected readonly binaryReferenceLabel =
-    "Preview (restored from stored data)";
-  protected readonly binaryReferenceTooltip =
-    "Content and size are from stored data. File name is a placeholder because the original name is not stored.";
-
-  /** Label and tooltip for BINARY_LINKED when value is a reference/mockup (no content, metadata only). */
-  protected readonly referencePreviewLabel = "Preview (reference file)";
-  protected readonly referencePreviewTooltip =
-    "Shows metadata of an existing file in the system; content is not loaded. Replace with a file to change.";
 
   /** True when the control value is a BINARY file restored from base64 (reference: real content, placeholder name). */
   protected isBinaryReferenceFile(attrName: string): boolean {

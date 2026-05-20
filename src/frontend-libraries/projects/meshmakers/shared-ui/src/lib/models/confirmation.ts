@@ -1,3 +1,5 @@
+import type { ConfirmationWindowMessages } from '../confirmation-window/confirmation-window.messages';
+
 export enum ButtonTypes {
   Ok,
   Cancel,
@@ -24,6 +26,7 @@ export interface ConfirmationWindowData {
   message: string;
   dialogType: DialogType;
   buttonLabels?: ConfirmationButtonLabels;
+  messages?: Partial<ConfirmationWindowMessages>;
 }
 
 export class ConfirmationWindowResult {

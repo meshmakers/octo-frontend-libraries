@@ -3,16 +3,14 @@ import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { Observable } from 'rxjs';
 import { ProgressValue } from '../models/progressValue';
 import { ProgressWindowComponent } from './progress-window.component';
+import { ProgressWindowMessages } from './progress-window.messages';
 
 @Injectable()
 export class ProgressWindowService {
   private readonly dialogService = inject(DialogService);
 
-  /**
-   * Opens a progress window dialog
-   * @param config Configuration for the progress window
-   * @returns DialogRef for the progress window
-   */
+  public defaultMessages: Partial<ProgressWindowMessages> | undefined;
+
   showProgress(config: ProgressWindowConfig): DialogRef {
     const dialogRef = this.dialogService.open({
       title: config.title,
@@ -20,15 +18,18 @@ export class ProgressWindowService {
       width: config.width ?? 450,
       height: config.height ?? 'auto',
       cssClass: 'mm-progress-window-no-close',
-      preventAction: () => true // Always prevent closing via X button or ESC
+      preventAction: () => true
     });
 
-    // Set component input properties
     const component = dialogRef.content.instance;
     component.isDeterminate = config.isDeterminate !== false;
     component.progress = config.progress;
     component.isCancelOperationAvailable = config.isCancelOperationAvailable || false;
     component.cancelOperation = config.cancelOperation || (() => { /* noop */ });
+    const messages = config.messages ?? this.defaultMessages;
+    if (messages) {
+      component.messages = messages;
+    }
 
     return dialogRef;
   }
@@ -83,6 +84,7 @@ export interface ProgressWindowConfig {
   width?: number;
   height?: number | string;
   allowClose?: boolean;
+  messages?: Partial<ProgressWindowMessages>;
 }
 
 export interface ProgressWindowOptions {
@@ -91,4 +93,5 @@ export interface ProgressWindowOptions {
   width?: number;
   height?: number | string;
   allowClose?: boolean;
+  messages?: Partial<ProgressWindowMessages>;
 }

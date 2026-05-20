@@ -1,7 +1,11 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { WindowRef } from '@progress/kendo-angular-dialog';
+import { WindowRef, KENDO_DIALOG } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { copyIcon, xIcon } from '@progress/kendo-svg-icons';
+import {
+  MessageDetailsDialogMessages,
+  DEFAULT_MESSAGE_DETAILS_DIALOG_MESSAGES,
+} from './message-details-dialog.messages';
 
 export interface MessageDetailsDialogData {
   title: string;
@@ -9,6 +13,7 @@ export interface MessageDetailsDialogData {
   level: 'error' | 'warning';
   copyLabel?: string;
   closeLabel?: string;
+  messages?: Partial<MessageDetailsDialogMessages>;
 }
 
 @Component({
@@ -16,8 +21,16 @@ export interface MessageDetailsDialogData {
   standalone: true,
   imports: [
     ButtonModule,
+    KENDO_DIALOG,
   ],
   template: `
+    <kendo-window-messages
+      [closeTitle]="messages.closeTitle"
+      [minimizeTitle]="messages.minimizeTitle"
+      [maximizeTitle]="messages.maximizeTitle"
+      [restoreTitle]="messages.restoreTitle"
+    />
+
     <div class="message-details-content">
       @if (!details) {
         <div class="loading-section">
@@ -116,14 +129,19 @@ export class MessageDetailsDialogComponent implements OnInit {
 
   public data!: MessageDetailsDialogData;
   public details = '';
-  public copyLabel = 'Copy to Clipboard';
-  public closeLabel = 'Close';
+  public copyLabel = DEFAULT_MESSAGE_DETAILS_DIALOG_MESSAGES.copyToClipboard;
+  public closeLabel = DEFAULT_MESSAGE_DETAILS_DIALOG_MESSAGES.close;
+  public messages: MessageDetailsDialogMessages = { ...DEFAULT_MESSAGE_DETAILS_DIALOG_MESSAGES };
 
   ngOnInit(): void {
     if (this.data) {
       this.details = this.data.details;
-      if (this.data.copyLabel) this.copyLabel = this.data.copyLabel;
-      if (this.data.closeLabel) this.closeLabel = this.data.closeLabel;
+      this.messages = {
+        ...DEFAULT_MESSAGE_DETAILS_DIALOG_MESSAGES,
+        ...(this.data.messages ?? {}),
+      };
+      this.copyLabel = this.data.copyLabel ?? this.messages.copyToClipboard;
+      this.closeLabel = this.data.closeLabel ?? this.messages.close;
     }
   }
 

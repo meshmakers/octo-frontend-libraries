@@ -3,6 +3,10 @@ import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogTyp
 import {DialogActionsComponent, DialogContentBase, DialogRef} from '@progress/kendo-angular-dialog';
 import {NgIf} from '@angular/common';
 import {ButtonComponent} from '@progress/kendo-angular-buttons';
+import {
+  ConfirmationWindowMessages,
+  DEFAULT_CONFIRMATION_WINDOW_MESSAGES,
+} from './confirmation-window.messages';
 
 @Component({
   selector: 'mm-confirmation-window',
@@ -36,33 +40,43 @@ export class ConfirmationWindowComponent extends DialogContentBase implements On
     this.button2Result = null;
     this.button3Text = null;
     this.button3Result = null;
-    this.button1Text = 'OK';
+    this.button1Text = DEFAULT_CONFIRMATION_WINDOW_MESSAGES.ok;
     this.button1Result = ButtonTypes.Ok;
   }
 
   ngOnInit(): void {
 
     if (this.data){
+      // Precedence: buttonLabels > messages > English defaults.
+      const messages: ConfirmationWindowMessages = {
+        ...DEFAULT_CONFIRMATION_WINDOW_MESSAGES,
+        ...(this.data.messages ?? {}),
+      };
       const labels = this.data.buttonLabels;
+      const okLabel = labels?.ok ?? messages.ok;
+      const cancelLabel = labels?.cancel ?? messages.cancel;
+      const yesLabel = labels?.yes ?? messages.yes;
+      const noLabel = labels?.no ?? messages.no;
+
       if (this.data.dialogType === DialogType.OkCancel) {
-        this.button1Text = labels?.ok ?? 'OK';
+        this.button1Text = okLabel;
         this.button1Result = ButtonTypes.Ok;
-        this.button2Text = labels?.cancel ?? 'Cancel';
+        this.button2Text = cancelLabel;
         this.button2Result = ButtonTypes.Cancel;
       } else if (this.data.dialogType === DialogType.YesNoCancel) {
-        this.button1Text = labels?.yes ?? 'Yes';
+        this.button1Text = yesLabel;
         this.button1Result = ButtonTypes.Yes;
-        this.button2Text = labels?.no ?? 'No';
+        this.button2Text = noLabel;
         this.button2Result = ButtonTypes.No;
-        this.button3Text = labels?.cancel ?? 'Cancel';
+        this.button3Text = cancelLabel;
         this.button3Result = ButtonTypes.Cancel;
       } else if (this.data.dialogType === DialogType.Ok) {
-        this.button1Text = labels?.ok ?? 'OK';
+        this.button1Text = okLabel;
         this.button1Result = ButtonTypes.Ok;
       } else {
-        this.button1Text = labels?.yes ?? 'Yes';
+        this.button1Text = yesLabel;
         this.button1Result = ButtonTypes.Yes;
-        this.button2Text = labels?.no ?? 'No';
+        this.button2Text = noLabel;
         this.button2Result = ButtonTypes.No;
       }
     }

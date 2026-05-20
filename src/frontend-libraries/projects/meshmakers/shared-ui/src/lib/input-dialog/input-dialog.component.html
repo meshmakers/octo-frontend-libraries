@@ -3,5 +3,5 @@
 </kendo-label>
 <kendo-dialog-actions>
   <button kendoButton (click)="onOk()" themeColor="primary" [disabled]="!inputValue">{{buttonOkText}}</button>
-  <button kendoButton (click)="onCancel()">Cancel</button>
+  <button kendoButton (click)="onCancel()">{{ _messages.cancel }}</button>
 </kendo-dialog-actions>
