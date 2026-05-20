@@ -54,6 +54,7 @@ import {
   DEFAULT_MAPPING_COVERAGE_TREE_CONFIG,
   MappingCoverageTreeConfig,
   OrphanCandidate,
+  OrphanCandidateParent,
 } from './mapping-coverage-tree.models';
 
 interface RootCandidate {
@@ -67,6 +68,18 @@ interface PipelineCandidate {
   rtId: string;
   ckTypeId: string;
   name: string;
+}
+
+/**
+ * A bucket of orphan candidates sharing the same immediate parent. Produced
+ * by `orphanGroupedList` when the "group by parent" toggle is on.
+ */
+interface OrphanGroup {
+  /** Stable key — parent's CkTypeId@RtId, or `__no_parent__` for the catch-all bucket. */
+  key: string;
+  /** Human-readable label rendered as the section heading. */
+  label: string;
+  items: OrphanCandidate[];
 }
 
 /**
@@ -171,6 +184,61 @@ export class MappingCoverageTreeComponent implements OnInit {
     const all = this.orphanCandidates();
     const unmapped = all.filter(c => c.mappingCount === 0).length;
     return { total: all.length, unmapped, mapped: all.length - unmapped };
+  });
+
+  /**
+   * Which parent CK type to group by, or null for a flat list. We let the user
+   * pick the type instead of just "immediate parent" because Loxone-style trees
+   * include intermediate buckets (Loxone/Category) where each parent rtId is
+   * unique per room — grouping by Category produces dozens of look-alike
+   * sections ("Stellantrieb" appears N times, once per room). The user almost
+   * always wants Loxone/Room or whichever level genuinely partitions the data,
+   * so we expose all parent types seen in the loaded data and let them choose.
+   */
+  protected readonly orphanGroupParentType = signal<string | null>(null);
+
+  /**
+   * Distinct parent CK type ids found in the loaded candidates, sorted so the
+   * deepest type (root-most ancestor) comes first. For Loxone-Controls this is
+   * Loxone/Room first, then Loxone/Category — usually the deeper one is also
+   * the more meaningful grouping context.
+   */
+  protected readonly orphanAvailableParentTypes = computed<string[]>(() => {
+    const maxDepthByType = new Map<string, number>();
+    for (const item of this.orphanCandidates()) {
+      item.parentPath.forEach((p, idx) => {
+        const prev = maxDepthByType.get(p.ckTypeId) ?? -1;
+        if (idx > prev) maxDepthByType.set(p.ckTypeId, idx);
+      });
+    }
+    return Array.from(maxDepthByType.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([ckTypeId]) => ckTypeId);
+  });
+
+  protected readonly orphanGroupedList = computed<OrphanGroup[]>(() => {
+    const groupBy = this.orphanGroupParentType();
+    if (!groupBy) return [];
+    const groups = new Map<string, OrphanGroup>();
+    for (const item of this.orphanFilteredList()) {
+      // First ancestor of the chosen type (closest to leaf wins). Falls back to
+      // the catch-all bucket when no ancestor of that type is in the chain.
+      const ancestor = item.parentPath.find(p => p.ckTypeId === groupBy);
+      const key = ancestor ? `${ancestor.ckTypeId}@${ancestor.rtId}` : '__no_parent__';
+      const label = ancestor?.name ?? '(no parent of this type)';
+      let group = groups.get(key);
+      if (!group) {
+        group = { key, label, items: [] };
+        groups.set(key, group);
+      }
+      group.items.push(item);
+    }
+    // Sort groups by their (locale-aware) label; "(no parent…)" lands last.
+    return Array.from(groups.values()).sort((a, b) => {
+      if (a.key === '__no_parent__') return 1;
+      if (b.key === '__no_parent__') return -1;
+      return a.label.localeCompare(b.label);
+    });
   });
 
   protected readonly summaryLine = computed(() => {
@@ -283,6 +351,20 @@ export class MappingCoverageTreeComponent implements OnInit {
     this.orphanHideMapped.update(v => !v);
   }
 
+  protected onOrphanGroupParentTypeChange(value: string): void {
+    this.orphanGroupParentType.set(value ? value : null);
+  }
+
+  /**
+   * Returns the parent chain ordered for breadcrumb display: root-most ancestor
+   * first, immediate parent last. `parentPath` itself is stored immediate-first
+   * (so `parentPath[0]` cheaply reports the grouping key), but humans read
+   * breadcrumbs from outside in.
+   */
+  protected breadcrumbFor(item: OrphanCandidate): OrphanCandidateParent[] {
+    return [...item.parentPath].reverse();
+  }
+
   /**
    * Fetches all entities of the selected source CK type and tags each with
    * its inbound MapsFrom DataPointMapping count. The view filters the list
@@ -303,6 +385,8 @@ export class MappingCoverageTreeComponent implements OnInit {
               ckTypeId,
               mapsFromRoleId: this.config.mappingSourceRoleId,
               mappingCkTypeId: this.config.mappingCkTypeId,
+              childRoleId: this.config.childRoleId,
+              childCkTypeId: this.config.childCkTypeId,
               first: 1000,
               after: GraphQL.offsetToCursor(0),
             },
@@ -319,6 +403,7 @@ export class MappingCoverageTreeComponent implements OnInit {
           name: readAttr(e.attributes?.items, 'name') ?? e.rtWellKnownName ?? (e.rtId as string),
           description: readAttr(e.attributes?.items, 'description') ?? undefined,
           mappingCount: e.associations?.mappings?.totalCount ?? 0,
+          parentPath: extractParentPath(e.associations?.parent?.items?.[0]),
         }));
       candidates.sort((a, b) => {
         // Show unmapped first, then alphabetical.
@@ -337,57 +422,31 @@ export class MappingCoverageTreeComponent implements OnInit {
   }
 
   /**
-   * Bootstrap a new DataPointMapping pre-linked to an orphan source. The
-   * MapsTo side is left empty — the user finishes the wiring in the edit
-   * dialog (pick target node + target attribute).
+   * Opens the mapping editor pre-populated with the orphan as source and lets
+   * the user pick the target + attribute paths. Creates the DataPointMapping
+   * entity atomically on save (both MapsFrom and MapsTo wired up in one
+   * mutation). Cancel leaves nothing behind.
    */
   protected async createMappingFromOrphan(orphan: OrphanCandidate): Promise<void> {
+    const skeleton: MappingEditValue = {
+      // Empty rtId flags this as a not-yet-persisted mapping; saveEditedMapping
+      // routes it through CreateEntities instead of UpdateRuntimeEntities.
+      rtId: '',
+      ckTypeId: this.config.mappingCkTypeId,
+      name: `${orphan.name} mapping`,
+      enabled: true,
+      sourceRtId: orphan.rtId,
+      sourceCkTypeId: orphan.ckTypeId,
+      sourceName: orphan.name,
+      sourceAttributePath: '',
+      mappingExpression: '',
+      targetAttributePath: '',
+    };
+    const result = await this.editDialog.open({ mapping: skeleton });
+    if (!result.confirmed) return;
     try {
-      const created = await firstValueFrom(
-        this.createEntitiesGQL.mutate({
-          variables: {
-            entities: [
-              {
-                ckTypeId: this.config.mappingCkTypeId,
-                attributes: [
-                  { attributeName: 'Name', value: `${orphan.name} mapping` },
-                  { attributeName: 'Enabled', value: true },
-                ],
-                associations: [
-                  {
-                    roleName: this.config.mappingSourceOutboundRoleName,
-                    targets: [
-                      {
-                        modOption: AssociationModOptionsDto.CreateDto,
-                        target: { rtId: orphan.rtId, ckTypeId: orphan.ckTypeId },
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        }),
-      );
-      const newRtId = created.data?.runtime?.runtimeEntities?.create?.[0]?.rtId;
-      if (newRtId) {
-        await this.loadOrphanCandidates();
-        // Open the edit dialog so the user can immediately pick the MapsTo
-        // target + target attribute path.
-        const skeleton: CoverageMappingItem = {
-          rtId: String(newRtId),
-          ckTypeId: this.config.mappingCkTypeId,
-          name: `${orphan.name} mapping`,
-          enabled: true,
-          sourceAttributePath: '',
-          targetAttributePath: '',
-          mappingExpression: '',
-          sourceRtId: orphan.rtId,
-          sourceCkTypeId: orphan.ckTypeId,
-          sourceName: orphan.name,
-        };
-        await this.editMapping(skeleton);
-      }
+      await this.saveEditedMapping(result.mapping);
+      await this.loadOrphanCandidates();
     } catch (error) {
       console.error('Failed to create mapping for orphan:', error);
       this.orphanError.set('Failed to create mapping.');
@@ -455,9 +514,18 @@ export class MappingCoverageTreeComponent implements OnInit {
         const latest = await this.communicationService.getLatestPipelineExecution(
           tenant, pipeline.rtId, pipeline.ckTypeId,
         );
-        const isNew = latest && latest.id !== previousExecutionId;
-        const isFinished = latest && latest.status && latest.status !== 'Running';
-        if (isNew && isFinished) {
+        if (!latest) continue;
+        const idChanged = latest.id !== previousExecutionId;
+        // Treat absent status as "done". The in-memory debug-cache branch of
+        // GET /pipelineDebug/.../latest doesn't populate Status (only the
+        // MongoDB fallback does), so a sub-second pipeline that hits the
+        // cache path before the DB row is visible would never satisfy a
+        // strict `status === 'Completed'` check and the button would freeze.
+        // We only keep polling while the controller *explicitly* reports
+        // "Running" (case-insensitive for safety).
+        const stillRunning =
+          typeof latest.status === 'string' && latest.status.toLowerCase() === 'running';
+        if (idChanged && !stillRunning) {
           this.validationRunning.set(false);
           await this.refreshValidation();
           return;
@@ -626,10 +694,14 @@ export class MappingCoverageTreeComponent implements OnInit {
 
   /**
    * Opens the focused edit dialog for one mapping and, on save, persists
-   * attribute and (if changed) MapsFrom-association updates in a single
-   * UpdateRuntimeEntities mutation.
+   * attribute and (if changed) MapsFrom- / MapsTo-association updates in a
+   * single UpdateRuntimeEntities mutation.
    */
   protected async editMapping(mapping: CoverageMappingItem): Promise<void> {
+    // In the coverage-tree context the mapping's MapsTo target IS the selected
+    // node — we pre-fill the dialog with that so the user sees it immediately
+    // and can retarget if needed via the new Target Entity picker.
+    const node = this.selectedNode();
     const initial: MappingEditValue = {
       rtId: mapping.rtId,
       ckTypeId: mapping.ckTypeId,
@@ -640,12 +712,12 @@ export class MappingCoverageTreeComponent implements OnInit {
       sourceName: mapping.sourceName,
       sourceAttributePath: mapping.sourceAttributePath,
       mappingExpression: mapping.mappingExpression,
+      targetRtId: node?.rtId,
+      targetCkTypeId: node?.ckTypeId,
+      targetName: node?.name,
       targetAttributePath: mapping.targetAttributePath,
     };
-    const result = await this.editDialog.open({
-      mapping: initial,
-      targetCkTypeId: this.selectedNode()?.ckTypeId,
-    });
+    const result = await this.editDialog.open({ mapping: initial });
     if (!result.confirmed) return;
     await this.saveEditedMapping(result.mapping);
   }
@@ -659,54 +731,97 @@ export class MappingCoverageTreeComponent implements OnInit {
       { attributeName: 'TargetAttributePath', value: edited.targetAttributePath ?? '' },
     ];
 
-    const sourceChanged =
-      edited.sourceRtId !== edited._originalSourceRtId ||
-      edited.sourceCkTypeId !== edited._originalSourceCkTypeId;
-
     const associations: {
       roleName: string;
       targets: { modOption: AssociationModOptionsDto; target: { rtId: string; ckTypeId: string } }[];
     }[] = [];
 
-    if (sourceChanged) {
+    const buildAssocChange = (
+      originalRtId: string | undefined,
+      originalCkTypeId: string | undefined,
+      newRtId: string | undefined,
+      newCkTypeId: string | undefined,
+      roleName: string,
+    ) => {
+      if (newRtId === originalRtId && newCkTypeId === originalCkTypeId) return;
       const targets: { modOption: AssociationModOptionsDto; target: { rtId: string; ckTypeId: string } }[] = [];
-      if (edited._originalSourceRtId && edited._originalSourceCkTypeId) {
+      if (originalRtId && originalCkTypeId) {
         targets.push({
           modOption: AssociationModOptionsDto.DeleteDto,
-          target: { rtId: edited._originalSourceRtId, ckTypeId: edited._originalSourceCkTypeId },
+          target: { rtId: originalRtId, ckTypeId: originalCkTypeId },
         });
       }
-      if (edited.sourceRtId && edited.sourceCkTypeId) {
+      if (newRtId && newCkTypeId) {
         targets.push({
           modOption: AssociationModOptionsDto.CreateDto,
-          target: { rtId: edited.sourceRtId, ckTypeId: edited.sourceCkTypeId },
+          target: { rtId: newRtId, ckTypeId: newCkTypeId },
         });
       }
       if (targets.length > 0) {
-        associations.push({
-          roleName: this.config.mappingSourceOutboundRoleName,
-          targets,
-        });
+        associations.push({ roleName, targets });
       }
-    }
+    };
+
+    buildAssocChange(
+      edited._originalSourceRtId,
+      edited._originalSourceCkTypeId,
+      edited.sourceRtId,
+      edited.sourceCkTypeId,
+      this.config.mappingSourceOutboundRoleName,
+    );
+    buildAssocChange(
+      edited._originalTargetRtId,
+      edited._originalTargetCkTypeId,
+      edited.targetRtId,
+      edited.targetCkTypeId,
+      this.config.mappingTargetOutboundRoleName,
+    );
 
     try {
-      await firstValueFrom(
-        this.updateEntitiesGQL.mutate({
-          variables: {
-            entities: [
-              {
-                rtId: edited.rtId,
-                item: {
+      if (!edited.rtId) {
+        // New mapping (orphan-flow): atomic create with both MapsFrom and
+        // MapsTo associations. We translate the assoc-change list (built for
+        // the update path's modOptions) into a create-only assoc list — the
+        // entity doesn't exist yet, so any deletes are no-ops.
+        const createAssociations = associations
+          .map(a => ({
+            roleName: a.roleName,
+            targets: a.targets
+              .filter(t => t.modOption !== AssociationModOptionsDto.DeleteDto)
+              .map(t => ({ modOption: AssociationModOptionsDto.CreateDto, target: t.target })),
+          }))
+          .filter(a => a.targets.length > 0);
+        await firstValueFrom(
+          this.createEntitiesGQL.mutate({
+            variables: {
+              entities: [
+                {
                   ckTypeId: edited.ckTypeId,
                   attributes: attributeUpdates,
-                  associations,
+                  associations: createAssociations,
                 },
-              },
-            ],
-          },
-        }),
-      );
+              ],
+            },
+          }),
+        );
+      } else {
+        await firstValueFrom(
+          this.updateEntitiesGQL.mutate({
+            variables: {
+              entities: [
+                {
+                  rtId: edited.rtId,
+                  item: {
+                    ckTypeId: edited.ckTypeId,
+                    attributes: attributeUpdates,
+                    associations,
+                  },
+                },
+              ],
+            },
+          }),
+        );
+      }
       await this.refreshSelected();
     } catch (error) {
       console.error('Failed to save mapping:', error);
@@ -971,4 +1086,49 @@ function normaliseStatus(value: string | undefined): CoverageNodeStatus {
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Loose structural type matching the shape of one parent hop in the
+ * `getOrphanCandidates` query. Each hop has the same fields (`rtId`,
+ * `ckTypeId`, attributes, `associations.parent.items[0]` for the next hop),
+ * so a single recursive helper walks the chain without depending on the
+ * codegen-generated anonymous types.
+ */
+interface OrphanParentHop {
+  rtId?: unknown;
+  ckTypeId?: unknown;
+  rtWellKnownName?: string | null;
+  attributes?: {
+    items?: ({ attributeName?: string | null; value?: unknown } | null)[] | null;
+  } | null;
+  associations?: {
+    parent?: { items?: (OrphanParentHop | null)[] | null } | null;
+  } | null;
+}
+
+/**
+ * Walks the up-to-3-hop parent chain produced by `getOrphanCandidates` and
+ * flattens it into an array ordered from immediate parent (index 0) to
+ * root-most known ancestor. Stops at the first hop with no parent items —
+ * a Loxone Control whose Category is the topmost reachable ancestor in 3
+ * hops yields a 1-item path; an OPC-UA node deep in a tree yields 3.
+ */
+function extractParentPath(first: OrphanParentHop | null | undefined): OrphanCandidateParent[] {
+  const path: OrphanCandidateParent[] = [];
+  let cursor: OrphanParentHop | null | undefined = first;
+  while (cursor) {
+    if (cursor.rtId == null || cursor.ckTypeId == null) break;
+    path.push({
+      rtId: String(cursor.rtId),
+      ckTypeId: String(cursor.ckTypeId),
+      name:
+        readAttr(cursor.attributes?.items, 'name')
+        ?? cursor.rtWellKnownName
+        ?? String(cursor.rtId),
+    });
+    const next = cursor.associations?.parent?.items?.[0];
+    cursor = next ?? null;
+  }
+  return path;
 }
