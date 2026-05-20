@@ -125,7 +125,6 @@ export interface EntitySavedEvent {
                 [messages]="_messages"
                 [showDataMapping]="showDataMapping"
                 [dataMappings]="dataMappings"
-                [sourceDataPoints]="sourceDataPoints"
                 [expressionValidator]="expressionValidator"
                 (retry)="loadFullEntityDetails()"
                 (navigateToEntity)="
@@ -258,9 +257,10 @@ export class RuntimeBrowserDetailsComponent
   private readonly entitySelectorDialog = inject(EntitySelectorDialogService);
   private readonly attributeSelectorDialog = inject(AttributeSelectorDialogService);
 
-  // Data Mapping state (list of DataPointMapping entities)
+  // Data Mapping state (list of DataPointMapping entities). Source data points
+  // for the mapping rows are now resolved inline by DataPointPickerComponent
+  // from the displayed RtEntity — no precomputed string list maintained here.
   dataMappings: DataPointMappingItem[] = [];
-  sourceDataPoints: string[] = [];
   /**
    * Optional expression validator function passed through to EntityDetailViewComponent → DataMappingListComponent.
    */
@@ -402,7 +402,6 @@ export class RuntimeBrowserDetailsComponent
       if (!this.fullEntity) {
         this.error = this._messages.couldNotLoadEntityDetails;
       } else {
-        this.extractSourceDataPoints();
         await this.loadDataMappings();
       }
     } catch (error) {
@@ -884,84 +883,6 @@ export class RuntimeBrowserDetailsComponent
     // Actual persistence happens on "Save All".
   }
 
-  /**
-   * Extracts DataPoint names from the entity's States/DataPoints RecordArray attribute.
-   * Provides them as dropdown options for sourceAttributePath selection.
-   */
-  private extractSourceDataPoints(): void {
-    this.sourceDataPoints = ['currentValue'];
-
-    const entity = this.getEntityForDisplay();
-    if (!entity?.attributes?.items) return;
-
-    // Look for a RecordArray attribute (States, DataPoints, etc.) - case insensitive
-    const statesAttr = entity.attributes.items.find(
-      (a) => {
-        const name = a?.attributeName?.toLowerCase();
-        return name === 'states' || name === 'datapoints';
-      },
-    );
-
-    if (!statesAttr?.value) return;
-
-    let records: unknown[];
-
-    if (Array.isArray(statesAttr.value)) {
-      records = statesAttr.value;
-    } else if (typeof statesAttr.value === 'string') {
-      // RecordArray might come as JSON string from GraphQL
-      try {
-        const parsed = JSON.parse(statesAttr.value);
-        if (Array.isArray(parsed)) {
-          records = parsed;
-        } else {
-          return;
-        }
-      } catch {
-        return;
-      }
-    } else {
-      return;
-    }
-
-    // Extract Name from each record.
-    // GraphQL returns records as: { ckRecordId, attributes: [{attributeName, value}, ...] }
-    const names: string[] = [];
-    for (const record of records) {
-      if (record && typeof record === 'object') {
-        const r = record as Record<string, unknown>;
-        const attrs = r['attributes'];
-
-        let name: string | undefined;
-
-        if (Array.isArray(attrs)) {
-          // GraphQL format: attributes is array of {attributeName, value}
-          const nameEntry = (attrs as { attributeName?: string; value?: unknown }[])
-            .find((a) => a.attributeName === 'name' || a.attributeName === 'Name');
-          if (nameEntry?.value && typeof nameEntry.value === 'string') {
-            name = nameEntry.value;
-          }
-        } else if (attrs && typeof attrs === 'object') {
-          // Pipeline/MongoDB format: attributes is object {Name: "...", ...}
-          const attrObj = attrs as Record<string, unknown>;
-          name = (attrObj['Name'] ?? attrObj['name'] ?? attrObj['stateName']) as string | undefined;
-        }
-
-        if (!name) {
-          // Flat format: {name: "...", ...}
-          name = (r['Name'] ?? r['name']) as string | undefined;
-        }
-
-        if (typeof name === 'string' && name.length > 0) {
-          names.push(name);
-        }
-      }
-    }
-
-    if (names.length > 0) {
-      this.sourceDataPoints = ['currentValue', ...names.sort()];
-    }
-  }
 
   /**
    * Opens attribute selector for the source entity's attributes.

@@ -22,6 +22,7 @@ export * from './lib/attribute-selector-dialog';
 export * from './lib/attribute-sort-selector-dialog';
 export * from './lib/ck-type-selector-dialog';
 export * from './lib/ck-type-selector-input';
+export * from './lib/data-point-picker';
 export * from './lib/data-sources/octo-graph-ql-data-source';
 export * from './lib/data-sources/octo-graph-ql-hierarchy-data-source';
 export * from './lib/entity-id-info';

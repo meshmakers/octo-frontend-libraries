@@ -2,10 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
-import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { TextBoxModule } from '@progress/kendo-angular-inputs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { hyperlinkOpenIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
+import { DataPointPickerComponent } from '../../../data-point-picker/data-point-picker.component';
+import { RtEntityDto } from '../../../graphQL/globalTypes';
 
 /**
  * Result of validating a mapping expression.
@@ -53,9 +54,9 @@ export interface DataPointMappingItem {
     CommonModule,
     FormsModule,
     ButtonModule,
-    DropDownListModule,
     TextBoxModule,
     SVGIconModule,
+    DataPointPickerComponent,
   ],
   template: `
     <div class="mapping-list">
@@ -80,20 +81,11 @@ export interface DataPointMappingItem {
           <div class="mapping-card-body">
             <div class="mapping-row">
               <label>Source Data Point</label>
-              @if (sourceDataPoints.length > 0) {
-                <kendo-dropdownlist
-                  [data]="sourceDataPoints"
-                  [value]="mapping.sourceAttributePath || 'currentValue'"
-                  [valuePrimitive]="true"
-                  (valueChange)="onSourceDataPointChange(mapping, $event)">
-                </kendo-dropdownlist>
-              } @else {
-                <div class="target-display">
-                  <span class="target-info">{{ mapping.sourceAttributePath || '(not set)' }}</span>
-                  <button kendoButton fillMode="flat" size="small"
-                    (click)="selectSourceAttribute.emit(mapping)">Select...</button>
-                </div>
-              }
+              <mm-data-point-picker
+                [entity]="sourceEntity"
+                [value]="mapping.sourceAttributePath || 'currentValue'"
+                (valueChange)="onSourceDataPointChange(mapping, $event)">
+              </mm-data-point-picker>
             </div>
             <div class="mapping-row">
               <label>Expression</label>
@@ -297,7 +289,14 @@ export interface DataPointMappingItem {
 })
 export class DataMappingListComponent {
   @Input() mappings: DataPointMappingItem[] = [];
-  @Input() sourceDataPoints: string[] = [];
+  /**
+   * The runtime entity whose data points feed the Source Data Point picker.
+   * Typically the entity displayed in the surrounding detail pane (each mapping
+   * row shares the same source — the entity being inspected). The picker reads
+   * the States/DataPoints RecordArray off this entity to populate its options.
+   * When null, the picker falls back to the {@link DEFAULT_DATA_POINT} default.
+   */
+  @Input() sourceEntity: RtEntityDto | null = null;
   /**
    * Optional expression validator function. When provided, expressions are validated
    * on change and feedback (error or preview) is shown below the expression field.
@@ -309,6 +308,11 @@ export class DataMappingListComponent {
   @Output() addMapping = new EventEmitter<void>();
   @Output() removeMapping = new EventEmitter<DataPointMappingItem>();
   @Output() selectTarget = new EventEmitter<DataPointMappingItem>();
+  /**
+   * @deprecated Source attribute selection is now handled inline by
+   *   {@link DataPointPickerComponent}; this output is no longer emitted.
+   *   Kept on the public surface so existing host bindings keep compiling.
+   */
   @Output() selectSourceAttribute = new EventEmitter<DataPointMappingItem>();
   @Output() selectTargetAttribute = new EventEmitter<DataPointMappingItem>();
   @Output() mappingChanged = new EventEmitter<DataPointMappingItem>();

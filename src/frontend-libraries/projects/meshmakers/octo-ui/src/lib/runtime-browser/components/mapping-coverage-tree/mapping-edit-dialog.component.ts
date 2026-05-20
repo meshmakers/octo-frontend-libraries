@@ -10,6 +10,7 @@ import { folderOpenIcon, hyperlinkOpenIcon } from '@progress/kendo-svg-icons';
 import { AttributeItem, AttributeSelectorService } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 import { AttributeSelectorDialogService } from '../../../attribute-selector-dialog/attribute-selector-dialog.service';
+import { DataPointPickerComponent } from '../../../data-point-picker/data-point-picker.component';
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
 
 /**
@@ -82,6 +83,7 @@ export type MappingEditDialogResult =
     SVGIconModule,
     SwitchModule,
     TextBoxModule,
+    DataPointPickerComponent,
   ],
   template: `
     <div class="mapping-edit">
@@ -126,42 +128,22 @@ export type MappingEditDialogResult =
       </div>
 
       <div class="field-row">
-        <label>
-          Source Attribute Path
-          @if (sourceAttributesLoading()) { <span class="loading-pill">loading…</span> }
-        </label>
-        <div class="combo-row">
-          <kendo-combobox
-            [data]="sourceAttributeList()"
-            [value]="model().sourceAttributePath"
-            (valueChange)="onSourceAttributePathChange($event)"
-            [textField]="'attributePath'"
-            [valueField]="'attributePath'"
-            [valuePrimitive]="true"
-            [allowCustom]="true"
-            [filterable]="true"
-            (filterChange)="onSourceAttributeFilter($event)"
-            [popupSettings]="{ appendTo: 'root', animate: true }"
-            placeholder="e.g. tempActual, CurrentValue">
-            <ng-template kendoComboBoxItemTemplate let-item>
-              <div class="attribute-option">
-                <span class="attribute-path">{{ item.attributePath }}</span>
-                <span class="attribute-type">{{ item.attributeValueType }}</span>
-              </div>
-            </ng-template>
-          </kendo-combobox>
-          <button kendoButton fillMode="flat" size="small"
-            [svgIcon]="icons.browse"
-            [disabled]="!model().sourceCkTypeId"
-            (click)="browseSourceAttribute()"
-            title="Browse all attributes (incl. navigation properties)"></button>
-        </div>
+        <label>Source Data Point</label>
+        <mm-data-point-picker
+          [entityRtId]="model().sourceRtId"
+          [entityCkTypeId]="model().sourceCkTypeId"
+          [value]="model().sourceAttributePath"
+          [disabled]="!model().sourceRtId || !model().sourceCkTypeId"
+          (valueChange)="onSourceAttributePathChange($event)">
+        </mm-data-point-picker>
         <span class="hint">
-          @if (model().sourceCkTypeId) {
-            Direct attributes on <code>{{ model().sourceCkTypeId }}</code>. Click
-            the browse button for navigation properties or to escape autocomplete.
+          @if (model().sourceRtId && model().sourceCkTypeId) {
+            Data points exposed by the source entity's
+            <code>States</code> / <code>DataPoints</code> array, with
+            <code>currentValue</code> as the default for single-state controls.
+            Free text allowed.
           } @else {
-            Pick a source entity above to see available attribute paths.
+            Pick a source entity above to load its available data points.
           }
         </span>
       </div>
@@ -415,20 +397,13 @@ export class MappingEditDialogComponent {
   /** Reactive working copy — the form binds to this. */
   protected readonly model = signal<MappingEditValue>(this.emptyValue());
 
-  /** Full attribute catalogue per ck type — captured once when the type loads. */
-  private readonly sourceAttributes = signal<AttributeItem[]>([]);
+  /** Target CK-type attribute catalogue. The source side is now handled by
+   *  the dedicated {@link DataPointPickerComponent}, which loads runtime state
+   *  names from the entity itself instead of CK schema attributes. */
   private readonly targetAttributes = signal<AttributeItem[]>([]);
-
-  /** Filter strings driven by combobox typing. */
-  private readonly sourceFilter = signal<string>('');
   private readonly targetFilter = signal<string>('');
-
-  protected readonly sourceAttributesLoading = signal(false);
   protected readonly targetAttributesLoading = signal(false);
 
-  protected readonly sourceAttributeList = computed(() =>
-    filterAttributes(this.sourceAttributes(), this.sourceFilter()),
-  );
   protected readonly targetAttributeList = computed(() =>
     filterAttributes(this.targetAttributes(), this.targetFilter()),
   );
@@ -456,11 +431,8 @@ export class MappingEditDialogComponent {
       _originalTargetRtId: data.mapping.targetRtId,
       _originalTargetCkTypeId: data.mapping.targetCkTypeId,
     });
-    if (data.mapping.sourceCkTypeId) {
-      void this.loadAttributes(data.mapping.sourceCkTypeId, 'source');
-    }
     if (seededTargetCkTypeId) {
-      void this.loadAttributes(seededTargetCkTypeId, 'target');
+      void this.loadTargetAttributes(seededTargetCkTypeId);
     }
   }
 
@@ -491,10 +463,8 @@ export class MappingEditDialogComponent {
       // doesn't exist on the new type.
       sourceAttributePath: changedType ? '' : m.sourceAttributePath,
     }));
-    if (changedType) {
-      this.sourceFilter.set('');
-      void this.loadAttributes(result.entity.ckTypeId, 'source');
-    }
+    // The data-point picker watches sourceCkTypeId/sourceRtId and refreshes
+    // its option list on its own — no extra wiring needed here.
   }
 
   protected async pickTarget(): Promise<void> {
@@ -515,20 +485,16 @@ export class MappingEditDialogComponent {
     }));
     if (changedType) {
       this.targetFilter.set('');
-      void this.loadAttributes(result.entity.ckTypeId, 'target');
+      void this.loadTargetAttributes(result.entity.ckTypeId);
     }
   }
 
-  protected onSourceAttributePathChange(value: string | null): void {
-    this.model.update(m => ({ ...m, sourceAttributePath: value ?? '' }));
+  protected onSourceAttributePathChange(value: string): void {
+    this.model.update(m => ({ ...m, sourceAttributePath: value }));
   }
 
   protected onTargetAttributePathChange(value: string | null): void {
     this.model.update(m => ({ ...m, targetAttributePath: value ?? '' }));
-  }
-
-  protected onSourceAttributeFilter(filter: string): void {
-    this.sourceFilter.set(filter);
   }
 
   protected onTargetAttributeFilter(filter: string): void {
@@ -547,20 +513,17 @@ export class MappingEditDialogComponent {
   }
 
   /**
-   * Fetches the attribute catalogue for one CK type and stores it for the
-   * combobox dropdown. Navigation properties are explicitly excluded — they
-   * drown out the actual direct attributes (the column resolver expands one
-   * row per association target, which can produce hundreds of paths even on
-   * a small type like EnergyIQ/Space). Users who really want a navigation
-   * path can open the full Attribute Selector dialog via the browse button.
+   * Fetches the CK-schema attribute catalogue for the target side and stores
+   * it for the target combobox dropdown. Navigation properties are excluded —
+   * they drown out the direct attributes; the browse button below opens the
+   * full {@link AttributeSelectorDialog} for users who need a deep path.
    *
-   * The combobox already does client-side substring filtering on the
-   * populated list, so we don't refetch on every keystroke.
+   * (The source side now uses {@link DataPointPickerComponent}, which queries
+   * the runtime entity's States RecordArray directly — runtime data points,
+   * not CK schema attributes, are what the runtime engine matches against.)
    */
-  private async loadAttributes(ckTypeId: string, slot: 'source' | 'target'): Promise<void> {
-    const loadingSig = slot === 'source' ? this.sourceAttributesLoading : this.targetAttributesLoading;
-    const dataSig = slot === 'source' ? this.sourceAttributes : this.targetAttributes;
-    loadingSig.set(true);
+  private async loadTargetAttributes(ckTypeId: string): Promise<void> {
+    this.targetAttributesLoading.set(true);
     try {
       const result = await firstValueFrom(
         this.attributeService.getAvailableAttributes(
@@ -574,36 +537,12 @@ export class MappingEditDialogComponent {
           0,         // maxDepth — direct attributes only
         ),
       );
-      dataSig.set(result.items);
+      this.targetAttributes.set(result.items);
     } catch (err) {
-      console.error(`Failed to load ${slot} attributes for ${ckTypeId}:`, err);
-      dataSig.set([]);
+      console.error(`Failed to load target attributes for ${ckTypeId}:`, err);
+      this.targetAttributes.set([]);
     } finally {
-      loadingSig.set(false);
-    }
-  }
-
-  /**
-   * Opens the full AttributeSelectorDialog in single-select mode for the
-   * configured CK type. The dialog exposes its own controls for navigation
-   * properties and max depth, so power users who need a deep path can find
-   * it there even though the inline combobox keeps things flat.
-   */
-  protected async browseSourceAttribute(): Promise<void> {
-    const ckTypeId = this.model().sourceCkTypeId;
-    if (!ckTypeId) return;
-    const current = this.model().sourceAttributePath;
-    const result = await this.attributeSelectorDialog.openAttributeSelector(
-      ckTypeId,
-      current ? [current] : undefined,
-      'Select Source Attribute Path',
-      true, // singleSelect
-    );
-    if (result.confirmed && result.selectedAttributes.length > 0) {
-      this.model.update(m => ({
-        ...m,
-        sourceAttributePath: result.selectedAttributes[0].attributePath,
-      }));
+      this.targetAttributesLoading.set(false);
     }
   }
 
