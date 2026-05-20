@@ -40,7 +40,7 @@ export const GetOrphanCandidatesDocumentDto = gql`
             roleId: $mapsFromRoleId
             ckId: $mappingCkTypeId
             direction: INBOUND
-            first: 0
+            first: 1
           ) {
             totalCount
           }

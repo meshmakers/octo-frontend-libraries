@@ -26,12 +26,14 @@ query getOrphanCandidates(
         }
         # Counts inbound MapsFrom associations from any DataPointMapping. An
         # entity is "orphan" (= unmapped) when totalCount === 0.
+        # NOTE: `first: 1` (not 0) — MongoDB's $slice rejects 0 as page size.
+        # We only read totalCount, so loading a single item per row is fine.
         associations {
           mappings: targets(
             roleId: $mapsFromRoleId
             ckId: $mappingCkTypeId
             direction: INBOUND
-            first: 0
+            first: 1
           ) {
             totalCount
           }
