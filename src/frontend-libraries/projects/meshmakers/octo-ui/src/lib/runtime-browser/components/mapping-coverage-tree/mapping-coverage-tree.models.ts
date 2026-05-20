@@ -93,6 +93,15 @@ export type CoverageNodeStatus = 'ok' | 'warning' | 'error' | 'info';
  */
 export interface CoverageValidationDetail {
   status: CoverageNodeStatus;
+  /**
+   * Worst status found in the node's subtree (including the node itself).
+   * Used to colour the tree icon so an `info` node with red descendants is
+   * still visually flagged as red — the user sees where to drill in without
+   * expanding every branch.
+   */
+  subtreeStatus: CoverageNodeStatus;
+  /** Aggregate counts of each status in the subtree (including this node). */
+  subtreeCounts: { ok: number; warning: number; error: number; info: number };
   required: string[];
   recommended: string[];
   present: string[];

@@ -142,7 +142,11 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
     };
     const text = formatNodeLabel(entity, mappingCount, detail);
     const tooltip = buildTooltip(entity, detail);
-    const icon = resolveIcon(detail?.status ?? null, isRoot);
+    // Use the subtree rollup status so info/ok parents reveal hidden warnings
+    // or errors below them. Falls back to own status when subtree info isn't
+    // in the report (older backend) or no detail at all.
+    const iconStatus = detail?.subtreeStatus ?? detail?.status ?? null;
+    const icon = resolveIcon(iconStatus, isRoot);
     return new TreeItemDataTyped<CoverageNodePayload>(
       entity.rtId,
       text,
@@ -253,6 +257,19 @@ function buildTooltip(
   const head = entity.description ?? `${entity.ckTypeId}@${entity.rtId}`;
   if (!detail) return head;
   const lines: string[] = [head, `Status: ${detail.status}`];
+  // Flag subtree problems on `info` / `ok` parents so the user knows to drill
+  // in. Only show when the subtree is strictly worse than the node itself.
+  const counts = detail.subtreeCounts;
+  if (counts) {
+    const errBelow = counts.error - (detail.status === 'error' ? 1 : 0);
+    const warnBelow = counts.warning - (detail.status === 'warning' ? 1 : 0);
+    if (errBelow > 0 || warnBelow > 0) {
+      const parts: string[] = [];
+      if (errBelow > 0) parts.push(`${errBelow} error${errBelow === 1 ? '' : 's'}`);
+      if (warnBelow > 0) parts.push(`${warnBelow} warning${warnBelow === 1 ? '' : 's'}`);
+      lines.push(`Below: ${parts.join(', ')}`);
+    }
+  }
   if (detail.missingRequired.length > 0) {
     lines.push(`Missing required: ${detail.missingRequired.join(', ')}`);
   }

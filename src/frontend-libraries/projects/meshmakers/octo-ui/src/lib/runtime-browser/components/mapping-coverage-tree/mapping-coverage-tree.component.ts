@@ -1022,6 +1022,7 @@ function readAttr(items: readonly ({ attributeName?: string | null; value?: unkn
 interface CoverageReportNode {
   rtId?: string;
   status?: string;
+  parentRtId?: string | null;
   required?: string[];
   recommended?: string[];
   present?: string[];
@@ -1031,10 +1032,14 @@ interface CoverageReportNode {
 
 /**
  * Parses the JSON report emitted by ValidateDataPointCoverage@1 into a lookup
- * map keyed by entity rtId, plus aggregate summary counters.
+ * map keyed by entity rtId, plus aggregate summary counters and a per-node
+ * subtree rollup (worst status + aggregate counts) so the tree can colour
+ * `info` ancestors red when there's an error somewhere below them.
  *
  * Tolerant of partial/malformed payloads: unknown statuses fall back to "info"
- * and missing arrays default to empty.
+ * and missing arrays default to empty. Reports from an older backend that
+ * doesn't emit `parentRtId` degrade gracefully — every node's subtreeStatus
+ * collapses to its own status.
  */
 function parseValidationReport(serialised: string): {
   map: Map<string, CoverageValidationDetail>;
@@ -1045,12 +1050,50 @@ function parseValidationReport(serialised: string): {
   try {
     const parsed = JSON.parse(serialised) as { summary?: CoverageReportSummary; nodes?: CoverageReportNode[] };
     const summary = parsed?.summary ?? empty;
-    const nodes = parsed?.nodes ?? [];
+    const nodes = (parsed?.nodes ?? []).filter((n): n is CoverageReportNode & { rtId: string } => !!n?.rtId);
+
+    // Index by rtId + build parent → children map for the rollup pass.
+    const childrenByParent = new Map<string, string[]>();
+    const ownStatus = new Map<string, CoverageNodeStatus>();
     for (const n of nodes) {
-      if (!n?.rtId) continue;
-      const status = normaliseStatus(n.status);
+      ownStatus.set(n.rtId, normaliseStatus(n.status));
+      if (n.parentRtId) {
+        const bucket = childrenByParent.get(n.parentRtId);
+        if (bucket) bucket.push(n.rtId);
+        else childrenByParent.set(n.parentRtId, [n.rtId]);
+      }
+    }
+
+    // Memoised post-order walk: each node's subtree rollup includes itself
+    // plus the recursive rollup of all descendants.
+    const memo = new Map<string, { worst: CoverageNodeStatus; counts: { ok: number; warning: number; error: number; info: number } }>();
+    const rollup = (rtId: string): { worst: CoverageNodeStatus; counts: { ok: number; warning: number; error: number; info: number } } => {
+      const cached = memo.get(rtId);
+      if (cached) return cached;
+      const self = ownStatus.get(rtId) ?? 'info';
+      const counts = { ok: 0, warning: 0, error: 0, info: 0 };
+      counts[self] += 1;
+      let worst: CoverageNodeStatus = self;
+      for (const childId of childrenByParent.get(rtId) ?? []) {
+        const sub = rollup(childId);
+        counts.ok += sub.counts.ok;
+        counts.warning += sub.counts.warning;
+        counts.error += sub.counts.error;
+        counts.info += sub.counts.info;
+        if (statusSeverity(sub.worst) > statusSeverity(worst)) worst = sub.worst;
+      }
+      const out = { worst, counts };
+      memo.set(rtId, out);
+      return out;
+    };
+
+    for (const n of nodes) {
+      const status = ownStatus.get(n.rtId) ?? 'info';
+      const sub = rollup(n.rtId);
       result.set(n.rtId, {
         status,
+        subtreeStatus: sub.worst,
+        subtreeCounts: sub.counts,
         required: n.required ?? [],
         recommended: n.recommended ?? [],
         present: n.present ?? [],
@@ -1062,6 +1105,19 @@ function parseValidationReport(serialised: string): {
   } catch (err) {
     console.warn('Failed to parse validation report:', err);
     return { map: result, summary: empty };
+  }
+}
+
+/**
+ * Ordering used to compute "worst status" in a subtree rollup. Higher number
+ * = more severe; ties are broken by the first occurrence in the traversal.
+ */
+function statusSeverity(s: CoverageNodeStatus): number {
+  switch (s) {
+    case 'error': return 3;
+    case 'warning': return 2;
+    case 'ok': return 1;
+    case 'info': default: return 0;
   }
 }
 
