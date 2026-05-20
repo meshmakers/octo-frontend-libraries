@@ -295,8 +295,13 @@ export class MappingCoverageTreeComponent implements OnInit {
 
       const execution = data?.associations?.executions?.items?.[0];
       const attrs = execution?.attributes?.items;
-      const outputData = readAttrStrict(attrs, 'OutputData');
-      const completedAt = readAttrStrict(attrs, 'CompletedAt');
+      // Case-insensitive lookup: the engine normalises attribute names to
+      // camelCase in the response (`outputData`, `completedAt`) even though
+      // the CK YAML declares them as PascalCase. The Strict reader was a
+      // mistake — it matched nothing in practice and the user always saw
+      // "no validation output yet" no matter how often they ran the pipeline.
+      const outputData = readAttr(attrs, 'OutputData');
+      const completedAt = readAttr(attrs, 'CompletedAt');
 
       if (!outputData) {
         this.dataSource.setValidationMap(new Map());
@@ -1008,18 +1013,6 @@ function readAttr(items: readonly ({ attributeName?: string | null; value?: unkn
   const target = name.toLowerCase();
   for (const item of items) {
     if (item?.attributeName != null && item.attributeName.toLowerCase() === target && item.value != null) {
-      return String(item.value);
-    }
-  }
-  return null;
-}
-
-/** Exact-case attribute lookup used for attributes whose canonical name is
- *  capitalised in the CK model (`OutputData`, `CompletedAt`, …). */
-function readAttrStrict(items: readonly ({ attributeName?: string | null; value?: unknown } | null)[] | null | undefined, name: string): string | null {
-  if (!items) return null;
-  for (const item of items) {
-    if (item?.attributeName === name && item.value != null) {
       return String(item.value);
     }
   }
