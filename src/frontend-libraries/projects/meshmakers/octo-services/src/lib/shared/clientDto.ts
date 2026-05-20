@@ -20,4 +20,12 @@ export interface ClientDto {
    * Optional — backend treats absence as "do not modify" on PUT.
    */
   autoProvisionInChildTenants?: boolean;
+
+  /**
+   * When set, this client is a mirror provisioned from the named parent tenant.
+   * Sub-tenant UIs surface this as a read-only "Provisioned by parent tenant"
+   * indicator; the client must not be edited locally because the next sync
+   * would overwrite the change. Empty / undefined on locally-owned clients.
+   */
+  provisionedByParentTenantId?: string;
 }
