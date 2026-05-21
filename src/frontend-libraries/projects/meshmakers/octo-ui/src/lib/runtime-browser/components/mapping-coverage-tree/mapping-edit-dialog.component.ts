@@ -6,7 +6,7 @@ import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ComboBoxModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { SwitchModule, TextBoxModule } from '@progress/kendo-angular-inputs';
-import { folderOpenIcon, hyperlinkOpenIcon } from '@progress/kendo-svg-icons';
+import { arrowRotateCwIcon, folderOpenIcon, hyperlinkOpenIcon } from '@progress/kendo-svg-icons';
 import { AttributeItem, AttributeSelectorService } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 import { AttributeSelectorDialogService } from '../../../attribute-selector-dialog/attribute-selector-dialog.service';
@@ -90,9 +90,16 @@ export type MappingEditDialogResult =
       <div class="mapping-edit-body">
       <div class="field-row">
         <label>Name</label>
-        <kendo-textbox [(value)]="model().name"
-          placeholder="Mapping name">
-        </kendo-textbox>
+        <div class="combo-row">
+          <kendo-textbox [(value)]="model().name"
+            placeholder="Mapping name">
+          </kendo-textbox>
+          <button kendoButton fillMode="flat" size="small"
+            [svgIcon]="icons.regenerate"
+            [disabled]="!canGenerateName()"
+            (click)="generateName()"
+            title="Generate name from source + target"></button>
+        </div>
       </div>
 
       <div class="field-row inline">
@@ -387,6 +394,7 @@ export class MappingEditDialogComponent {
   protected readonly icons = {
     link: hyperlinkOpenIcon,
     browse: folderOpenIcon,
+    regenerate: arrowRotateCwIcon,
   };
 
   /** Set by the service before the dialog content is shown. */
@@ -434,6 +442,36 @@ export class MappingEditDialogComponent {
     if (seededTargetCkTypeId) {
       void this.loadTargetAttributes(seededTargetCkTypeId);
     }
+  }
+
+  /**
+   * Enabled when at least one labelled side of the mapping is filled enough
+   * to produce a meaningful name. We require *some* identifying info on each
+   * end so the generated name isn't just "(unset) → (unset)".
+   */
+  protected canGenerateName(): boolean {
+    const m = this.model();
+    const sourceLabel = m.sourceName || m.sourceRtId;
+    const targetLabel = m.targetName || m.targetRtId;
+    return !!(sourceLabel && targetLabel);
+  }
+
+  /**
+   * Writes a deterministic, human-readable name into the mapping based on the
+   * current source/target selection. Format:
+   *   `{sourceName} {sourcePath} → {targetName} {targetPath}`
+   * Falls back to rtId fragments when names are missing. The user can still
+   * edit the result freely — this just gives them a sensible starting point
+   * so they don't have to invent a name from scratch when finishing an
+   * orphan-tab mapping.
+   */
+  protected generateName(): void {
+    const m = this.model();
+    const source = describeEnd(m.sourceName, m.sourceRtId, m.sourceAttributePath);
+    const target = describeEnd(m.targetName, m.targetRtId, m.targetAttributePath);
+    if (!source && !target) return;
+    const generated = `${source || '(no source)'} → ${target || '(no target)'}`;
+    this.model.update(curr => ({ ...curr, name: generated }));
   }
 
   protected isValid(): boolean {
@@ -586,4 +624,21 @@ function filterAttributes(all: AttributeItem[], filter: string): AttributeItem[]
   if (!filter || filter.trim().length === 0) return all;
   const needle = filter.toLowerCase();
   return all.filter(a => a.attributePath.toLowerCase().includes(needle));
+}
+
+/**
+ * Produces the "{label} {path}" fragment used on either side of the generated
+ * mapping name. Uses the entity name when present; otherwise a shortened rtId
+ * suffix (last 6 hex chars) keeps the name compact while staying identifiable.
+ * Returns an empty string when nothing useful is available.
+ */
+function describeEnd(
+  entityName: string | undefined,
+  rtId: string | undefined,
+  attributePath: string,
+): string {
+  const label = entityName?.trim() || (rtId ? `…${rtId.slice(-6)}` : '');
+  const path = attributePath?.trim();
+  if (label && path) return `${label} ${path}`;
+  return label || path || '';
 }
