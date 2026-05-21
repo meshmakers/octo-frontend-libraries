@@ -41,7 +41,7 @@ export class CkTypeSelectorDialogService {
       dialogTitle: options.dialogTitle,
       allowAbstract: options.allowAbstract,
       derivedFromRtCkTypeId: options.derivedFromRtCkTypeId,
-      messages: effectiveMessages,
+      ...(effectiveMessages ? { messages: effectiveMessages } : {}),
     };
 
     const size = this.windowStateService.resolveWindowSize('ck-type-selector', { width: 900, height: 650 });
