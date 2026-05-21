@@ -181,6 +181,7 @@ interface DirectionOption {
                     [data]="propertyGridItems"
                     [config]="propertyGridConfig"
                     [showTypeColumn]="true"
+                    [messages]="_messages.propertyGrid"
                     (propertyChange)="propertyChange.emit($event)"
                     (binaryDownload)="onBinaryDownload($event)"
                   >
@@ -249,6 +250,7 @@ interface DirectionOption {
                   [pageable]="{ buttonCount: 3, pageSizes: [10, 20, 50] }"
                   [pageSize]="20"
                   [selectable]="{ mode: 'single', enabled: true }"
+                  [messages]="_messages.listView ?? {}"
                   [columns]="[
                     {
                       field: 'ckAssociationRoleId',
@@ -291,6 +293,7 @@ interface DirectionOption {
             <ng-template kendoTabContent>
               <div class="tab-content mapping-tab">
                 <mm-data-mapping-list
+                  [messages]="_messages"
                   [mappings]="dataMappings"
                   [sourceEntity]="entity"
                   [expressionValidator]="expressionValidator"

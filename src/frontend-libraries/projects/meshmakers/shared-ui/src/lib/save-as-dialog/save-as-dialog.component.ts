@@ -14,6 +14,10 @@ import {
   SaveAsDialogDataSource,
   NameAvailabilityResult
 } from './save-as-dialog-data-source';
+import {
+  SaveAsDialogMessages,
+  DEFAULT_SAVE_AS_DIALOG_MESSAGES,
+} from './save-as-dialog.messages';
 
 @Component({
   selector: 'mm-save-as-dialog',
@@ -41,13 +45,13 @@ import {
 
         <div class="validation-container">
           <div class="validation-message error" *ngIf="nameControl.touched && nameControl.errors?.['required']">
-            Name is required
+            {{ _messages.nameRequired }}
           </div>
           <div class="validation-message error" *ngIf="nameControl.touched && nameControl.errors?.['minlength']">
-            Name must be at least {{ minLength }} characters
+            {{ formatNameTooShort(minLength) }}
           </div>
           <div class="validation-message error" *ngIf="nameControl.touched && nameControl.errors?.['maxlength']">
-            Name must be at most {{ maxLength }} characters
+            {{ formatNameTooLong(maxLength) }}
           </div>
           <div class="validation-message error" *ngIf="nameControl.touched && nameControl.errors?.['pattern']">
             {{ patternErrorMessage }}
@@ -58,11 +62,11 @@ import {
 
           <div class="availability-check" *ngIf="isCheckingAvailability">
             <kendo-loader size="small" type="pulsing"></kendo-loader>
-            <span>Checking availability...</span>
+            <span>{{ _messages.checkingAvailability }}</span>
           </div>
 
           <div class="validation-message success" *ngIf="isNameAvailable && !isCheckingAvailability && nameControl.valid">
-            Name is available
+            {{ _messages.nameAvailable }}
           </div>
         </div>
       </div>
@@ -124,17 +128,19 @@ import {
 export class SaveAsDialogComponent extends DialogContentBase implements OnInit, OnDestroy {
   public nameControl = new FormControl('', { nonNullable: true });
 
-  public nameLabel = 'Name';
-  public placeholder = 'Enter name...';
-  public saveButtonText = 'Save';
-  public cancelButtonText = 'Cancel';
+  public nameLabel = DEFAULT_SAVE_AS_DIALOG_MESSAGES.nameLabel;
+  public placeholder = DEFAULT_SAVE_AS_DIALOG_MESSAGES.placeholder;
+  public saveButtonText = DEFAULT_SAVE_AS_DIALOG_MESSAGES.save;
+  public cancelButtonText = DEFAULT_SAVE_AS_DIALOG_MESSAGES.cancel;
   public minLength = 1;
   public maxLength = 255;
-  public patternErrorMessage = 'Invalid name format';
+  public patternErrorMessage = DEFAULT_SAVE_AS_DIALOG_MESSAGES.patternError;
 
   public isCheckingAvailability = false;
   public isNameAvailable = false;
   public availabilityMessage = '';
+
+  public _messages: SaveAsDialogMessages = { ...DEFAULT_SAVE_AS_DIALOG_MESSAGES };
 
   private dataSource?: SaveAsDialogDataSource;
   private debounceMs = 300;
@@ -149,17 +155,17 @@ export class SaveAsDialogComponent extends DialogContentBase implements OnInit, 
     const options = (this.dialog.content as { instance?: { options?: SaveAsDialogOptions } })?.instance?.options;
 
     if (options) {
-      this.nameLabel = options.nameLabel || 'Name';
-      this.placeholder = options.placeholder || 'Enter name...';
-      this.saveButtonText = options.saveButtonText || 'Save';
-      this.cancelButtonText = options.cancelButtonText || 'Cancel';
+      this._messages = { ...DEFAULT_SAVE_AS_DIALOG_MESSAGES, ...(options.messages ?? {}) };
+      this.nameLabel = options.nameLabel || this._messages.nameLabel;
+      this.placeholder = options.placeholder || this._messages.placeholder;
+      this.saveButtonText = options.saveButtonText || this._messages.save;
+      this.cancelButtonText = options.cancelButtonText || this._messages.cancel;
       this.minLength = options.minLength ?? 1;
       this.maxLength = options.maxLength ?? 255;
-      this.patternErrorMessage = options.patternErrorMessage || 'Invalid name format';
+      this.patternErrorMessage = options.patternErrorMessage || this._messages.patternError;
       this.dataSource = options.dataSource;
       this.debounceMs = options.debounceTime ?? 300;
 
-      // Set up validators
       const validators = [
         Validators.required,
         Validators.minLength(this.minLength),
@@ -172,13 +178,11 @@ export class SaveAsDialogComponent extends DialogContentBase implements OnInit, 
 
       this.nameControl.setValidators(validators);
 
-      // Set suggested name
       if (options.suggestedName) {
         this.nameControl.setValue(options.suggestedName);
       }
     }
 
-    // Set up availability checking if data source provided
     if (this.dataSource) {
       this.setupAvailabilityCheck();
     }
@@ -187,6 +191,14 @@ export class SaveAsDialogComponent extends DialogContentBase implements OnInit, 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
     this.checkSubject.complete();
+  }
+
+  protected formatNameTooShort(min: number): string {
+    return this._messages.nameTooShort.replace('{0}', String(min));
+  }
+
+  protected formatNameTooLong(max: number): string {
+    return this._messages.nameTooLong.replace('{0}', String(max));
   }
 
   private setupAvailabilityCheck(): void {
@@ -203,12 +215,11 @@ export class SaveAsDialogComponent extends DialogContentBase implements OnInit, 
         next: (result: NameAvailabilityResult) => {
           this.isCheckingAvailability = false;
           this.isNameAvailable = result.isAvailable;
-          this.availabilityMessage = result.message || 'Name is already taken';
+          this.availabilityMessage = result.message || this._messages.nameAlreadyTaken;
 
           if (!result.isAvailable) {
             this.nameControl.setErrors({ ...this.nameControl.errors, nameTaken: true });
           } else {
-            // Remove nameTaken error if it exists
             if (this.nameControl.errors?.['nameTaken']) {
               const { nameTaken, ...otherErrors } = this.nameControl.errors;
               this.nameControl.setErrors(Object.keys(otherErrors).length ? otherErrors : null);
@@ -221,7 +232,6 @@ export class SaveAsDialogComponent extends DialogContentBase implements OnInit, 
       })
     );
 
-    // Listen to value changes
     this.subscriptions.add(
       this.nameControl.valueChanges.subscribe(value => {
         if (value && value.length >= this.minLength && !this.nameControl.errors?.['pattern']) {
@@ -242,7 +252,6 @@ export class SaveAsDialogComponent extends DialogContentBase implements OnInit, 
       return false;
     }
 
-    // If we have a data source, require availability check to pass
     if (this.dataSource && !this.isNameAvailable) {
       return false;
     }

@@ -8,6 +8,10 @@ import {
   CkTypeSelectorDialogData,
   CkTypeSelectorDialogResult
 } from './ck-type-selector-dialog.component';
+import {
+  CkTypeSelectorDialogMessages,
+  DEFAULT_CK_TYPE_SELECTOR_DIALOG_MESSAGES,
+} from './ck-type-selector-dialog.messages';
 
 export interface CkTypeSelectorResult {
   confirmed: boolean;
@@ -19,27 +23,43 @@ export class CkTypeSelectorDialogService {
   private readonly windowService = inject(WindowService);
   private readonly windowStateService = inject(WindowStateService);
 
-  /**
-   * Opens the CkType selector dialog
-   * @param options Dialog options
-   * @returns Promise that resolves with the result containing selected CkType and confirmation status
-   */
+  public defaultMessages: Partial<CkTypeSelectorDialogMessages> | undefined;
+
   public async openCkTypeSelector(options: {
     selectedCkTypeId?: string;
     ckModelIds?: string[];
     dialogTitle?: string;
     allowAbstract?: boolean;
     derivedFromRtCkTypeId?: string;
+    messages?: Partial<CkTypeSelectorDialogMessages>;
   } = {}): Promise<CkTypeSelectorResult> {
+    const effectiveMessages: Partial<CkTypeSelectorDialogMessages> | undefined =
+      options.messages ?? this.defaultMessages;
     const data: CkTypeSelectorDialogData = {
       selectedCkTypeId: options.selectedCkTypeId,
       ckModelIds: options.ckModelIds,
       dialogTitle: options.dialogTitle,
       allowAbstract: options.allowAbstract,
-      derivedFromRtCkTypeId: options.derivedFromRtCkTypeId
+      derivedFromRtCkTypeId: options.derivedFromRtCkTypeId,
+      ...(effectiveMessages ? { messages: effectiveMessages } : {}),
     };
 
     const size = this.windowStateService.resolveWindowSize('ck-type-selector', { width: 900, height: 650 });
+    const defaultTitle =
+      effectiveMessages?.defaultDialogTitle ??
+      DEFAULT_CK_TYPE_SELECTOR_DIALOG_MESSAGES.defaultDialogTitle;
+
+    // Forward titlebar tooltips through WindowSettings.messages — Kendo's
+    // Window reads them on open. <kendo-window-messages> in projected content
+    // is out of reach for its ContentChild query.
+    const windowMessages = effectiveMessages
+      ? {
+          closeTitle: effectiveMessages.closeTitle,
+          minimizeTitle: effectiveMessages.minimizeTitle,
+          maximizeTitle: effectiveMessages.maximizeTitle,
+          restoreTitle: effectiveMessages.restoreTitle,
+        }
+      : undefined;
 
     const windowRef = this.windowService.open({
       content: CkTypeSelectorDialogComponent,
@@ -48,7 +68,8 @@ export class CkTypeSelectorDialogService {
       minWidth: 750,
       minHeight: 550,
       resizable: true,
-      title: options.dialogTitle || 'Select Construction Kit Type'
+      title: options.dialogTitle || defaultTitle,
+      messages: windowMessages,
     });
 
     this.windowStateService.applyModalBehavior('ck-type-selector', windowRef);

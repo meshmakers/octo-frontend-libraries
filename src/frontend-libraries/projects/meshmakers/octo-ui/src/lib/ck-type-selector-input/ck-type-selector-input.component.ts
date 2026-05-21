@@ -42,6 +42,11 @@ import {
 } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { CkTypeSelectorDialogService } from '../ck-type-selector-dialog/ck-type-selector-dialog.service';
+import { CkTypeSelectorDialogMessages } from '../ck-type-selector-dialog/ck-type-selector-dialog.messages';
+import {
+  CkTypeSelectorInputMessages,
+  DEFAULT_CK_TYPE_SELECTOR_INPUT_MESSAGES,
+} from './ck-type-selector-input.messages';
 
 @Component({
   selector: 'mm-ck-type-selector-input',
@@ -94,10 +99,10 @@ import { CkTypeSelectorDialogService } from '../ck-type-selector-dialog/ck-type-
         <ng-template kendoAutoCompleteNoDataTemplate>
           <div class="no-data-message">
             <span *ngIf="!isLoading && searchFormControl.value && searchFormControl.value.length >= minSearchLength">
-              No types found for "{{ searchFormControl.value }}"
+              {{ formatNoTypesFound(searchFormControl.value) }}
             </span>
             <span *ngIf="!isLoading && (!searchFormControl.value || searchFormControl.value.length < minSearchLength)">
-              Type at least {{ minSearchLength }} characters to search...
+              {{ formatMinCharactersHint(minSearchLength) }}
             </span>
           </div>
         </ng-template>
@@ -105,7 +110,7 @@ import { CkTypeSelectorDialogService } from '../ck-type-selector-dialog/ck-type-
         <ng-template kendoAutoCompleteFooterTemplate>
           <div class="advanced-search-footer" (click)="openDialog($event)">
             <kendo-svg-icon [icon]="searchIcon" size="small"></kendo-svg-icon>
-            <span>{{ advancedSearchLabel }}</span>
+            <span>{{ advancedSearchLabel || _messages.advancedSearchLabel }}</span>
           </div>
         </ng-template>
 
@@ -116,7 +121,7 @@ import { CkTypeSelectorDialogService } from '../ck-type-selector-dialog/ck-type-
         type="button"
         [svgIcon]="searchIcon"
         [disabled]="disabled"
-        [title]="advancedSearchLabel"
+        [title]="advancedSearchLabel || _messages.advancedSearchLabel"
         class="dialog-button"
         (click)="openDialog()">
       </button>
@@ -190,15 +195,40 @@ import { CkTypeSelectorDialogService } from '../ck-type-selector-dialog/ck-type-
 export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlValueAccessor, Validator {
   @ViewChild('autocomplete', { static: true }) autocomplete!: AutoCompleteComponent;
 
-  @Input() placeholder = 'Select a CK type...';
+  @Input() placeholder = DEFAULT_CK_TYPE_SELECTOR_INPUT_MESSAGES.placeholder;
   @Input() minSearchLength = 2;
   @Input() maxResults = 50;
   @Input() debounceMs = 300;
   @Input() ckModelIds?: string[];
   @Input() allowAbstract = true;
-  @Input() dialogTitle = 'Select Construction Kit Type';
-  @Input() advancedSearchLabel = 'Advanced Search...';
+  @Input() dialogTitle = DEFAULT_CK_TYPE_SELECTOR_INPUT_MESSAGES.defaultDialogTitle;
+  @Input() advancedSearchLabel = DEFAULT_CK_TYPE_SELECTOR_INPUT_MESSAGES.advancedSearchLabel;
   @Input() derivedFromRtCkTypeId?: string;
+
+  public _messages: CkTypeSelectorInputMessages = { ...DEFAULT_CK_TYPE_SELECTOR_INPUT_MESSAGES };
+
+  @Input() set messages(value: Partial<CkTypeSelectorInputMessages> | undefined) {
+    this._messages = { ...DEFAULT_CK_TYPE_SELECTOR_INPUT_MESSAGES, ...(value ?? {}) };
+    if (this.placeholder === DEFAULT_CK_TYPE_SELECTOR_INPUT_MESSAGES.placeholder) {
+      this.placeholder = this._messages.placeholder;
+    }
+    if (this.advancedSearchLabel === DEFAULT_CK_TYPE_SELECTOR_INPUT_MESSAGES.advancedSearchLabel) {
+      this.advancedSearchLabel = this._messages.advancedSearchLabel;
+    }
+    if (this.dialogTitle === DEFAULT_CK_TYPE_SELECTOR_INPUT_MESSAGES.defaultDialogTitle) {
+      this.dialogTitle = this._messages.defaultDialogTitle;
+    }
+  }
+
+  @Input() dialogMessages?: Partial<CkTypeSelectorDialogMessages>;
+
+  protected formatNoTypesFound(searchValue: string): string {
+    return this._messages.noTypesFound.replace('{0}', searchValue);
+  }
+
+  protected formatMinCharactersHint(minLength: number): string {
+    return this._messages.minCharactersHint.replace('{0}', String(minLength));
+  }
 
   private _disabled = false;
   @Input()
@@ -508,13 +538,17 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
 
     this.autocomplete.toggle(false);
 
-    const result = await this.dialogService.openCkTypeSelector({
+    const openOptions: Parameters<typeof this.dialogService.openCkTypeSelector>[0] = {
       selectedCkTypeId: this.selectedCkType?.fullName,
       ckModelIds: this.ckModelIds,
       dialogTitle: this.dialogTitle,
       allowAbstract: this.allowAbstract,
-      derivedFromRtCkTypeId: this.derivedFromRtCkTypeId
-    });
+      derivedFromRtCkTypeId: this.derivedFromRtCkTypeId,
+    };
+    if (this.dialogMessages) {
+      openOptions.messages = this.dialogMessages;
+    }
+    const result = await this.dialogService.openCkTypeSelector(openOptions);
 
     if (result.confirmed && result.selectedCkType) {
       this.selectCkType(result.selectedCkType);

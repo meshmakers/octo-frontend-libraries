@@ -1,5 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
@@ -22,6 +22,10 @@ import { EntityDetailViewComponent } from './components/entity-detail-view.compo
 import { DataPointMappingItem } from './components/data-mapping/data-mapping-list.component';
 import { EntityDetailDataSource } from './data-sources/entity-detail-data-source.service';
 import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
+import {
+  DEFAULT_RUNTIME_BROWSER_MESSAGES,
+  RuntimeBrowserMessages,
+} from './runtime-browser.model';
 
 @Component({
   selector: 'mm-entity-detail',
@@ -40,7 +44,7 @@ import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
           [svgIcon]="arrowLeftIcon"
           (click)="navigateBack()"
         >
-          Back
+          {{ _messages.back ?? 'Back' }}
         </button>
 
         @if (entity) {
@@ -59,6 +63,7 @@ import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
         [error]="error"
         [showDataMapping]="showDataMapping"
         [dataMappings]="dataMappings"
+        [messages]="_messages"
         (retry)="loadEntity()"
         (propertyChange)="onPropertyChange($event)"
         (navigateToEntity)="navigateToEntity($event.rtId, $event.ckTypeId)"
@@ -96,6 +101,11 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
 
   protected readonly arrowLeftIcon = arrowLeftIcon;
 
+  protected _messages: RuntimeBrowserMessages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES };
+  @Input() set messages(value: Partial<RuntimeBrowserMessages> | undefined) {
+    this._messages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES, ...(value ?? {}) };
+  }
+
   showDataMapping = true;
   entity: RtEntityDto | null = null;
   loading = false;
@@ -115,7 +125,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
             this.entityId = RtEntityIdHelper.decode(encodedId);
             await this.loadEntity();
           } catch (error) {
-            this.error = 'Invalid entity ID format';
+            this.error = this._messages.entityIdInvalidFormat ?? 'Invalid entity ID format';
             console.error('Failed to decode entity ID:', error);
           }
         }
@@ -141,13 +151,13 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
         this.entityId.ckTypeId,
       );
       if (!this.entity) {
-        this.error = 'Entity not found';
+        this.error = this._messages.entityNotFound ?? 'Entity not found';
       } else {
         await this.loadDataMappings();
       }
     } catch (error) {
       console.error('Failed to load entity:', error);
-      this.error = 'Failed to load entity details';
+      this.error = this._messages.failedToLoadEntityDetails ?? 'Failed to load entity details';
     } finally {
       this.loading = false;
     }
@@ -359,7 +369,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
       this.dataMappings = this.dataMappings.filter((m) => m.rtId !== mapping.rtId);
 
       this.notificationService.show({
-        content: 'Data mapping removed',
+        content: this._messages.mappingRemoved ?? 'Data mapping removed',
         type: { style: 'success', icon: true },
         position: { horizontal: 'right', vertical: 'top' },
         hideAfter: 2000,
@@ -483,7 +493,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
       }
 
       this.notificationService.show({
-        content: 'All data mappings saved',
+        content: this._messages.mappingSaved ?? 'Data mapping saved successfully',
         type: { style: 'success', icon: true },
         position: { horizontal: 'right', vertical: 'top' },
         hideAfter: 2000,
@@ -492,7 +502,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Failed to save mappings:', error);
       this.notificationService.show({
-        content: 'Failed to save data mappings',
+        content: this._messages.failedToSaveMapping ?? 'Failed to save data mapping',
         type: { style: 'error', icon: true },
         position: { horizontal: 'right', vertical: 'top' },
         hideAfter: 3000,

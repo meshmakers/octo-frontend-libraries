@@ -5,6 +5,10 @@ import {FormsModule} from '@angular/forms';
 import {LabelComponent} from '@progress/kendo-angular-label';
 import {TextBoxComponent} from '@progress/kendo-angular-inputs';
 import {InputDialogResult} from '../models/inputDialogResult';
+import {
+  InputDialogMessages,
+  DEFAULT_INPUT_DIALOG_MESSAGES,
+} from './input-dialog.messages';
 
 @Component({
   selector: 'mm-input-dialog',
@@ -21,11 +25,23 @@ import {InputDialogResult} from '../models/inputDialogResult';
 export class InputDialogComponent extends DialogContentBase {
   private readonly dialogRef: DialogRef;
 
-  @Input() public buttonOkText = "OK";
+  @Input() public buttonOkText = DEFAULT_INPUT_DIALOG_MESSAGES.ok;
   @Input() public message = "";
-  @Input() public placeholder = "Enter value";
+  @Input() public placeholder = DEFAULT_INPUT_DIALOG_MESSAGES.placeholder;
 
   @Input() protected inputValue: string | null = "";
+
+  public _messages: InputDialogMessages = { ...DEFAULT_INPUT_DIALOG_MESSAGES };
+
+  @Input() set messages(value: Partial<InputDialogMessages> | undefined) {
+    this._messages = { ...DEFAULT_INPUT_DIALOG_MESSAGES, ...(value ?? {}) };
+    if (this.buttonOkText === DEFAULT_INPUT_DIALOG_MESSAGES.ok) {
+      this.buttonOkText = this._messages.ok;
+    }
+    if (this.placeholder === DEFAULT_INPUT_DIALOG_MESSAGES.placeholder) {
+      this.placeholder = this._messages.placeholder;
+    }
+  }
 
   constructor() {
     const dialogRef = inject(DialogRef);

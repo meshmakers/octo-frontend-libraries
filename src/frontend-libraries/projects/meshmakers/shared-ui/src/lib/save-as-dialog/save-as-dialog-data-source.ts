@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs';
+import type { SaveAsDialogMessages } from './save-as-dialog.messages';
 
 /**
  * Result from checking if a name is available
@@ -66,6 +67,8 @@ export interface SaveAsDialogOptions {
 
   /** Debounce time in ms for name availability check (default: 300) */
   debounceTime?: number;
+
+  messages?: Partial<SaveAsDialogMessages>;
 }
 
 /**

@@ -39,7 +39,18 @@ kendo-card.settings-card {
   margin-top: 16px;
   padding: 12px 16px;
   background: var(--kendo-color-surface, #fff);
-  border: 1px solid var(--kendo-color-border, #e0e0e0);
+  // Border follows the host's surface-scale token when one is defined
+  // (e.g. maca's --color-surface-200 resolves to
+  // color-mix(in oklch, --color-surface, white 18%) in dark theme and
+  // black 12% in light). For hosts that don't expose that token, fall
+  // back to the same inline color-mix using --kendo-color-app-surface +
+  // currentColor — same direction-flip behaviour (darker in light themes,
+  // lighter in dark) without naming a host-specific variable.
+  border: 1px solid
+    var(
+      --color-surface-200,
+      color-mix(in oklch, var(--kendo-color-app-surface), currentColor 18%)
+    );
   border-radius: 12px;
   box-shadow: 0 6px 18px -8px rgba(15, 23, 42, 0.18);
   z-index: 1;

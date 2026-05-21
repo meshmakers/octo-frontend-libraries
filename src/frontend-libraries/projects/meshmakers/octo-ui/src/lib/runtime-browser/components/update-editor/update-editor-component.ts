@@ -91,6 +91,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
             [parentFormGroup]="form()!"
             [initialValues]="entityData()?.initial"
             [isRecord]="false"
+            [messages]="resolvedMessages()"
           />
         } @else {
           <div class="loading-shimmer">

@@ -71,6 +71,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
               [allowAbstract]="false"
               [derivedFromRtCkTypeId]="createInput()!.derivedFromRtCkTypeId"
               [dialogTitle]="resolvedMessages().selectType"
+              [messages]="resolvedMessages().ckTypeSelectorInput"
               (ckTypeSelected)="onCkTypeSelected($event)"
               (ckTypeCleared)="onCkTypeCleared()"
             >
@@ -85,6 +86,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
             [ckId]="selectedRtCkTypeId()!"
             [parentFormGroup]="form()!"
             [isRecord]="false"
+            [messages]="resolvedMessages()"
           />
         } @else {
           <p class="select-type-prompt">
