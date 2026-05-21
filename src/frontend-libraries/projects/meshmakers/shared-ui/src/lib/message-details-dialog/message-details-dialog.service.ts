@@ -46,10 +46,9 @@ export class MessageDetailsDialogService {
 
     const contentRef = windowRef.content as { instance?: MessageDetailsDialogComponent } | undefined;
     if (contentRef?.instance) {
-      contentRef.instance.data = {
-        ...data,
-        messages: effectiveMessages,
-      };
+      contentRef.instance.data = effectiveMessages
+        ? { ...data, messages: effectiveMessages }
+        : data;
     }
 
     return windowRef;
