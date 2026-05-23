@@ -11,6 +11,10 @@ import {
   DebugPointDataDto,
   NodeDescriptorDto
 } from '../shared/communicationDtos';
+import {
+  MovePipelinesToAdapterRequestDto,
+  MovePipelinesToAdapterResponseDto
+} from '../shared/movePipelineDtos';
 
 /**
  * Service for communication controller operations.
@@ -141,6 +145,29 @@ export class CommunicationService {
         this.httpClient.post<void>(uri, null, {params, observe: 'response'})
       );
     }
+  }
+
+  /**
+   * Reassigns one or more pipelines from their current adapter to a new
+   * target adapter (bulk). Each pipeline is moved atomically on the server
+   * (Executes-assoc swap in a single transaction); per-pipeline failures
+   * are returned in the result list without aborting the batch. When
+   * `redeploy=true` is set, the server also re-fires `DeployPipeline` on
+   * the target adapter for every successfully moved pipeline — a redeploy
+   * failure leaves the move committed and surfaces as a warning in
+   * `errorMessage` while `success` stays `true`.
+   */
+  async movePipelinesToAdapter(
+    tenantId: string,
+    request: MovePipelinesToAdapterRequestDto
+  ): Promise<MovePipelinesToAdapterResponseDto> {
+    if (!this.communicationServicesUrl) {
+      throw new Error('Communication services URL is not configured');
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/pipeline/move-to-adapter`;
+    return await firstValueFrom(
+      this.httpClient.patch<MovePipelinesToAdapterResponseDto>(uri, request)
+    );
   }
 
   /**

@@ -265,4 +265,50 @@ describe('CommunicationService', () => {
       httpMock.expectNone(() => true);
     });
   });
+
+  describe('movePipelinesToAdapter', () => {
+    it('should PATCH the move endpoint with the request body and return the response', async () => {
+      const promise = service.movePipelinesToAdapter(tenantId, {
+        pipelineRtIds: ['p1', 'p2'],
+        targetAdapterRtId: 'adapter-new',
+        redeploy: true
+      });
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/pipeline/move-to-adapter`
+      );
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({
+        pipelineRtIds: ['p1', 'p2'],
+        targetAdapterRtId: 'adapter-new',
+        redeploy: true
+      });
+
+      req.flush({
+        results: [
+          {
+            pipelineRtId: 'p1',
+            success: true,
+            oldAdapterRtId: 'adapter-old',
+            newAdapterRtId: 'adapter-new',
+            errorMessage: null
+          },
+          {
+            pipelineRtId: 'p2',
+            success: false,
+            oldAdapterRtId: null,
+            newAdapterRtId: null,
+            errorMessage: 'pipeline not found'
+          }
+        ]
+      });
+
+      const result = await promise;
+      expect(result.results.length).toBe(2);
+      expect(result.results[0].success).toBeTrue();
+      expect(result.results[0].newAdapterRtId).toBe('adapter-new');
+      expect(result.results[1].success).toBeFalse();
+      expect(result.results[1].errorMessage).toBe('pipeline not found');
+    });
+  });
 });
