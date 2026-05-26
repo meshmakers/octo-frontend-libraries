@@ -75,6 +75,16 @@ All guards and the interceptor are functional (not class-based):
 
 The deprecated class-based `AuthorizeGuard` and `AuthorizeInterceptor` were removed.
 
+### Discovery-Document Resilience
+
+`AuthorizeService.initialize()` wraps `oauthService.loadDiscoveryDocumentAndTryLogin()` in a bounded exponential-backoff retry loop (defaults: 6 attempts, 1500 ms initial delay, 30 s cap). This covers the brief window during which the Identity service is unreachable after a redeploy — the symptom is otherwise reported by the browser as a CORS error (the ingress error page carries no `Access-Control-Allow-Origin` header), which is why a plain network-error catch upstream wouldn't help.
+
+After the full budget is exhausted, the final error is rethrown **and** stored in `discoveryDocumentError` (`Signal<Error | null>`). Hosts can render a recovery screen and call `retryDiscoveryDocument()` to force another attempt.
+
+The service also listens for `visibilitychange`: if the tab returns from the background while `discoveryDocumentError` is set, initialization is retried automatically with the last `AuthorizeOptions`. This catches the common case where the user switches tabs during a deploy and comes back to a stale loading icon.
+
+Configure via `AuthorizeOptions.discoveryDocumentRetry: { attempts, initialDelayMs, maxDelayMs }` if a host needs a different policy.
+
 ### Cross-Tab Logout
 
 The service detects logout from other tabs via:

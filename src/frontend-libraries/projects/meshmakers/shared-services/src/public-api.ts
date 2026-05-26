@@ -26,6 +26,7 @@ export * from './lib/models/pagedResultDto';
 export * from './lib/models/treeItemData';
 export * from './lib/options/commandOptions';
 export * from './lib/shared/mm-http-error-interceptor.service';
+export * from './lib/shared/stale-chunk-error-handler';
 export * from './lib/data-sources/entity-select-data-source';
 
 // Backward-compatible re-exports for legacy libraries (shared-ui, octo-services)

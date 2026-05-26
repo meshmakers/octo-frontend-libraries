@@ -122,6 +122,23 @@ Routes define context menus via `data.navigationMenu`:
 - **Status 0**: Network connectivity errors
 - **Status 400 with `ApiErrorDto`**: Parses structured error response with details
 
+### Stale-Chunk Recovery (`provideStaleChunkRecovery()`)
+
+`StaleChunkErrorHandler` is an `ErrorHandler` that recognises errors caused by a server-side bundle redeploy while a tab was idle — the typical symptoms are `Loading chunk … failed`, `Failed to fetch dynamically imported module`, and `JIT compiler unavailable` (Angular falls back to JIT when an AOT lazy chunk can't be located). When such an error is detected the handler reloads the page once; a `sessionStorage` guard (`octo_stale_chunk_reload_at`, 30 s window) prevents infinite reload loops if the error keeps recurring on the fresh bundle. All other errors are delegated to Angular's default handler.
+
+Register it explicitly in the host's root providers (it is **not** included in `provideMmSharedServices()` to keep the library non-invasive):
+
+```ts
+import { provideStaleChunkRecovery } from '@meshmakers/shared-services';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideStaleChunkRecovery(),
+    // ... other providers
+  ],
+};
+```
+
 ## Backward Compatibility Layer (compat/)
 
 The `compat/` directory exports legacy types for older compiled libraries that import from `@meshmakers/shared-services`:

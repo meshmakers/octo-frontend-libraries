@@ -147,6 +147,38 @@ describe('AuthorizeService', () => {
         expect(oauthServiceMock.loadDiscoveryDocumentAndTryLogin).toHaveBeenCalled();
       });
 
+      it('should retry loadDiscoveryDocumentAndTryLogin when it fails transiently', async () => {
+        oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.callFake(() => {
+          const callCount = oauthServiceMock.loadDiscoveryDocumentAndTryLogin.calls.count();
+          return callCount < 3
+            ? Promise.reject(new Error('CORS / network error'))
+            : Promise.resolve(true);
+        });
+
+        await service.initialize({
+          ...mockOptions,
+          // Tight policy to keep the test fast; backoff is exponential.
+          discoveryDocumentRetry: { attempts: 5, initialDelayMs: 1, maxDelayMs: 4 }
+        });
+
+        expect(oauthServiceMock.loadDiscoveryDocumentAndTryLogin).toHaveBeenCalledTimes(3);
+        expect(service.discoveryDocumentError()).toBeNull();
+        expect(service.discoveryDocumentRetryAttempt()).toBe(0);
+      });
+
+      it('should surface the last error after exhausting all retry attempts', async () => {
+        const failure = new Error('OIDC unavailable');
+        oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.returnValue(Promise.reject(failure));
+
+        await expectAsync(service.initialize({
+          ...mockOptions,
+          discoveryDocumentRetry: { attempts: 3, initialDelayMs: 1, maxDelayMs: 4 }
+        })).toBeRejected();
+
+        expect(oauthServiceMock.loadDiscoveryDocumentAndTryLogin).toHaveBeenCalledTimes(3);
+        expect(service.discoveryDocumentError()).toBe(failure);
+      });
+
       it('should setup automatic silent refresh', async () => {
         await service.initialize(mockOptions);
 

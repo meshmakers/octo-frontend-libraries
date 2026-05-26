@@ -13,6 +13,12 @@ export interface IUser {
   email: string | null;
 }
 
+export interface DiscoveryDocumentRetryOptions {
+  attempts: number;
+  initialDelayMs: number;
+  maxDelayMs: number;
+}
+
 export class AuthorizeOptions {
   wellKnownServiceUris?: string[];
   // Url of the Identity Provider
@@ -30,6 +36,10 @@ export class AuthorizeOptions {
   // Default tenant ID for single-tenant apps. When set, login() uses this tenant
   // if no tenantId is explicitly provided (sends acr_values=tenant:{defaultTenantId}).
   defaultTenantId?: string;
+  // Retry policy for loadDiscoveryDocumentAndTryLogin() — covers the brief
+  // window during which the Identity service is unreachable after a redeploy
+  // or rolling restart. Defaults: 6 attempts, 1500ms initial, 30000ms cap.
+  discoveryDocumentRetry?: DiscoveryDocumentRetryOptions;
 }
 
 @Injectable()
@@ -50,9 +60,16 @@ export class AuthorizeService {
   private readonly _sessionLoading: WritableSignal<boolean> = signal(false);
   private readonly _allowedTenants: WritableSignal<string[]> = signal([]);
   private readonly _tokenTenantId: WritableSignal<string | null> = signal(null);
+  private readonly _discoveryDocumentError: WritableSignal<Error | null> = signal(null);
+  private readonly _discoveryDocumentRetryAttempt: WritableSignal<number> = signal(0);
 
   private static readonly TENANT_REAUTH_KEY = 'octo_tenant_reauth';
   private static readonly TENANT_SWITCH_ATTEMPTED_KEY = 'octo_tenant_switch_attempted';
+  private static readonly DEFAULT_DISCOVERY_RETRY: DiscoveryDocumentRetryOptions = {
+    attempts: 6,
+    initialDelayMs: 1500,
+    maxDelayMs: 30000
+  };
 
   private readonly tenantStorage = new TenantAwareOAuthStorage();
   private _loginInProgress = false;
@@ -109,6 +126,19 @@ export class AuthorizeService {
    * Computed signal containing the user's roles.
    */
   readonly roles: Signal<string[]> = computed(() => this._user()?.role ?? []);
+
+  /**
+   * Signal carrying the last error from loadDiscoveryDocumentAndTryLogin().
+   * Non-null means the Identity service was unreachable across the full retry
+   * budget; host apps can render a recovery screen and call retryDiscoveryDocument().
+   */
+  readonly discoveryDocumentError: Signal<Error | null> = this._discoveryDocumentError.asReadonly();
+
+  /**
+   * Signal containing the current discovery-document retry attempt (1-based while
+   * retrying, 0 when idle). Useful for showing "Reconnecting (attempt N)…" UI.
+   */
+  readonly discoveryDocumentRetryAttempt: Signal<number> = this._discoveryDocumentRetryAttempt.asReadonly();
 
   /**
    * Computed signal for the user's display name.
@@ -235,6 +265,35 @@ export class AuthorizeService {
     } else {
       console.warn("AuthorizeService: BroadcastChannel not supported in this browser");
     }
+
+    // When the tab returns from the background and we previously failed to load
+    // the discovery document (e.g. because the Identity service was redeploying),
+    // try to recover automatically. Without this the loading icon would sit
+    // forever until the user manually reloads.
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') {
+          return;
+        }
+        if (this._discoveryDocumentError() && !this._isInitializing() && this.authorizeOptions) {
+          console.debug("AuthorizeService: visibilitychange → retrying after discovery-document failure");
+          // Re-run initialize() with the last options. We intentionally swallow
+          // the error here — initialize() already records it in the signal.
+          void this.initialize(this.authorizeOptions).catch(() => undefined);
+        }
+      });
+    }
+  }
+
+  /**
+   * Public hook to retry loading the discovery document after a failure.
+   * No-op while initialization is in progress.
+   */
+  public async retryDiscoveryDocument(): Promise<void> {
+    if (this._isInitializing() || !this.authorizeOptions) {
+      return;
+    }
+    await this.initialize(this.authorizeOptions);
   }
 
   /**
@@ -555,7 +614,9 @@ export class AuthorizeService {
       this.oauthService.configure(config);
 
       console.debug("AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin");
-      await this.oauthService.loadDiscoveryDocumentAndTryLogin();
+      await this.loadDiscoveryDocumentAndTryLoginWithRetry(
+        authorizeOptions.discoveryDocumentRetry ?? AuthorizeService.DEFAULT_DISCOVERY_RETRY
+      );
 
       console.debug("AuthorizeService::initialize::setupAutomaticSilentRefresh");
       this.oauthService.setupAutomaticSilentRefresh();
@@ -576,6 +637,71 @@ export class AuthorizeService {
     }
 
     console.debug("AuthorizeService::initialize::completed");
+  }
+
+  /**
+   * Wraps oauthService.loadDiscoveryDocumentAndTryLogin() with bounded
+   * exponential-backoff retries so a brief outage of the Identity service
+   * (cold start after redeploy, rolling restart, transient ingress 5xx)
+   * does not leave the SPA stuck on the loading icon.
+   *
+   * The CORS-error symptom seen on test-2 — "No 'Access-Control-Allow-Origin'
+   * header" against /.well-known/openid-configuration — is exactly such a
+   * transient failure: the ingress synthesises a default error page that
+   * does not carry the CORS headers, so the browser reports a CORS violation
+   * rather than the actual HTTP status. Retrying after the backend comes
+   * back resolves it without user interaction.
+   *
+   * Throws the last error if every attempt fails. The error is also stored
+   * in the discoveryDocumentError signal so callers can render a recovery UI.
+   */
+  private async loadDiscoveryDocumentAndTryLoginWithRetry(
+    retry: DiscoveryDocumentRetryOptions
+  ): Promise<void> {
+    const attempts = Math.max(1, retry.attempts);
+    const initialDelayMs = Math.max(0, retry.initialDelayMs);
+    const maxDelayMs = Math.max(initialDelayMs, retry.maxDelayMs);
+
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      this._discoveryDocumentRetryAttempt.set(attempt);
+      try {
+        await this.oauthService.loadDiscoveryDocumentAndTryLogin();
+        this._discoveryDocumentError.set(null);
+        this._discoveryDocumentRetryAttempt.set(0);
+        if (attempt > 1) {
+          console.info(
+            `AuthorizeService: discovery document loaded on retry attempt ${attempt}/${attempts}`
+          );
+        }
+        return;
+      } catch (err) {
+        lastError = err;
+        if (attempt === attempts) {
+          break;
+        }
+        const delayMs = Math.min(
+          initialDelayMs * Math.pow(2, attempt - 1),
+          maxDelayMs
+        );
+        console.warn(
+          `AuthorizeService: discovery document load failed (attempt ${attempt}/${attempts}); retrying in ${delayMs}ms`,
+          err
+        );
+        await new Promise<void>(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+
+    const error = lastError instanceof Error
+      ? lastError
+      : new Error('Failed to load OIDC discovery document');
+    this._discoveryDocumentError.set(error);
+    this._discoveryDocumentRetryAttempt.set(0);
+    console.error(
+      `AuthorizeService: discovery document load failed after ${attempts} attempt(s)`,
+      error
+    );
+    throw error;
   }
 
   /**
