@@ -15,6 +15,7 @@ import {
   MovePipelinesToAdapterRequestDto,
   MovePipelinesToAdapterResponseDto
 } from '../shared/movePipelineDtos';
+import {DomainConfigurationDto} from '../shared/domainDtos';
 
 /**
  * Service for communication controller operations.
@@ -130,6 +131,23 @@ export class CommunicationService {
         this.httpClient.post<void>(uri, null, {params, observe: 'response'})
       );
     }
+  }
+
+  /**
+   * Returns the named public base domains configured on the Communication
+   * Controller instance. Workload editors use the result to populate the
+   * hint list / dropdown behind the `{{domain.NAME}}` Hostname template
+   * syntax. Read-only; result is identical per tenant on the instance.
+   */
+  async getDomains(tenantId: string): Promise<DomainConfigurationDto[]> {
+    if (!this.communicationServicesUrl) {
+      return [];
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/communication/domains`;
+    const response = await firstValueFrom(
+      this.httpClient.get<DomainConfigurationDto[]>(uri)
+    );
+    return response ?? [];
   }
 
   /**

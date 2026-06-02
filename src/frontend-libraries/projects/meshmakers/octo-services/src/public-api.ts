@@ -41,6 +41,7 @@ export * from './lib/shared/adminPanelConfigurationDto';
 export * from './lib/shared/configurationDto';
 export * from './lib/shared/communicationDtos';
 export * from './lib/shared/movePipelineDtos';
+export * from './lib/shared/domainDtos';
 export * from './lib/shared/ck-model-catalog.dto';
 
 // GraphQL generated types - re-export all for use by dependent packages
