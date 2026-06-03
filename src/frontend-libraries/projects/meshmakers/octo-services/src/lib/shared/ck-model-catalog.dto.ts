@@ -59,11 +59,14 @@ export interface CkModelLibraryStatusItemDto {
   isServiceManaged: boolean;
   isCompatible: boolean;
   incompatibilityReason?: string;
+  unresolvedDependencies: string[];
+  hasCatalogInconsistency: boolean;
 }
 
 export interface CkModelLibraryStatusResponseDto {
   items: CkModelLibraryStatusItemDto[];
   modelsNeedingActionCount: number;
+  modelsWithCatalogInconsistencyCount: number;
 }
 
 export interface ImportFromCatalogBatchRequestDto {
