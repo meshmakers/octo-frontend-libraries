@@ -7,7 +7,7 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { CkTypeSelectorInputComponent, FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
 import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, FieldFilterDto, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { firstValueFrom } from 'rxjs';
 import {
   GroupChildWidgetType,
@@ -501,7 +501,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
 export class WidgetGroupConfigDialogComponent implements OnInit {
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private readonly attributeSelectorService = inject(AttributeSelectorService);
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
@@ -689,10 +689,10 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
     this.isLoadingColumns = true;
 
     try {
-      const result = await firstValueFrom(this.executeRuntimeQueryGQL.fetch({
+      // Metadata-only — skips the row execution path on the backend.
+      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
         variables: {
-          rtId: queryRtId,
-          first: 1
+          rtId: queryRtId
         }
       }));
 
@@ -704,8 +704,9 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
         this.availableColumns = columns
           .filter((c): c is NonNullable<typeof c> => c !== null)
           .map(c => ({
-            attributePath: c.attributePath?.replace(/\./g, '_') ?? '',
-            attributeValueType: c.attributeValueType ?? ''
+            attributePath: c.attributePath ?? '',
+            attributeValueType: c.attributeValueType ?? '',
+            aggregationType: c.aggregationType ?? null
           }));
 
         this.filteredColumns.set(this.availableColumns);
@@ -768,7 +769,8 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
         .filter((c): c is NonNullable<typeof c> => c !== null)
         .map(c => ({
           attributePath: c.attributePath || '',
-          attributeValueType: c.attributeValueType
+          attributeValueType: c.attributeValueType,
+          aggregationType: null
         }));
 
       this.availableColumns = mappedColumns;

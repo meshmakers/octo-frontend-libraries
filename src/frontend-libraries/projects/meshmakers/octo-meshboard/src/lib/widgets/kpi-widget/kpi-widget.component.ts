@@ -11,6 +11,7 @@ import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { FieldFilterDto } from '@meshmakers/octo-services';
+import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 @Component({
   selector: 'mm-kpi-widget',
@@ -394,9 +395,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     const valueField = this.config.queryValueField;
     for (const cell of cells) {
       if (!cell?.attributePath) continue;
-
-      const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
-      if (valueField && sanitizedPath === valueField) {
+      if (valueField && matchesAttributePath(cell.attributePath, valueField)) {
         return this.extractCellValue(cell.value);
       }
     }
@@ -433,13 +432,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       for (const cell of cells) {
         if (!cell?.attributePath) continue;
 
-        const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
-
-        if (sanitizedPath === categoryField && String(cell.value) === categoryValue) {
+        if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
           categoryMatch = true;
         }
 
-        if (sanitizedPath === valueField) {
+        if (matchesAttributePath(cell.attributePath, valueField)) {
           value = this.extractCellValue(cell.value);
         }
       }
@@ -450,12 +447,6 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     }
 
     return 0;
-  }
-
-  private parseNumericValue(value: unknown): number {
-    if (typeof value === 'number') return value;
-    const parsed = parseFloat(String(value));
-    return isNaN(parsed) ? 0 : parsed;
   }
 
   /**
@@ -473,10 +464,6 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     }
     // For other types (boolean, object), convert to string
     return String(value);
-  }
-
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   /**

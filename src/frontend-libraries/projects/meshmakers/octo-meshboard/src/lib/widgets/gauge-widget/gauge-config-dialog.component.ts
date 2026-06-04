@@ -11,12 +11,14 @@ import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { firstValueFrom } from 'rxjs';
 import { GaugeType, GaugeRange, KpiQueryMode, WidgetFilterConfig } from '../../models/meshboard.models';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { RuntimeEntityItem, PersistentQueryItem, QueryColumnItem, CategoryValueItem, RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource } from '../../utils/runtime-entity-data-sources';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
+import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
  * Data source type for Gauge
@@ -659,6 +661,7 @@ export class GaugeConfigDialogComponent implements OnInit {
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private readonly attributeSelectorService = inject(AttributeSelectorService);
   private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -1080,31 +1083,32 @@ export class GaugeConfigDialogComponent implements OnInit {
     this.isLoadingQueryColumns = true;
 
     try {
-      const result = await firstValueFrom(this.executeRuntimeQueryGQL.fetch({
+      // Metadata-only fetch — skips backend aggregation execution so the dialog opens
+      // fast even for large data sets.
+      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
         variables: {
-          rtId: queryRtId,
-          first: 100 // Fetch rows for category values
+          rtId: queryRtId
         }
       }));
 
       const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
       if (queryItems.length > 0 && queryItems[0]) {
-        const queryResult = queryItems[0];
-
-        // Extract columns
-        const columns = queryResult.columns ?? [];
+        const columns = queryItems[0].columns ?? [];
         const filteredColumns = columns
           .filter((c): c is NonNullable<typeof c> => c !== null);
 
-        // queryColumns use sanitized paths for UI display and matching with query results
+        // Engine emits column attributePath in wire form for aggregation / grouping
+        // columns, so the picker can use it as both label and stored value verbatim.
         this.queryColumns = filteredColumns.map(c => ({
-          attributePath: this.sanitizeFieldName(c.attributePath ?? ''),
-          attributeValueType: c.attributeValueType ?? ''
+          attributePath: c.attributePath ?? '',
+          attributeValueType: c.attributeValueType ?? '',
+          aggregationType: c.aggregationType ?? null
         }));
 
-        // Extract category values for grouped aggregation
-        if (this.queryMode === 'groupedAggregation') {
-          await this.extractCategoryValues(queryResult);
+        // Category values for grouped aggregation are loaded on-demand by
+        // loadCategoryValuesForField — only when a categoryField is actually selected.
+        if (this.queryMode === 'groupedAggregation' && this.form.queryCategoryField) {
+          await this.loadCategoryValuesForField(queryRtId, this.form.queryCategoryField);
         }
       }
     } catch (error) {
@@ -1152,9 +1156,7 @@ export class GaugeConfigDialogComponent implements OnInit {
 
           for (const cell of cells) {
             if (!cell?.attributePath) continue;
-
-            const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
-            if (sanitizedPath === categoryField && cell.value !== null && cell.value !== undefined) {
+            if (matchesAttributePath(cell.attributePath, categoryField) && cell.value !== null && cell.value !== undefined) {
               values.add(String(cell.value));
             }
           }
@@ -1171,17 +1173,6 @@ export class GaugeConfigDialogComponent implements OnInit {
     } finally {
       this.isLoadingCategoryValues = false;
     }
-  }
-
-  private async extractCategoryValues(_queryResult: { rows?: { items?: ({ __typename?: string; cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null } | null)[] | null } | null }): Promise<void> {
-    // Load category values if a category field is already selected
-    if (this.queryColumns.length > 0 && this.form.queryCategoryField && this.selectedPersistentQuery) {
-      await this.loadCategoryValuesForField(this.selectedPersistentQuery.rtId, this.form.queryCategoryField);
-    }
-  }
-
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   // ============================================================================

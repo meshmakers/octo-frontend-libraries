@@ -9,7 +9,7 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
 import { HeatmapColorScheme, HeatmapAggregation, WidgetFilterConfig } from '../../models/meshboard.models';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
@@ -389,7 +389,7 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
   `]
 })
 export class HeatmapConfigDialogComponent implements OnInit {
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -537,10 +537,10 @@ export class HeatmapConfigDialogComponent implements OnInit {
     this.isLoadingColumns = true;
 
     try {
-      const result = await firstValueFrom(this.executeRuntimeQueryGQL.fetch({
+      // Metadata-only — skips the row execution path on the backend.
+      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
         variables: {
-          rtId: queryRtId,
-          first: 1
+          rtId: queryRtId
         }
       }));
 
@@ -551,8 +551,9 @@ export class HeatmapConfigDialogComponent implements OnInit {
           .filter((c): c is NonNullable<typeof c> => c !== null);
 
         this.queryColumns = filteredColumns.map(c => ({
-          attributePath: this.sanitizeFieldName(c.attributePath ?? ''),
-          attributeValueType: c.attributeValueType ?? ''
+          attributePath: c.attributePath ?? '',
+          attributeValueType: c.attributeValueType ?? '',
+          aggregationType: c.aggregationType ?? null
         }));
 
         const numericTypes = ['INTEGER', 'FLOAT', 'DOUBLE', 'DECIMAL', 'LONG'];
@@ -584,10 +585,6 @@ export class HeatmapConfigDialogComponent implements OnInit {
     } finally {
       this.isLoadingColumns = false;
     }
-  }
-
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   onFiltersChange(updatedFilters: FieldFilterItem[]): void {

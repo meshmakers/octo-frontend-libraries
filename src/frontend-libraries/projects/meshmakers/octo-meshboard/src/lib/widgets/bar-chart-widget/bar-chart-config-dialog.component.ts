@@ -9,7 +9,7 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
 import { BarChartType, BarChartSeries, BarChartColorThreshold, WidgetFilterConfig } from '../../models/meshboard.models';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
@@ -458,7 +458,7 @@ export interface BarChartConfigResult extends WidgetConfigResult {
   `]
 })
 export class BarChartConfigDialogComponent implements OnInit {
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -616,10 +616,11 @@ export class BarChartConfigDialogComponent implements OnInit {
     this.isLoadingColumns = true;
 
     try {
-      const result = await firstValueFrom(this.executeRuntimeQueryGQL.fetch({
+      // Metadata-only — column resolver runs off the cached query definition and skips
+      // the row execution path, so the dialog opens fast even on large aggregations.
+      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
         variables: {
-          rtId: queryRtId,
-          first: 1 // We only need columns, not data
+          rtId: queryRtId
         }
       }));
 
@@ -629,10 +630,12 @@ export class BarChartConfigDialogComponent implements OnInit {
         const filteredColumns = columns
           .filter((c): c is NonNullable<typeof c> => c !== null);
 
-        // queryColumns use sanitized paths for UI display and matching with query results
+        // Engine emits column attributePath in wire form for aggregation / grouping
+        // columns (e.g. `quantity_sum`, `operatingstatus`); picker uses it verbatim.
         this.queryColumns = filteredColumns.map(c => ({
-          attributePath: this.sanitizeFieldName(c.attributePath ?? ''),
-          attributeValueType: c.attributeValueType ?? ''
+          attributePath: c.attributePath ?? '',
+          attributeValueType: c.attributeValueType ?? '',
+          aggregationType: c.aggregationType ?? null
         }));
 
         // Filter numeric and non-numeric columns
@@ -668,10 +671,6 @@ export class BarChartConfigDialogComponent implements OnInit {
     } finally {
       this.isLoadingColumns = false;
     }
-  }
-
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   onSeriesFieldsChange(fields: string[]): void {

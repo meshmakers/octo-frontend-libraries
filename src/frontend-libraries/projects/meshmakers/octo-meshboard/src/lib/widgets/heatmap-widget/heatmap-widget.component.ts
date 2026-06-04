@@ -9,6 +9,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
+import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
  * A single cell in the heatmap grid
@@ -378,9 +379,9 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
    * Otherwise aggregates into hourly buckets.
    */
   private processHeatmapData(filteredRows: unknown[]): void {
-    const dateField = this.sanitizeFieldName(this.config.dateField);
-    const dateEndField = this.config.dateEndField ? this.sanitizeFieldName(this.config.dateEndField) : null;
-    const valueField = this.config.valueField ? this.sanitizeFieldName(this.config.valueField) : null;
+    const dateField = this.config.dateField;
+    const dateEndField = this.config.dateEndField ?? null;
+    const valueField = this.config.valueField ?? null;
     const aggregation = this.config.aggregation ?? 'count';
 
     // Parse all rows: extract dateFrom, dateTo, numericValue
@@ -397,13 +398,12 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
 
       for (const cell of cells) {
         if (!cell?.attributePath) continue;
-        const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
 
-        if (sanitizedPath === dateField) {
+        if (matchesAttributePath(cell.attributePath, dateField)) {
           dateFrom = this.parseDate(cell.value);
-        } else if (dateEndField && sanitizedPath === dateEndField) {
+        } else if (dateEndField && matchesAttributePath(cell.attributePath, dateEndField)) {
           dateTo = this.parseDate(cell.value);
-        } else if (valueField && sanitizedPath === valueField) {
+        } else if (valueField && matchesAttributePath(cell.attributePath, valueField)) {
           const val = cell.value;
           numericValue = typeof val === 'number' ? val : parseFloat(String(val));
           if (isNaN(numericValue)) numericValue = 0;
@@ -610,10 +610,6 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
     const day = date.getUTCDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
-  }
-
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   private convertFiltersToDto(filters?: WidgetFilterConfig[]): FieldFilterDto[] | undefined {

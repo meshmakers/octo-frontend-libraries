@@ -9,7 +9,7 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { searchIcon, chartPieIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
 import { PieChartType, CkQueryTarget, DataSourceType, WidgetFilterConfig } from '../../models/meshboard.models';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
@@ -367,7 +367,7 @@ export interface PieChartConfigResult extends WidgetConfigResult {
   `]
 })
 export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -563,10 +563,12 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     this.isLoadingColumns = true;
 
     try {
-      const result = await firstValueFrom(this.executeRuntimeQueryGQL.fetch({
+      // Metadata-only query: column resolver runs off the cached query definition without
+      // touching the row execution path, so the dialog opens fast even when the underlying
+      // persistent query aggregates over a large data set.
+      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
         variables: {
-          rtId: queryRtId,
-          first: 1 // We only need columns, not data
+          rtId: queryRtId
         }
       }));
 
@@ -576,10 +578,12 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
         const filteredColumns = columns
           .filter((c): c is NonNullable<typeof c> => c !== null);
 
-        // queryColumns use sanitized paths for UI display and matching with query results
+        // Engine emits column attributePath in wire form for aggregation / grouping
+        // columns (e.g. `quantity_sum`, `operatingstatus`); picker uses it verbatim.
         this.queryColumns = filteredColumns.map(c => ({
-          attributePath: this.sanitizeFieldName(c.attributePath ?? ''),
-          attributeValueType: c.attributeValueType ?? ''
+          attributePath: c.attributePath ?? '',
+          attributeValueType: c.attributeValueType ?? '',
+          aggregationType: c.aggregationType ?? null
         }));
 
         // Auto-select fields if only 2 columns (typical for grouped aggregations)
@@ -601,10 +605,6 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     } finally {
       this.isLoadingColumns = false;
     }
-  }
-
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   onFiltersChange(updatedFilters: FieldFilterItem[]): void {

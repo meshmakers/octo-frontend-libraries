@@ -7,6 +7,7 @@ query executeRuntimeQuery($rtId: OctoObjectId!, $after: String, $first: Int $fie
         columns {
           attributePath
           attributeValueType
+          aggregationType
         }
         rows(after: $after, first: $first, fieldFilter: $fieldFilter) {
           totalCount

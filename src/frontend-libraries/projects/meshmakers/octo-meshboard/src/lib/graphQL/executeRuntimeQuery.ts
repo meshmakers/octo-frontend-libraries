@@ -11,7 +11,7 @@ export type ExecuteRuntimeQueryQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type ExecuteRuntimeQueryQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeQuery?: { __typename?: 'RtQueryDtoConnection', items?: Array<{ __typename?: 'RtQuery', queryRtId: any, associatedCkTypeId: any, columns: Array<{ __typename?: 'RtQueryColumn', attributePath?: string | null, attributeValueType?: Types.AttributeValueTypeDto | null }>, rows?: { __typename?: 'RtQueryRowDtoConnection', totalCount?: number | null, items?: Array<
+export type ExecuteRuntimeQueryQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeQuery?: { __typename?: 'RtQueryDtoConnection', items?: Array<{ __typename?: 'RtQuery', queryRtId: any, associatedCkTypeId: any, columns: Array<{ __typename?: 'RtQueryColumn', attributePath?: string | null, attributeValueType?: Types.AttributeValueTypeDto | null, aggregationType?: Types.AggregationTypesDto | null }>, rows?: { __typename?: 'RtQueryRowDtoConnection', totalCount?: number | null, items?: Array<
             | { __typename?: 'RtAggregationQueryRow', ckTypeId?: any | null, cells?: { __typename?: 'RtQueryCellDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtQueryCell', attributePath: string, value?: any | null }> | null } | null }
             | { __typename?: 'RtGroupingAggregationQueryRow', ckTypeId?: any | null, cells?: { __typename?: 'RtQueryCellDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtQueryCell', attributePath: string, value?: any | null }> | null } | null }
             | { __typename?: 'RtSimpleQueryRow', rtId?: any | null, ckTypeId?: any | null, cells?: { __typename?: 'RtQueryCellDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtQueryCell', attributePath: string, value?: any | null }> | null } | null }
@@ -27,6 +27,7 @@ export const ExecuteRuntimeQueryDocumentDto = gql`
         columns {
           attributePath
           attributeValueType
+          aggregationType
         }
         rows(after: $after, first: $first, fieldFilter: $fieldFilter) {
           totalCount

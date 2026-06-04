@@ -9,6 +9,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
+import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
  * Series data for the line chart
@@ -386,17 +387,16 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
       for (const cell of cells) {
         if (!cell?.attributePath) continue;
-        const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
 
-        if (sanitizedPath === this.sanitizeFieldName(categoryField)) {
+        if (matchesAttributePath(cell.attributePath, categoryField)) {
           categoryValue = String(cell.value ?? '');
-        } else if (sanitizedPath === this.sanitizeFieldName(seriesGroupField)) {
+        } else if (matchesAttributePath(cell.attributePath, seriesGroupField)) {
           seriesGroupValue = String(cell.value ?? '');
-        } else if (sanitizedPath === this.sanitizeFieldName(valueField)) {
+        } else if (matchesAttributePath(cell.attributePath, valueField)) {
           const val = cell.value;
           numericValue = typeof val === 'number' ? val : parseFloat(String(val));
           if (isNaN(numericValue)) numericValue = 0;
-        } else if (unitField && sanitizedPath === this.sanitizeFieldName(unitField)) {
+        } else if (unitField && matchesAttributePath(cell.attributePath, unitField)) {
           unitValue = String(cell.value ?? '');
         }
       }
@@ -495,10 +495,6 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       hour: '2-digit',
       minute: '2-digit'
     });
-  }
-
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   private sanitizeAxisName(name: string): string {

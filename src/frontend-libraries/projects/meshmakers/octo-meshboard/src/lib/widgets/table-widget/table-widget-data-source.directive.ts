@@ -9,6 +9,7 @@ import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
+import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
  * Column info derived from a persistent query response
@@ -270,15 +271,18 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
               record['ckTypeId'] = queryRow.ckTypeId ?? '';
             }
 
-            // Flatten cells into the record (sanitize field names for grid compatibility)
-            // Only add fields that are in the query columns
+            // Flatten cells into the record. Each cell is stored under the COLUMN's
+            // attributePath (which is what the Kendo grid uses as `field`) rather than
+            // the cell's own attributePath — the two may differ now that the engine
+            // emits cell paths in wire-form with a function suffix
+            // (e.g. cell path `meterreading_count` for column path `meterReading`).
+            // `matchesAttributePath` reconciles both forms.
             const cells = queryRow.cells?.items ?? [];
             for (const cell of cells) {
-              if (cell?.attributePath) {
-                const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
-                if (columnPaths.has(sanitizedPath)) {
-                  record[sanitizedPath] = cell.value;
-                }
+              if (!cell?.attributePath) continue;
+              const matchingColumn = columns.find(col => matchesAttributePath(cell.attributePath, col.attributePath));
+              if (matchingColumn) {
+                record[matchingColumn.attributePath] = cell.value;
               }
             }
 

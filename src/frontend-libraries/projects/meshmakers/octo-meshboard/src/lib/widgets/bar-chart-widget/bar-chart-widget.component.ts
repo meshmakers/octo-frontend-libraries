@@ -9,6 +9,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
+import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
  * Series data for the bar chart
@@ -395,15 +396,13 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       for (const cell of cells) {
         if (!cell?.attributePath) continue;
 
-        const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
-
-        if (sanitizedPath === this.sanitizeFieldName(this.config.categoryField)) {
+        if (matchesAttributePath(cell.attributePath, this.config.categoryField)) {
           categoryValue = this.formatCategoryValue(cell.value);
         }
 
         // Check if this cell is one of our series fields
         for (const seriesConfig of (this.config.series ?? [])) {
-          if (sanitizedPath === this.sanitizeFieldName(seriesConfig.field)) {
+          if (matchesAttributePath(cell.attributePath, seriesConfig.field)) {
             const numValue = typeof cell.value === 'number' ? cell.value : parseFloat(String(cell.value));
             rowValues.set(seriesConfig.field, isNaN(numValue) ? 0 : numValue);
           }
@@ -471,13 +470,11 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       for (const cell of cells) {
         if (!cell?.attributePath) continue;
 
-        const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
-
-        if (sanitizedPath === this.sanitizeFieldName(categoryField)) {
+        if (matchesAttributePath(cell.attributePath, categoryField)) {
           categoryValue = this.formatCategoryValue(cell.value);
-        } else if (sanitizedPath === this.sanitizeFieldName(seriesGroupField)) {
+        } else if (matchesAttributePath(cell.attributePath, seriesGroupField)) {
           seriesGroupValue = String(cell.value ?? '');
-        } else if (sanitizedPath === this.sanitizeFieldName(valueField)) {
+        } else if (matchesAttributePath(cell.attributePath, valueField)) {
           const val = cell.value;
           numericValue = typeof val === 'number' ? val : parseFloat(String(val));
           if (isNaN(numericValue)) numericValue = 0;
@@ -557,10 +554,6 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       }
     }
     return str;
-  }
-
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   /**

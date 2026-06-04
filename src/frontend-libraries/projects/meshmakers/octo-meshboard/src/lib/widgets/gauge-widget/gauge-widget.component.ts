@@ -10,6 +10,7 @@ import { catchError, of, firstValueFrom } from 'rxjs';
 import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import {CollectionChangesService, KENDO_GAUGES} from "@progress/kendo-angular-gauges";
 import { FieldFilterDto } from '@meshmakers/octo-services';
+import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 @Component({
   selector: 'mm-gauge-widget',
@@ -543,9 +544,7 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     const valueField = this.config.queryValueField;
     for (const cell of cells) {
       if (!cell?.attributePath) continue;
-
-      const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
-      if (valueField && sanitizedPath === valueField) {
+      if (valueField && matchesAttributePath(cell.attributePath, valueField)) {
         return this.parseNumericValue(cell.value);
       }
     }
@@ -582,13 +581,11 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
       for (const cell of cells) {
         if (!cell?.attributePath) continue;
 
-        const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
-
-        if (sanitizedPath === categoryField && String(cell.value) === categoryValue) {
+        if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
           categoryMatch = true;
         }
 
-        if (sanitizedPath === valueField) {
+        if (matchesAttributePath(cell.attributePath, valueField)) {
           value = this.parseNumericValue(cell.value);
         }
       }
@@ -605,10 +602,6 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     if (typeof value === 'number') return value;
     const parsed = parseFloat(String(value));
     return isNaN(parsed) ? 0 : parsed;
-  }
-
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   /**

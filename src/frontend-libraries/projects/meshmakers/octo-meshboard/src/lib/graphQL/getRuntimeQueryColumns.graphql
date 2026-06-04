@@ -1,0 +1,15 @@
+query getRuntimeQueryColumns($rtId: OctoObjectId!) {
+  runtime {
+    runtimeQuery(rtId: $rtId) {
+      items {
+        queryRtId
+        associatedCkTypeId
+        columns {
+          attributePath
+          attributeValueType
+          aggregationType
+        }
+      }
+    }
+  }
+}

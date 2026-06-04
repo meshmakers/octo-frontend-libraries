@@ -41,13 +41,80 @@ export const SUPPORTED_ROW_TYPES = [
 ];
 
 /**
- * Sanitizes field names for comparison.
- * GraphQL attribute paths contain dots which are replaced with underscores.
+ * Sanitizes field names for use as object keys.
+ * Replaces dots with underscores so the value can be stored under a single key
+ * without Kendo's dot-path navigation interpreting the dots as nested access.
+ * Used when generating record keys, NOT for path comparison — use
+ * {@link matchesAttributePath} for matching cell paths against widget configs.
  * @param fieldName The field name to sanitize
  * @returns Sanitized field name
  */
 export function sanitizeFieldName(fieldName: string): string {
   return fieldName.replace(/\./g, '_');
+}
+
+/**
+ * Strips a trailing aggregation function suffix from a path so the base path can
+ * be compared independently of which aggregation produced it. The engine emits
+ * cell paths like `meterreading_count` / `amountvalue_sum` for RT aggregation,
+ * grouped aggregation, and stream-data variants.
+ */
+function stripAggregationFunctionSuffix(path: string): string {
+  return path.replace(/_(?:count|sum|avg|min|max)$/i, '');
+}
+
+/**
+ * Canonical key form: drop dot and underscore separators and lowercase the rest.
+ * Lets us compare a widget config's stored field name (which may be
+ * `meterReading`, `meter_reading`, or `amount_value`) against a cell path
+ * (which may be wire-form `meterreading_count` or `amountvalue_sum`) on a
+ * single common form.
+ */
+function toCanonicalAttributeKey(s: string): string {
+  return s.replace(/[._]/g, '').toLowerCase();
+}
+
+/**
+ * Detects whether a path ends with the engine's aggregation function suffix
+ * (`_count`, `_sum`, `_avg`, `_min`, `_max`). Used to decide whether the loose
+ * back-compat fallback in {@link matchesAttributePath} should fire.
+ */
+function hasAggregationFunctionSuffix(path: string): boolean {
+  return /_(?:count|sum|avg|min|max)$/i.test(path);
+}
+
+/**
+ * Returns true when a cell's `attributePath` refers to the same source attribute
+ * as a widget config's stored field name. Handles three input shapes:
+ *
+ *  - Simple-query cells use the original CK attribute path (e.g. `meterReading`
+ *    or `amount.value`).
+ *  - RT aggregation cells use the engine's wire-form key with a function suffix
+ *    (e.g. `meterreading_count`, `amountvalue_sum`).
+ *  - RT grouping cells and stream-data cells use the same wire-form without a
+ *    function suffix (e.g. `operatingstatus`).
+ *
+ * Widget configs typically store `sanitizeFieldName(originalPath)`, e.g.
+ * `meterReading` or `amount_value`. This helper returns true when both refer
+ * to the same source attribute, regardless of which form they're in.
+ *
+ * Exact `sanitizeFieldName` match wins (preserves behavior for simple queries
+ * and stream-data widget configs that were saved with wire-form keys); the
+ * canonical-form fallback unbreaks RT-aggregation / grouping widgets whose
+ * configs were saved before the engine emitted wire-form keys.
+ */
+export function matchesAttributePath(cellPath: string | null | undefined, configField: string | null | undefined): boolean {
+  if (!cellPath || !configField) return false;
+  if (sanitizeFieldName(cellPath) === configField) return true;
+
+  // Loose fallback for legacy configs saved with the original CK path before the engine
+  // switched to wire-form column emission. Only fires when configField itself does NOT
+  // carry an aggregation suffix — otherwise we would cross-match MIN against MAX cells
+  // (both would canonicalise to the same base path).
+  if (hasAggregationFunctionSuffix(configField)) return false;
+
+  const cellBase = stripAggregationFunctionSuffix(cellPath);
+  return toCanonicalAttributeKey(cellBase) === toCanonicalAttributeKey(configField);
 }
 
 /**
@@ -90,9 +157,7 @@ export function extractAggregationValue(
   if (valueField) {
     for (const cell of cells) {
       if (!cell?.attributePath) continue;
-
-      const sanitizedPath = sanitizeFieldName(cell.attributePath);
-      if (sanitizedPath === valueField) {
+      if (matchesAttributePath(cell.attributePath, valueField)) {
         return parseNumericValue(cell.value);
       }
     }
@@ -137,13 +202,11 @@ export function extractGroupedAggregationValue(
     for (const cell of cells) {
       if (!cell?.attributePath) continue;
 
-      const sanitizedPath = sanitizeFieldName(cell.attributePath);
-
-      if (sanitizedPath === categoryField && String(cell.value) === categoryValue) {
+      if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
         categoryMatch = true;
       }
 
-      if (sanitizedPath === valueField) {
+      if (matchesAttributePath(cell.attributePath, valueField)) {
         value = parseNumericValue(cell.value);
       }
     }
@@ -214,15 +277,13 @@ export function processStaticSeriesData(
     for (const cell of cells) {
       if (!cell?.attributePath) continue;
 
-      const sanitizedPath = sanitizeFieldName(cell.attributePath);
-
-      if (sanitizedPath === sanitizeFieldName(categoryField)) {
+      if (matchesAttributePath(cell.attributePath, categoryField)) {
         categoryValue = String(cell.value ?? '');
       }
 
       // Check if this cell is one of our series fields
       for (const seriesConfig of seriesConfigs) {
-        if (sanitizedPath === sanitizeFieldName(seriesConfig.field)) {
+        if (matchesAttributePath(cell.attributePath, seriesConfig.field)) {
           rowValues.set(seriesConfig.field, parseNumericValue(cell.value));
         }
       }
@@ -281,13 +342,11 @@ export function processDynamicSeriesData(
     for (const cell of cells) {
       if (!cell?.attributePath) continue;
 
-      const sanitizedPath = sanitizeFieldName(cell.attributePath);
-
-      if (sanitizedPath === sanitizeFieldName(categoryField)) {
+      if (matchesAttributePath(cell.attributePath, categoryField)) {
         categoryValue = String(cell.value ?? '');
-      } else if (sanitizedPath === sanitizeFieldName(seriesGroupField)) {
+      } else if (matchesAttributePath(cell.attributePath, seriesGroupField)) {
         seriesGroupValue = String(cell.value ?? '');
-      } else if (sanitizedPath === sanitizeFieldName(valueField)) {
+      } else if (matchesAttributePath(cell.attributePath, valueField)) {
         numericValue = parseNumericValue(cell.value);
       }
     }
@@ -355,11 +414,9 @@ export function processPieChartData(
     for (const cell of cells) {
       if (!cell?.attributePath) continue;
 
-      const sanitizedPath = sanitizeFieldName(cell.attributePath);
-
-      if (sanitizedPath === sanitizeFieldName(categoryField)) {
+      if (matchesAttributePath(cell.attributePath, categoryField)) {
         categoryValue = String(cell.value ?? '');
-      } else if (sanitizedPath === sanitizeFieldName(valueField)) {
+      } else if (matchesAttributePath(cell.attributePath, valueField)) {
         numericValue = parseNumericValue(cell.value);
       }
     }

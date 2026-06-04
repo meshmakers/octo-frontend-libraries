@@ -10,6 +10,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
+import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
  * Data item for the pie chart
@@ -309,15 +310,17 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
       return;
     }
 
-    // Extract columns to find field indices
-    const columns = (queryResult.columns ?? [])
+    // Extract columns to verify configured fields are present. Both forms (original CK
+    // path and engine wire-form) are accepted so saved configs survive the engine's
+    // switch to wire-form keys without a migration.
+    const columnPaths = (queryResult.columns ?? [])
       .filter((c): c is NonNullable<typeof c> => c !== null)
-      .map(c => this.sanitizeFieldName(c.attributePath ?? ''));
+      .map(c => c.attributePath ?? '');
 
-    const categoryFieldIndex = columns.indexOf(this.sanitizeFieldName(this.config.categoryField));
-    const valueFieldIndex = columns.indexOf(this.sanitizeFieldName(this.config.valueField));
+    const categoryFieldPresent = columnPaths.some(p => matchesAttributePath(p, this.config.categoryField));
+    const valueFieldPresent = columnPaths.some(p => matchesAttributePath(p, this.config.valueField));
 
-    if (categoryFieldIndex === -1 || valueFieldIndex === -1) {
+    if (!categoryFieldPresent || !valueFieldPresent) {
       this._error.set('Configured fields not found in query result');
       this._isLoading.set(false);
       return;
@@ -340,13 +343,11 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
         for (const cell of cells) {
           if (!cell?.attributePath) continue;
 
-          const sanitizedPath = this.sanitizeFieldName(cell.attributePath);
-
-          if (sanitizedPath === this.sanitizeFieldName(this.config.categoryField)) {
+          if (matchesAttributePath(cell.attributePath, this.config.categoryField)) {
             category = String(cell.value ?? '');
           }
 
-          if (sanitizedPath === this.sanitizeFieldName(this.config.valueField)) {
+          if (matchesAttributePath(cell.attributePath, this.config.valueField)) {
             const numValue = typeof cell.value === 'number' ? cell.value : parseFloat(String(cell.value));
             value = isNaN(numValue) ? 0 : numValue;
           }
@@ -358,14 +359,6 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
 
     this._chartData.set(chartData);
     this._isLoading.set(false);
-  }
-
-  /**
-   * Sanitizes field names for comparison.
-   * Replaces dots with underscores (same as table widget).
-   */
-  private sanitizeFieldName(fieldName: string): string {
-    return fieldName.replace(/\./g, '_');
   }
 
   /**
