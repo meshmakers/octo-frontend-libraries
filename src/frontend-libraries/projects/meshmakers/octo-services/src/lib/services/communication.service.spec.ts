@@ -311,4 +311,53 @@ describe('CommunicationService', () => {
       expect(result.results[1].errorMessage).toBe('pipeline not found');
     });
   });
+
+  describe('getWorkloadVariables', () => {
+    it('should call the correct endpoint and return the response', async () => {
+      const promise = service.getWorkloadVariables(tenantId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/communication/workload-variables`
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush([
+        {placeholder: '{{context.tenantId}}', description: 'tenant id', sampleValue: null},
+        {placeholder: '{{domain.default}}', description: 'default domain', sampleValue: 'staging.octo-mesh.com'},
+        {placeholder: '{{service.authority}}', description: 'identity authority', sampleValue: 'https://identity.staging.octo-mesh.com'}
+      ]);
+
+      const result = await promise;
+      expect(result.length).toBe(3);
+      expect(result[0].placeholder).toBe('{{context.tenantId}}');
+      expect(result[0].sampleValue).toBeNull();
+      expect(result[2].placeholder).toBe('{{service.authority}}');
+      expect(result[2].sampleValue).toBe('https://identity.staging.octo-mesh.com');
+    });
+
+    it('should return empty array when communication services URL is not configured', async () => {
+      // Re-create service against a config without communicationServices to
+      // exercise the early-return branch — same pattern as getDomains and
+      // the deploy* methods.
+      const emptyConfigService = jasmine.createSpyObj<IConfigurationService>(
+        'ConfigurationService', [], {
+          config: {...mockConfig, communicationServices: ''}
+        });
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          CommunicationService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          {provide: CONFIGURATION_SERVICE, useValue: emptyConfigService}
+        ]
+      });
+      const localService = TestBed.inject(CommunicationService);
+      const localHttp = TestBed.inject(HttpTestingController);
+
+      const result = await localService.getWorkloadVariables(tenantId);
+
+      expect(result).toEqual([]);
+      localHttp.verify();
+    });
+  });
 });

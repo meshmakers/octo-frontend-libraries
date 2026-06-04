@@ -15,7 +15,7 @@ import {
   MovePipelinesToAdapterRequestDto,
   MovePipelinesToAdapterResponseDto
 } from '../shared/movePipelineDtos';
-import {DomainConfigurationDto} from '../shared/domainDtos';
+import {DomainConfigurationDto, WorkloadVariableDto} from '../shared/domainDtos';
 
 /**
  * Service for communication controller operations.
@@ -146,6 +146,25 @@ export class CommunicationService {
     const uri = `${this.communicationServicesUrl}${tenantId}/v1/communication/domains`;
     const response = await firstValueFrom(
       this.httpClient.get<DomainConfigurationDto[]>(uri)
+    );
+    return response ?? [];
+  }
+
+  /**
+   * Returns every template placeholder a workload can reference in its
+   * `hostname`, non-secret `valueOverride.value` or `valuesYaml`. Spans
+   * the three families `context.tenantId`, `domain.NAME`, `service.NAME`
+   * in one ordered list so the workload editor can offer a single
+   * suggestion source. Read-only; result is identical per tenant on the
+   * instance.
+   */
+  async getWorkloadVariables(tenantId: string): Promise<WorkloadVariableDto[]> {
+    if (!this.communicationServicesUrl) {
+      return [];
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/communication/workload-variables`;
+    const response = await firstValueFrom(
+      this.httpClient.get<WorkloadVariableDto[]>(uri)
     );
     return response ?? [];
   }
