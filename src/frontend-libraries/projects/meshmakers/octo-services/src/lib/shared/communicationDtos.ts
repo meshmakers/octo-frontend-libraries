@@ -98,3 +98,25 @@ export interface DebugPointDataDto {
   input: unknown | null;
   output: unknown | null;
 }
+
+/**
+ * Resource-utilisation snapshot of a running adapter process. Returned by the
+ * communication controller's `GET /v1/adapter/{rtId}/metrics` endpoint to back
+ * the live CPU / memory sparklines in the UI. Phase 1 of the adapter telemetry
+ * feature keeps these in an in-memory ring buffer on the controller, so the
+ * series spans roughly the last 30 minutes and resets on controller restart.
+ */
+export interface AdapterMetricsSampleDto {
+  /** Combined `{ckTypeId}@{rtId}` identifier of the reporting adapter. */
+  adapterRtEntityId: string;
+  /** UTC timestamp the sample was captured at on the adapter side (ISO-8601). */
+  timestamp: string;
+  /** CPU utilisation in percent (0..100), normalised across all available cores. */
+  cpuPercent: number;
+  /** Working set of the adapter process in bytes. */
+  workingSetBytes: number;
+  /** Managed-heap size reported by the GC in bytes. */
+  gcHeapBytes: number;
+  /** Total thread count of the adapter process. */
+  threadCount: number;
+}

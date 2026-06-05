@@ -255,6 +255,11 @@
               <span class="badge-cell badge-cell-default">{{ getValue(dataItem, column) }}</span>
             }
           }
+          @case ('component') {
+            @if (column.cellComponent) {
+              <ng-container *ngComponentOutlet="column.cellComponent; inputs: getCellInputs(dataItem, column)" />
+            }
+          }
           @default {
             {{ getValue(dataItem, column) }}
           }

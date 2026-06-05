@@ -360,4 +360,78 @@ describe('CommunicationService', () => {
       localHttp.verify();
     });
   });
+
+  describe('getAdapterMetrics', () => {
+    const adapterRtId = 'adapter-123';
+    const adapterCkTypeId = 'System.Communication/Adapter';
+    const expectedRtEntityId = encodeURIComponent(`${adapterCkTypeId}@${adapterRtId}`);
+
+    it('GETs the controller endpoint and returns parsed samples', async () => {
+      const promise = service.getAdapterMetrics(tenantId, adapterRtId, adapterCkTypeId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`
+      );
+      expect(req.request.method).toBe('GET');
+      expect(req.request.params.has('since')).toBe(false);
+      req.flush([
+        {adapterRtEntityId: `${adapterCkTypeId}@${adapterRtId}`, timestamp: '2026-06-05T17:00:00Z',
+         cpuPercent: 12.5, workingSetBytes: 100, gcHeapBytes: 50, threadCount: 4}
+      ]);
+
+      const result = await promise;
+      expect(result.length).toBe(1);
+      expect(result[0].cpuPercent).toBe(12.5);
+    });
+
+    it('appends the since query parameter for incremental polling', async () => {
+      const since = new Date('2026-06-05T17:00:00Z');
+      const promise = service.getAdapterMetrics(tenantId, adapterRtId, adapterCkTypeId, since);
+
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics` &&
+        request.params.get('since') === since.toISOString()
+      );
+      req.flush([]);
+      await promise;
+    });
+
+    it('returns an empty array on 404 (adapter not connected) instead of throwing', async () => {
+      // The controller surfaces "tenant not enabled" / "adapter not loaded" as 404.
+      // The UI must render an empty sparkline, not an error toast.
+      const promise = service.getAdapterMetrics(tenantId, adapterRtId, adapterCkTypeId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`
+      );
+      req.flush({errorMessage: 'Adapter not loaded'}, {status: 404, statusText: 'Not Found'});
+
+      const result = await promise;
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when the communication services URL is not configured', async () => {
+      const emptyConfig = {...mockConfig, communicationServices: ''};
+      const emptyConfigService = jasmine.createSpyObj<IConfigurationService>('ConfigurationService', [], {
+        config: emptyConfig
+      });
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          CommunicationService,
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          {provide: CONFIGURATION_SERVICE, useValue: emptyConfigService}
+        ]
+      });
+      const localService = TestBed.inject(CommunicationService);
+      const localHttp = TestBed.inject(HttpTestingController);
+
+      const result = await localService.getAdapterMetrics(tenantId, adapterRtId, adapterCkTypeId);
+
+      expect(result).toEqual([]);
+      localHttp.verify();
+    });
+  });
 });

@@ -4,6 +4,7 @@ import {firstValueFrom, of, throwError} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {
+  AdapterMetricsSampleDto,
   DeploymentResultDto,
   PipelineExecutionDataDto,
   PipelineNodePropertiesDto,
@@ -78,6 +79,54 @@ export class CommunicationService {
         this.httpClient.post<void>(uri, null, {params, observe: 'response'})
       );
     }
+  }
+
+  // ============================================================================
+  // Adapter Resource Metrics
+  // ============================================================================
+
+  /**
+   * Fetches the controller's in-memory ring buffer of CPU / memory samples for a
+   * given adapter. Used by the UI to drive live sparklines. Returns an empty
+   * array when the communication services URL is not configured, when the
+   * adapter is not currently connected (controller returns 404), or when no
+   * sample has been collected yet.
+   *
+   * Pass `since` for incremental polling — only samples strictly newer than the
+   * supplied UTC timestamp are returned, keeping subsequent refreshes light.
+   */
+  async getAdapterMetrics(
+    tenantId: string,
+    adapterRtId: string,
+    adapterCkTypeId: string,
+    since?: Date
+  ): Promise<AdapterMetricsSampleDto[]> {
+    if (!this.communicationServicesUrl) {
+      return [];
+    }
+
+    const rtEntityId = encodeURIComponent(`${adapterCkTypeId}@${adapterRtId}`);
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/adapter/${rtEntityId}/metrics`;
+    let params = new HttpParams();
+    if (since) {
+      params = params.set('since', since.toISOString());
+    }
+
+    return firstValueFrom(
+      this.httpClient
+        .get<AdapterMetricsSampleDto[]>(uri, {params, headers: this.noCacheHeaders})
+        .pipe(
+          catchError((err: HttpErrorResponse) => {
+            // 404 = adapter not connected yet / unknown to the controller;
+            // surface as "no samples" so the UI can render an empty state
+            // instead of a toast.
+            if (err.status === 404) {
+              return of([] as AdapterMetricsSampleDto[]);
+            }
+            return throwError(() => err);
+          })
+        )
+    );
   }
 
   // ============================================================================

@@ -1,3 +1,4 @@
+import {Type} from '@angular/core';
 import {SVGIcon} from '@progress/kendo-svg-icons';
 
 /**
@@ -52,7 +53,7 @@ export type BadgeMappingTable = Record<string, BadgeMapping>;
 export interface TableColumn {
   displayName?: string | null;
   field: string;
-  dataType?: 'text' | 'numeric' | 'numericRange' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression' | 'progressBar' | 'badge';
+  dataType?: 'text' | 'numeric' | 'numericRange' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression' | 'progressBar' | 'badge' | 'component';
   format?: string;
   /**
    * Column width in pixels. If not set, the column will auto-size.
@@ -120,6 +121,19 @@ export interface TableColumn {
    * already a fixed-size widget (statusIcons, progressBar, badge, …).
    */
   truncate?: boolean;
+  /**
+   * Standalone component to instantiate inside the cell for `dataType: 'component'` columns.
+   * The grid renders the component via `*ngComponentOutlet`, with `cellInputs` supplying
+   * its `@Input()` bindings per row. Use this when the cell needs internal state
+   * (polling, async data, animation) that a static formatter cannot provide.
+   */
+  cellComponent?: Type<unknown>;
+  /**
+   * Builds the `@Input()` bindings for the component instance from the row's data item.
+   * Called once per row when the cell is rendered. Return values are forwarded verbatim
+   * to `*ngComponentOutlet`'s `inputs` map (keyed by the @Input() property name).
+   */
+  cellInputs?: (item: unknown) => Record<string, unknown>;
 }
 
 export type ColumnDefinition =

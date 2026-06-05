@@ -18,7 +18,7 @@ import {
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
 import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
-import {DatePipe, DecimalPipe} from '@angular/common';
+import {DatePipe, DecimalPipe, NgComponentOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
 import {fileExcelIcon, filePdfIcon, filterIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
@@ -72,7 +72,8 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     DropDownListComponent,
     ValueTemplateDirective,
     ItemTemplateDirective,
-    NumericTextBoxComponent
+    NumericTextBoxComponent,
+    NgComponentOutlet
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -360,6 +361,15 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       value = (value as Record<string, unknown>)[key];
     }
     return value;
+  }
+
+  /**
+   * Resolves the @Input bindings for a `dataType: 'component'` cell.
+   * Returns an empty object when no `cellInputs` factory is configured so
+   * `*ngComponentOutlet` still renders the component (with its default state).
+   */
+  protected getCellInputs(dataItem: Record<string, unknown>, column: TableColumn): Record<string, unknown> {
+    return column.cellInputs ? column.cellInputs(dataItem) : {};
   }
 
   /**
