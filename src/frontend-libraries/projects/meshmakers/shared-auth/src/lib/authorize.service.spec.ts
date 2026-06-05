@@ -757,6 +757,27 @@ describe('AuthorizeService', () => {
         expect(localStorage.getItem('octosystem__access_token')).toBeNull();
         expect(sessionStorage.getItem('maco__nonce')).toBeNull();
       });
+
+      it('should persist the current tenant in octo_post_logout_tenant before clearing', () => {
+        // The IdS end_session round-trip drops the tenant path; without this
+        // hint the post-logout return would land the user on the host app's
+        // default-tenant redirect instead of the tenant they signed out of.
+        sessionStorage.removeItem('octo_post_logout_tenant');
+        service.setStorageTenantId('meshtest');
+
+        service.logout();
+
+        expect(sessionStorage.getItem('octo_post_logout_tenant')).toBe('meshtest');
+      });
+
+      it('should not write octo_post_logout_tenant when no tenant is set', () => {
+        sessionStorage.removeItem('octo_post_logout_tenant');
+        service.setStorageTenantId(null);
+
+        service.logout();
+
+        expect(sessionStorage.getItem('octo_post_logout_tenant')).toBeNull();
+      });
     });
   });
 

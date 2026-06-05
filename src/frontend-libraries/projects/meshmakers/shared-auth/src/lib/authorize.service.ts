@@ -509,6 +509,21 @@ export class AuthorizeService {
    * then manually redirect to the end_session_endpoint.
    */
   public logout(): void {
+    // Capture the current tenant BEFORE clearing storage so the host app
+    // can return the user to the same tenant after the IdS end_session
+    // round-trip. The post_logout_redirect_uri registered with the IdS is
+    // typically `${origin}/` and therefore drops the tenant path segment,
+    // so without this hint the next login would fall through to whatever
+    // default-tenant redirect the host application has wired up.
+    const currentTenant = this.tenantStorage.getTenantId();
+    if (currentTenant) {
+      try {
+        sessionStorage.setItem('octo_post_logout_tenant', currentTenant);
+      } catch {
+        // sessionStorage may be unavailable
+      }
+    }
+
     // Read the end_session_endpoint (stored as logoutUrl on the service) and id_token BEFORE clearing storage
     const endSessionEndpoint = this.oauthService.logoutUrl;
     const idToken = this.oauthService.getIdToken();
