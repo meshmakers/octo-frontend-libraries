@@ -271,6 +271,21 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return column.formatter(value, element);
   }
 
+  /**
+   * Plain-text representation of the cell value used as the `title` attribute on truncated
+   * cells so the full string is reachable via the browser's native tooltip on hover.
+   * Honours `formatter` first, then falls back to a stringified raw value.
+   */
+  protected getCellTitle(element: Record<string, unknown>, column: TableColumn): string | null {
+    const formatted = this.getFormattedValue(element, column);
+    if (formatted !== null && formatted !== undefined) {
+      return formatted;
+    }
+    const value = this.getValue(element, column);
+    if (value === null || value === undefined) return null;
+    return String(value);
+  }
+
   protected getFilterType(column: TableColumn): 'text' | 'numeric' | 'boolean' | 'date' {
     switch (column.dataType) {
       case 'text':

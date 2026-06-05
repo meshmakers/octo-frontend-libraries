@@ -112,6 +112,14 @@ export interface TableColumn {
    * ```
    */
   formatter?: (value: unknown, item: unknown) => string;
+  /**
+   * When true, cell content is rendered on a single line and clipped with an ellipsis.
+   * The full value is exposed via a native `title` tooltip on hover, so long strings
+   * (e.g. error messages, log lines) stay readable without bloating row heights.
+   * Intended for text-style cells; has no visual effect on columns whose content is
+   * already a fixed-size widget (statusIcons, progressBar, badge, …).
+   */
+  truncate?: boolean;
 }
 
 export type ColumnDefinition =

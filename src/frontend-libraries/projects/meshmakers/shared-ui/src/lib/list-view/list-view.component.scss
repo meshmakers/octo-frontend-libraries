@@ -1,3 +1,14 @@
+// Single-line, ellipsised cell text. Pairs with the cell's native `title` tooltip so the
+// full value stays reachable on hover — used by columns flagged `truncate: true` (typically
+// long error messages or log lines that would otherwise wrap and bloat the row height).
+.mm-cell-truncate {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .status-icons-cell {
   display: inline-flex;
   align-items: center;

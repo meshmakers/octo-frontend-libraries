@@ -194,6 +194,9 @@
         }
       </ng-template>
       <ng-template kendoGridCellTemplate let-dataItem>
+        <span
+          [class.mm-cell-truncate]="column.truncate"
+          [attr.title]="column.truncate ? getCellTitle(dataItem, column) : null">
         @if (column.formatter) {
           {{ getFormattedValue(dataItem, column) }}
         } @else {
@@ -257,6 +260,7 @@
           }
         }
         }
+        </span>
       </ng-template>
     </kendo-grid-column>
   }
