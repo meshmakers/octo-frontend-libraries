@@ -223,7 +223,7 @@ describe('authorizeInterceptor (functional)', () => {
       TestBed.overrideProvider(AuthorizeService, { useValue: authServiceMock });
     });
 
-    it('should inject acr_values into /connect/token POST with HttpParams body', (done) => {
+    it('should inject acr_values into /connect/token POST for refresh_token grant', (done) => {
       authServiceMock.getStorageTenantId.and.returnValue('meshtest');
 
       const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
@@ -234,6 +234,29 @@ describe('authorizeInterceptor (functional)', () => {
           const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
           expect(handledReq.body).toBeInstanceOf(HttpParams);
           expect((handledReq.body as HttpParams).get('acr_values')).toBe('tenant:meshtest');
+          done();
+        });
+      });
+    });
+
+    it('should NOT inject acr_values into /connect/token POST for authorization_code grant', (done) => {
+      // Authorization-code exchanges already carry the tenant via the code itself.
+      // Injecting a stale storage tenant here caused an infinite reload loop:
+      // the code-exchange succeeded (server ignored acr_values), but the immediate
+      // refresh used the storage tenant which no longer matched the freshly issued
+      // token's tenant -> 400 invalid_grant -> token_refresh_error -> reload -> loop.
+      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+
+      const body = new HttpParams()
+        .set('grant_type', 'authorization_code')
+        .set('code', 'abc123')
+        .set('client_id', 'my-client');
+      const req = new HttpRequest('POST', 'https://auth.example.com/connect/token', body);
+
+      TestBed.runInInjectionContext(() => {
+        authorizeInterceptor(req, nextFn).subscribe(() => {
+          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
+          expect((handledReq.body as HttpParams).has('acr_values')).toBeFalse();
           done();
         });
       });
@@ -284,7 +307,7 @@ describe('authorizeInterceptor (functional)', () => {
       });
     });
 
-    it('should preserve existing form body params when injecting acr_values', (done) => {
+    it('should preserve existing form body params when injecting acr_values for refresh_token', (done) => {
       authServiceMock.getStorageTenantId.and.returnValue('meshtest');
 
       const body = new HttpParams()
