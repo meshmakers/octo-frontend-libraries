@@ -3,6 +3,8 @@ import {
   InjectionToken,
   makeEnvironmentProviders,
 } from '@angular/core';
+import { AiAdapterClientService } from './ai-adapter-client.service';
+import { AiSessionStreamService } from './ai-session-stream.service';
 
 /**
  * Configuration the host application supplies via {@link provideOctoAiConsole}.
@@ -58,7 +60,16 @@ export const AI_ADAPTER_OPTIONS = new InjectionToken<AiAdapterOptions>(
 export function provideOctoAiConsole(
   options: AiAdapterOptions,
 ): EnvironmentProviders {
+  // Provide AiAdapterClientService + AiSessionStreamService alongside the
+  // options token. Both services drop `providedIn: 'root'` (6d0e7daf) because
+  // the options they read are route-scoped — a host with multiple tenants
+  // composes the provider with the right tenant id per route, and root-
+  // singleton services would freeze the first route's options. Bundling the
+  // services into the same provider chain means a host's `providers: [
+  // provideOctoAiConsole({...}) ]` is enough; no manual listing required.
   return makeEnvironmentProviders([
     { provide: AI_ADAPTER_OPTIONS, useValue: options },
+    AiAdapterClientService,
+    AiSessionStreamService,
   ]);
 }
