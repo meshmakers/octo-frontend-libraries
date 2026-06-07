@@ -3,6 +3,8 @@ export interface AdminPanelConfigurationDto {
   assetServices: string;
   botServices: string;
   meshAdapterUrl: string;
+  /** AI Adapter public base URL. See {@link AddInConfiguration.aiServices}. */
+  aiServices: string;
   grafanaUrl: string;
   crateDbAdminUrl: string;
   issuer: string;

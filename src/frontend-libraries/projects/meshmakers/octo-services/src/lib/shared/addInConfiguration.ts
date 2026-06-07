@@ -3,6 +3,13 @@ export interface AddInConfiguration {
   assetServices: string;
   botServices: string;
   meshAdapterUrl: string;
+  /**
+   * AI Adapter (octo-ai-services) public base URL. Surfaces the per-installation
+   * AI service host so AI Console and the AgentConfig detail pages can build
+   * tenant-scoped REST + SignalR URLs without inheriting from `meshAdapterUrl`
+   * (the Mesh Adapter and the AI service ship as separate workloads).
+   */
+  aiServices: string;
   crateDbAdminUrl: string;
   issuer: string;
   grafanaUrl: string;

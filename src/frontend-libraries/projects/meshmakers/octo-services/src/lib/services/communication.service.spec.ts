@@ -16,6 +16,7 @@ describe('CommunicationService', () => {
     assetServices: 'https://api.example.com/asset/',
     botServices: 'https://api.example.com/bot/',
     meshAdapterUrl: '',
+    aiServices: '',
     crateDbAdminUrl: '',
     issuer: '',
     grafanaUrl: '',
