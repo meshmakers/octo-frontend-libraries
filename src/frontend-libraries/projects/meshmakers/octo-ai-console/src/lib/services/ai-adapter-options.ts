@@ -44,6 +44,41 @@ export const AI_ADAPTER_OPTIONS = new InjectionToken<AiAdapterOptions>(
 );
 
 /**
+ * Minimal subset of the `@microsoft/signalr` `HubConnection` surface the library
+ * exercises. The interface stays in the public API so host apps can supply
+ * either the real SignalR connection (Refinery Studio, bastion CLI), a test
+ * mock, or no factory at all — in which case {@link AiSessionStreamService}
+ * falls back to REST-only backfill (Phase-1 stub behaviour). Keeping the type
+ * structural lets the library stay agnostic of the `@microsoft/signalr` major
+ * version line the host has installed.
+ */
+export interface AiHubConnectionLike {
+  on(methodName: string, handler: (payload: unknown) => void): void;
+  start(): Promise<void>;
+  stop(): Promise<void>;
+  invoke<T = unknown>(methodName: string, ...args: unknown[]): Promise<T>;
+  onreconnected(handler: (connectionId?: string) => void): void;
+}
+
+/**
+ * Builds a hub connection against the resolved URL. Return null when streaming
+ * is not wired in this deployment yet — the stream service then quietly skips
+ * the live channel and behaves exactly like the Phase-1 stub.
+ */
+export type AiSessionStreamConnectionFactory =
+  (hubUrl: string) => AiHubConnectionLike | null;
+
+/**
+ * Optional DI token a host application provides to enable the live SignalR
+ * channel on {@link AiSessionStreamService}. When absent, the service degrades
+ * to REST-only backfill.
+ */
+export const AI_SESSION_STREAM_CONNECTION_FACTORY =
+  new InjectionToken<AiSessionStreamConnectionFactory>(
+    'mm-octo-ai-console.session-stream-connection-factory',
+  );
+
+/**
  * Composable provider that surfaces the library's adapter configuration to the
  * Angular DI container. Host applications call this once in `app.config.ts`:
  *

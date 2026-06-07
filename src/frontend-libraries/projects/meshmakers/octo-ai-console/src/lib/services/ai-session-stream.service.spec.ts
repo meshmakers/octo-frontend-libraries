@@ -30,10 +30,12 @@ describe('AiSessionStreamService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('exposes the hub URL combining baseUrl + hubPath with leading slash', () => {
+  it('exposes the tenant-scoped hub URL combining baseUrl + tenantId + hubPath', () => {
     // hubPath was supplied without a leading slash in this test; service must
-    // still produce a valid absolute URL.
-    expect(service.hubUrl).toBe('https://ai.test/hubs/ai');
+    // still produce a valid absolute URL. tenantId is rendered between baseUrl
+    // and hubPath to match the AI Adapter's hub mapping
+    // (`/{tenantId:tenantId}/aiHub`).
+    expect(service.hubUrl).toBe('https://ai.test/acme/hubs/ai');
   });
 
   it('streamSession backfills events from listEvents on open', (done) => {

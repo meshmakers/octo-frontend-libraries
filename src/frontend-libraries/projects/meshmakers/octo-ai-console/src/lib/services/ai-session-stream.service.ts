@@ -1,6 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, ReplaySubject, Subject } from 'rxjs';
-import { AI_ADAPTER_OPTIONS } from './ai-adapter-options';
+import {
+  AI_ADAPTER_OPTIONS,
+  AI_SESSION_STREAM_CONNECTION_FACTORY,
+  AiHubConnectionLike,
+} from './ai-adapter-options';
 import { AiAdapterClientService } from './ai-adapter-client.service';
 import {
   AiSessionEventDto,
@@ -55,15 +59,24 @@ export interface AiSessionStream {
 export class AiSessionStreamService {
   private readonly options = inject(AI_ADAPTER_OPTIONS);
   private readonly client = inject(AiAdapterClientService);
+  private readonly connectionFactory = inject(
+    AI_SESSION_STREAM_CONNECTION_FACTORY,
+    { optional: true },
+  );
 
   /**
    * Open a streaming session. Returns the per-stream subjects and a
-   * `disconnect()` closer. The current Phase-1 implementation only backfills
-   * persisted events via REST; the live hub bridge is wired into the host's
-   * `AiSessionStreamConnectionFactory` overlay (delivered alongside #4122).
+   * `disconnect()` closer. When the host has provided an
+   * {@link AI_SESSION_STREAM_CONNECTION_FACTORY}, a live SignalR connection is
+   * built against {@link hubUrl} and the five hub callbacks
+   * (`OnSessionEventAsync`, `OnSessionStatusChangedAsync`,
+   * `OnApprovalRequestedAsync`, `OnApprovalDecidedAsync`, `OnQuotaWarningAsync`)
+   * are routed into the matching subject. Without a factory, the service
+   * degrades to REST-only backfill — the original Phase-1 stub contract.
    *
-   * Tracking the highest sequence we've emitted lets the caller restart the
-   * stream after a network blip by passing `sinceSequence` to `replay()`.
+   * Tracking the highest sequence we've emitted lets the host reconnect after a
+   * network blip by passing `sinceSequence` to {@link replay} (the SignalR
+   * `onreconnected` hook fires that with the highest seen sequence).
    */
   streamSession(sessionId: string): AiSessionStream {
     const events$ = new ReplaySubject<AiSessionEventDto>(256);
@@ -73,8 +86,9 @@ export class AiSessionStreamService {
     const quotaWarnings$ = new Subject<AiQuotaWarningDto>();
 
     // Backfill any persisted events the hub-connect process would have missed
-    // — for the disconnected-then-reconnect case the caller subsequently calls
-    // replay() with the highest sequence the stream emitted.
+    // — REST returns the full history up to "now", and the live channel takes
+    // it from there. The combination is at-least-once with deterministic
+    // ordering courtesy of the persisted `sequence` field.
     let highestSequence = 0;
     const backfill = this.client.listEvents(sessionId).subscribe({
       next: (events) => {
@@ -85,6 +99,49 @@ export class AiSessionStreamService {
       },
     });
 
+    let connection: AiHubConnectionLike | null = null;
+    if (this.connectionFactory) {
+      connection = this.connectionFactory(this.hubUrl);
+    }
+
+    if (connection) {
+      const conn = connection;
+      conn.on('OnSessionEventAsync', (payload) => {
+        const event = payload as AiSessionEventDto;
+        highestSequence = Math.max(highestSequence, event.sequence ?? 0);
+        events$.next(event);
+      });
+      conn.on('OnSessionStatusChangedAsync', (payload) => {
+        statusChanges$.next(payload as AiSessionStatusChangedDto);
+      });
+      conn.on('OnApprovalRequestedAsync', (payload) => {
+        approvalsRequested$.next(payload as AiApprovalRequestedDto);
+      });
+      conn.on('OnApprovalDecidedAsync', (payload) => {
+        approvalsDecided$.next(payload as AiApprovalDecidedDto);
+      });
+      conn.on('OnQuotaWarningAsync', (payload) => {
+        quotaWarnings$.next(payload as AiQuotaWarningDto);
+      });
+      conn.onreconnected(() => {
+        // Pull anything we missed during the disconnect window so the
+        // events$ stream stays gap-free without the caller having to do
+        // their own bookkeeping.
+        this.replay(sessionId, highestSequence, events$);
+      });
+
+      // Start the connection, then ask the hub to scope this connection's
+      // group membership to the session. Failures are intentionally swallowed
+      // — backfill stays valid and the UI degrades to REST-only instead of
+      // crashing.
+      conn
+        .start()
+        .then(() => conn.invoke('SubscribeToSessionAsync', sessionId))
+        .catch(() => {
+          /* hub start / subscribe failed — REST backfill still serves the UI */
+        });
+    }
+
     return {
       events$: events$.asObservable(),
       statusChanges$: statusChanges$.asObservable(),
@@ -93,13 +150,17 @@ export class AiSessionStreamService {
       quotaWarnings$: quotaWarnings$.asObservable(),
       disconnect: () => {
         backfill.unsubscribe();
+        if (connection) {
+          // Best-effort — `stop()` may reject during teardown; the subjects
+          // get completed regardless so consumers see clean termination.
+          connection.stop().catch(() => undefined);
+          connection = null;
+        }
         events$.complete();
         statusChanges$.complete();
         approvalsRequested$.complete();
         approvalsDecided$.complete();
         quotaWarnings$.complete();
-        // Suppress unused warning while the live hub bridge ships in #4122.
-        void highestSequence;
       },
     };
   }
@@ -112,7 +173,7 @@ export class AiSessionStreamService {
   replay(
     sessionId: string,
     sinceSequence: number,
-    sink: Subject<AiSessionEventDto>,
+    sink: Subject<AiSessionEventDto> | ReplaySubject<AiSessionEventDto>,
   ): void {
     this.client.listEvents(sessionId, sinceSequence).subscribe({
       next: (events) => events.forEach((event) => sink.next(event)),
@@ -120,14 +181,16 @@ export class AiSessionStreamService {
   }
 
   /**
-   * The base URL of the hub — exposed so the host's connection factory can
-   * construct a `HubConnection` against the right path without re-deriving it
-   * from `AI_ADAPTER_OPTIONS`.
+   * Tenant-scoped hub URL. Composition matches the AI Adapter's hub map —
+   * `app.MapHub<AiHub>("/{tenantId:tenantId}/aiHub")` — so the host's
+   * `hubPath` is appended after the tenant segment. Host apps that mount the
+   * hub at a different relative path override `hubPath` via
+   * `AI_ADAPTER_OPTIONS`.
    */
   get hubUrl(): string {
     const trimmed = this.options.hubPath.startsWith('/')
       ? this.options.hubPath
       : `/${this.options.hubPath}`;
-    return `${this.options.baseUrl}${trimmed}`;
+    return `${this.options.baseUrl}/${this.options.tenantId}${trimmed}`;
   }
 }
