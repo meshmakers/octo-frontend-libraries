@@ -21,6 +21,7 @@ describe('AiAdapterClientService', () => {
           tenantId: 'acme',
           hubPath: '/hubs/ai',
         }),
+        AiAdapterClientService,
       ],
     });
     service = TestBed.inject(AiAdapterClientService);

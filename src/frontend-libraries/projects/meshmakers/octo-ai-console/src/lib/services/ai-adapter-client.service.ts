@@ -26,7 +26,15 @@ import {
  * host apps mix Apollo / GraphQL state in the same component without dueling
  * caches.
  */
-@Injectable({ providedIn: 'root' })
+/**
+ * Not `providedIn: 'root'` — `AI_ADAPTER_OPTIONS` is provided per-route in host
+ * apps (the tenant id is read from the route param, which the root injector
+ * doesn't see). A root-provided service would resolve through the root injector
+ * and fail with NG0201 on `AI_ADAPTER_OPTIONS`. Standalone components that
+ * inject this service pick up the route-level provider via the element
+ * injector hierarchy.
+ */
+@Injectable()
 export class AiAdapterClientService {
   private readonly http = inject(HttpClient);
   private readonly options = inject(AI_ADAPTER_OPTIONS);

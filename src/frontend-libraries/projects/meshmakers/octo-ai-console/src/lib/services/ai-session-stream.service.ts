@@ -46,7 +46,12 @@ export interface AiSessionStream {
  * components without a live hub; the real connection wiring lives behind a
  * `connectionFactory` provider the host overrides.
  */
-@Injectable({ providedIn: 'root' })
+/**
+ * Not `providedIn: 'root'` — see <see cref="AiAdapterClientService"/> for the
+ * rationale: `AI_ADAPTER_OPTIONS` is a per-route token, the root injector
+ * cannot resolve it. Element-level injection picks up the route-level provider.
+ */
+@Injectable()
 export class AiSessionStreamService {
   private readonly options = inject(AI_ADAPTER_OPTIONS);
   private readonly client = inject(AiAdapterClientService);

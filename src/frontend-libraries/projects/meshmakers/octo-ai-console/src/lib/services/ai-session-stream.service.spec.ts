@@ -1,6 +1,7 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { AiAdapterClientService } from './ai-adapter-client.service';
 import { AiSessionStreamService } from './ai-session-stream.service';
 import { provideOctoAiConsole } from './ai-adapter-options';
 import { AiSessionEventDto } from '../models/ai-session-event';
@@ -19,6 +20,8 @@ describe('AiSessionStreamService', () => {
           tenantId: 'acme',
           hubPath: 'hubs/ai',
         }),
+        AiAdapterClientService,
+        AiSessionStreamService,
       ],
     });
     service = TestBed.inject(AiSessionStreamService);
