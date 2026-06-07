@@ -36,6 +36,15 @@ export interface AiSessionDto {
   readonly completedAt?: string | null;
   readonly tokensConsumed: number;
   readonly ownerUserId: string;
+  /**
+   * Per-session preview URL (#4136) — present on sessions whose worker pod
+   * has the preview-deploy sidecar enabled AND the agent's
+   * `npm run build:prod` has emitted a dist under the convention path
+   * (`/workspaces/preview/{sessionRtId}/dist`). The server composes the URL
+   * via `AiWorkspaceOptions.PreviewUrlPattern`; absent / empty when the
+   * feature is off or no build is ready yet.
+   */
+  readonly previewUrl?: string | null;
 }
 
 /**

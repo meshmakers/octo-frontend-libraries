@@ -19,6 +19,23 @@
             <span class="mm-ai-session-list__tokens">
               {{ session.tokensConsumed }} tok
             </span>
+            @if (session.previewUrl) {
+              <!--
+                #4136 — preview-deploy URL the server surfaces when the worker
+                pod's nginx sidecar has a build to serve. Opens in a new tab so
+                the operator's session-list scroll position survives.
+                stopPropagation prevents the row click from also firing.
+              -->
+              <a
+                class="mm-ai-session-list__preview"
+                [href]="session.previewUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                (click)="$event.stopPropagation()"
+              >
+                Open preview
+              </a>
+            }
           </div>
         </div>
         <mm-ai-job-status-badge [status]="session.status" />

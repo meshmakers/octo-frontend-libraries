@@ -9,6 +9,10 @@ import {
 } from '../models/ai-session';
 import { AiSessionEventDto } from '../models/ai-session-event';
 import { AiApprovalDecisionDto } from '../models/ai-approval';
+import {
+  IssueAiCredentialTicketRequestDto,
+  IssueAiCredentialTicketResponseDto,
+} from '../models/ai-credential-ticket';
 
 /**
  * Typed REST client for the AI Adapter's session endpoints. Every method maps
@@ -105,6 +109,23 @@ export class AiAdapterClientService {
       `${this.tenantBase()}/sessions/${encodeURIComponent(sessionId)}` +
         `/approvals/${encodeURIComponent(requestId)}`,
       decision,
+    );
+  }
+
+  /**
+   * `POST /{tenantId}/v1/credentials/tickets` — mint a one-time credential-
+   * registration ticket (#4133). The admin sees the plaintext code once in
+   * the response; the server stores only the SHA-256 hash. The matching
+   * redemption call (`POST /v1/credentials/tickets/redeem`) is anonymous and
+   * NOT in this client because the redeemer is by design a different person
+   * on a different machine — they use the bastion CLI, not the Studio.
+   */
+  issueCredentialTicket(
+    request: IssueAiCredentialTicketRequestDto,
+  ): Observable<IssueAiCredentialTicketResponseDto> {
+    return this.http.post<IssueAiCredentialTicketResponseDto>(
+      `${this.tenantBase()}/credentials/tickets`,
+      request,
     );
   }
 

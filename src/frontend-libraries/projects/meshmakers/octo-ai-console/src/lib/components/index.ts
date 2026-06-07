@@ -4,3 +4,4 @@ export * from './ai-tool-call/ai-tool-call.component';
 export * from './ai-approval-modal/ai-approval-modal.component';
 export * from './ai-quota-indicator/ai-quota-indicator.component';
 export * from './ai-job-status-badge/ai-job-status-badge.component';
+export * from './ai-credential-ticket-issue/ai-credential-ticket-issue.component';

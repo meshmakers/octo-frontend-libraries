@@ -6,6 +6,7 @@
   --mm-ai-list-border: #2f343b;
   --mm-ai-list-text: #e6e6e6;
   --mm-ai-list-muted: #9aa0a6;
+  --mm-ai-list-accent: #64ceb9;
 }
 
 .mm-ai-session-list {
@@ -67,6 +68,14 @@
     font-size: 0.75rem;
     color: var(--mm-ai-list-muted);
     font-variant-numeric: tabular-nums;
+  }
+
+  &__preview {
+    color: var(--mm-ai-list-accent);
+    font-size: 0.75rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    &:hover { text-decoration-thickness: 2px; }
   }
 
   &__empty {

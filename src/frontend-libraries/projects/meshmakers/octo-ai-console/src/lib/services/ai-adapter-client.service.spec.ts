@@ -5,6 +5,7 @@ import { AiAdapterClientService } from './ai-adapter-client.service';
 import { provideOctoAiConsole } from './ai-adapter-options';
 import { CreateSessionRequestDto } from '../models/ai-session';
 import { AiApprovalDecisionDto } from '../models/ai-approval';
+import { IssueAiCredentialTicketRequestDto } from '../models/ai-credential-ticket';
 
 describe('AiAdapterClientService', () => {
   let service: AiAdapterClientService;
@@ -76,5 +77,22 @@ describe('AiAdapterClientService', () => {
     );
     expect(req.request.params.get('sinceSequence')).toBe('42');
     req.flush([]);
+  });
+
+  it('issueCredentialTicket POSTs to the tenant credentials/tickets route', () => {
+    const body: IssueAiCredentialTicketRequestDto = {
+      scope: 'CredentialRegister',
+      ttlMinutes: 5,
+    };
+    service.issueCredentialTicket(body).subscribe();
+    const req = httpMock.expectOne('https://ai.test/acme/v1/credentials/tickets');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(body);
+    req.flush({
+      rtId: '507f1f77bcf86cd799439011',
+      code: 'ABCDEFGHJKLM',
+      expiresAt: '2026-06-07T16:05:00Z',
+      scope: 'CredentialRegister',
+    });
   });
 });
