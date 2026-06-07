@@ -139,6 +139,10 @@ stages:
             parameters:
               publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/octo-meshboard'
               libName: 'octo-meshboard'
+          - template: npm-publish-to-npmjs.yml
+            parameters:
+              publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/octo-ai-console'
+              libName: 'octo-ai-console'
 
       # Job 2: Docker build (parallel)
       - job: docker_build
