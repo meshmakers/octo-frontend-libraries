@@ -4,6 +4,9 @@
   "compileOnSave": false,
   "compilerOptions": {
     "paths": {
+      "@meshmakers/octo-ai-console": [
+        "./dist/meshmakers/octo-ai-console"
+      ],
       "@meshmakers/octo-services": [
         "./dist/meshmakers/octo-services"
       ],

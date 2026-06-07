@@ -1,0 +1,19 @@
+<div class="mm-ai-chat">
+  @for (event of orderedEvents(); track event.sequence) {
+    <article class="mm-ai-chat__event mm-ai-chat__event--{{ variant(event.kind) }}">
+      <header class="mm-ai-chat__event-header">
+        <span class="mm-ai-chat__kind">{{ event.kind }}</span>
+        <span class="mm-ai-chat__actor">{{ event.actorRef }}</span>
+        <span class="mm-ai-chat__sequence">#{{ event.sequence }}</span>
+        <time class="mm-ai-chat__time" [attr.datetime]="event.at">
+          {{ event.at }}
+        </time>
+      </header>
+      <pre class="mm-ai-chat__payload">{{ event.payload }}</pre>
+    </article>
+  } @empty {
+    <div class="mm-ai-chat__empty">
+      No events yet — the worker hasn't emitted anything.
+    </div>
+  }
+</div>

@@ -1,0 +1,52 @@
+<div class="mm-ai-approval">
+  <header class="mm-ai-approval__header">
+    <h3 class="mm-ai-approval__title">Approve tool call</h3>
+    <button
+      type="button"
+      class="mm-ai-approval__close"
+      (click)="onDismiss()"
+      aria-label="Dismiss"
+    >
+      ×
+    </button>
+  </header>
+
+  <div class="mm-ai-approval__meta">
+    <div><span>Tool:</span> <code>{{ request().toolName }}</code></div>
+    <div><span>Reason:</span> <code>{{ request().reason }}</code></div>
+    <div><span>Session:</span> <code>{{ request().sessionId }}</code></div>
+  </div>
+
+  <div class="mm-ai-approval__section">
+    <h4 class="mm-ai-approval__heading">Payload</h4>
+    <pre class="mm-ai-approval__code">{{ prettyPayload() }}</pre>
+  </div>
+
+  <div class="mm-ai-approval__section">
+    <h4 class="mm-ai-approval__heading">Comment <span>(optional)</span></h4>
+    <textarea
+      class="mm-ai-approval__comment"
+      [ngModel]="comment()"
+      (ngModelChange)="comment.set($event)"
+      rows="3"
+      placeholder="Why is this approved or rejected?"
+    ></textarea>
+  </div>
+
+  <footer class="mm-ai-approval__actions">
+    <button
+      type="button"
+      class="mm-ai-approval__btn mm-ai-approval__btn--reject"
+      (click)="reject()"
+    >
+      Reject
+    </button>
+    <button
+      type="button"
+      class="mm-ai-approval__btn mm-ai-approval__btn--approve"
+      (click)="approve()"
+    >
+      Approve
+    </button>
+  </footer>
+</div>

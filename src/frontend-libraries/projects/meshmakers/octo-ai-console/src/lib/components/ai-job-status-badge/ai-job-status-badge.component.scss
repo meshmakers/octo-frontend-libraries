@@ -1,0 +1,51 @@
+:host {
+  display: inline-block;
+
+  --mm-ai-status-running-bg: #1f6feb;
+  --mm-ai-status-running-fg: #ffffff;
+  --mm-ai-status-queued-bg: #6e7681;
+  --mm-ai-status-queued-fg: #ffffff;
+  --mm-ai-status-paused-bg: #d29922;
+  --mm-ai-status-paused-fg: #1c1c1c;
+  --mm-ai-status-completed-bg: #2ea44f;
+  --mm-ai-status-completed-fg: #ffffff;
+  --mm-ai-status-failed-bg: #d73a49;
+  --mm-ai-status-failed-fg: #ffffff;
+  --mm-ai-status-blocked-bg: #8957e5;
+  --mm-ai-status-blocked-fg: #ffffff;
+}
+
+.mm-ai-status-badge {
+  display: inline-block;
+  padding: 0.15rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+
+  &--running {
+    background: var(--mm-ai-status-running-bg);
+    color: var(--mm-ai-status-running-fg);
+  }
+  &--queued {
+    background: var(--mm-ai-status-queued-bg);
+    color: var(--mm-ai-status-queued-fg);
+  }
+  &--paused {
+    background: var(--mm-ai-status-paused-bg);
+    color: var(--mm-ai-status-paused-fg);
+  }
+  &--completed {
+    background: var(--mm-ai-status-completed-bg);
+    color: var(--mm-ai-status-completed-fg);
+  }
+  &--failed {
+    background: var(--mm-ai-status-failed-bg);
+    color: var(--mm-ai-status-failed-fg);
+  }
+  &--blocked {
+    background: var(--mm-ai-status-blocked-bg);
+    color: var(--mm-ai-status-blocked-fg);
+  }
+}

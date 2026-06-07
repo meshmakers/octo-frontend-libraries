@@ -1,0 +1,125 @@
+:host {
+  display: block;
+  --mm-ai-approval-bg: #1f2227;
+  --mm-ai-approval-border: #2f343b;
+  --mm-ai-approval-text: #e6e6e6;
+  --mm-ai-approval-muted: #9aa0a6;
+  --mm-ai-approval-approve: #2ea44f;
+  --mm-ai-approval-reject: #d73a49;
+  --mm-ai-approval-code-bg: #16191d;
+}
+
+.mm-ai-approval {
+  background: var(--mm-ai-approval-bg);
+  color: var(--mm-ai-approval-text);
+  border: 1px solid var(--mm-ai-approval-border);
+  border-radius: 0.6rem;
+  padding: 1rem 1.25rem;
+  width: min(36rem, 100%);
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  &__title {
+    margin: 0;
+    font-size: 1rem;
+  }
+  &__close {
+    background: transparent;
+    color: var(--mm-ai-approval-muted);
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 0.25rem;
+
+    &:hover {
+      color: var(--mm-ai-approval-text);
+    }
+  }
+
+  &__meta {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+
+    span {
+      color: var(--mm-ai-approval-muted);
+      margin-right: 0.35rem;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, "Menlo", monospace;
+    }
+  }
+
+  &__section {
+    margin-bottom: 0.75rem;
+  }
+  &__heading {
+    margin: 0 0 0.3rem 0;
+    font-size: 0.75rem;
+    color: var(--mm-ai-approval-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    span {
+      text-transform: none;
+      letter-spacing: 0;
+      opacity: 0.6;
+    }
+  }
+
+  &__code {
+    margin: 0;
+    padding: 0.5rem 0.6rem;
+    background: var(--mm-ai-approval-code-bg);
+    border-radius: 0.3rem;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 14rem;
+  }
+
+  &__comment {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem 0.6rem;
+    background: var(--mm-ai-approval-code-bg);
+    color: inherit;
+    border: 1px solid var(--mm-ai-approval-border);
+    border-radius: 0.3rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    resize: vertical;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  &__btn {
+    padding: 0.45rem 1rem;
+    border-radius: 0.3rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+
+    &--approve {
+      background: var(--mm-ai-approval-approve);
+      color: #ffffff;
+    }
+    &--reject {
+      background: var(--mm-ai-approval-reject);
+      color: #ffffff;
+    }
+  }
+}

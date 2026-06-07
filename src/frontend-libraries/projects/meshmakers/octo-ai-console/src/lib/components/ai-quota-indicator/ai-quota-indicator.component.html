@@ -1,0 +1,23 @@
+<div class="mm-ai-quota">
+  <div class="mm-ai-quota__row">
+    <span class="mm-ai-quota__label">Daily</span>
+    <div class="mm-ai-quota__bar mm-ai-quota__bar--{{ dailyState() }}">
+      <div class="mm-ai-quota__fill" [style.width.%]="dailyPercent()"></div>
+    </div>
+    <span class="mm-ai-quota__count">
+      {{ dailyConsumed() }} / {{ dailyCap() }} ({{ dailyPercent() }}%)
+    </span>
+  </div>
+
+  @if (monthlyPercent() !== null) {
+    <div class="mm-ai-quota__row">
+      <span class="mm-ai-quota__label">Monthly</span>
+      <div class="mm-ai-quota__bar mm-ai-quota__bar--{{ monthlyState() }}">
+        <div class="mm-ai-quota__fill" [style.width.%]="monthlyPercent()"></div>
+      </div>
+      <span class="mm-ai-quota__count">
+        {{ monthlyConsumed() }} / {{ monthlyCap() }} ({{ monthlyPercent() }}%)
+      </span>
+    </div>
+  }
+</div>

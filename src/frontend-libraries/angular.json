@@ -286,6 +286,47 @@
         }
       }
     },
+    "@meshmakers/octo-ai-console": {
+      "projectType": "library",
+      "root": "projects/meshmakers/octo-ai-console",
+      "sourceRoot": "projects/meshmakers/octo-ai-console/src",
+      "prefix": "mm",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/meshmakers/octo-ai-console/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/meshmakers/octo-ai-console/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/meshmakers/octo-ai-console/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "karmaConfig": "karma.conf.js",
+            "tsConfig": "projects/meshmakers/octo-ai-console/tsconfig.spec.json",
+            "polyfills": ["zone.js", "zone.js/testing"]
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/meshmakers/octo-ai-console/**/*.ts",
+              "projects/meshmakers/octo-ai-console/**/*.html"
+            ],
+            "eslintConfig": "projects/meshmakers/octo-ai-console/eslint.config.js"
+          }
+        }
+      }
+    },
     "@meshmakers/octo-services": {
       "projectType": "library",
       "root": "projects/meshmakers/octo-services",

@@ -1,0 +1,100 @@
+:host {
+  display: block;
+
+  --mm-ai-tool-bg: #1f2227;
+  --mm-ai-tool-border: #2f343b;
+  --mm-ai-tool-text: #e6e6e6;
+  --mm-ai-tool-muted: #9aa0a6;
+  --mm-ai-tool-success: #2ea44f;
+  --mm-ai-tool-failed: #d73a49;
+  --mm-ai-tool-rejected: #d29922;
+  --mm-ai-tool-pending: #6e7681;
+  --mm-ai-tool-code-bg: #16191d;
+}
+
+.mm-ai-tool-call {
+  border: 1px solid var(--mm-ai-tool-border);
+  border-radius: 0.5rem;
+  background: var(--mm-ai-tool-bg);
+  color: var(--mm-ai-tool-text);
+  margin: 0.4rem 0;
+  overflow: hidden;
+
+  &--succeeded {
+    border-left: 3px solid var(--mm-ai-tool-success);
+  }
+  &--failed {
+    border-left: 3px solid var(--mm-ai-tool-failed);
+  }
+  &--rejected {
+    border-left: 3px solid var(--mm-ai-tool-rejected);
+  }
+  &--pending {
+    border-left: 3px solid var(--mm-ai-tool-pending);
+  }
+
+  &__header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    color: inherit;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.9rem;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
+
+  &__chevron {
+    width: 1rem;
+    text-align: center;
+    color: var(--mm-ai-tool-muted);
+  }
+
+  &__name {
+    font-weight: 600;
+    flex: 1;
+  }
+
+  &__status,
+  &__duration {
+    font-size: 0.75rem;
+    color: var(--mm-ai-tool-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__body {
+    border-top: 1px solid var(--mm-ai-tool-border);
+    padding: 0.5rem 0.75rem;
+  }
+
+  &__section + &__section {
+    margin-top: 0.75rem;
+  }
+
+  &__heading {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--mm-ai-tool-muted);
+  }
+
+  &__code {
+    margin: 0;
+    padding: 0.5rem 0.6rem;
+    background: var(--mm-ai-tool-code-bg);
+    border-radius: 0.3rem;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}

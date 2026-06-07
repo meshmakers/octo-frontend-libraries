@@ -1,0 +1,35 @@
+<div class="mm-ai-tool-call mm-ai-tool-call--{{ statusVariant() }}">
+  <button
+    type="button"
+    class="mm-ai-tool-call__header"
+    (click)="toggleExpanded()"
+    [attr.aria-expanded]="expanded()"
+  >
+    <span class="mm-ai-tool-call__chevron">
+      {{ expanded() ? '▾' : '▸' }}
+    </span>
+    <span class="mm-ai-tool-call__name">{{ call().toolName }}</span>
+    <span class="mm-ai-tool-call__status">{{ call().status }}</span>
+    @if (call().durationMs != null) {
+      <span class="mm-ai-tool-call__duration">
+        {{ call().durationMs }}ms
+      </span>
+    }
+  </button>
+
+  @if (expanded()) {
+    <div class="mm-ai-tool-call__body">
+      <div class="mm-ai-tool-call__section">
+        <h4 class="mm-ai-tool-call__heading">Arguments</h4>
+        <pre class="mm-ai-tool-call__code">{{ argumentsJson() }}</pre>
+      </div>
+
+      @if (resultJson() !== null) {
+        <div class="mm-ai-tool-call__section">
+          <h4 class="mm-ai-tool-call__heading">Result</h4>
+          <pre class="mm-ai-tool-call__code">{{ resultJson() }}</pre>
+        </div>
+      }
+    </div>
+  }
+</div>

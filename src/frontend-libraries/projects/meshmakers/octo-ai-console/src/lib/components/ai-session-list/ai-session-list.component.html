@@ -1,0 +1,30 @@
+<ul class="mm-ai-session-list">
+  @for (session of orderedSessions(); track session.sessionRtId) {
+    <li
+      class="mm-ai-session-list__row"
+      [class.mm-ai-session-list__row--selected]="
+        session.sessionRtId === selectedSessionId()
+      "
+    >
+      <button
+        type="button"
+        class="mm-ai-session-list__button"
+        (click)="onSelect(session.sessionRtId)"
+      >
+        <div class="mm-ai-session-list__main">
+          <div class="mm-ai-session-list__goal">{{ session.goalSummary }}</div>
+          <div class="mm-ai-session-list__meta">
+            <span class="mm-ai-session-list__owner">{{ session.ownerUserId }}</span>
+            <span class="mm-ai-session-list__age">{{ age(session.startedAt) }}</span>
+            <span class="mm-ai-session-list__tokens">
+              {{ session.tokensConsumed }} tok
+            </span>
+          </div>
+        </div>
+        <mm-ai-job-status-badge [status]="session.status" />
+      </button>
+    </li>
+  } @empty {
+    <li class="mm-ai-session-list__empty">No sessions yet.</li>
+  }
+</ul>
