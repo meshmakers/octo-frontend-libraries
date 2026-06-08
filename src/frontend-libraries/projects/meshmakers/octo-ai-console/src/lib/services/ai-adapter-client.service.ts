@@ -13,6 +13,10 @@ import {
   IssueAiCredentialTicketRequestDto,
   IssueAiCredentialTicketResponseDto,
 } from '../models/ai-credential-ticket';
+import {
+  AiGitHubPatDto,
+  RegisterAiGitHubPatRequestDto,
+} from '../models/ai-github-pat';
 
 /**
  * Typed REST client for the AI Adapter's session endpoints. Every method maps
@@ -170,6 +174,43 @@ export class AiAdapterClientService {
     return this.http.post<IssueAiCredentialTicketResponseDto>(
       `${this.tenantBase()}/credentials/tickets`,
       request,
+    );
+  }
+
+  /**
+   * `POST /{tenantId}/v1/credentials/github-pat` — register a GitHub Personal
+   * Access Token (#4124). The adapter validates the token against GitHub's
+   * `/user` endpoint before encryption; a refused token surfaces as HTTP 422
+   * with `error: 'github_refused_token'`. The response is intentionally minimal
+   * (`{ rtId }`); the host re-fetches the list so the rendering path stays
+   * shared with refresh.
+   */
+  registerGitHubPat(
+    request: RegisterAiGitHubPatRequestDto,
+  ): Observable<{ rtId: string }> {
+    return this.http.post<{ rtId: string }>(
+      `${this.tenantBase()}/credentials/github-pat`,
+      request,
+    );
+  }
+
+  /**
+   * `GET /{tenantId}/v1/credentials/github-pat` — list registered PATs with a
+   * masked tail + GitHub login. Plaintext never crosses the wire.
+   */
+  listGitHubPats(): Observable<AiGitHubPatDto[]> {
+    return this.http.get<AiGitHubPatDto[]>(
+      `${this.tenantBase()}/credentials/github-pat`,
+    );
+  }
+
+  /**
+   * `DELETE /{tenantId}/v1/credentials/github-pat/{rtId}` — revoke a PAT. The
+   * ciphertext is deleted, not soft-tombstoned. Returns void on 204.
+   */
+  deleteGitHubPat(rtId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.tenantBase()}/credentials/github-pat/${encodeURIComponent(rtId)}`,
     );
   }
 
