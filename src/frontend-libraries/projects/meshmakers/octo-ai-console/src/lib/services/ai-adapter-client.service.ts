@@ -99,6 +99,29 @@ export class AiAdapterClientService {
   }
 
   /**
+   * `POST /{tenantId}/v1/sessions/{sessionId}/messages` — append a follow-up
+   * user turn to a `Completed` session. The adapter re-materialises the
+   * workspace (fresh credential snapshot), recovers Claude's session id from
+   * the persisted `system/init` event of the original turn, and spawns
+   * <code>claude --resume &lt;id&gt;</code> so the conversation context
+   * carries over. The next turn's events stream on the same SignalR channel
+   * as the prior turn — there is no separate subscription to set up.
+   *
+   * Server response is 202 with the updated session DTO (status flipped back
+   * to `Running`); the caller can use the returned status to drive an
+   * optimistic UI update. Non-Completed sessions return 409 with
+   * <code>invalid_state_transition</code>; a session whose first turn died
+   * before claude emitted init returns 409 with
+   * <code>claude_session_id_not_captured</code>.
+   */
+  sendMessage(sessionId: string, text: string): Observable<AiSessionDto> {
+    return this.http.post<AiSessionDto>(
+      `${this.tenantBase()}/sessions/${encodeURIComponent(sessionId)}/messages`,
+      { text },
+    );
+  }
+
+  /**
    * `GET /{tenantId}/v1/sessions/{sessionId}/events?sinceSequence=N` — replay
    * persisted events for a session. UI uses this on reconnect to backfill any
    * events SignalR missed while disconnected (drives the resume-from-sequence
