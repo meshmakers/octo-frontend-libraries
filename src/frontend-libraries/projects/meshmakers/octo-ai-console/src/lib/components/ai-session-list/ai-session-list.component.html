@@ -39,6 +39,28 @@
           </div>
         </div>
         <mm-ai-job-status-badge [status]="session.status" />
+        <div class="mm-ai-session-list__actions">
+          @if (canCancel(session.status)) {
+            <button
+              type="button"
+              class="mm-ai-session-list__action mm-ai-session-list__action--cancel"
+              [attr.aria-label]="'Cancel session ' + session.goalSummary"
+              (click)="onCancel(session.sessionRtId, $event)"
+            >
+              Cancel
+            </button>
+          }
+          @if (canDelete(session.status)) {
+            <button
+              type="button"
+              class="mm-ai-session-list__action mm-ai-session-list__action--delete"
+              [attr.aria-label]="'Delete session ' + session.goalSummary"
+              (click)="onDelete(session.sessionRtId, $event)"
+            >
+              Delete
+            </button>
+          }
+        </div>
       </button>
     </li>
   } @empty {

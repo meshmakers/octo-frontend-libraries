@@ -86,6 +86,19 @@ export class AiAdapterClientService {
   }
 
   /**
+   * `DELETE /{tenantId}/v1/sessions/{sessionId}` — hard-delete a terminal
+   * session. The server refuses non-terminal sessions with HTTP 409 and the
+   * <code>invalid_state_transition</code> error code, so callers should cancel
+   * first when the session is still in flight. 204 on success; the response
+   * has no body.
+   */
+  deleteSession(sessionId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.tenantBase()}/sessions/${encodeURIComponent(sessionId)}`,
+    );
+  }
+
+  /**
    * `GET /{tenantId}/v1/sessions/{sessionId}/events?sinceSequence=N` — replay
    * persisted events for a session. UI uses this on reconnect to backfill any
    * events SignalR missed while disconnected (drives the resume-from-sequence

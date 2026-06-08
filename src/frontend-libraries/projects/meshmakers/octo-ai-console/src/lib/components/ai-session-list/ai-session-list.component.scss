@@ -7,6 +7,8 @@
   --mm-ai-list-text: #e6e6e6;
   --mm-ai-list-muted: #9aa0a6;
   --mm-ai-list-accent: #64ceb9;
+  --mm-ai-list-action-cancel: #da9162;
+  --mm-ai-list-action-delete: #ec658f;
 }
 
 .mm-ai-session-list {
@@ -83,5 +85,58 @@
     text-align: center;
     color: var(--mm-ai-list-muted);
     font-style: italic;
+  }
+
+  // Action buttons sit between the status badge and the row's right edge.
+  // Default to subtle so the row's primary read remains "goal + status",
+  // brighten on row hover so the operator sees what's actionable. The
+  // host's confirm dialog catches the actual side effect — these buttons
+  // only fire the output event.
+  &__actions {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0.45;
+    transition: opacity 0.15s ease;
+  }
+
+  &__row:hover &__actions,
+  &__row--selected &__actions {
+    opacity: 1;
+  }
+
+  &__action {
+    padding: 0.2rem 0.55rem;
+    background: transparent;
+    border: 1px solid var(--mm-ai-list-border);
+    border-radius: 0.3rem;
+    color: var(--mm-ai-list-text);
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    &--cancel {
+      color: var(--mm-ai-list-action-cancel);
+      border-color: color-mix(in srgb, var(--mm-ai-list-action-cancel) 40%, transparent);
+
+      &:hover {
+        border-color: var(--mm-ai-list-action-cancel);
+      }
+    }
+
+    &--delete {
+      color: var(--mm-ai-list-action-delete);
+      border-color: color-mix(in srgb, var(--mm-ai-list-action-delete) 40%, transparent);
+
+      &:hover {
+        border-color: var(--mm-ai-list-action-delete);
+      }
+    }
   }
 }
