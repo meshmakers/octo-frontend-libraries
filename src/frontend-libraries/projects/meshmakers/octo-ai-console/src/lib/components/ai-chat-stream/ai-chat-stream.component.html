@@ -1,16 +1,137 @@
 <div class="mm-ai-chat">
-  @for (event of orderedEvents(); track event.sequence) {
-    <article class="mm-ai-chat__event mm-ai-chat__event--{{ variant(event.kind) }}">
-      <header class="mm-ai-chat__event-header">
-        <span class="mm-ai-chat__kind">{{ event.kind }}</span>
-        <span class="mm-ai-chat__actor">{{ event.actorRef }}</span>
-        <span class="mm-ai-chat__sequence">#{{ event.sequence }}</span>
-        <time class="mm-ai-chat__time" [attr.datetime]="event.at">
-          {{ event.at }}
-        </time>
-      </header>
-      <pre class="mm-ai-chat__payload">{{ event.payload }}</pre>
-    </article>
+  @for (parsed of parsedEvents(); track parsed.event.sequence) {
+    @switch (parsed.view.kind) {
+      @case ('assistant') {
+        <article class="mm-ai-chat__bubble mm-ai-chat__bubble--assistant">
+          <header class="mm-ai-chat__bubble-header">
+            <span class="mm-ai-chat__role">Assistant</span>
+            @if (parsed.view.model; as model) {
+              <span class="mm-ai-chat__meta">{{ model }}</span>
+            }
+            @if (parsed.view.usage; as usage) {
+              <span class="mm-ai-chat__meta">
+                {{ formatTokenCount(usage.input + usage.output) }}
+              </span>
+            }
+            <time class="mm-ai-chat__time">{{ formatTime(parsed.event.at) }}</time>
+          </header>
+          @for (part of parsed.view.parts; track $index) {
+            @switch (part.type) {
+              @case ('text') {
+                <p class="mm-ai-chat__text">{{ part.text }}</p>
+              }
+              @case ('tool_use') {
+                <div class="mm-ai-chat__tool-use">
+                  <header class="mm-ai-chat__tool-use-header">
+                    <span class="mm-ai-chat__tool-badge">tool</span>
+                    <span class="mm-ai-chat__tool-name">{{ part.toolName }}</span>
+                  </header>
+                  <pre class="mm-ai-chat__tool-input">{{ formatRaw(part.input) }}</pre>
+                </div>
+              }
+            }
+          }
+        </article>
+      }
+
+      @case ('tool-result') {
+        <article
+          class="mm-ai-chat__tool-result"
+          [class.mm-ai-chat__tool-result--error]="parsed.view.isError"
+        >
+          <header class="mm-ai-chat__tool-result-header">
+            <span class="mm-ai-chat__role">Tool result</span>
+            @if (parsed.view.isError) {
+              <span class="mm-ai-chat__error-badge">error</span>
+            }
+            <time class="mm-ai-chat__time">{{ formatTime(parsed.event.at) }}</time>
+          </header>
+          <pre class="mm-ai-chat__tool-result-body">{{ parsed.view.content }}</pre>
+        </article>
+      }
+
+      @case ('result') {
+        <article class="mm-ai-chat__result"
+                 [class.mm-ai-chat__result--error]="parsed.view.isError">
+          <header class="mm-ai-chat__result-header">
+            <span class="mm-ai-chat__role">{{ parsed.view.reason }}</span>
+            <time class="mm-ai-chat__time">{{ formatTime(parsed.event.at) }}</time>
+          </header>
+          @if (parsed.view.text) {
+            <p class="mm-ai-chat__result-text">{{ parsed.view.text }}</p>
+          }
+          <dl class="mm-ai-chat__result-stats">
+            <div>
+              <dt>Duration</dt>
+              <dd>{{ formatDuration(parsed.view.durationMs) }}</dd>
+            </div>
+            <div>
+              <dt>Tokens (in/out)</dt>
+              <dd>
+                @if (parsed.view.usage) {
+                  {{ formatTokenCount(parsed.view.usage.input) }}
+                  /
+                  {{ formatTokenCount(parsed.view.usage.output) }}
+                } @else {
+                  —
+                }
+              </dd>
+            </div>
+            <div>
+              <dt>Cost</dt>
+              <dd>{{ formatCost(parsed.view.costUsd) }}</dd>
+            </div>
+          </dl>
+        </article>
+      }
+
+      @case ('system') {
+        <button
+          type="button"
+          class="mm-ai-chat__system"
+          [class.mm-ai-chat__system--init]="parsed.view.subKind === 'init'"
+          [class.mm-ai-chat__system--hook]="parsed.view.subKind === 'hook'"
+          [class.mm-ai-chat__system--rate]="parsed.view.subKind === 'rate-limit'"
+          [attr.aria-expanded]="isExpanded(parsed.event.sequence)"
+          (click)="toggleRaw(parsed.event.sequence)"
+        >
+          <span class="mm-ai-chat__system-chevron">
+            {{ isExpanded(parsed.event.sequence) ? '▾' : '▸' }}
+          </span>
+          <span class="mm-ai-chat__system-summary">{{ parsed.view.summary }}</span>
+          <time class="mm-ai-chat__time">{{ formatTime(parsed.event.at) }}</time>
+        </button>
+        @if (isExpanded(parsed.event.sequence)) {
+          <pre class="mm-ai-chat__system-detail">{{ formatRaw(parsed.view.raw) }}</pre>
+        }
+      }
+
+      @case ('status-change') {
+        <div class="mm-ai-chat__status">
+          <span class="mm-ai-chat__status-label">Status</span>
+          <span class="mm-ai-chat__status-value">{{ parsed.view.status }}</span>
+          <time class="mm-ai-chat__time">{{ formatTime(parsed.event.at) }}</time>
+        </div>
+      }
+
+      @case ('unknown') {
+        <button
+          type="button"
+          class="mm-ai-chat__system mm-ai-chat__system--unknown"
+          [attr.aria-expanded]="isExpanded(parsed.event.sequence)"
+          (click)="toggleRaw(parsed.event.sequence)"
+        >
+          <span class="mm-ai-chat__system-chevron">
+            {{ isExpanded(parsed.event.sequence) ? '▾' : '▸' }}
+          </span>
+          <span class="mm-ai-chat__system-summary">{{ parsed.view.summary }}</span>
+          <time class="mm-ai-chat__time">{{ formatTime(parsed.event.at) }}</time>
+        </button>
+        @if (isExpanded(parsed.event.sequence)) {
+          <pre class="mm-ai-chat__system-detail">{{ formatRaw(parsed.view.raw) }}</pre>
+        }
+      }
+    }
   } @empty {
     <div class="mm-ai-chat__empty">
       No events yet — the worker hasn't emitted anything.

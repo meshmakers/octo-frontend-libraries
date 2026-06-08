@@ -1,90 +1,351 @@
+// Theme-neutral defaults. Host apps (Refinery Studio LCARS, demo-app, etc.)
+// override every `--mm-ai-chat-*` token via their own stylesheet, so this
+// component only carries shape + spacing, never brand colour.
 :host {
   display: block;
-  --mm-ai-chat-bg: #16191d;
-  --mm-ai-chat-card-bg: #1f2227;
-  --mm-ai-chat-border: #2f343b;
+
+  // Surface tokens — used for backgrounds, borders, dividers.
+  --mm-ai-chat-bg: transparent;
+  --mm-ai-chat-card-bg: rgba(31, 46, 64, 0.55);
+  --mm-ai-chat-card-bg-elevated: rgba(31, 46, 64, 0.85);
+  --mm-ai-chat-border: rgba(100, 206, 185, 0.18);
+  --mm-ai-chat-border-strong: rgba(100, 206, 185, 0.4);
   --mm-ai-chat-text: #e6e6e6;
-  --mm-ai-chat-muted: #9aa0a6;
-  --mm-ai-chat-message: #1f6feb;
-  --mm-ai-chat-tool-call: #d29922;
-  --mm-ai-chat-tool-result: #2ea44f;
-  --mm-ai-chat-status: #6e7681;
-  --mm-ai-chat-hook: #8957e5;
-  --mm-ai-chat-error: #d73a49;
+  --mm-ai-chat-muted: #9292a6;
+
+  // Per-kind accent — left-edge stripe / badge tint.
+  --mm-ai-chat-accent-assistant: #64ceb9;
+  --mm-ai-chat-accent-tool: #00a8dc;
+  --mm-ai-chat-accent-tool-result: #00a8dc;
+  --mm-ai-chat-accent-system: #6c4da8;
+  --mm-ai-chat-accent-rate-limit: #da9162;
+  --mm-ai-chat-accent-result: #64ceb9;
+  --mm-ai-chat-accent-error: #ec658f;
 }
 
 .mm-ai-chat {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 0.5rem;
+  padding: 0.25rem;
   background: var(--mm-ai-chat-bg);
   color: var(--mm-ai-chat-text);
-  border-radius: 0.5rem;
-
-  &__event {
-    background: var(--mm-ai-chat-card-bg);
-    border: 1px solid var(--mm-ai-chat-border);
-    border-left-width: 3px;
-    border-radius: 0.4rem;
-    padding: 0.5rem 0.6rem;
-  }
-
-  &__event--message {
-    border-left-color: var(--mm-ai-chat-message);
-  }
-  &__event--tool-call {
-    border-left-color: var(--mm-ai-chat-tool-call);
-  }
-  &__event--tool-result {
-    border-left-color: var(--mm-ai-chat-tool-result);
-  }
-  &__event--status {
-    border-left-color: var(--mm-ai-chat-status);
-  }
-  &__event--hook {
-    border-left-color: var(--mm-ai-chat-hook);
-  }
-  &__event--error {
-    border-left-color: var(--mm-ai-chat-error);
-  }
-
-  &__event-header {
-    display: flex;
-    gap: 0.5rem;
-    align-items: baseline;
-    font-size: 0.75rem;
-    color: var(--mm-ai-chat-muted);
-    margin-bottom: 0.3rem;
-  }
-
-  &__kind {
-    font-weight: 700;
-    color: var(--mm-ai-chat-text);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  &__sequence,
-  &__time {
-    font-variant-numeric: tabular-nums;
-  }
-
-  &__time {
-    margin-left: auto;
-  }
-
-  &__payload {
-    margin: 0;
-    font-size: 0.8rem;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
+  font-size: 0.85rem;
+  line-height: 1.45;
 
   &__empty {
     color: var(--mm-ai-chat-muted);
     text-align: center;
-    padding: 1rem;
+    padding: 1.5rem;
     font-style: italic;
   }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Assistant bubble (the "main" conversational unit).
+// ────────────────────────────────────────────────────────────────────────────
+
+.mm-ai-chat__bubble {
+  background: var(--mm-ai-chat-card-bg);
+  border: 1px solid var(--mm-ai-chat-border);
+  border-left: 3px solid var(--mm-ai-chat-accent-assistant);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mm-ai-chat__bubble-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--mm-ai-chat-muted);
+}
+
+.mm-ai-chat__role {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mm-ai-chat-accent-assistant);
+}
+
+.mm-ai-chat__meta {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--mm-ai-chat-muted);
+}
+
+.mm-ai-chat__time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.7rem;
+  color: var(--mm-ai-chat-muted);
+}
+
+.mm-ai-chat__text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Tool-use (nested under the assistant bubble that requested it).
+// ────────────────────────────────────────────────────────────────────────────
+
+.mm-ai-chat__tool-use {
+  border: 1px solid var(--mm-ai-chat-border);
+  border-left: 2px solid var(--mm-ai-chat-accent-tool);
+  border-radius: 0.35rem;
+  background: var(--mm-ai-chat-card-bg-elevated);
+  padding: 0.4rem 0.5rem;
+}
+
+.mm-ai-chat__tool-use-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+}
+
+.mm-ai-chat__tool-badge {
+  background: var(--mm-ai-chat-accent-tool);
+  color: #07172b;
+  padding: 0 6px;
+  border-radius: 0.25rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+
+.mm-ai-chat__tool-name {
+  font-family: 'Roboto Mono', monospace;
+  color: var(--mm-ai-chat-text);
+  font-weight: 600;
+}
+
+.mm-ai-chat__tool-input {
+  margin: 0.35rem 0 0 0;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--mm-ai-chat-muted);
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Tool-result (the worker's answer to a tool_use).
+// ────────────────────────────────────────────────────────────────────────────
+
+.mm-ai-chat__tool-result {
+  background: var(--mm-ai-chat-card-bg);
+  border: 1px solid var(--mm-ai-chat-border);
+  border-left: 3px solid var(--mm-ai-chat-accent-tool-result);
+  border-radius: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  margin-left: 1.25rem; // indent so the result reads as "in reply to"
+
+  &--error {
+    border-left-color: var(--mm-ai-chat-accent-error);
+  }
+}
+
+.mm-ai-chat__tool-result-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--mm-ai-chat-muted);
+
+  .mm-ai-chat__role {
+    color: var(--mm-ai-chat-accent-tool-result);
+  }
+}
+
+.mm-ai-chat__error-badge {
+  background: var(--mm-ai-chat-accent-error);
+  color: #07172b;
+  padding: 0 6px;
+  border-radius: 0.25rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mm-ai-chat__tool-result-body {
+  margin: 0.4rem 0 0 0;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Terminal result (one per finished session).
+// ────────────────────────────────────────────────────────────────────────────
+
+.mm-ai-chat__result {
+  background: var(--mm-ai-chat-card-bg-elevated);
+  border: 1px solid var(--mm-ai-chat-border-strong);
+  border-top: 3px solid var(--mm-ai-chat-accent-result);
+  border-radius: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &--error {
+    border-top-color: var(--mm-ai-chat-accent-error);
+  }
+}
+
+.mm-ai-chat__result-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--mm-ai-chat-muted);
+
+  .mm-ai-chat__role {
+    color: var(--mm-ai-chat-accent-result);
+    text-transform: uppercase;
+  }
+}
+
+.mm-ai-chat__result-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-style: italic;
+  color: var(--mm-ai-chat-text);
+}
+
+.mm-ai-chat__result-stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.5rem;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.75rem;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.4rem 0.5rem;
+    background: rgba(100, 206, 185, 0.06);
+    border-radius: 0.3rem;
+  }
+
+  dt {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mm-ai-chat-muted);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--mm-ai-chat-text);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// System events — single-line collapsed rows, click to reveal raw JSON.
+// ────────────────────────────────────────────────────────────────────────────
+
+.mm-ai-chat__system {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  background: rgba(100, 206, 185, 0.03);
+  border: 1px solid var(--mm-ai-chat-border);
+  border-left: 2px solid var(--mm-ai-chat-accent-system);
+  border-radius: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--mm-ai-chat-muted);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: rgba(100, 206, 185, 0.06);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mm-ai-chat-accent-assistant);
+    outline-offset: 1px;
+  }
+
+  &--init {
+    border-left-color: var(--mm-ai-chat-accent-tool);
+  }
+  &--hook {
+    border-left-color: var(--mm-ai-chat-accent-system);
+  }
+  &--rate {
+    border-left-color: var(--mm-ai-chat-accent-rate-limit);
+  }
+  &--unknown {
+    border-left-color: var(--mm-ai-chat-accent-error);
+  }
+}
+
+.mm-ai-chat__system-chevron {
+  font-size: 0.7rem;
+  width: 0.7rem;
+  color: var(--mm-ai-chat-muted);
+}
+
+.mm-ai-chat__system-summary {
+  flex: 1;
+  color: var(--mm-ai-chat-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.mm-ai-chat__system-detail {
+  margin: -0.25rem 0 0 1.5rem;
+  padding: 0.5rem 0.6rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 0.35rem;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.7rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 22rem;
+  overflow-y: auto;
+  color: var(--mm-ai-chat-muted);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Status-change pill (running → completed etc.).
+// ────────────────────────────────────────────────────────────────────────────
+
+.mm-ai-chat__status {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--mm-ai-chat-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mm-ai-chat__status-label {
+  color: var(--mm-ai-chat-muted);
+}
+
+.mm-ai-chat__status-value {
+  color: var(--mm-ai-chat-text);
+  font-weight: 600;
 }
