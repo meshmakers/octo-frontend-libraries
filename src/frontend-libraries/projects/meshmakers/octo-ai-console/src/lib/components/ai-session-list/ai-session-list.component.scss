@@ -32,11 +32,15 @@
     }
   }
 
+  // Row button is a vertical stack with two lines: top = goal + status badge,
+  // bottom = meta + actions. The previous horizontal layout couldn't fit
+  // both content and the cancel/delete buttons inside an 18rem column —
+  // text overlapped the badge on every row.
   &__button {
     width: 100%;
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    flex-direction: column;
+    gap: 0.3rem;
     padding: 0.5rem 0.75rem;
     background: transparent;
     color: var(--mm-ai-list-text);
@@ -44,39 +48,61 @@
     cursor: pointer;
     text-align: left;
     font-family: inherit;
+    min-width: 0;
 
     &:hover {
       background: rgba(255, 255, 255, 0.03);
     }
   }
 
-  &__main {
-    flex: 1;
+  &__top {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     min-width: 0;
   }
 
   &__goal {
-    font-size: 0.9rem;
+    flex: 1;
+    min-width: 0;
+    font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  &__meta {
+  &__bottom {
     display: flex;
-    gap: 0.75rem;
-    margin-top: 0.15rem;
-    font-size: 0.75rem;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
     color: var(--mm-ai-list-muted);
     font-variant-numeric: tabular-nums;
+    min-width: 0;
+  }
+
+  &__meta {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  &__dot {
+    opacity: 0.5;
+  }
+
+  &__spacer {
+    flex: 1;
   }
 
   &__preview {
     color: var(--mm-ai-list-accent);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-decoration: underline;
     text-underline-offset: 2px;
+    flex-shrink: 0;
     &:hover { text-decoration-thickness: 2px; }
   }
 
@@ -87,14 +113,14 @@
     font-style: italic;
   }
 
-  // Action buttons sit between the status badge and the row's right edge.
-  // Default to subtle so the row's primary read remains "goal + status",
-  // brighten on row hover so the operator sees what's actionable. The
-  // host's confirm dialog catches the actual side effect — these buttons
-  // only fire the output event.
+  // Action buttons live on the bottom row pushed right by `__spacer`. Default
+  // to subtle so the row's primary read stays "goal + status", brighten on
+  // row hover so the operator sees what's actionable. The host's confirm
+  // dialog catches the actual side effect — these only fire the output event.
   &__actions {
     display: flex;
     gap: 0.25rem;
+    flex-shrink: 0;
     opacity: 0.45;
     transition: opacity 0.15s ease;
   }
@@ -105,13 +131,13 @@
   }
 
   &__action {
-    padding: 0.2rem 0.55rem;
+    padding: 0.15rem 0.5rem;
     background: transparent;
     border: 1px solid var(--mm-ai-list-border);
-    border-radius: 0.3rem;
+    border-radius: 0.25rem;
     color: var(--mm-ai-list-text);
     font-family: inherit;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     cursor: pointer;

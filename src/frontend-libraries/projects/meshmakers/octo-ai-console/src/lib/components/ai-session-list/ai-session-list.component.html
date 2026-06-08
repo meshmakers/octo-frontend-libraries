@@ -11,55 +11,63 @@
         class="mm-ai-session-list__button"
         (click)="onSelect(session.sessionRtId)"
       >
-        <div class="mm-ai-session-list__main">
-          <div class="mm-ai-session-list__goal">{{ session.goalSummary }}</div>
-          <div class="mm-ai-session-list__meta">
-            <span class="mm-ai-session-list__owner">{{ session.ownerUserId }}</span>
-            <span class="mm-ai-session-list__age">{{ age(session.startedAt) }}</span>
-            <span class="mm-ai-session-list__tokens">
-              {{ session.tokensConsumed }} tok
-            </span>
-            @if (session.previewUrl) {
-              <!--
-                #4136 — preview-deploy URL the server surfaces when the worker
-                pod's nginx sidecar has a build to serve. Opens in a new tab so
-                the operator's session-list scroll position survives.
-                stopPropagation prevents the row click from also firing.
-              -->
-              <a
-                class="mm-ai-session-list__preview"
-                [href]="session.previewUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                (click)="$event.stopPropagation()"
-              >
-                Open preview
-              </a>
-            }
-          </div>
+        <!--
+          Row layout: goal + status badge on top, meta + actions on the
+          bottom. The two-line shape lets a narrow sidebar (Refinery
+          Studio caps the column at 18rem) breathe — the previous
+          horizontal cram had the goal text overlap the action buttons
+          on every row.
+        -->
+        <div class="mm-ai-session-list__top">
+          <span class="mm-ai-session-list__goal">{{ session.goalSummary }}</span>
+          <mm-ai-job-status-badge [status]="session.status" />
         </div>
-        <mm-ai-job-status-badge [status]="session.status" />
-        <div class="mm-ai-session-list__actions">
-          @if (canCancel(session.status)) {
-            <button
-              type="button"
-              class="mm-ai-session-list__action mm-ai-session-list__action--cancel"
-              [attr.aria-label]="'Cancel session ' + session.goalSummary"
-              (click)="onCancel(session.sessionRtId, $event)"
+        <div class="mm-ai-session-list__bottom">
+          <span class="mm-ai-session-list__meta">
+            {{ age(session.startedAt) }}
+            <span class="mm-ai-session-list__dot">·</span>
+            {{ session.tokensConsumed }} tok
+          </span>
+          @if (session.previewUrl) {
+            <!--
+              #4136 — preview-deploy URL the server surfaces when the
+              worker pod's nginx sidecar has a build to serve. Opens in
+              a new tab so the sidebar scroll position survives.
+              stopPropagation prevents the row click from also firing.
+            -->
+            <a
+              class="mm-ai-session-list__preview"
+              [href]="session.previewUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              (click)="$event.stopPropagation()"
             >
-              Cancel
-            </button>
+              Preview
+            </a>
           }
-          @if (canDelete(session.status)) {
-            <button
-              type="button"
-              class="mm-ai-session-list__action mm-ai-session-list__action--delete"
-              [attr.aria-label]="'Delete session ' + session.goalSummary"
-              (click)="onDelete(session.sessionRtId, $event)"
-            >
-              Delete
-            </button>
-          }
+          <span class="mm-ai-session-list__spacer"></span>
+          <span class="mm-ai-session-list__actions">
+            @if (canCancel(session.status)) {
+              <button
+                type="button"
+                class="mm-ai-session-list__action mm-ai-session-list__action--cancel"
+                [attr.aria-label]="'Cancel session ' + session.goalSummary"
+                (click)="onCancel(session.sessionRtId, $event)"
+              >
+                Cancel
+              </button>
+            }
+            @if (canDelete(session.status)) {
+              <button
+                type="button"
+                class="mm-ai-session-list__action mm-ai-session-list__action--delete"
+                [attr.aria-label]="'Delete session ' + session.goalSummary"
+                (click)="onDelete(session.sessionRtId, $event)"
+              >
+                Delete
+              </button>
+            }
+          </span>
         </div>
       </button>
     </li>
