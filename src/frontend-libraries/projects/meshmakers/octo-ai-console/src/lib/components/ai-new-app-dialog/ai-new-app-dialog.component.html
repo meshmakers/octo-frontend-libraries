@@ -1,0 +1,104 @@
+<div class="mm-ai-new-app">
+  <header class="mm-ai-new-app__header">
+    <h3 class="mm-ai-new-app__title">
+      New App
+      @if (tenantName(); as tenant) {
+        <span class="mm-ai-new-app__tenant"> · {{ tenant }}</span>
+      }
+    </h3>
+    <button
+      type="button"
+      class="mm-ai-new-app__close"
+      (click)="onCancel()"
+      aria-label="Dismiss"
+    >
+      ×
+    </button>
+  </header>
+
+  <div class="mm-ai-new-app__section">
+    <h4 class="mm-ai-new-app__heading">Template</h4>
+    <ul class="mm-ai-new-app__templates" role="radiogroup" aria-label="Template">
+      @for (template of templates(); track template.id) {
+        <li>
+          <label
+            class="mm-ai-new-app__template"
+            [class.mm-ai-new-app__template--active]="
+              selectedTemplateId() === template.id
+            "
+          >
+            <input
+              type="radio"
+              name="mm-ai-new-app-template"
+              [value]="template.id"
+              [checked]="selectedTemplateId() === template.id"
+              (change)="selectedTemplateId.set(template.id)"
+            />
+            <span class="mm-ai-new-app__template-body">
+              <strong class="mm-ai-new-app__template-name">{{ template.name }}</strong>
+              <span class="mm-ai-new-app__template-description">
+                {{ template.description }}
+              </span>
+            </span>
+          </label>
+        </li>
+      }
+    </ul>
+  </div>
+
+  @if (selectedTemplate(); as template) {
+    <div class="mm-ai-new-app__section">
+      <h4 class="mm-ai-new-app__heading">Parameters</h4>
+      <div class="mm-ai-new-app__field">
+        <label for="mm-ai-new-app-project-name">Project name</label>
+        <input
+          id="mm-ai-new-app-project-name"
+          type="text"
+          [ngModel]="projectName()"
+          (ngModelChange)="projectName.set($event)"
+          placeholder="e.g. customer-list"
+          autocomplete="off"
+        />
+      </div>
+      <div class="mm-ai-new-app__field">
+        <label for="mm-ai-new-app-primary-entity">Primary entity (CK type)</label>
+        <input
+          id="mm-ai-new-app-primary-entity"
+          type="text"
+          [ngModel]="primaryEntity()"
+          (ngModelChange)="primaryEntity.set($event)"
+          placeholder="e.g. Customer"
+          autocomplete="off"
+        />
+      </div>
+    </div>
+
+    <div class="mm-ai-new-app__section">
+      <h4 class="mm-ai-new-app__heading">
+        Generated Goal <span>(this is what Claude will see)</span>
+      </h4>
+      <pre class="mm-ai-new-app__preview">{{
+        renderedGoal() ||
+          'Fill in every field above to preview the Goal that will be sent.'
+      }}</pre>
+    </div>
+  }
+
+  <footer class="mm-ai-new-app__actions">
+    <button
+      type="button"
+      class="mm-ai-new-app__btn mm-ai-new-app__btn--cancel"
+      (click)="onCancel()"
+    >
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="mm-ai-new-app__btn mm-ai-new-app__btn--submit"
+      [disabled]="!allRequiredFilled()"
+      (click)="onSubmit()"
+    >
+      Create App Session
+    </button>
+  </footer>
+</div>

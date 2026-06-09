@@ -17,6 +17,7 @@ import {
   AiGitHubPatDto,
   RegisterAiGitHubPatRequestDto,
 } from '../models/ai-github-pat';
+import { AiAppTemplateDto } from '../models/ai-app-template';
 
 /**
  * Typed REST client for the AI Adapter's session endpoints. Every method maps
@@ -211,6 +212,18 @@ export class AiAdapterClientService {
   deleteGitHubPat(rtId: string): Observable<void> {
     return this.http.delete<void>(
       `${this.tenantBase()}/credentials/github-pat/${encodeURIComponent(rtId)}`,
+    );
+  }
+
+  /**
+   * `GET /{tenantId}/v1/app-templates` — list the Custom-App templates the
+   * adapter exposes for the wizard (#4145). Phase-1 returns the same three
+   * static entries for every tenant; the wire shape is stable so per-tenant
+   * overrides can ride it without an SPA bump.
+   */
+  getAppTemplates(): Observable<AiAppTemplateDto[]> {
+    return this.http.get<AiAppTemplateDto[]>(
+      `${this.tenantBase()}/app-templates`,
     );
   }
 
