@@ -1,4 +1,5 @@
 {
+  "platformUri": "https://localhost:5025",
   "adminUri": "https://localhost:5005",
   "clientId": "octo-demo-app",
   "redirectUri": "https://localhost:4201/",

@@ -1,5 +1,6 @@
 #!/bin/sh
 
+export PLATFORM_URI=${PLATFORM_URI:-${ADMIN_PANEL_URI:-https://localhost:5025}}
 export ADMIN_PANEL_URI=${ADMIN_PANEL_URI:-https://localhost:5005}
 export CLIENT_ID=${CLIENT_ID:-octo-demo-app}
 export APP_URI=${APP_URI:-https://localhost:4201}

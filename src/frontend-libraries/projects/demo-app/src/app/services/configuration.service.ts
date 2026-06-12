@@ -27,13 +27,16 @@ export class AppConfigurationService implements IConfigurationService {
     console.debug('loading config');
 
     const config = await firstValueFrom(this.httpClient.get<ConfigurationDto>('/assets/config.json'));
-    let adminUri = config.adminUri;
-    if (!adminUri.endsWith('/')) {
-      adminUri = `${adminUri}/`;
+    // Prefer the new platformUri (Phase 1 of the platform-services initiative)
+    // and fall back to the legacy adminUri so configs baked into older Office
+    // add-ins / PowerBI connectors keep working.
+    let platformUri = config.platformUri ?? config.adminUri;
+    if (!platformUri.endsWith('/')) {
+      platformUri = `${platformUri}/`;
     }
-    console.debug('adminUri', adminUri);
+    console.debug('platformUri', platformUri);
 
-    const adminPanelConfig = await firstValueFrom(this.httpClient.get<AdminPanelConfigurationDto>(`${adminUri}octosystem/_configuration`));
+    const adminPanelConfig = await firstValueFrom(this.httpClient.get<AdminPanelConfigurationDto>(`${platformUri}octosystem/_configuration`));
 
     this._config.issuer = adminPanelConfig.issuer;
     this._config.assetServices = adminPanelConfig.assetServices;
