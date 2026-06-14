@@ -1,0 +1,416 @@
+# Root-level CI pipeline for octo-frontend-libraries, using the shared
+# L1 npm/Docker family from octo-pipeline-templates@tpl-v0.4.2.
+#
+# Third pilot of the npm/Docker template family. Substantially more
+# complex than refinery-studio / office because frontend-libraries IS
+# the source of the @meshmakers/* npm packages — not a consumer. The
+# legacy 2-stage Build → Publish shape is preserved verbatim; only the
+# shared steps come from L1 templates. Repo-specific logic (tiered
+# parallel lint / build / test of 10 libraries + 2 demo apps, demo-app
+# Dockerfile.prebuilt) stays inline because it is not reusable across
+# repos.
+#
+# Stage shape:
+#   Build           single job — npm ci, Kendo activate, parallel lint
+#                   (12), tiered parallel build (10 libs + demo-app),
+#                   tiered test (10 libs), assemble + publish dist +
+#                   docker-context artifacts.
+#   Publish         three parallel jobs after Build:
+#                     npm_publish    foreach 10 packages → npm publish
+#                                    (public on r-tag, private on
+#                                    main/test) via the L1
+#                                    npm-publish-package template
+#                     docker_build   Dockerfile.prebuilt (no Angular
+#                                    rebuild, just COPY) → push to
+#                                    docker.mm.cloud + docker.io
+#                     verify_apps    karma tests for demo-app +
+#                                    legacy-demo-app against the
+#                                    pre-built libraries
+#
+# Coexists with devops-build/azure-pipelines.yml during the pilot. The
+# ADO def points at devops-build/ until a green parity run lands here;
+# then flip yamlFilename.
+#
+# tpl-v0.4.2 is required: cross-stage `SetBuildVars.OctoLibVersion`
+# output, plus the new npm-publish-package step template.
+
+name: $(MajorVersion).$(MinorVersion).$(date:yyMM).$(DayOfMonth)$(rev:rrr)-$(Build.SourceBranchName)
+
+resources:
+  repositories:
+    - repository: pipelineTemplates
+      type: github
+      name: meshmakers/octo-pipeline-templates
+      endpoint: meshmakers-access-token
+      ref: refs/tags/tpl-v0.4.2
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - dev/*
+      - test/*
+      - main
+  paths:
+    include:
+      - src/
+      - azure-pipelines.yml
+    exclude:
+      - '**/*.md'
+      - '.claude/'
+  tags:
+    exclude:
+      - '*'
+
+variables:
+  - group: GitSSHGroup
+  - group: ApiKeys-mm-cloud
+  - group: OctoDefault
+  - name: isRelease
+    value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/r') }}
+  - name: isMain
+    value: ${{ eq(variables['Build.SourceBranch'], 'refs/heads/main') }}
+  - name: isTest
+    value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/test') }}
+  - name: librariesDir
+    value: 'src/frontend-libraries'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: build_and_test
+        displayName: Build, Lint & Test Libraries
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - template: templates/steps/update-build-number.yml@pipelineTemplates
+          - checkout: self
+            clean: true
+          - task: VersionJSONFile@3
+            displayName: 'Set Version package.json'
+            inputs:
+              versionForJSONFileFormat: '{1}.{2}.{3}{4}'
+              FilenamePattern: ^package.json
+          - template: templates/steps/setup-telerik-license.yml@pipelineTemplates
+
+          - task: UseNode@1
+            displayName: 'Install Node.js 20.x'
+            inputs:
+              version: '20.x'
+
+          - task: CmdLine@2
+            displayName: 'npm ci'
+            inputs:
+              script: npm ci
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+
+          - task: CmdLine@2
+            displayName: 'Activate Kendo UI license'
+            inputs:
+              script: npm run setup-license
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+            env:
+              TELERIK_LICENSE: $(TELERIK_LICENSE)
+
+          # Stale Angular cache holds the pre-license version of kendo-licensing;
+          # blow it away so the activated license is bundled into builds.
+          - task: CmdLine@2
+            displayName: 'Clear Angular cache'
+            inputs:
+              script: rm -rf .angular/cache
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+
+          - task: CmdLine@2
+            displayName: 'Lint all projects (parallel)'
+            inputs:
+              script: |
+                set -e
+                wait_all() {
+                  local fail=0
+                  for pid in "$@"; do
+                    wait "$pid" || fail=1
+                  done
+                  if [ "$fail" -ne 0 ]; then
+                    echo "ERROR: One or more lint checks failed"
+                    exit 1
+                  fi
+                }
+                echo "=== Linting all projects in parallel ==="
+                npx ng lint @meshmakers/shared-services & pid1=$!
+                npx ng lint @meshmakers/shared-auth & pid2=$!
+                npx ng lint @meshmakers/shared-ui & pid3=$!
+                npx ng lint @meshmakers/shared-ui-legacy & pid4=$!
+                npx ng lint @meshmakers/octo-services & pid5=$!
+                npx ng lint @meshmakers/octo-ui & pid6=$!
+                npx ng lint @meshmakers/octo-ui-legacy & pid7=$!
+                npx ng lint @meshmakers/octo-process-diagrams & pid8=$!
+                npx ng lint @meshmakers/octo-meshboard & pid9=$!
+                npx ng lint @meshmakers/octo-ai-console & pid10=$!
+                npx ng lint demo-app & pid11=$!
+                npx ng lint legacy-demo-app & pid12=$!
+                wait_all $pid1 $pid2 $pid3 $pid4 $pid5 $pid6 $pid7 $pid8 $pid9 $pid10 $pid11 $pid12
+                echo "=== All lint checks passed ==="
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+
+          - task: CmdLine@2
+            displayName: 'Build shared libraries (production, tiered)'
+            inputs:
+              script: |
+                set -e
+                build_prod() {
+                  echo "Building $1..."
+                  npx ng build "@meshmakers/$1" --configuration production
+                }
+                wait_all() {
+                  local fail=0
+                  for pid in "$@"; do
+                    wait "$pid" || fail=1
+                  done
+                  if [ "$fail" -ne 0 ]; then
+                    echo "ERROR: One or more parallel builds failed"
+                    exit 1
+                  fi
+                }
+                # Tier 0: no @meshmakers/* deps
+                echo "=== Tier 0: shared-services ==="
+                build_prod shared-services
+                # Tier 1: depend on shared-services (octo-ai-console rides because no @meshmakers peers)
+                echo "=== Tier 1: shared-auth, shared-ui, shared-ui-legacy, octo-ai-console (parallel) ==="
+                build_prod shared-auth & pid1=$!
+                build_prod shared-ui & pid2=$!
+                build_prod shared-ui-legacy & pid3=$!
+                build_prod octo-ai-console & pid_ai=$!
+                wait_all $pid1 $pid2 $pid3 $pid_ai
+                # Tier 2: depends on shared-auth + shared-services
+                echo "=== Tier 2: octo-services ==="
+                build_prod octo-services
+                # Tier 3: depends on octo-services + shared-ui (parallel)
+                echo "=== Tier 3: octo-ui, octo-ui-legacy, octo-process-diagrams (parallel) ==="
+                build_prod octo-ui & pid4=$!
+                build_prod octo-ui-legacy & pid5=$!
+                build_prod octo-process-diagrams & pid6=$!
+                wait_all $pid4 $pid5 $pid6
+                # Tier 4: depends on octo-ui, octo-process-diagrams
+                echo "=== Tier 4: octo-meshboard ==="
+                build_prod octo-meshboard
+                echo "=== All libraries built ==="
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+
+          - task: CmdLine@2
+            displayName: 'Run library unit tests (3-wide rounds)'
+            inputs:
+              script: |
+                set -e
+                export NODE_OPTIONS="--max-old-space-size=6144"
+                run_test() {
+                  echo "Testing $1..."
+                  npm run "test:$1" -- --reporters=junit,progress
+                }
+                wait_all() {
+                  local fail=0
+                  for pid in "$@"; do
+                    wait "$pid" || fail=1
+                  done
+                  if [ "$fail" -ne 0 ]; then
+                    echo "ERROR: One or more tests failed"
+                    exit 1
+                  fi
+                }
+                echo "=== Test Round 1 ==="
+                run_test octo-process-diagrams & pid1=$!
+                run_test shared-services & pid2=$!
+                run_test octo-services & pid3=$!
+                wait_all $pid1 $pid2 $pid3
+                echo "=== Test Round 2 ==="
+                run_test shared-auth & pid4=$!
+                run_test shared-ui & pid5=$!
+                run_test octo-meshboard & pid6=$!
+                wait_all $pid4 $pid5 $pid6
+                echo "=== Test Round 3 ==="
+                run_test octo-ai-console
+                echo "=== All library tests passed ==="
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+            continueOnError: false
+
+          - task: PublishTestResults@2
+            displayName: 'Publish library test results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/TESTS-*.xml'
+              searchFolder: $(System.DefaultWorkingDirectory)/$(librariesDir)
+              mergeTestResults: true
+              testRunTitle: 'Unit Tests - Frontend Libraries'
+
+          # demo-app build is bundled in the dist/ artifact so the docker
+          # job in stage 2 can COPY it via Dockerfile.prebuilt without a
+          # second `ng build` (saves ~3 min and dedupes failure surface).
+          - task: CmdLine@2
+            displayName: 'Build demo-app (production)'
+            inputs:
+              script: |
+                rm -rf .angular/cache dist/demo-app
+                npx ng build --project demo-app
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish dist artifact'
+            inputs:
+              targetPath: $(System.DefaultWorkingDirectory)/$(librariesDir)/dist
+              artifact: dist
+              publishLocation: pipeline
+
+          - task: CmdLine@2
+            displayName: 'Assemble Docker context files'
+            inputs:
+              script: |
+                set -e
+                CONTEXT="$(Build.ArtifactStagingDirectory)/docker-context"
+                mkdir -p "$CONTEXT"
+                cp Dockerfile.prebuilt "$CONTEXT/"
+                cp nginx.conf "$CONTEXT/"
+                cp entrypoint.sh "$CONTEXT/"
+                echo "=== Docker context files ==="
+                ls -la "$CONTEXT"
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Docker context'
+            inputs:
+              targetPath: $(Build.ArtifactStagingDirectory)/docker-context
+              artifact: docker-context
+              publishLocation: pipeline
+
+  - stage: Publish
+    dependsOn: Build
+    variables:
+      # Re-expose the cross-stage SetBuildVars outputs as regular pipeline
+      # variables so $(OctoLibVersion) substitutes correctly inside the
+      # npm-publish-package step templates and the docker step.
+      OctoLibVersion: $[ stageDependencies.Build.build_and_test.outputs['SetBuildVars.OctoLibVersion'] ]
+      OctoVersion: $[ stageDependencies.Build.build_and_test.outputs['SetBuildVars.OctoVersion'] ]
+      BuildNumberLong: $[ stageDependencies.Build.build_and_test.outputs['SetBuildVars.BuildNumberLong'] ]
+    jobs:
+      # ---- Job 1: npm publish the 10 packages ----
+      - job: npm_publish
+        displayName: Publish npm packages
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - checkout: none
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download dist'
+            inputs:
+              artifact: dist
+              path: $(Pipeline.Workspace)/dist
+          - ${{ each lib in split('shared-services,shared-auth,octo-services,shared-ui,shared-ui-legacy,octo-ui,octo-ui-legacy,octo-process-diagrams,octo-meshboard,octo-ai-console', ',') }}:
+            - template: templates/steps/npm-publish-package.yml@pipelineTemplates
+              parameters:
+                publishWorkingDirectory: '$(Pipeline.Workspace)/dist/meshmakers/${{ lib }}'
+                libName: '${{ lib }}'
+
+      # ---- Job 2: Build & push demo-app Docker image ----
+      - job: docker_build
+        displayName: Build & Push demo-app Docker image
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - checkout: none
+
+          # Self-hosted agents accumulate stale artifacts between runs.
+          - task: CmdLine@2
+            displayName: 'Clean artifact dirs'
+            inputs:
+              script: rm -rf "$(Pipeline.Workspace)/dist" "$(Pipeline.Workspace)/docker-context"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download dist'
+            inputs:
+              artifact: dist
+              path: $(Pipeline.Workspace)/dist
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Docker context'
+            inputs:
+              artifact: docker-context
+              path: $(Pipeline.Workspace)/docker-context
+
+          - task: CmdLine@2
+            displayName: 'Assemble Docker context (add demo-app dist)'
+            inputs:
+              script: |
+                set -e
+                CONTEXT="$(Pipeline.Workspace)/docker-context"
+                cp -r "$(Pipeline.Workspace)/dist/demo-app" "$CONTEXT/demo-app"
+                echo "=== Docker context ==="
+                ls -la "$CONTEXT"
+                echo "=== demo-app contents ==="
+                ls -la "$CONTEXT/demo-app" | head -20
+
+          - template: templates/steps/build-and-push-docker.yml@pipelineTemplates
+            parameters:
+              publicRegistryServiceConnection: $(DockerRegistryPublicConnection)
+              privateRegistryName: $(DockerRegistryPrivateUri)
+              repository: meshmakers/octo-mesh-demo-app
+              dockerfile: $(Pipeline.Workspace)/docker-context/Dockerfile.prebuilt
+              dockerContext: $(Pipeline.Workspace)/docker-context
+              enableMainLatestTag: true
+
+      # ---- Job 3: Verify demo + legacy-demo apps against pre-built libs ----
+      - job: verify_apps
+        displayName: Test demo & legacy-demo apps
+        pool:
+          name: meshmakers-ci-agents
+        steps:
+          - template: templates/steps/setup-telerik-license.yml@pipelineTemplates
+
+          - task: UseNode@1
+            displayName: 'Install Node.js 20.x'
+            inputs:
+              version: '20.x'
+
+          - task: CmdLine@2
+            displayName: 'npm ci'
+            inputs:
+              script: npm ci
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+
+          - task: CmdLine@2
+            displayName: 'Activate Kendo UI license'
+            inputs:
+              script: npm run setup-license
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+            env:
+              TELERIK_LICENSE: $(TELERIK_LICENSE)
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download dist (pre-built libs)'
+            inputs:
+              artifact: dist
+              path: $(System.DefaultWorkingDirectory)/$(librariesDir)/dist
+
+          - task: CmdLine@2
+            displayName: 'Test demo-app'
+            inputs:
+              script: |
+                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+            continueOnError: false
+
+          - task: CmdLine@2
+            displayName: 'Test legacy-demo-app'
+            inputs:
+              script: |
+                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=legacy-demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+              workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
+            continueOnError: false
+
+          - task: PublishTestResults@2
+            displayName: 'Publish app test results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/TESTS-*.xml'
+              searchFolder: $(System.DefaultWorkingDirectory)/$(librariesDir)
+              mergeTestResults: true
+              testRunTitle: 'Unit Tests - Demo Apps'
