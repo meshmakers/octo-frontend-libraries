@@ -44,6 +44,16 @@ export interface DeploymentResultDto {
 }
 
 /**
+ * Result of toggling a pipeline's debug capture flag.
+ * `appliedToRunningAdapter` is false when the owning adapter was offline — the
+ * flag is persisted and takes effect on the next deploy.
+ */
+export interface SetPipelineDebugResultDto {
+  enabled: boolean;
+  appliedToRunningAdapter: boolean;
+}
+
+/**
  * Pipeline execution data for debugging.
  */
 export interface PipelineExecutionDataDto {

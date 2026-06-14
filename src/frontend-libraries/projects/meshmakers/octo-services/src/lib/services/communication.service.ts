@@ -10,7 +10,8 @@ import {
   PipelineNodePropertiesDto,
   DebugPointNode,
   DebugPointDataDto,
-  NodeDescriptorDto
+  NodeDescriptorDto,
+  SetPipelineDebugResultDto
 } from '../shared/communicationDtos';
 import {
   MovePipelinesToAdapterRequestDto,
@@ -330,6 +331,29 @@ export class CommunicationService {
         })
       );
     }
+  }
+
+  /**
+   * Enables or disables debug capture for a pipeline via the dedicated debug
+   * endpoint (`PATCH /pipeline/{id}/debug`). Unlike a pipeline (re)deploy —
+   * which force-enables debugging on every deploy — this persists the flag
+   * EXACTLY as requested and re-pushes the running adapter without
+   * force-enabling, so both enable and disable take effect immediately.
+   * `appliedToRunningAdapter` is false when the owning adapter is offline (the
+   * flag is still persisted and applies on the next deploy).
+   */
+  async setPipelineDebugging(
+    tenantId: string,
+    pipelineRtId: string,
+    enabled: boolean
+  ): Promise<SetPipelineDebugResultDto | null> {
+    if (!this.communicationServicesUrl) {
+      return null;
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/pipeline/${pipelineRtId}/debug`;
+    return await firstValueFrom(
+      this.httpClient.patch<SetPipelineDebugResultDto>(uri, {enabled})
+    );
   }
 
   /**

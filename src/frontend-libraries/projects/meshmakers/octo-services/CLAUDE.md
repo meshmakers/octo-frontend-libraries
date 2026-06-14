@@ -254,7 +254,8 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | `deployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Deploy single adapter |
 | `undeployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Undeploy single adapter |
 | `executePipeline(tenantId, pipelineRtId)` | Execute pipeline manually |
-| `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, definition)` | Deploy pipeline definition |
+| `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, definition)` | Deploy pipeline definition (NB: force-enables debug) |
+| `setPipelineDebugging(tenantId, pipelineRtId, enabled)` | Toggle pipeline debug capture via `PATCH /pipeline/{id}/debug` — persists the flag exactly + re-pushes the adapter without force-enabling (use this, not a redeploy, to enable/disable debug) |
 | `deployDataFlow(tenantId, dataFlowRtId)` | Deploy data flow |
 | `undeployDataFlow(tenantId, dataFlowRtId)` | Undeploy data flow |
 | `getPipelineStatus(tenantId, pipelineRtId, pipelineCkTypeId)` | Get deployment status |

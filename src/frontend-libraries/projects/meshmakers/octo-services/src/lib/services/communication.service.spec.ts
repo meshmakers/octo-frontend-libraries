@@ -139,6 +139,25 @@ describe('CommunicationService', () => {
     });
   });
 
+  describe('setPipelineDebugging', () => {
+    it('PATCHes the dedicated debug endpoint with the enabled flag', async () => {
+      const pipelineRtId = 'pipeline-123';
+
+      const promise = service.setPipelineDebugging(tenantId, pipelineRtId, false);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/pipeline/${pipelineRtId}/debug`
+      );
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({enabled: false});
+      req.flush({enabled: false, appliedToRunningAdapter: true});
+
+      const result = await promise;
+      expect(result?.enabled).toBe(false);
+      expect(result?.appliedToRunningAdapter).toBe(true);
+    });
+  });
+
   describe('deployDataFlow', () => {
     it('should call the correct endpoint', async () => {
       const dataFlowRtId = 'pipeline-123';
