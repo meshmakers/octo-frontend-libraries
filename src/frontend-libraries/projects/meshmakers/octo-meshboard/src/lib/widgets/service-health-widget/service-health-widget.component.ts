@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges, signal, inject } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ServiceHealthWidgetConfig, ServiceCallDataSource } from '../../models/meshboard.models';
@@ -13,6 +13,7 @@ export type HealthStatus = 'healthy' | 'unhealthy' | 'unknown' | 'loading';
   standalone: true,
   imports: [CommonModule, WidgetNotConfiguredComponent],
   templateUrl: './service-health-widget.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './service-health-widget.component.scss'
 })
 export class ServiceHealthWidgetComponent implements OnInit, OnChanges, OnDestroy {

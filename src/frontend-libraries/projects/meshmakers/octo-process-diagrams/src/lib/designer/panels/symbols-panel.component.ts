@@ -5,7 +5,7 @@
  * Provides the symbol library browser for drag & drop.
  */
 
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SymbolLibraryPanelComponent, SymbolPaletteItem } from '../symbol-library-panel.component';
 
@@ -29,6 +29,7 @@ export interface SymbolsPanelParams {
       </mm-symbol-library-panel>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: flex;

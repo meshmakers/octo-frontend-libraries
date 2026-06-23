@@ -1,4 +1,4 @@
-import { Component, ContentChild, Directive, inject, Input, Output, EventEmitter, TemplateRef } from '@angular/core';
+import { Component, ContentChild, Directive, inject, Input, Output, EventEmitter, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup } from '@angular/forms';
 
@@ -94,6 +94,7 @@ export const DEFAULT_RESPONSIVE_COLSPAN: ResponsiveFormBreakPoint[] = [
   hostDirectives: [UnsavedChangesDirective],
   providers: [{ provide: HAS_UNSAVED_CHANGES, useExisting: BaseFormComponent }],
   templateUrl: './base-form.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './base-form.component.scss'
 })
 export class BaseFormComponent implements HasUnsavedChanges {

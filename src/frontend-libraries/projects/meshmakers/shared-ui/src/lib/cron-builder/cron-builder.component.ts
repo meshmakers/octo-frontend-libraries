@@ -6,7 +6,8 @@ import {
   signal,
   computed,
   inject,
-  effect
+  effect,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
@@ -60,6 +61,7 @@ import { CronHumanizerService } from './services/cron-humanizer.service';
   ],
   templateUrl: './cron-builder.component.html',
   styleUrl: './cron-builder.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

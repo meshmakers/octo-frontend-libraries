@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogRef, DialogModule, DialogContentBase } from '@progress/kendo-angular-dialog';
@@ -83,6 +83,7 @@ import {
       </button>
     </kendo-dialog-actions>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .save-as-container {
       padding: 20px;

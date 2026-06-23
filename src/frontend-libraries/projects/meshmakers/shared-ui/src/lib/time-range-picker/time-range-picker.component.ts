@@ -7,7 +7,8 @@ import {
   OnChanges,
   SimpleChanges,
   signal,
-  computed
+  computed,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -59,6 +60,7 @@ import {
     LabelModule
   ],
   templateUrl: './time-range-picker.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './time-range-picker.component.scss'
 })
 export class TimeRangePickerComponent implements OnInit, OnChanges {

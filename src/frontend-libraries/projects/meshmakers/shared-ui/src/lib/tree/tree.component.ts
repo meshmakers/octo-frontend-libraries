@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { SVGIconComponent } from '@progress/kendo-angular-icons';
 import {
   DragAndDropDirective,
@@ -27,6 +27,7 @@ import { NodeDroppedEvent } from '../models/node-dropped-event';
     DragAndDropDirective
   ],
   templateUrl: './tree.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './tree.component.scss'
 })
 export class TreeComponent implements OnInit, AfterViewInit, OnDestroy {

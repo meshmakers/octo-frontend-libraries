@@ -8,7 +8,8 @@ import {
   forwardRef,
   ViewChild,
   inject,
-  ElementRef
+  ElementRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -127,6 +128,7 @@ import {
       </button>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

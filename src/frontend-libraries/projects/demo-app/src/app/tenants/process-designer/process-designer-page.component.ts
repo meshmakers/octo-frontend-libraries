@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -55,6 +55,7 @@ import {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

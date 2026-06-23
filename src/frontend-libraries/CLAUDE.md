@@ -2,8 +2,8 @@
 
 ## Project Structure
 
-- **Angular 21** with standalone components and signals
-- **Kendo UI Angular 23** for UI components (Charts, Gauges, Grid, etc.)
+- **Angular 22** with standalone components and signals
+- **Kendo UI Angular 24** for UI components (Charts, Gauges, Grid, etc.)
 - **Apollo Client** for GraphQL
 - **Monorepo** with multiple projects under `projects/`:
   - `demo-app` - Demo application
@@ -16,6 +16,17 @@
   - `meshmakers/shared-ui` - Shared UI utilities
   - `meshmakers/shared-ui-legacy` - Legacy Material UI (backward compatibility)
   - `meshmakers/octo-ui-legacy` - Legacy Material UI components (backward compatibility)
+
+## Toolchain Requirements
+
+- **Node.js ≥ 22.22.3** (or ≥ 24.15.0 / ≥ 26.0.0) — required by Angular 22 / Angular CLI 22. The CLI hard-refuses older Node (e.g. Node 20 and Node 24.14.x are rejected). CI (`azure-pipelines.yml`) uses Node 22.x.
+- **TypeScript ~6.0** — required by Angular 22 (`@angular/compiler-cli` peer is `>=6.0 <6.1`).
+
+## Angular 22 Notes
+
+- **Change detection default flipped to OnPush.** In Angular 22 a component with an undefined `changeDetection` defaults to `OnPush` (was `CheckAlways`). The `ng update` `change-detection-eager` migration explicitly set every existing component to `ChangeDetectionStrategy.Eager` (the new name for the old `CheckAlways`/`Default`) to preserve behavior. New components default to `OnPush` — set `ChangeDetectionStrategy.Eager` if you need the old always-check behavior. The opinionated `@angular-eslint/prefer-on-push-component-change-detection` rule (new in angular-eslint 22's recommended set) is turned **off** in `eslint.config.js` because it conflicts with the Eager strategy left by the migration.
+- **`CanMatchFn` third argument is now mandatory.** Guards/specs calling a `CanMatch` function must pass `currentSnapshot` (an `ActivatedRouteSnapshot`).
+- **`katex` + `marked-katex-extension` are devDependencies.** ngx-markdown 22 has a dynamic `import('marked-katex-extension')`; the (webpack) karma test builder resolves it eagerly, so these optional peers must be installed for tests to build, even though the Markdown widget does not use KaTeX.
 
 ## Build Commands
 

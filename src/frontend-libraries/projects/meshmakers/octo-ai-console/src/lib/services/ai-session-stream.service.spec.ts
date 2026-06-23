@@ -1,5 +1,5 @@
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { AiAdapterClientService } from './ai-adapter-client.service';
 import { AiSessionStreamService } from './ai-session-stream.service';
@@ -13,7 +13,7 @@ describe('AiSessionStreamService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideOctoAiConsole({
           baseUrl: 'https://ai.test',

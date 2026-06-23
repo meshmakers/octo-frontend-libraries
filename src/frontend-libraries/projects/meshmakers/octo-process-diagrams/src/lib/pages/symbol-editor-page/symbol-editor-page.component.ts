@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, HostListener, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, HostListener, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -36,6 +36,7 @@ import { SymbolSettings } from '../../designer';
     { provide: HAS_UNSAVED_CHANGES, useExisting: SymbolEditorPageComponent }
   ],
   templateUrl: './symbol-editor-page.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './symbol-editor-page.component.scss'
 })
 export class SymbolEditorPageComponent implements OnInit, HasUnsavedChanges {

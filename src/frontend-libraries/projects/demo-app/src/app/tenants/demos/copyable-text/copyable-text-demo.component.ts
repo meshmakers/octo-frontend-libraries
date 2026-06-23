@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LabelModule } from '@progress/kendo-angular-label';
@@ -156,6 +156,7 @@ import { CopyableTextComponent } from '@meshmakers/shared-ui';
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .demo-container {
       padding: 20px;

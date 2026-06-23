@@ -1,4 +1,4 @@
-import { Component, inject, input, OnInit, signal } from '@angular/core';
+import { Component, inject, input, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
@@ -45,6 +45,7 @@ const EMPTY_LOGO_SLOT: LogoSlot = {
     ReactiveFormsModule,
   ],
   templateUrl: './settings-page.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './settings-page.component.scss',
 })
 export class SettingsPageComponent implements OnInit {

@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommandBaseService, CommandItem, CommandSettingsService, TreeItemData, TreeItemDataTyped } from '@meshmakers/shared-services';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
@@ -94,6 +94,7 @@ import { NodeDroppedEvent } from '../models/node-dropped-event';
       </kendo-splitter>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./base-tree-detail.component.scss']
 })
 export class BaseTreeDetailComponent<T = unknown> extends CommandBaseService {

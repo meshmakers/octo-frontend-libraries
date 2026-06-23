@@ -9,6 +9,7 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
@@ -225,6 +226,7 @@ export interface EntitySavedEvent {
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ["./runtime-browser-details.component.scss"],
 })
 export class RuntimeBrowserDetailsComponent

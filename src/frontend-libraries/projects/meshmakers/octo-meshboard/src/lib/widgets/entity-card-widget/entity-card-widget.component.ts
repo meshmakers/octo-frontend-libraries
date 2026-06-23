@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EntityCardWidgetConfig, RuntimeEntityData } from '../../models/meshboard.models';
 import { DashboardDataService } from '../../services/meshboard-data.service';
@@ -12,6 +12,7 @@ import { catchError, of } from 'rxjs';
   standalone: true,
   imports: [CommonModule, WidgetNotConfiguredComponent, PropertyValueDisplayComponent],
   templateUrl: './entity-card-widget.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './entity-card-widget.component.scss'
 })
 export class EntityCardWidgetComponent implements DashboardWidget<EntityCardWidgetConfig, RuntimeEntityData>, OnInit, OnChanges {

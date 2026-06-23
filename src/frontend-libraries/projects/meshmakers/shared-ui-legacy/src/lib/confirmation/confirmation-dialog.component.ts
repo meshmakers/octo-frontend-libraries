@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType } from './confirmation.model';
@@ -7,6 +7,7 @@ import { ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogTy
   selector: 'mm-confirmation-dialog',
   standalone: true,
   imports: [MatDialogModule, MatButtonModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <h2 mat-dialog-title>{{ data.title }}</h2>
     <mat-dialog-content>{{ data.message }}</mat-dialog-content>

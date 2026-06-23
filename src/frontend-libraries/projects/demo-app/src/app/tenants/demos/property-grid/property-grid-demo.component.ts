@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -52,7 +52,7 @@ interface DemoEntity {
           <div class="card-header">
             <h2>Property Grid Demo</h2>
             <div class="demo-controls">
-              <button kendoButton [primary]="true" [svgIcon]="refreshIcon" (click)="loadSampleData()">
+              <button kendoButton themeColor="primary" [svgIcon]="refreshIcon" (click)="loadSampleData()">
                 Load Sample Data
               </button>
               <button kendoButton [svgIcon]="refreshIcon" (click)="loadRuntimeEntity()">
@@ -121,6 +121,7 @@ interface DemoEntity {
 
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .property-grid-demo {
       padding: 16px;

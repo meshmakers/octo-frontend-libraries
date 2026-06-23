@@ -1,9 +1,10 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-file-upload-demo',
   standalone: false,
   templateUrl: './file-upload-demo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./file-upload-demo.component.scss']
 })
 export class FileUploadDemoComponent {

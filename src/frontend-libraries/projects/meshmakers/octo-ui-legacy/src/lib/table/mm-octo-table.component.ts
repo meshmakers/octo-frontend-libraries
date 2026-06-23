@@ -15,7 +15,8 @@ import {
   EventEmitter,
   ContentChildren,
   QueryList,
-  TemplateRef
+  TemplateRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -104,6 +105,7 @@ export interface ToolbarAction {
     NgTemplateOutlet
   ],
   templateUrl: './mm-octo-table.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './mm-octo-table.component.scss'
 })
  

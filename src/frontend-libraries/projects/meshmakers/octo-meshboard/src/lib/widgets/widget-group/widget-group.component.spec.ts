@@ -4,12 +4,13 @@ import { MeshBoardDataService, RepeaterDataItem } from '../../services/meshboard
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { WidgetGroupConfig, KpiWidgetConfig, GaugeWidgetConfig, EntityCardWidgetConfig, RepeaterQueryDataSource } from '../../models/meshboard.models';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 // Mock child widget components to avoid importing their dependencies
 @Component({
   selector: 'mm-kpi-widget',
   template: '<div class="mock-kpi">{{ config?.title }}</div>',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 class MockKpiWidgetComponent {
@@ -19,6 +20,7 @@ class MockKpiWidgetComponent {
 @Component({
   selector: 'mm-gauge-widget',
   template: '<div class="mock-gauge">{{ config?.title }}</div>',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 class MockGaugeWidgetComponent {
@@ -28,6 +30,7 @@ class MockGaugeWidgetComponent {
 @Component({
   selector: 'mm-entity-card-widget',
   template: '<div class="mock-entity-card">{{ config?.title }}</div>',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 class MockEntityCardWidgetComponent {

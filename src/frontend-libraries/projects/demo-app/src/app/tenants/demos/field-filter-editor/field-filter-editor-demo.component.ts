@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { FieldFilterEditorComponent, FieldFilterItem } from '@meshmakers/octo-ui';
@@ -95,6 +95,7 @@ import {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .demo-container {
       padding: 20px;

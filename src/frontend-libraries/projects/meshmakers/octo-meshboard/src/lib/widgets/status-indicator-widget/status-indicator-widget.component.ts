@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, signal, inject } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StatusIndicatorWidgetConfig, ServiceCallDataSource } from '../../models/meshboard.models';
 import { CkModelService } from '@meshmakers/octo-services';
@@ -9,6 +9,7 @@ import { WidgetNotConfiguredComponent } from '../../components/widget-not-config
   standalone: true,
   imports: [CommonModule, WidgetNotConfiguredComponent],
   templateUrl: './status-indicator-widget.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './status-indicator-widget.component.scss'
 })
 export class StatusIndicatorWidgetComponent implements OnInit, OnChanges {

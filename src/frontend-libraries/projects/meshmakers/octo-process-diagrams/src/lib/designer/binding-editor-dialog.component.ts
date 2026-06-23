@@ -13,7 +13,8 @@ import {
   signal,
   computed,
   inject,
-  OnInit
+  OnInit,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -232,6 +233,7 @@ interface TargetOption {
       </kendo-dialog>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .binding-editor-content {
       display: flex;

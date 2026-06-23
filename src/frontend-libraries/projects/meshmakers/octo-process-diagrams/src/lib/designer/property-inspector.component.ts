@@ -2,7 +2,8 @@ import {
   Component,
   Input,
   Output,
-  EventEmitter
+  EventEmitter,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -271,7 +272,7 @@ export interface PropertyChangeEvent {
               <div class="property-row">
                 <label>Line Type</label>
                 <select class="line-type-select"
-                        [value]="getLineType(primitive.style?.stroke?.dashArray)"
+                        [value]="getLineType($safeNavigationMigration(primitive.style?.stroke?.dashArray))"
                         (change)="onLineTypeChange(primitive.id, $any($event.target).value)">
                   <option value="solid">Solid</option>
                   <option value="dashed">Dashed</option>
@@ -283,7 +284,7 @@ export interface PropertyChangeEvent {
                   <line x1="0" y1="5" x2="60" y2="5"
                         [attr.stroke]="primitive.style?.stroke?.color ?? '#666'"
                         stroke-width="2"
-                        [attr.stroke-dasharray]="getDashArrayString(primitive.style?.stroke?.dashArray)"/>
+                        [attr.stroke-dasharray]="getDashArrayString($safeNavigationMigration(primitive.style?.stroke?.dashArray))"/>
                 </svg>
               </div>
             </div>
@@ -987,6 +988,7 @@ export interface PropertyChangeEvent {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: flex;

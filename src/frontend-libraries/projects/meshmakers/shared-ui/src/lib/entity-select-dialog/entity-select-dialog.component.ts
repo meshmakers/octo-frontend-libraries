@@ -1,4 +1,4 @@
-import { Component, Input, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, inject, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WindowRef, WindowModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -100,6 +100,7 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: flex;

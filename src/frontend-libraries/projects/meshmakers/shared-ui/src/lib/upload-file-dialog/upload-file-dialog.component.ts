@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, signal, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, Input, signal, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import {NotificationService} from '@progress/kendo-angular-notification';
 import {ButtonComponent} from '@progress/kendo-angular-buttons';
 import {
@@ -20,6 +20,7 @@ import {FileUploadResult} from '../models/confirmation';
     SVGIconComponent
   ],
   templateUrl: './upload-file-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './upload-file-dialog.component.css'
 })
 export class UploadFileDialogComponent extends DialogContentBase {

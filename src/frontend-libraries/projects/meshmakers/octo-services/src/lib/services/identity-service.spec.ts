@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { IdentityService } from './identity-service';
 import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TENANT_ID_PROVIDER } from './tenant-provider';
@@ -76,7 +76,7 @@ describe('IdentityService', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         IdentityService,
         { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
@@ -584,7 +584,7 @@ describe('IdentityService', () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
         providers: [
-          provideHttpClient(),
+          provideHttpClient(withXhr()),
           provideHttpClientTesting(),
           IdentityService,
           { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
@@ -610,7 +610,7 @@ describe('IdentityService', () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
         providers: [
-          provideHttpClient(),
+          provideHttpClient(withXhr()),
           provideHttpClientTesting(),
           IdentityService,
           { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },

@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, Signal, ViewChild, inject } from '@angular/core';
+import { Component, computed, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, Signal, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AuthorizeService } from '@meshmakers/shared-auth';
 import { AvatarComponent } from '@progress/kendo-angular-layout';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
@@ -14,6 +14,7 @@ import { LoaderComponent } from '@progress/kendo-angular-indicators';
     LoaderComponent
   ],
   templateUrl: './login-app-bar-section.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './login-app-bar-section.component.scss'
 })
 export class LoginAppBarSectionComponent implements OnInit {

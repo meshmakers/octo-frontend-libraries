@@ -1,4 +1,4 @@
-import {Component, inject, ViewChild} from '@angular/core';
+import {Component, inject, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {TreeComponent} from '@meshmakers/shared-ui';
 import {TreeItemData} from '@meshmakers/shared-services';
 import {TreeDemoDataSource} from '../data-sources/tree-demo-data-source.service';
@@ -7,6 +7,7 @@ import {TreeDemoDataSource} from '../data-sources/tree-demo-data-source.service'
   selector: 'app-tree-demo',
   imports: [TreeComponent, TreeComponent],
   templateUrl: './tree-demo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './tree-demo.component.scss'
 })
 export class TreeDemoComponent {

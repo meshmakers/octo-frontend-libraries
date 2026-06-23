@@ -2,7 +2,7 @@
  * Material Design replacement for legacy mm-notification-bar from @meshmakers/shared-ui.
  * Uses MatSnackBar to display error messages from MessageService.
  */
-import { Component, OnInit, OnDestroy, inject, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, NgZone, ChangeDetectionStrategy } from '@angular/core';
 import { MessageService, NotificationMessage } from '@meshmakers/shared-services';
 import { MatSnackBar, MatSnackBarRef, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router, NavigationEnd } from '@angular/router';
@@ -13,6 +13,7 @@ import { filter, debounceTime } from 'rxjs/operators';
   selector: 'mm-notification-bar',
   standalone: true,
   imports: [MatSnackBarModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: ''
 })
  

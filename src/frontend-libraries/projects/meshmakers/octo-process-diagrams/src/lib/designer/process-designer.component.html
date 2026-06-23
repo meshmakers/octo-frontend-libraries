@@ -343,7 +343,7 @@
                         [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
                         [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
                         [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? selectionHighlightWidth() : (rs.stroke?.width ?? 1)"
-                        [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"
+                        [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(rs.stroke?.dashArray))"
                         [attr.rx]="$any(primitive).config.cornerRadiusX ?? $any(primitive).config.cornerRadius ?? 0"
                         [attr.ry]="$any(primitive).config.cornerRadiusY ?? $any(primitive).config.cornerRadius ?? 0"/>
                 }
@@ -362,7 +362,7 @@
                            [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
                            [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
                            [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? selectionHighlightWidth() : (rs.stroke?.width ?? 1)"
-                           [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                           [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(rs.stroke?.dashArray))"/>
                 }
               }
               @case ('line') {
@@ -377,7 +377,7 @@
                         [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
                         [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
                         [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? 3 : (rs.stroke?.width ?? 2)"
-                        [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                        [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(rs.stroke?.dashArray))"/>
                 }
               }
               @case ('path') {
@@ -393,7 +393,7 @@
                         [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
                         [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
                         [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? selectionHighlightWidth() : (rs.stroke?.width ?? 1)"
-                        [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                        [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(rs.stroke?.dashArray))"/>
                 }
               }
               @case ('polygon') {
@@ -407,7 +407,7 @@
                            [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
                            [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
                            [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? selectionHighlightWidth() : (rs.stroke?.width ?? 1)"
-                           [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                           [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(rs.stroke?.dashArray))"/>
                 }
               }
               @case ('polyline') {
@@ -420,7 +420,7 @@
                             [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? '#333')"
                             [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
                             [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? 3 : (rs.stroke?.width ?? 2)"
-                            [attr.stroke-dasharray]="getStrokeDashArray(rs.stroke?.dashArray)"/>
+                            [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(rs.stroke?.dashArray))"/>
                 }
               }
               @case ('text') {
@@ -487,7 +487,7 @@
                         [attr.stroke]="isPrimitiveSelected(primitive.id) ? '#1976d2' : (rs.stroke?.color ?? 'none')"
                         [attr.stroke-opacity]="rs.stroke?.opacity ?? 1"
                         [attr.stroke-width]="isPrimitiveSelected(primitive.id) ? 1.5 : (rs.stroke?.width ?? 0)"
-                        [attr.stroke-dasharray]="isPrimitiveSelected(primitive.id) ? '6 3' : (getStrokeDashArray(rs.stroke?.dashArray))"
+                        [attr.stroke-dasharray]="isPrimitiveSelected(primitive.id) ? '6 3' : (getStrokeDashArray($safeNavigationMigration(rs.stroke?.dashArray)))"
                         pointer-events="all"/>
                 }
               }
@@ -645,7 +645,7 @@
                           [attr.stroke]="srs.stroke?.color ?? 'none'"
                           [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
                           [attr.stroke-width]="srs.stroke?.width ?? 1"
-                          [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"
+                          [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(srs.stroke?.dashArray))"
                           [attr.rx]="$any(primitive).config.cornerRadiusX ?? $any(primitive).config.cornerRadius ?? 0"
                           [attr.ry]="$any(primitive).config.cornerRadiusY ?? $any(primitive).config.cornerRadius ?? 0"/>
                   }
@@ -659,7 +659,7 @@
                              [attr.stroke]="srs.stroke?.color ?? 'none'"
                              [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
                              [attr.stroke-width]="srs.stroke?.width ?? 1"
-                             [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                             [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(srs.stroke?.dashArray))"/>
                   }
                   @case ('line') {
                     <line [attr.x1]="$any(primitive).config.start.x + primitive.position.x"
@@ -669,7 +669,7 @@
                           [attr.stroke]="srs.stroke?.color ?? 'none'"
                           [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
                           [attr.stroke-width]="srs.stroke?.width ?? 2"
-                          [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                          [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(srs.stroke?.dashArray))"/>
                   }
                   @case ('path') {
                     <path [attr.d]="$any(primitive).config.d"
@@ -680,7 +680,7 @@
                           [attr.stroke]="srs.stroke?.color ?? 'none'"
                           [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
                           [attr.stroke-width]="srs.stroke?.width ?? 1"
-                          [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                          [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(srs.stroke?.dashArray))"/>
                   }
                   @case ('polygon') {
                     <polygon [attr.points]="getPolygonPoints($any(primitive))"
@@ -689,7 +689,7 @@
                              [attr.stroke]="srs.stroke?.color ?? 'none'"
                              [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
                              [attr.stroke-width]="srs.stroke?.width ?? 1"
-                             [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                             [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(srs.stroke?.dashArray))"/>
                   }
                   @case ('polyline') {
                     <polyline [attr.points]="getPolylinePoints($any(primitive))"
@@ -697,7 +697,7 @@
                               [attr.stroke]="srs.stroke?.color ?? 'none'"
                               [attr.stroke-opacity]="srs.stroke?.opacity ?? 1"
                               [attr.stroke-width]="srs.stroke?.width ?? 2"
-                              [attr.stroke-dasharray]="getStrokeDashArray(srs.stroke?.dashArray)"/>
+                              [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(srs.stroke?.dashArray))"/>
                   }
                   @case ('text') {
                     <text [attr.x]="primitive.position.x"

@@ -4,7 +4,8 @@ import {
   inject,
   signal,
   ViewChild,
-  ElementRef
+  ElementRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -154,7 +155,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                       [attr.fill-opacity]="prim.style?.fill?.opacity ?? 1"
                                       [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                       [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
-                                      [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"
+                                      [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"
                                       [attr.stroke-width]="prim.style?.stroke?.width ?? 1"/>
                               }
                               @case ('ellipse') {
@@ -166,7 +167,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                          [attr.fill-opacity]="prim.style?.fill?.opacity ?? 1"
                                          [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                          [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
-                                         [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"
+                                         [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"
                                          [attr.stroke-width]="prim.style?.stroke?.width ?? 1"/>
                               }
                               @case ('polygon') {
@@ -175,7 +176,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                          [attr.fill-opacity]="prim.style?.fill?.opacity ?? 1"
                                          [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                          [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
-                                         [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"
+                                         [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"
                                          [attr.stroke-width]="prim.style?.stroke?.width ?? 1"/>
                               }
                               @case ('text') {
@@ -194,7 +195,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                       [attr.fill-rule]="$any(prim).config.fillRule"
                                       [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                       [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
-                                      [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"
+                                      [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"
                                       [attr.stroke-width]="prim.style?.stroke?.width ?? 1"/>
                               }
                               @case ('polyline') {
@@ -203,7 +204,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                           [attr.fill-opacity]="prim.style?.fill?.opacity ?? 1"
                                           [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                           [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
-                                          [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"
+                                          [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"
                                           [attr.stroke-width]="prim.style?.stroke?.width ?? 1"/>
                               }
                               @case ('line') {
@@ -213,7 +214,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                       [attr.y2]="$any(prim).config.end.y + prim.position.y"
                                       [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                       [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
-                                      [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"
+                                      [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"
                                       [attr.stroke-width]="prim.style?.stroke?.width ?? 1"/>
                               }
                               @case ('group') {
@@ -227,7 +228,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                       [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                       [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
                                       [attr.stroke-width]="prim.style?.stroke?.width ?? 0"
-                                      [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"/>
+                                      [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"/>
                               }
                             }
                           }
@@ -314,7 +315,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                 [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                 [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
                                 [attr.stroke-width]="prim.style?.stroke?.width ?? 1"
-                                [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"
+                                [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"
                                 [attr.rx]="getScaledValue(prim, $any(prim).config.cornerRadiusX ?? $any(prim).config.cornerRadius ?? 0)"
                                 [attr.ry]="getScaledValue(prim, $any(prim).config.cornerRadiusY ?? $any(prim).config.cornerRadius ?? 0)"/>
                         }
@@ -328,7 +329,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                    [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                    [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
                                    [attr.stroke-width]="prim.style?.stroke?.width ?? 1"
-                                   [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"/>
+                                   [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"/>
                         }
                         @case ('line') {
                           <line [attr.x1]="getScaledValue(prim, $any(prim).config.start.x) + prim.position.x"
@@ -338,7 +339,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                 [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                 [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
                                 [attr.stroke-width]="prim.style?.stroke?.width ?? 2"
-                                [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"/>
+                                [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"/>
                         }
                         @case ('polygon') {
                           <polygon [attr.points]="getPolygonPoints($any(prim))"
@@ -347,7 +348,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                    [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                    [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
                                    [attr.stroke-width]="prim.style?.stroke?.width ?? 1"
-                                   [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"/>
+                                   [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"/>
                         }
                         @case ('text') {
                           <text [attr.x]="prim.position.x"
@@ -366,7 +367,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                 [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                 [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
                                 [attr.stroke-width]="prim.style?.stroke?.width ?? 1"
-                                [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"/>
+                                [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"/>
                         }
                         @case ('polyline') {
                           <polyline [attr.points]="getPolylinePoints($any(prim))"
@@ -375,7 +376,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                     [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                     [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
                                     [attr.stroke-width]="prim.style?.stroke?.width ?? 1"
-                                    [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"/>
+                                    [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"/>
                         }
                         @case ('group') {
                           @let groupBounds = getGroupBounds(prim);
@@ -388,7 +389,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
                                 [attr.stroke]="prim.style?.stroke?.color ?? 'none'"
                                 [attr.stroke-opacity]="prim.style?.stroke?.opacity ?? 1"
                                 [attr.stroke-width]="prim.style?.stroke?.width ?? 0"
-                                [attr.stroke-dasharray]="getStrokeDashArray(prim.style?.stroke?.dashArray)"/>
+                                [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(prim.style?.stroke?.dashArray))"/>
                         }
                       }
                     }
@@ -536,6 +537,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: flex;

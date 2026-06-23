@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ConfirmationService, ConfirmationWindowResult, ButtonTypes } from '@meshmakers/shared-ui-legacy';
 
 @Component({
   selector: 'app-confirmation-demo',
   standalone: false,
   templateUrl: './confirmation-demo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./confirmation-demo.component.scss']
 })
 export class ConfirmationDemoComponent {

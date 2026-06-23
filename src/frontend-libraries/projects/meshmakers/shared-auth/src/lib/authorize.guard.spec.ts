@@ -295,7 +295,7 @@ describe('Functional Guards', () => {
       isAuthenticatedValue = true;
 
       const result = await TestBed.runInInjectionContext(() =>
-        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[])
+        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[], {} as unknown as ActivatedRouteSnapshot)
       );
 
       expect(result).toBeTrue();
@@ -305,7 +305,7 @@ describe('Functional Guards', () => {
       isAuthenticatedValue = false;
 
       const result = await TestBed.runInInjectionContext(() =>
-        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[])
+        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[], {} as unknown as ActivatedRouteSnapshot)
       );
 
       expect(result).toBeFalse();
@@ -315,7 +315,7 @@ describe('Functional Guards', () => {
       isAuthenticatedValue = false;
 
       await TestBed.runInInjectionContext(() =>
-        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[])
+        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[], {} as unknown as ActivatedRouteSnapshot)
       );
 
       expect(authServiceMock.login).toHaveBeenCalled();

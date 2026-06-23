@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AssetRepoGraphQlDataSource } from "@meshmakers/octo-services";
 import { MessageService } from '@meshmakers/shared-services';
 import { GetSdkCustomersDtoGQL, OctoSdkDemoCustomerDto } from '../graphQL/get-sdk-customers';
@@ -8,6 +8,7 @@ import { CustomerGraphQlDataSource } from '../services/customer-graphql-data-sou
   selector: 'app-table-demo',
   standalone: false,
   templateUrl: './table-demo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./table-demo.component.scss']
 })
 export class TableDemoComponent implements OnInit {

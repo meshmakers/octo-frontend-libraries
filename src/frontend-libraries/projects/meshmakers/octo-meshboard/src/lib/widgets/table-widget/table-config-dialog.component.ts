@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WindowRef } from '@progress/kendo-angular-dialog';
@@ -181,7 +181,7 @@ export interface TableConfigResult {
             <div class="card-content filter-content">
               <mm-field-filter-editor
                 #filterEditor
-                [ckTypeId]="selectedCkType?.rtCkTypeId"
+                [ckTypeId]="$safeNavigationMigration(selectedCkType?.rtCkTypeId)"
                 [filters]="filters"
                 [enableVariables]="filterVariables.length > 0"
                 [availableVariables]="filterVariables"
@@ -293,6 +293,7 @@ export interface TableConfigResult {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host { display: block; height: 100%; }
     .config-container { display: flex; flex-direction: column; height: 100%; }

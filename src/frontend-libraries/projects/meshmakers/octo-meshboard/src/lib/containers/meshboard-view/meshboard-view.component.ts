@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
 import { TileLayoutModule, TileLayoutComponent, TileLayoutReorderEvent, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
@@ -79,6 +79,7 @@ import {
     AutoRefreshTimerService
   ],
   templateUrl: './meshboard-view.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './meshboard-view.component.scss'
 })
 export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChanges {

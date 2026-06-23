@@ -21,7 +21,7 @@ import { DetailsDemoComponent } from './details-demo/details-demo.component';
 import { EntitySelectDemoComponent } from './entity-select-demo/entity-select-demo.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { CONFIGURATION_SERVICE, OctoErrorLink, provideOctoServices } from '@meshmakers/octo-services';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -101,7 +101,7 @@ export function initServices(configurationService: ConfigurationService, authori
     ConfigurationService,
     ProgressWindowService,
     { provide: CONFIGURATION_SERVICE, useExisting: ConfigurationService },
-    provideHttpClient(withInterceptors([authorizeInterceptor])),
+    provideHttpClient(withXhr(), withInterceptors([authorizeInterceptor])),
     provideOctoServices(),
     provideMmSharedAuth(),
     provideApollo((): ApolloClient.Options => {

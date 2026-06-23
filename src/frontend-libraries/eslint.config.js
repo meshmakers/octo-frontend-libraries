@@ -66,6 +66,13 @@ module.exports = tseslint.config(
       ],
       // Enabled
       "@angular-eslint/prefer-standalone": "error",
+      // angular-eslint 22 added this to the recommended set. The Angular 22
+      // `change-detection-eager` migration explicitly set every existing
+      // component to `ChangeDetectionStrategy.Eager` to preserve pre-v22
+      // (CheckAlways) behavior. Forcing OnPush across the whole codebase is a
+      // separate, behavioral change — out of scope for the version bump — so we
+      // opt out of the rule here.
+      "@angular-eslint/prefer-on-push-component-change-detection": "off",
       "no-empty": "error",
       "@typescript-eslint/no-empty-function": "error",
       "@angular-eslint/no-empty-lifecycle-method": "error",

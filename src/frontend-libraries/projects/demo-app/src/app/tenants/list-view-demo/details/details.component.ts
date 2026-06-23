@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,6 +26,7 @@ import {OctoSdkDemoCustomerStatusDto, BasicLegalEntityTypeDto} from '@meshmakers
     TextBoxModule
   ],
   templateUrl: './details.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './details.component.scss'
 })
 export class ListViewDetailsComponent implements OnInit, HasUnsavedChanges {

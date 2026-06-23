@@ -1,4 +1,4 @@
-import {Component, Input, inject} from '@angular/core';
+import {Component, Input, inject, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ButtonsModule} from '@progress/kendo-angular-buttons';
 import {SVGIconModule} from '@progress/kendo-angular-icons';
@@ -53,6 +53,7 @@ interface CopyOption {
       Copy ID
     </kendo-dropdownbutton>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: inline-block;

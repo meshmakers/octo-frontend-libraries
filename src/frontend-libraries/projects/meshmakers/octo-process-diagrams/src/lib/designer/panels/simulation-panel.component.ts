@@ -5,7 +5,7 @@
  * Provides sliders and inputs for simulating transform property values.
  */
 
-import { Component, Input, computed, Signal, signal, effect, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, Input, computed, Signal, signal, effect, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   SimulationPanelComponent as SimulationPanelInner,
@@ -44,6 +44,7 @@ export interface SimulationPanelParams {
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: flex;

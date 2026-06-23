@@ -1,4 +1,4 @@
-import { Component, NgZone, OnDestroy } from '@angular/core';
+import { Component, NgZone, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Subject, interval, takeUntil, map, takeWhile, finalize } from 'rxjs';
 import { ProgressDialogRef, ProgressWindowService, ProgressValue } from '@meshmakers/shared-ui-legacy';
 
@@ -6,6 +6,7 @@ import { ProgressDialogRef, ProgressWindowService, ProgressValue } from '@meshma
   selector: 'app-progress-demo',
   standalone: false,
   templateUrl: './progress-demo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./progress-demo.component.scss']
 })
 export class ProgressDemoComponent implements OnDestroy {

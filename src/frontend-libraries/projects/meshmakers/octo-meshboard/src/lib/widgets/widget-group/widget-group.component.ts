@@ -6,7 +6,8 @@ import {
   SimpleChanges,
   inject,
   signal,
-  computed
+  computed,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -47,6 +48,7 @@ import { WidgetNotConfiguredComponent } from '../../components/widget-not-config
     WidgetNotConfiguredComponent
   ],
   templateUrl: './widget-group.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './widget-group.component.scss'
 })
 export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, RepeaterDataItem[]>, OnInit, OnChanges {

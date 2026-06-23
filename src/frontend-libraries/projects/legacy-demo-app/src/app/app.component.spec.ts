@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { AppComponent } from './app.component';
 import { provideMmSharedAuth } from '@meshmakers/shared-auth';
@@ -11,7 +11,7 @@ describe('AppComponent', () => {
       declarations: [AppComponent],
       providers: [
         provideRouter([]),
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideMmSharedAuth(),
       ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]

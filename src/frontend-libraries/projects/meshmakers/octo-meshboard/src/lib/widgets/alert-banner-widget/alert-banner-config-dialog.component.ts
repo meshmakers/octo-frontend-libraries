@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WindowRef } from '@progress/kendo-angular-dialog';
@@ -40,6 +40,7 @@ export interface AlertBannerConfigResult {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .config-form { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }

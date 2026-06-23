@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MarkdownWidgetComponent } from './markdown-widget.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
@@ -9,6 +9,7 @@ import { MarkdownWidgetConfig, MeshBoardVariable } from '../../models/meshboard.
 @Component({
   selector: 'mm-mock-markdown',
   template: '<div class="mock-markdown">{{ data }}</div>',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 class MockMarkdownComponent {
@@ -19,6 +20,7 @@ class MockMarkdownComponent {
 @Component({
   selector: 'mm-mock-widget-not-configured',
   template: '<div class="mock-not-configured">{{ message }}</div>',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 class MockWidgetNotConfiguredComponent {

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HealthService } from './health.service';
 import { CONFIGURATION_SERVICE, IConfigurationService } from './configuration.service';
 import { HealthCheck, HealthStatus } from '../shared/health';
@@ -70,7 +70,7 @@ describe('HealthService', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         HealthService,
         { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }

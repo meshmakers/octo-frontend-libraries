@@ -9,6 +9,7 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { CommandItemExecuteEventArgs } from "@meshmakers/shared-services";
 import { ListViewComponent } from "@meshmakers/shared-ui";
@@ -313,6 +314,7 @@ interface DirectionOption {
       </div>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ["./entity-detail-view.component.scss"],
 })
 export class EntityDetailViewComponent implements OnChanges, OnDestroy {

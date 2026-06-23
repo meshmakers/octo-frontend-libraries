@@ -5,7 +5,7 @@
  * Provides the element/primitive palette for drag & drop.
  */
 
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ElementPaletteComponent, PaletteItem } from '../element-palette.component';
 
@@ -29,6 +29,7 @@ export interface ElementsPanelParams {
       </mm-element-palette>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: flex;

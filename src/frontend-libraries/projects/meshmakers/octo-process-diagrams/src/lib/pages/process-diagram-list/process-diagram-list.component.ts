@@ -1,4 +1,4 @@
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { trashIcon, pencilIcon, plusIcon } from '@progress/kendo-svg-icons';
 import { ConfirmationService, InputService, ListViewComponent } from '@meshmakers/shared-ui';
@@ -26,6 +26,7 @@ import { ProcessDiagramDataSourceDirective } from '../data-sources/process-diagr
     ListViewComponent
   ],
   templateUrl: './process-diagram-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./process-diagram-list.component.scss']
 })
 export class ProcessDiagramListComponent {

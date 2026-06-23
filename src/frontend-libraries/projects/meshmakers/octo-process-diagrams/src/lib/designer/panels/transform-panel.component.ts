@@ -5,7 +5,7 @@
  * Allows editing transform properties on symbol definitions.
  */
 
-import { Component, Input, computed, Signal, signal, effect, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, Input, computed, Signal, signal, effect, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   TransformPropertyEditorComponent,
@@ -43,6 +43,7 @@ export interface TransformPanelParams {
       </mm-transform-property-editor>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

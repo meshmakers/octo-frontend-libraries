@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UnsavedChangesDirective } from './unsaved-changes.directive';
 import { HasUnsavedChanges, HAS_UNSAVED_CHANGES } from './unsaved-changes.interface';
@@ -8,6 +8,7 @@ import { HasUnsavedChanges, HAS_UNSAVED_CHANGES } from './unsaved-changes.interf
   standalone: true,
   template: '<div mmUnsavedChanges>Test</div>',
   providers: [{ provide: HAS_UNSAVED_CHANGES, useExisting: TestHostWithChangesComponent }],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [UnsavedChangesDirective]
 })
 class TestHostWithChangesComponent implements HasUnsavedChanges {
@@ -26,6 +27,7 @@ class TestHostWithChangesComponent implements HasUnsavedChanges {
   selector: 'mm-test-host-without-provider',
   standalone: true,
   template: '<div mmUnsavedChanges>Test</div>',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [UnsavedChangesDirective]
   // No HAS_UNSAVED_CHANGES provider
 })

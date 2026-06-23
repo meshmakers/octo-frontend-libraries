@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { LoaderModule } from '@progress/kendo-angular-indicators';
 
 /**
@@ -27,6 +27,7 @@ import { LoaderModule } from '@progress/kendo-angular-indicators';
       <kendo-loader type="pulsing" size="medium"></kendo-loader>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: none;

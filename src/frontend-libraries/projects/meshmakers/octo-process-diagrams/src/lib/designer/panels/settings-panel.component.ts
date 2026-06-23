@@ -20,11 +20,11 @@ import { SymbolSettings } from '../process-designer.component';
         <h4>Symbol</h4>
         <div class="form-group">
           <label>Name</label>
-          <input kendoTextBox [ngModel]="settings?.name" (ngModelChange)="onSettingChange('name', $event)"/>
+          <input kendoTextBox [ngModel]="$safeNavigationMigration(settings?.name)" (ngModelChange)="onSettingChange('name', $event)"/>
         </div>
         <div class="form-group">
           <label>Description</label>
-          <textarea kendoTextArea [ngModel]="settings?.description" (ngModelChange)="onSettingChange('description', $event)" rows="2"></textarea>
+          <textarea kendoTextArea [ngModel]="$safeNavigationMigration(settings?.description)" (ngModelChange)="onSettingChange('description', $event)" rows="2"></textarea>
         </div>
       </div>
 
@@ -34,7 +34,7 @@ import { SymbolSettings } from '../process-designer.component';
           <div class="form-group">
             <label>Width (px)</label>
             <kendo-numerictextbox
-              [ngModel]="settings?.canvasWidth"
+              [ngModel]="$safeNavigationMigration(settings?.canvasWidth)"
               (ngModelChange)="onSettingChange('canvasWidth', $event)"
               [min]="50"
               [max]="2000"
@@ -45,7 +45,7 @@ import { SymbolSettings } from '../process-designer.component';
           <div class="form-group">
             <label>Height (px)</label>
             <kendo-numerictextbox
-              [ngModel]="settings?.canvasHeight"
+              [ngModel]="$safeNavigationMigration(settings?.canvasHeight)"
               (ngModelChange)="onSettingChange('canvasHeight', $event)"
               [min]="50"
               [max]="2000"
@@ -61,7 +61,7 @@ import { SymbolSettings } from '../process-designer.component';
         <div class="form-group">
           <label>Size (px)</label>
           <kendo-numerictextbox
-            [ngModel]="settings?.gridSize"
+            [ngModel]="$safeNavigationMigration(settings?.gridSize)"
             (ngModelChange)="onSettingChange('gridSize', $event)"
             [min]="1"
             [max]="100"
@@ -75,15 +75,15 @@ import { SymbolSettings } from '../process-designer.component';
         <h4>Metadata</h4>
         <div class="form-group">
           <label>Version</label>
-          <input kendoTextBox [ngModel]="settings?.version" (ngModelChange)="onSettingChange('version', $event)"/>
+          <input kendoTextBox [ngModel]="$safeNavigationMigration(settings?.version)" (ngModelChange)="onSettingChange('version', $event)"/>
         </div>
         <div class="form-group">
           <label>Category</label>
-          <input kendoTextBox [ngModel]="settings?.category" (ngModelChange)="onSettingChange('category', $event)"/>
+          <input kendoTextBox [ngModel]="$safeNavigationMigration(settings?.category)" (ngModelChange)="onSettingChange('category', $event)"/>
         </div>
         <div class="form-group">
           <label>Tags</label>
-          <input kendoTextBox [ngModel]="settings?.tags" (ngModelChange)="onSettingChange('tags', $event)" placeholder="comma separated"/>
+          <input kendoTextBox [ngModel]="$safeNavigationMigration(settings?.tags)" (ngModelChange)="onSettingChange('tags', $event)" placeholder="comma separated"/>
         </div>
       </div>
     </div>

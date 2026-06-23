@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import {DialogActionsComponent, DialogContentBase, DialogRef} from '@progress/kendo-angular-dialog';
 import {ButtonComponent} from '@progress/kendo-angular-buttons';
 import {FormsModule} from '@angular/forms';
@@ -20,6 +20,7 @@ import {
     TextBoxComponent
   ],
   templateUrl: './input-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './input-dialog.component.scss'
 })
 export class InputDialogComponent extends DialogContentBase {

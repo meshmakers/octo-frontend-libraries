@@ -8,7 +8,8 @@ import {
   OnChanges,
   SimpleChanges,
   ViewChild,
-  inject
+  inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProcessDesignerComponent, SymbolSettings } from '../designer/process-designer.component';
@@ -131,6 +132,7 @@ import { ExpressionEvaluatorService } from '../services/expression-evaluator.ser
       (saved)="onBindingsSaved($event)">
     </mm-binding-editor-dialog>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     /* CSS Variables for theming - inherit from designer or use neutral defaults */
     :host {

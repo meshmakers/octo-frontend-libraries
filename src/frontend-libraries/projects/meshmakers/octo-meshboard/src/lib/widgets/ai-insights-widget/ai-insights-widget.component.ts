@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AiInsightsWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -43,6 +43,7 @@ import { AiInsightsService, AiInsight, AiInsightContext } from './ai-insights.se
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

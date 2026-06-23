@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WindowRef } from '@progress/kendo-angular-dialog';
@@ -109,6 +109,7 @@ interface ServiceTypeOption {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host { display: block; height: 100%; }
     .config-container { display: flex; flex-direction: column; height: 100%; }

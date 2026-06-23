@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
 import { MarkdownWidgetConfig } from '../../models/meshboard.models';
@@ -12,6 +12,7 @@ import { WidgetNotConfiguredComponent } from '../../components/widget-not-config
   standalone: true,
   imports: [CommonModule, MarkdownModule, WidgetNotConfiguredComponent],
   templateUrl: './markdown-widget.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './markdown-widget.component.scss'
 })
 export class MarkdownWidgetComponent implements DashboardWidget<MarkdownWidgetConfig, string>, OnInit, OnChanges {

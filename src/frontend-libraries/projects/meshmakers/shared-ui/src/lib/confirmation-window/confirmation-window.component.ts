@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType} from '../models/confirmation';
 import {DialogActionsComponent, DialogContentBase, DialogRef} from '@progress/kendo-angular-dialog';
 import {NgIf} from '@angular/common';
@@ -16,6 +16,7 @@ import {
     ButtonComponent
   ],
   templateUrl: './confirmation-window.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './confirmation-window.component.css'
 })
 export class ConfirmationWindowComponent extends DialogContentBase implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DialogRef, DialogService, DialogModule } from '@progress/kendo-angular-dialog';
@@ -39,6 +39,7 @@ import { PersistedMeshBoard } from '../../services/meshboard-persistence.service
     SVGIconModule
   ],
   templateUrl: './meshboard-manager-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './meshboard-manager-dialog.component.scss'
 })
 export class MeshBoardManagerDialogComponent implements OnInit {

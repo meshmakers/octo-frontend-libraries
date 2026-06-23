@@ -1,5 +1,5 @@
 <div>
-  @if (dataSource?.loading$ | async) {
+  @if ($safeNavigationMigration(dataSource?.loading$) | async) {
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
   }
 </div>
@@ -49,7 +49,7 @@
         <mat-icon class="material-symbols-outlined">search</mat-icon>
         Search
       </mat-label>
-      <input #input matInput [disabled]="dataSource?.loading$ | async"/>
+      <input #input matInput [disabled]="$safeNavigationMigration(dataSource?.loading$) | async"/>
     </mat-form-field>
   </div>
 </mat-toolbar>
@@ -138,7 +138,7 @@
 </mat-table>
 
 <mat-paginator
-  [length]="dataSource?.totalCount$ | async"
+  [length]="$safeNavigationMigration(dataSource?.totalCount$) | async"
   (page)="selectedPageSizeChanged($event)"
   [pageSizeOptions]="pageSizeOptions"
   [pageSize]="selectedPageSizeSubject.getValue()"

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `@meshmakers/shared-auth` library provides OAuth2/OIDC authentication for Angular applications using `angular-oauth2-oidc`. It exposes auth state via Angular Signals, uses functional guards and a functional interceptor (modern Angular 21 patterns).
+The `@meshmakers/shared-auth` library provides OAuth2/OIDC authentication for Angular applications using `angular-oauth2-oidc`. It exposes auth state via Angular Signals, uses functional guards and a functional interceptor (modern Angular 22 patterns).
 
 ## Build Commands
 
@@ -121,6 +121,6 @@ mm-login-app-bar-section {
 
 ## Dependencies
 
-- **Angular 21** (core, common/http, router)
-- **angular-oauth2-oidc** v20 (OAuth2/OIDC client)
+- **Angular 22** (core, common/http, router)
+- **angular-oauth2-oidc** v22 (OAuth2/OIDC client)
 - **@progress/kendo-angular-buttons, -indicators, -layout, -popup** (optional, only for login-ui)

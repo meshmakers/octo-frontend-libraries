@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, signal, inject } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StatsGridWidgetConfig, AggregationDataSource } from '../../models/meshboard.models';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
@@ -18,6 +18,7 @@ export interface StatValue {
   standalone: true,
   imports: [CommonModule, WidgetNotConfiguredComponent],
   templateUrl: './stats-grid-widget.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stats-grid-widget.component.scss'
 })
 export class StatsGridWidgetComponent implements OnInit, OnChanges {
