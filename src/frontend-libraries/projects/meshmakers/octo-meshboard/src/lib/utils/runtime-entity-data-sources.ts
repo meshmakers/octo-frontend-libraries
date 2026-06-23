@@ -6,12 +6,22 @@ export {
 export type { RuntimeEntityItem } from '@meshmakers/octo-services';
 
 /**
- * Persistent query item for selection in config dialogs
+ * Persistent query item for selection in config dialogs.
+ *
+ * Two CK-type fields are exposed because they mean different things:
+ * - `ckTypeId`      — the persistent-query entity's own CK type (e.g.
+ *                     `RtSimpleSdQuery`, `RtSimpleRtQuery`). This carries
+ *                     the family marker used for runtime/stream-data
+ *                     classification.
+ * - `queryCkTypeId` — the CK type the query queries against (e.g.
+ *                     `Basic.Energy/EnergyMeasurement`). Useful as a label
+ *                     in pickers; NEVER use for family classification.
  */
 export interface PersistentQueryItem {
   rtId: string;
   name: string;
   description?: string | null;
+  ckTypeId?: string | null;
   queryCkTypeId?: string | null;
 }
 

@@ -3,6 +3,8 @@
  * Defines the interfaces for MeshBoard widgets and their data sources
  */
 
+import type { QueryFamily } from '../utils/query-family';
+
 // ============================================================================
 // Data Source Types
 // ============================================================================
@@ -46,7 +48,13 @@ export interface StaticDataSource extends WidgetDataSource {
 }
 
 /**
- * Data source that executes a persistent query by its rtId
+ * Data source that executes a persistent query by its rtId.
+ *
+ * Both runtime-data and stream-data persistent queries are referenced through
+ * this single data-source type — switching between them is a configuration
+ * change, not a different widget. The `queryFamily` discriminator lets the
+ * widget pick the correct executor without an extra GraphQL round-trip; when
+ * absent it is derived from the query's `queryCkTypeId` at load time.
  */
 export interface PersistentQueryDataSource extends WidgetDataSource {
   type: 'persistentQuery';
@@ -54,6 +62,8 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
   queryRtId: string;
   /** Display name of the query (for UI) */
   queryName?: string;
+  /** Query family: 'runtime' or 'streamData'. Derived from queryCkTypeId when absent. */
+  queryFamily?: QueryFamily;
 }
 
 /**
@@ -141,6 +151,8 @@ export interface RepeaterQueryDataSource extends WidgetDataSource {
   queryRtId?: string;
   /** Display name of the query (for UI) */
   queryName?: string;
+  /** Query family for the repeater query: 'runtime' or 'streamData'. Derived from queryCkTypeId when absent. */
+  queryFamily?: QueryFamily;
   /** Load entities by CK type (Entity Mode) */
   ckTypeId?: string;
   /** Filters for Entity Mode */
@@ -1092,6 +1104,12 @@ export interface MeshBoardConfig {
   timeFilter?: MeshBoardTimeFilterConfig;
   /** Entity selector configurations for the toolbar */
   entitySelectors?: EntitySelectorConfig[];
+  /**
+   * Auto-refresh interval in seconds. `undefined` or `0` disables auto-refresh.
+   * When set, the view polls all widgets at this interval and pauses while the
+   * tab is hidden. Stream-data and runtime widgets refresh identically.
+   */
+  autoRefreshSeconds?: number;
   widgets: AnyWidgetConfig[];
 }
 

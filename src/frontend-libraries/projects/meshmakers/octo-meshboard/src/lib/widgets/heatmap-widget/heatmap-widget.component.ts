@@ -4,7 +4,7 @@ import { HeatmapWidgetConfig, HeatmapColorScheme, PersistentQueryDataSource, Wid
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
@@ -181,7 +181,14 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
   `]
 })
 export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConfig, HeatmapDataItem[]>, OnInit, OnChanges {
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
+
+  private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
+    'RtSimpleQueryRow',
+    'RtAggregationQueryRow',
+    'RtGroupingAggregationQueryRow',
+    'StreamDataQueryRow'
+  ]);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
 
@@ -322,13 +329,15 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
 
     try {
       const fieldFilter = this.convertFiltersToDto(this.config.filters);
+      // queryFamily may be undefined for legacy widget configs — the executor
+      // falls back to a one-time lookup by rtId. streamDataArgs is sent
+      // unconditionally because the runtime path ignores it.
+      const streamDataArgs = this.buildStreamDataArgs();
 
       const result = await firstValueFrom(
-        this.executeRuntimeQueryGQL.fetch({
-          variables: {
-            rtId: queryDataSource.queryRtId,
-            fieldFilter
-          }
+        this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
+          fieldFilter: fieldFilter ?? undefined,
+          streamDataArgs
         }).pipe(
           catchError(err => {
             console.error('Error loading Heatmap data:', err);
@@ -337,31 +346,9 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
         )
       );
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-
-      if (queryItems.length === 0) {
-        this._heatmapData.set([]);
-        this._xCategories.set([]);
-        this._yCategories.set([]);
-        this._isLoading.set(false);
-        return;
-      }
-
-      const queryResult = queryItems[0];
-      if (!queryResult) {
-        this._heatmapData.set([]);
-        this._xCategories.set([]);
-        this._yCategories.set([]);
-        this._isLoading.set(false);
-        return;
-      }
-
-      const rows = queryResult.rows?.items ?? [];
-      const supportedRowTypes = ['RtSimpleQueryRow', 'RtAggregationQueryRow', 'RtGroupingAggregationQueryRow'];
-
-      const filteredRows = rows
-        .filter((row): row is NonNullable<typeof row> => row !== null)
-        .filter(row => supportedRowTypes.includes(row.__typename ?? ''));
+      const filteredRows = result.rows.filter(row =>
+        HeatmapWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
+      );
 
       this.processHeatmapData(filteredRows);
 
@@ -373,12 +360,20 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     }
   }
 
+  private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
+    const range = this.stateService.resolveCurrentTimeRange();
+    if (!range) {
+      return undefined;
+    }
+    return { from: range.from, to: range.to };
+  }
+
   /**
    * Processes query rows into heatmap data.
    * When dateEndField is configured, auto-detects the interval width and shows sub-hour columns.
    * Otherwise aggregates into hourly buckets.
    */
-  private processHeatmapData(filteredRows: unknown[]): void {
+  private processHeatmapData(filteredRows: QueryResultRow[]): void {
     const dateField = this.config.dateField;
     const dateEndField = this.config.dateEndField ?? null;
     const valueField = this.config.valueField ?? null;
@@ -389,16 +384,11 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     const parsedRows: ParsedRow[] = [];
 
     for (const row of filteredRows) {
-      const queryRow = row as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-      const cells = queryRow.cells?.items ?? [];
-
       let dateFrom: Date | null = null;
       let dateTo: Date | null = null;
       let numericValue = 1; // default for count
 
-      for (const cell of cells) {
-        if (!cell?.attributePath) continue;
-
+      for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, dateField)) {
           dateFrom = this.parseDate(cell.value);
         } else if (dateEndField && matchesAttributePath(cell.attributePath, dateEndField)) {

@@ -10,13 +10,41 @@ import {
 import { FieldFilterOperatorsDto } from '@meshmakers/octo-services';
 import { GetSystemPersistentQueriesDtoGQL } from '../../graphQL/getSystemPersistentQueries';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
+import { QueryFamily, queryFamily } from '../../utils/query-family';
+
+/**
+ * Filter the result list down to queries whose family is in the accept list.
+ * Family is classified by the persistent-query entity's own CK type
+ * (`ckTypeId`, e.g. `RtSimpleSdQuery`) — NOT the target type
+ * (`queryCkTypeId`, e.g. `Basic.Energy/EnergyMeasurement`), which has nothing
+ * to do with runtime vs stream-data.
+ *
+ * `null` family (unrecognised legacy query type) is kept only when 'runtime'
+ * is among the accepted families — historical behavior treated everything as
+ * runtime-compatible.
+ */
+function filterByFamily(items: PersistentQueryItem[], accept: readonly QueryFamily[]): PersistentQueryItem[] {
+  if (accept.length === 0) {
+    return items;
+  }
+  return items.filter(item => {
+    const family = queryFamily(item.ckTypeId);
+    if (family === null) {
+      return accept.includes('runtime');
+    }
+    return accept.includes(family);
+  });
+}
 
 /**
  * Autocomplete data source for persistent query selection.
- * Filters queries by search text using GraphQL.
+ * Filters queries by search text using GraphQL, then narrows by family on the client.
  */
 export class PersistentQueryAutocompleteDataSource implements EntitySelectDataSource<PersistentQueryItem> {
-  constructor(private gql: GetSystemPersistentQueriesDtoGQL) {}
+  constructor(
+    private gql: GetSystemPersistentQueriesDtoGQL,
+    private acceptFamilies: readonly QueryFamily[] = ['runtime', 'streamData']
+  ) {}
 
   async onFilter(filter: string, take = 50): Promise<EntitySelectResult<PersistentQueryItem>> {
     const result = await firstValueFrom(
@@ -28,14 +56,17 @@ export class PersistentQueryAutocompleteDataSource implements EntitySelectDataSo
       })
     );
 
-    const items = (result.data?.runtime?.systemPersistentQuery?.items ?? [])
+    const rawItems = (result.data?.runtime?.systemPersistentQuery?.items ?? [])
       .filter((item): item is NonNullable<typeof item> => item !== null)
       .map(item => ({
         rtId: item.rtId,
         name: item.name ?? '',
         description: item.description,
+        ckTypeId: item.ckTypeId,
         queryCkTypeId: item.queryCkTypeId
       }));
+
+    const items = filterByFamily(rawItems, this.acceptFamilies);
 
     return {
       totalCount: result.data?.runtime?.systemPersistentQuery?.totalCount ?? 0,
@@ -54,10 +85,13 @@ export class PersistentQueryAutocompleteDataSource implements EntitySelectDataSo
 
 /**
  * Dialog data source for persistent query selection grid.
- * Provides columns and paginated data for the entity select dialog.
+ * Provides columns and paginated data for the entity select dialog, narrowed by family on the client.
  */
 export class PersistentQueryDialogDataSource implements EntitySelectDialogDataSource<PersistentQueryItem> {
-  constructor(private gql: GetSystemPersistentQueriesDtoGQL) {}
+  constructor(
+    private gql: GetSystemPersistentQueriesDtoGQL,
+    private acceptFamilies: readonly QueryFamily[] = ['runtime', 'streamData']
+  ) {}
 
   getColumns(): ColumnDefinition[] {
     return [
@@ -78,7 +112,7 @@ export class PersistentQueryDialogDataSource implements EntitySelectDialogDataSo
       })
     ).pipe(
       map(result => {
-        const items = (result.data?.runtime?.systemPersistentQuery?.items ?? [])
+        const rawItems = (result.data?.runtime?.systemPersistentQuery?.items ?? [])
           .filter((item): item is NonNullable<typeof item> => item !== null)
           .map(item => ({
             rtId: item.rtId,
@@ -86,6 +120,8 @@ export class PersistentQueryDialogDataSource implements EntitySelectDialogDataSo
             description: item.description,
             queryCkTypeId: item.queryCkTypeId
           }));
+
+        const items = filterByFamily(rawItems, this.acceptFamilies);
 
         return {
           data: items,

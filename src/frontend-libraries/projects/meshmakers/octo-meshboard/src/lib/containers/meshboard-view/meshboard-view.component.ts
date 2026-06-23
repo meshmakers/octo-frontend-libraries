@@ -124,6 +124,11 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private configDialogSubscription: Subscription | null = null;
   private navigationSubscription: Subscription | null = null;
 
+  // Auto-refresh polling
+  private autoRefreshTimerId: ReturnType<typeof setInterval> | null = null;
+  private autoRefreshActiveSeconds = 0;
+  private readonly visibilityListener = () => this.evaluateAutoRefresh();
+
   // State signals
   protected readonly config = this.stateService.meshBoardConfig;
   protected readonly isEditMode = this.editModeService.isEditMode;
@@ -209,6 +214,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
           this.initializeTimeFilterVariables();
         }
       }
+    });
+
+    // Effect to re-evaluate the auto-refresh timer whenever the MeshBoard
+    // config changes (e.g. user edits autoRefreshSeconds in settings, or a
+    // different board is loaded). Re-reads on the same interval skip the
+    // restart inside evaluateAutoRefresh().
+    effect(() => {
+      // Touch the signals we depend on so Angular re-fires the effect.
+      const seconds = this.config().autoRefreshSeconds ?? 0;
+      void seconds;
+      this.evaluateAutoRefresh();
     });
 
     // Update breadcrumb after each navigation (BreadCrumbService recreates items on NavigationEnd)
@@ -304,6 +320,14 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       // Update breadcrumb with MeshBoard name
       this.updateBreadcrumb();
 
+      // Wire visibility-aware auto-refresh. The config-watching effect already
+      // re-evaluates on signal changes; this listener handles the tab going
+      // background → foreground without a config change.
+      if (typeof document !== 'undefined') {
+        document.addEventListener('visibilitychange', this.visibilityListener);
+      }
+      this.evaluateAutoRefresh();
+
       this._isInitialized.set(true);
     } catch (err) {
       console.error('Error initializing MeshBoard view:', err);
@@ -336,6 +360,46 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   ngOnDestroy(): void {
     this.closeConfigDialog();
     this.navigationSubscription?.unsubscribe();
+    this.stopAutoRefresh();
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.visibilityListener);
+    }
+  }
+
+  /**
+   * Starts, restarts, or stops the auto-refresh timer based on the MeshBoard
+   * config and document visibility. Called on init, whenever config changes,
+   * and whenever the tab visibility changes.
+   *
+   * Pause-on-hidden saves bandwidth and avoids Apollo cache thrashing when
+   * the user has the tab in the background.
+   */
+  private evaluateAutoRefresh(): void {
+    const seconds = this.config().autoRefreshSeconds ?? 0;
+    const tabVisible = typeof document === 'undefined' || !document.hidden;
+
+    if (seconds <= 0 || !tabVisible) {
+      this.stopAutoRefresh();
+      return;
+    }
+
+    if (this.autoRefreshTimerId !== null && this.autoRefreshActiveSeconds === seconds) {
+      return; // already running with the same interval
+    }
+
+    this.stopAutoRefresh();
+    this.autoRefreshActiveSeconds = seconds;
+    this.autoRefreshTimerId = setInterval(() => {
+      void this.refresh();
+    }, seconds * 1000);
+  }
+
+  private stopAutoRefresh(): void {
+    if (this.autoRefreshTimerId !== null) {
+      clearInterval(this.autoRefreshTimerId);
+      this.autoRefreshTimerId = null;
+    }
+    this.autoRefreshActiveSeconds = 0;
   }
 
   /**

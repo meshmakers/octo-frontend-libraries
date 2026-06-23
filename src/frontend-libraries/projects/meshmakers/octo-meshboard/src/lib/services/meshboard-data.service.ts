@@ -3,7 +3,8 @@ import { Observable, map, of } from 'rxjs';
 import { GetDashboardEntityDtoGQL } from '../graphQL/getDashboardEntity';
 import { GetCkModelsWithStateDtoGQL, GetCkModelsWithStateQueryDto } from '../graphQL/getCkModelsWithState';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
-import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
+import { QueryExecutorService, StreamDataExecutionArgs } from './query-executor.service';
+import { QueryFamily } from '../utils/query-family';
 import { GetAssociationTargetsDtoGQL } from '../graphQL/getAssociationTargets';
 import { GetCkTypeAttributesForMeshboardDtoGQL } from '../graphQL/getCkTypeAttributes';
 import {
@@ -79,7 +80,7 @@ export class MeshBoardDataService {
   private readonly getDashboardEntityGQL = inject(GetDashboardEntityDtoGQL);
   private readonly getCkModelsWithStateGQL = inject(GetCkModelsWithStateDtoGQL);
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
   private readonly getAssociationTargetsGQL = inject(GetAssociationTargetsDtoGQL);
   private readonly getCkTypeAttributesGQL = inject(GetCkTypeAttributesForMeshboardDtoGQL);
   private readonly apollo = inject(Apollo);
@@ -346,8 +347,10 @@ export class MeshBoardDataService {
     const maxItems = dataSource.maxItems ?? 50;
 
     if (dataSource.queryRtId) {
-      // Query Mode: Execute persistent query
-      return this.fetchRepeaterFromQuery(dataSource.queryRtId, maxItems);
+      // Query Mode: Execute persistent query (runtime or stream-data).
+      // `queryFamily` may be undefined for legacy configs — the executor falls
+      // back to a one-time lookup keyed by rtId.
+      return this.fetchRepeaterFromQuery(dataSource.queryFamily, dataSource.queryRtId, maxItems);
     } else if (dataSource.ckTypeId) {
       // Entity Mode: Load entities by CK type
       return this.fetchRepeaterFromEntities(dataSource.ckTypeId, dataSource.filters, maxItems);
@@ -358,57 +361,40 @@ export class MeshBoardDataService {
   }
 
   /**
-   * Fetches repeater data from a persistent query.
-   * Maps query rows to RepeaterDataItem objects.
+   * Fetches repeater data from a persistent query (runtime or stream-data).
+   * Always sends `streamDataArgs` when a time filter is active — the runtime
+   * path ignores the field, so this is safe regardless of the resolved family.
    */
-  private async fetchRepeaterFromQuery(queryRtId: string, maxItems: number): Promise<RepeaterDataItem[]> {
+  private async fetchRepeaterFromQuery(family: QueryFamily | undefined, queryRtId: string, maxItems: number): Promise<RepeaterDataItem[]> {
     try {
+      const streamDataArgs = this.buildRepeaterStreamDataArgs();
+
       const result = await firstValueFrom(
-        this.executeRuntimeQueryGQL.fetch({
-          variables: {
-            rtId: queryRtId,
-            first: maxItems
-          }
+        this.queryExecutor.execute(family, queryRtId, {
+          first: maxItems,
+          streamDataArgs
         })
       );
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-      if (queryItems.length === 0) {
-        return [];
-      }
-
-      const queryResult = queryItems[0];
-      if (!queryResult) {
-        return [];
-      }
-
-      const rows = queryResult.rows?.items ?? [];
       const items: RepeaterDataItem[] = [];
 
-      for (const row of rows) {
-        if (!row) continue;
+      for (const row of result.rows) {
+        const rtId = row.rtId ?? `row-${items.length}`;
+        const ckTypeId = row.ckTypeId ?? result.associatedCkTypeId ?? '';
 
-        // Extract rtId from RtSimpleQueryRow if available
-        const rtId = (row as { rtId?: string }).rtId ?? `row-${items.length}`;
-        const ckTypeId = row.ckTypeId ?? queryResult.associatedCkTypeId ?? '';
-
-        // Build attributes map from cells
+        // Build attributes map from cells; expose both sanitised (`a_b`) and
+        // original (`a.b`) keys so widget configs can address either form.
         const attributes = new Map<string, unknown>();
-        const cells = row.cells?.items ?? [];
-
-        for (const cell of cells) {
-          if (!cell?.attributePath) continue;
-          // Sanitize the attribute path (replace dots with underscores)
+        for (const cell of row.cells) {
           const sanitizedPath = cell.attributePath.replace(/\./g, '_');
           attributes.set(sanitizedPath, cell.value);
-          // Also store with original path for flexibility
           attributes.set(cell.attributePath, cell.value);
         }
 
         items.push({
           rtId,
-          ckTypeId,
-          rtWellKnownName: attributes.get('rtWellKnownName') as string | undefined,
+          ckTypeId: ckTypeId ?? '',
+          rtWellKnownName: row.rtWellKnownName ?? (attributes.get('rtWellKnownName') as string | undefined),
           attributes
         });
       }
@@ -418,6 +404,14 @@ export class MeshBoardDataService {
       console.error('Failed to fetch repeater data from query:', error);
       return [];
     }
+  }
+
+  private buildRepeaterStreamDataArgs(): StreamDataExecutionArgs | undefined {
+    const range = this.stateService.resolveCurrentTimeRange();
+    if (!range) {
+      return undefined;
+    }
+    return { from: range.from, to: range.to };
   }
 
   /**

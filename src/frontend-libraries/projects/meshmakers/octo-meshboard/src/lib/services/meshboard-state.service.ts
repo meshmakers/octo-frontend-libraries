@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { CkModelService } from '@meshmakers/octo-services';
+import { TimeRange, TimeRangeSelection as SharedTimeRangeSelection, TimeRangeUtils } from '@meshmakers/shared-ui';
 import { MeshBoardPersistenceService, PersistedMeshBoard } from './meshboard-persistence.service';
 import { MeshBoardGridService } from './meshboard-grid.service';
 import {
@@ -321,6 +322,7 @@ export class MeshBoardStateService {
     variables?: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
     entitySelectors?: EntitySelectorConfig[];
+    autoRefreshSeconds?: number;
   }): void {
     this.updateConfig(config => ({
       ...config,
@@ -339,7 +341,8 @@ export class MeshBoardStateService {
             selection: settings.timeFilter.defaultSelection ?? config.timeFilter?.selection
           }
         : config.timeFilter,
-      entitySelectors: settings.entitySelectors ?? config.entitySelectors
+      entitySelectors: settings.entitySelectors ?? config.entitySelectors,
+      autoRefreshSeconds: settings.autoRefreshSeconds
     }));
 
     // If time filter is disabled, clear the time filter variables
@@ -361,6 +364,7 @@ export class MeshBoardStateService {
     variables: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
     entitySelectors?: EntitySelectorConfig[];
+    autoRefreshSeconds?: number;
   } {
     const config = this._meshBoardConfig();
     return {
@@ -372,7 +376,8 @@ export class MeshBoardStateService {
       gap: config.gap,
       variables: config.variables ?? [],
       timeFilter: config.timeFilter,
-      entitySelectors: config.entitySelectors
+      entitySelectors: config.entitySelectors,
+      autoRefreshSeconds: config.autoRefreshSeconds
     };
   }
 
@@ -564,6 +569,34 @@ export class MeshBoardStateService {
    */
   getTimeFilterConfig(): MeshBoardTimeFilterConfig | undefined {
     return this._meshBoardConfig().timeFilter;
+  }
+
+  /**
+   * Resolves the current time-filter selection to a concrete UTC `{from, to}`
+   * range. Returns `null` when the filter is disabled, no selection exists,
+   * or the selection is incomplete.
+   *
+   * Stream-data persistent queries consume this to bound their result set;
+   * runtime queries ignore it.
+   *
+   * IANA-timezone-aware bucket boundaries are tracked separately (AB#4190);
+   * this helper currently returns UTC boundaries derived from the picker.
+   */
+  resolveCurrentTimeRange(): TimeRange | null {
+    const config = this._meshBoardConfig().timeFilter;
+    if (!config?.enabled || !config.selection) {
+      return null;
+    }
+    const showTime = config.pickerConfig?.showTime ?? false;
+    // The model stores customFrom/customTo as ISO strings for JSON persistence,
+    // shared-ui's TimeRangeUtils expects Date objects — convert before delegating.
+    const selection = config.selection;
+    const sharedSelection: SharedTimeRangeSelection = {
+      ...selection,
+      customFrom: selection.customFrom ? new Date(selection.customFrom) : undefined,
+      customTo: selection.customTo ? new Date(selection.customTo) : undefined
+    } as SharedTimeRangeSelection;
+    return TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
   }
 
   /**

@@ -546,6 +546,57 @@ describe('MeshBoardStateService', () => {
       });
     });
 
+    describe('resolveCurrentTimeRange', () => {
+      it('should return null when time filter is undefined', () => {
+        expect(service.resolveCurrentTimeRange()).toBeNull();
+      });
+
+      it('should return null when time filter is disabled', () => {
+        service.updateTimeFilterConfig({
+          enabled: false,
+          selection: { type: 'year', year: 2024 }
+        });
+        expect(service.resolveCurrentTimeRange()).toBeNull();
+      });
+
+      it('should return null when no selection is set', () => {
+        service.updateTimeFilterConfig({ enabled: true });
+        expect(service.resolveCurrentTimeRange()).toBeNull();
+      });
+
+      it('should resolve year selection to a non-empty range', () => {
+        service.updateTimeFilterConfig({
+          enabled: true,
+          selection: { type: 'year', year: 2024 }
+        });
+
+        const range = service.resolveCurrentTimeRange();
+        expect(range).not.toBeNull();
+        expect(range?.from).toEqual(jasmine.any(Date));
+        expect(range?.to).toEqual(jasmine.any(Date));
+        // Range covers at least 364 days (DST edges allow for slight variance) —
+        // the picker resolves civil-calendar boundaries in the local zone.
+        const spanDays = (range!.to.getTime() - range!.from.getTime()) / (1000 * 60 * 60 * 24);
+        expect(spanDays).toBeGreaterThan(364);
+      });
+
+      it('should convert ISO-string customFrom/customTo to Date before resolving', () => {
+        service.updateTimeFilterConfig({
+          enabled: true,
+          selection: {
+            type: 'custom',
+            customFrom: '2024-06-01T00:00:00Z',
+            customTo: '2024-06-30T23:59:59Z'
+          }
+        });
+
+        const range = service.resolveCurrentTimeRange();
+        expect(range).not.toBeNull();
+        expect(range?.from).toEqual(jasmine.any(Date));
+        expect(range?.to).toEqual(jasmine.any(Date));
+      });
+    });
+
     describe('setTimeFilterVariables', () => {
       it('should create time filter variables', () => {
         service.setTimeFilterVariables('2024-01-01T00:00:00Z', '2024-12-31T23:59:59Z');

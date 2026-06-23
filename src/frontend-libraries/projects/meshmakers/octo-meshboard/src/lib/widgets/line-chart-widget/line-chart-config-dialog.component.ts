@@ -10,11 +10,13 @@ import { LoadingOverlayComponent } from '../../components/loading-overlay/loadin
 import { firstValueFrom } from 'rxjs';
 import { LineChartType, WidgetFilterConfig, ChartReferenceLine } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
+import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
 import { FieldFilterDto, FieldFilterOperatorsDto } from '@meshmakers/octo-services';
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
+import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 
 /**
@@ -23,6 +25,7 @@ import { QuerySelectorComponent } from '../../components/query-selector/query-se
 export interface LineChartConfigResult extends WidgetConfigResult {
   queryRtId: string;
   queryName?: string;
+  queryFamily?: QueryFamily;
   chartType: LineChartType;
   categoryField: string;
   seriesGroupField: string;
@@ -392,6 +395,7 @@ export interface LineChartConfigResult extends WidgetConfigResult {
 })
 export class LineChartConfigDialogComponent implements OnInit {
   private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -400,6 +404,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   // Initial values for editing
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
+  @Input() initialQueryFamily?: QueryFamily;
   @Input() initialChartType?: LineChartType;
   @Input() initialCategoryField?: string;
   @Input() initialSeriesGroupField?: string;
@@ -516,35 +521,20 @@ export class LineChartConfigDialogComponent implements OnInit {
 
   private async loadQueryColumns(queryRtId: string): Promise<void> {
     this.isLoadingColumns = true;
+    // family may be undefined when the selected query metadata is missing —
+    // fetchColumnsForFamily resolves it via the executor's one-time lookup.
+    const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily;
 
     try {
-      // Metadata-only — skips the row execution path on the backend.
-      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
-        variables: {
-          rtId: queryRtId
-        }
-      }));
+      this.queryColumns = await this.fetchColumnsForFamily(family, queryRtId);
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-      if (queryItems.length > 0 && queryItems[0]) {
-        const columns = queryItems[0].columns ?? [];
-        const filteredColumns = columns
-          .filter((c): c is NonNullable<typeof c> => c !== null);
-
-        this.queryColumns = filteredColumns.map(c => ({
-          attributePath: c.attributePath ?? '',
-          attributeValueType: c.attributeValueType ?? '',
-          aggregationType: c.aggregationType ?? null
-        }));
-
-        const numericTypes = ['INTEGER', 'FLOAT', 'DOUBLE', 'DECIMAL', 'LONG'];
-        this.numericColumns = this.queryColumns.filter(c =>
-          numericTypes.includes(c.attributeValueType)
-        );
-        this.nonNumericColumns = this.queryColumns.filter(c =>
-          !numericTypes.includes(c.attributeValueType)
-        );
-      }
+      const numericTypes = ['INTEGER', 'FLOAT', 'DOUBLE', 'DECIMAL', 'LONG'];
+      this.numericColumns = this.queryColumns.filter(c =>
+        numericTypes.includes(c.attributeValueType)
+      );
+      this.nonNumericColumns = this.queryColumns.filter(c =>
+        !numericTypes.includes(c.attributeValueType)
+      );
     } catch (error) {
       console.error('Error loading query columns:', error);
       this.queryColumns = [];
@@ -553,6 +543,36 @@ export class LineChartConfigDialogComponent implements OnInit {
     } finally {
       this.isLoadingColumns = false;
     }
+  }
+
+  /**
+   * Runtime queries use the metadata-only resolver (no aggregation executed);
+   * stream-data queries fall back to executing the query with `first: 1`
+   * because the SD path has no dedicated column-introspection endpoint today.
+   */
+  private async fetchColumnsForFamily(family: QueryFamily | undefined, rtId: string): Promise<QueryColumnItem[]> {
+    const resolvedFamily = family ?? await this.queryExecutor.resolveFamily(rtId);
+    if (resolvedFamily === 'runtime') {
+      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
+        variables: { rtId }
+      }));
+      const queryItem = result.data?.runtime?.runtimeQuery?.items?.[0];
+      if (!queryItem) return [];
+      return (queryItem.columns ?? [])
+        .filter((c): c is NonNullable<typeof c> => c !== null)
+        .map(c => ({
+          attributePath: c.attributePath ?? '',
+          attributeValueType: c.attributeValueType ?? '',
+          aggregationType: c.aggregationType ?? null
+        }));
+    }
+
+    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
+    return sdResult.columns.map(c => ({
+      attributePath: c.attributePath,
+      attributeValueType: c.attributeValueType ?? '',
+      aggregationType: c.aggregationType ?? null
+    }));
   }
 
   onFiltersChange(updatedFilters: FieldFilterItem[]): void {
@@ -570,11 +590,14 @@ export class LineChartConfigDialogComponent implements OnInit {
         }))
       : undefined;
 
+    const family = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
+
     const result: LineChartConfigResult = {
       ckTypeId: '',
       rtId: '',
       queryRtId: this.selectedPersistentQuery.rtId,
       queryName: this.selectedPersistentQuery.name,
+      queryFamily: family,
       chartType: this.form.chartType,
       categoryField: this.form.categoryField,
       seriesGroupField: this.form.seriesGroupField,

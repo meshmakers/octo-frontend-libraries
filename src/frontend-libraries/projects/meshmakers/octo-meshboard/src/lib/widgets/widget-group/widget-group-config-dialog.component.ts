@@ -8,6 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { CkTypeSelectorInputComponent, FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
 import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, FieldFilterDto, GetCkTypeAvailableQueryColumnsDtoGQL } from '@meshmakers/octo-services';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
+import { QueryExecutorService } from '../../services/query-executor.service';
 import { firstValueFrom } from 'rxjs';
 import {
   GroupChildWidgetType,
@@ -19,6 +20,7 @@ import {
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
+import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
@@ -37,6 +39,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
   // Query mode
   queryRtId?: string;
   queryName?: string;
+  queryFamily?: QueryFamily;
   // CK Type mode filters
   filters?: FieldFilterDto[];
   // Common
@@ -502,6 +505,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private readonly attributeSelectorService = inject(AttributeSelectorService);
   private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
@@ -512,6 +516,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
   @Input() initialDataSourceMode?: WidgetGroupDataSourceMode;
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
+  @Input() initialQueryFamily?: QueryFamily;
   @Input() initialCkTypeId?: string;
   @Input() initialFilters?: WidgetFilterConfig[];
   @Input() initialMaxItems?: number;
@@ -687,30 +692,13 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
 
   private async loadQueryColumns(queryRtId: string): Promise<void> {
     this.isLoadingColumns = true;
+    // family may be undefined when the selected query metadata is missing —
+    // fetchColumnsForFamily resolves it via the executor's one-time lookup.
+    const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily;
 
     try {
-      // Metadata-only — skips the row execution path on the backend.
-      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
-        variables: {
-          rtId: queryRtId
-        }
-      }));
-
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-      if (queryItems.length > 0 && queryItems[0]) {
-        const queryResult = queryItems[0];
-        const columns = queryResult.columns ?? [];
-
-        this.availableColumns = columns
-          .filter((c): c is NonNullable<typeof c> => c !== null)
-          .map(c => ({
-            attributePath: c.attributePath ?? '',
-            attributeValueType: c.attributeValueType ?? '',
-            aggregationType: c.aggregationType ?? null
-          }));
-
-        this.filteredColumns.set(this.availableColumns);
-      }
+      this.availableColumns = await this.fetchColumnsForFamily(family, queryRtId);
+      this.filteredColumns.set(this.availableColumns);
     } catch (error) {
       console.error('Error loading query columns:', error);
       this.availableColumns = [];
@@ -718,6 +706,36 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
     } finally {
       this.isLoadingColumns = false;
     }
+  }
+
+  /**
+   * Runtime queries use the metadata-only resolver (no aggregation executed);
+   * stream-data queries fall back to executing the query with `first: 1`
+   * because the SD path has no dedicated column-introspection endpoint today.
+   */
+  private async fetchColumnsForFamily(family: QueryFamily | undefined, rtId: string): Promise<QueryColumnItem[]> {
+    const resolvedFamily = family ?? await this.queryExecutor.resolveFamily(rtId);
+    if (resolvedFamily === 'runtime') {
+      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
+        variables: { rtId }
+      }));
+      const queryItem = result.data?.runtime?.runtimeQuery?.items?.[0];
+      if (!queryItem) return [];
+      return (queryItem.columns ?? [])
+        .filter((c): c is NonNullable<typeof c> => c !== null)
+        .map(c => ({
+          attributePath: c.attributePath ?? '',
+          attributeValueType: c.attributeValueType ?? '',
+          aggregationType: c.aggregationType ?? null
+        }));
+    }
+
+    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
+    return sdResult.columns.map(c => ({
+      attributePath: c.attributePath,
+      attributeValueType: c.attributeValueType ?? '',
+      aggregationType: c.aggregationType ?? null
+    }));
   }
 
   // ============================================================================
@@ -829,11 +847,16 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
         }))
       : undefined;
 
+    const family = this.dataSourceMode === 'persistentQuery' && this.selectedPersistentQuery
+      ? queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined
+      : undefined;
+
     const result: WidgetGroupConfigResult = {
       ckTypeId: this.dataSourceMode === 'ckType' ? (this.selectedCkType?.rtCkTypeId ?? '') : '',
       dataSourceMode: this.dataSourceMode,
       queryRtId: this.dataSourceMode === 'persistentQuery' ? this.selectedPersistentQuery?.rtId : undefined,
       queryName: this.dataSourceMode === 'persistentQuery' ? this.selectedPersistentQuery?.name : undefined,
+      queryFamily: family,
       filters: this.dataSourceMode === 'ckType' ? filtersDto : undefined,
       maxItems: this.form.maxItems,
       childTemplate,

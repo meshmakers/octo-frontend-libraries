@@ -29,6 +29,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { TableColumn } from '../../models/meshboard.models';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
+import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
@@ -51,6 +52,8 @@ export interface TableConfigResult {
   // For persistentQuery:
   queryRtId?: string;
   queryName?: string;
+  /** Family of the selected persistent query — 'runtime' or 'streamData'. */
+  queryFamily?: QueryFamily;
   // Common:
   pageSize: number;
   sortable: boolean;
@@ -457,6 +460,7 @@ export class TableConfigDialogComponent implements OnInit {
   @Input() initialSortable?: boolean;
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
+  @Input() initialQueryFamily?: QueryFamily;
 
   protected readonly columnsIcon = columnsIcon;
   protected readonly sortIcon = sortAscIcon;
@@ -718,6 +722,10 @@ export class TableConfigDialogComponent implements OnInit {
         comparisonValue: f.comparisonValue
       }));
 
+      // Derive family from the selected query's CK type so the runtime executor
+      // can route correctly without an extra lookup.
+      const family = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
+
       this.windowRef.close({
         dataSourceType: 'persistentQuery',
         ckTypeId: '', // Not used for persistent query
@@ -726,6 +734,7 @@ export class TableConfigDialogComponent implements OnInit {
         filters: queryFilterDtos,
         queryRtId: this.selectedPersistentQuery.rtId,
         queryName: this.selectedPersistentQuery.name,
+        queryFamily: family,
         pageSize: this.form.pageSize,
         sortable: this.form.sortable
       });

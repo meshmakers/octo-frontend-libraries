@@ -4,12 +4,12 @@ import { KpiWidgetConfig, RuntimeEntityData, PersistentQueryDataSource, WidgetFi
 import { DashboardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
+import { QueryExecutionResult, QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons';
 import { catchError, of, firstValueFrom } from 'rxjs';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 
@@ -22,9 +22,20 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
 })
 export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, RuntimeEntityData>, OnInit, OnChanges {
   private readonly dataService = inject(DashboardDataService);
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
+
+  /**
+   * Row __typenames KPI extraction recognises.
+   * Runtime queries discriminate; stream-data queries collapse all kinds
+   * (simple / aggregation / grouped / downsampling) into `StreamDataQueryRow`.
+   */
+  private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
+    'RtAggregationQueryRow',
+    'RtGroupingAggregationQueryRow',
+    'StreamDataQueryRow'
+  ]);
 
   @Input() config!: KpiWidgetConfig;
 
@@ -310,15 +321,16 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     this._error.set(null);
 
     try {
-      // Convert widget filters to GraphQL format
       const fieldFilter = this.convertFiltersToDto(this.config.filters);
+      // queryFamily may be undefined for legacy widget configs — the executor
+      // falls back to a one-time lookup by rtId. streamDataArgs is sent
+      // unconditionally because the runtime path ignores it.
+      const streamDataArgs = this.buildStreamDataArgs();
 
       const result = await firstValueFrom(
-        this.executeRuntimeQueryGQL.fetch({
-          variables: {
-            rtId: dataSource.queryRtId,
-            fieldFilter
-          }
+        this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
+          fieldFilter: fieldFilter ?? undefined,
+          streamDataArgs
         }).pipe(
           catchError(err => {
             console.error('Error loading KPI query data:', err);
@@ -327,37 +339,20 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         )
       );
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-      if (queryItems.length === 0) {
-        this._error.set('Query returned no results');
-        this._isLoading.set(false);
-        return;
-      }
-
-      const queryResult = queryItems[0];
-      if (!queryResult) {
-        this._error.set('Query returned no results');
-        this._isLoading.set(false);
-        return;
-      }
-
       let value: number | string = 0;
       const queryMode = this.config.queryMode ?? 'simpleCount';
 
       switch (queryMode) {
         case 'simpleCount':
-          // Use totalCount from the query
-          value = queryResult.rows?.totalCount ?? 0;
+          value = result.totalCount;
           break;
 
         case 'aggregation':
-          // Get the single value from aggregation query (1 row, 1 column)
-          value = this.extractAggregationValue(queryResult);
+          value = this.extractAggregationValue(result);
           break;
 
         case 'groupedAggregation':
-          // Find the row matching the selected category and get its value
-          value = this.extractGroupedAggregationValue(queryResult);
+          value = this.extractGroupedAggregationValue(result);
           break;
       }
 
@@ -378,39 +373,32 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     }
   }
 
-  private extractAggregationValue(queryResult: {
-    rows?: { items?: ({ __typename?: string; cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null } | null)[] | null } | null
-  }): number | string {
-    const rows = queryResult.rows?.items ?? [];
-    const supportedRowTypes = ['RtAggregationQueryRow', 'RtGroupingAggregationQueryRow'];
+  private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
+    const range = this.stateService.resolveCurrentTimeRange();
+    if (!range) {
+      return undefined;
+    }
+    return { from: range.from, to: range.to };
+  }
 
-    // Get the first row
-    const firstRow = rows.find(row => row && supportedRowTypes.includes(row.__typename ?? ''));
+  private extractAggregationValue(queryResult: QueryExecutionResult): number | string {
+    const firstRow = queryResult.rows.find(row =>
+      KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
+    );
     if (!firstRow) return 0;
 
-    const queryRow = firstRow as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-    const cells = queryRow.cells?.items ?? [];
-
-    // Find the value field or use the first cell
     const valueField = this.config.queryValueField;
-    for (const cell of cells) {
-      if (!cell?.attributePath) continue;
+    for (const cell of firstRow.cells) {
       if (valueField && matchesAttributePath(cell.attributePath, valueField)) {
         return this.extractCellValue(cell.value);
       }
     }
 
     // Fallback: return first cell value if no specific field configured
-    const firstCell = cells.find(c => c !== null);
-    return firstCell ? this.extractCellValue(firstCell.value) : 0;
+    return firstRow.cells.length > 0 ? this.extractCellValue(firstRow.cells[0].value) : 0;
   }
 
-  private extractGroupedAggregationValue(queryResult: {
-    rows?: { items?: ({ __typename?: string; cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null } | null)[] | null } | null
-  }): number | string {
-    const rows = queryResult.rows?.items ?? [];
-    const supportedRowTypes = ['RtGroupingAggregationQueryRow', 'RtAggregationQueryRow'];
-
+  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number | string {
     const categoryField = this.config.queryCategoryField;
     const categoryValue = this.config.queryCategoryValue;
     const valueField = this.config.queryValueField;
@@ -419,23 +407,16 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return 0;
     }
 
-    // Find the row where category matches
-    for (const row of rows) {
-      if (!row || !supportedRowTypes.includes(row.__typename ?? '')) continue;
-
-      const queryRow = row as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-      const cells = queryRow.cells?.items ?? [];
+    for (const row of queryResult.rows) {
+      if (!KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')) continue;
 
       let categoryMatch = false;
       let value: number | string = 0;
 
-      for (const cell of cells) {
-        if (!cell?.attributePath) continue;
-
+      for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
           categoryMatch = true;
         }
-
         if (matchesAttributePath(cell.attributePath, valueField)) {
           value = this.extractCellValue(cell.value);
         }

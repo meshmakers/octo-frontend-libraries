@@ -4,7 +4,7 @@ import { BarChartWidgetConfig, BarChartType, PersistentQueryDataSource, WidgetFi
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
@@ -182,7 +182,14 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
   `]
 })
 export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetConfig, SeriesData[]>, OnInit, OnChanges {
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
+
+  private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
+    'RtSimpleQueryRow',
+    'RtAggregationQueryRow',
+    'RtGroupingAggregationQueryRow',
+    'StreamDataQueryRow'
+  ]);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
 
@@ -315,15 +322,16 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     this._error.set(null);
 
     try {
-      // Convert widget filters to GraphQL format
       const fieldFilter = this.convertFiltersToDto(this.config.filters);
+      // queryFamily may be undefined for legacy widget configs — the executor
+      // falls back to a one-time lookup by rtId. streamDataArgs is sent
+      // unconditionally because the runtime path ignores it.
+      const streamDataArgs = this.buildStreamDataArgs();
 
       const result = await firstValueFrom(
-        this.executeRuntimeQueryGQL.fetch({
-          variables: {
-            rtId: queryDataSource.queryRtId,
-            fieldFilter
-          }
+        this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
+          fieldFilter: fieldFilter ?? undefined,
+          streamDataArgs
         }).pipe(
           catchError(err => {
             console.error('Error loading Bar Chart data:', err);
@@ -332,32 +340,10 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
         )
       );
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
+      const filteredRows = result.rows.filter(row =>
+        BarChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
+      );
 
-      if (queryItems.length === 0) {
-        this._categories.set([]);
-        this._seriesData.set([]);
-        this._isLoading.set(false);
-        return;
-      }
-
-      const queryResult = queryItems[0];
-      if (!queryResult) {
-        this._categories.set([]);
-        this._seriesData.set([]);
-        this._isLoading.set(false);
-        return;
-      }
-
-      // Extract rows
-      const rows = queryResult.rows?.items ?? [];
-      const supportedRowTypes = ['RtSimpleQueryRow', 'RtAggregationQueryRow', 'RtGroupingAggregationQueryRow'];
-
-      const filteredRows = rows
-        .filter((row): row is NonNullable<typeof row> => row !== null)
-        .filter(row => supportedRowTypes.includes(row.__typename ?? ''));
-
-      // Process data based on mode
       if (this.isDynamicSeriesMode()) {
         this.processDynamicSeriesData(filteredRows);
       } else {
@@ -373,11 +359,19 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     }
   }
 
+  private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
+    const range = this.stateService.resolveCurrentTimeRange();
+    if (!range) {
+      return undefined;
+    }
+    return { from: range.from, to: range.to };
+  }
+
   /**
    * Processes data in Static Series Mode.
    * Each series in config.series corresponds to a separate numeric field.
    */
-  private processStaticSeriesData(filteredRows: unknown[]): void {
+  private processStaticSeriesData(filteredRows: QueryResultRow[]): void {
     const categories: string[] = [];
     const seriesMap = new Map<string, number[]>();
 
@@ -387,15 +381,10 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     }
 
     for (const row of filteredRows) {
-      const queryRow = row as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-      const cells = queryRow.cells?.items ?? [];
-
       let categoryValue = '';
       const rowValues = new Map<string, number>();
 
-      for (const cell of cells) {
-        if (!cell?.attributePath) continue;
-
+      for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, this.config.categoryField)) {
           categoryValue = this.formatCategoryValue(cell.value);
         }
@@ -449,7 +438,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
    * - Series 'Credit': [261721, 70343, 23140, 189794]
    * - Series 'Debit': [65263, 60153, 159636, 108225]
    */
-  private processDynamicSeriesData(filteredRows: unknown[]): void {
+  private processDynamicSeriesData(filteredRows: QueryResultRow[]): void {
     const categoryField = this.config.categoryField;
     const seriesGroupField = this.config.seriesGroupField!;
     const valueField = this.config.valueField!;
@@ -460,16 +449,11 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const allSeriesGroups = new Set<string>();
 
     for (const row of filteredRows) {
-      const queryRow = row as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-      const cells = queryRow.cells?.items ?? [];
-
       let categoryValue = '';
       let seriesGroupValue = '';
       let numericValue = 0;
 
-      for (const cell of cells) {
-        if (!cell?.attributePath) continue;
-
+      for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, categoryField)) {
           categoryValue = this.formatCategoryValue(cell.value);
         } else if (matchesAttributePath(cell.attributePath, seriesGroupField)) {

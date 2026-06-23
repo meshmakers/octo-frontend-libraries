@@ -20,6 +20,10 @@ export {
   RuntimeEntityDialogDataSource
 } from './lib/utils/runtime-entity-data-sources';
 
+// Query family classification (runtime vs stream-data persistent queries)
+export type { QueryFamily, QueryKind, QueryClassification } from './lib/utils/query-family';
+export { classifyQuery, queryFamily } from './lib/utils/query-family';
+
 // Shared Components
 export { QuerySelectorComponent } from './lib/components/query-selector/query-selector.component';
 export { RuntimeEntitySelectorComponent } from './lib/components/runtime-entity-selector/runtime-entity-selector.component';
@@ -34,6 +38,7 @@ export * from './lib/services/widget-registry.service';
 export * from './lib/services/widget-factory.service';
 export * from './lib/services/edit-mode-state.service';
 export * from './lib/services/meshboard-grid.service';
+export * from './lib/services/query-executor.service';
 
 // Widget Components - Export components with explicit names to avoid duplicates
 export { EntityCardWidgetComponent } from './lib/widgets/entity-card-widget/entity-card-widget.component';

@@ -6,7 +6,7 @@ import { MeshBoardVariableService } from './meshboard-variable.service';
 import { GetDashboardEntityDtoGQL } from '../graphQL/getDashboardEntity';
 import { GetCkModelsWithStateDtoGQL } from '../graphQL/getCkModelsWithState';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
-import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
+import { QueryExecutorService, QueryExecutionResult } from './query-executor.service';
 import { Apollo } from 'apollo-angular';
 import {
   RuntimeEntityDataSource,
@@ -25,18 +25,46 @@ describe('MeshBoardDataService', () => {
   let getDashboardEntityGQLSpy: jasmine.SpyObj<GetDashboardEntityDtoGQL>;
   let getCkModelsWithStateGQLSpy: jasmine.SpyObj<GetCkModelsWithStateDtoGQL>;
   let getEntitiesByCkTypeGQLSpy: jasmine.SpyObj<GetEntitiesByCkTypeDtoGQL>;
-  let executeRuntimeQueryGQLSpy: jasmine.SpyObj<ExecuteRuntimeQueryDtoGQL>;
+  let queryExecutorSpy: jasmine.SpyObj<QueryExecutorService>;
   let apolloSpy: jasmine.SpyObj<Apollo>;
   let stateServiceSpy: jasmine.SpyObj<MeshBoardStateService>;
   let variableServiceSpy: jasmine.SpyObj<MeshBoardVariableService>;
+
+  /**
+   * Helper that builds a `QueryExecutionResult` from a flat list of row objects
+   * with cell entries, mirroring the runtime-query shape the service used to
+   * consume directly off the Apollo response. Keeps the existing test fixtures
+   * compact after the executor refactor.
+   */
+  function runtimeResult(rows: {
+    rtId?: string;
+    ckTypeId?: string;
+    cells: { attributePath: string; value: unknown }[];
+  }[], associatedCkTypeId?: string): QueryExecutionResult {
+    return {
+      family: 'runtime',
+      queryRtId: null,
+      associatedCkTypeId: associatedCkTypeId ?? null,
+      columns: [],
+      rows: rows.map(r => ({
+        __typename: 'RtSimpleQueryRow',
+        rtId: r.rtId ?? null,
+        ckTypeId: r.ckTypeId ?? null,
+        cells: r.cells
+      })),
+      totalCount: rows.length,
+      hasNextPage: false,
+      endCursor: null
+    };
+  }
 
   beforeEach(() => {
     getDashboardEntityGQLSpy = jasmine.createSpyObj('GetDashboardEntityDtoGQL', ['fetch']);
     getCkModelsWithStateGQLSpy = jasmine.createSpyObj('GetCkModelsWithStateDtoGQL', ['fetch']);
     getEntitiesByCkTypeGQLSpy = jasmine.createSpyObj('GetEntitiesByCkTypeDtoGQL', ['fetch']);
-    executeRuntimeQueryGQLSpy = jasmine.createSpyObj('ExecuteRuntimeQueryDtoGQL', ['fetch']);
+    queryExecutorSpy = jasmine.createSpyObj('QueryExecutorService', ['execute', 'executeRuntime', 'executeStreamData']);
     apolloSpy = jasmine.createSpyObj('Apollo', ['query']);
-    stateServiceSpy = jasmine.createSpyObj('MeshBoardStateService', ['getVariables']);
+    stateServiceSpy = jasmine.createSpyObj('MeshBoardStateService', ['getVariables', 'resolveCurrentTimeRange']);
     variableServiceSpy = jasmine.createSpyObj('MeshBoardVariableService', ['convertToFieldFilterDto']);
 
     TestBed.configureTestingModule({
@@ -45,7 +73,7 @@ describe('MeshBoardDataService', () => {
         { provide: GetDashboardEntityDtoGQL, useValue: getDashboardEntityGQLSpy },
         { provide: GetCkModelsWithStateDtoGQL, useValue: getCkModelsWithStateGQLSpy },
         { provide: GetEntitiesByCkTypeDtoGQL, useValue: getEntitiesByCkTypeGQLSpy },
-        { provide: ExecuteRuntimeQueryDtoGQL, useValue: executeRuntimeQueryGQLSpy },
+        { provide: QueryExecutorService, useValue: queryExecutorSpy },
         { provide: Apollo, useValue: apolloSpy },
         { provide: MeshBoardStateService, useValue: stateServiceSpy },
         { provide: MeshBoardVariableService, useValue: variableServiceSpy }
@@ -54,6 +82,7 @@ describe('MeshBoardDataService', () => {
 
     service = TestBed.inject(MeshBoardDataService);
     stateServiceSpy.getVariables.and.returnValue([]);
+    stateServiceSpy.resolveCurrentTimeRange.and.returnValue(null);
     variableServiceSpy.convertToFieldFilterDto.and.returnValue(undefined);
   });
 
@@ -835,51 +864,24 @@ describe('MeshBoardDataService', () => {
           maxItems: 10
         };
 
-        executeRuntimeQueryGQLSpy.fetch.and.returnValue(of({
-          data: {
-            runtime: {
-              runtimeQuery: {
-                items: [{
-                  queryRtId: 'query-123',
-                  associatedCkTypeId: 'TestType',
-                  columns: [
-                    { attributePath: 'name', attributeValueType: 'String' },
-                    { attributePath: 'value', attributeValueType: 'Int32' }
-                  ],
-                  rows: {
-                    totalCount: 2,
-                    items: [
-                      {
-                        __typename: 'RtSimpleQueryRow',
-                        rtId: 'entity-1',
-                        ckTypeId: 'TestType',
-                        cells: {
-                          items: [
-                            { attributePath: 'name', value: 'Machine 1' },
-                            { attributePath: 'value', value: 100 }
-                          ]
-                        }
-                      },
-                      {
-                        __typename: 'RtSimpleQueryRow',
-                        rtId: 'entity-2',
-                        ckTypeId: 'TestType',
-                        cells: {
-                          items: [
-                            { attributePath: 'name', value: 'Machine 2' },
-                            { attributePath: 'value', value: 200 }
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                }]
-              }
-            }
+        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([
+          {
+            rtId: 'entity-1',
+            ckTypeId: 'TestType',
+            cells: [
+              { attributePath: 'name', value: 'Machine 1' },
+              { attributePath: 'value', value: 100 }
+            ]
           },
-          loading: false,
-          networkStatus: 7
-        } as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
+          {
+            rtId: 'entity-2',
+            ckTypeId: 'TestType',
+            cells: [
+              { attributePath: 'name', value: 'Machine 2' },
+              { attributePath: 'value', value: 200 }
+            ]
+          }
+        ], 'TestType')));
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -898,34 +900,11 @@ describe('MeshBoardDataService', () => {
           queryRtId: 'query-123'
         };
 
-        executeRuntimeQueryGQLSpy.fetch.and.returnValue(of({
-          data: {
-            runtime: {
-              runtimeQuery: {
-                items: [{
-                  queryRtId: 'query-123',
-                  associatedCkTypeId: 'TestType',
-                  columns: [],
-                  rows: {
-                    totalCount: 1,
-                    items: [{
-                      __typename: 'RtSimpleQueryRow',
-                      rtId: 'entity-1',
-                      ckTypeId: 'TestType',
-                      cells: {
-                        items: [
-                          { attributePath: 'nested.attribute.path', value: 'test-value' }
-                        ]
-                      }
-                    }]
-                  }
-                }]
-              }
-            }
-          },
-          loading: false,
-          networkStatus: 7
-        } as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
+        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([{
+          rtId: 'entity-1',
+          ckTypeId: 'TestType',
+          cells: [{ attributePath: 'nested.attribute.path', value: 'test-value' }]
+        }], 'TestType')));
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -934,34 +913,43 @@ describe('MeshBoardDataService', () => {
         expect(result[0].attributes.get('nested.attribute.path')).toBe('test-value');
       });
 
-      it('should use default maxItems of 50', async () => {
+      it('should use default maxItems of 50 and pass undefined family for legacy configs', async () => {
         const dataSource: RepeaterQueryDataSource = {
           type: 'repeaterQuery',
           queryRtId: 'query-123'
         };
 
-        executeRuntimeQueryGQLSpy.fetch.and.returnValue(of({
-          data: {
-            runtime: {
-              runtimeQuery: {
-                items: [{
-                  queryRtId: 'query-123',
-                  rows: { totalCount: 0, items: [] }
-                }]
-              }
-            }
-          },
-          loading: false,
-          networkStatus: 7
-        } as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
+        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([])));
 
         await service.fetchRepeaterData(dataSource);
 
-        expect(executeRuntimeQueryGQLSpy.fetch).toHaveBeenCalledWith({
-          variables: {
-            rtId: 'query-123',
-            first: 50
-          }
+        // Legacy configs don't carry queryFamily; the executor falls back to
+        // a one-time rtId lookup. streamDataArgs is undefined when no time
+        // filter is active.
+        expect(queryExecutorSpy.execute).toHaveBeenCalledWith(undefined, 'query-123', {
+          first: 50,
+          streamDataArgs: undefined
+        });
+      });
+
+      it('should route stream-data queries with the time-range from state', async () => {
+        const dataSource: RepeaterQueryDataSource = {
+          type: 'repeaterQuery',
+          queryRtId: 'sd-query-1',
+          queryFamily: 'streamData',
+          maxItems: 25
+        };
+
+        const from = new Date('2024-01-01T00:00:00Z');
+        const to = new Date('2024-01-31T23:59:59Z');
+        stateServiceSpy.resolveCurrentTimeRange.and.returnValue({ from, to });
+        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([])));
+
+        await service.fetchRepeaterData(dataSource);
+
+        expect(queryExecutorSpy.execute).toHaveBeenCalledWith('streamData', 'sd-query-1', {
+          first: 25,
+          streamDataArgs: { from, to }
         });
       });
 
@@ -971,39 +959,7 @@ describe('MeshBoardDataService', () => {
           queryRtId: 'query-123'
         };
 
-        executeRuntimeQueryGQLSpy.fetch.and.returnValue(of({
-          data: {
-            runtime: {
-              runtimeQuery: {
-                items: []
-              }
-            }
-          },
-          loading: false,
-          networkStatus: 7
-        } as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
-
-        const result = await service.fetchRepeaterData(dataSource);
-        expect(result).toEqual([]);
-      });
-
-      it('should return empty array when query result is null', async () => {
-        const dataSource: RepeaterQueryDataSource = {
-          type: 'repeaterQuery',
-          queryRtId: 'query-123'
-        };
-
-        executeRuntimeQueryGQLSpy.fetch.and.returnValue(of({
-          data: {
-            runtime: {
-              runtimeQuery: {
-                items: [null]
-              }
-            }
-          },
-          loading: false,
-          networkStatus: 7
-        } as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
+        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([])));
 
         const result = await service.fetchRepeaterData(dataSource);
         expect(result).toEqual([]);
@@ -1015,7 +971,7 @@ describe('MeshBoardDataService', () => {
           queryRtId: 'query-123'
         };
 
-        executeRuntimeQueryGQLSpy.fetch.and.returnValue(throwError(() => new Error('Query failed')));
+        queryExecutorSpy.execute.and.returnValue(throwError(() => new Error('Query failed')));
         spyOn(console, 'error');
 
         const result = await service.fetchRepeaterData(dataSource);
@@ -1030,75 +986,24 @@ describe('MeshBoardDataService', () => {
           queryRtId: 'query-123'
         };
 
-        executeRuntimeQueryGQLSpy.fetch.and.returnValue(of({
-          data: {
-            runtime: {
-              runtimeQuery: {
-                items: [{
-                  queryRtId: 'query-123',
-                  associatedCkTypeId: 'TestType',
-                  rows: {
-                    totalCount: 2,
-                    items: [
-                      {
-                        __typename: 'RtAggregationQueryRow',
-                        ckTypeId: 'TestType',
-                        cells: { items: [{ attributePath: 'count', value: 10 }] }
-                      },
-                      {
-                        __typename: 'RtAggregationQueryRow',
-                        ckTypeId: 'TestType',
-                        cells: { items: [{ attributePath: 'count', value: 20 }] }
-                      }
-                    ]
-                  }
-                }]
-              }
-            }
-          },
-          loading: false,
-          networkStatus: 7
-        } as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
+        queryExecutorSpy.execute.and.returnValue(of({
+          family: 'runtime',
+          queryRtId: null,
+          associatedCkTypeId: 'TestType',
+          columns: [],
+          rows: [
+            { __typename: 'RtAggregationQueryRow', rtId: null, ckTypeId: 'TestType', cells: [{ attributePath: 'count', value: 10 }] },
+            { __typename: 'RtAggregationQueryRow', rtId: null, ckTypeId: 'TestType', cells: [{ attributePath: 'count', value: 20 }] }
+          ],
+          totalCount: 2,
+          hasNextPage: false,
+          endCursor: null
+        } satisfies QueryExecutionResult));
 
         const result = await service.fetchRepeaterData(dataSource);
 
         expect(result[0].rtId).toBe('row-0');
         expect(result[1].rtId).toBe('row-1');
-      });
-
-      it('should skip null rows', async () => {
-        const dataSource: RepeaterQueryDataSource = {
-          type: 'repeaterQuery',
-          queryRtId: 'query-123'
-        };
-
-        executeRuntimeQueryGQLSpy.fetch.and.returnValue(of({
-          data: {
-            runtime: {
-              runtimeQuery: {
-                items: [{
-                  queryRtId: 'query-123',
-                  associatedCkTypeId: 'TestType',
-                  rows: {
-                    totalCount: 3,
-                    items: [
-                      { __typename: 'RtSimpleQueryRow', rtId: 'entity-1', ckTypeId: 'TestType', cells: { items: [] } },
-                      null,
-                      { __typename: 'RtSimpleQueryRow', rtId: 'entity-3', ckTypeId: 'TestType', cells: { items: [] } }
-                    ]
-                  }
-                }]
-              }
-            }
-          },
-          loading: false,
-          networkStatus: 7
-        } as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
-
-        const result = await service.fetchRepeaterData(dataSource);
-        expect(result.length).toBe(2);
-        expect(result[0].rtId).toBe('entity-1');
-        expect(result[1].rtId).toBe('entity-3');
       });
     });
 
@@ -1290,24 +1195,11 @@ describe('MeshBoardDataService', () => {
           ckTypeId: 'OctoSdk/Machine'
         };
 
-        executeRuntimeQueryGQLSpy.fetch.and.returnValue(of({
-          data: {
-            runtime: {
-              runtimeQuery: {
-                items: [{
-                  queryRtId: 'query-123',
-                  rows: { totalCount: 0, items: [] }
-                }]
-              }
-            }
-          },
-          loading: false,
-          networkStatus: 7
-        } as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
+        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([])));
 
         await service.fetchRepeaterData(dataSource);
 
-        expect(executeRuntimeQueryGQLSpy.fetch).toHaveBeenCalled();
+        expect(queryExecutorSpy.execute).toHaveBeenCalled();
         expect(getEntitiesByCkTypeGQLSpy.fetch).not.toHaveBeenCalled();
       });
     });

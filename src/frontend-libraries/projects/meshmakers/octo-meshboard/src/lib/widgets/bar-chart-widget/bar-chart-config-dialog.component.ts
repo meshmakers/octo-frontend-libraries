@@ -10,11 +10,13 @@ import { LoadingOverlayComponent } from '../../components/loading-overlay/loadin
 import { firstValueFrom } from 'rxjs';
 import { BarChartType, BarChartSeries, BarChartColorThreshold, WidgetFilterConfig } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
+import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
 import { FieldFilterDto, FieldFilterOperatorsDto } from '@meshmakers/octo-services';
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
+import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 
 /**
@@ -28,6 +30,7 @@ export type SeriesMode = 'static' | 'dynamic';
 export interface BarChartConfigResult extends WidgetConfigResult {
   queryRtId: string;
   queryName?: string;
+  queryFamily?: QueryFamily;
   chartType: BarChartType;
   categoryField: string;
   series: BarChartSeries[];
@@ -459,6 +462,7 @@ export interface BarChartConfigResult extends WidgetConfigResult {
 })
 export class BarChartConfigDialogComponent implements OnInit {
   private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -467,6 +471,7 @@ export class BarChartConfigDialogComponent implements OnInit {
   // Initial values for editing
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
+  @Input() initialQueryFamily?: QueryFamily;
   @Input() initialChartType?: BarChartType;
   @Input() initialCategoryField?: string;
   @Input() initialSeries?: BarChartSeries[];
@@ -615,52 +620,32 @@ export class BarChartConfigDialogComponent implements OnInit {
   private async loadQueryColumns(queryRtId: string): Promise<void> {
     this.isLoadingColumns = true;
 
+    // family may be undefined when the selected query metadata is missing —
+    // fetchColumnsForFamily resolves it via the executor's one-time lookup.
+    const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily;
+
     try {
-      // Metadata-only — column resolver runs off the cached query definition and skips
-      // the row execution path, so the dialog opens fast even on large aggregations.
-      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
-        variables: {
-          rtId: queryRtId
-        }
-      }));
+      this.queryColumns = await this.fetchColumnsForFamily(family, queryRtId);
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-      if (queryItems.length > 0 && queryItems[0]) {
-        const columns = queryItems[0].columns ?? [];
-        const filteredColumns = columns
-          .filter((c): c is NonNullable<typeof c> => c !== null);
+      // Filter numeric and non-numeric columns
+      const numericTypes = ['INTEGER', 'FLOAT', 'DOUBLE', 'DECIMAL', 'LONG'];
+      this.numericColumns = this.queryColumns.filter(c =>
+        numericTypes.includes(c.attributeValueType)
+      );
+      this.nonNumericColumns = this.queryColumns.filter(c =>
+        !numericTypes.includes(c.attributeValueType)
+      );
 
-        // Engine emits column attributePath in wire form for aggregation / grouping
-        // columns (e.g. `quantity_sum`, `operatingstatus`); picker uses it verbatim.
-        this.queryColumns = filteredColumns.map(c => ({
-          attributePath: c.attributePath ?? '',
-          attributeValueType: c.attributeValueType ?? '',
-          aggregationType: c.aggregationType ?? null
-        }));
-
-        // Filter numeric and non-numeric columns
-        const numericTypes = ['INTEGER', 'FLOAT', 'DOUBLE', 'DECIMAL', 'LONG'];
-        this.numericColumns = this.queryColumns.filter(c =>
-          numericTypes.includes(c.attributeValueType)
-        );
-        this.nonNumericColumns = this.queryColumns.filter(c =>
+      // Auto-select fields if possible and not editing
+      if (!this.initialQueryRtId && this.queryColumns.length >= 2) {
+        const categoryColumn = this.queryColumns.find(c =>
           !numericTypes.includes(c.attributeValueType)
         );
-
-        // Auto-select fields if possible and not editing
-        if (!this.initialQueryRtId && this.queryColumns.length >= 2) {
-          // Find first non-numeric column for category
-          const categoryColumn = this.queryColumns.find(c =>
-            !numericTypes.includes(c.attributeValueType)
-          );
-          if (categoryColumn) {
-            this.form.categoryField = categoryColumn.attributePath;
-          }
-
-          // Auto-select all numeric columns as series
-          if (this.numericColumns.length > 0) {
-            this.selectedSeriesFields = this.numericColumns.map(c => c.attributePath);
-          }
+        if (categoryColumn) {
+          this.form.categoryField = categoryColumn.attributePath;
+        }
+        if (this.numericColumns.length > 0) {
+          this.selectedSeriesFields = this.numericColumns.map(c => c.attributePath);
         }
       }
     } catch (error) {
@@ -671,6 +656,36 @@ export class BarChartConfigDialogComponent implements OnInit {
     } finally {
       this.isLoadingColumns = false;
     }
+  }
+
+  /**
+   * Runtime queries use the metadata-only resolver (no aggregation executed);
+   * stream-data queries fall back to executing the query with `first: 1`
+   * because the SD path has no dedicated column-introspection endpoint today.
+   */
+  private async fetchColumnsForFamily(family: QueryFamily | undefined, rtId: string): Promise<QueryColumnItem[]> {
+    const resolvedFamily = family ?? await this.queryExecutor.resolveFamily(rtId);
+    if (resolvedFamily === 'runtime') {
+      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
+        variables: { rtId }
+      }));
+      const queryItem = result.data?.runtime?.runtimeQuery?.items?.[0];
+      if (!queryItem) return [];
+      return (queryItem.columns ?? [])
+        .filter((c): c is NonNullable<typeof c> => c !== null)
+        .map(c => ({
+          attributePath: c.attributePath ?? '',
+          attributeValueType: c.attributeValueType ?? '',
+          aggregationType: c.aggregationType ?? null
+        }));
+    }
+
+    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
+    return sdResult.columns.map(c => ({
+      attributePath: c.attributePath,
+      attributeValueType: c.attributeValueType ?? '',
+      aggregationType: c.aggregationType ?? null
+    }));
   }
 
   onSeriesFieldsChange(fields: string[]): void {
@@ -706,11 +721,14 @@ export class BarChartConfigDialogComponent implements OnInit {
         }))
       : undefined;
 
+    const family = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
+
     const result: BarChartConfigResult = {
       ckTypeId: '',
       rtId: '',
       queryRtId: this.selectedPersistentQuery.rtId,
       queryName: this.selectedPersistentQuery.name,
+      queryFamily: family,
       chartType: this.form.chartType,
       categoryField: this.form.categoryField,
       series,

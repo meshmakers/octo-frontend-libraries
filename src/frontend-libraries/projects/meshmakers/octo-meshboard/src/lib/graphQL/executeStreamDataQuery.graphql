@@ -1,0 +1,43 @@
+query executeStreamDataQuery(
+  $rtId: OctoObjectId!
+  $arg: StreamDataArguments
+  $first: Int
+  $after: String
+  $sortOrder: [Sort]
+  $fieldFilter: [FieldFilter]
+) {
+  streamData {
+    streamDataQuery(rtId: $rtId) {
+      items {
+        queryRtId
+        associatedCkTypeId
+        columns {
+          attributePath
+          attributeValueType
+          aggregationType
+        }
+        rows(arg: $arg, first: $first, after: $after, sortOrder: $sortOrder, fieldFilter: $fieldFilter) {
+          totalCount
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          items {
+            rtId
+            ckTypeId
+            timestamp
+            rtWellKnownName
+            rtCreationDateTime
+            rtChangedDateTime
+            cells {
+              items {
+                attributePath
+                value
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

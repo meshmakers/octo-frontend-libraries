@@ -106,6 +106,25 @@
                 <kendo-formerror>Gap must be between 0 and 100</kendo-formerror>
               }
             </kendo-formfield>
+
+            <!-- Auto-Refresh Field -->
+            <kendo-formfield>
+              <kendo-label [for]="autoRefreshInput" text="Auto-refresh"></kendo-label>
+              <kendo-numerictextbox
+                #autoRefreshInput
+                [(ngModel)]="autoRefreshSeconds"
+                name="autoRefreshSeconds"
+                [min]="0"
+                [max]="3600"
+                [decimals]="0"
+                [format]="'n0'"
+                [spinners]="true">
+              </kendo-numerictextbox>
+              <kendo-formhint>Refresh interval in seconds (0 = disabled, max 3600). Pauses while the tab is hidden.</kendo-formhint>
+              @if (autoRefreshSeconds < 0 || autoRefreshSeconds > 3600) {
+                <kendo-formerror>Auto-refresh must be between 0 and 3600 seconds</kendo-formerror>
+              }
+            </kendo-formfield>
           </form>
         </div>
       </ng-template>

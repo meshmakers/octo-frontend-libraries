@@ -7,7 +7,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { catchError, of, firstValueFrom } from 'rxjs';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { QueryExecutionResult, QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import {CollectionChangesService, KENDO_GAUGES} from "@progress/kendo-angular-gauges";
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
@@ -328,7 +328,13 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
   ];
 
   private readonly dataService = inject(DashboardDataService);
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
+
+  private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
+    'RtAggregationQueryRow',
+    'RtGroupingAggregationQueryRow',
+    'StreamDataQueryRow'
+  ]);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
 
@@ -459,15 +465,16 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     this._error.set(null);
 
     try {
-      // Convert widget filters to GraphQL format
       const fieldFilter = this.convertFiltersToDto(this.config.filters);
+      // queryFamily may be undefined for legacy widget configs — the executor
+      // falls back to a one-time lookup by rtId. streamDataArgs is sent
+      // unconditionally because the runtime path ignores it.
+      const streamDataArgs = this.buildStreamDataArgs();
 
       const result = await firstValueFrom(
-        this.executeRuntimeQueryGQL.fetch({
-          variables: {
-            rtId: dataSource.queryRtId,
-            fieldFilter
-          }
+        this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
+          fieldFilter: fieldFilter ?? undefined,
+          streamDataArgs
         }).pipe(
           catchError(err => {
             console.error('Error loading Gauge query data:', err);
@@ -476,37 +483,20 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
         )
       );
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-      if (queryItems.length === 0) {
-        this._error.set('Query returned no results');
-        this._isLoading.set(false);
-        return;
-      }
-
-      const queryResult = queryItems[0];
-      if (!queryResult) {
-        this._error.set('Query returned no results');
-        this._isLoading.set(false);
-        return;
-      }
-
       let value = 0;
       const queryMode = this.config.queryMode ?? 'simpleCount';
 
       switch (queryMode) {
         case 'simpleCount':
-          // Use totalCount from the query
-          value = queryResult.rows?.totalCount ?? 0;
+          value = result.totalCount;
           break;
 
         case 'aggregation':
-          // Get the single value from aggregation query (1 row, 1 column)
-          value = this.extractAggregationValue(queryResult);
+          value = this.extractAggregationValue(result);
           break;
 
         case 'groupedAggregation':
-          // Find the row matching the selected category and get its value
-          value = this.extractGroupedAggregationValue(queryResult);
+          value = this.extractGroupedAggregationValue(result);
           break;
       }
 
@@ -527,39 +517,31 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     }
   }
 
-  private extractAggregationValue(queryResult: {
-    rows?: { items?: ({ __typename?: string; cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null } | null)[] | null } | null
-  }): number {
-    const rows = queryResult.rows?.items ?? [];
-    const supportedRowTypes = ['RtAggregationQueryRow', 'RtGroupingAggregationQueryRow'];
+  private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
+    const range = this.stateService.resolveCurrentTimeRange();
+    if (!range) {
+      return undefined;
+    }
+    return { from: range.from, to: range.to };
+  }
 
-    // Get the first row
-    const firstRow = rows.find(row => row && supportedRowTypes.includes(row.__typename ?? ''));
+  private extractAggregationValue(queryResult: QueryExecutionResult): number {
+    const firstRow = queryResult.rows.find(row =>
+      GaugeWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
+    );
     if (!firstRow) return 0;
 
-    const queryRow = firstRow as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-    const cells = queryRow.cells?.items ?? [];
-
-    // Find the value field or use the first numeric cell
     const valueField = this.config.queryValueField;
-    for (const cell of cells) {
-      if (!cell?.attributePath) continue;
+    for (const cell of firstRow.cells) {
       if (valueField && matchesAttributePath(cell.attributePath, valueField)) {
         return this.parseNumericValue(cell.value);
       }
     }
 
-    // Fallback: return first cell value if no specific field configured
-    const firstCell = cells.find(c => c !== null);
-    return firstCell ? this.parseNumericValue(firstCell.value) : 0;
+    return firstRow.cells.length > 0 ? this.parseNumericValue(firstRow.cells[0].value) : 0;
   }
 
-  private extractGroupedAggregationValue(queryResult: {
-    rows?: { items?: ({ __typename?: string; cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null } | null)[] | null } | null
-  }): number {
-    const rows = queryResult.rows?.items ?? [];
-    const supportedRowTypes = ['RtGroupingAggregationQueryRow', 'RtAggregationQueryRow'];
-
+  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number {
     const categoryField = this.config.queryCategoryField;
     const categoryValue = this.config.queryCategoryValue;
     const valueField = this.config.queryValueField;
@@ -568,23 +550,16 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
       return 0;
     }
 
-    // Find the row where category matches
-    for (const row of rows) {
-      if (!row || !supportedRowTypes.includes(row.__typename ?? '')) continue;
-
-      const queryRow = row as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-      const cells = queryRow.cells?.items ?? [];
+    for (const row of queryResult.rows) {
+      if (!GaugeWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')) continue;
 
       let categoryMatch = false;
       let value = 0;
 
-      for (const cell of cells) {
-        if (!cell?.attributePath) continue;
-
+      for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
           categoryMatch = true;
         }
-
         if (matchesAttributePath(cell.attributePath, valueField)) {
           value = this.parseNumericValue(cell.value);
         }

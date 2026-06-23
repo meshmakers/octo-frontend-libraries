@@ -12,13 +12,14 @@ import {
 } from '@meshmakers/shared-ui';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { QueryExecutorService } from '../../services/query-executor.service';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { firstValueFrom } from 'rxjs';
 import { KpiQueryMode, WidgetFilterConfig } from '../../models/meshboard.models';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { RuntimeEntityItem, PersistentQueryItem, QueryColumnItem, CategoryValueItem, RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource } from '../../utils/runtime-entity-data-sources';
+import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 
@@ -40,6 +41,7 @@ export interface KpiConfigResult extends WidgetConfigResult {
   // Persistent query fields
   queryRtId?: string;
   queryName?: string;
+  queryFamily?: QueryFamily;
   queryMode?: KpiQueryMode;
   queryValueField?: string;
   queryCategoryField?: string;
@@ -602,8 +604,19 @@ export class KpiConfigDialogComponent implements OnInit {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private readonly attributeSelectorService = inject(AttributeSelectorService);
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
   private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
+
+  /**
+   * Row __typenames the dialog recognises when collecting distinct category
+   * values from a query result for the grouped-aggregation category picker.
+   */
+  private static readonly INTROSPECTION_ROW_TYPES: ReadonlySet<string> = new Set([
+    'RtSimpleQueryRow',
+    'RtAggregationQueryRow',
+    'RtGroupingAggregationQueryRow',
+    'StreamDataQueryRow'
+  ]);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
 
@@ -625,6 +638,7 @@ export class KpiConfigDialogComponent implements OnInit {
   @Input() initialDataSourceType?: KpiDataSourceType;
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
+  @Input() initialQueryFamily?: QueryFamily;
   @Input() initialQueryMode?: KpiQueryMode;
   @Input() initialQueryValueField?: string;
   @Input() initialQueryCategoryField?: string;
@@ -948,6 +962,7 @@ export class KpiConfigDialogComponent implements OnInit {
     }
 
     if (this.dataSourceType === 'persistentQuery' && this.selectedPersistentQuery) {
+      const family = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
       this.windowRef.close({
         dataSourceType: 'persistentQuery',
         ckTypeId: '',
@@ -955,6 +970,7 @@ export class KpiConfigDialogComponent implements OnInit {
         valueAttribute: '',
         queryRtId: this.selectedPersistentQuery.rtId,
         queryName: this.selectedPersistentQuery.name,
+        queryFamily: family,
         queryMode: this.queryMode,
         queryValueField: this.form.queryValueField || undefined,
         queryCategoryField: this.form.queryCategoryField || undefined,
@@ -1029,39 +1045,19 @@ export class KpiConfigDialogComponent implements OnInit {
     const rtId = queryRtId || this.selectedPersistentQuery?.rtId;
     if (!rtId) return;
 
+    // queryFamily may be undefined when the selected query metadata is missing —
+    // fetchColumnsForFamily resolves it via the executor's one-time lookup.
+    const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily;
+
     this.isLoadingQueryColumns = true;
 
     try {
-      // Metadata-only fetch — column resolver runs off the cached query definition
-      // without executing the underlying aggregation, so the dialog opens fast even
-      // for queries that aggregate over large data sets.
-      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
-        variables: {
-          rtId: rtId
-        }
-      }));
+      this.queryColumns = await this.fetchColumnsForFamily(family, rtId);
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-      if (queryItems.length > 0 && queryItems[0]) {
-        const columns = queryItems[0].columns ?? [];
-        const filteredColumns = columns
-          .filter((c): c is NonNullable<typeof c> => c !== null);
-
-        // Column AttributePath is already in the engine's wire form for aggregation /
-        // grouping columns (e.g. `quantity_sum`, `operatingstatus`) so picker entries
-        // double as both the visible label and the stored config value, and MIN + MAX
-        // of the same source path show up as two distinct entries.
-        this.queryColumns = filteredColumns.map(c => ({
-          attributePath: c.attributePath ?? '',
-          attributeValueType: c.attributeValueType ?? '',
-          aggregationType: c.aggregationType ?? null
-        }));
-
-        // Category values for grouped aggregation are loaded on-demand by
-        // loadCategoryValuesForField — only when a categoryField is actually selected.
-        if (this.queryMode === 'groupedAggregation' && this.form.queryCategoryField) {
-          await this.loadCategoryValuesForField(rtId, this.form.queryCategoryField);
-        }
+      // Category values for grouped aggregation are loaded on-demand by
+      // loadCategoryValuesForField — only when a categoryField is actually selected.
+      if (this.queryColumns.length > 0 && this.queryMode === 'groupedAggregation' && this.form.queryCategoryField) {
+        await this.loadCategoryValuesForField(rtId, this.form.queryCategoryField);
       }
     } catch (error) {
       console.error('Error loading query columns:', error);
@@ -1069,6 +1065,41 @@ export class KpiConfigDialogComponent implements OnInit {
     } finally {
       this.isLoadingQueryColumns = false;
     }
+  }
+
+  /**
+   * Loads column metadata for the picker. Runtime queries use the
+   * metadata-only resolver (no aggregation executed); stream-data queries
+   * fall back to executing the query with `first: 1`. When `family` is
+   * unknown (legacy configs), the executor resolves it once by rtId lookup.
+   */
+  private async fetchColumnsForFamily(family: QueryFamily | undefined, rtId: string): Promise<QueryColumnItem[]> {
+    const resolvedFamily = family ?? await this.queryExecutor.resolveFamily(rtId);
+    if (resolvedFamily === 'runtime') {
+      const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
+        variables: { rtId }
+      }));
+      const queryItem = result.data?.runtime?.runtimeQuery?.items?.[0];
+      if (!queryItem) return [];
+      return (queryItem.columns ?? [])
+        .filter((c): c is NonNullable<typeof c> => c !== null)
+        // Column AttributePath is already in the engine's wire form for aggregation /
+        // grouping columns (e.g. `quantity_sum`, `operatingstatus`) so picker entries
+        // double as both the visible label and the stored config value.
+        .map(c => ({
+          attributePath: c.attributePath ?? '',
+          attributeValueType: c.attributeValueType ?? '',
+          aggregationType: c.aggregationType ?? null
+        }));
+    }
+
+    // Stream-data: execute with a tiny page just to surface columns.
+    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
+    return sdResult.columns.map(c => ({
+      attributePath: c.attributePath,
+      attributeValueType: c.attributeValueType ?? '',
+      aggregationType: c.aggregationType ?? null
+    }));
   }
 
   async onCategoryFieldChange(categoryField: string): Promise<void> {
@@ -1085,40 +1116,24 @@ export class KpiConfigDialogComponent implements OnInit {
     this.isLoadingCategoryValues = true;
 
     try {
-      const result = await firstValueFrom(this.executeRuntimeQueryGQL.fetch({
-        variables: {
-          rtId: queryRtId,
-          first: 100
-        }
-      }));
+      // family may be undefined here — the executor falls back to a lookup.
+      const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily;
+      const result = await firstValueFrom(this.queryExecutor.execute(family, queryRtId, { first: 100 }));
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-      if (queryItems.length > 0 && queryItems[0]) {
-        const queryResult = queryItems[0];
-        const rows = queryResult.rows?.items ?? [];
-        const supportedRowTypes = ['RtSimpleQueryRow', 'RtAggregationQueryRow', 'RtGroupingAggregationQueryRow'];
-
-        const values = new Set<string>();
-
-        for (const row of rows) {
-          if (!row || !supportedRowTypes.includes(row.__typename ?? '')) continue;
-
-          const queryRow = row as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-          const cells = queryRow.cells?.items ?? [];
-
-          for (const cell of cells) {
-            if (!cell?.attributePath) continue;
-            if (matchesAttributePath(cell.attributePath, categoryField) && cell.value !== null && cell.value !== undefined) {
-              values.add(String(cell.value));
-            }
+      const values = new Set<string>();
+      for (const row of result.rows) {
+        if (!KpiConfigDialogComponent.INTROSPECTION_ROW_TYPES.has(row.__typename ?? '')) continue;
+        for (const cell of row.cells) {
+          if (matchesAttributePath(cell.attributePath, categoryField) && cell.value !== null && cell.value !== undefined) {
+            values.add(String(cell.value));
           }
         }
-
-        this.categoryValues = Array.from(values).map(v => ({
-          value: v,
-          displayValue: v
-        }));
       }
+
+      this.categoryValues = Array.from(values).map(v => ({
+        value: v,
+        displayValue: v
+      }));
     } catch (error) {
       console.error('Error loading category values:', error);
       this.categoryValues = [];

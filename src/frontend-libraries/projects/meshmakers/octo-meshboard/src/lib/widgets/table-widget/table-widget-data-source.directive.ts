@@ -6,9 +6,9 @@ import { DataSourceBase, FetchDataOptions, FetchResultTyped, ListViewComponent }
 import { GraphQL, FieldFilterDto } from '@meshmakers/octo-services';
 import { TableWidgetConfig, TableColumn, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
+import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
@@ -36,7 +36,7 @@ export interface QueryColumn {
 })
 export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record<string, unknown>> {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
 
@@ -200,102 +200,102 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
   }
 
   /**
-   * Fetches data from a persistent query.
-   * Extracts columns from the query response and transforms cells to flat records.
+   * Row __typenames the table widget knows how to flatten. Runtime queries
+   * use three discriminated variants; stream-data queries collapse all
+   * kinds (simple / aggregation / grouped / downsampling) into a single
+   * `StreamDataQueryRow` type.
+   */
+  private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
+    'RtSimpleQueryRow',
+    'RtAggregationQueryRow',
+    'RtGroupingAggregationQueryRow',
+    'StreamDataQueryRow'
+  ]);
+
+  /**
+   * Fetches data from a persistent query (runtime or stream-data).
+   * Family is determined from the cached `queryFamily` on the data source
+   * (set by the config dialog when the user picks a query) and defaults to
+   * `'runtime'` for legacy configs that predate stream-data support.
    */
   private fetchPersistentQueryData(
     dataSource: PersistentQueryDataSource,
     queryOptions: FetchDataOptions
   ): Observable<FetchResultTyped<Record<string, unknown>>> {
-    // Convert widget-configured filters to GraphQL format (with variable resolution)
     const fieldFilter = this.convertFiltersToDto(this._config?.filters);
 
-    return this.executeRuntimeQueryGQL.fetch({
-      variables: {
-        rtId: dataSource.queryRtId,
-        first: queryOptions.state.take ?? this._config?.pageSize ?? 10,
-        after: GraphQL.offsetToCursor(queryOptions.state.skip ?? 0),
-        fieldFilter
-      }
+    // queryFamily may be undefined for legacy widget configs — the executor
+    // falls back to a one-time lookup by rtId. streamDataArgs is sent
+    // unconditionally because the runtime path ignores it.
+    //
+    // Precedence: MeshBoard time filter > query's intrinsic time bounds.
+    // When no time filter is active, the persistent query uses its own bounds.
+    const streamDataArgs = this.buildStreamDataArgs();
+
+    return this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
+      first: queryOptions.state.take ?? this._config?.pageSize ?? 10,
+      after: GraphQL.offsetToCursor(queryOptions.state.skip ?? 0),
+      fieldFilter: fieldFilter ?? undefined,
+      streamDataArgs
     }).pipe(
       map(result => {
-        const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-
-        if (queryItems.length === 0) {
-          return new FetchResultTyped<Record<string, unknown>>([], 0);
-        }
-
-        const queryResult = queryItems[0];
-        if (!queryResult) {
-          return new FetchResultTyped<Record<string, unknown>>([], 0);
-        }
-
-        // Extract columns from query response and update signal
-        // Replace dots with underscores for grid compatibility (Kendo treats dots as nested paths)
-        const columns: QueryColumn[] = (queryResult.columns ?? [])
-          .filter((c): c is NonNullable<typeof c> => c !== null)
-          .map(c => ({
-            attributePath: this.sanitizeFieldName(c.attributePath ?? ''),
-            attributeValueType: c.attributeValueType ?? ''
-          }));
+        // Extract columns from query response and update signal.
+        // Replace dots with underscores for grid compatibility (Kendo treats dots as nested paths).
+        const columns: QueryColumn[] = result.columns.map(c => ({
+          attributePath: this.sanitizeFieldName(c.attributePath),
+          attributeValueType: c.attributeValueType ?? ''
+        }));
         this._queryColumns.set(columns);
-        // Emit event to notify component that columns have been loaded
         this.queryColumnsLoaded.emit(columns);
 
-        // Extract rows
-        const rows = queryResult.rows?.items ?? [];
-        const totalCount = queryResult.rows?.totalCount ?? 0;
-
-        // Check which standard fields are in the query columns
         const columnPaths = new Set(columns.map(c => c.attributePath));
         const hasRtIdColumn = columnPaths.has('rtId');
         const hasCkTypeIdColumn = columnPaths.has('ckTypeId');
 
-        // Transform rows to flat records (handle union type by checking __typename)
-        // Support RtSimpleQueryRow, RtAggregationQueryRow, and RtGroupingAggregationQueryRow
-        const supportedRowTypes = ['RtSimpleQueryRow', 'RtAggregationQueryRow', 'RtGroupingAggregationQueryRow'];
-        const data = rows
-          .filter((row): row is NonNullable<typeof row> => row !== null)
-          .filter(row => supportedRowTypes.includes(row.__typename ?? ''))
-          .map((row, index) => {
-            // Both row types have ckTypeId and cells, but only RtSimpleQueryRow has rtId
-            const queryRow = row as { rtId?: string; ckTypeId?: string; cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
+        const data = result.rows
+          .filter(row => TableWidgetDataSourceDirective.SUPPORTED_ROW_TYPES.has(row.__typename ?? ''))
+          .map((row, index) => this.queryRowToRecord(row, columns, hasRtIdColumn, hasCkTypeIdColumn, index));
 
-            const record: Record<string, unknown> = {};
-
-            // Only add rtId/ckTypeId if they're explicitly in the query columns
-            if (hasRtIdColumn) {
-              record['rtId'] = queryRow.rtId ?? `agg-${index}`;
-            }
-            if (hasCkTypeIdColumn) {
-              record['ckTypeId'] = queryRow.ckTypeId ?? '';
-            }
-
-            // Flatten cells into the record. Each cell is stored under the COLUMN's
-            // attributePath (which is what the Kendo grid uses as `field`) rather than
-            // the cell's own attributePath — the two may differ now that the engine
-            // emits cell paths in wire-form with a function suffix
-            // (e.g. cell path `meterreading_count` for column path `meterReading`).
-            // `matchesAttributePath` reconciles both forms.
-            const cells = queryRow.cells?.items ?? [];
-            for (const cell of cells) {
-              if (!cell?.attributePath) continue;
-              const matchingColumn = columns.find(col => matchesAttributePath(cell.attributePath, col.attributePath));
-              if (matchingColumn) {
-                record[matchingColumn.attributePath] = cell.value;
-              }
-            }
-
-            return record;
-          });
-
-        return new FetchResultTyped<Record<string, unknown>>(data, totalCount);
+        return new FetchResultTyped<Record<string, unknown>>(data, result.totalCount);
       }),
       catchError(err => {
         console.error('Error fetching query data:', err);
         return of(new FetchResultTyped<Record<string, unknown>>([], 0));
       })
     );
+  }
+
+  /**
+   * Flattens a unified `QueryResultRow` into a Kendo-grid-friendly record.
+   * Cells are stored under their matching column's `attributePath` rather than
+   * the cell's own — the engine emits cell paths in wire-form with a function
+   * suffix (e.g. cell path `meterreading_count` for column path `meterReading`).
+   * `matchesAttributePath` reconciles both forms.
+   */
+  private queryRowToRecord(
+    row: QueryResultRow,
+    columns: QueryColumn[],
+    hasRtIdColumn: boolean,
+    hasCkTypeIdColumn: boolean,
+    index: number
+  ): Record<string, unknown> {
+    const record: Record<string, unknown> = {};
+
+    if (hasRtIdColumn) {
+      record['rtId'] = row.rtId ?? `agg-${index}`;
+    }
+    if (hasCkTypeIdColumn) {
+      record['ckTypeId'] = row.ckTypeId ?? '';
+    }
+
+    for (const cell of row.cells) {
+      const matchingColumn = columns.find(col => matchesAttributePath(cell.attributePath, col.attributePath));
+      if (matchingColumn) {
+        record[matchingColumn.attributePath] = cell.value;
+      }
+    }
+
+    return record;
   }
 
   /**
@@ -343,5 +343,18 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
   private convertFiltersToDto(filters?: WidgetFilterConfig[]): FieldFilterDto[] | undefined {
     const variables = this.stateService.getVariables();
     return this.variableService.convertToFieldFilterDto(filters, variables);
+  }
+
+  /**
+   * Builds `StreamDataExecutionArgs` from the MeshBoard's current time filter.
+   * Returns `undefined` when no filter is active so the persistent query's
+   * own bounds apply.
+   */
+  private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
+    const range = this.stateService.resolveCurrentTimeRange();
+    if (!range) {
+      return undefined;
+    }
+    return { from: range.from, to: range.to };
   }
 }

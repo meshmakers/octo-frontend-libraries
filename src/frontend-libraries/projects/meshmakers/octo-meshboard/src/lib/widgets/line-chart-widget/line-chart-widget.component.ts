@@ -4,7 +4,7 @@ import { LineChartWidgetConfig, PersistentQueryDataSource, WidgetFilterConfig } 
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
@@ -182,7 +182,14 @@ interface ValueAxisConfig {
   `]
 })
 export class LineChartWidgetComponent implements DashboardWidget<LineChartWidgetConfig, LineSeriesData[]>, OnInit, OnChanges {
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
+
+  private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
+    'RtSimpleQueryRow',
+    'RtAggregationQueryRow',
+    'RtGroupingAggregationQueryRow',
+    'StreamDataQueryRow'
+  ]);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
 
@@ -309,13 +316,15 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
     try {
       const fieldFilter = this.convertFiltersToDto(this.config.filters);
+      // queryFamily may be undefined for legacy widget configs — the executor
+      // falls back to a one-time lookup by rtId. streamDataArgs is sent
+      // unconditionally because the runtime path ignores it.
+      const streamDataArgs = this.buildStreamDataArgs();
 
       const result = await firstValueFrom(
-        this.executeRuntimeQueryGQL.fetch({
-          variables: {
-            rtId: queryDataSource.queryRtId,
-            fieldFilter
-          }
+        this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
+          fieldFilter: fieldFilter ?? undefined,
+          streamDataArgs
         }).pipe(
           catchError(err => {
             console.error('Error loading Line Chart data:', err);
@@ -324,31 +333,9 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         )
       );
 
-      const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-
-      if (queryItems.length === 0) {
-        this._categories.set([]);
-        this._seriesData.set([]);
-        this._valueAxes.set([]);
-        this._isLoading.set(false);
-        return;
-      }
-
-      const queryResult = queryItems[0];
-      if (!queryResult) {
-        this._categories.set([]);
-        this._seriesData.set([]);
-        this._valueAxes.set([]);
-        this._isLoading.set(false);
-        return;
-      }
-
-      const rows = queryResult.rows?.items ?? [];
-      const supportedRowTypes = ['RtSimpleQueryRow', 'RtAggregationQueryRow', 'RtGroupingAggregationQueryRow'];
-
-      const filteredRows = rows
-        .filter((row): row is NonNullable<typeof row> => row !== null)
-        .filter(row => supportedRowTypes.includes(row.__typename ?? ''));
+      const filteredRows = result.rows.filter(row =>
+        LineChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
+      );
 
       this.processData(filteredRows);
       this._isLoading.set(false);
@@ -360,11 +347,19 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     }
   }
 
+  private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
+    const range = this.stateService.resolveCurrentTimeRange();
+    if (!range) {
+      return undefined;
+    }
+    return { from: range.from, to: range.to };
+  }
+
   /**
    * Processes query rows into line chart data.
    * Groups by seriesGroupField, orders by categoryField (date), supports multi-axis by unitField.
    */
-  private processData(filteredRows: unknown[]): void {
+  private processData(filteredRows: QueryResultRow[]): void {
     const categoryField = this.config.categoryField;
     const seriesGroupField = this.config.seriesGroupField;
     const valueField = this.config.valueField;
@@ -377,17 +372,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const seriesUnitMap = new Map<string, string>(); // seriesGroup -> unit
 
     for (const row of filteredRows) {
-      const queryRow = row as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-      const cells = queryRow.cells?.items ?? [];
-
       let categoryValue = '';
       let seriesGroupValue = '';
       let numericValue = 0;
       let unitValue = '';
 
-      for (const cell of cells) {
-        if (!cell?.attributePath) continue;
-
+      for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, categoryField)) {
           categoryValue = String(cell.value ?? '');
         } else if (matchesAttributePath(cell.attributePath, seriesGroupField)) {

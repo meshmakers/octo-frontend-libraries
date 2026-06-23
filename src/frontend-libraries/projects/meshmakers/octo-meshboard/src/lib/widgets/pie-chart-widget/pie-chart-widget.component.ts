@@ -4,7 +4,7 @@ import { PieChartWidgetConfig, PersistentQueryDataSource, ConstructionKitQueryDa
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
-import { ExecuteRuntimeQueryDtoGQL } from '../../graphQL/executeRuntimeQuery';
+import { QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
@@ -131,7 +131,14 @@ interface ChartDataItem {
   `]
 })
 export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetConfig, ChartDataItem[]>, OnInit, OnChanges {
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
+
+  private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
+    'RtSimpleQueryRow',
+    'RtAggregationQueryRow',
+    'RtGroupingAggregationQueryRow',
+    'StreamDataQueryRow'
+  ]);
   private readonly dataService = inject(MeshBoardDataService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
@@ -278,15 +285,16 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
    * Note: isNotConfigured() check in loadData() ensures queryRtId is set.
    */
   private async loadPersistentQueryData(dataSource: PersistentQueryDataSource): Promise<void> {
-    // Convert widget filters to GraphQL format
     const fieldFilter = this.convertFiltersToDto(this.config.filters);
+    // queryFamily may be undefined for legacy widget configs — the executor
+    // falls back to a one-time lookup by rtId. streamDataArgs is sent
+    // unconditionally because the runtime path ignores it.
+    const streamDataArgs = this.buildStreamDataArgs();
 
     const result = await firstValueFrom(
-      this.executeRuntimeQueryGQL.fetch({
-        variables: {
-          rtId: dataSource.queryRtId,
-          fieldFilter
-        }
+      this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
+        fieldFilter: fieldFilter ?? undefined,
+        streamDataArgs
       }).pipe(
         catchError(err => {
           console.error('Error loading Pie Chart data:', err);
@@ -295,27 +303,10 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
       )
     );
 
-    const queryItems = result.data?.runtime?.runtimeQuery?.items ?? [];
-
-    if (queryItems.length === 0) {
-      this._chartData.set([]);
-      this._isLoading.set(false);
-      return;
-    }
-
-    const queryResult = queryItems[0];
-    if (!queryResult) {
-      this._chartData.set([]);
-      this._isLoading.set(false);
-      return;
-    }
-
     // Extract columns to verify configured fields are present. Both forms (original CK
     // path and engine wire-form) are accepted so saved configs survive the engine's
     // switch to wire-form keys without a migration.
-    const columnPaths = (queryResult.columns ?? [])
-      .filter((c): c is NonNullable<typeof c> => c !== null)
-      .map(c => c.attributePath ?? '');
+    const columnPaths = result.columns.map(c => c.attributePath);
 
     const categoryFieldPresent = columnPaths.some(p => matchesAttributePath(p, this.config.categoryField));
     const valueFieldPresent = columnPaths.some(p => matchesAttributePath(p, this.config.valueField));
@@ -326,27 +317,16 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
       return;
     }
 
-    // Extract rows and transform to chart data
-    const rows = queryResult.rows?.items ?? [];
-    const supportedRowTypes = ['RtSimpleQueryRow', 'RtAggregationQueryRow', 'RtGroupingAggregationQueryRow'];
-
-    const chartData: ChartDataItem[] = rows
-      .filter((row): row is NonNullable<typeof row> => row !== null)
-      .filter(row => supportedRowTypes.includes(row.__typename ?? ''))
+    const chartData: ChartDataItem[] = result.rows
+      .filter(row => PieChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? ''))
       .map(row => {
-        const queryRow = row as { cells?: { items?: ({ attributePath?: string; value?: unknown } | null)[] | null } | null };
-        const cells = queryRow.cells?.items ?? [];
-
         let category = '';
         let value = 0;
 
-        for (const cell of cells) {
-          if (!cell?.attributePath) continue;
-
+        for (const cell of row.cells) {
           if (matchesAttributePath(cell.attributePath, this.config.categoryField)) {
             category = String(cell.value ?? '');
           }
-
           if (matchesAttributePath(cell.attributePath, this.config.valueField)) {
             const numValue = typeof cell.value === 'number' ? cell.value : parseFloat(String(cell.value));
             value = isNaN(numValue) ? 0 : numValue;
@@ -359,6 +339,14 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
 
     this._chartData.set(chartData);
     this._isLoading.set(false);
+  }
+
+  private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
+    const range = this.stateService.resolveCurrentTimeRange();
+    if (!range) {
+      return undefined;
+    }
+    return { from: range.from, to: range.to };
   }
 
   /**

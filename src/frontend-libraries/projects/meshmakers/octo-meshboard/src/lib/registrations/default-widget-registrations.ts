@@ -115,11 +115,16 @@ function parseConfig(data: PersistedWidgetData): Record<string, unknown> {
  */
 function buildDataSourceFromPersisted(data: PersistedWidgetData, config: Record<string, unknown>): DataSource {
   if (data.dataSourceType === 'systemQuery' || data.dataSourceType === 'persistentQuery') {
-    return {
+    const persisted: PersistentQueryDataSource = {
       type: 'persistentQuery',
       queryRtId: data.dataSourceRtId ?? (config['queryRtId'] as string) ?? '',
       queryName: config['queryName'] as string | undefined
     };
+    const persistedFamily = config['queryFamily'];
+    if (persistedFamily === 'runtime' || persistedFamily === 'streamData') {
+      persisted.queryFamily = persistedFamily;
+    }
+    return persisted;
   }
 
   if (data.dataSourceType === 'static') {
@@ -250,6 +255,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialDataSourceType: dataSourceType,
         initialQueryRtId: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialQueryFamily: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialQueryMode: kpiWidget.queryMode,
         initialQueryValueField: kpiWidget.queryValueField,
         initialQueryCategoryField: kpiWidget.queryCategoryField,
@@ -294,7 +300,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         const dataSource: PersistentQueryDataSource = {
           type: 'persistentQuery',
           queryRtId: result.queryRtId,
-          queryName: result.queryName
+          queryName: result.queryName,
+          queryFamily: result.queryFamily
         };
 
         return {
@@ -367,7 +374,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           filters: widget.filters,
           ...(isPersistentQuery && {
             queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
-            queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId
+            queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+            ...((widget.dataSource as PersistentQueryDataSource).queryFamily && {
+              queryFamily: (widget.dataSource as PersistentQueryDataSource).queryFamily
+            })
           })
         }
       };
@@ -542,7 +552,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialPageSize: tableWidget.pageSize,
         initialSortable: tableWidget.sortable,
         initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
-        initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined
+        initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined
       };
     },
     applyConfigResult: (widget, result) => {
@@ -551,7 +562,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         const dataSource: PersistentQueryDataSource = {
           type: 'persistentQuery',
           queryRtId: result.queryRtId,
-          queryName: result.queryName
+          queryName: result.queryName,
+          queryFamily: result.queryFamily
         };
 
         // Convert filters from DTO to widget format
@@ -610,11 +622,12 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     // SOLID: Serialization for persistence
     toPersistedConfig: (widget: TableWidgetConfig): WidgetPersistenceData => {
       const isPersistentQuery = widget.dataSource.type === 'persistentQuery';
+      const queryDataSource = isPersistentQuery ? widget.dataSource as PersistentQueryDataSource : null;
       return {
         dataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
         dataSourceCkTypeId: widget.dataSource.type === 'runtimeEntity' ? widget.dataSource.ckTypeId : undefined,
         dataSourceRtId: isPersistentQuery
-          ? (widget.dataSource as PersistentQueryDataSource).queryRtId
+          ? queryDataSource!.queryRtId
           : (widget.dataSource.type === 'runtimeEntity' ? widget.dataSource.rtId : undefined),
         config: {
           columns: widget.columns,
@@ -622,9 +635,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           filters: widget.filters,
           pageSize: widget.pageSize,
           sortable: widget.sortable,
-          ...(isPersistentQuery && {
-            queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
-            queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId
+          ...(queryDataSource && {
+            queryName: queryDataSource.queryName,
+            queryRtId: queryDataSource.queryRtId,
+            ...(queryDataSource.queryFamily && { queryFamily: queryDataSource.queryFamily })
           })
         }
       };
@@ -673,6 +687,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialDataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
         initialQueryRtId: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialQueryFamily: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialQueryMode: gaugeWidget.queryMode,
         initialQueryValueField: gaugeWidget.queryValueField,
         initialQueryCategoryField: gaugeWidget.queryCategoryField,
@@ -703,7 +718,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         const dataSource: PersistentQueryDataSource = {
           type: 'persistentQuery',
           queryRtId: result.queryRtId,
-          queryName: result.queryName
+          queryName: result.queryName,
+          queryFamily: result.queryFamily
         };
 
         return {
@@ -787,7 +803,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           filters: widget.filters,
           ...(isPersistentQuery && {
             queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
-            queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId
+            queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+            ...((widget.dataSource as PersistentQueryDataSource).queryFamily && {
+              queryFamily: (widget.dataSource as PersistentQueryDataSource).queryFamily
+            })
           })
         }
       };
@@ -861,6 +880,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialDataSourceType: dataSource.type,
         initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialCkQueryTarget: isCkQuery ? (dataSource as ConstructionKitQueryDataSource).queryTarget : undefined,
         initialCkGroupBy: isCkQuery ? (dataSource as ConstructionKitQueryDataSource).groupBy : undefined,
         initialChartType: pieWidget.chartType,
@@ -894,7 +914,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dataSource = {
           type: 'persistentQuery',
           queryRtId: result.queryRtId ?? '',
-          queryName: result.queryName
+          queryName: result.queryName,
+          queryFamily: result.queryFamily
         } as PersistentQueryDataSource;
       }
 
@@ -961,6 +982,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           legendPosition: widget.legendPosition,
           queryName: (dataSource as PersistentQueryDataSource).queryName,
           queryRtId: (dataSource as PersistentQueryDataSource).queryRtId,
+          ...((dataSource as PersistentQueryDataSource).queryFamily && {
+            queryFamily: (dataSource as PersistentQueryDataSource).queryFamily
+          }),
           filters: widget.filters
         }
       };
@@ -1028,6 +1052,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       return {
         initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialChartType: barWidget.chartType,
         initialCategoryField: barWidget.categoryField,
         initialSeries: barWidget.series,
@@ -1045,7 +1070,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       const dataSource: PersistentQueryDataSource = {
         type: 'persistentQuery',
         queryRtId: result.queryRtId,
-        queryName: result.queryName
+        queryName: result.queryName,
+        queryFamily: result.queryFamily
       };
 
       // Convert filters from DTO to widget format
@@ -1105,6 +1131,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         defaultBarColor: widget.defaultBarColor,
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+        ...((widget.dataSource as PersistentQueryDataSource).queryFamily && {
+          queryFamily: (widget.dataSource as PersistentQueryDataSource).queryFamily
+        }),
         filters: widget.filters
       }
     }),
@@ -1153,6 +1182,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       return {
         initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialChartType: lineWidget.chartType,
         initialCategoryField: lineWidget.categoryField,
         initialSeriesGroupField: lineWidget.seriesGroupField,
@@ -1169,7 +1199,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       const dataSource: PersistentQueryDataSource = {
         type: 'persistentQuery',
         queryRtId: result.queryRtId,
-        queryName: result.queryName
+        queryName: result.queryName,
+        queryFamily: result.queryFamily
       };
 
       const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
@@ -1224,6 +1255,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         referenceLines: widget.referenceLines,
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+        ...((widget.dataSource as PersistentQueryDataSource).queryFamily && {
+          queryFamily: (widget.dataSource as PersistentQueryDataSource).queryFamily
+        }),
         filters: widget.filters
       }
     }),
@@ -1516,6 +1550,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialDataSourceMode: hasQuery ? 'persistentQuery' : (hasCkType ? 'ckType' : 'persistentQuery'),
         initialQueryRtId: hasQuery ? dataSource.queryRtId : undefined,
         initialQueryName: hasQuery ? dataSource.queryName : undefined,
+        initialQueryFamily: hasQuery ? dataSource.queryFamily : undefined,
         initialCkTypeId: hasCkType ? dataSource.ckTypeId : undefined,
         initialFilters: hasCkType ? dataSource.filters : undefined,
         initialMaxItems: dataSource.type === 'repeaterQuery' ? dataSource.maxItems : undefined,
@@ -1534,6 +1569,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         type: 'repeaterQuery',
         queryRtId: result.dataSourceMode === 'persistentQuery' ? result.queryRtId : undefined,
         queryName: result.dataSourceMode === 'persistentQuery' ? result.queryName : undefined,
+        queryFamily: result.dataSourceMode === 'persistentQuery' ? result.queryFamily : undefined,
         ckTypeId: useCkType ? result.ckTypeId : undefined,
         filters: useCkType && result.filters ? result.filters.map(f => ({
           attributePath: f.attributePath,
@@ -1588,6 +1624,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dataSourceCkTypeId: !hasQuery ? dataSource.ckTypeId : undefined,
         config: {
           queryName: dataSource.queryName,
+          ...(dataSource.queryFamily && { queryFamily: dataSource.queryFamily }),
           maxItems: dataSource.maxItems,
           filters: dataSource.filters,
           childTemplate: widget.childTemplate,
@@ -1604,11 +1641,15 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): WidgetGroupConfig => {
       const config = parseConfig(data);
       const hasQuery = !!data.dataSourceRtId;
+      const persistedFamily = config['queryFamily'];
 
       const dataSource: RepeaterQueryDataSource = {
         type: 'repeaterQuery',
         queryRtId: hasQuery ? data.dataSourceRtId ?? undefined : undefined,
         queryName: hasQuery ? config['queryName'] as string | undefined : undefined,
+        queryFamily: hasQuery && (persistedFamily === 'runtime' || persistedFamily === 'streamData')
+          ? persistedFamily
+          : undefined,
         ckTypeId: !hasQuery ? data.dataSourceCkTypeId ?? undefined : undefined,
         filters: !hasQuery ? config['filters'] as WidgetFilterConfig[] | undefined : undefined,
         maxItems: config['maxItems'] as number | undefined
@@ -1719,6 +1760,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       return {
         initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
+        initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialDateField: heatmapWidget.dateField,
         initialDateEndField: heatmapWidget.dateEndField,
         initialValueField: heatmapWidget.valueField,
@@ -1736,7 +1778,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       const dataSource: PersistentQueryDataSource = {
         type: 'persistentQuery',
         queryRtId: result.queryRtId,
-        queryName: result.queryName
+        queryName: result.queryName,
+        queryFamily: result.queryFamily
       };
 
       const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
@@ -1793,6 +1836,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         valueMultiplier: widget.valueMultiplier,
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
+        ...((widget.dataSource as PersistentQueryDataSource).queryFamily && {
+          queryFamily: (widget.dataSource as PersistentQueryDataSource).queryFamily
+        }),
         filters: widget.filters
       }
     }),

@@ -28,7 +28,8 @@ export class MeshBoardSettingsResult {
     public variables: MeshBoardVariable[],
     public timeFilter?: MeshBoardTimeFilterConfig,
     public rtWellKnownName?: string,
-    public entitySelectors?: EntitySelectorConfig[]
+    public entitySelectors?: EntitySelectorConfig[],
+    public autoRefreshSeconds?: number
   ) {}
 }
 
@@ -65,6 +66,12 @@ export class MeshBoardSettingsDialogComponent {
   columns = 6;
   rowHeight = 200;
   gap = 16;
+  /**
+   * Auto-refresh interval in seconds. `0` disables auto-refresh and is the default.
+   * When > 0 the MeshBoard view re-polls all widgets at this interval while the
+   * tab is visible.
+   */
+  autoRefreshSeconds = 0;
   variables: MeshBoardVariable[] = [];
   entitySelectors: EntitySelectorConfig[] = [];
   entitySelectorEditing = false;
@@ -85,7 +92,8 @@ export class MeshBoardSettingsDialogComponent {
       this.name.trim().length > 0 &&
       this.columns >= 1 && this.columns <= 12 &&
       this.rowHeight >= 100 && this.rowHeight <= 1000 &&
-      this.gap >= 0 && this.gap <= 100
+      this.gap >= 0 && this.gap <= 100 &&
+      this.autoRefreshSeconds >= 0 && this.autoRefreshSeconds <= 3600
     );
   }
 
@@ -102,6 +110,7 @@ export class MeshBoardSettingsDialogComponent {
     variables?: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
     entitySelectors?: EntitySelectorConfig[];
+    autoRefreshSeconds?: number;
   }): void {
     this.name = settings.name;
     this.description = settings.description;
@@ -109,6 +118,7 @@ export class MeshBoardSettingsDialogComponent {
     this.columns = settings.columns;
     this.rowHeight = settings.rowHeight;
     this.gap = settings.gap;
+    this.autoRefreshSeconds = settings.autoRefreshSeconds ?? 0;
     this.variables = settings.variables ? [...settings.variables] : [];
     this.entitySelectors = settings.entitySelectors ? settings.entitySelectors.map(es => ({ ...es })) : [];
     this.timeFilterEnabled = settings.timeFilter?.enabled ?? false;
@@ -163,7 +173,8 @@ export class MeshBoardSettingsDialogComponent {
       this.variables,
       timeFilter,
       this.rtWellKnownName.trim() || undefined,
-      this.entitySelectors.length > 0 ? this.entitySelectors : undefined
+      this.entitySelectors.length > 0 ? this.entitySelectors : undefined,
+      this.autoRefreshSeconds > 0 ? this.autoRefreshSeconds : undefined
     );
 
     this.windowRef.close(result);

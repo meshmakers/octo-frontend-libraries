@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter, ViewChild, AfterViewInit, inject, forwardRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, AfterViewInit, OnChanges, SimpleChanges, inject, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
 import { FieldFilterOperatorsDto } from '@meshmakers/octo-services';
 import { GetSystemPersistentQueriesDtoGQL } from '../../graphQL/getSystemPersistentQueries';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
+import { QueryFamily } from '../../utils/query-family';
 import {
   PersistentQueryAutocompleteDataSource,
   PersistentQueryDialogDataSource
@@ -68,7 +69,7 @@ import {
     }
   `]
 })
-export class QuerySelectorComponent implements ControlValueAccessor, AfterViewInit {
+export class QuerySelectorComponent implements ControlValueAccessor, AfterViewInit, OnChanges {
   private readonly getSystemPersistentQueriesGQL = inject(GetSystemPersistentQueriesDtoGQL);
 
   @ViewChild('entitySelect') entitySelect!: EntitySelectInputComponent;
@@ -82,14 +83,26 @@ export class QuerySelectorComponent implements ControlValueAccessor, AfterViewIn
   /** Whether the component is disabled */
   @Input() disabled = false;
 
+  /**
+   * Which query families to show in the picker.
+   * Default: both runtime and stream-data.
+   * Set to `['runtime']` for legacy widgets that cannot consume stream-data,
+   * or `['streamData']` for stream-data-only pickers.
+   *
+   * Filtering happens client-side after a server-side fetch — small per-tenant
+   * query counts make this acceptable; a server-side filter would require a
+   * backend change.
+   */
+  @Input() acceptFamilies: readonly QueryFamily[] = ['runtime', 'streamData'];
+
   /** Emitted when a query is selected */
   @Output() querySelected = new EventEmitter<PersistentQueryItem | null>();
 
   /** Emitted when queries are loaded (emits the selected query in a single-item array for compatibility) */
   @Output() queriesLoaded = new EventEmitter<PersistentQueryItem[]>();
 
-  readonly queryDataSource: PersistentQueryAutocompleteDataSource;
-  readonly queryDialogDataSource: PersistentQueryDialogDataSource;
+  queryDataSource!: PersistentQueryAutocompleteDataSource;
+  queryDialogDataSource!: PersistentQueryDialogDataSource;
 
   private selectedQuery: PersistentQueryItem | null = null;
 
@@ -98,8 +111,18 @@ export class QuerySelectorComponent implements ControlValueAccessor, AfterViewIn
   private onTouched: () => void = () => { /* noop */ };
 
   constructor() {
-    this.queryDataSource = new PersistentQueryAutocompleteDataSource(this.getSystemPersistentQueriesGQL);
-    this.queryDialogDataSource = new PersistentQueryDialogDataSource(this.getSystemPersistentQueriesGQL);
+    this.rebuildDataSources();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['acceptFamilies']) {
+      this.rebuildDataSources();
+    }
+  }
+
+  private rebuildDataSources(): void {
+    this.queryDataSource = new PersistentQueryAutocompleteDataSource(this.getSystemPersistentQueriesGQL, this.acceptFamilies);
+    this.queryDialogDataSource = new PersistentQueryDialogDataSource(this.getSystemPersistentQueriesGQL, this.acceptFamilies);
   }
 
   ngAfterViewInit(): void {
@@ -148,6 +171,7 @@ export class QuerySelectorComponent implements ControlValueAccessor, AfterViewIn
         rtId: item.rtId,
         name: item.name ?? '',
         description: item.description,
+        ckTypeId: item.ckTypeId,
         queryCkTypeId: item.queryCkTypeId
       }));
 

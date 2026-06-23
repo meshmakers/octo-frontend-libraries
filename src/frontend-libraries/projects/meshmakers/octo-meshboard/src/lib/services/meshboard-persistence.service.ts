@@ -160,7 +160,8 @@ export class MeshBoardPersistenceService {
       config.description ?? '',
       config.variables,
       config.timeFilter,
-      config.entitySelectors
+      config.entitySelectors,
+      config.autoRefreshSeconds
     );
 
     const dashboardInput: Record<string, unknown> = {
@@ -212,7 +213,8 @@ export class MeshBoardPersistenceService {
       config.description ?? '',
       config.variables,
       config.timeFilter,
-      config.entitySelectors
+      config.entitySelectors,
+      config.autoRefreshSeconds
     );
 
     const dashboardItem: Record<string, unknown> = {
@@ -293,8 +295,9 @@ export class MeshBoardPersistenceService {
    * Converts a persisted MeshBoard to MeshBoardConfig
    */
   toMeshBoardConfig(meshBoard: PersistedMeshBoard, widgets: PersistedWidget[]): MeshBoardConfig {
-    // Decode variables, timeFilter, and entitySelectors from description field (temporary until backend adds config field)
-    const { description, variables, timeFilter, entitySelectors } = this.decodeVariablesFromDescription(meshBoard.description);
+    // Decode variables, timeFilter, entitySelectors, and autoRefresh from description field
+    // (temporary until backend adds first-class config field)
+    const { description, variables, timeFilter, entitySelectors, autoRefreshSeconds } = this.decodeVariablesFromDescription(meshBoard.description);
 
     return {
       id: meshBoard.rtId,
@@ -307,6 +310,7 @@ export class MeshBoardPersistenceService {
       variables,
       timeFilter,
       entitySelectors,
+      autoRefreshSeconds,
       widgets: widgets.map(w => this.toWidgetConfig(w))
     };
   }
@@ -451,14 +455,16 @@ export class MeshBoardPersistenceService {
     description: string,
     variables?: MeshBoardVariable[],
     timeFilter?: MeshBoardTimeFilterConfig,
-    entitySelectors?: EntitySelectorConfig[]
+    entitySelectors?: EntitySelectorConfig[],
+    autoRefreshSeconds?: number
   ): string {
     // Filter out timeFilter and entitySelector variables (they are derived, not persisted directly)
     const staticVariables = variables?.filter(v => v.source !== 'timeFilter' && v.source !== 'entitySelector');
 
     // Check if there's anything to encode
     const hasEntitySelectors = entitySelectors && entitySelectors.length > 0;
-    if ((!staticVariables || staticVariables.length === 0) && !timeFilter?.enabled && !hasEntitySelectors) {
+    const hasAutoRefresh = !!autoRefreshSeconds && autoRefreshSeconds > 0;
+    if ((!staticVariables || staticVariables.length === 0) && !timeFilter?.enabled && !hasEntitySelectors && !hasAutoRefresh) {
       return description;
     }
 
@@ -467,6 +473,7 @@ export class MeshBoardPersistenceService {
         variables?: MeshBoardVariable[];
         timeFilter?: MeshBoardTimeFilterConfig;
         entitySelectors?: EntitySelectorConfig[];
+        autoRefreshSeconds?: number;
       } = {};
 
       if (staticVariables && staticVariables.length > 0) {
@@ -475,6 +482,10 @@ export class MeshBoardPersistenceService {
 
       if (timeFilter?.enabled) {
         data.timeFilter = timeFilter;
+      }
+
+      if (hasAutoRefresh) {
+        data.autoRefreshSeconds = autoRefreshSeconds;
       }
 
       if (hasEntitySelectors) {
@@ -512,6 +523,7 @@ export class MeshBoardPersistenceService {
     variables: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
     entitySelectors?: EntitySelectorConfig[];
+    autoRefreshSeconds?: number;
   } {
     // Use the marker without newlines for detection, since the backend may trim
     // leading whitespace (removing the \n before the marker when description is empty).
@@ -534,12 +546,13 @@ export class MeshBoardPersistenceService {
         return { description, variables: parsed as MeshBoardVariable[] };
       }
 
-      // New format: object with variables, timeFilter, and entitySelectors
+      // New format: object with variables, timeFilter, entitySelectors, and autoRefreshSeconds
       return {
         description,
         variables: parsed.variables ?? [],
         timeFilter: parsed.timeFilter,
-        entitySelectors: parsed.entitySelectors
+        entitySelectors: parsed.entitySelectors,
+        autoRefreshSeconds: typeof parsed.autoRefreshSeconds === 'number' ? parsed.autoRefreshSeconds : undefined
       };
     } catch (error) {
       console.error('Failed to decode MeshBoard config data:', error);
