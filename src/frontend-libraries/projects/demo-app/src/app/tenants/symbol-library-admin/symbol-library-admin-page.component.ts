@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { SymbolLibraryAdminComponent } from '@meshmakers/octo-process-diagrams';
 import { HasUnsavedChanges } from '@meshmakers/shared-ui';
 
@@ -13,6 +13,7 @@ import { HasUnsavedChanges } from '@meshmakers/shared-ui';
   selector: 'app-symbol-library-admin-page',
   standalone: true,
   imports: [SymbolLibraryAdminComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div class="admin-page">
       <mm-symbol-library-admin #symbolAdmin></mm-symbol-library-admin>

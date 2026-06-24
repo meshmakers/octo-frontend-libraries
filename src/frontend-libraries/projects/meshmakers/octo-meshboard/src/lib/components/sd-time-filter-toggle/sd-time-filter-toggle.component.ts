@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { QueryFamily } from '../../utils/query-family';
@@ -27,6 +27,7 @@ import { QueryFamily } from '../../utils/query-family';
   selector: 'mm-sd-time-filter-toggle',
   standalone: true,
   imports: [FormsModule, InputsModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     @if (visible) {
       <div class="form-field sd-time-filter-toggle">
