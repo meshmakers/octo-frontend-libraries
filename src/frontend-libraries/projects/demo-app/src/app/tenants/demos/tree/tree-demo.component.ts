@@ -5,7 +5,7 @@ import {TreeDemoDataSource} from '../data-sources/tree-demo-data-source.service'
 
 @Component({
   selector: 'app-tree-demo',
-  imports: [TreeComponent, TreeComponent],
+  imports: [TreeComponent],
   templateUrl: './tree-demo.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './tree-demo.component.scss'
