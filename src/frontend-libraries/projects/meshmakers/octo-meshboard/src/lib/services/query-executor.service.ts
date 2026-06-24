@@ -10,15 +10,32 @@ import { QueryFamily, queryFamily } from '../utils/query-family';
 /**
  * Time-range and downsampling arguments for stream-data persistent queries.
  * Mirrors the GraphQL input `StreamDataArguments` so widgets can build it
- * without importing generated DTO types directly. `queryMode` defaults to
- * `DEFAULT` when not supplied — the backend resolver requires the field but
- * the persistent query carries its own intrinsic mode that `arg` overrides.
+ * without importing generated DTO types directly.
+ *
+ * Backend semantics (verified against StreamDataQueryDtoType.cs and
+ * StreamDataVariantExecutor.cs as of 2026-06-24):
+ * - `from` / `to` / `limit` override the persisted query's intrinsic values
+ *   when set (`execOverride?.From ?? simple.From` pattern in the resolver).
+ * - `interval` is currently ignored by every variant; the downsampling path
+ *   derives `(to - from) / limit` itself.
+ * - `queryMode` is **ignored on both persistent and transient dispatch** —
+ *   the variant (Simple / Aggregation / GroupingAggregation / Downsampling)
+ *   comes from the persisted entity's CK subtype or the transient query's
+ *   GraphQL sub-connection URL. We still emit it because the schema declares
+ *   `queryMode: QueryMode!` (NonNull); see backend cleanup issue.
+ *
+ * Don't pretend to override the mode from here — even if `queryMode: DOWNSAMPLING`
+ * is set on a `SimpleSdQuery`, the backend still runs the simple variant.
  */
 export interface StreamDataExecutionArgs {
   from?: Date | null;
   to?: Date | null;
   interval?: number | null;
   limit?: number | null;
+  /**
+   * Currently a no-op on the dispatch side; kept because the GraphQL input
+   * schema marks `queryMode` non-null. Defaults to `Default`.
+   */
   queryMode?: QueryModeDto;
 }
 
@@ -217,10 +234,16 @@ export class QueryExecutorService {
   }
 
   private buildStreamDataArg(args: StreamDataExecutionArgs): StreamDataArgumentsDto | undefined {
+    // Skip the entire `arg` field when the caller has nothing to override —
+    // the persisted query then runs with its intrinsic from/to/limit and the
+    // GraphQL request stays minimal.
     const hasOverride = args.from != null || args.to != null || args.interval != null || args.limit != null || args.queryMode != null;
     if (!hasOverride) {
       return undefined;
     }
+    // `queryMode` defaults to Default because the schema requires it. The
+    // backend dispatcher ignores it (variant comes from the persisted entity's
+    // CK subtype); see the type-level doc comment for the full story.
     return {
       from: args.from ?? undefined,
       to: args.to ?? undefined,
