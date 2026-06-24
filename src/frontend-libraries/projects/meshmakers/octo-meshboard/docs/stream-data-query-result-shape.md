@@ -196,6 +196,18 @@ When the caller passes no `streamDataArgs`, `buildStreamDataArg` returns `undefi
 
 Runtime queries ignore `streamDataArgs` even when set — `executeRuntime()` doesn't pass it to the GraphQL variables.
 
+### MeshBoard time-filter auto-binding
+
+Stream-data widgets do **not** construct `streamDataArgs` by hand. Each calls
+`MeshBoardStateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter)`, which maps
+the active MeshBoard time filter to `{ from, to }` (or `undefined` when no filter
+is active). This means a SD widget narrows to the dashboard's selected range
+without a `fieldFilter` on `timestamp`.
+
+Per-widget opt-out: when the widget's `PersistentQueryDataSource.ignoreTimeFilter`
+is `true` (set via the dialog's "Ignore MeshBoard time filter" toggle), the helper
+returns `undefined` and the saved query's intrinsic range wins. See AB#4236.
+
 ## Transient queries (ad-hoc, not persisted)
 
 `streamData.transientStreamDataQuery.{simple,aggregation,groupingAggregation,downsampling}` exposes the four kinds without requiring a saved entity. The widget layer doesn't use these today — they're for tooling like the MCP `query_stream_data_*` tools. The row shape is identical to persistent SD rows (`StreamDataQueryRow`).

@@ -19,6 +19,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { RuntimeEntityItem, PersistentQueryItem, QueryColumnItem, CategoryValueItem, RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
+import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
@@ -40,6 +41,7 @@ export interface GaugeConfigResult extends WidgetConfigResult {
   queryRtId?: string;
   queryName?: string;
   queryFamily?: QueryFamily;
+  ignoreTimeFilter?: boolean;
   queryMode?: KpiQueryMode;
   queryValueField?: string;
   queryCategoryField?: string;
@@ -80,6 +82,7 @@ interface GaugeTypeOption {
     EntitySelectInputComponent,
     FieldFilterEditorComponent,
     QuerySelectorComponent,
+    SdTimeFilterToggleComponent,
     LoadingOverlayComponent
   ],
   template: `
@@ -195,6 +198,12 @@ interface GaugeTypeOption {
               hint="Select a query to provide data for this gauge.">
             </mm-query-selector>
           </div>
+
+          <!-- Stream-data: opt out of the MeshBoard time-filter binding -->
+          <mm-sd-time-filter-toggle
+            [family]="selectedQueryFamily"
+            [(ignoreTimeFilter)]="ignoreTimeFilter">
+          </mm-sd-time-filter-toggle>
 
           <!-- Query Mode Selection -->
           <div class="form-field">
@@ -701,6 +710,7 @@ export class GaugeConfigDialogComponent implements OnInit {
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
+  @Input() initialIgnoreTimeFilter?: boolean;
   @Input() initialQueryMode?: KpiQueryMode;
   @Input() initialQueryValueField?: string;
   @Input() initialQueryCategoryField?: string;
@@ -721,9 +731,16 @@ export class GaugeConfigDialogComponent implements OnInit {
 
   // Persistent Query state
   selectedPersistentQuery: PersistentQueryItem | null = null;
+  /** Stream-data opt-out: when true the MeshBoard time filter is not bound to the query. */
+  ignoreTimeFilter = false;
   queryColumns: QueryColumnItem[] = [];
   categoryValues: CategoryValueItem[] = [];
   queryMode: KpiQueryMode = 'simpleCount';
+
+  /** Family of the currently selected query; drives the time-filter toggle's visibility. */
+  get selectedQueryFamily(): QueryFamily | null {
+    return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily ?? null;
+  }
   isLoadingQueryColumns = false;
   isLoadingCategoryValues = false;
 
@@ -837,6 +854,7 @@ export class GaugeConfigDialogComponent implements OnInit {
     // Determine data source type
     this.dataSourceType = this.initialDataSourceType || 'runtimeEntity';
     this.queryMode = this.initialQueryMode || 'simpleCount';
+    this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
 
     if (this.dataSourceType === 'persistentQuery' && this.initialQueryRtId) {
       this.isLoadingInitial = true;
@@ -1017,6 +1035,7 @@ export class GaugeConfigDialogComponent implements OnInit {
         queryRtId: this.selectedPersistentQuery.rtId,
         queryName: this.selectedPersistentQuery.name,
         queryFamily: family,
+        ignoreTimeFilter: this.ignoreTimeFilter,
         queryMode: this.queryMode,
         queryValueField: this.form.queryValueField || undefined,
         queryCategoryField: this.form.queryCategoryField || undefined,

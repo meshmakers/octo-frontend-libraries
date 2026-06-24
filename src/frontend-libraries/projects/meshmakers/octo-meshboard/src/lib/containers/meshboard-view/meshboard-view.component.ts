@@ -1322,6 +1322,15 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
         };
       });
 
+      // Auto-expose the selected entity's rtId as `$<selectorId>_rtId` so SD/runtime
+      // widgets can scope to the picked asset (parent-association filter) without the
+      // designer adding a fake attribute mapping. An explicit mapping to the same
+      // variable name wins (skip the synthetic one if already present).
+      const rtIdVariableName = `${selector.id}_rtId`;
+      if (!values.some(v => v.name === rtIdVariableName)) {
+        values.push({ name: rtIdVariableName, value: rtId, type: 'string' });
+      }
+
       this.stateService.setEntitySelectorVariables(selector.id, values);
 
       return entity.rtWellKnownName || entity.rtId;

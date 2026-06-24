@@ -518,11 +518,8 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
   }
 
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
-    const range = this.stateService.resolveCurrentTimeRange();
-    if (!range) {
-      return undefined;
-    }
-    return { from: range.from, to: range.to };
+    const ds = this.config.dataSource as PersistentQueryDataSource;
+    return this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
   }
 
   private extractAggregationValue(queryResult: QueryExecutionResult): number {

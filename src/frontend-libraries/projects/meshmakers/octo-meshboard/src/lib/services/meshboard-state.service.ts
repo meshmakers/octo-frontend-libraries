@@ -600,6 +600,26 @@ export class MeshBoardStateService {
   }
 
   /**
+   * Resolves the active time filter into stream-data `{from, to}` arguments for
+   * a persistent-query widget. Centralizes the per-widget binding so every
+   * stream-data consumer shares one implementation.
+   *
+   * Returns `undefined` (so the query's intrinsic bounds apply) when either:
+   * - the widget opted out via `ignoreTimeFilter`, or
+   * - no time filter is active / the selection is incomplete.
+   */
+  resolveStreamDataTimeArgs(ignoreTimeFilter?: boolean): { from: Date; to: Date } | undefined {
+    if (ignoreTimeFilter) {
+      return undefined;
+    }
+    const range = this.resolveCurrentTimeRange();
+    if (!range) {
+      return undefined;
+    }
+    return { from: range.from, to: range.to };
+  }
+
+  /**
    * Updates the time filter configuration.
    */
   updateTimeFilterConfig(config: MeshBoardTimeFilterConfig): void {

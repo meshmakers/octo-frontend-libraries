@@ -31,6 +31,7 @@ import { TableColumn } from '../../models/meshboard.models';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
+import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
@@ -54,6 +55,8 @@ export interface TableConfigResult {
   queryName?: string;
   /** Family of the selected persistent query — 'runtime' or 'streamData'. */
   queryFamily?: QueryFamily;
+  /** Stream-data opt-out: keep the query's own time bounds, ignore the MeshBoard time filter. */
+  ignoreTimeFilter?: boolean;
   // Common:
   pageSize: number;
   sortable: boolean;
@@ -77,6 +80,7 @@ export interface TableConfigResult {
     CkTypeSelectorInputComponent,
     FieldFilterEditorComponent,
     QuerySelectorComponent,
+    SdTimeFilterToggleComponent,
     LoadingOverlayComponent
   ],
   providers: [
@@ -199,6 +203,11 @@ export interface TableConfigResult {
               hint="Select a query to provide data for this table.">
             </mm-query-selector>
           </div>
+
+          <mm-sd-time-filter-toggle
+            [family]="selectedQueryFamily"
+            [(ignoreTimeFilter)]="ignoreTimeFilter">
+          </mm-sd-time-filter-toggle>
 
           @if (selectedPersistentQuery) {
             <div class="config-card">
@@ -461,6 +470,7 @@ export class TableConfigDialogComponent implements OnInit {
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
+  @Input() initialIgnoreTimeFilter?: boolean;
 
   protected readonly columnsIcon = columnsIcon;
   protected readonly sortIcon = sortAscIcon;
@@ -485,6 +495,7 @@ export class TableConfigDialogComponent implements OnInit {
 
   // Query configuration
   selectedPersistentQuery: PersistentQueryItem | null = null;
+  ignoreTimeFilter = false;
 
   // Variables for filter editor
   filterVariables: FilterVariable[] = [];
@@ -502,6 +513,10 @@ export class TableConfigDialogComponent implements OnInit {
     }
   }
 
+  get selectedQueryFamily(): QueryFamily | null {
+    return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily ?? null;
+  }
+
   async ngOnInit(): Promise<void> {
     // Initialize filter variables from state service
     this.filterVariables = this.stateService.getVariables().map(v => ({
@@ -517,6 +532,7 @@ export class TableConfigDialogComponent implements OnInit {
     this.selectedColumns = this.initialColumns?.map(c => c.field) || [];
     this.form.pageSize = this.initialPageSize ?? 10;
     this.form.sortable = this.initialSortable ?? true;
+    this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
 
     // Convert initial sorting from string-based format to SortDto
     if (this.initialSorting) {
@@ -735,6 +751,7 @@ export class TableConfigDialogComponent implements OnInit {
         queryRtId: this.selectedPersistentQuery.rtId,
         queryName: this.selectedPersistentQuery.name,
         queryFamily: family,
+        ignoreTimeFilter: this.ignoreTimeFilter,
         pageSize: this.form.pageSize,
         sortable: this.form.sortable
       });

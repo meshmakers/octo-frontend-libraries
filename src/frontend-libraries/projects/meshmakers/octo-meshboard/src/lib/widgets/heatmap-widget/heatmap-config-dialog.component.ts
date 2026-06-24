@@ -18,6 +18,7 @@ import { FieldFilterDto, FieldFilterOperatorsDto } from '@meshmakers/octo-servic
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
+import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 
 /**
  * Configuration result from the Heatmap dialog
@@ -26,6 +27,7 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
   queryRtId: string;
   queryName?: string;
   queryFamily?: QueryFamily;
+  ignoreTimeFilter?: boolean;
   dateField: string;
   dateEndField?: string;
   valueField?: string;
@@ -51,6 +53,7 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
     SVGIconModule,
     FieldFilterEditorComponent,
     QuerySelectorComponent,
+    SdTimeFilterToggleComponent,
     LoadingOverlayComponent
   ],
   template: `
@@ -73,6 +76,11 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
               hint="Select a query containing datetime data for the heatmap.">
             </mm-query-selector>
           </div>
+
+          <mm-sd-time-filter-toggle
+            [family]="selectedQueryFamily"
+            [(ignoreTimeFilter)]="ignoreTimeFilter">
+          </mm-sd-time-filter-toggle>
         </div>
 
         <!-- Field Mapping Section -->
@@ -403,6 +411,7 @@ export class HeatmapConfigDialogComponent implements OnInit {
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
+  @Input() initialIgnoreTimeFilter?: boolean;
   @Input() initialDateField?: string;
   @Input() initialDateEndField?: string;
   @Input() initialValueField?: string;
@@ -421,6 +430,7 @@ export class HeatmapConfigDialogComponent implements OnInit {
 
   // Persistent Query
   selectedPersistentQuery: PersistentQueryItem | null = null;
+  ignoreTimeFilter = false;
   queryColumns: QueryColumnItem[] = [];
   numericColumns: QueryColumnItem[] = [];
   dateTimeColumns: QueryColumnItem[] = [];
@@ -477,6 +487,10 @@ export class HeatmapConfigDialogComponent implements OnInit {
     return this.selectedPersistentQuery !== null && this.form.dateField !== '';
   }
 
+  get selectedQueryFamily(): QueryFamily | null {
+    return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily ?? null;
+  }
+
   async ngOnInit(): Promise<void> {
     // Initialize filter variables from MeshBoard state
     this.filterVariables = this.stateService.getVariables().map(v => ({
@@ -496,6 +510,7 @@ export class HeatmapConfigDialogComponent implements OnInit {
     this.form.decimalPlaces = this.initialDecimalPlaces ?? 2;
     this.form.compactNumbers = this.initialCompactNumbers ?? false;
     this.form.valueMultiplier = this.initialValueMultiplier ?? 1;
+    this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -629,6 +644,7 @@ export class HeatmapConfigDialogComponent implements OnInit {
       queryRtId: this.selectedPersistentQuery.rtId,
       queryName: this.selectedPersistentQuery.name,
       queryFamily: family,
+      ignoreTimeFilter: this.ignoreTimeFilter,
       dateField: this.form.dateField,
       dateEndField: this.form.dateEndField || undefined,
       valueField: this.form.valueField || undefined,

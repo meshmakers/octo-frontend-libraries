@@ -347,14 +347,12 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
 
   /**
    * Builds `StreamDataExecutionArgs` from the MeshBoard's current time filter.
-   * Returns `undefined` when no filter is active so the persistent query's
-   * own bounds apply.
+   * Returns `undefined` when no filter is active, or when the widget opted out
+   * via `ignoreTimeFilter`, so the persistent query's own bounds apply.
    */
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
-    const range = this.stateService.resolveCurrentTimeRange();
-    if (!range) {
-      return undefined;
-    }
-    return { from: range.from, to: range.to };
+    const ds = this._config?.dataSource;
+    const ignoreTimeFilter = ds?.type === 'persistentQuery' ? ds.ignoreTimeFilter : undefined;
+    return this.stateService.resolveStreamDataTimeArgs(ignoreTimeFilter);
   }
 }

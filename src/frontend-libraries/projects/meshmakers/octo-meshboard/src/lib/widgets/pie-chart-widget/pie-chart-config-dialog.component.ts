@@ -18,6 +18,7 @@ import { FieldFilterDto, FieldFilterOperatorsDto } from '@meshmakers/octo-servic
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
+import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 /**
@@ -29,6 +30,7 @@ export interface PieChartConfigResult extends WidgetConfigResult {
   queryRtId?: string;
   queryName?: string;
   queryFamily?: QueryFamily;
+  ignoreTimeFilter?: boolean;
   categoryField: string;
   valueField: string;
   // Construction Kit Query fields
@@ -58,6 +60,7 @@ export interface PieChartConfigResult extends WidgetConfigResult {
     SVGIconModule,
     FieldFilterEditorComponent,
     QuerySelectorComponent,
+    SdTimeFilterToggleComponent,
     LoadingOverlayComponent
   ],
   template: `
@@ -94,6 +97,12 @@ export interface PieChartConfigResult extends WidgetConfigResult {
                 hint="Select a grouped aggregation query for the chart data.">
               </mm-query-selector>
             </div>
+
+            <!-- Stream-data: opt out of the MeshBoard time-filter binding -->
+            <mm-sd-time-filter-toggle
+              [family]="selectedQueryFamily"
+              [(ignoreTimeFilter)]="ignoreTimeFilter">
+            </mm-sd-time-filter-toggle>
           }
 
           <!-- Construction Kit Query Options -->
@@ -382,6 +391,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
+  @Input() initialIgnoreTimeFilter?: boolean;
   @Input() initialChartType?: PieChartType;
   @Input() initialCategoryField?: string;
   @Input() initialValueField?: string;
@@ -420,6 +430,8 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
 
   // Query selection state
   selectedPersistentQuery: PersistentQueryItem | null = null;
+  /** Stream-data opt-out: when true the MeshBoard time filter is not bound to the query. */
+  ignoreTimeFilter = false;
   queryColumns: QueryColumnItem[] = [];
 
   // Filter state
@@ -461,6 +473,11 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     return false;
   }
 
+  /** Family of the currently selected query; drives the time-filter toggle's visibility. */
+  get selectedQueryFamily(): QueryFamily | null {
+    return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily ?? null;
+  }
+
   async ngOnInit(): Promise<void> {
     // Initialize filter variables from MeshBoard state
     this.filterVariables = this.stateService.getVariables().map(v => ({
@@ -478,6 +495,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     this.form.legendPosition = this.initialLegendPosition ?? 'right';
     this.form.ckQueryTarget = this.initialCkQueryTarget ?? 'models';
     this.form.ckGroupBy = this.initialCkGroupBy ?? 'modelState';
+    this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -654,6 +672,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
       result.queryRtId = this.selectedPersistentQuery.rtId;
       result.queryName = this.selectedPersistentQuery.name;
       result.queryFamily = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
+      result.ignoreTimeFilter = this.ignoreTimeFilter;
     } else if (this.form.dataSourceType === 'constructionKitQuery') {
       result.ckQueryTarget = this.form.ckQueryTarget;
       result.ckGroupBy = this.form.ckGroupBy;

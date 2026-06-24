@@ -113,6 +113,8 @@ export class MyComponent {
 | `updateEntitySelectorSelection(selectorId, rtId, displayName?)` | `void` | Update selector selection |
 | `setEntitySelectorVariables(selectorId, values[])` | `void` | Set variables from entity selection |
 | `clearEntitySelectorVariables(selectorId)` | `void` | Clear variables for a selector |
+| `resolveCurrentTimeRange()` | `TimeRange \| null` | Resolve active time filter to `{from, to}` |
+| `resolveStreamDataTimeArgs(ignoreTimeFilter?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out |
 
 ### MeshBoardGridService
 
@@ -463,6 +465,19 @@ interface EntitySelectorAttributeMapping {
 }
 ```
 
+### Auto-exposed selected-entity rtId
+
+In addition to the mapped attribute variables, every selector automatically
+exposes the selected entity's **rtId** as a variable named `<selectorId>_rtId`
+(e.g. selector `mp` → `$mp_rtId`). No `attributeMappings` entry is required for
+this. Use it to scope a widget to the selected asset by parent association,
+e.g. a stream-data widget on `EnergyMeasurement` with a filter
+`{ attributePath: 'parent_basicEnergyMeteringPoint', operator: 'eq', comparisonValue: '$mp_rtId' }`.
+
+An explicit `attributeMappings` entry that produces the same variable name wins
+(the synthetic `<selectorId>_rtId` is skipped if already present). The variable is
+derived at runtime (`source: 'entitySelector'`) and not persisted.
+
 ### URL Parameters
 
 Entity selector selections are synced to URL query parameters for bookmarkability and sharing:
@@ -603,7 +618,7 @@ ng test @meshmakers/octo-meshboard --no-watch --browsers=ChromeHeadless
 Current test files:
 - `meshboard-grid.service.spec.ts` - Grid collision detection (39 tests)
 - `meshboard-variable.service.spec.ts` - Variable resolution (67 tests)
-- `meshboard-state.service.spec.ts` - State management (71 tests, includes entity selector management)
+- `meshboard-state.service.spec.ts` - State management (74 tests, includes entity selector management + stream-data time-arg binding)
 - `meshboard-data.service.spec.ts` - Data fetching (32 tests)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions (61 tests)

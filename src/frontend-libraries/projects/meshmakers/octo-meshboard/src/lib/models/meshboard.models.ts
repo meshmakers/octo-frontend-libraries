@@ -64,6 +64,13 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
   queryName?: string;
   /** Query family: 'runtime' or 'streamData'. Derived from queryCkTypeId when absent. */
   queryFamily?: QueryFamily;
+  /**
+   * Stream-data opt-out: when `true`, the MeshBoard time filter is NOT bound to
+   * the query's `streamDataArgs.from/.to`, so the persistent query's intrinsic
+   * time bounds win. Default (`false`/absent) auto-binds the active time filter.
+   * Ignored for runtime queries (they don't consume `streamDataArgs`).
+   */
+  ignoreTimeFilter?: boolean;
 }
 
 /**

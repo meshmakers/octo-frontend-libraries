@@ -290,6 +290,15 @@ interface PersistentQueryDataSource {
   type: 'persistentQuery';
   queryRtId: string;
   queryName?: string;
+  queryFamily?: 'runtime' | 'streamData';
+  /**
+   * Stream-data opt-out. When `true`, the active MeshBoard time filter is NOT
+   * bound to this widget's `streamDataArgs.from/.to`, so the saved query's own
+   * time range wins. Default auto-binds the time filter. SD-only (ignored for
+   * runtime queries). Exposed in the config dialog as the
+   * "Ignore MeshBoard time filter" toggle, shown only for stream-data queries.
+   */
+  ignoreTimeFilter?: boolean;
 }
 ```
 
@@ -391,6 +400,23 @@ interface MeshBoardTimeFilterConfig {
   selection?: TimeRangeSelection;
 }
 ```
+
+### Stream-data widgets: automatic time-range binding
+
+For widgets backed by a **stream-data** persistent query, the active time filter
+is auto-bound to the query's `streamDataArgs.from/.to` — you do **not** need to add
+a `fieldFilter` on `timestamp`. This pushes the range down to the backend
+(CrateDB `DATE_BIN` / downsampling bucket sizing) instead of post-filtering rows.
+
+The binding is resolved centrally by
+`MeshBoardStateService.resolveStreamDataTimeArgs(ignoreTimeFilter)`; every
+stream-data widget calls it.
+
+**Per-widget opt-out:** the config dialog of each stream-data widget shows an
+**"Ignore MeshBoard time filter"** toggle (only when the selected query is a
+stream-data query). Enabling it sets `ignoreTimeFilter: true` on the data source
+so the saved query's intrinsic time range wins. Runtime queries ignore the time
+filter binding entirely and never show the toggle.
 
 ## Services
 

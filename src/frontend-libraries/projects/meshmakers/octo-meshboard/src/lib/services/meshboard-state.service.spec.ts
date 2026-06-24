@@ -597,6 +597,33 @@ describe('MeshBoardStateService', () => {
       });
     });
 
+    describe('resolveStreamDataTimeArgs', () => {
+      it('should return undefined when no time filter is active', () => {
+        expect(service.resolveStreamDataTimeArgs()).toBeUndefined();
+      });
+
+      it('should bind the active time filter range when not opted out', () => {
+        service.updateTimeFilterConfig({
+          enabled: true,
+          selection: { type: 'year', year: 2024 }
+        });
+
+        const args = service.resolveStreamDataTimeArgs();
+        expect(args).toBeDefined();
+        expect(args?.from).toEqual(jasmine.any(Date));
+        expect(args?.to).toEqual(jasmine.any(Date));
+      });
+
+      it('should return undefined when the widget opts out via ignoreTimeFilter', () => {
+        service.updateTimeFilterConfig({
+          enabled: true,
+          selection: { type: 'year', year: 2024 }
+        });
+
+        expect(service.resolveStreamDataTimeArgs(true)).toBeUndefined();
+      });
+    });
+
     describe('setTimeFilterVariables', () => {
       it('should create time filter variables', () => {
         service.setTimeFilterVariables('2024-01-01T00:00:00Z', '2024-12-31T23:59:59Z');

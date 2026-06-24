@@ -18,6 +18,7 @@ import { FieldFilterDto, FieldFilterOperatorsDto } from '@meshmakers/octo-servic
 import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
+import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 
 /**
  * Series configuration mode
@@ -31,6 +32,7 @@ export interface BarChartConfigResult extends WidgetConfigResult {
   queryRtId: string;
   queryName?: string;
   queryFamily?: QueryFamily;
+  ignoreTimeFilter?: boolean;
   chartType: BarChartType;
   categoryField: string;
   series: BarChartSeries[];
@@ -62,6 +64,7 @@ export interface BarChartConfigResult extends WidgetConfigResult {
     SVGIconModule,
     FieldFilterEditorComponent,
     QuerySelectorComponent,
+    SdTimeFilterToggleComponent,
     LoadingOverlayComponent
   ],
   template: `
@@ -84,6 +87,11 @@ export interface BarChartConfigResult extends WidgetConfigResult {
               hint="Select a grouped aggregation query for the chart data.">
             </mm-query-selector>
           </div>
+
+          <mm-sd-time-filter-toggle
+            [family]="selectedQueryFamily"
+            [(ignoreTimeFilter)]="ignoreTimeFilter">
+          </mm-sd-time-filter-toggle>
         </div>
 
         <!-- Field Mapping Section -->
@@ -472,6 +480,7 @@ export class BarChartConfigDialogComponent implements OnInit {
   @Input() initialQueryRtId?: string;
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
+  @Input() initialIgnoreTimeFilter?: boolean;
   @Input() initialChartType?: BarChartType;
   @Input() initialCategoryField?: string;
   @Input() initialSeries?: BarChartSeries[];
@@ -492,6 +501,14 @@ export class BarChartConfigDialogComponent implements OnInit {
   selectedPersistentQuery: PersistentQueryItem | null = null;
   queryColumns: QueryColumnItem[] = [];
   numericColumns: QueryColumnItem[] = [];
+
+  /** Per-widget opt-out of the MeshBoard time-filter → stream-data binding. */
+  ignoreTimeFilter = false;
+
+  /** Family of the currently selected query — gates the time-filter opt-out toggle. */
+  get selectedQueryFamily(): QueryFamily | null {
+    return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily ?? null;
+  }
 
   // Filter state
   filters: FieldFilterItem[] = [];
@@ -552,6 +569,7 @@ export class BarChartConfigDialogComponent implements OnInit {
     }));
 
     // Initialize form with initial values
+    this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
     this.form.chartType = this.initialChartType ?? 'column';
     this.form.categoryField = this.initialCategoryField ?? '';
     this.form.showLegend = this.initialShowLegend ?? true;
@@ -729,6 +747,7 @@ export class BarChartConfigDialogComponent implements OnInit {
       queryRtId: this.selectedPersistentQuery.rtId,
       queryName: this.selectedPersistentQuery.name,
       queryFamily: family,
+      ignoreTimeFilter: this.ignoreTimeFilter,
       chartType: this.form.chartType,
       categoryField: this.form.categoryField,
       series,
