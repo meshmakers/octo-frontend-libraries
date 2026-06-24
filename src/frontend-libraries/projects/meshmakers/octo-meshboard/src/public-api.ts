@@ -39,6 +39,7 @@ export * from './lib/services/widget-factory.service';
 export * from './lib/services/edit-mode-state.service';
 export * from './lib/services/meshboard-grid.service';
 export * from './lib/services/query-executor.service';
+export * from './lib/services/auto-refresh-timer.service';
 
 // Widget Components - Export components with explicit names to avoid duplicates
 export { EntityCardWidgetComponent } from './lib/widgets/entity-card-widget/entity-card-widget.component';

@@ -30,6 +30,7 @@ import { WidgetFactoryService } from '../../services/widget-factory.service';
 import { WidgetRegistryService } from '../../services/widget-registry.service';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
+import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.service';
 import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
 import {
@@ -73,7 +74,10 @@ import {
     EntitySelectorToolbarComponent
   ],
   hostDirectives: [UnsavedChangesDirective],
-  providers: [{ provide: HAS_UNSAVED_CHANGES, useExisting: MeshBoardViewComponent }],
+  providers: [
+    { provide: HAS_UNSAVED_CHANGES, useExisting: MeshBoardViewComponent },
+    AutoRefreshTimerService
+  ],
   templateUrl: './meshboard-view.component.html',
   styleUrl: './meshboard-view.component.scss'
 })
@@ -90,6 +94,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   protected readonly gridService = inject(MeshBoardGridService);
+  private readonly autoRefreshTimer = inject(AutoRefreshTimerService);
   private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
   private readonly breadCrumbService = inject(BreadCrumbService, { optional: true });
 
@@ -124,9 +129,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private configDialogSubscription: Subscription | null = null;
   private navigationSubscription: Subscription | null = null;
 
-  // Auto-refresh polling
-  private autoRefreshTimerId: ReturnType<typeof setInterval> | null = null;
-  private autoRefreshActiveSeconds = 0;
+  // Auto-refresh polling — timer state lives in AutoRefreshTimerService so the
+  // reconcile/restart/pause semantics are testable without a TestBed harness.
   private readonly visibilityListener = () => this.evaluateAutoRefresh();
 
   // State signals
@@ -360,16 +364,16 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   ngOnDestroy(): void {
     this.closeConfigDialog();
     this.navigationSubscription?.unsubscribe();
-    this.stopAutoRefresh();
+    this.autoRefreshTimer.stop();
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.visibilityListener);
     }
   }
 
   /**
-   * Starts, restarts, or stops the auto-refresh timer based on the MeshBoard
-   * config and document visibility. Called on init, whenever config changes,
-   * and whenever the tab visibility changes.
+   * Reconciles the auto-refresh timer to the current MeshBoard config and
+   * document visibility. Called on init, whenever config changes (via the
+   * constructor effect), and whenever tab visibility changes.
    *
    * Pause-on-hidden saves bandwidth and avoids Apollo cache thrashing when
    * the user has the tab in the background.
@@ -377,29 +381,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private evaluateAutoRefresh(): void {
     const seconds = this.config().autoRefreshSeconds ?? 0;
     const tabVisible = typeof document === 'undefined' || !document.hidden;
-
-    if (seconds <= 0 || !tabVisible) {
-      this.stopAutoRefresh();
-      return;
-    }
-
-    if (this.autoRefreshTimerId !== null && this.autoRefreshActiveSeconds === seconds) {
-      return; // already running with the same interval
-    }
-
-    this.stopAutoRefresh();
-    this.autoRefreshActiveSeconds = seconds;
-    this.autoRefreshTimerId = setInterval(() => {
-      void this.refresh();
-    }, seconds * 1000);
-  }
-
-  private stopAutoRefresh(): void {
-    if (this.autoRefreshTimerId !== null) {
-      clearInterval(this.autoRefreshTimerId);
-      this.autoRefreshTimerId = null;
-    }
-    this.autoRefreshActiveSeconds = 0;
+    this.autoRefreshTimer.update(seconds, tabVisible, () => void this.refresh());
   }
 
   /**
