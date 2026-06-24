@@ -94,9 +94,9 @@ stages:
           - template: templates/steps/setup-telerik-license.yml@pipelineTemplates
 
           - task: UseNode@1
-            displayName: 'Install Node.js 26.x'
+            displayName: 'Install Node.js 24.15.x'
             inputs:
-              version: '26.x'
+              version: '24.15.x'
 
           - task: CmdLine@2
             displayName: 'npm ci'
@@ -365,9 +365,9 @@ stages:
           - template: templates/steps/setup-telerik-license.yml@pipelineTemplates
 
           - task: UseNode@1
-            displayName: 'Install Node.js 26.x'
+            displayName: 'Install Node.js 24.15.x'
             inputs:
-              version: '26.x'
+              version: '24.15.x'
 
           - task: CmdLine@2
             displayName: 'npm ci'
