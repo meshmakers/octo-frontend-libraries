@@ -231,6 +231,8 @@ Manages background jobs and repository operations.
 | `restoreRepository(tenantId, dbName, file)` | Restore from dump |
 | `downloadJobResultBinary(tenantId, jobId)` | Download job result as Blob |
 | `getJobStatus(jobId)` | Get job status |
+| `startExportArchiveData(tenantId, archiveRtId, window?)` | Start archive-data export job (AB#4230). Optional `TimeWindowDto` window scopes to `[fromUtc, toUtc)`; omit for whole archive. Returns `{ jobId }`. |
+| `startImportArchiveDataWithUpload(tenantId, archiveRtId, file, mode, onProgress?)` | TUS-upload a ZIP then start archive-data import job (AB#4230). `mode` is `ImportStrategyDto` (InsertOnly/Upsert). Returns `{ jobId }`. |
 
 ### JobManagementService
 
