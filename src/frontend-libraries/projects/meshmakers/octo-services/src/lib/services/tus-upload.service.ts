@@ -11,6 +11,13 @@ export interface TusUploadOptions {
   tenantId: string;
   databaseName: string;
   oldDatabaseName?: string;
+  /**
+   * Opt-in flag (AB#4231, concept §7) to also restore the tenant's CrateDB archive row data when
+   * the uploaded artifact is an `.octobak.zip` container that carries archives. Defaults to
+   * `false`, in which case only the Mongo dump is restored (identical to legacy behaviour); a
+   * legacy `.tar.gz` ignores the flag.
+   */
+  restoreArchiveData?: boolean;
   onProgress?: (bytesUploaded: number, bytesTotal: number) => void;
 }
 
@@ -95,7 +102,8 @@ export class TusUploadService {
     let params = new HttpParams()
       .set('tusFileId', tusFileId)
       .set('tenantId', options.tenantId)
-      .set('databaseName', options.databaseName);
+      .set('databaseName', options.databaseName)
+      .set('restoreArchiveData', options.restoreArchiveData ?? false);
 
     if (options.oldDatabaseName) {
       params = params.set('oldDatabaseName', options.oldDatabaseName);
