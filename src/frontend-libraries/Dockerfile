@@ -2,7 +2,7 @@ FROM nginx:1.27.2-bookworm AS base
 WORKDIR /usr/share/nginx/html
 EXPOSE 80
 
-FROM node:22-bookworm-slim AS build
+FROM node:24.15-bookworm-slim AS build
 
 # Telerik/Kendo UI License (passed as build argument)
 ARG TELERIK_LICENSE
