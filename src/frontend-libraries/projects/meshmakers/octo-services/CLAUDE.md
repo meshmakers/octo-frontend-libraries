@@ -227,7 +227,7 @@ Manages background jobs and repository operations.
 | Method | Description |
 |--------|-------------|
 | `runFixupScripts(tenantId)` | Run fixup scripts |
-| `dumpRepository(tenantId)` | Create repository dump |
+| `dumpRepository(tenantId, includeArchiveData?)` | Create repository dump. `includeArchiveData` (default `false`, AB#4231) additionally bundles the tenant's CrateDB archive row data → larger `.octobak.zip` instead of `.tar.gz`. |
 | `restoreRepository(tenantId, dbName, file)` | Restore from dump |
 | `downloadJobResultBinary(tenantId, jobId)` | Download job result as Blob |
 | `getJobStatus(jobId)` | Get job status |
@@ -273,7 +273,7 @@ Resumable file uploads using the TUS protocol for large database restore operati
 
 | Method | Description |
 |--------|-------------|
-| `startUpload(options: TusUploadOptions)` | Upload file and start restore job, returns `{ jobId }` |
+| `startUpload(options: TusUploadOptions)` | Upload file and start restore job, returns `{ jobId }`. `TusUploadOptions.restoreArchiveData` (default `false`, AB#4231) opts into restoring CrateDB archive data when the artifact is an `.octobak.zip`; sent as `restoreArchiveData` query param to `restore-from-upload`. |
 
 ---
 

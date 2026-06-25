@@ -106,12 +106,29 @@ describe('BotService', () => {
   });
 
   describe('dumpRepository', () => {
-    it('should dump repository and return job response', async () => {
+    it('should dump repository with includeArchiveData=false by default', async () => {
       const resultPromise = service.dumpRepository('tenant-1');
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/jobs/dump-repository?tenantId=tenant-1`);
+      const req = httpMock.expectOne(
+        `${baseUrl}system/v1/jobs/dump-repository?tenantId=tenant-1&includeArchiveData=false`
+      );
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
+      expect(req.request.params.get('includeArchiveData')).toBe('false');
+      req.flush(mockJobResponse);
+
+      const result = await resultPromise;
+      expect(result).toEqual(mockJobResponse);
+    });
+
+    it('should dump repository with includeArchiveData=true when requested', async () => {
+      const resultPromise = service.dumpRepository('tenant-1', true);
+
+      const req = httpMock.expectOne(
+        `${baseUrl}system/v1/jobs/dump-repository?tenantId=tenant-1&includeArchiveData=true`
+      );
+      expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('includeArchiveData')).toBe('true');
       req.flush(mockJobResponse);
 
       const result = await resultPromise;

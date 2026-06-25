@@ -31,8 +31,20 @@ export class BotService {
     return null;
   }
 
-  public async dumpRepository(tenantId: string): Promise<JobResponseDto | null> {
-    const params = new HttpParams().set('tenantId', tenantId);
+  /**
+   * Starts a tenant repository dump (backup) job.
+   *
+   * When `includeArchiveData` is `true` the produced artifact additionally bundles the tenant's
+   * CrateDB archive row data (AB#4231, concept §7). The default (`false`) keeps the historical,
+   * fully backward-compatible behaviour (Mongo metadata/config only → single `.tar.gz`); with the
+   * flag set the bot job emits a larger `.octobak.zip` container instead.
+   *
+   * Frozen bot contract: `POST system/v1/jobs/dump-repository?tenantId=&includeArchiveData=`.
+   */
+  public async dumpRepository(tenantId: string, includeArchiveData = false): Promise<JobResponseDto | null> {
+    const params = new HttpParams()
+      .set('tenantId', tenantId)
+      .set('includeArchiveData', includeArchiveData);
 
     if (this.configurationService.config?.botServices) {
       const r = await firstValueFrom(this.httpClient.post<JobResponseDto>(this.configurationService.config.botServices + 'system/v1/jobs/dump-repository', null, {
