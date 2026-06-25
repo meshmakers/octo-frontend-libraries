@@ -6,6 +6,8 @@ import { CONFIGURATION_SERVICE } from './configuration.service';
 import { AddInConfiguration } from '../shared/addInConfiguration';
 import { JobResponseDto } from '../shared/jobResponseDto';
 import { JobDto } from '../shared/jobDto';
+import { ImportStrategyDto } from '../shared/importStrategyDto';
+import { AuthorizeService } from '@meshmakers/shared-auth';
 
 describe('BotService', () => {
   let service: BotService;
@@ -48,12 +50,17 @@ describe('BotService', () => {
       loadConfigAsync: jasmine.createSpy('loadConfigAsync').and.returnValue(Promise.resolve())
     };
 
+    const mockAuthorizeService = {
+      getAccessTokenSync: jasmine.createSpy('getAccessTokenSync').and.returnValue('test-token')
+    };
+
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         BotService,
-        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
+        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
+        { provide: AuthorizeService, useValue: mockAuthorizeService }
       ]
     });
 
@@ -200,6 +207,64 @@ describe('BotService', () => {
       mockConfigService.config = null;
 
       const result = await service.getJobStatus('job-123');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('startExportArchiveData', () => {
+    it('should start a whole-archive export without window bounds', async () => {
+      const resultPromise = service.startExportArchiveData('tenant-1', 'archive-1');
+
+      const req = httpMock.expectOne(
+        `${baseUrl}system/v1/jobs/export-archive-data?tenantId=tenant-1&archiveRtId=archive-1`
+      );
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      expect(req.request.params.has('fromUtc')).toBeFalse();
+      expect(req.request.params.has('toUtc')).toBeFalse();
+      req.flush(mockJobResponse);
+
+      const result = await resultPromise;
+      expect(result).toEqual(mockJobResponse);
+    });
+
+    it('should start a windowed export with from/to bounds', async () => {
+      const resultPromise = service.startExportArchiveData('tenant-1', 'archive-1', {
+        fromUtc: '2026-06-01T00:00:00Z',
+        toUtc: '2026-07-01T00:00:00Z'
+      });
+
+      const req = httpMock.expectOne(
+        (request) =>
+          request.url === `${baseUrl}system/v1/jobs/export-archive-data` &&
+          request.params.get('tenantId') === 'tenant-1' &&
+          request.params.get('archiveRtId') === 'archive-1' &&
+          request.params.get('fromUtc') === '2026-06-01T00:00:00Z' &&
+          request.params.get('toUtc') === '2026-07-01T00:00:00Z'
+      );
+      expect(req.request.method).toBe('POST');
+      req.flush(mockJobResponse);
+
+      const result = await resultPromise;
+      expect(result?.jobId).toBe('job-123');
+    });
+
+    it('should return null when config is not available', async () => {
+      mockConfigService.config = null;
+
+      const result = await service.startExportArchiveData('tenant-1', 'archive-1');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('startImportArchiveDataWithUpload', () => {
+    it('should return null when config is not available', async () => {
+      mockConfigService.config = null;
+      const mockFile = new File(['zip data'], 'export.zip', { type: 'application/zip' });
+
+      const result = await service.startImportArchiveDataWithUpload(
+        'tenant-1', 'archive-1', mockFile, ImportStrategyDto.Upsert
+      );
       expect(result).toBeNull();
     });
   });
