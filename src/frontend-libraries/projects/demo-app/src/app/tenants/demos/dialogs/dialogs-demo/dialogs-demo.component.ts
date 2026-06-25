@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
 import {
@@ -77,6 +77,7 @@ class CustomerLastNameSaveAsDataSource implements SaveAsDialogDataSource {
     ButtonComponent
   ],
   templateUrl: './dialogs-demo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dialogs-demo.component.scss'
 })
 export class DialogsDemoComponent {

@@ -42,7 +42,7 @@ import { StyleClass, createStyleClass } from '../../primitives';
                       [attr.stroke-width]="styleClass.style.stroke?.width || 1"
                       [attr.fill-opacity]="styleClass.style.fill?.opacity ?? 1"
                       [attr.stroke-opacity]="styleClass.style.stroke?.opacity ?? 1"
-                      [attr.stroke-dasharray]="getDashArrayString(styleClass.style.stroke?.dashArray)"/>
+                      [attr.stroke-dasharray]="getDashArrayString($safeNavigationMigration(styleClass.style.stroke?.dashArray))"/>
               </svg>
             </div>
             <span class="style-name">{{ styleClass.name }}</span>
@@ -119,7 +119,7 @@ import { StyleClass, createStyleClass } from '../../primitives';
               <label>Line Type</label>
               <div class="line-type-row">
                 <select class="line-type-select"
-                        [value]="getLineType(selectedStyle!.style.stroke?.dashArray)"
+                        [value]="getLineType($safeNavigationMigration(selectedStyle!.style.stroke?.dashArray))"
                         (change)="onLineTypeChange($any($event.target).value)">
                   <option value="solid">Solid</option>
                   <option value="dashed">Dashed</option>
@@ -131,7 +131,7 @@ import { StyleClass, createStyleClass } from '../../primitives';
                   <line x1="0" y1="5" x2="50" y2="5"
                         [attr.stroke]="selectedStyle!.style.stroke?.color ?? '#333'"
                         stroke-width="2"
-                        [attr.stroke-dasharray]="getDashArrayString(selectedStyle!.style.stroke?.dashArray)"/>
+                        [attr.stroke-dasharray]="getDashArrayString($safeNavigationMigration(selectedStyle!.style.stroke?.dashArray))"/>
                 </svg>
               </div>
             </div>

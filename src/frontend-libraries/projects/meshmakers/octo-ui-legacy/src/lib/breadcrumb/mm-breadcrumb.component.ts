@@ -5,7 +5,7 @@
  * Supports optional translation via BREADCRUMB_TRANSLATE_FN injection token.
  * If provided, breadcrumb labels are passed through the translate function.
  */
-import { Component, inject, InjectionToken, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, InjectionToken, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { BreadCrumbService, BreadCrumbData } from '@meshmakers/shared-services';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -44,6 +44,7 @@ export const BREADCRUMB_TRANSLATE_FN = new InjectionToken<(key: string) => strin
       </nav>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .breadcrumb-nav {
       padding: 8px 16px;

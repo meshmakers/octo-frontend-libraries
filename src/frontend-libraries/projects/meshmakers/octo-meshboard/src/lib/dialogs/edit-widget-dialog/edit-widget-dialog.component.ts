@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from '@progress/kendo-angular-dialog';
@@ -140,6 +140,7 @@ interface ZoneOption {
 
     </kendo-dialog>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .edit-widget-form {
       display: flex;

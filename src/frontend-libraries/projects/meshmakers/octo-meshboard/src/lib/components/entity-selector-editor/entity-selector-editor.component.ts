@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
@@ -37,6 +37,7 @@ import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
     EntitySelectInputComponent
   ],
   templateUrl: './entity-selector-editor.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './entity-selector-editor.component.scss'
 })
 export class EntitySelectorEditorComponent {

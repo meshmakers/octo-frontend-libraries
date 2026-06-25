@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, signal, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, inject, signal, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WindowRef } from '@progress/kendo-angular-dialog';
@@ -139,7 +139,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
               <div class="form-field">
                 <label>Filters</label>
                 <mm-field-filter-editor
-                  [ckTypeId]="selectedCkType?.rtCkTypeId"
+                  [ckTypeId]="$safeNavigationMigration(selectedCkType?.rtCkTypeId)"
                   [filters]="filters"
                   [enableVariables]="filterVariables.length > 0"
                   [availableVariables]="filterVariables"
@@ -393,6 +393,7 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host { display: block; height: 100%; }
     .config-container { display: flex; flex-direction: column; height: 100%; }

@@ -7,6 +7,7 @@ import {
   Output,
   SimpleChanges,
   inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -367,6 +368,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .field-filter-editor {

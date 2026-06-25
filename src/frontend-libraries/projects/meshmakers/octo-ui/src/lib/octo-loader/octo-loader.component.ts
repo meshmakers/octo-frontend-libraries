@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 
 /**
  * Animated OctoMesh logo loader component.
@@ -107,6 +107,7 @@ import {Component, Input} from '@angular/core';
       </svg>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: inline-flex;

@@ -2,13 +2,13 @@
   "name": "@meshmakers/shared-auth",
   "version": "0.0.1",
   "peerDependencies": {
-    "@angular/common": "^21.2.0",
-    "@angular/core": "^21.2.0",
-    "@progress/kendo-angular-buttons": "^23.2.0",
-    "@progress/kendo-angular-indicators": "^23.2.0",
-    "@progress/kendo-angular-layout": "^23.2.0",
-    "@progress/kendo-angular-popup": "^23.2.0",
-    "angular-oauth2-oidc": "^20.0.2"
+    "@angular/common": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@progress/kendo-angular-buttons": "^24.1.0",
+    "@progress/kendo-angular-indicators": "^24.1.0",
+    "@progress/kendo-angular-layout": "^24.1.0",
+    "@progress/kendo-angular-popup": "^24.1.0",
+    "angular-oauth2-oidc": "^22.0.0"
   },
   "peerDependenciesMeta": {
     "@progress/kendo-angular-buttons": { "optional": true },

@@ -8,7 +8,8 @@ import {
   forwardRef,
   ElementRef,
   ViewChild,
-  inject
+  inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {
@@ -121,6 +122,7 @@ import {EntitySelectDialogService} from '../entity-select-dialog/entity-select-d
       </button>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

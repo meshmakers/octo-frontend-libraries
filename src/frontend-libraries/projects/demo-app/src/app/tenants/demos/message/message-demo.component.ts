@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { CardModule } from '@progress/kendo-angular-layout';
@@ -10,6 +10,7 @@ import { xCircleIcon, infoCircleIcon, exclamationCircleIcon, checkCircleIcon } f
   standalone: true,
   imports: [CommonModule, ButtonModule, CardModule],
   templateUrl: './message-demo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./message-demo.component.scss']
 })
 export class MessageDemoComponent {

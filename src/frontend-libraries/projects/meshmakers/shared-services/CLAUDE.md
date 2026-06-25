@@ -156,7 +156,7 @@ These exist for backward compatibility only. New code should use the primary exp
 
 ## Dependencies
 
-- **Angular 21** (core, common/http, router)
+- **Angular 22** (core, common/http, router)
 - **RxJS** (Observable patterns)
 - **@progress/kendo-angular-layout** (DrawerItem interface)
 - **@progress/kendo-angular-menu** (MenuItem interface)

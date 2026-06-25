@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {TusUploadService, TusUploadOptions} from './tus-upload.service';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {AddInConfiguration} from '../shared/addInConfiguration';
@@ -40,7 +40,7 @@ describe('TusUploadService', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         TusUploadService,
         {provide: CONFIGURATION_SERVICE, useValue: mockConfigService},

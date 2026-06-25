@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import {
   HttpTestingController,
   provideHttpClientTesting,
@@ -15,7 +15,7 @@ describe('AiCredentialTicketIssueComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AiCredentialTicketIssueComponent],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideOctoAiConsole({
           baseUrl: 'https://ai.test',

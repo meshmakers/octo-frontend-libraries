@@ -1,12 +1,13 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { signal, WritableSignal } from '@angular/core';
+import { signal, WritableSignal, ChangeDetectionStrategy } from '@angular/core';
 import { LoginAppBarSectionComponent } from './login-app-bar-section.component';
 import { AuthorizeService, IUser } from '@meshmakers/shared-auth';
 import { Component, Input } from '@angular/core';
 
 // Mock Kendo components to avoid complex setup
 // eslint-disable-next-line @angular-eslint/component-selector
-@Component({ selector: 'kendo-avatar', template: '', standalone: true })
+@Component({ selector: 'kendo-avatar', template: '', changeDetection: ChangeDetectionStrategy.Eager,
+ standalone: true })
 class MockAvatarComponent {
   @Input() initials: string | undefined;
   @Input() shape: string | undefined;
@@ -15,14 +16,16 @@ class MockAvatarComponent {
 }
 
 // eslint-disable-next-line @angular-eslint/component-selector
-@Component({ selector: 'kendo-popup', template: '<ng-content></ng-content>', standalone: true })
+@Component({ selector: 'kendo-popup', template: '<ng-content></ng-content>', changeDetection: ChangeDetectionStrategy.Eager,
+ standalone: true })
 class MockPopupComponent {
   @Input() anchor: unknown;
   @Input() popupClass: string | undefined;
 }
 
 // eslint-disable-next-line @angular-eslint/component-selector
-@Component({ selector: 'kendo-loader', template: '', standalone: true })
+@Component({ selector: 'kendo-loader', template: '', changeDetection: ChangeDetectionStrategy.Eager,
+ standalone: true })
 class MockLoaderComponent {
   @Input() themeColor: string | undefined;
   @Input() type: string | undefined;
@@ -30,7 +33,8 @@ class MockLoaderComponent {
 }
 
 // eslint-disable-next-line @angular-eslint/component-selector
-@Component({ selector: 'button[kendoButton]', template: '<ng-content></ng-content>', standalone: true })
+@Component({ selector: 'button[kendoButton]', template: '<ng-content></ng-content>', changeDetection: ChangeDetectionStrategy.Eager,
+ standalone: true })
 class MockButtonComponent {
   @Input() fillMode: string | undefined;
   @Input() themeColor: string | undefined;

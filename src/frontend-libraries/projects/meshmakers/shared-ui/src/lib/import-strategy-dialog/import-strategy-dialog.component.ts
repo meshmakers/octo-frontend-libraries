@@ -1,4 +1,4 @@
-import {Component, inject, Input} from '@angular/core';
+import {Component, inject, Input, ChangeDetectionStrategy} from '@angular/core';
 import {DialogActionsComponent, DialogContentBase, DialogRef} from '@progress/kendo-angular-dialog';
 import {ButtonComponent} from '@progress/kendo-angular-buttons';
 import {FormsModule} from '@angular/forms';
@@ -16,6 +16,7 @@ export class ImportStrategyDialogResult {
     FormsModule
   ],
   templateUrl: './import-strategy-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './import-strategy-dialog.component.css'
 })
 export class ImportStrategyDialogComponent extends DialogContentBase {

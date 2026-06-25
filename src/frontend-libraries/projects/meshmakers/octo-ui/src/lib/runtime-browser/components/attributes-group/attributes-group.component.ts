@@ -6,6 +6,7 @@ import {
   computed,
   input,
   effect,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
@@ -363,6 +364,7 @@ import {
       </kendo-card>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ["./attributes-group.component.scss"],
 })
 /**

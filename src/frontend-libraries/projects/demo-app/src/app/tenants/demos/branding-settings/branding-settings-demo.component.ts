@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import {
   BrandingSettingsMessages,
   SettingsPageComponent,
@@ -40,6 +40,7 @@ const DEMO_MESSAGES: BrandingSettingsMessages = {
   selector: 'app-branding-settings-demo',
   standalone: true,
   imports: [SettingsPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './branding-settings-demo.component.html',
 })
 export class BrandingSettingsDemoComponent {

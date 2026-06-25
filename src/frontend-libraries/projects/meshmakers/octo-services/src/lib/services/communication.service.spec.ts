@@ -1,6 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withXhr} from '@angular/common/http';
 import {CommunicationService} from './communication.service';
 import {CONFIGURATION_SERVICE, IConfigurationService} from './configuration.service';
 import {AddInConfiguration} from '../shared/addInConfiguration';
@@ -36,7 +36,7 @@ describe('CommunicationService', () => {
     TestBed.configureTestingModule({
       providers: [
         CommunicationService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         {provide: CONFIGURATION_SERVICE, useValue: mockConfigService}
       ]
@@ -366,7 +366,7 @@ describe('CommunicationService', () => {
       TestBed.configureTestingModule({
         providers: [
           CommunicationService,
-          provideHttpClient(),
+          provideHttpClient(withXhr()),
           provideHttpClientTesting(),
           {provide: CONFIGURATION_SERVICE, useValue: emptyConfigService}
         ]
@@ -440,7 +440,7 @@ describe('CommunicationService', () => {
       TestBed.configureTestingModule({
         providers: [
           CommunicationService,
-          provideHttpClient(),
+          provideHttpClient(withXhr()),
           provideHttpClientTesting(),
           {provide: CONFIGURATION_SERVICE, useValue: emptyConfigService}
         ]

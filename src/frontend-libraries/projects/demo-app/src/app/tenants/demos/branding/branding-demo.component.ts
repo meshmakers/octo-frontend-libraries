@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { BrandingDataSource, ThemeSwitcherComponent } from '@meshmakers/octo-ui/branding';
 
 @Component({
@@ -78,6 +78,7 @@ import { BrandingDataSource, ThemeSwitcherComponent } from '@meshmakers/octo-ui/
       </section>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       :host {

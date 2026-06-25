@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 /**
@@ -15,6 +15,7 @@ import { CommonModule } from '@angular/common';
       <span class="message">Widget not configured</span>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .widget-not-configured {
       display: flex;

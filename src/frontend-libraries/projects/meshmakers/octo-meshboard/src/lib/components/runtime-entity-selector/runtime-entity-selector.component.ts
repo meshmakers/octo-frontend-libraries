@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, ViewChild, forwardRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ViewChild, forwardRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { CkTypeSelectorInputComponent } from '@meshmakers/octo-ui';
@@ -99,6 +99,7 @@ export interface RuntimeEntitySelectorValue {
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .runtime-entity-selector {
       display: flex;

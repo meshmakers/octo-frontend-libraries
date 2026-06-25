@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SummaryCardWidgetConfig, SummaryCardTile } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -41,6 +41,7 @@ interface TileValue {
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

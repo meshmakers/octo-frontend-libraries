@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnDestroy, AfterViewInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -35,6 +35,7 @@ export interface ProgressWindowData {
       }
     </mat-dialog-actions>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .progress-section {
       display: flex;

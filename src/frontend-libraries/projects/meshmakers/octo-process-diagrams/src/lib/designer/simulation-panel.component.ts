@@ -10,7 +10,8 @@ import {
   Input,
   Output,
   EventEmitter,
-  signal
+  signal,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -127,6 +128,7 @@ export interface SimulationValueChange {
       </div>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: flex;

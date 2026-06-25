@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
 import { Router } from "@angular/router";
 import { AuthorizeService } from '@meshmakers/shared-auth';
 
@@ -12,6 +12,7 @@ interface NavItem {
   selector: 'app-root',
   standalone: false,
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
@@ -22,6 +22,7 @@ import { NotificationDisplayService } from '../services/notification-display.ser
   standalone: true,
   imports: [CommonModule, ButtonModule, SVGIconModule],
   templateUrl: './copyable-text.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './copyable-text.component.scss'
 })
 export class CopyableTextComponent {

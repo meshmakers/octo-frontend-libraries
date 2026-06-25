@@ -1,4 +1,4 @@
-import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
+import {Component, ViewChild, ViewEncapsulation, ChangeDetectionStrategy} from '@angular/core';
 import {CustomersDataSourceDirective} from '../data-sources/customers-data-source.directive';
 import {ListViewComponent, StatusMapping} from '@meshmakers/shared-ui';
 import {
@@ -43,6 +43,7 @@ import {ButtonsModule} from '@progress/kendo-angular-buttons';
   ],
   templateUrl: './list-view-demo.component.html',
   styleUrl: './list-view-demo.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   encapsulation: ViewEncapsulation.None
 })
 export class ListViewDemoComponent {

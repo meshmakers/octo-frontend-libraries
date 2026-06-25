@@ -14,7 +14,8 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
-  inject
+  inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   AbstractControl,
@@ -76,6 +77,7 @@ import { CommonModule } from '@angular/common';
     '[id]': 'id',
     '[attr.aria-describedby]': 'describedBy'
   },
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import {ActivatedRoute, RouterOutlet} from '@angular/router';
 import { Apollo } from 'apollo-angular';
 import { InMemoryCache } from '@apollo/client/core';
@@ -16,6 +16,7 @@ import {ApolloLink} from '@apollo/client';
   imports: [
     RouterOutlet
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './tenant.component.scss'
 })
 export class TenantComponent {

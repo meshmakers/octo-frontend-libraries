@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogRef, DialogModule } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
@@ -48,6 +48,7 @@ interface WidgetTypeInfo {
     SVGIconModule
   ],
   templateUrl: './add-widget-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './add-widget-dialog.component.scss'
 })
 export class AddWidgetDialogComponent implements OnInit {

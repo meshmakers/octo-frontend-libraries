@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StatusListWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -40,6 +40,7 @@ interface StatusListItem {
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

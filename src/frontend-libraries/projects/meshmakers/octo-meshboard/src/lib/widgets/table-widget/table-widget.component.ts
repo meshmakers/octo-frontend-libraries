@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, signal, computed } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableWidgetConfig, PersistentQueryDataSource, TableColumnStatusIconMapping } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -58,6 +58,7 @@ function resolveStatusMapping(config: Record<string, TableColumnStatusIconMappin
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .table-widget {
       height: 100%;

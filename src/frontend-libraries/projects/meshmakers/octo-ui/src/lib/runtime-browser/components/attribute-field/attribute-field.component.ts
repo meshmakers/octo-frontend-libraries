@@ -1,4 +1,4 @@
-import { Component, input, output } from "@angular/core";
+import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { AbstractControl, ReactiveFormsModule } from "@angular/forms";
 import { KENDO_LABEL } from "@progress/kendo-angular-label";
@@ -50,6 +50,7 @@ import { Attribute } from "../../models/attribute";
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ["./attribute-field.component.scss"],
 })
 export class AttributeFieldComponent {

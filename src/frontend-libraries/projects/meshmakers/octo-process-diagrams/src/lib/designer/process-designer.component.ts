@@ -14,7 +14,8 @@ import {
   ElementRef,
   HostListener,
   Type,
-  NgZone
+  NgZone,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -256,6 +257,7 @@ interface ResizeState {
     DesignerAlignmentGuideService
   ],
   templateUrl: './process-designer.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './process-designer.component.scss'
 })
 

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KpiWidgetConfig, RuntimeEntityData, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardDataService } from '../../services/meshboard-data.service';
@@ -18,6 +18,7 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
   standalone: true,
   imports: [CommonModule, SVGIconModule, WidgetNotConfiguredComponent],
   templateUrl: './kpi-widget.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './kpi-widget.component.scss'
 })
 export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, RuntimeEntityData>, OnInit, OnChanges {

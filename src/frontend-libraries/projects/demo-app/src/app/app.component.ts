@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import {ProductService} from './services/product.service';
 import {AsyncPipe} from '@angular/common';
 import { VERSION } from '../environments/currentVersion';
@@ -38,6 +38,7 @@ import {filter} from 'rxjs/operators';
   imports: [LoginAppBarSectionComponent, TenantSwitcherComponent, ThemeSwitcherComponent, AsyncPipe, DrawerContainerComponent, DrawerContentComponent, DrawerComponent, ButtonComponent, AppBarSpacerComponent, AppBarSectionComponent, SVGIconComponent, AppBarComponent, RouterOutlet, MenuComponent, BreadCrumbComponent, DialogContainerDirective, WindowContainerDirective],
   providers: [ProductService],
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.scss'
 })
 export class AppComponent {

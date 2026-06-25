@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RuntimeBrowserComponent } from './runtime-browser.component';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
@@ -14,6 +14,7 @@ import { RUNTIME_BROWSER_MESSAGES } from './runtime-browser.tokens';
   selector: 'mm-runtime-browser-page',
   standalone: true,
   imports: [RuntimeBrowserComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<mm-runtime-browser [messages]="messages" />`,
 })
 export class RuntimeBrowserPageComponent {

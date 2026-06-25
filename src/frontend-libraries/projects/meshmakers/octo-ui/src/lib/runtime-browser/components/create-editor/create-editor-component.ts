@@ -6,6 +6,7 @@ import {
   input,
   output,
   signal,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
@@ -113,6 +114,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ["../shared-editor/shared-editor.scss"],
 })
 /**

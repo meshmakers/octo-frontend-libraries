@@ -2,11 +2,11 @@
   "name": "@meshmakers/octo-services",
   "version": "0.0.1",
   "peerDependencies": {
-    "@angular/common": "^21.2.0",
-    "@angular/core": "^21.2.0",
+    "@angular/common": "^22.0.0",
+    "@angular/core": "^22.0.0",
     "@meshmakers/shared-auth": "*",
     "@meshmakers/shared-services": "*",
-    "apollo-angular": "^13.0.0",
+    "apollo-angular": "^14.0.0",
     "tus-js-client": "^4.3.1"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { WindowRef, KENDO_DIALOG } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { copyIcon, xIcon } from '@progress/kendo-svg-icons';
@@ -58,6 +58,7 @@ export interface MessageDetailsDialogData {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .message-details-content {
       display: flex;

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
@@ -36,6 +36,7 @@ interface VariableTypeOption {
     SVGIconModule
   ],
   templateUrl: './variables-editor.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './variables-editor.component.scss'
 })
 export class VariablesEditorComponent {

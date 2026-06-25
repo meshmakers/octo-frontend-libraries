@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ButtonsModule} from '@progress/kendo-angular-buttons';
 import {GridModule, GridDataResult} from '@progress/kendo-angular-grid';
@@ -73,6 +73,7 @@ import {AttributeItem} from '@meshmakers/octo-services';
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .demo-container {
       padding: 20px;

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -67,6 +67,7 @@ import { firstValueFrom } from 'rxjs';
       </kendo-dialog-actions>
     </kendo-dialog>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .entity-detail-content {
       display: flex;

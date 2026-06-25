@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EntityWithAssociationsWidgetConfig, RuntimeEntityData, EntityAssociation, EntityAttribute } from '../../models/meshboard.models';
 import { DashboardDataService, TargetEntityWithAttributes } from '../../services/meshboard-data.service';
@@ -31,6 +31,7 @@ interface TargetEntity {
   standalone: true,
   imports: [CommonModule, SVGIconModule, EntityDetailDialogComponent, WidgetNotConfiguredComponent],
   templateUrl: './entity-associations-widget.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './entity-associations-widget.component.scss'
 })
 export class EntityAssociationsWidgetComponent implements DashboardWidget<EntityWithAssociationsWidgetConfig, RuntimeEntityData>, OnInit, OnChanges {

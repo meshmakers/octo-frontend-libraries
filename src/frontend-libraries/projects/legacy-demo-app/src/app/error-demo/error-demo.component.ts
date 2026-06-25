@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MessageService } from '@meshmakers/shared-services';
 
 @Component({
   selector: 'app-error-demo',
   standalone: false,
   templateUrl: './error-demo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./error-demo.component.scss']
 })
 export class ErrorDemoComponent {

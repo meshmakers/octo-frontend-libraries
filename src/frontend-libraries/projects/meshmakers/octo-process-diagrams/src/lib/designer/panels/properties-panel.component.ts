@@ -5,7 +5,7 @@
  * Displays and edits properties of selected elements/primitives.
  */
 
-import { Component, Input, computed, Signal, signal, effect, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, Input, computed, Signal, signal, effect, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PropertyInspectorComponent, PropertyChangeEvent } from '../property-inspector.component';
 import { ProcessElement, ProcessConnection } from '../../process-widget.models';
@@ -42,6 +42,7 @@ export interface PropertiesPanelParams {
       </mm-property-inspector>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, AfterViewInit, Input } from '@angular/core';
+import { Component, inject, OnDestroy, AfterViewInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
 import {
@@ -34,6 +34,7 @@ export type ProgressWindowResult = object;
     ProgressBarComponent,
   ],
   templateUrl: './progress-window.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './progress-window.component.scss'
 })
 export class ProgressWindowComponent extends DialogContentBase implements OnDestroy, AfterViewInit {

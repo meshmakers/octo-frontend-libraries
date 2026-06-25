@@ -5,7 +5,7 @@
  * Provides UI for creating and editing SVG animations on primitives.
  */
 
-import { Component, Input, computed, Signal, signal, effect, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, Input, computed, Signal, signal, effect, ChangeDetectorRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AnimationEditorComponent, AnimationChangeEvent } from '../animation-editor.component';
 import { AnimationDefinition } from '../../primitives/models/animation.models';
@@ -62,6 +62,7 @@ export interface AnimationsPanelParams {
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

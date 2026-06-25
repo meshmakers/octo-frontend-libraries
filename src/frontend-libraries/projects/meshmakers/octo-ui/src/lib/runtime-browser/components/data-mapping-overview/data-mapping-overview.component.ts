@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, EventEmitter, inject, OnInit, Output, signal } from '@angular/core';
+import { Component, computed, EventEmitter, inject, OnInit, Output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { GridModule, PageChangeEvent, CellClickEvent } from '@progress/kendo-angular-grid';
@@ -198,6 +198,7 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .mapping-overview {
       display: flex;

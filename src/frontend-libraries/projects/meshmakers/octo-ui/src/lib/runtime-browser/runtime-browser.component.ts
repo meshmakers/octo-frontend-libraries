@@ -6,6 +6,7 @@ import {
   inject,
   input,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommandItem, TreeItemDataTyped } from '@meshmakers/shared-services';
@@ -121,6 +122,7 @@ type BrowserItem =
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./runtime-browser.component.scss'],
 })
 export class RuntimeBrowserComponent implements AfterViewInit {

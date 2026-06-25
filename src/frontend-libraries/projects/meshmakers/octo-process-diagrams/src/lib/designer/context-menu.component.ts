@@ -7,7 +7,8 @@ import {
   HostListener,
   OnInit,
   OnDestroy,
-  inject
+  inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -68,6 +69,7 @@ export interface ContextMenuAction {
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       position: fixed;

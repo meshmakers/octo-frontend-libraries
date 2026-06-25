@@ -8,7 +8,8 @@ import {
   signal,
   computed,
   ElementRef,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -711,7 +712,7 @@ import { QueryResultData } from './services/process-data.service';
                         [attr.stroke]="primitive.style?.stroke?.color ?? 'none'"
                         [attr.stroke-width]="primitive.style?.stroke?.width ?? 0"
                         [attr.stroke-opacity]="primitive.style?.stroke?.opacity ?? 1"
-                        [attr.stroke-dasharray]="getStrokeDashArray(primitive.style?.stroke?.dashArray)"/>
+                        [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(primitive.style?.stroke?.dashArray))"/>
                     }
                     @case ('ellipse') {
                       <ellipse
@@ -723,7 +724,7 @@ import { QueryResultData } from './services/process-data.service';
                         [attr.stroke]="primitive.style?.stroke?.color ?? 'none'"
                         [attr.stroke-width]="primitive.style?.stroke?.width ?? 0"
                         [attr.stroke-opacity]="primitive.style?.stroke?.opacity ?? 1"
-                        [attr.stroke-dasharray]="getStrokeDashArray(primitive.style?.stroke?.dashArray)"/>
+                        [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(primitive.style?.stroke?.dashArray))"/>
                     }
                     @case ('line') {
                       <line
@@ -756,7 +757,7 @@ import { QueryResultData } from './services/process-data.service';
                         [attr.stroke]="primitive.style?.stroke?.color ?? 'none'"
                         [attr.stroke-width]="primitive.style?.stroke?.width ?? 1"
                         [attr.stroke-opacity]="primitive.style?.stroke?.opacity ?? 1"
-                        [attr.stroke-dasharray]="getStrokeDashArray(primitive.style?.stroke?.dashArray)"/>
+                        [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(primitive.style?.stroke?.dashArray))"/>
                     }
                     @case ('path') {
                       <path
@@ -813,7 +814,7 @@ import { QueryResultData } from './services/process-data.service';
 
             <!-- Symbol Instances (from Process Designer) -->
             @for (symbolInstance of diagramConfig()!.symbolInstances ?? []; track symbolInstance.id) {
-              @let styleClasses = getSymbolDefinition(symbolInstance)?.styleClasses;
+              @let styleClasses = $safeNavigationMigration(getSymbolDefinition(symbolInstance)?.styleClasses);
               <g class="symbol-instance"
                  [attr.data-id]="symbolInstance.id"
                  [attr.transform]="getSymbolTransform(symbolInstance)">
@@ -848,7 +849,7 @@ import { QueryResultData } from './services/process-data.service';
                                       [attr.stroke]="getStrokeColor(child, styleClasses)"
                                       [attr.stroke-width]="getStrokeWidth(child, styleClasses, 0)"
                                       [attr.stroke-opacity]="getStrokeOpacity(child, styleClasses)"
-                                      [attr.stroke-dasharray]="getStrokeDashArray(child.style?.stroke?.dashArray)"/>
+                                      [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(child.style?.stroke?.dashArray))"/>
                                   }
                                 }
                                 @case ('ellipse') {
@@ -862,7 +863,7 @@ import { QueryResultData } from './services/process-data.service';
                                     [attr.stroke]="getStrokeColor(child, styleClasses)"
                                     [attr.stroke-width]="getStrokeWidth(child, styleClasses, 0)"
                                     [attr.stroke-opacity]="getStrokeOpacity(child, styleClasses)"
-                                    [attr.stroke-dasharray]="getStrokeDashArray(child.style?.stroke?.dashArray)"/>
+                                    [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(child.style?.stroke?.dashArray))"/>
                                 }
                                 @case ('line') {
                                   @let lineCoords = getGroupChildLineCoords(child, primitive);
@@ -905,7 +906,7 @@ import { QueryResultData } from './services/process-data.service';
                                     [attr.stroke]="getStrokeColor(child, styleClasses)"
                                     [attr.stroke-width]="getStrokeWidth(child, styleClasses)"
                                     [attr.stroke-opacity]="getStrokeOpacity(child, styleClasses)"
-                                    [attr.stroke-dasharray]="getStrokeDashArray(child.style?.stroke?.dashArray)"/>
+                                    [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(child.style?.stroke?.dashArray))"/>
                                 }
                                 @case ('path') {
                                   <path
@@ -974,7 +975,7 @@ import { QueryResultData } from './services/process-data.service';
                                 [attr.stroke]="getStrokeColor(primitive, styleClasses)"
                                 [attr.stroke-width]="getStrokeWidth(primitive, styleClasses, 0)"
                                 [attr.stroke-opacity]="getStrokeOpacity(primitive, styleClasses)"
-                                [attr.stroke-dasharray]="getStrokeDashArray(primitive.style?.stroke?.dashArray)"/>
+                                [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(primitive.style?.stroke?.dashArray))"/>
                             }
                           }
                           @case ('ellipse') {
@@ -988,7 +989,7 @@ import { QueryResultData } from './services/process-data.service';
                               [attr.stroke]="getStrokeColor(primitive, styleClasses)"
                               [attr.stroke-width]="getStrokeWidth(primitive, styleClasses, 0)"
                               [attr.stroke-opacity]="getStrokeOpacity(primitive, styleClasses)"
-                              [attr.stroke-dasharray]="getStrokeDashArray(primitive.style?.stroke?.dashArray)"/>
+                              [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(primitive.style?.stroke?.dashArray))"/>
                           }
                           @case ('line') {
                             <line
@@ -1030,7 +1031,7 @@ import { QueryResultData } from './services/process-data.service';
                               [attr.stroke]="getStrokeColor(primitive, styleClasses)"
                               [attr.stroke-width]="getStrokeWidth(primitive, styleClasses)"
                               [attr.stroke-opacity]="getStrokeOpacity(primitive, styleClasses)"
-                              [attr.stroke-dasharray]="getStrokeDashArray(primitive.style?.stroke?.dashArray)"/>
+                              [attr.stroke-dasharray]="getStrokeDashArray($safeNavigationMigration(primitive.style?.stroke?.dashArray))"/>
                           }
                           @case ('path') {
                             <path
@@ -1087,6 +1088,7 @@ import { QueryResultData } from './services/process-data.service';
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

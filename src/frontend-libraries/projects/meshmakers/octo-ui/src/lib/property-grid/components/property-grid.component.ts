@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GridModule } from '@progress/kendo-angular-grid';
@@ -119,6 +119,7 @@ import { DEFAULT_PROPERTY_GRID_MESSAGES, PropertyGridMessages } from '../propert
       </kendo-grid>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .mm-property-grid {
       display: flex;

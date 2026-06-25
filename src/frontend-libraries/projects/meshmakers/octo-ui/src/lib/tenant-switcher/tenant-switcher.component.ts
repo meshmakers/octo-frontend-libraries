@@ -5,7 +5,8 @@ import {
   HostListener,
   Input,
   Output,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { PopupComponent } from '@progress/kendo-angular-popup';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
@@ -58,6 +59,7 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
       }
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: inline-flex;

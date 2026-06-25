@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges, inject, signal, computed } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AlertBannerWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -38,6 +38,7 @@ import { FieldFilterOperatorsDto, SortOrdersDto } from '@meshmakers/octo-service
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: block;

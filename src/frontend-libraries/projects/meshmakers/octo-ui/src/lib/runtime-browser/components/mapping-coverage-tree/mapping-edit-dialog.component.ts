@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { WindowRef } from '@progress/kendo-angular-dialog';
@@ -236,6 +236,7 @@ export type MappingEditDialogResult =
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .mapping-edit {
       display: flex;

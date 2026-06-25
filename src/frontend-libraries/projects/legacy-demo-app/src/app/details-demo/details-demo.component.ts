@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AbstractDetailsComponent, CommonValidators } from '@meshmakers/shared-ui-legacy';
 
@@ -17,6 +17,7 @@ interface UserProfile {
   selector: 'app-details-demo',
   standalone: false,
   templateUrl: './details-demo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./details-demo.component.scss']
 })
 export class DetailsDemoComponent extends AbstractDetailsComponent<UserProfile> {

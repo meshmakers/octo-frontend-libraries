@@ -1,4 +1,4 @@
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { trashIcon, pencilIcon, plusIcon, eyeIcon } from '@progress/kendo-svg-icons';
 import { ConfirmationService, InputService, ListViewComponent } from '@meshmakers/shared-ui';
@@ -26,6 +26,7 @@ import { SymbolLibraryDataSourceDirective } from '../data-sources/symbol-library
     ListViewComponent
   ],
   templateUrl: './symbol-library-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './symbol-library-list.component.scss'
 })
 export class SymbolLibraryListComponent {

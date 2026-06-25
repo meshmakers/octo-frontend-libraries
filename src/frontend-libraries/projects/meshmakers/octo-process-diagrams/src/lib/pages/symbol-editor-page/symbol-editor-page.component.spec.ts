@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { WritableSignal } from '@angular/core';
+import { WritableSignal, ChangeDetectionStrategy } from '@angular/core';
 import { SymbolEditorPageComponent } from './symbol-editor-page.component';
 import { SymbolLibraryService } from '../../services/symbol-library.service';
 import { BreadCrumbService } from '@meshmakers/shared-services';
@@ -24,6 +24,7 @@ interface SymbolEditorPageTestAccess {
 @Component({
   selector: 'mm-symbol-editor',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: '<div>Mock Symbol Editor</div>'
 })
 class MockSymbolEditorComponent {

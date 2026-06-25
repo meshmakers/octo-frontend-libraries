@@ -6,6 +6,7 @@ import {
   input,
   output,
   signal,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
@@ -89,7 +90,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
           <mm-attributes-group
             [ckId]="updateInput().rtCkTypeId"
             [parentFormGroup]="form()!"
-            [initialValues]="entityData()?.initial"
+            [initialValues]="$safeNavigationMigration(entityData()?.initial)"
             [isRecord]="false"
             [messages]="resolvedMessages()"
           />
@@ -118,6 +119,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ["../shared-editor/shared-editor.scss"],
 })
 /**

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KENDO_LABELS } from '@progress/kendo-angular-label';
 import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
@@ -34,6 +34,7 @@ export interface EntitySelectorClearEvent {
     EntitySelectInputComponent
   ],
   templateUrl: './entity-selector-toolbar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './entity-selector-toolbar.component.scss'
 })
 export class EntitySelectorToolbarComponent implements OnChanges {

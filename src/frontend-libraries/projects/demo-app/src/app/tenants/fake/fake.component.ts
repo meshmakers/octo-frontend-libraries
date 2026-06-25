@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
 import {filter} from 'rxjs/operators';
 import {BreadCrumbService} from '@meshmakers/shared-services';
@@ -7,6 +7,7 @@ import {BreadCrumbService} from '@meshmakers/shared-services';
   selector: 'app-fake',
   imports: [],
   templateUrl: './fake.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './fake.component.scss'
 })
 export class FakeComponent implements OnInit {

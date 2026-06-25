@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WindowRef, WindowModule } from '@progress/kendo-angular-dialog';
@@ -140,6 +140,7 @@ export interface CkTypeSelectorDialogResult {
       </div>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       display: flex;
