@@ -51,6 +51,11 @@ interface ValueAxisConfig {
           <span>{{ error() }}</span>
         </div>
       } @else {
+        @if (dataInfo(); as info) {
+          <span class="data-count" [title]="'Loaded rows · distinct category points (totalCount ' + info.total + ')'">
+            {{ info.rows }} rows · {{ info.points }} pts
+          </span>
+        }
         <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: { top: 0, right: 0, bottom: 0, left: 0 } }">
           <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
 
@@ -133,6 +138,7 @@ interface ValueAxisConfig {
     }
 
     .line-chart-widget {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -141,6 +147,20 @@ interface ValueAxisConfig {
       padding: 8px;
       box-sizing: border-box;
       overflow: hidden;
+    }
+
+    .data-count {
+      position: absolute;
+      top: 2px;
+      right: 6px;
+      z-index: 2;
+      font-size: 0.7rem;
+      line-height: 1;
+      opacity: 0.55;
+      color: var(--kendo-color-subtle, #6c757d);
+      pointer-events: none;
+      user-select: none;
+      font-variant-numeric: tabular-nums;
     }
 
     .line-chart-widget.loading,
@@ -203,12 +223,17 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   private readonly _valueAxes = signal<ValueAxisConfig[]>([]);
   private readonly _error = signal<string | null>(null);
   private readonly _seriesUnitMap = signal<Map<string, string>>(new Map());
+  // Debug aid: how many rows came back vs. how many distinct category points
+  // actually plotted. A large `rows` with tiny `points` flags a data collapse
+  // (e.g. all rows sharing one category/timestamp).
+  private readonly _dataInfo = signal<{ rows: number; points: number; total: number } | null>(null);
 
   readonly isLoading = this._isLoading.asReadonly();
   readonly categories = this._categories.asReadonly();
   readonly seriesData = this._seriesData.asReadonly();
   readonly valueAxes = this._valueAxes.asReadonly();
   readonly error = this._error.asReadonly();
+  readonly dataInfo = this._dataInfo.asReadonly();
 
   readonly data = computed(() => this._seriesData());
 
@@ -339,11 +364,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       );
 
       this.processData(filteredRows);
+      this._dataInfo.set({ rows: filteredRows.length, points: this._categories().length, total: result.totalCount });
       this._isLoading.set(false);
 
     } catch (err) {
       console.error('Error loading Line Chart data:', err);
       this._error.set('Failed to load data');
+      this._dataInfo.set(null);
       this._isLoading.set(false);
     }
   }
