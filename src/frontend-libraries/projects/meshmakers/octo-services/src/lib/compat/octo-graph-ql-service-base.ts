@@ -15,6 +15,24 @@ import { Observable } from 'rxjs';
 import { type DeepPartial } from '@apollo/client/utilities';
 import QueryResult = Apollo.QueryResult;
 
+/**
+ * Cache-key function for the tenant Apollo {@link InMemoryCache}.
+ *
+ * Most Octo objects are normalized by their `rtId` (the runtime entity id,
+ * unique per row in runtime queries). Stream-data rows are the exception: a
+ * `StreamDataQueryRow` carries the *source entity's* rtId, which repeats across
+ * every timestamped sample of that entity. Normalizing those by rtId would
+ * collapse a whole series into one cached object (last-write-wins) — a line
+ * chart then renders a single point per series. So they are left un-normalized
+ * (embedded in their connection) by returning `undefined`.
+ */
+export function octoDataIdFromObject(o: Readonly<Record<string, unknown>>): string | undefined {
+  if (o['__typename'] === 'StreamDataQueryRow') {
+    return undefined;
+  }
+  return o['rtId'] as string | undefined;
+}
+
 export class OctoGraphQLServiceBase {
   constructor(
     private readonly apollo: Apollo,
@@ -204,7 +222,7 @@ export class OctoGraphQLServiceBase {
     this.apollo.createNamed(tenantId, {
       link: this.httpLink.create({ uri }),
       cache: new InMemoryCache({
-        dataIdFromObject: (o) => (o['rtId'] as string)
+        dataIdFromObject: octoDataIdFromObject
       })
     });
   }
