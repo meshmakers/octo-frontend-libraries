@@ -39,6 +39,13 @@ export class MeshBoardStateService {
   private readonly _isLoading = signal(false);
   private readonly _isModelAvailable = signal<boolean | null>(null);
   private readonly _variableResolutionErrors = signal<VariableResolutionError[]>([]);
+  /**
+   * Transient cache of the source rtIds resolved from each entity selector's
+   * current selection (keyed by selector id). Populated by the view component
+   * when a selection resolves (one-hop childScope traversal, or the picked
+   * entity's own rtId). Not persisted — derived fresh from each selection.
+   */
+  private readonly _entitySelectorRtIds = signal<Record<string, string[]>>({});
 
   // Public computed signals
   readonly meshBoardConfig = computed(() => this._meshBoardConfig());
@@ -617,6 +624,45 @@ export class MeshBoardStateService {
       return undefined;
     }
     return { from: range.from, to: range.to };
+  }
+
+  /**
+   * Stores the source rtIds resolved from an entity selector's current
+   * selection. Called by the view component after a selection resolves (the
+   * one-hop childScope traversal, or the picked entity's own rtId when the
+   * selector has no childScope). Transient — not persisted.
+   */
+  setEntitySelectorRtIds(selectorId: string, rtIds: string[]): void {
+    this._entitySelectorRtIds.update(map => ({ ...map, [selectorId]: rtIds }));
+  }
+
+  /**
+   * Clears the cached source rtIds for an entity selector (e.g. when its
+   * selection is cleared).
+   */
+  clearEntitySelectorRtIds(selectorId: string): void {
+    this._entitySelectorRtIds.update(map => {
+      if (!(selectorId in map)) {
+        return map;
+      }
+      const next = { ...map };
+      delete next[selectorId];
+      return next;
+    });
+  }
+
+  /**
+   * Resolves the stream-data `rtIds` scope for a persistent-query widget bound
+   * to an entity selector. Returns the source rtIds cached from the selector's
+   * current selection, or `undefined` when the selector id is absent, unknown,
+   * or has no active selection (so the query keeps its persisted scope).
+   */
+  resolveStreamDataRtIds(entitySelectorId?: string): string[] | undefined {
+    if (!entitySelectorId) {
+      return undefined;
+    }
+    const rtIds = this._entitySelectorRtIds()[entitySelectorId];
+    return rtIds && rtIds.length > 0 ? rtIds : undefined;
   }
 
   /**

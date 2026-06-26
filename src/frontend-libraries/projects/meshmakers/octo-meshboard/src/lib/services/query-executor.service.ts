@@ -37,6 +37,13 @@ export interface StreamDataExecutionArgs {
    * schema marks `queryMode` non-null. Defaults to `Default`.
    */
   queryMode?: QueryModeDto;
+  /**
+   * Source runtime ids to scope the query to. When set, replaces the persisted
+   * RtIds on the query at execution time — used to scope a stream-data widget to
+   * the entities resolved from a selected asset (e.g. the EnergyMeasurement rtIds
+   * under a picked MeteringPoint). An empty array is treated as "no scope".
+   */
+  rtIds?: string[] | null;
 }
 
 export interface QueryExecutionOptions {
@@ -237,7 +244,8 @@ export class QueryExecutorService {
     // Skip the entire `arg` field when the caller has nothing to override —
     // the persisted query then runs with its intrinsic from/to/limit and the
     // GraphQL request stays minimal.
-    const hasOverride = args.from != null || args.to != null || args.interval != null || args.limit != null || args.queryMode != null;
+    const hasRtIds = args.rtIds != null && args.rtIds.length > 0;
+    const hasOverride = args.from != null || args.to != null || args.interval != null || args.limit != null || args.queryMode != null || hasRtIds;
     if (!hasOverride) {
       return undefined;
     }
@@ -249,6 +257,7 @@ export class QueryExecutorService {
       to: args.to ?? undefined,
       interval: args.interval ?? undefined,
       limit: args.limit ?? undefined,
+      rtIds: hasRtIds ? args.rtIds : undefined,
       queryMode: args.queryMode ?? QueryModeDto.DefaultDto
     };
   }

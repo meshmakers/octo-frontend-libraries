@@ -27,11 +27,12 @@ import {
   GetCkTypeAvailableQueryColumnsDtoGQL
 } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
-import { TableColumn } from '../../models/meshboard.models';
+import { TableColumn, EntitySelectorConfig } from '../../models/meshboard.models';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
@@ -57,6 +58,8 @@ export interface TableConfigResult {
   queryFamily?: QueryFamily;
   /** Stream-data opt-out: keep the query's own time bounds, ignore the MeshBoard time filter. */
   ignoreTimeFilter?: boolean;
+  /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
+  entitySelectorId?: string;
   // Common:
   pageSize: number;
   sortable: boolean;
@@ -81,6 +84,7 @@ export interface TableConfigResult {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    EntitySelectorScopePickerComponent,
     LoadingOverlayComponent
   ],
   providers: [
@@ -208,6 +212,12 @@ export interface TableConfigResult {
             [family]="selectedQueryFamily"
             [(ignoreTimeFilter)]="ignoreTimeFilter">
           </mm-sd-time-filter-toggle>
+
+          <mm-entity-selector-scope-picker
+            [family]="selectedQueryFamily"
+            [selectors]="availableEntitySelectors"
+            [(entitySelectorId)]="entitySelectorId">
+          </mm-entity-selector-scope-picker>
 
           @if (selectedPersistentQuery) {
             <div class="config-card">
@@ -472,6 +482,7 @@ export class TableConfigDialogComponent implements OnInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialEntitySelectorId?: string;
 
   protected readonly columnsIcon = columnsIcon;
   protected readonly sortIcon = sortAscIcon;
@@ -497,9 +508,15 @@ export class TableConfigDialogComponent implements OnInit {
   // Query configuration
   selectedPersistentQuery: PersistentQueryItem | null = null;
   ignoreTimeFilter = false;
+  entitySelectorId?: string;
 
   // Variables for filter editor
   filterVariables: FilterVariable[] = [];
+
+  /** Entity selectors available on the current MeshBoard (for the scope picker). */
+  get availableEntitySelectors(): EntitySelectorConfig[] {
+    return this.stateService.getEntitySelectors();
+  }
 
   form = {
     pageSize: 10,
@@ -534,6 +551,7 @@ export class TableConfigDialogComponent implements OnInit {
     this.form.pageSize = this.initialPageSize ?? 10;
     this.form.sortable = this.initialSortable ?? true;
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.entitySelectorId = this.initialEntitySelectorId;
 
     // Convert initial sorting from string-based format to SortDto
     if (this.initialSorting) {
@@ -753,6 +771,7 @@ export class TableConfigDialogComponent implements OnInit {
         queryName: this.selectedPersistentQuery.name,
         queryFamily: family,
         ignoreTimeFilter: this.ignoreTimeFilter,
+        entitySelectorId: this.entitySelectorId,
         pageSize: this.form.pageSize,
         sortable: this.form.sortable
       });

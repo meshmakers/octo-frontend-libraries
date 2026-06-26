@@ -27895,6 +27895,7 @@ export type StreamDataArgumentsDto = {
   interval?: InputMaybe<Scalars['Seconds']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   queryMode: QueryModeDto;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
   to?: InputMaybe<Scalars['DateTime']['input']>;
 };
 

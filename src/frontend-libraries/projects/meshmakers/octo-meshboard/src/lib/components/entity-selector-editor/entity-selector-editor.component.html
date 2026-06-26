@@ -175,6 +175,31 @@
         </span>
       </div>
 
+      <div class="form-field">
+        <label class="field-label">Child Scope (stream-data)</label>
+        <span class="field-hint">
+          Optional. Resolves the picked entity to its child source rtIds (one
+          association hop) so a stream-data widget can scope to them — e.g. a
+          MeteringPoint resolved to its EnergyMeasurement rtIds. Leave empty to
+          scope by the picked entity's own rtId.
+        </span>
+        <mm-ck-type-selector-input
+          [ngModel]="editChildScopeTargetCkTypeItem"
+          [placeholder]="'Child CK type (e.g. EnergyMeasurement)...'"
+          (ckTypeSelected)="onChildScopeCkTypeSelected($event)"
+          (ckTypeCleared)="onChildScopeCkTypeCleared()">
+        </mm-ck-type-selector-input>
+        <kendo-textbox
+          [(ngModel)]="editChildScopeRoleId"
+          placeholder="Association role (e.g. System/ParentChild)">
+        </kendo-textbox>
+        <label class="field-label">Direction</label>
+        <select [(ngModel)]="editChildScopeDirection" class="child-scope-direction">
+          <option value="out">Outbound (parent → child)</option>
+          <option value="in">Inbound (child → parent)</option>
+        </select>
+      </div>
+
       <div class="edit-actions mm-dialog-actions">
         <button kendoButton (click)="cancelEdit()" fillMode="flat">
           Cancel

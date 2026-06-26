@@ -624,6 +624,40 @@ describe('MeshBoardStateService', () => {
       });
     });
 
+    describe('resolveStreamDataRtIds / setEntitySelectorRtIds / clearEntitySelectorRtIds', () => {
+      it('should return undefined when no selector id is given', () => {
+        expect(service.resolveStreamDataRtIds()).toBeUndefined();
+        expect(service.resolveStreamDataRtIds(undefined)).toBeUndefined();
+      });
+
+      it('should return undefined for an unknown selector', () => {
+        expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
+      });
+
+      it('should return the cached rtIds once set for the selector', () => {
+        service.setEntitySelectorRtIds('mp', ['rt-1', 'rt-2']);
+        expect(service.resolveStreamDataRtIds('mp')).toEqual(['rt-1', 'rt-2']);
+      });
+
+      it('should treat an empty rtId set as no scope', () => {
+        service.setEntitySelectorRtIds('mp', []);
+        expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
+      });
+
+      it('should isolate rtIds per selector', () => {
+        service.setEntitySelectorRtIds('mp', ['rt-1']);
+        service.setEntitySelectorRtIds('plant', ['rt-9']);
+        expect(service.resolveStreamDataRtIds('mp')).toEqual(['rt-1']);
+        expect(service.resolveStreamDataRtIds('plant')).toEqual(['rt-9']);
+      });
+
+      it('should clear the cached rtIds for a selector', () => {
+        service.setEntitySelectorRtIds('mp', ['rt-1', 'rt-2']);
+        service.clearEntitySelectorRtIds('mp');
+        expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
+      });
+    });
+
     describe('setTimeFilterVariables', () => {
       it('should create time filter variables', () => {
         service.setTimeFilterVariables('2024-01-01T00:00:00Z', '2024-12-31T23:59:59Z');

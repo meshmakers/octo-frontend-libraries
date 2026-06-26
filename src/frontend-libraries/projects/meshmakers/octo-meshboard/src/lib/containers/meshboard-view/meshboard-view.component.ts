@@ -1262,6 +1262,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     // Clear variables for this selector
     this.stateService.clearEntitySelectorVariables(selectorId);
 
+    // Clear the resolved stream-data scope rtIds for this selector
+    this.stateService.clearEntitySelectorRtIds(selectorId);
+
     // Sync to URL
     this.writeEntitySelectorsToUrl();
 
@@ -1334,10 +1337,54 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
       this.stateService.setEntitySelectorVariables(selector.id, values);
 
+      // Resolve the stream-data scope rtIds for this selection (one-hop
+      // childScope traversal, or the picked entity itself). Runs alongside the
+      // variable resolution so widgets bound to this selector can scope their
+      // stream-data query by the resolved source rtIds.
+      await this.resolveEntitySelectorScopeRtIds(selector, rtId);
+
       return entity.rtWellKnownName || entity.rtId;
     } catch (error) {
       console.error(`Error resolving entity selector '${selector.id}':`, error);
       return undefined;
+    }
+  }
+
+  /**
+   * Resolves the set of source rtIds that a stream-data widget bound to this
+   * selector should be scoped to, and caches them on the state service.
+   *
+   * When the selector defines a {@link EntitySelectorChildScope}, the picked
+   * entity's children of `targetCkTypeId` reached via `roleId`/`direction`
+   * become the scope (e.g. MeteringPoint → its EnergyMeasurement rtIds). With
+   * no childScope, the picked entity's own rtId is the scope (direct keying).
+   */
+  private async resolveEntitySelectorScopeRtIds(selector: EntitySelectorConfig, rtId: string): Promise<void> {
+    const childScope = selector.childScope;
+    if (!childScope?.targetCkTypeId || !childScope.roleId) {
+      this.stateService.setEntitySelectorRtIds(selector.id, [rtId]);
+      return;
+    }
+
+    try {
+      const targets = await firstValueFrom(
+        this.dataService.fetchAssociationTargets(
+          rtId,
+          selector.ckTypeId,
+          childScope.targetCkTypeId,
+          childScope.roleId,
+          childScope.direction ?? 'out'
+        )
+      );
+      const childRtIds = (targets ?? [])
+        .map(t => String(t.rtId))
+        .filter(id => id.length > 0);
+      this.stateService.setEntitySelectorRtIds(selector.id, childRtIds);
+    } catch (error) {
+      console.error(`Error resolving child scope for selector '${selector.id}':`, error);
+      // Empty scope is safer than a stale one: the bound widget falls back to
+      // its persisted scope rather than querying the wrong asset.
+      this.stateService.setEntitySelectorRtIds(selector.id, []);
     }
   }
 

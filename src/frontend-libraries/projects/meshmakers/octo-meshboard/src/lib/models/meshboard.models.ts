@@ -71,6 +71,16 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
    * Ignored for runtime queries (they don't consume `streamDataArgs`).
    */
   ignoreTimeFilter?: boolean;
+  /**
+   * Asset-scope binding: the `id` of an entity selector whose selection scopes
+   * this widget's stream-data query. The selector resolves its picked entity to
+   * a set of source rtIds (via its `childScope` one-hop, or the picked entity
+   * itself when no childScope is configured); those rtIds are passed as the
+   * query's `streamDataArgs.rtIds`, replacing the persisted RtIds at execution
+   * time. Absent ⇒ the query runs with its persisted scope. Ignored for runtime
+   * queries (the archive `rtIds` override is a stream-data concept).
+   */
+  entitySelectorId?: string;
 }
 
 /**
@@ -1067,6 +1077,30 @@ export interface EntitySelectorAttributeMapping {
 }
 
 /**
+ * One-hop association traversal that turns a selected entity into the set of
+ * source rtIds a stream-data widget should be scoped to.
+ *
+ * Use case: the user picks a `MeteringPoint`, but the stream-data archive is
+ * keyed by its child `EnergyMeasurement` rtIds. The childScope describes that
+ * single hop (target type + association role + direction); the selected
+ * entity's children of `targetCkTypeId` reached via `roleId` become the scope
+ * rtIds. When a selector has no childScope, the picked entity's own rtId is the
+ * scope (direct keying).
+ */
+export interface EntitySelectorChildScope {
+  /** CK type of the child entities that key the stream-data archive (e.g. EnergyMeasurement). */
+  targetCkTypeId: string;
+  /** Association role linking the selected entity to the children (e.g. "System/ParentChild"). */
+  roleId: string;
+  /**
+   * Traversal direction from the selected entity to the children. `'out'`
+   * (default) follows outbound associations (parent → child); `'in'` follows
+   * inbound.
+   */
+  direction?: 'in' | 'out';
+}
+
+/**
  * Configuration for a single entity selector in the MeshBoard toolbar.
  * Each selector is bound to a CK type and populates variables from the selected entity.
  */
@@ -1083,6 +1117,12 @@ export interface EntitySelectorConfig {
   showInToolbar?: boolean;
   /** Optional pre-selected entity rtId */
   defaultRtId?: string;
+  /**
+   * Optional one-hop traversal that resolves the picked entity to the child
+   * source rtIds a stream-data widget scopes by. Absent ⇒ the picked entity's
+   * own rtId is the scope. See {@link EntitySelectorChildScope}.
+   */
+  childScope?: EntitySelectorChildScope;
   /** Current selection (transient, not persisted) */
   selectedRtId?: string;
   /** Display name of the currently selected entity */

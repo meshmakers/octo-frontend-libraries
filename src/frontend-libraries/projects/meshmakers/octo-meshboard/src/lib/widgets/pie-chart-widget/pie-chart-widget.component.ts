@@ -344,7 +344,12 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
 
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    return this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
+    if (!timeArgs && !rtIds) {
+      return undefined;
+    }
+    return { ...timeArgs, rtIds };
   }
 
   /**

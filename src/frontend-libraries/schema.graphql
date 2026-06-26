@@ -56883,6 +56883,7 @@ input StreamDataArguments {
   interval: Seconds
   limit: Int
   queryMode: QueryMode!
+  rtIds: [OctoObjectId]
   to: DateTime
 }
 

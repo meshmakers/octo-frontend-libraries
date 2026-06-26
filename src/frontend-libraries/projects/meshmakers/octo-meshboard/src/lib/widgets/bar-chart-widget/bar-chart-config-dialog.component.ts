@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { BarChartType, BarChartSeries, BarChartColorThreshold, WidgetFilterConfig } from '../../models/meshboard.models';
+import { BarChartType, BarChartSeries, BarChartColorThreshold, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -19,6 +19,7 @@ import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 
 /**
  * Series configuration mode
@@ -33,6 +34,8 @@ export interface BarChartConfigResult extends WidgetConfigResult {
   queryName?: string;
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
+  /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
+  entitySelectorId?: string;
   chartType: BarChartType;
   categoryField: string;
   series: BarChartSeries[];
@@ -65,6 +68,7 @@ export interface BarChartConfigResult extends WidgetConfigResult {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    EntitySelectorScopePickerComponent,
     LoadingOverlayComponent
   ],
   template: `
@@ -92,6 +96,12 @@ export interface BarChartConfigResult extends WidgetConfigResult {
             [family]="selectedQueryFamily"
             [(ignoreTimeFilter)]="ignoreTimeFilter">
           </mm-sd-time-filter-toggle>
+
+          <mm-entity-selector-scope-picker
+            [family]="selectedQueryFamily"
+            [selectors]="availableEntitySelectors"
+            [(entitySelectorId)]="entitySelectorId">
+          </mm-entity-selector-scope-picker>
         </div>
 
         <!-- Field Mapping Section -->
@@ -482,6 +492,7 @@ export class BarChartConfigDialogComponent implements OnInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialEntitySelectorId?: string;
   @Input() initialChartType?: BarChartType;
   @Input() initialCategoryField?: string;
   @Input() initialSeries?: BarChartSeries[];
@@ -505,6 +516,14 @@ export class BarChartConfigDialogComponent implements OnInit {
 
   /** Per-widget opt-out of the MeshBoard time-filter → stream-data binding. */
   ignoreTimeFilter = false;
+
+  /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
+  entitySelectorId?: string;
+
+  /** Entity selectors available on the current MeshBoard (for the scope picker). */
+  get availableEntitySelectors(): EntitySelectorConfig[] {
+    return this.stateService.getEntitySelectors();
+  }
 
   /** Family of the currently selected query — gates the time-filter opt-out toggle. */
   get selectedQueryFamily(): QueryFamily | null {
@@ -571,6 +590,7 @@ export class BarChartConfigDialogComponent implements OnInit {
 
     // Initialize form with initial values
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.entitySelectorId = this.initialEntitySelectorId;
     this.form.chartType = this.initialChartType ?? 'column';
     this.form.categoryField = this.initialCategoryField ?? '';
     this.form.showLegend = this.initialShowLegend ?? true;
@@ -749,6 +769,7 @@ export class BarChartConfigDialogComponent implements OnInit {
       queryName: this.selectedPersistentQuery.name,
       queryFamily: family,
       ignoreTimeFilter: this.ignoreTimeFilter,
+      entitySelectorId: this.entitySelectorId,
       chartType: this.form.chartType,
       categoryField: this.form.categoryField,
       series,

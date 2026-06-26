@@ -127,6 +127,9 @@ function buildDataSourceFromPersisted(data: PersistedWidgetData, config: Record<
     if (typeof config['ignoreTimeFilter'] === 'boolean') {
       persisted.ignoreTimeFilter = config['ignoreTimeFilter'];
     }
+    if (typeof config['entitySelectorId'] === 'string' && config['entitySelectorId']) {
+      persisted.entitySelectorId = config['entitySelectorId'];
+    }
     return persisted;
   }
 
@@ -260,6 +263,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialEntitySelectorId: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialQueryMode: kpiWidget.queryMode,
         initialQueryValueField: kpiWidget.queryValueField,
         initialQueryCategoryField: kpiWidget.queryCategoryField,
@@ -306,7 +310,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryRtId: result.queryRtId,
           queryName: result.queryName,
           queryFamily: result.queryFamily,
-          ignoreTimeFilter: result.ignoreTimeFilter
+          ignoreTimeFilter: result.ignoreTimeFilter,
+          entitySelectorId: result.entitySelectorId
         };
 
         return {
@@ -385,6 +390,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
             }),
             ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
               ignoreTimeFilter: true
+            }),
+            ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
+              entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
             })
           })
         }
@@ -562,7 +570,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryRtId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
-        initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined
+        initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined
       };
     },
     applyConfigResult: (widget, result) => {
@@ -573,7 +582,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryRtId: result.queryRtId,
           queryName: result.queryName,
           queryFamily: result.queryFamily,
-          ignoreTimeFilter: result.ignoreTimeFilter
+          ignoreTimeFilter: result.ignoreTimeFilter,
+          entitySelectorId: result.entitySelectorId
         };
 
         // Convert filters from DTO to widget format
@@ -649,7 +659,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
             queryName: queryDataSource.queryName,
             queryRtId: queryDataSource.queryRtId,
             ...(queryDataSource.queryFamily && { queryFamily: queryDataSource.queryFamily }),
-            ...(queryDataSource.ignoreTimeFilter && { ignoreTimeFilter: true })
+            ...(queryDataSource.ignoreTimeFilter && { ignoreTimeFilter: true }),
+            ...(queryDataSource.entitySelectorId && { entitySelectorId: queryDataSource.entitySelectorId })
           })
         }
       };
@@ -700,6 +711,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialEntitySelectorId: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialQueryMode: gaugeWidget.queryMode,
         initialQueryValueField: gaugeWidget.queryValueField,
         initialQueryCategoryField: gaugeWidget.queryCategoryField,
@@ -732,7 +744,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryRtId: result.queryRtId,
           queryName: result.queryName,
           queryFamily: result.queryFamily,
-          ignoreTimeFilter: result.ignoreTimeFilter
+          ignoreTimeFilter: result.ignoreTimeFilter,
+          entitySelectorId: result.entitySelectorId
         };
 
         return {
@@ -822,6 +835,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
             }),
             ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
               ignoreTimeFilter: true
+            }),
+            ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
+              entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
             })
           })
         }
@@ -898,6 +914,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialCkQueryTarget: isCkQuery ? (dataSource as ConstructionKitQueryDataSource).queryTarget : undefined,
         initialCkGroupBy: isCkQuery ? (dataSource as ConstructionKitQueryDataSource).groupBy : undefined,
         initialChartType: pieWidget.chartType,
@@ -933,7 +950,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryRtId: result.queryRtId ?? '',
           queryName: result.queryName,
           queryFamily: result.queryFamily,
-          ignoreTimeFilter: result.ignoreTimeFilter
+          ignoreTimeFilter: result.ignoreTimeFilter,
+          entitySelectorId: result.entitySelectorId
         } as PersistentQueryDataSource;
       }
 
@@ -1006,6 +1024,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           ...((dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
             ignoreTimeFilter: true
           }),
+          ...((dataSource as PersistentQueryDataSource).entitySelectorId && {
+            entitySelectorId: (dataSource as PersistentQueryDataSource).entitySelectorId
+          }),
           filters: widget.filters
         }
       };
@@ -1075,6 +1096,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialChartType: barWidget.chartType,
         initialCategoryField: barWidget.categoryField,
         initialSeries: barWidget.series,
@@ -1094,7 +1116,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         queryRtId: result.queryRtId,
         queryName: result.queryName,
         queryFamily: result.queryFamily,
-        ignoreTimeFilter: result.ignoreTimeFilter
+        ignoreTimeFilter: result.ignoreTimeFilter,
+        entitySelectorId: result.entitySelectorId
       };
 
       // Convert filters from DTO to widget format
@@ -1160,6 +1183,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
           ignoreTimeFilter: true
         }),
+        ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
+          entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
+        }),
         filters: widget.filters
       }
     }),
@@ -1210,6 +1236,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialChartType: lineWidget.chartType,
         initialCategoryField: lineWidget.categoryField,
         initialSeriesGroupField: lineWidget.seriesGroupField,
@@ -1228,7 +1255,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         queryRtId: result.queryRtId,
         queryName: result.queryName,
         queryFamily: result.queryFamily,
-        ignoreTimeFilter: result.ignoreTimeFilter
+        ignoreTimeFilter: result.ignoreTimeFilter,
+        entitySelectorId: result.entitySelectorId
       };
 
       const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
@@ -1288,6 +1316,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         }),
         ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
           ignoreTimeFilter: true
+        }),
+        ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
+          entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
         }),
         filters: widget.filters
       }
@@ -1793,6 +1824,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialDateField: heatmapWidget.dateField,
         initialDateEndField: heatmapWidget.dateEndField,
         initialValueField: heatmapWidget.valueField,
@@ -1812,7 +1844,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         queryRtId: result.queryRtId,
         queryName: result.queryName,
         queryFamily: result.queryFamily,
-        ignoreTimeFilter: result.ignoreTimeFilter
+        ignoreTimeFilter: result.ignoreTimeFilter,
+        entitySelectorId: result.entitySelectorId
       };
 
       const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
@@ -1874,6 +1907,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         }),
         ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
           ignoreTimeFilter: true
+        }),
+        ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
+          entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
         }),
         filters: widget.filters
       }

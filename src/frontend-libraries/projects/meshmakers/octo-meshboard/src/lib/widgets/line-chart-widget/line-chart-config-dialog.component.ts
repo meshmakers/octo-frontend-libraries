@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { LineChartType, WidgetFilterConfig, ChartReferenceLine } from '../../models/meshboard.models';
+import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -19,6 +19,7 @@ import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 
 /**
  * Configuration result from the Line Chart dialog
@@ -28,6 +29,8 @@ export interface LineChartConfigResult extends WidgetConfigResult {
   queryName?: string;
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
+  /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
+  entitySelectorId?: string;
   chartType: LineChartType;
   categoryField: string;
   seriesGroupField: string;
@@ -57,6 +60,7 @@ export interface LineChartConfigResult extends WidgetConfigResult {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    EntitySelectorScopePickerComponent,
     LoadingOverlayComponent
   ],
   template: `
@@ -84,6 +88,12 @@ export interface LineChartConfigResult extends WidgetConfigResult {
             [family]="selectedQueryFamily"
             [(ignoreTimeFilter)]="ignoreTimeFilter">
           </mm-sd-time-filter-toggle>
+
+          <mm-entity-selector-scope-picker
+            [family]="selectedQueryFamily"
+            [selectors]="availableEntitySelectors"
+            [(entitySelectorId)]="entitySelectorId">
+          </mm-entity-selector-scope-picker>
         </div>
 
         <!-- Field Mapping Section -->
@@ -415,6 +425,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialEntitySelectorId?: string;
   @Input() initialChartType?: LineChartType;
   @Input() initialCategoryField?: string;
   @Input() initialSeriesGroupField?: string;
@@ -438,6 +449,14 @@ export class LineChartConfigDialogComponent implements OnInit {
 
   /** Per-widget opt-out of the MeshBoard time-filter → stream-data binding. */
   ignoreTimeFilter = false;
+
+  /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
+  entitySelectorId?: string;
+
+  /** Entity selectors available on the current MeshBoard (for the scope picker). */
+  get availableEntitySelectors(): EntitySelectorConfig[] {
+    return this.stateService.getEntitySelectors();
+  }
 
   /** Family of the currently selected query — gates the time-filter opt-out toggle. */
   get selectedQueryFamily(): QueryFamily | null {
@@ -486,6 +505,7 @@ export class LineChartConfigDialogComponent implements OnInit {
 
     // Initialize form with initial values
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.entitySelectorId = this.initialEntitySelectorId;
     this.form.chartType = this.initialChartType ?? 'line';
     this.form.categoryField = this.initialCategoryField ?? '';
     this.form.seriesGroupField = this.initialSeriesGroupField ?? '';
@@ -618,6 +638,7 @@ export class LineChartConfigDialogComponent implements OnInit {
       queryName: this.selectedPersistentQuery.name,
       queryFamily: family,
       ignoreTimeFilter: this.ignoreTimeFilter,
+      entitySelectorId: this.entitySelectorId,
       chartType: this.form.chartType,
       categoryField: this.form.categoryField,
       seriesGroupField: this.form.seriesGroupField,

@@ -12,7 +12,7 @@ import {
   AttributeSelectorDialogService
 } from '@meshmakers/octo-ui';
 import { CkTypeSelectorItem, type AttributeItem } from '@meshmakers/octo-services';
-import { EntitySelectorConfig, EntitySelectorAttributeMapping } from '../../models/meshboard.models';
+import { EntitySelectorConfig, EntitySelectorAttributeMapping, EntitySelectorChildScope } from '../../models/meshboard.models';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource, RuntimeEntityItem } from '../../utils/runtime-entity-data-sources';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
@@ -67,6 +67,13 @@ export class EntitySelectorEditorComponent {
   protected editShowInToolbar = true;
   protected editDefaultRtId = '';
 
+  // Child scope (stream-data): optional one-hop traversal resolving the picked
+  // entity to the child source rtIds a stream-data widget scopes by.
+  protected editChildScopeTargetCkTypeId = '';
+  protected editChildScopeTargetCkTypeItem: CkTypeSelectorItem | null = null;
+  protected editChildScopeRoleId = '';
+  protected editChildScopeDirection: 'in' | 'out' = 'out';
+
   // Data sources for the default entity picker (created when CK type is set)
   protected defaultEntityDataSource: RuntimeEntitySelectDataSource | null = null;
   protected defaultEntityDialogDataSource: RuntimeEntityDialogDataSource | null = null;
@@ -83,6 +90,10 @@ export class EntitySelectorEditorComponent {
     this.editMappings = [];
     this.editShowInToolbar = true;
     this.editDefaultRtId = '';
+    this.editChildScopeTargetCkTypeId = '';
+    this.editChildScopeTargetCkTypeItem = null;
+    this.editChildScopeRoleId = '';
+    this.editChildScopeDirection = 'out';
     this.defaultEntityDataSource = null;
     this.defaultEntityDialogDataSource = null;
     this.isEditing = true;
@@ -108,6 +119,17 @@ export class EntitySelectorEditorComponent {
     this.editMappings = [...selector.attributeMappings];
     this.editShowInToolbar = selector.showInToolbar !== false;
     this.editDefaultRtId = selector.defaultRtId ?? '';
+    this.editChildScopeTargetCkTypeId = selector.childScope?.targetCkTypeId ?? '';
+    this.editChildScopeTargetCkTypeItem = selector.childScope?.targetCkTypeId
+      ? {
+          fullName: selector.childScope.targetCkTypeId,
+          rtCkTypeId: selector.childScope.targetCkTypeId,
+          isAbstract: false,
+          isFinal: false
+        }
+      : null;
+    this.editChildScopeRoleId = selector.childScope?.roleId ?? '';
+    this.editChildScopeDirection = selector.childScope?.direction ?? 'out';
     this.updateDefaultEntityDataSources();
     this.isEditing = true;
     this.editingStateChange.emit(true);
@@ -171,6 +193,22 @@ export class EntitySelectorEditorComponent {
   }
 
   /**
+   * Handles child-scope target CK type selection.
+   */
+  onChildScopeCkTypeSelected(ckType: CkTypeSelectorItem): void {
+    this.editChildScopeTargetCkTypeId = ckType.rtCkTypeId;
+    this.editChildScopeTargetCkTypeItem = ckType;
+  }
+
+  /**
+   * Handles child-scope target CK type cleared.
+   */
+  onChildScopeCkTypeCleared(): void {
+    this.editChildScopeTargetCkTypeId = '';
+    this.editChildScopeTargetCkTypeItem = null;
+  }
+
+  /**
    * Handles default entity selection from the entity picker.
    */
   onDefaultEntitySelected(entity: RuntimeEntityItem): void {
@@ -190,13 +228,25 @@ export class EntitySelectorEditorComponent {
   saveEdit(): void {
     if (!this.isEditValid()) return;
 
+    // Only persist a childScope when both the target type and role are set;
+    // otherwise leave it undefined (the picked entity itself is the scope).
+    const childScope: EntitySelectorChildScope | undefined =
+      this.editChildScopeTargetCkTypeId && this.editChildScopeRoleId.trim()
+        ? {
+            targetCkTypeId: this.editChildScopeTargetCkTypeId,
+            roleId: this.editChildScopeRoleId.trim(),
+            direction: this.editChildScopeDirection
+          }
+        : undefined;
+
     const selector: EntitySelectorConfig = {
       id: this.editId,
       label: this.editLabel.trim(),
       ckTypeId: this.editCkTypeId,
       attributeMappings: this.editMappings,
       showInToolbar: this.editShowInToolbar,
-      defaultRtId: this.editDefaultRtId.trim() || undefined
+      defaultRtId: this.editDefaultRtId.trim() || undefined,
+      childScope
     };
 
     if (this.editingIndex !== null) {

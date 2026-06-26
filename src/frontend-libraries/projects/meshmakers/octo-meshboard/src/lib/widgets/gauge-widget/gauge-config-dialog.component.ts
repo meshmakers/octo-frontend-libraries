@@ -13,13 +13,14 @@ import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { firstValueFrom } from 'rxjs';
-import { GaugeType, GaugeRange, KpiQueryMode, WidgetFilterConfig } from '../../models/meshboard.models';
+import { GaugeType, GaugeRange, KpiQueryMode, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { RuntimeEntityItem, PersistentQueryItem, QueryColumnItem, CategoryValueItem, RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
@@ -42,6 +43,8 @@ export interface GaugeConfigResult extends WidgetConfigResult {
   queryName?: string;
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
+  /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
+  entitySelectorId?: string;
   queryMode?: KpiQueryMode;
   queryValueField?: string;
   queryCategoryField?: string;
@@ -83,6 +86,7 @@ interface GaugeTypeOption {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    EntitySelectorScopePickerComponent,
     LoadingOverlayComponent
   ],
   template: `
@@ -204,6 +208,12 @@ interface GaugeTypeOption {
             [family]="selectedQueryFamily"
             [(ignoreTimeFilter)]="ignoreTimeFilter">
           </mm-sd-time-filter-toggle>
+
+          <mm-entity-selector-scope-picker
+            [family]="selectedQueryFamily"
+            [selectors]="availableEntitySelectors"
+            [(entitySelectorId)]="entitySelectorId">
+          </mm-entity-selector-scope-picker>
 
           <!-- Query Mode Selection -->
           <div class="form-field">
@@ -712,6 +722,7 @@ export class GaugeConfigDialogComponent implements OnInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialEntitySelectorId?: string;
   @Input() initialQueryMode?: KpiQueryMode;
   @Input() initialQueryValueField?: string;
   @Input() initialQueryCategoryField?: string;
@@ -734,6 +745,7 @@ export class GaugeConfigDialogComponent implements OnInit {
   selectedPersistentQuery: PersistentQueryItem | null = null;
   /** Stream-data opt-out: when true the MeshBoard time filter is not bound to the query. */
   ignoreTimeFilter = false;
+  entitySelectorId?: string;
   queryColumns: QueryColumnItem[] = [];
   categoryValues: CategoryValueItem[] = [];
   queryMode: KpiQueryMode = 'simpleCount';
@@ -741,6 +753,11 @@ export class GaugeConfigDialogComponent implements OnInit {
   /** Family of the currently selected query; drives the time-filter toggle's visibility. */
   get selectedQueryFamily(): QueryFamily | null {
     return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily ?? null;
+  }
+
+  /** Entity selectors available on the current MeshBoard (for the scope picker). */
+  get availableEntitySelectors(): EntitySelectorConfig[] {
+    return this.meshBoardStateService.getEntitySelectors();
   }
   isLoadingQueryColumns = false;
   isLoadingCategoryValues = false;
@@ -856,6 +873,7 @@ export class GaugeConfigDialogComponent implements OnInit {
     this.dataSourceType = this.initialDataSourceType || 'runtimeEntity';
     this.queryMode = this.initialQueryMode || 'simpleCount';
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.entitySelectorId = this.initialEntitySelectorId;
 
     if (this.dataSourceType === 'persistentQuery' && this.initialQueryRtId) {
       this.isLoadingInitial = true;
@@ -1037,6 +1055,7 @@ export class GaugeConfigDialogComponent implements OnInit {
         queryName: this.selectedPersistentQuery.name,
         queryFamily: family,
         ignoreTimeFilter: this.ignoreTimeFilter,
+        entitySelectorId: this.entitySelectorId,
         queryMode: this.queryMode,
         queryValueField: this.form.queryValueField || undefined,
         queryCategoryField: this.form.queryCategoryField || undefined,

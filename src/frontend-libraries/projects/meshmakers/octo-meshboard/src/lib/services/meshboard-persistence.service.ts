@@ -496,7 +496,8 @@ export class MeshBoardPersistenceService {
           ckTypeId: es.ckTypeId,
           attributeMappings: es.attributeMappings,
           showInToolbar: es.showInToolbar,
-          defaultRtId: es.defaultRtId
+          defaultRtId: es.defaultRtId,
+          childScope: es.childScope
         }));
       }
 

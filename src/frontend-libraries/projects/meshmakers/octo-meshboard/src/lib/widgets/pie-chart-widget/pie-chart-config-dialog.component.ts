@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { searchIcon, chartPieIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
-import { PieChartType, CkQueryTarget, DataSourceType, WidgetFilterConfig } from '../../models/meshboard.models';
+import { PieChartType, CkQueryTarget, DataSourceType, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -19,6 +19,7 @@ import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 
 /**
@@ -31,6 +32,8 @@ export interface PieChartConfigResult extends WidgetConfigResult {
   queryName?: string;
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
+  /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
+  entitySelectorId?: string;
   categoryField: string;
   valueField: string;
   // Construction Kit Query fields
@@ -61,6 +64,7 @@ export interface PieChartConfigResult extends WidgetConfigResult {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    EntitySelectorScopePickerComponent,
     LoadingOverlayComponent
   ],
   template: `
@@ -103,6 +107,12 @@ export interface PieChartConfigResult extends WidgetConfigResult {
               [family]="selectedQueryFamily"
               [(ignoreTimeFilter)]="ignoreTimeFilter">
             </mm-sd-time-filter-toggle>
+
+            <mm-entity-selector-scope-picker
+              [family]="selectedQueryFamily"
+              [selectors]="availableEntitySelectors"
+              [(entitySelectorId)]="entitySelectorId">
+            </mm-entity-selector-scope-picker>
           }
 
           <!-- Construction Kit Query Options -->
@@ -393,6 +403,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialEntitySelectorId?: string;
   @Input() initialChartType?: PieChartType;
   @Input() initialCategoryField?: string;
   @Input() initialValueField?: string;
@@ -433,6 +444,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   selectedPersistentQuery: PersistentQueryItem | null = null;
   /** Stream-data opt-out: when true the MeshBoard time filter is not bound to the query. */
   ignoreTimeFilter = false;
+  entitySelectorId?: string;
   queryColumns: QueryColumnItem[] = [];
 
   // Filter state
@@ -479,6 +491,11 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily ?? null;
   }
 
+  /** Entity selectors available on the current MeshBoard (for the scope picker). */
+  get availableEntitySelectors(): EntitySelectorConfig[] {
+    return this.stateService.getEntitySelectors();
+  }
+
   async ngOnInit(): Promise<void> {
     // Initialize filter variables from MeshBoard state
     this.filterVariables = this.stateService.getVariables().map(v => ({
@@ -497,6 +514,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     this.form.ckQueryTarget = this.initialCkQueryTarget ?? 'models';
     this.form.ckGroupBy = this.initialCkGroupBy ?? 'modelState';
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.entitySelectorId = this.initialEntitySelectorId;
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -674,6 +692,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
       result.queryName = this.selectedPersistentQuery.name;
       result.queryFamily = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
       result.ignoreTimeFilter = this.ignoreTimeFilter;
+      result.entitySelectorId = this.entitySelectorId;
     } else if (this.form.dataSourceType === 'constructionKitQuery') {
       result.ckQueryTarget = this.form.ckQueryTarget;
       result.ckGroupBy = this.form.ckGroupBy;

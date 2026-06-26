@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { HeatmapColorScheme, HeatmapAggregation, WidgetFilterConfig } from '../../models/meshboard.models';
+import { HeatmapColorScheme, HeatmapAggregation, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -19,6 +19,7 @@ import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 
 /**
  * Configuration result from the Heatmap dialog
@@ -28,6 +29,8 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
   queryName?: string;
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
+  /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
+  entitySelectorId?: string;
   dateField: string;
   dateEndField?: string;
   valueField?: string;
@@ -54,6 +57,7 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    EntitySelectorScopePickerComponent,
     LoadingOverlayComponent
   ],
   template: `
@@ -81,6 +85,12 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
             [family]="selectedQueryFamily"
             [(ignoreTimeFilter)]="ignoreTimeFilter">
           </mm-sd-time-filter-toggle>
+
+          <mm-entity-selector-scope-picker
+            [family]="selectedQueryFamily"
+            [selectors]="availableEntitySelectors"
+            [(entitySelectorId)]="entitySelectorId">
+          </mm-entity-selector-scope-picker>
         </div>
 
         <!-- Field Mapping Section -->
@@ -413,6 +423,7 @@ export class HeatmapConfigDialogComponent implements OnInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialEntitySelectorId?: string;
   @Input() initialDateField?: string;
   @Input() initialDateEndField?: string;
   @Input() initialValueField?: string;
@@ -432,6 +443,7 @@ export class HeatmapConfigDialogComponent implements OnInit {
   // Persistent Query
   selectedPersistentQuery: PersistentQueryItem | null = null;
   ignoreTimeFilter = false;
+  entitySelectorId?: string;
   queryColumns: QueryColumnItem[] = [];
   numericColumns: QueryColumnItem[] = [];
   dateTimeColumns: QueryColumnItem[] = [];
@@ -488,6 +500,11 @@ export class HeatmapConfigDialogComponent implements OnInit {
     return this.selectedPersistentQuery !== null && this.form.dateField !== '';
   }
 
+  /** Entity selectors available on the current MeshBoard (for the scope picker). */
+  get availableEntitySelectors(): EntitySelectorConfig[] {
+    return this.stateService.getEntitySelectors();
+  }
+
   get selectedQueryFamily(): QueryFamily | null {
     return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily ?? null;
   }
@@ -512,6 +529,7 @@ export class HeatmapConfigDialogComponent implements OnInit {
     this.form.compactNumbers = this.initialCompactNumbers ?? false;
     this.form.valueMultiplier = this.initialValueMultiplier ?? 1;
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.entitySelectorId = this.initialEntitySelectorId;
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -646,6 +664,7 @@ export class HeatmapConfigDialogComponent implements OnInit {
       queryName: this.selectedPersistentQuery.name,
       queryFamily: family,
       ignoreTimeFilter: this.ignoreTimeFilter,
+      entitySelectorId: this.entitySelectorId,
       dateField: this.form.dateField,
       dateEndField: this.form.dateEndField || undefined,
       valueField: this.form.valueField || undefined,

@@ -115,6 +115,9 @@ export class MyComponent {
 | `clearEntitySelectorVariables(selectorId)` | `void` | Clear variables for a selector |
 | `resolveCurrentTimeRange()` | `TimeRange \| null` | Resolve active time filter to `{from, to}` |
 | `resolveStreamDataTimeArgs(ignoreTimeFilter?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out |
+| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Cache the source rtIds resolved from a selector's selection (transient) |
+| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the cached source rtIds for a selector |
+| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Asset-scope binding: source rtIds for the bound selector, or `undefined` (no scope) |
 
 ### MeshBoardGridService
 
@@ -277,10 +280,35 @@ interface RuntimeEntityDataSource {
 ```typescript
 interface PersistentQueryDataSource {
   type: 'persistentQuery';
-  queryRtId: string;      // rtId of the persistent query
-  queryName?: string;     // Display name
+  queryRtId: string;          // rtId of the persistent query
+  queryName?: string;         // Display name
+  queryFamily?: QueryFamily;  // 'runtime' | 'streamData' (derived when absent)
+  ignoreTimeFilter?: boolean; // SD opt-out of the MeshBoard time-filter binding
+  entitySelectorId?: string;  // Asset-scope binding (stream-data) — see below
 }
 ```
+
+#### Asset-scope binding (`entitySelectorId`)
+
+A stream-data widget can be scoped to a picked asset by naming an entity
+selector. Stream-data archives are keyed by their **source rtIds**, not by a
+parent column — so a field-filter on `$mp_rtId` can't scope an archive query.
+Instead the widget passes those source rtIds as the query's
+`streamDataArgs.rtIds`, which the backend `StreamDataArguments.rtIds` override
+applies in place of the persisted RtIds.
+
+Resolution flow:
+1. The selector resolves its picked entity to source rtIds when the selection
+   changes — either the selector's `childScope` one-hop (e.g. a MeteringPoint →
+   its EnergyMeasurement rtIds) or, with no childScope, the picked entity's own
+   rtId. These are cached via `MeshBoardStateService.setEntitySelectorRtIds`.
+2. Each SD widget's `buildStreamDataArgs()` reads them with
+   `resolveStreamDataRtIds(entitySelectorId)` and merges them into
+   `streamDataArgs` alongside the time range.
+
+Configured per widget via the "Scope to entity selector" dropdown in the SD
+widget config dialogs (shown only for stream-data queries, like the time-filter
+toggle).
 
 ### AggregationDataSource
 
@@ -454,6 +482,7 @@ interface EntitySelectorConfig {
   attributeMappings: EntitySelectorAttributeMapping[];
   showInToolbar?: boolean;     // Show in toolbar (default: true). If false, uses defaultRtId
   defaultRtId?: string;       // Pre-selected entity (required when showInToolbar=false)
+  childScope?: EntitySelectorChildScope; // One-hop scope for stream-data widgets (see below)
   selectedRtId?: string;      // Current selection (transient, not persisted)
   selectedDisplayName?: string; // Current display name (transient)
 }
@@ -463,16 +492,36 @@ interface EntitySelectorAttributeMapping {
   variableName: string;        // Variable name to populate (e.g., "meteringPointName")
   attributeValueType?: string; // Attribute value type
 }
+
+// One association hop turning the picked entity into the child source rtIds a
+// stream-data widget scopes by (e.g. MeteringPoint → EnergyMeasurement rtIds).
+interface EntitySelectorChildScope {
+  targetCkTypeId: string;      // Child type that keys the archive (e.g. EnergyMeasurement)
+  roleId: string;              // Association role (e.g. "System/ParentChild")
+  direction?: 'in' | 'out';    // Traversal direction (default 'out' = parent → child)
+}
 ```
+
+The `childScope` is configured in the "Child Scope (stream-data)" section of
+the entity-selector editor (target CK type + role + direction). When set, a
+selection resolves to the child rtIds via `getAssociationTargets`; when absent,
+the picked entity's own rtId is the scope. These rtIds feed a widget's
+`entitySelectorId` asset-scope binding — see *PersistentQueryDataSource* above.
 
 ### Auto-exposed selected-entity rtId
 
 In addition to the mapped attribute variables, every selector automatically
 exposes the selected entity's **rtId** as a variable named `<selectorId>_rtId`
 (e.g. selector `mp` → `$mp_rtId`). No `attributeMappings` entry is required for
-this. Use it to scope a widget to the selected asset by parent association,
-e.g. a stream-data widget on `EnergyMeasurement` with a filter
+this. Use it to scope a **runtime-entity** widget to the selected asset by
+parent association, e.g. a filter
 `{ attributePath: 'parent_basicEnergyMeteringPoint', operator: 'eq', comparisonValue: '$mp_rtId' }`.
+
+> **Stream-data widgets are different.** A stream-data archive has no parent
+> column, so a `$mp_rtId` field-filter can't scope an archive query. Use the
+> selector's `childScope` + the widget's `entitySelectorId` asset-scope binding
+> instead, which scopes by the source rtIds via `streamDataArgs.rtIds`
+> (see *PersistentQueryDataSource*).
 
 An explicit `attributeMappings` entry that produces the same variable name wins
 (the synthetic `<selectorId>_rtId` is skipped if already present). The variable is
@@ -517,6 +566,9 @@ When embedding a MeshBoard in another application, entity selectors can be pre-p
 | `updateEntitySelectorSelection(selectorId, rtId, displayName?)` | `void` | Update one selector's selection |
 | `setEntitySelectorVariables(selectorId, values[])` | `void` | Create/replace variables for a selector |
 | `clearEntitySelectorVariables(selectorId)` | `void` | Remove variables for a selector |
+| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Cache the source rtIds resolved from a selection (transient) |
+| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear cached source rtIds for a selector |
+| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds for a widget's asset-scope binding |
 
 ### Components
 
