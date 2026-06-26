@@ -495,7 +495,10 @@ export class MeshBoardDataService {
         roleId,
         direction: graphDirection,
         first: first ?? 100,
-        attributeNames: attributeNames ?? null
+        // The server's `attributes` resolver rejects a null attributeNames argument
+        // (ARGUMENT_NULL); send an empty list when the caller doesn't need attributes
+        // (e.g. childScope rtId resolution, which only reads rtId).
+        attributeNames: attributeNames ?? []
       }
     }).pipe(
       map(result => {

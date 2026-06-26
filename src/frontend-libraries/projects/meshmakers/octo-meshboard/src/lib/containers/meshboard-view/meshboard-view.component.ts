@@ -1373,7 +1373,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
           selector.ckTypeId,
           childScope.targetCkTypeId,
           childScope.roleId,
-          childScope.direction ?? 'out'
+          // Parent → children via System/ParentChild is an INBOUND hop (the child
+          // owns the association to its parent), so 'in' is the default.
+          childScope.direction ?? 'in'
         )
       );
       const childRtIds = (targets ?? [])

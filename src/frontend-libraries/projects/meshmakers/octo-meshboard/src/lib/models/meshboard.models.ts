@@ -1093,9 +1093,10 @@ export interface EntitySelectorChildScope {
   /** Association role linking the selected entity to the children (e.g. "System/ParentChild"). */
   roleId: string;
   /**
-   * Traversal direction from the selected entity to the children. `'out'`
-   * (default) follows outbound associations (parent → child); `'in'` follows
-   * inbound.
+   * Traversal direction from the selected (parent) entity to its children.
+   * For `System/ParentChild` the child owns the association to its parent, so
+   * the children are reached **inbound** — hence `'in'` is the default. Use
+   * `'out'` only for custom roles modelled parent → child.
    */
   direction?: 'in' | 'out';
 }

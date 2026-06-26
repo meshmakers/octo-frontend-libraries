@@ -72,7 +72,10 @@ export class EntitySelectorEditorComponent {
   protected editChildScopeTargetCkTypeId = '';
   protected editChildScopeTargetCkTypeItem: CkTypeSelectorItem | null = null;
   protected editChildScopeRoleId = '';
-  protected editChildScopeDirection: 'in' | 'out' = 'out';
+  // Parent → children via System/ParentChild is reached INBOUND (the child holds
+  // the association to its parent), so 'in' is the correct default for a
+  // childScope that resolves a picked parent to its children.
+  protected editChildScopeDirection: 'in' | 'out' = 'in';
 
   // Data sources for the default entity picker (created when CK type is set)
   protected defaultEntityDataSource: RuntimeEntitySelectDataSource | null = null;
@@ -92,8 +95,8 @@ export class EntitySelectorEditorComponent {
     this.editDefaultRtId = '';
     this.editChildScopeTargetCkTypeId = '';
     this.editChildScopeTargetCkTypeItem = null;
-    this.editChildScopeRoleId = '';
-    this.editChildScopeDirection = 'out';
+    this.editChildScopeRoleId = 'System/ParentChild';
+    this.editChildScopeDirection = 'in';
     this.defaultEntityDataSource = null;
     this.defaultEntityDialogDataSource = null;
     this.isEditing = true;
@@ -128,8 +131,8 @@ export class EntitySelectorEditorComponent {
           isFinal: false
         }
       : null;
-    this.editChildScopeRoleId = selector.childScope?.roleId ?? '';
-    this.editChildScopeDirection = selector.childScope?.direction ?? 'out';
+    this.editChildScopeRoleId = selector.childScope?.roleId ?? 'System/ParentChild';
+    this.editChildScopeDirection = selector.childScope?.direction ?? 'in';
     this.updateDefaultEntityDataSources();
     this.isEditing = true;
     this.editingStateChange.emit(true);
