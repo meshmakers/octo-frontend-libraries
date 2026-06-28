@@ -4,7 +4,7 @@ import { LineChartWidgetConfig, PersistentQueryDataSource, WidgetFilterConfig } 
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
-import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
+import { QueryExecutorService, QueryExecutionResult, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
@@ -173,13 +173,20 @@ interface ValueAxisConfig {
 
     .data-count {
       position: absolute;
-      top: 2px;
+      top: 4px;
       right: 6px;
       z-index: 2;
+      max-width: calc(100% - 12px);
+      padding: 1px 7px;
+      border-radius: 9px;
       font-size: 0.7rem;
-      line-height: 1;
-      opacity: 0.55;
-      color: var(--kendo-color-subtle, #6c757d);
+      /* Roomy line-height + nowrap so the badge never wraps and gets clipped. */
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--kendo-color-on-app-surface, #6c757d);
+      background: color-mix(in srgb, var(--kendo-color-app-surface, #888) 12%, transparent);
       pointer-events: none;
       user-select: none;
       font-variant-numeric: tabular-nums;
@@ -234,6 +241,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   private resizeTimer?: ReturnType<typeof setTimeout>;
   /** The downsampling `limit` used by the last load; 0 when the last load wasn't downsampled. */
   private lastLimit = 0;
+
+  /**
+   * Page size for the raw-rows fallback (see `loadData`). Bounds the worst case
+   * when downsampling collapsed to null buckets and we refetch unaggregated rows;
+   * the fallback only fires for sparse ranges, so this ceiling is rarely reached.
+   */
+  private static readonly RAW_FALLBACK_FIRST = 5000;
 
   private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
     'RtSimpleQueryRow',
@@ -403,27 +417,32 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       // falls back to a one-time lookup by rtId. streamDataArgs is sent
       // unconditionally because the runtime path ignores it.
       const streamDataArgs = this.buildStreamDataArgs();
+      const downsampled = streamDataArgs?.queryMode === QueryModeDto.DownsamplingDto;
       // Remember the resolution used so a later resize can decide whether to re-query (FE-2).
       this.lastLimit = streamDataArgs?.limit ?? 0;
 
-      const result = await firstValueFrom(
-        this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
-          fieldFilter: fieldFilter ?? undefined,
-          streamDataArgs
-        }).pipe(
-          catchError(err => {
-            console.error('Error loading Line Chart data:', err);
-            throw err;
-          })
-        )
-      );
-
-      const filteredRows = result.rows.filter(row =>
-        LineChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
-      );
-
-      const downsampled = streamDataArgs?.queryMode === QueryModeDto.DownsamplingDto;
+      let result = await this.runQuery(queryDataSource, fieldFilter, streamDataArgs);
+      let filteredRows = this.supportedRows(result);
       this.processData(filteredRows, downsampled);
+
+      // Downsampling fallback: the backend reduces a stream-data range to
+      // evenly-spaced buckets, but returns null aggregates for *every* bucket
+      // when the requested bucket count meets or exceeds the number of distinct
+      // source timestamps (sparse data and/or a very wide chart). That yields
+      // rows with no plottable values — the chart would read "No data available"
+      // and the counter would show the bogus bucket total. Detect it (rows came
+      // back but nothing plotted) and refetch once as raw, unaggregated rows,
+      // which always plot and report the real row/point counts.
+      if (downsampled && this._categories().length === 0 && filteredRows.length > 0) {
+        const rawArgs: StreamDataExecutionArgs | undefined = streamDataArgs
+          ? { ...streamDataArgs, limit: null, queryMode: QueryModeDto.DefaultDto }
+          : undefined;
+        this.lastLimit = 0; // raw load — width-driven resize re-query no longer applies
+        result = await this.runQuery(queryDataSource, fieldFilter, rawArgs, LineChartWidgetComponent.RAW_FALLBACK_FIRST);
+        filteredRows = this.supportedRows(result);
+        this.processData(filteredRows, false);
+      }
+
       this._dataInfo.set({ rows: filteredRows.length, points: this._categories().length, total: result.totalCount });
       this._isLoading.set(false);
 
@@ -433,6 +452,34 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       this._dataInfo.set(null);
       this._isLoading.set(false);
     }
+  }
+
+  /** Runs one query pass through the executor (shared by the normal load and the raw fallback). */
+  private runQuery(
+    ds: PersistentQueryDataSource,
+    fieldFilter: FieldFilterDto[] | undefined,
+    streamDataArgs: StreamDataExecutionArgs | undefined,
+    first?: number
+  ): Promise<QueryExecutionResult> {
+    return firstValueFrom(
+      this.queryExecutor.execute(ds.queryFamily, ds.queryRtId, {
+        first: first ?? undefined,
+        fieldFilter: fieldFilter ?? undefined,
+        streamDataArgs
+      }).pipe(
+        catchError(err => {
+          console.error('Error loading Line Chart data:', err);
+          throw err;
+        })
+      )
+    );
+  }
+
+  /** Rows of a result that this chart knows how to plot. */
+  private supportedRows(result: QueryExecutionResult): QueryResultRow[] {
+    return result.rows.filter(row =>
+      LineChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
+    );
   }
 
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
