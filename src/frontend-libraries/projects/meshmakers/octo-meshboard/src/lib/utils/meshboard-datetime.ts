@@ -41,6 +41,83 @@ function timeZoneOption(mode: MeshBoardTimeZoneMode): string | undefined {
   return mode === 'utc' ? 'UTC' : undefined;
 }
 
+/** Calendar/clock components of an instant, evaluated in a board timezone. */
+export interface ZonedDateParts {
+  /** Full year, e.g. 2026. */
+  year: number;
+  /** Month 1–12. */
+  month: number;
+  /** Day of month 1–31. */
+  day: number;
+  /** Hour of day 0–23. */
+  hour: number;
+  /** Minute 0–59. */
+  minute: number;
+}
+
+/**
+ * Cached `Intl.DateTimeFormat` per board mode. Bucketing widgets call
+ * {@link getZonedDateParts} once per data row, so re-creating the (relatively
+ * expensive) formatter each time would be wasteful.
+ */
+const partsFormatterCache = new Map<MeshBoardTimeZoneMode, Intl.DateTimeFormat>();
+
+function partsFormatter(mode: MeshBoardTimeZoneMode): Intl.DateTimeFormat {
+  let formatter = partsFormatterCache.get(mode);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZone: timeZoneOption(mode)
+    });
+    partsFormatterCache.set(mode, formatter);
+  }
+  return formatter;
+}
+
+/**
+ * Decomposes an instant into its calendar/clock components **in the board's
+ * timezone**. In `'local'` mode the parts are the browser-local wall-clock
+ * values; in `'utc'` mode they are the UTC values.
+ *
+ * This is the bucketing counterpart to {@link formatInstant}: widgets that group
+ * data by hour-of-day / day (e.g. the heatmap) must derive those buckets on the
+ * same timezone basis the time-filter boundaries use, otherwise a UTC+offset
+ * tenant sees rows shifted into the wrong hour/day. Returns `null` for
+ * non-instants so callers can skip the row.
+ */
+export function getZonedDateParts(value: unknown, mode: MeshBoardTimeZoneMode): ZonedDateParts | null {
+  const date = toInstant(value);
+  if (!date) {
+    return null;
+  }
+  const lookup = new Map<string, string>();
+  for (const part of partsFormatter(mode).formatToParts(date)) {
+    lookup.set(part.type, part.value);
+  }
+  const year = Number(lookup.get('year'));
+  const month = Number(lookup.get('month'));
+  const day = Number(lookup.get('day'));
+  // `h23` yields 0–23, but some engines emit '24' for midnight — normalize it.
+  const hour = Number(lookup.get('hour')) % 24;
+  const minute = Number(lookup.get('minute'));
+  if ([year, month, day, hour, minute].some(Number.isNaN)) {
+    return null;
+  }
+  return { year, month, day, hour, minute };
+}
+
+/** Zero-padded `yyyy-MM-dd` key for {@link ZonedDateParts} (stable for sorting). */
+export function zonedDateKey(parts: ZonedDateParts): string {
+  const month = parts.month.toString().padStart(2, '0');
+  const day = parts.day.toString().padStart(2, '0');
+  return `${parts.year}-${month}-${day}`;
+}
+
 /**
  * Formats an instant honoring the board's timezone mode, with caller-supplied
  * `Intl.DateTimeFormatOptions`. The `timeZone` option is injected from `mode`

@@ -4,7 +4,9 @@ import {
   formatInstant,
   formatBoardDate,
   formatBoardDateTime,
-  formatTableCellValue
+  formatTableCellValue,
+  getZonedDateParts,
+  zonedDateKey
 } from './meshboard-datetime';
 
 describe('meshboard-datetime', () => {
@@ -74,6 +76,63 @@ describe('meshboard-datetime', () => {
       expect(formatTableCellValue(false, 'utc')).toBe('false');
       expect(formatTableCellValue(null, 'utc')).toBe('');
       expect(formatTableCellValue(undefined, 'utc')).toBe('');
+    });
+  });
+
+  describe('getZonedDateParts', () => {
+    it('decomposes an instant into UTC wall-clock parts in utc mode', () => {
+      // The reported symptom: a row at local midnight (CEST, UTC+2) is stored as
+      // 22:00Z the previous day. In utc mode the bucketing must see hour 22.
+      expect(getZonedDateParts('2026-06-27T22:00:00Z', 'utc')).toEqual({
+        year: 2026,
+        month: 6,
+        day: 27,
+        hour: 22,
+        minute: 0
+      });
+    });
+
+    it('reads sub-hour minutes in utc mode', () => {
+      expect(getZonedDateParts('2026-03-08T05:45:00Z', 'utc')).toEqual({
+        year: 2026,
+        month: 3,
+        day: 8,
+        hour: 5,
+        minute: 45
+      });
+    });
+
+    it('normalizes midnight to hour 0 (not 24)', () => {
+      const parts = getZonedDateParts('2026-06-28T00:00:00Z', 'utc');
+      expect(parts?.hour).toBe(0);
+      expect(parts?.day).toBe(28);
+    });
+
+    it('local mode matches the browser-local wall-clock (timezone-aware, not hard-coded UTC)', () => {
+      // Deterministic regardless of the runner's timezone: local-mode parts must
+      // equal the JS local getters for the same instant. This is the regression
+      // guard — the heatmap previously always used getUTC* and ignored the mode.
+      const instant = new Date('2026-06-27T22:00:00Z');
+      const parts = getZonedDateParts(instant, 'local');
+      expect(parts).toEqual({
+        year: instant.getFullYear(),
+        month: instant.getMonth() + 1,
+        day: instant.getDate(),
+        hour: instant.getHours(),
+        minute: instant.getMinutes()
+      });
+    });
+
+    it('returns null for non-instants so callers can skip the row', () => {
+      expect(getZonedDateParts('not-a-date', 'utc')).toBeNull();
+      expect(getZonedDateParts(null, 'local')).toBeNull();
+    });
+  });
+
+  describe('zonedDateKey', () => {
+    it('builds a zero-padded yyyy-MM-dd key', () => {
+      expect(zonedDateKey({ year: 2026, month: 3, day: 8, hour: 5, minute: 45 })).toBe('2026-03-08');
+      expect(zonedDateKey({ year: 2026, month: 12, day: 31, hour: 0, minute: 0 })).toBe('2026-12-31');
     });
   });
 });

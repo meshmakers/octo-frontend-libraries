@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HeatmapWidgetConfig, HeatmapColorScheme, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
+import { HeatmapWidgetConfig, HeatmapColorScheme, MeshBoardTimeZoneMode, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
@@ -10,6 +10,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { getZonedDateParts, zonedDateKey } from '../../utils/meshboard-datetime';
 
 /**
  * A single cell in the heatmap grid
@@ -419,10 +420,15 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     const intervalMinutes = this.detectIntervalMinutes(parsedRows);
     const hasSubHourIntervals = dateEndField && intervalMinutes > 0 && intervalMinutes < 60;
 
+    // Bucket on the board's timezone basis so hour-of-day / day axes match the
+    // time-filter boundaries (default 'local'); using UTC here shifts a UTC+N
+    // tenant's rows into the wrong hour/day.
+    const mode = this.stateService.timeZoneMode();
+
     if (hasSubHourIntervals) {
-      this.processSubHourData(parsedRows, intervalMinutes, aggregation);
+      this.processSubHourData(parsedRows, intervalMinutes, aggregation, mode);
     } else {
-      this.processHourlyData(parsedRows, aggregation);
+      this.processHourlyData(parsedRows, aggregation, mode);
     }
   }
 
@@ -444,12 +450,18 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
   /**
    * Processes data into hourly buckets (original behavior).
    */
-  private processHourlyData(rows: { dateFrom: Date; numericValue: number }[], aggregation: string): void {
+  private processHourlyData(
+    rows: { dateFrom: Date; numericValue: number }[],
+    aggregation: string,
+    mode: MeshBoardTimeZoneMode
+  ): void {
     const buckets = new Map<string, Map<number, number[]>>();
 
     for (const { dateFrom, numericValue } of rows) {
-      const dateKey = this.formatDateKey(dateFrom);
-      const hour = dateFrom.getUTCHours();
+      const parts = getZonedDateParts(dateFrom, mode);
+      if (!parts) continue;
+      const dateKey = zonedDateKey(parts);
+      const hour = parts.hour;
 
       if (!buckets.has(dateKey)) buckets.set(dateKey, new Map());
       const hourMap = buckets.get(dateKey)!;
@@ -485,7 +497,8 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
   private processSubHourData(
     rows: { dateFrom: Date; numericValue: number }[],
     intervalMinutes: number,
-    aggregation: string
+    aggregation: string,
+    mode: MeshBoardTimeZoneMode
   ): void {
     const intervalsPerHour = Math.floor(60 / intervalMinutes);
 
@@ -494,10 +507,12 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     const allDates = new Set<string>();
 
     for (const { dateFrom, numericValue } of rows) {
-      const dateKey = this.formatDateKey(dateFrom);
+      const parts = getZonedDateParts(dateFrom, mode);
+      if (!parts) continue;
+      const dateKey = zonedDateKey(parts);
       allDates.add(dateKey);
-      const hour = dateFrom.getUTCHours();
-      const minute = dateFrom.getUTCMinutes();
+      const hour = parts.hour;
+      const minute = parts.minute;
       const intervalIndex = Math.floor(minute / intervalMinutes);
       const intervalStart = intervalIndex * intervalMinutes;
       const intervalEnd = intervalStart + intervalMinutes;
@@ -596,13 +611,6 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     if (value instanceof Date) return value;
     const date = new Date(String(value));
     return isNaN(date.getTime()) ? null : date;
-  }
-
-  private formatDateKey(date: Date): string {
-    const year = date.getUTCFullYear();
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
   }
 
   private convertFiltersToDto(filters?: WidgetFilterConfig[]): FieldFilterDto[] | undefined {
