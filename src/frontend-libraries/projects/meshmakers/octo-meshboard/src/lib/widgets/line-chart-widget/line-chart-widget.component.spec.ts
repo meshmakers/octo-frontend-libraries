@@ -5,6 +5,7 @@ import { QueryExecutorService } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { LineChartWidgetConfig } from '../../models/meshboard.models';
+import { QueryModeDto } from '@meshmakers/octo-services';
 
 function sdRow(windowStart: string, obis: string, value: number) {
   return {
@@ -80,5 +81,88 @@ describe('LineChartWidgetComponent dataInfo (load counter)', () => {
     const info = cmp.dataInfo();
     expect(info?.rows).toBe(3);
     expect(info?.points).toBe(1);
+  });
+});
+
+// A downsampled stream-data row: the bin time is the top-level timestamp and the value column
+// comes back reduced to <field>_avg / _min / _max; the series column is reduced to <field>_max.
+function dsRow(timestamp: string, obis: string, avg: number, min: number, max: number) {
+  return {
+    __typename: 'StreamDataQueryRow',
+    rtId: 'entity-1',
+    timestamp,
+    cells: [
+      { attributePath: 'obiscode_max', value: obis },
+      { attributePath: 'amountvalue_avg', value: avg },
+      { attributePath: 'amountvalue_min', value: min },
+      { attributePath: 'amountvalue_max', value: max }
+    ]
+  };
+}
+
+describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
+  function createDownsampled(rows: unknown[]): LineChartWidgetComponent {
+    const queryExecutor = jasmine.createSpyObj<QueryExecutorService>('QueryExecutorService', ['execute']);
+    queryExecutor.execute.and.returnValue(of({
+      family: 'streamData', queryRtId: 'q1', associatedCkTypeId: null,
+      columns: [], rows, totalCount: rows.length, hasNextPage: false, endCursor: null
+    }) as ReturnType<QueryExecutorService['execute']>);
+
+    const stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService',
+      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'getVariables']);
+    // A resolved time range is what flips the widget into downsampling mode.
+    stateService.resolveStreamDataTimeArgs.and.returnValue({
+      from: new Date('2026-01-01T00:00:00Z'), to: new Date('2026-12-31T00:00:00Z')
+    });
+    stateService.resolveStreamDataRtIds.and.returnValue(['entity-1']);
+    stateService.getVariables.and.returnValue([]);
+
+    const variableService = jasmine.createSpyObj<MeshBoardVariableService>('MeshBoardVariableService',
+      ['convertToFieldFilterDto']);
+    variableService.convertToFieldFilterDto.and.returnValue(undefined);
+
+    TestBed.configureTestingModule({
+      imports: [LineChartWidgetComponent],
+      providers: [
+        { provide: QueryExecutorService, useValue: queryExecutor },
+        { provide: MeshBoardStateService, useValue: stateService },
+        { provide: MeshBoardVariableService, useValue: variableService }
+      ]
+    });
+
+    const cmp = TestBed.createComponent(LineChartWidgetComponent).componentInstance;
+    cmp.config = {
+      id: 'w1', type: 'lineChart', title: 'Test', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: { type: 'persistentQuery', queryRtId: 'q1', queryFamily: 'streamData' },
+      categoryField: 'window_start', seriesGroupField: 'obisCode', valueField: 'amount.value'
+    } as LineChartWidgetConfig;
+    return cmp;
+  }
+
+  it('requests downsampling with a pixel-sized limit when a time range is resolved', async () => {
+    const cmp = createDownsampled([dsRow('2026-01-01T00:00:00Z', 'G.01', 2, 1, 9)]);
+    const qe = TestBed.inject(QueryExecutorService) as jasmine.SpyObj<QueryExecutorService>;
+
+    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+    const opts = qe.execute.calls.mostRecent().args[2];
+    expect(opts?.streamDataArgs?.queryMode).toBe(QueryModeDto.DownsamplingDto);
+    expect(opts?.streamDataArgs?.limit).toBeGreaterThanOrEqual(50);
+    expect(opts?.streamDataArgs?.limit).toBeLessThanOrEqual(4000);
+  });
+
+  it('uses the bin timestamp as category, _avg for the line and builds a min/max band', async () => {
+    const cmp = createDownsampled([
+      dsRow('2026-01-01T00:00:00Z', 'G.01', 2, 1, 9),
+      dsRow('2026-01-01T06:00:00Z', 'G.01', 5, 3, 8)
+    ]);
+
+    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+    expect(cmp.categories().length).toBe(2);
+    const series = cmp.seriesData();
+    expect(series.length).toBe(1);
+    expect(series[0].data).toEqual([2, 5]);
+    expect(series[0].band).toEqual([{ from: 1, to: 9 }, { from: 3, to: 8 }]);
   });
 });

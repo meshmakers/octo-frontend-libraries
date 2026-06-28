@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges, AfterViewInit, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LineChartWidgetConfig, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -8,8 +8,11 @@ import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '.
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
-import { FieldFilterDto } from '@meshmakers/octo-services';
+import { FieldFilterDto, QueryModeDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+
+/** Series colours so a series' min/max band and its avg line share one hue. */
+const SERIES_PALETTE = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
 /**
  * Series data for the line chart
@@ -17,8 +20,11 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
 interface LineSeriesData {
   name: string;
   data: (number | null)[];
+  /** min/max envelope per category (downsampling only); rendered as a rangeArea band. */
+  band?: ({ from: number; to: number } | null)[];
   unit?: string;
   axisName?: string;
+  color?: string;
 }
 
 /**
@@ -100,12 +106,26 @@ interface ValueAxisConfig {
 
           <kendo-chart-series>
             @for (series of seriesData(); track series.name) {
+              @if (series.band) {
+                <kendo-chart-series-item
+                  [type]="'rangeArea'"
+                  [data]="series.band"
+                  [fromField]="'from'"
+                  [toField]="'to'"
+                  [name]="series.name + ' (min/max)'"
+                  [axis]="series.axisName ?? ''"
+                  [color]="series.color"
+                  [opacity]="0.18"
+                  [markers]="{ visible: false }">
+                </kendo-chart-series-item>
+              }
               <kendo-chart-series-item
                 [type]="chartType()"
                 [style]="'smooth'"
                 [data]="series.data"
                 [name]="series.name"
                 [axis]="series.axisName ?? ''"
+                [color]="series.color"
                 [opacity]="0.7"
                 [markers]="{ visible: config.showMarkers ?? false }">
               </kendo-chart-series-item>
@@ -202,8 +222,9 @@ interface ValueAxisConfig {
     }
   `]
 })
-export class LineChartWidgetComponent implements DashboardWidget<LineChartWidgetConfig, LineSeriesData[]>, OnInit, OnChanges {
+export class LineChartWidgetComponent implements DashboardWidget<LineChartWidgetConfig, LineSeriesData[]>, AfterViewInit, OnChanges {
   private readonly queryExecutor = inject(QueryExecutorService);
+  private readonly elementRef = inject(ElementRef);
 
   private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
     'RtSimpleQueryRow',
@@ -297,7 +318,9 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     return e.value.length > maxLen ? e.value.substring(0, maxLen) + '...' : e.value;
   };
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    // Defer the initial load to after view init so the host has a measured width — the
+    // downsampling bucket count (FE-1) is derived from the rendered pixel width.
     this.loadData();
   }
 
@@ -363,7 +386,8 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         LineChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
       );
 
-      this.processData(filteredRows);
+      const downsampled = streamDataArgs?.queryMode === QueryModeDto.DownsamplingDto;
+      this.processData(filteredRows, downsampled);
       this._dataInfo.set({ rows: filteredRows.length, points: this._categories().length, total: result.totalCount });
       this._isLoading.set(false);
 
@@ -382,41 +406,72 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     if (!timeArgs && !rtIds) {
       return undefined;
     }
+    // Auto-downsampling (FE-1): for stream-data queries with a resolved time range, ask the
+    // backend to reduce to ~one bucket per 2 px of chart width instead of streaming every row.
+    // Without a time range the backend can't downsample (needs from/to/limit) → raw fallback.
+    if (ds.queryFamily === 'streamData' && timeArgs?.from && timeArgs?.to) {
+      return { ...timeArgs, rtIds, limit: this.computeDownsampleLimit(), queryMode: QueryModeDto.DownsamplingDto };
+    }
     return { ...timeArgs, rtIds };
+  }
+
+  /**
+   * Bucket count for backend downsampling, sized to the rendered width (~1 bucket / 2 px),
+   * clamped to [50, 4000]. Falls back to 1500 before the host has a measured width.
+   */
+  private computeDownsampleLimit(): number {
+    const width = (this.elementRef.nativeElement as HTMLElement)?.offsetWidth ?? 0;
+    const effective = width > 50 ? width : 1500;
+    return Math.min(4000, Math.max(50, Math.round(effective / 2)));
   }
 
   /**
    * Processes query rows into line chart data.
    * Groups by seriesGroupField, orders by categoryField (date), supports multi-axis by unitField.
    */
-  private processData(filteredRows: QueryResultRow[]): void {
+  private processData(filteredRows: QueryResultRow[], downsample = false): void {
     const categoryField = this.config.categoryField;
     const seriesGroupField = this.config.seriesGroupField;
     const valueField = this.config.valueField;
     const unitField = this.config.unitField;
 
-    // Collect data: category -> seriesGroup -> value
-    const dataMap = new Map<string, Map<string, number>>();
+    // Collect data: category -> seriesGroup -> value (and, for downsampling, the min/max band)
+    const dataMap = new Map<string, Map<string, number | null>>();
+    const bandMap = new Map<string, Map<string, { from: number; to: number }>>();
     const allCategories = new Map<string, Date>(); // label -> parsed date for sorting
     const allSeriesGroups = new Set<string>();
     const seriesUnitMap = new Map<string, string>(); // seriesGroup -> unit
 
     for (const row of filteredRows) {
-      let categoryValue = '';
+      // In downsampling mode the x-axis is the bucket timestamp (the persisted category column
+      // comes back reduced, e.g. `window_start_max`); use the row's bin timestamp instead.
+      let categoryValue = downsample && row.timestamp ? String(row.timestamp) : '';
       let seriesGroupValue = '';
-      let numericValue = 0;
+      let lineValue: number | null = downsample ? null : 0;
+      let minValue: number | null = null;
+      let maxValue: number | null = null;
       let unitValue = '';
 
       for (const cell of row.cells) {
-        if (matchesAttributePath(cell.attributePath, categoryField)) {
+        const path = cell.attributePath;
+        if (!downsample && matchesAttributePath(path, categoryField)) {
           categoryValue = String(cell.value ?? '');
-        } else if (matchesAttributePath(cell.attributePath, seriesGroupField)) {
+        } else if (matchesAttributePath(path, seriesGroupField)) {
           seriesGroupValue = String(cell.value ?? '');
-        } else if (matchesAttributePath(cell.attributePath, valueField)) {
-          const val = cell.value;
-          numericValue = typeof val === 'number' ? val : parseFloat(String(val));
-          if (isNaN(numericValue)) numericValue = 0;
-        } else if (unitField && matchesAttributePath(cell.attributePath, unitField)) {
+        } else if (matchesAttributePath(path, valueField)) {
+          if (downsample) {
+            // The value column is reduced to <field>_avg / _min / _max — split them out so the
+            // avg drives the line and min/max form the envelope band.
+            const lower = path.toLowerCase();
+            if (lower.endsWith('_min')) minValue = this.toNumber(cell.value);
+            else if (lower.endsWith('_max')) maxValue = this.toNumber(cell.value);
+            else lineValue = this.toNumber(cell.value); // _avg (or an unsuffixed value)
+          } else {
+            const val = cell.value;
+            lineValue = typeof val === 'number' ? val : parseFloat(String(val));
+            if (isNaN(lineValue)) lineValue = 0;
+          }
+        } else if (unitField && matchesAttributePath(path, unitField)) {
           unitValue = String(cell.value ?? '');
         }
       }
@@ -432,7 +487,14 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         if (!dataMap.has(categoryValue)) {
           dataMap.set(categoryValue, new Map());
         }
-        dataMap.get(categoryValue)!.set(seriesGroupValue, numericValue);
+        dataMap.get(categoryValue)!.set(seriesGroupValue, lineValue);
+
+        if (downsample && minValue !== null && maxValue !== null) {
+          if (!bandMap.has(categoryValue)) {
+            bandMap.set(categoryValue, new Map());
+          }
+          bandMap.get(categoryValue)!.set(seriesGroupValue, { from: minValue, to: maxValue });
+        }
 
         // Track unit per series
         if (unitField && unitValue) {
@@ -469,10 +531,15 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     }
 
     // Build series data
-    const seriesData: LineSeriesData[] = seriesGroups.map(seriesGroup => {
+    const seriesData: LineSeriesData[] = seriesGroups.map((seriesGroup, index) => {
       const data = categoryKeys.map(categoryKey => {
         return dataMap.get(categoryKey)?.get(seriesGroup) ?? null;
       });
+
+      // Build the min/max envelope band only when downsampling produced one for this series.
+      const band = downsample && bandMap.size > 0
+        ? categoryKeys.map(categoryKey => bandMap.get(categoryKey)?.get(seriesGroup) ?? null)
+        : undefined;
 
       const unit = seriesUnitMap.get(seriesGroup);
       const axisName = unit ? `unit_${this.sanitizeAxisName(unit)}` : undefined;
@@ -480,8 +547,10 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       return {
         name: seriesGroup,
         data,
+        band,
         unit,
-        axisName
+        axisName,
+        color: SERIES_PALETTE[index % SERIES_PALETTE.length]
       };
     });
 
@@ -519,6 +588,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   private sanitizeAxisName(name: string): string {
     return name.replace(/[^a-zA-Z0-9]/g, '_');
+  }
+
+  /** Parses a cell value to a number, or null when missing / non-numeric (renders as a gap). */
+  private toNumber(value: unknown): number | null {
+    if (value === null || value === undefined) return null;
+    const n = typeof value === 'number' ? value : parseFloat(String(value));
+    return isNaN(n) ? null : n;
   }
 
   private convertFiltersToDto(filters?: WidgetFilterConfig[]): FieldFilterDto[] | undefined {
