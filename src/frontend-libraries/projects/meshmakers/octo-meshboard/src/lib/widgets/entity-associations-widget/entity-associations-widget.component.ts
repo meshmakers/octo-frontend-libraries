@@ -8,6 +8,8 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowRightIcon, arrowLeftIcon, linkIcon, chevronDownIcon, chevronRightIcon } from '@progress/kendo-svg-icons';
 import { catchError, of } from 'rxjs';
 import { EntityDetailDialogComponent } from './entity-detail-dialog.component';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { isIsoDateTime, formatBoardDate } from '../../utils/meshboard-datetime';
 
 interface GroupedAssociation {
   roleId: string;
@@ -36,6 +38,7 @@ interface TargetEntity {
 })
 export class EntityAssociationsWidgetComponent implements DashboardWidget<EntityWithAssociationsWidgetConfig, RuntimeEntityData>, OnInit, OnChanges {
   private readonly dataService = inject(DashboardDataService);
+  private readonly stateService = inject(MeshBoardStateService);
 
   @Input() config!: EntityWithAssociationsWidgetConfig;
 
@@ -264,12 +267,12 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
         maximumFractionDigits: 2
       });
     }
-    if (value instanceof Date) return value.toLocaleDateString('de-AT');
+    const mode = this.stateService.timeZoneMode();
+    if (value instanceof Date) return formatBoardDate(value, mode) ?? String(value);
     if (typeof value === 'string') {
-      // Try to detect ISO date strings
-      if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
-        const date = new Date(value);
-        if (!isNaN(date.getTime())) return date.toLocaleDateString('de-AT');
+      // Format ISO date-time strings on the board's timezone basis
+      if (isIsoDateTime(value)) {
+        return formatBoardDate(value, mode) ?? value;
       }
       return value;
     }

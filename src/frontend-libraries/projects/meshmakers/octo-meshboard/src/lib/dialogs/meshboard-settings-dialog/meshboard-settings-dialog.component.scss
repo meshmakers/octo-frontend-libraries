@@ -66,15 +66,24 @@
       border-bottom: 1px solid var(--kendo-color-border, #e0e0e0);
     }
 
-    .checkbox-wrapper {
+    .checkbox-wrapper,
+    .radio-wrapper {
       display: flex;
       align-items: center;
       gap: 0.5rem;
 
-      .checkbox-label {
+      .checkbox-label,
+      .radio-label {
         font-weight: normal;
         cursor: pointer;
       }
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
     }
   }
 

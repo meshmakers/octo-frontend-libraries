@@ -1004,6 +1004,24 @@ export type TimeRangeType = 'year' | 'quarter' | 'month' | 'day' | 'relative' | 
 export type RelativeTimeUnit = 'hours' | 'days' | 'weeks' | 'months';
 
 /**
+ * Timezone basis the MeshBoard uses for BOTH the time-filter boundary
+ * computation and the display of every datetime value across all widgets.
+ *
+ * - `'local'` (default): the browser's local timezone. "Year 2026" spans the
+ *   local calendar year and datetime cells render in local wall-clock time.
+ * - `'utc'`: UTC. "Year 2026" spans the UTC calendar year and datetime cells
+ *   render in UTC.
+ *
+ * Keeping filter and display on the same basis avoids the boundary artifact
+ * where a local-year filter selects rows whose UTC timestamps fall in the
+ * neighbouring calendar year. Mirrors shared-ui's `TimeRangeZone`.
+ */
+export type MeshBoardTimeZoneMode = 'local' | 'utc';
+
+/** The board-level default timezone mode applied when none is persisted. */
+export const DEFAULT_TIME_ZONE_MODE: MeshBoardTimeZoneMode = 'local';
+
+/**
  * Quarter number (1-4)
  */
 export type Quarter = 1 | 2 | 3 | 4;
@@ -1150,6 +1168,11 @@ export interface MeshBoardConfig {
   variables?: MeshBoardVariable[];
   /** Optional time filter configuration */
   timeFilter?: MeshBoardTimeFilterConfig;
+  /**
+   * Timezone basis for time-filter boundaries and datetime display across all
+   * widgets. `undefined` ⇒ {@link DEFAULT_TIME_ZONE_MODE} (`'local'`).
+   */
+  timeZoneMode?: MeshBoardTimeZoneMode;
   /** Entity selector configurations for the toolbar */
   entitySelectors?: EntitySelectorConfig[];
   /**

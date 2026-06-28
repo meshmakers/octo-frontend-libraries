@@ -583,6 +583,19 @@ Entity selector configs are persisted in the MeshBoard description field alongsi
 
 ---
 
+## Timezone Mode
+
+`MeshBoardConfig.timeZoneMode` (`'local' | 'utc'`, default `'local'`) is a **board-level** setting that governs BOTH halves of time handling, keeping them consistent:
+
+1. **Filter boundaries** — `MeshBoardStateService.resolveCurrentTimeRange()` passes the mode to shared-ui's `TimeRangeUtils.getTimeRangeFromSelection(selection, showTime, zone)`. In `'local'` mode "Year 2026" spans the local calendar year; in `'utc'` mode it spans the UTC year.
+2. **Datetime display** — every widget formats timestamps through `utils/meshboard-datetime.ts` (`formatInstant` / `formatBoardDate` / `formatBoardDateTime` / `formatTableCellValue`), which inject `timeZone: 'UTC'` when the mode is `'utc'`. The table widget attaches `formatTableCellValue` as a per-column `formatter` so raw ISO-8601 archive cells (e.g. `window_start`/`window_end`) render in the board's zone instead of as raw `…Z` strings.
+
+Why this matters: a local-year filter selects rows whose UTC timestamps fall in the neighbouring calendar year (CET year 2026 starts at `2025-12-31T23:00:00Z`). Formatting display on the same basis as the filter removes that artifact.
+
+Consumers read the mode reactively via `MeshBoardStateService.timeZoneMode()` (a computed signal). The setting is edited in the Settings dialog's *Time Filter* tab and persisted in the description blob (only the non-default `'utc'` is written). Changing it recomputes the active range and refreshes widgets (`MeshBoardViewComponent.reapplyTimeFilterRange()`).
+
+---
+
 ## Utility Functions
 
 Pure functions for data transformation (in `utils/widget-data-utils.ts`):

@@ -7,7 +7,7 @@ import { InputsModule, CheckBoxModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { FormFieldModule } from '@progress/kendo-angular-inputs';
 import { TabStripModule } from '@progress/kendo-angular-layout';
-import { MeshBoardVariable, MeshBoardTimeFilterConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
+import { MeshBoardVariable, MeshBoardTimeFilterConfig, MeshBoardTimeZoneMode, DEFAULT_TIME_ZONE_MODE, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
 import { VariablesEditorComponent } from '../../components/variables-editor/variables-editor.component';
 import { EntitySelectorEditorComponent } from '../../components/entity-selector-editor/entity-selector-editor.component';
 import {
@@ -29,7 +29,8 @@ export class MeshBoardSettingsResult {
     public timeFilter?: MeshBoardTimeFilterConfig,
     public rtWellKnownName?: string,
     public entitySelectors?: EntitySelectorConfig[],
-    public autoRefreshSeconds?: number
+    public autoRefreshSeconds?: number,
+    public timeZoneMode?: MeshBoardTimeZoneMode
   ) {}
 }
 
@@ -79,6 +80,11 @@ export class MeshBoardSettingsDialogComponent {
   timeFilterEnabled = false;
   defaultSelection?: TimeRangeSelection;
   initialDefaultSelection?: SharedTimeRangeSelection;
+  /**
+   * Timezone basis for time-filter boundaries and datetime display across all
+   * widgets. Defaults to `'local'` (browser timezone).
+   */
+  timeZoneMode: MeshBoardTimeZoneMode = DEFAULT_TIME_ZONE_MODE;
 
   /** Static and time filter variable names for duplicate detection in entity selector editor */
   get staticVariableNames(): string[] {
@@ -110,6 +116,7 @@ export class MeshBoardSettingsDialogComponent {
     gap: number;
     variables?: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
+    timeZoneMode?: MeshBoardTimeZoneMode;
     entitySelectors?: EntitySelectorConfig[];
     autoRefreshSeconds?: number;
   }): void {
@@ -120,6 +127,7 @@ export class MeshBoardSettingsDialogComponent {
     this.rowHeight = settings.rowHeight;
     this.gap = settings.gap;
     this.autoRefreshSeconds = settings.autoRefreshSeconds ?? 0;
+    this.timeZoneMode = settings.timeZoneMode ?? DEFAULT_TIME_ZONE_MODE;
     this.variables = settings.variables ? [...settings.variables] : [];
     this.entitySelectors = settings.entitySelectors ? settings.entitySelectors.map(es => ({ ...es })) : [];
     this.timeFilterEnabled = settings.timeFilter?.enabled ?? false;
@@ -175,7 +183,8 @@ export class MeshBoardSettingsDialogComponent {
       timeFilter,
       this.rtWellKnownName.trim() || undefined,
       this.entitySelectors.length > 0 ? this.entitySelectors : undefined,
-      this.autoRefreshSeconds > 0 ? this.autoRefreshSeconds : undefined
+      this.autoRefreshSeconds > 0 ? this.autoRefreshSeconds : undefined,
+      this.timeZoneMode
     );
 
     this.windowRef.close(result);

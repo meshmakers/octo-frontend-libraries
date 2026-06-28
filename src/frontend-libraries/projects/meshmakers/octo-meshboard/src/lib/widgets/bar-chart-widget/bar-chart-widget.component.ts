@@ -10,6 +10,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { isIsoDateTime, formatInstant } from '../../utils/meshboard-datetime';
 
 /**
  * Series data for the bar chart
@@ -529,18 +530,18 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
   }
 
   private formatCategoryValue(value: unknown): string {
-    const str = String(value ?? '');
-    // Detect ISO 8601 timestamps and format as readable date/time
-    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(str)) {
-      const date = new Date(str);
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleString('de-AT', {
-          day: '2-digit', month: '2-digit',
-          hour: '2-digit', minute: '2-digit'
-        });
+    // ISO-8601 date-time values are formatted on the board's timezone basis;
+    // everything else passes through as a string.
+    if (isIsoDateTime(value)) {
+      const formatted = formatInstant(value, this.stateService.timeZoneMode(), {
+        day: '2-digit', month: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+      });
+      if (formatted !== null) {
+        return formatted;
       }
     }
-    return str;
+    return String(value ?? '');
   }
 
   /**

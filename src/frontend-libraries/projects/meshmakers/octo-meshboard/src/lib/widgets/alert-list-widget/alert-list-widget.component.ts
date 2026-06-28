@@ -8,6 +8,8 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { firstValueFrom } from 'rxjs';
 import { AlertItem, getAlertSeverityColor, getAlertSeverityIcon, getAlertSeverityOrder, DEFAULT_ALERT_CK_TYPE } from '../alert-shared/alert-severity.utils';
 import { FieldFilterOperatorsDto, SortOrdersDto } from '@meshmakers/octo-services';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { formatInstant } from '../../utils/meshboard-datetime';
 
 @Component({
   selector: 'mm-alert-list-widget',
@@ -122,6 +124,7 @@ import { FieldFilterOperatorsDto, SortOrdersDto } from '@meshmakers/octo-service
 })
 export class AlertListWidgetComponent implements DashboardWidget<AlertListWidgetConfig, AlertItem[]>, OnInit, OnChanges {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
+  private readonly stateService = inject(MeshBoardStateService);
 
   @Input() config!: AlertListWidgetConfig;
 
@@ -161,12 +164,9 @@ export class AlertListWidgetComponent implements DashboardWidget<AlertListWidget
   }
 
   protected formatTime(timestamp: string): string {
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleString('de-AT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return '';
-    }
+    return formatInstant(timestamp, this.stateService.timeZoneMode(), {
+      day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+    }) ?? '';
   }
 
   private async loadData(): Promise<void> {

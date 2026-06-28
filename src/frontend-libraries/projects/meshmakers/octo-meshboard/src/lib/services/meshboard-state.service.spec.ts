@@ -385,6 +385,31 @@ describe('MeshBoardStateService', () => {
         expect(settings.variables).toEqual([]);
       });
     });
+
+    describe('timeZoneMode', () => {
+      it('defaults to local when none is configured', () => {
+        expect(service.timeZoneMode()).toBe('local');
+      });
+
+      it('reflects an explicit utc mode set via updateSettings', () => {
+        service.updateSettings({
+          name: 'B',
+          description: '',
+          columns: 4,
+          rowHeight: 150,
+          gap: 8,
+          timeZoneMode: 'utc'
+        });
+        expect(service.timeZoneMode()).toBe('utc');
+        expect(service.getCurrentSettings().timeZoneMode).toBe('utc');
+      });
+
+      it('preserves the existing mode when updateSettings omits it', () => {
+        service.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
+        service.updateSettings({ name: 'C', description: '', columns: 4, rowHeight: 150, gap: 8 });
+        expect(service.timeZoneMode()).toBe('utc');
+      });
+    });
   });
 
   describe('Variable Management', () => {

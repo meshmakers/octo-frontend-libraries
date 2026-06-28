@@ -1,8 +1,10 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableWidgetConfig, PersistentQueryDataSource, TableColumnStatusIconMapping } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { ListViewComponent, TableColumn as ListViewTableColumn, StatusMapping } from '@meshmakers/shared-ui';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { formatTableCellValue } from '../../utils/meshboard-datetime';
 import { TableWidgetDataSourceDirective, QueryColumn } from './table-widget-data-source.directive';
 import { SVGIcon, checkCircleIcon, xCircleIcon, exclamationCircleIcon, questionCircleIcon, minusCircleIcon, warningTriangleIcon, circleIcon } from '@progress/kendo-svg-icons';
 
@@ -90,6 +92,8 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
 
   @ViewChild('dataSource') dataSource?: TableWidgetDataSourceDirective;
 
+  private readonly stateService = inject(MeshBoardStateService);
+
   // Widget state signals
   private readonly _isLoading = signal(false);
   private readonly _data = signal<Record<string, unknown>[]>([]);
@@ -121,9 +125,26 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
    * For persistent queries, uses dynamically derived columns from the query response.
    */
   readonly listViewColumns = computed((): ListViewTableColumn[] => {
+    // Read the board's timezone mode so datetime cells (e.g. archive
+    // window_start/window_end, which arrive as raw ISO-8601 strings) render on
+    // the same basis the time filter is computed on. Reading it here makes the
+    // columns recompute when the mode changes.
+    const mode = this.stateService.timeZoneMode();
+    // Only plain-text columns get the datetime formatter — columns the user
+    // explicitly typed ('date', 'numeric', 'iso8601', …) keep their own
+    // rendering, and any value that is not an ISO-8601 date-time passes through
+    // unchanged. Derived stream-data columns are all 'text', so they're covered.
+    const withDateFormatter = (column: ListViewTableColumn): ListViewTableColumn => {
+      const isPlainText = !column.dataType || column.dataType === 'text';
+      if (!isPlainText || column.formatter) {
+        return column;
+      }
+      return { ...column, formatter: (value: unknown) => formatTableCellValue(value, mode) };
+    };
+
     // If explicit columns are configured, use them (works for both data source types)
     if (this.config?.columns && this.config.columns.length > 0) {
-      return this.config.columns.map(col => ({
+      return this.config.columns.map(col => withDateFormatter({
         field: col.field,
         displayName: col.title,
         dataType: (col.dataType ?? 'text') as ListViewTableColumn['dataType'],
@@ -136,7 +157,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     if (this.config?.dataSource?.type === 'persistentQuery') {
       const queryColumns = this._queryColumnsForView();
       if (queryColumns.length > 0) {
-        return queryColumns;
+        return queryColumns.map(withDateFormatter);
       }
       return [];
     }

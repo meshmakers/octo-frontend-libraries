@@ -355,6 +355,20 @@ const yearOptions = TimeRangeUtils.generateYearOptions(2020, 2025);
 const monthOptions = TimeRangeUtils.generateMonthOptions();
 ```
 
+### Timezone basis (`TimeRangeZone`)
+
+Calendar-boundary helpers (`getYearRange`, `getQuarterRange`, `getMonthRange`, `getDayRange`) and `getTimeRangeFromSelection` accept an optional trailing `zone: TimeRangeZone` argument (`'local' | 'utc'`, default `'local'`):
+
+```typescript
+// Local calendar year 2026 (browser timezone) — default
+TimeRangeUtils.getTimeRangeFromSelection({ type: 'year', year: 2026 });
+
+// UTC calendar year 2026: [2026-01-01T00:00:00Z, 2027-01-01T00:00:00Z)
+TimeRangeUtils.getTimeRangeFromSelection({ type: 'year', year: 2026 }, false, 'utc');
+```
+
+`'local'` resolves boundaries in the browser's wall-clock time **consistently across all types** — including `day` and normalized `custom` ranges, which previously computed UTC-day boundaries while year/month used local time. Relative ranges (last N hours/days) are a fixed offset from "now" and ignore `zone`. Consumers that display the resulting timestamps should format them on the same basis to avoid boundary-year artifacts (a local-year range selects rows whose UTC stamps fall in the neighbouring calendar year).
+
 ---
 
 ## Styling

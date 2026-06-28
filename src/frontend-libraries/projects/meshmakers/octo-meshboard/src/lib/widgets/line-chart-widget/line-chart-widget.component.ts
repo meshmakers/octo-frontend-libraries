@@ -10,6 +10,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto, QueryModeDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { formatInstant } from '../../utils/meshboard-datetime';
 
 /** Series colours so a series' min/max band and its avg line share one hue. */
 const SERIES_PALETTE = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
@@ -542,8 +543,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const sortedCategoryEntries = Array.from(allCategories.entries())
       .sort((a, b) => a[1].getTime() - b[1].getTime());
 
-    // Detect if we need time precision (multiple data points per day)
-    const dateOnlySet = new Set(sortedCategoryEntries.map(([, date]) => date.toLocaleDateString('de-AT')));
+    // Detect if we need time precision (multiple data points per day). The
+    // day-key is computed on the board's timezone basis so the date axis stays
+    // consistent with the time filter and the rest of the board.
+    const mode = this.stateService.timeZoneMode();
+    const dateOnlySet = new Set(
+      sortedCategoryEntries.map(([, date]) => formatInstant(date, mode, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? '?')
+    );
     const needsTime = dateOnlySet.size < sortedCategoryEntries.length;
 
     const categories = sortedCategoryEntries.map(([, date]) =>
@@ -599,26 +605,24 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * Formats a date for display on the category axis (date only).
    */
   private formatDate(date: Date): string {
-    if (isNaN(date.getTime())) return '?';
-    return date.toLocaleDateString('de-AT', {
+    return formatInstant(date, this.stateService.timeZoneMode(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
-    });
+    }) ?? '?';
   }
 
   /**
    * Formats a date with time for display on the category axis.
+   * Date and time parts are formatted separately (joined with a space) to keep
+   * the compact axis label; both honor the board's timezone mode.
    */
   private formatDateTime(date: Date): string {
-    if (isNaN(date.getTime())) return '?';
-    return date.toLocaleDateString('de-AT', {
-      day: '2-digit',
-      month: '2-digit'
-    }) + ' ' + date.toLocaleTimeString('de-AT', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const mode = this.stateService.timeZoneMode();
+    const datePart = formatInstant(date, mode, { day: '2-digit', month: '2-digit' });
+    const timePart = formatInstant(date, mode, { hour: '2-digit', minute: '2-digit' });
+    if (datePart === null || timePart === null) return '?';
+    return `${datePart} ${timePart}`;
   }
 
   private sanitizeAxisName(name: string): string {

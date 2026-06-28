@@ -9,6 +9,8 @@ import {
   MeshBoardVariable,
   MeshBoardVariableSource,
   MeshBoardTimeFilterConfig,
+  MeshBoardTimeZoneMode,
+  DEFAULT_TIME_ZONE_MODE,
   TimeRangeSelection,
   VariableResolutionError,
   EntitySelectorConfig
@@ -58,6 +60,14 @@ export class MeshBoardStateService {
   readonly widgets = computed(() => this._meshBoardConfig().widgets);
   readonly isModelAvailable = computed(() => this._isModelAvailable());
   readonly variableResolutionErrors = computed(() => this._variableResolutionErrors());
+  /**
+   * The board's effective timezone mode (defaults to `'local'`). Drives both the
+   * time-filter boundary computation and datetime display across all widgets.
+   * Widgets read this to format timestamps consistently with the active filter.
+   */
+  readonly timeZoneMode = computed<MeshBoardTimeZoneMode>(
+    () => this._meshBoardConfig().timeZoneMode ?? DEFAULT_TIME_ZONE_MODE
+  );
 
   // Deprecated aliases for backward compatibility
   /** @deprecated Use meshBoardConfig instead */
@@ -328,6 +338,7 @@ export class MeshBoardStateService {
     gap: number;
     variables?: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
+    timeZoneMode?: MeshBoardTimeZoneMode;
     entitySelectors?: EntitySelectorConfig[];
     autoRefreshSeconds?: number;
   }): void {
@@ -339,6 +350,7 @@ export class MeshBoardStateService {
       columns: settings.columns,
       rowHeight: settings.rowHeight,
       gap: settings.gap,
+      timeZoneMode: settings.timeZoneMode ?? config.timeZoneMode,
       variables: settings.variables ?? config.variables,
       timeFilter: settings.timeFilter
         ? {
@@ -370,6 +382,7 @@ export class MeshBoardStateService {
     gap: number;
     variables: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
+    timeZoneMode?: MeshBoardTimeZoneMode;
     entitySelectors?: EntitySelectorConfig[];
     autoRefreshSeconds?: number;
   } {
@@ -383,6 +396,7 @@ export class MeshBoardStateService {
       gap: config.gap,
       variables: config.variables ?? [],
       timeFilter: config.timeFilter,
+      timeZoneMode: config.timeZoneMode,
       entitySelectors: config.entitySelectors,
       autoRefreshSeconds: config.autoRefreshSeconds
     };
@@ -586,8 +600,9 @@ export class MeshBoardStateService {
    * Stream-data persistent queries consume this to bound their result set;
    * runtime queries ignore it.
    *
-   * IANA-timezone-aware bucket boundaries are tracked separately (AB#4190);
-   * this helper currently returns UTC boundaries derived from the picker.
+   * Boundaries are resolved on the board's {@link timeZoneMode} basis (local by
+   * default, or UTC), the same basis widgets format their datetime display on —
+   * so the selected range and the displayed timestamps stay consistent.
    */
   resolveCurrentTimeRange(): TimeRange | null {
     const config = this._meshBoardConfig().timeFilter;
@@ -603,7 +618,7 @@ export class MeshBoardStateService {
       customFrom: selection.customFrom ? new Date(selection.customFrom) : undefined,
       customTo: selection.customTo ? new Date(selection.customTo) : undefined
     } as SharedTimeRangeSelection;
-    return TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+    return TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime, this.timeZoneMode());
   }
 
   /**

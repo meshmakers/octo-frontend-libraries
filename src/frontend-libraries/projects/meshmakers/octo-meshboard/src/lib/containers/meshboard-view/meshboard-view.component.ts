@@ -424,7 +424,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       // Update state so widgets use the URL-derived time range
       const sharedSelection = this.toSharedSelection(urlSelection);
       const showTime = timeFilter.pickerConfig?.showTime ?? false;
-      const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+      const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime, this.stateService.timeZoneMode());
       if (range) {
         const rangeISO = TimeRangeUtils.toISO(range);
         this.stateService.updateTimeFilterSelection(urlSelection, rangeISO.from, rangeISO.to);
@@ -443,7 +443,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       this._urlTimeSelection.set(selection);
       const sharedSelection = this.toSharedSelection(selection);
       const showTime = timeFilter.pickerConfig?.showTime ?? false;
-      const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+      const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime, this.stateService.timeZoneMode());
       if (range) {
         const rangeISO = TimeRangeUtils.toISO(range);
         this.stateService.updateTimeFilterSelection(selection, rangeISO.from, rangeISO.to);
@@ -453,11 +453,26 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
     const sharedSelection = this.toSharedSelection(selection);
     const showTime = timeFilter.pickerConfig?.showTime ?? false;
-    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime, this.stateService.timeZoneMode());
     if (!range) {
       return;
     }
 
+    const rangeISO = TimeRangeUtils.toISO(range);
+    this.stateService.setTimeFilterVariables(rangeISO.from, rangeISO.to);
+  }
+
+  /**
+   * Recomputes the active time-filter range from the current selection on the
+   * board's (possibly just-changed) timezone mode and republishes the
+   * `$timeRangeFrom`/`$timeRangeTo` variables. No-op when the filter is
+   * disabled or no selection is active.
+   */
+  private reapplyTimeFilterRange(): void {
+    const range = this.stateService.resolveCurrentTimeRange();
+    if (!range) {
+      return;
+    }
     const rangeISO = TimeRangeUtils.toISO(range);
     this.stateService.setTimeFilterVariables(rangeISO.from, rangeISO.to);
   }
@@ -535,6 +550,12 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
           ...settingsResult,
           entitySelectors: settingsResult.entitySelectors
         });
+
+        // The timezone mode and/or default selection may have changed — recompute
+        // the active time-filter range on the new basis so $timeRangeFrom/To and
+        // every widget's display stay consistent, then reload widget data.
+        this.reapplyTimeFilterRange();
+        await this.refresh();
 
         // Enter edit mode if not already in it
         if (!this.isEditMode()) {
@@ -764,7 +785,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
     // Calculate the time range from the selection
     const showTime = this.stateService.getTimeFilterConfig()?.pickerConfig?.showTime ?? false;
-    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime, this.stateService.timeZoneMode());
     if (!range) return;
 
     // Convert to ISO strings
@@ -794,7 +815,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     const defaultSel = config.defaultSelection;
     const sharedSelection = this.toSharedSelection(defaultSel);
     const showTime = config.pickerConfig?.showTime ?? false;
-    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime);
+    const range = TimeRangeUtils.getTimeRangeFromSelection(sharedSelection, showTime, this.stateService.timeZoneMode());
     if (!range) return;
 
     const rangeISO = TimeRangeUtils.toISO(range);

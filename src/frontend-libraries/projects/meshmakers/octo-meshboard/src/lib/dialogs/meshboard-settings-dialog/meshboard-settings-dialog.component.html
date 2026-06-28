@@ -147,6 +147,37 @@
         <div class="tab-content">
           <form class="settings-form">
             <kendo-formfield>
+              <kendo-label text="Timezone"></kendo-label>
+              <div class="radio-group">
+                <div class="radio-wrapper">
+                  <input
+                    type="radio"
+                    kendoRadioButton
+                    #tzLocal
+                    [(ngModel)]="timeZoneMode"
+                    name="timeZoneMode"
+                    value="local"
+                    id="timeZoneModeLocal"/>
+                  <kendo-label [for]="tzLocal" text="Local time (browser)" class="radio-label"></kendo-label>
+                </div>
+                <div class="radio-wrapper">
+                  <input
+                    type="radio"
+                    kendoRadioButton
+                    #tzUtc
+                    [(ngModel)]="timeZoneMode"
+                    name="timeZoneMode"
+                    value="utc"
+                    id="timeZoneModeUtc"/>
+                  <kendo-label [for]="tzUtc" text="UTC" class="radio-label"></kendo-label>
+                </div>
+              </div>
+              <kendo-formhint>
+                Basis for the time filter and for how all widgets display dates and times. Local time is the default.
+              </kendo-formhint>
+            </kendo-formfield>
+
+            <kendo-formfield>
               <div class="checkbox-wrapper">
                 <input
                   type="checkbox"

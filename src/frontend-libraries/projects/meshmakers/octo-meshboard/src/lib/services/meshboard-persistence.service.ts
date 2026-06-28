@@ -7,7 +7,7 @@ import { CreateDashboardWidgetDtoGQL } from '../graphQL/createDashboardWidget';
 import { UpdateDashboardWidgetDtoGQL } from '../graphQL/updateDashboardWidget';
 import { DeleteEntitiesDtoGQL } from '../graphQL/deleteEntities';
 import { GetDashboardWithWidgetsDtoGQL } from '../graphQL/getDashboardWithWidgets';
-import { MeshBoardConfig, AnyWidgetConfig, MeshBoardVariable, MeshBoardTimeFilterConfig, EntitySelectorConfig } from '../models/meshboard.models';
+import { MeshBoardConfig, AnyWidgetConfig, MeshBoardVariable, MeshBoardTimeFilterConfig, MeshBoardTimeZoneMode, EntitySelectorConfig } from '../models/meshboard.models';
 import { AssociationModOptionsDto, DeleteStrategiesDto, RtAssociationInputDto, SystemUiDashboardWidgetInputDto } from '../graphQL/globalTypes';
 import { WidgetRegistryService, PersistedWidgetData } from './widget-registry.service';
 
@@ -161,7 +161,8 @@ export class MeshBoardPersistenceService {
       config.variables,
       config.timeFilter,
       config.entitySelectors,
-      config.autoRefreshSeconds
+      config.autoRefreshSeconds,
+      config.timeZoneMode
     );
 
     const dashboardInput: Record<string, unknown> = {
@@ -214,7 +215,8 @@ export class MeshBoardPersistenceService {
       config.variables,
       config.timeFilter,
       config.entitySelectors,
-      config.autoRefreshSeconds
+      config.autoRefreshSeconds,
+      config.timeZoneMode
     );
 
     const dashboardItem: Record<string, unknown> = {
@@ -297,7 +299,7 @@ export class MeshBoardPersistenceService {
   toMeshBoardConfig(meshBoard: PersistedMeshBoard, widgets: PersistedWidget[]): MeshBoardConfig {
     // Decode variables, timeFilter, entitySelectors, and autoRefresh from description field
     // (temporary until backend adds first-class config field)
-    const { description, variables, timeFilter, entitySelectors, autoRefreshSeconds } = this.decodeVariablesFromDescription(meshBoard.description);
+    const { description, variables, timeFilter, entitySelectors, autoRefreshSeconds, timeZoneMode } = this.decodeVariablesFromDescription(meshBoard.description);
 
     return {
       id: meshBoard.rtId,
@@ -309,6 +311,7 @@ export class MeshBoardPersistenceService {
       gap: meshBoard.gap,
       variables,
       timeFilter,
+      timeZoneMode,
       entitySelectors,
       autoRefreshSeconds,
       widgets: widgets.map(w => this.toWidgetConfig(w))
@@ -456,15 +459,21 @@ export class MeshBoardPersistenceService {
     variables?: MeshBoardVariable[],
     timeFilter?: MeshBoardTimeFilterConfig,
     entitySelectors?: EntitySelectorConfig[],
-    autoRefreshSeconds?: number
+    autoRefreshSeconds?: number,
+    timeZoneMode?: MeshBoardTimeZoneMode
   ): string {
     // Filter out timeFilter and entitySelector variables (they are derived, not persisted directly)
     const staticVariables = variables?.filter(v => v.source !== 'timeFilter' && v.source !== 'entitySelector');
 
-    // Check if there's anything to encode
+    // Check if there's anything to encode. 'local' is the default, so only the
+    // non-default 'utc' mode needs persisting.
     const hasEntitySelectors = entitySelectors && entitySelectors.length > 0;
     const hasAutoRefresh = !!autoRefreshSeconds && autoRefreshSeconds > 0;
-    if ((!staticVariables || staticVariables.length === 0) && !timeFilter?.enabled && !hasEntitySelectors && !hasAutoRefresh) {
+    const hasTimeZoneMode = timeZoneMode === 'utc';
+    if (
+      (!staticVariables || staticVariables.length === 0) &&
+      !timeFilter?.enabled && !hasEntitySelectors && !hasAutoRefresh && !hasTimeZoneMode
+    ) {
       return description;
     }
 
@@ -472,6 +481,7 @@ export class MeshBoardPersistenceService {
       const data: {
         variables?: MeshBoardVariable[];
         timeFilter?: MeshBoardTimeFilterConfig;
+        timeZoneMode?: MeshBoardTimeZoneMode;
         entitySelectors?: EntitySelectorConfig[];
         autoRefreshSeconds?: number;
       } = {};
@@ -482,6 +492,10 @@ export class MeshBoardPersistenceService {
 
       if (timeFilter?.enabled) {
         data.timeFilter = timeFilter;
+      }
+
+      if (hasTimeZoneMode) {
+        data.timeZoneMode = timeZoneMode;
       }
 
       if (hasAutoRefresh) {
@@ -523,6 +537,7 @@ export class MeshBoardPersistenceService {
     description: string;
     variables: MeshBoardVariable[];
     timeFilter?: MeshBoardTimeFilterConfig;
+    timeZoneMode?: MeshBoardTimeZoneMode;
     entitySelectors?: EntitySelectorConfig[];
     autoRefreshSeconds?: number;
   } {
@@ -552,6 +567,7 @@ export class MeshBoardPersistenceService {
         description,
         variables: parsed.variables ?? [],
         timeFilter: parsed.timeFilter,
+        timeZoneMode: parsed.timeZoneMode === 'utc' || parsed.timeZoneMode === 'local' ? parsed.timeZoneMode : undefined,
         entitySelectors: parsed.entitySelectors,
         autoRefreshSeconds: typeof parsed.autoRefreshSeconds === 'number' ? parsed.autoRefreshSeconds : undefined
       };

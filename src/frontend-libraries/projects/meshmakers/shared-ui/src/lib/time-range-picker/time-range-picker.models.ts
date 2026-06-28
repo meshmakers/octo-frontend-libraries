@@ -34,6 +34,19 @@ export interface TimeRangeISO {
 export type Quarter = 1 | 2 | 3 | 4;
 
 /**
+ * Timezone basis for resolving calendar boundaries (year/quarter/month/day/custom).
+ *
+ * - `'local'` (default): boundaries are wall-clock instants in the browser's
+ *   local timezone — e.g. year 2026 = `[Jan 1 00:00 local, Jan 1 next-year 00:00 local)`.
+ * - `'utc'`: boundaries are wall-clock instants in UTC — e.g. year 2026 =
+ *   `[2026-01-01T00:00:00Z, 2027-01-01T00:00:00Z)`.
+ *
+ * Relative ranges (last N hours/days) are timezone-independent (a fixed offset
+ * from "now") and ignore this setting.
+ */
+export type TimeRangeZone = 'local' | 'utc';
+
+/**
  * Configuration for the time range picker
  */
 export interface TimeRangePickerConfig {
@@ -155,8 +168,15 @@ export class TimeRangeUtils {
   /**
    * Calculate time range for a specific year.
    * Uses exclusive end boundary (start of next year) for correct LESS_THAN filtering.
+   * @param zone Timezone basis for the boundaries (defaults to `'local'`).
    */
-  static getYearRange(year: number): TimeRange {
+  static getYearRange(year: number, zone: TimeRangeZone = 'local'): TimeRange {
+    if (zone === 'utc') {
+      return {
+        from: new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)),
+        to: new Date(Date.UTC(year + 1, 0, 1, 0, 0, 0, 0))
+      };
+    }
     return {
       from: new Date(year, 0, 1, 0, 0, 0, 0),
       to: new Date(year + 1, 0, 1, 0, 0, 0, 0)
@@ -166,9 +186,16 @@ export class TimeRangeUtils {
   /**
    * Calculate time range for a specific quarter.
    * Uses exclusive end boundary (start of next quarter) for correct LESS_THAN filtering.
+   * @param zone Timezone basis for the boundaries (defaults to `'local'`).
    */
-  static getQuarterRange(year: number, quarter: Quarter): TimeRange {
+  static getQuarterRange(year: number, quarter: Quarter, zone: TimeRangeZone = 'local'): TimeRange {
     const startMonth = (quarter - 1) * 3;
+    if (zone === 'utc') {
+      return {
+        from: new Date(Date.UTC(year, startMonth, 1, 0, 0, 0, 0)),
+        to: new Date(Date.UTC(year, startMonth + 3, 1, 0, 0, 0, 0))
+      };
+    }
     return {
       from: new Date(year, startMonth, 1, 0, 0, 0, 0),
       to: new Date(year, startMonth + 3, 1, 0, 0, 0, 0)
@@ -178,8 +205,15 @@ export class TimeRangeUtils {
   /**
    * Calculate time range for a specific month.
    * Uses exclusive end boundary (start of next month) for correct LESS_THAN filtering.
+   * @param zone Timezone basis for the boundaries (defaults to `'local'`).
    */
-  static getMonthRange(year: number, month: number): TimeRange {
+  static getMonthRange(year: number, month: number, zone: TimeRangeZone = 'local'): TimeRange {
+    if (zone === 'utc') {
+      return {
+        from: new Date(Date.UTC(year, month, 1, 0, 0, 0, 0)),
+        to: new Date(Date.UTC(year, month + 1, 1, 0, 0, 0, 0))
+      };
+    }
     return {
       from: new Date(year, month, 1, 0, 0, 0, 0),
       to: new Date(year, month + 1, 1, 0, 0, 0, 0)
@@ -192,15 +226,31 @@ export class TimeRangeUtils {
    * Optionally filters to a specific hour range within the day.
    * @param hourFrom Start hour (0-23), defaults to 0
    * @param hourTo End hour (1-24, exclusive), defaults to 24 (= next day 00:00)
+   * @param zone Timezone basis for the boundaries (defaults to `'local'`).
    */
-  static getDayRange(year: number, month: number, day: number, hourFrom?: number, hourTo?: number): TimeRange {
+  static getDayRange(
+    year: number,
+    month: number,
+    day: number,
+    hourFrom?: number,
+    hourTo?: number,
+    zone: TimeRangeZone = 'local'
+  ): TimeRange {
     const fromHour = hourFrom ?? 0;
     const toHour = hourTo ?? 24;
+    if (zone === 'utc') {
+      return {
+        from: new Date(Date.UTC(year, month, day, fromHour, 0, 0, 0)),
+        to: toHour === 24
+          ? new Date(Date.UTC(year, month, day + 1, 0, 0, 0, 0))
+          : new Date(Date.UTC(year, month, day, toHour, 0, 0, 0))
+      };
+    }
     return {
-      from: new Date(Date.UTC(year, month, day, fromHour, 0, 0, 0)),
+      from: new Date(year, month, day, fromHour, 0, 0, 0),
       to: toHour === 24
-        ? new Date(Date.UTC(year, month, day + 1, 0, 0, 0, 0))
-        : new Date(Date.UTC(year, month, day, toHour, 0, 0, 0))
+        ? new Date(year, month, day + 1, 0, 0, 0, 0)
+        : new Date(year, month, day, toHour, 0, 0, 0)
     };
   }
 
@@ -233,28 +283,34 @@ export class TimeRangeUtils {
    * Calculate time range from selection.
    * @param selection The current selection state
    * @param showTime If false (default), custom date ranges are normalized to full-day boundaries
-   *                 with exclusive end (from: 00:00:00 UTC, to: start of next day 00:00:00 UTC)
+   *                 with exclusive end (from: 00:00:00, to: start of next day 00:00:00)
+   * @param zone Timezone basis for calendar boundaries (defaults to `'local'`). Applies to
+   *             year/quarter/month/day and normalized custom ranges; relative ranges ignore it.
    */
-  static getTimeRangeFromSelection(selection: TimeRangeSelection, showTime = false): TimeRange | null {
+  static getTimeRangeFromSelection(
+    selection: TimeRangeSelection,
+    showTime = false,
+    zone: TimeRangeZone = 'local'
+  ): TimeRange | null {
     switch (selection.type) {
       case 'year':
         if (selection.year) {
-          return this.getYearRange(selection.year);
+          return this.getYearRange(selection.year, zone);
         }
         break;
       case 'quarter':
         if (selection.year && selection.quarter) {
-          return this.getQuarterRange(selection.year, selection.quarter);
+          return this.getQuarterRange(selection.year, selection.quarter, zone);
         }
         break;
       case 'month':
         if (selection.year && selection.month !== undefined) {
-          return this.getMonthRange(selection.year, selection.month);
+          return this.getMonthRange(selection.year, selection.month, zone);
         }
         break;
       case 'day':
         if (selection.year && selection.month !== undefined && selection.day !== undefined) {
-          return this.getDayRange(selection.year, selection.month, selection.day, selection.hourFrom, selection.hourTo);
+          return this.getDayRange(selection.year, selection.month, selection.day, selection.hourFrom, selection.hourTo, zone);
         }
         break;
       case 'relative':
@@ -271,12 +327,18 @@ export class TimeRangeUtils {
               to: selection.customTo
             };
           }
-          // Normalize to full-day boundaries in UTC (exclusive end, like year/quarter/month)
+          // Normalize to full-day boundaries (exclusive end, like year/quarter/month)
           const from = new Date(selection.customFrom);
-          from.setUTCHours(0, 0, 0, 0);
           const to = new Date(selection.customTo);
-          to.setUTCHours(0, 0, 0, 0);
-          to.setUTCDate(to.getUTCDate() + 1);
+          if (zone === 'utc') {
+            from.setUTCHours(0, 0, 0, 0);
+            to.setUTCHours(0, 0, 0, 0);
+            to.setUTCDate(to.getUTCDate() + 1);
+          } else {
+            from.setHours(0, 0, 0, 0);
+            to.setHours(0, 0, 0, 0);
+            to.setDate(to.getDate() + 1);
+          }
           return { from, to };
         }
         break;

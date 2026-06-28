@@ -28,10 +28,11 @@ describe('LineChartWidgetComponent dataInfo (load counter)', () => {
     }) as ReturnType<QueryExecutorService['execute']>);
 
     const stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService',
-      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'getVariables']);
+      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'getVariables', 'timeZoneMode']);
     stateService.resolveStreamDataTimeArgs.and.returnValue(undefined);
     stateService.resolveStreamDataRtIds.and.returnValue(undefined);
     stateService.getVariables.and.returnValue([]);
+    stateService.timeZoneMode.and.returnValue('local');
 
     const variableService = jasmine.createSpyObj<MeshBoardVariableService>('MeshBoardVariableService',
       ['convertToFieldFilterDto']);
@@ -109,13 +110,14 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
     }) as ReturnType<QueryExecutorService['execute']>);
 
     const stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService',
-      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'getVariables']);
+      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'getVariables', 'timeZoneMode']);
     // A resolved time range is what flips the widget into downsampling mode.
     stateService.resolveStreamDataTimeArgs.and.returnValue({
       from: new Date('2026-01-01T00:00:00Z'), to: new Date('2026-12-31T00:00:00Z')
     });
     stateService.resolveStreamDataRtIds.and.returnValue(['entity-1']);
     stateService.getVariables.and.returnValue([]);
+    stateService.timeZoneMode.and.returnValue('local');
 
     const variableService = jasmine.createSpyObj<MeshBoardVariableService>('MeshBoardVariableService',
       ['convertToFieldFilterDto']);
