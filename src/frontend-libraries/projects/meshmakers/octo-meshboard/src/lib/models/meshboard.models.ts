@@ -33,10 +33,27 @@ export interface WidgetDataSource {
  */
 export interface RuntimeEntityDataSource extends WidgetDataSource {
   type: 'runtimeEntity';
+  /**
+   * CK type of the entity. May contain a MeshBoard variable (e.g.
+   * `$mp_rtCkTypeId`) which is resolved against the active variables before the
+   * entity is fetched.
+   */
   ckTypeId?: string;
+  /**
+   * Runtime id of the entity. May contain a MeshBoard variable (e.g. `$mp_rtId`)
+   * which is resolved against the active variables before the entity is fetched.
+   */
   rtId?: string;
   attributePaths?: string[];
   includeAssociations?: boolean;
+  /**
+   * Entity-selector binding: the `id` of a MeshBoard entity selector whose
+   * current selection supplies this widget's entity. When set, the selector's
+   * `selectedRtId` and the picked entity's CK type (`$<id>_rtCkTypeId`) override
+   * `rtId`/`ckTypeId`, so the widget follows the asset picked at board level.
+   * Absent ⇒ the literal (optionally variable-bearing) `rtId`/`ckTypeId` win.
+   */
+  entitySelectorId?: string;
 }
 
 /**

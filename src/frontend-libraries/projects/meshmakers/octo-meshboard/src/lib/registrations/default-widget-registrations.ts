@@ -179,14 +179,25 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     configDialogTitle: 'Entity Configuration',
     defaultSize: { colSpan: 2, rowSpan: 2 },
     supportedDataSources: ['runtimeEntity'],
-    getInitialConfig: (widget) => ({
-      initialCkTypeId: getDataSourceInfo(widget).ckTypeId,
-      initialRtId: getDataSourceInfo(widget).rtId,
-      initialHideEmptyAttributes: (widget as EntityCardWidgetConfig).hideEmptyAttributes ?? false
-    }),
+    getInitialConfig: (widget) => {
+      const ds = widget.dataSource;
+      const isRuntime = ds.type === 'runtimeEntity';
+      return {
+        initialCkTypeId: isRuntime ? ds.ckTypeId : undefined,
+        initialRtId: isRuntime ? ds.rtId : undefined,
+        initialEntitySelectorId: isRuntime ? ds.entitySelectorId : undefined,
+        initialHideEmptyAttributes: (widget as EntityCardWidgetConfig).hideEmptyAttributes ?? false
+      };
+    },
     applyConfigResult: (widget, result) => ({
       ...widget,
-      dataSource: createDataSource(result, true),
+      dataSource: {
+        type: 'runtimeEntity',
+        ckTypeId: result.ckTypeId || undefined,
+        rtId: result.rtId || undefined,
+        entitySelectorId: result.entitySelectorId || undefined,
+        includeAssociations: true
+      },
       hideEmptyAttributes: result.hideEmptyAttributes
     }),
 
@@ -210,7 +221,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showHeader: widget.showHeader,
         showAttributes: widget.showAttributes,
         attributeFilter: widget.attributeFilter,
-        hideEmptyAttributes: widget.hideEmptyAttributes
+        hideEmptyAttributes: widget.hideEmptyAttributes,
+        entitySelectorId: widget.dataSource.type === 'runtimeEntity' ? widget.dataSource.entitySelectorId : undefined
       }
     }),
 
@@ -224,7 +236,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dataSource: {
           type: 'runtimeEntity',
           ckTypeId: data.dataSourceCkTypeId ?? undefined,
-          rtId: data.dataSourceRtId ?? undefined
+          rtId: data.dataSourceRtId ?? undefined,
+          entitySelectorId: (config['entitySelectorId'] as string | undefined) || undefined
         },
         showHeader: (config['showHeader'] as boolean) ?? true,
         showAttributes: (config['showAttributes'] as boolean) ?? true,

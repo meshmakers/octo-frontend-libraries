@@ -41,6 +41,8 @@
       <span class="entity-id" title="Runtime ID">{{ data()!.rtId }}</span>
     </div>
   } @else {
-    <mm-widget-not-configured></mm-widget-not-configured>
+    <div class="entity-empty">
+      <span class="entity-empty-text">{{ emptyMessage() }}</span>
+    </div>
   }
 </div>

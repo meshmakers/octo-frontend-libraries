@@ -112,3 +112,17 @@
 .no-data-message {
   font-size: 0.875rem;
 }
+
+.entity-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 8px;
+  text-align: center;
+}
+
+.entity-empty-text {
+  font-size: 0.875rem;
+  color: var(--kendo-color-subtle, #6c757d);
+}

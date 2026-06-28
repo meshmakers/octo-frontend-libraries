@@ -1185,7 +1185,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     const dataSource = widget.dataSource;
 
     if (dataSource.type === 'runtimeEntity') {
-      return !dataSource.rtId && !dataSource.ckTypeId;
+      // An entity-selector binding (or a variable-bearing rtId/ckTypeId) counts
+      // as configured — the entity is resolved live from a board-level selection.
+      return !dataSource.entitySelectorId && !dataSource.rtId && !dataSource.ckTypeId;
     }
     if (dataSource.type === 'persistentQuery') {
       return !dataSource.queryRtId;
@@ -1354,6 +1356,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       const rtIdVariableName = `${selector.id}_rtId`;
       if (!values.some(v => v.name === rtIdVariableName)) {
         values.push({ name: rtIdVariableName, value: rtId, type: 'string' });
+      }
+
+      // Auto-expose the selected entity's CK type as `$<selectorId>_rtCkTypeId`
+      // so entity-display widgets (e.g. the entity card) can resolve both the
+      // rtId and its type from a single board-level selection. Prefer the picked
+      // entity's actual type (it may be a subtype of the selector's configured
+      // `ckTypeId`); fall back to the selector's type. An explicit mapping to the
+      // same variable name wins.
+      const rtCkTypeIdVariableName = `${selector.id}_rtCkTypeId`;
+      if (!values.some(v => v.name === rtCkTypeIdVariableName)) {
+        values.push({ name: rtCkTypeIdVariableName, value: entity.ckTypeId ?? selector.ckTypeId, type: 'string' });
       }
 
       this.stateService.setEntitySelectorVariables(selector.id, values);

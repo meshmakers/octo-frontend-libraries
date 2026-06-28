@@ -1,7 +1,9 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EntityCardWidgetConfig, RuntimeEntityData } from '../../models/meshboard.models';
+import { EntityCardWidgetConfig, RuntimeEntityData, RuntimeEntityDataSource } from '../../models/meshboard.models';
 import { DashboardDataService } from '../../services/meshboard-data.service';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { PropertyValueDisplayComponent, AttributeValueTypeDto } from '@meshmakers/octo-ui';
@@ -17,6 +19,8 @@ import { catchError, of } from 'rxjs';
 })
 export class EntityCardWidgetComponent implements DashboardWidget<EntityCardWidgetConfig, RuntimeEntityData>, OnInit, OnChanges {
   private readonly dataService = inject(DashboardDataService);
+  private readonly stateService = inject(MeshBoardStateService);
+  private readonly variableService = inject(MeshBoardVariableService);
 
   @Input() config!: EntityCardWidgetConfig;
 
@@ -37,7 +41,10 @@ export class EntityCardWidgetComponent implements DashboardWidget<EntityCardWidg
     const dataSource = this.config?.dataSource;
     if (!dataSource) return true;
     if (dataSource.type === 'runtimeEntity') {
-      return !dataSource.rtId && !dataSource.ckTypeId;
+      // A selector binding or a variable-bearing rtId/ckTypeId counts as
+      // configured even before a board-level selection has resolved a value —
+      // the empty/loading display is handled by loadData(), not here.
+      return !dataSource.entitySelectorId && !dataSource.rtId && !dataSource.ckTypeId;
     }
     if (dataSource.type === 'static') {
       return false; // Static data is always "configured"
@@ -122,12 +129,26 @@ export class EntityCardWidgetComponent implements DashboardWidget<EntityCardWidg
     }
 
     // Handle runtime entity data source
-    // Note: isNotConfigured() check ensures rtId and ckTypeId are set
     if (dataSource.type === 'runtimeEntity') {
+      // Resolve the effective entity reference: an entity-selector binding or
+      // MeshBoard variables (e.g. $mp_rtId / $mp_rtCkTypeId) may supply the
+      // rtId/ckTypeId from a board-level selection.
+      const { rtId, ckTypeId } = this.resolveEntityRef(dataSource);
+
+      // No resolvable selection yet (selector unpicked or variable unresolved) —
+      // show nothing rather than fetching with a placeholder string.
+      if (!rtId || !ckTypeId || this.variableService.hasUnresolvedVariables(rtId) ||
+        this.variableService.hasUnresolvedVariables(ckTypeId)) {
+        this._data.set(null);
+        this._error.set(null);
+        this._isLoading.set(false);
+        return;
+      }
+
       this._isLoading.set(true);
       this._error.set(null);
 
-      this.dataService.fetchEntityWithAssociations(dataSource.rtId!, dataSource.ckTypeId!)
+      this.dataService.fetchEntityWithAssociations(rtId, ckTypeId)
         .pipe(
           catchError(err => {
             console.error('Error loading entity card data:', err);
@@ -140,6 +161,55 @@ export class EntityCardWidgetComponent implements DashboardWidget<EntityCardWidg
           this._isLoading.set(false);
         });
     }
+  }
+
+  /**
+   * Message for the neutral empty state — shown when the widget IS configured
+   * but no entity is currently resolved (e.g. a bound selector hasn't been
+   * picked yet, or a variable is still unresolved). This is deliberately not the
+   * red "not configured" placeholder, which would wrongly imply the widget needs
+   * setup.
+   */
+  emptyMessage(): string {
+    const dataSource = this.config?.dataSource;
+    if (dataSource?.type === 'runtimeEntity') {
+      if (dataSource.entitySelectorId) {
+        return 'No entity selected';
+      }
+      if ((dataSource.rtId?.includes('$')) || (dataSource.ckTypeId?.includes('$'))) {
+        return 'Waiting for selection';
+      }
+    }
+    return 'No data';
+  }
+
+  /**
+   * Resolves the effective `{ rtId, ckTypeId }` to fetch from a runtime-entity
+   * data source.
+   *
+   * - When `entitySelectorId` is set, the bound MeshBoard entity selector's
+   *   current `selectedRtId` and the picked entity's type
+   *   (`$<selectorId>_rtCkTypeId`, falling back to the selector's configured
+   *   `ckTypeId`) win — so the card follows the asset picked at board level.
+   * - Otherwise the configured `rtId`/`ckTypeId` are resolved against the active
+   *   MeshBoard variables, allowing values like `$mp_rtId` / `$mp_rtCkTypeId`.
+   */
+  private resolveEntityRef(dataSource: RuntimeEntityDataSource): { rtId?: string; ckTypeId?: string } {
+    const variables = this.stateService.getVariables();
+
+    if (dataSource.entitySelectorId) {
+      const selector = this.stateService.getEntitySelector(dataSource.entitySelectorId);
+      const rtCkTypeIdVar = variables.find(v => v.name === `${dataSource.entitySelectorId}_rtCkTypeId`);
+      return {
+        rtId: selector?.selectedRtId,
+        ckTypeId: rtCkTypeIdVar?.value || selector?.ckTypeId
+      };
+    }
+
+    return {
+      rtId: dataSource.rtId ? this.variableService.resolveVariables(dataSource.rtId, variables) : undefined,
+      ckTypeId: dataSource.ckTypeId ? this.variableService.resolveVariables(dataSource.ckTypeId, variables) : undefined
+    };
   }
 
   inferAttributeType(value: unknown): AttributeValueTypeDto {

@@ -508,14 +508,39 @@ selection resolves to the child rtIds via `getAssociationTargets`; when absent,
 the picked entity's own rtId is the scope. These rtIds feed a widget's
 `entitySelectorId` asset-scope binding — see *PersistentQueryDataSource* above.
 
-### Auto-exposed selected-entity rtId
+### Auto-exposed selected-entity rtId / rtCkTypeId
 
 In addition to the mapped attribute variables, every selector automatically
-exposes the selected entity's **rtId** as a variable named `<selectorId>_rtId`
-(e.g. selector `mp` → `$mp_rtId`). No `attributeMappings` entry is required for
-this. Use it to scope a **runtime-entity** widget to the selected asset by
+exposes two variables for the selected entity (no `attributeMappings` entry
+required):
+
+- `<selectorId>_rtId` — the selected entity's **rtId** (e.g. `$mp_rtId`).
+- `<selectorId>_rtCkTypeId` — the selected entity's **CK type** (e.g.
+  `$mp_rtCkTypeId`). Sourced from the picked entity's actual `ckTypeId` (which
+  may be a subtype of the selector's configured type), falling back to the
+  selector's `ckTypeId`.
+
+Use `$<id>_rtId` to scope a **runtime-entity** widget to the selected asset by
 parent association, e.g. a filter
 `{ attributePath: 'parent_basicEnergyMeteringPoint', operator: 'eq', comparisonValue: '$mp_rtId' }`.
+
+#### Entity card binding to a selector
+
+The **entity card** widget can display whichever entity is picked by a
+board-level selector. Its config dialog offers three *Entity source* modes:
+
+- **Fixed entity** — pick a concrete CK type + entity (default, unchanged).
+- **Entity selector** — choose a selector from the dropdown; stored as
+  `RuntimeEntityDataSource.entitySelectorId`. At render the widget reads the
+  selector's `selectedRtId` and the `$<id>_rtCkTypeId` variable.
+- **Variable** — type variables into the CK-type / rtId fields (e.g.
+  `$mp_rtCkTypeId` / `$mp_rtId`); resolved via `MeshBoardVariableService` before
+  the entity is fetched.
+
+The widget skips the fetch (showing nothing) while the resolved rtId/ckTypeId is
+empty or still contains an unresolved `$placeholder` — e.g. before a selection
+is made. Selection changes re-fetch automatically via the standard
+`triggerRefresh()` → `ngOnChanges` path.
 
 > **Stream-data widgets are different.** A stream-data archive has no parent
 > column, so a `$mp_rtId` field-filter can't scope an archive query. Use the
