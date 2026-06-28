@@ -13,19 +13,17 @@ import { QueryFamily, queryFamily } from '../utils/query-family';
  * without importing generated DTO types directly.
  *
  * Backend semantics (verified against StreamDataQueryDtoType.cs and
- * StreamDataVariantExecutor.cs as of 2026-06-24):
+ * StreamDataVariantExecutor.cs; `queryMode` override added in AB#4233):
  * - `from` / `to` / `limit` override the persisted query's intrinsic values
  *   when set (`execOverride?.From ?? simple.From` pattern in the resolver).
  * - `interval` is currently ignored by every variant; the downsampling path
  *   derives `(to - from) / limit` itself.
- * - `queryMode` is **ignored on both persistent and transient dispatch** —
- *   the variant (Simple / Aggregation / GroupingAggregation / Downsampling)
- *   comes from the persisted entity's CK subtype or the transient query's
- *   GraphQL sub-connection URL. We still emit it because the schema declares
- *   `queryMode: QueryMode!` (NonNull); see backend cleanup issue.
- *
- * Don't pretend to override the mode from here — even if `queryMode: DOWNSAMPLING`
- * is set on a `SimpleSdQuery`, the backend still runs the simple variant.
+ * - `queryMode: DOWNSAMPLING` on a `SimpleSdQuery` (persisted) or the transient
+ *   `simple` sub-connection now drives the downsampling execution path: with a
+ *   full from/to/limit contract the backend reduces to `limit` buckets per series
+ *   (per-type reducers + group-by source rtId). Without all three it falls back
+ *   to raw rows. For the other variants the execution shape still comes from the
+ *   CK subtype / sub-connection; `queryMode` is a no-op there.
  */
 export interface StreamDataExecutionArgs {
   from?: Date | null;
@@ -33,8 +31,9 @@ export interface StreamDataExecutionArgs {
   interval?: number | null;
   limit?: number | null;
   /**
-   * Currently a no-op on the dispatch side; kept because the GraphQL input
-   * schema marks `queryMode` non-null. Defaults to `Default`.
+   * `DOWNSAMPLING` switches a SimpleSdQuery / transient `simple` query to the
+   * downsampling path (with from/to/limit); a no-op for the other variants.
+   * Defaults to `Default` (raw rows).
    */
   queryMode?: QueryModeDto;
   /**

@@ -116,6 +116,7 @@ interface ValueAxisConfig {
                   [axis]="series.axisName ?? ''"
                   [color]="series.color"
                   [opacity]="0.18"
+                  [visibleInLegend]="false"
                   [markers]="{ visible: false }">
                 </kendo-chart-series-item>
               }
