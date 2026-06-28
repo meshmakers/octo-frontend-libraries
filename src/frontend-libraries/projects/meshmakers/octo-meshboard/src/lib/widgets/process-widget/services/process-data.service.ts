@@ -18,7 +18,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
 import { MeshBoardDataService } from '../../../services/meshboard-data.service';
 import { MeshBoardVariableService } from '../../../services/meshboard-variable.service';
 import { MeshBoardStateService } from '../../../services/meshboard-state.service';
-import { ExecuteRuntimeQueryDtoGQL, ExecuteRuntimeQueryQueryDto } from '../../../graphQL/executeRuntimeQuery';
+import { QueryExecutorService, QueryExecutionResult, StreamDataExecutionArgs } from '../../../services/query-executor.service';
 import { RuntimeEntityData, WidgetFilterConfig } from '../../../models/meshboard.models';
 import { ProcessWidgetConfig } from '../process-widget-config.model';
 
@@ -102,7 +102,7 @@ export class ProcessDataService {
   private readonly getProcessDiagramsGQL = inject(GetProcessDiagramsDtoGQL);
   private readonly createProcessDiagramGQL = inject(CreateProcessDiagramDtoGQL);
   private readonly updateProcessDiagramGQL = inject(UpdateProcessDiagramDtoGQL);
-  private readonly executeRuntimeQueryGQL = inject(ExecuteRuntimeQueryDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
 
   /**
    * Loads a list of available process diagrams from the backend
@@ -478,10 +478,23 @@ export class ProcessDataService {
       throw new Error('Persistent query binding requires queryRtId');
     }
 
-    // TODO: Implement persistent query execution
-    // For now, return undefined
-    console.warn('Persistent query data source not yet implemented');
-    return undefined;
+    // Execute via the unified executor (family resolved lazily). The active time
+    // filter is applied by default for stream-data queries; runtime queries
+    // ignore it. The element binding has no asset-scope, so no rtIds override.
+    const result = await firstValueFrom(
+      this.queryExecutor.execute(undefined, queryRtId, {
+        first: 1,
+        streamDataArgs: this.stateService.resolveStreamDataTimeArgs()
+      })
+    );
+
+    // Extract the bound column from the first row.
+    const firstRow = result.rows[0];
+    if (!firstRow) {
+      return undefined;
+    }
+    const cell = firstRow.cells.find(c => c.attributePath === binding.attributePath);
+    return cell?.value;
   }
 
   /**
@@ -695,7 +708,7 @@ export class ProcessDataService {
    * Loads data from a persistent query binding
    */
   private async loadBoundQueryData(config: ProcessWidgetConfig): Promise<BoundDataResult> {
-    const { bindingQueryRtId, bindingFilters } = config;
+    const { bindingQueryRtId, bindingFilters, bindingQueryFamily } = config;
 
     if (!bindingQueryRtId) {
       throw new Error('Persistent query binding requires a Query rtId');
@@ -704,57 +717,62 @@ export class ProcessDataService {
     // Convert widget filters to GraphQL format with variable resolution
     const fieldFilters = this.convertFiltersToDto(bindingFilters);
 
-    // Execute the query
+    // Execute via the unified executor — it routes runtime vs stream-data from
+    // the persisted family (or a one-time lookup when absent). Stream-data
+    // queries additionally consume the time-filter / asset-scope overrides built
+    // below; runtime queries ignore `streamDataArgs`.
     const result = await firstValueFrom(
-      this.executeRuntimeQueryGQL.fetch({
-        variables: {
-          rtId: bindingQueryRtId,
-          first: 1000, // Reasonable limit for process diagram data
-          fieldFilter: fieldFilters
-        }
+      this.queryExecutor.execute(bindingQueryFamily, bindingQueryRtId, {
+        first: 1000, // Reasonable limit for process diagram data
+        fieldFilter: fieldFilters,
+        streamDataArgs: this.buildBindingStreamDataArgs(config)
       })
     );
 
-    // Parse the query result
-    const queryData = result.data?.runtime?.runtimeQuery?.items?.[0];
-    if (!queryData) {
-      throw new Error(`Query not found or returned no data: ${bindingQueryRtId}`);
-    }
-
-    // Map the result to our format
-    const queryResult = this.mapQueryResult(queryData);
-
     return {
       type: 'query',
-      queryResult,
+      queryResult: this.mapExecutionResult(result),
       loadedAt: new Date()
     };
   }
 
   /**
-   * Maps GraphQL query result to QueryResultData format
+   * Builds the stream-data overrides (time range + asset scope) for the bound
+   * persistent query from the active MeshBoard time filter and entity selector.
+   * Returns `undefined` when neither override applies (e.g. runtime query, no
+   * time filter, opted out). Runtime queries ignore the result.
    */
-  private mapQueryResult(queryData: NonNullable<NonNullable<NonNullable<ExecuteRuntimeQueryQueryDto['runtime']>['runtimeQuery']>['items']>[0]): QueryResultData {
-    const columns = queryData.columns.map(col => ({
+  private buildBindingStreamDataArgs(config: ProcessWidgetConfig): StreamDataExecutionArgs | undefined {
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(config.bindingIgnoreTimeFilter);
+    const rtIds = this.stateService.resolveStreamDataRtIds(config.bindingEntitySelectorId);
+
+    if (!timeArgs && !rtIds) {
+      return undefined;
+    }
+
+    return { ...timeArgs, rtIds };
+  }
+
+  /**
+   * Maps a unified {@link QueryExecutionResult} (runtime or stream-data) to the
+   * Process Widget's {@link QueryResultData} shape used by column mappings.
+   */
+  private mapExecutionResult(result: QueryExecutionResult): QueryResultData {
+    const columns = result.columns.map(col => ({
       attributePath: col.attributePath ?? '',
       attributeValueType: col.attributeValueType ?? undefined
     }));
 
-    const rows: QueryResultRow[] = (queryData.rows?.items ?? []).map(row => {
+    const rows: QueryResultRow[] = result.rows.map(row => {
       const cells = new Map<string, unknown>();
-
-      for (const cell of row?.cells?.items ?? []) {
-        if (cell?.attributePath) {
+      for (const cell of row.cells) {
+        if (cell.attributePath) {
           cells.set(cell.attributePath, cell.value);
         }
       }
-
-      // Handle different row types
-      const typedRow = row as { rtId?: string; ckTypeId?: string };
-
       return {
-        rtId: typedRow.rtId ?? undefined,
-        ckTypeId: typedRow.ckTypeId ?? undefined,
+        rtId: row.rtId ?? undefined,
+        ckTypeId: row.ckTypeId ?? undefined,
         cells
       };
     });
@@ -762,7 +780,7 @@ export class ProcessDataService {
     return {
       columns,
       rows,
-      totalCount: queryData.rows?.totalCount ?? 0
+      totalCount: result.totalCount
     };
   }
 

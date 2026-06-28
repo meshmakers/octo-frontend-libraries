@@ -344,8 +344,21 @@ interface AggregationQuery {
 | `entityWithAssociations` | Entity with relationships | runtimeEntity |
 | `statusIndicator` | Traffic light status | serviceCall, aggregation |
 | `serviceHealth` | Backend service health | serviceCall |
-| `process` | Process diagram (HMI) | - |
+| `statsGrid` | Multiple KPIs in a grid | aggregation, persistentQuery (per stat; runtime + stream-data) |
+| `summaryCard` | Compact data tiles | runtimeEntity, aggregation, persistentQuery (per tile; runtime + stream-data) |
+| `process` | Process diagram (HMI) | runtimeEntity, persistentQuery (runtime + stream-data) |
 | `markdown` | Static markdown content with themed styling | static |
+
+> **Per-cell persistent queries (stats-grid / summary-card).** Each stat / tile can
+> draw its value from a persistent query instead of a runtime aggregation. The
+> query may be runtime or stream-data — switching is a configuration change
+> (`StatItem.persistentQuerySource` / `SummaryCardTile.persistentQuerySource`,
+> shape {@link PersistentQueryCellSource}). The shared
+> `mm-persistent-query-cell-editor` surfaces the query picker plus the SD-only
+> time-filter opt-out and entity-selector asset-scope (hidden for runtime
+> queries), exactly like the KPI/gauge widgets. Value extraction by `queryMode`
+> (simpleCount / aggregation / groupedAggregation) is shared via
+> `utils/persistent-query-cell.ts`.
 
 ### Widget Configuration Interface
 

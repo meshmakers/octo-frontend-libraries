@@ -653,6 +653,50 @@ export interface HeatmapWidgetConfig extends WidgetConfig {
 // ============================================================================
 
 /**
+ * Query mode for a persistent-query cell source — how the single displayed value
+ * is derived from the query result. Mirrors the KPI/gauge widget query modes.
+ */
+export type PersistentQueryCellMode = 'simpleCount' | 'aggregation' | 'groupedAggregation';
+
+/**
+ * A single-value data source backed by a persistent query (runtime OR stream-data).
+ *
+ * Used per-cell by aggregation-style widgets (stats-grid stat, summary-card tile)
+ * as an alternative to their built-in runtime aggregation source. Switching a cell
+ * between runtime and stream-data is a configuration change (the `queryFamily`
+ * discriminator picks the executor), not a different widget — mirroring how the
+ * KPI/gauge widgets consume {@link PersistentQueryDataSource}.
+ */
+export interface PersistentQueryCellSource {
+  /** The rtId of the persistent query to execute. */
+  queryRtId: string;
+  /** Display name of the query (for UI). */
+  queryName?: string;
+  /** Query family: 'runtime' or 'streamData'. Derived from the query's CK type when absent. */
+  queryFamily?: QueryFamily;
+  /**
+   * Stream-data opt-out: when `true`, the MeshBoard time filter is NOT bound to
+   * the query's `streamDataArgs.from/.to`. Ignored for runtime queries.
+   */
+  ignoreTimeFilter?: boolean;
+  /**
+   * Asset-scope binding: the `id` of an entity selector whose selection scopes the
+   * stream-data query via `streamDataArgs.rtIds`. Ignored for runtime queries.
+   */
+  entitySelectorId?: string;
+  /** How to reduce the query result to one value. */
+  queryMode: PersistentQueryCellMode;
+  /** Value column for `aggregation` / `groupedAggregation` modes. */
+  queryValueField?: string;
+  /** Category column for `groupedAggregation` mode. */
+  queryCategoryField?: string;
+  /** Category value to match for `groupedAggregation` mode. */
+  queryCategoryValue?: string;
+  /** Field filters applied to the query rows. */
+  filters?: WidgetFilterConfig[];
+}
+
+/**
  * Color options for stat items
  */
 export type StatColor = 'mint' | 'cyan' | 'violet' | 'toffee' | 'lilac' | 'bubblegum' | 'default';
@@ -663,8 +707,16 @@ export type StatColor = 'mint' | 'cyan' | 'violet' | 'toffee' | 'lilac' | 'bubbl
 export interface StatItem {
   /** Display label */
   label: string;
-  /** Reference to aggregation query ID */
+  /**
+   * Reference to the aggregation query ID in the widget's `AggregationDataSource`.
+   * Used when `persistentQuerySource` is absent (the default runtime aggregation).
+   */
   queryId: string;
+  /**
+   * Optional per-stat persistent-query source (runtime or stream-data). When set,
+   * it supersedes `queryId` / the aggregation source for this stat.
+   */
+  persistentQuerySource?: PersistentQueryCellSource;
   /** Color variant */
   color?: StatColor;
   /** Number format */
@@ -879,6 +931,11 @@ export interface SummaryCardTile {
     attribute?: string;
     filters?: WidgetFilterConfig[];
   };
+  /**
+   * Fetch a single value from a persistent query (runtime or stream-data). When
+   * set, it supersedes `entitySource` / `aggregationSource` for this tile.
+   */
+  persistentQuerySource?: PersistentQueryCellSource;
 }
 
 // ============================================================================

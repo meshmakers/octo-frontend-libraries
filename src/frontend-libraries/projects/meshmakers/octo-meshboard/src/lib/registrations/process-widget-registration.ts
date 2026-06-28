@@ -67,6 +67,9 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
       initialBindingRtId: widget.bindingRtId,
       initialBindingQueryRtId: widget.bindingQueryRtId,
       initialBindingQueryName: widget.bindingQueryName,
+      initialBindingQueryFamily: widget.bindingQueryFamily,
+      initialBindingIgnoreTimeFilter: widget.bindingIgnoreTimeFilter,
+      initialBindingEntitySelectorId: widget.bindingEntitySelectorId,
       initialBindingFilters: widget.bindingFilters,
       initialPropertyMappings: widget.propertyMappings
     }),
@@ -88,6 +91,9 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
       bindingRtId: result.bindingRtId,
       bindingQueryRtId: result.bindingQueryRtId,
       bindingQueryName: result.bindingQueryName,
+      bindingQueryFamily: result.bindingQueryFamily,
+      bindingIgnoreTimeFilter: result.bindingIgnoreTimeFilter,
+      bindingEntitySelectorId: result.bindingEntitySelectorId,
       bindingFilters: result.bindingFilters,
       propertyMappings: result.propertyMappings
     }),
@@ -128,6 +134,10 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
         bindingRtId: widget.bindingRtId,
         bindingQueryRtId: widget.bindingQueryRtId,
         bindingQueryName: widget.bindingQueryName,
+        // Stream-data binding — written only when set.
+        ...(widget.bindingQueryFamily && { bindingQueryFamily: widget.bindingQueryFamily }),
+        ...(widget.bindingIgnoreTimeFilter && { bindingIgnoreTimeFilter: true }),
+        ...(widget.bindingEntitySelectorId && { bindingEntitySelectorId: widget.bindingEntitySelectorId }),
         bindingFilters: widget.bindingFilters,
         propertyMappings: widget.propertyMappings
       }
@@ -159,6 +169,9 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
         bindingRtId: config['bindingRtId'] as string | undefined,
         bindingQueryRtId: config['bindingQueryRtId'] as string | undefined,
         bindingQueryName: config['bindingQueryName'] as string | undefined,
+        bindingQueryFamily: config['bindingQueryFamily'] as ProcessWidgetConfig['bindingQueryFamily'],
+        bindingIgnoreTimeFilter: config['bindingIgnoreTimeFilter'] as boolean | undefined,
+        bindingEntitySelectorId: config['bindingEntitySelectorId'] as string | undefined,
         bindingFilters: config['bindingFilters'] as ProcessWidgetConfig['bindingFilters'],
         propertyMappings: config['propertyMappings'] as ProcessWidgetConfig['propertyMappings']
       };

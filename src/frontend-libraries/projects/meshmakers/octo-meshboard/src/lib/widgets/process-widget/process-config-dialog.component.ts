@@ -32,7 +32,10 @@ import type { ProcessDiagramConfig, TransformProperty } from '@meshmakers/octo-p
 import { ProcessDataService, ProcessDiagramSummary } from './services/process-data.service';
 import { ProcessDataBindingMode, DiagramPropertyMapping } from './process-widget-config.model';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
-import { WidgetFilterConfig } from '../../models/meshboard.models';
+import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
+import { WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
+import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { firstValueFrom, Observable, from, map } from 'rxjs';
 
 /**
@@ -57,6 +60,9 @@ export interface PersistentQueryItem {
   rtId: string;
   name: string;
   description?: string | null;
+  /** The persistent-query entity's own CK type — carries the family marker (e.g. `SimpleSdQuery`). */
+  ckTypeId?: string | null;
+  /** The CK type the query queries against (label only — not used for family classification). */
   queryCkTypeId?: string | null;
 }
 
@@ -78,6 +84,9 @@ export interface ProcessConfigResult extends WidgetConfigResult {
   bindingRtId?: string;
   bindingQueryRtId?: string;
   bindingQueryName?: string;
+  bindingQueryFamily?: QueryFamily;
+  bindingIgnoreTimeFilter?: boolean;
+  bindingEntitySelectorId?: string;
   bindingFilters?: WidgetFilterConfig[];
   // Property mappings
   propertyMappings?: DiagramPropertyMapping[];
@@ -211,7 +220,9 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
     CkTypeSelectorInputComponent,
     EntitySelectInputComponent,
     FieldFilterEditorComponent,
-    LoadingOverlayComponent
+    LoadingOverlayComponent,
+    SdTimeFilterToggleComponent,
+    EntitySelectorScopePickerComponent
   ],
   providers: [ProcessDataService],
   template: `
@@ -380,6 +391,17 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
                       <p class="field-hint warning">No queries found.</p>
                     }
                   </div>
+
+                  <!-- Stream-data-only options (hidden for runtime queries) -->
+                  <mm-sd-time-filter-toggle
+                    [family]="selectedQueryFamily"
+                    [(ignoreTimeFilter)]="bindingIgnoreTimeFilter">
+                  </mm-sd-time-filter-toggle>
+                  <mm-entity-selector-scope-picker
+                    [family]="selectedQueryFamily"
+                    [selectors]="entitySelectors"
+                    [(entitySelectorId)]="bindingEntitySelectorId">
+                  </mm-entity-selector-scope-picker>
                 }
 
                 <!-- Filters Section -->
@@ -812,6 +834,9 @@ export class ProcessConfigDialogComponent implements OnInit {
   @Input() initialBindingRtId?: string;
   @Input() initialBindingQueryRtId?: string;
   @Input() initialBindingQueryName?: string;
+  @Input() initialBindingQueryFamily?: QueryFamily;
+  @Input() initialBindingIgnoreTimeFilter?: boolean;
+  @Input() initialBindingEntitySelectorId?: string;
   @Input() initialBindingFilters?: WidgetFilterConfig[];
   @Input() initialPropertyMappings?: DiagramPropertyMapping[];
 
@@ -832,6 +857,16 @@ export class ProcessConfigDialogComponent implements OnInit {
   // State - Persistent Query Binding
   persistentQueries: PersistentQueryItem[] = [];
   selectedPersistentQuery: PersistentQueryItem | null = null;
+
+  // Stream-data binding state (only relevant when the picked query is a stream-data query)
+  bindingIgnoreTimeFilter = false;
+  bindingEntitySelectorId?: string;
+  entitySelectors: EntitySelectorConfig[] = [];
+
+  /** Family of the picked persistent query, derived from its own CK type. */
+  get selectedQueryFamily(): QueryFamily | undefined {
+    return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? undefined;
+  }
   isLoadingQueries = false;
 
   // State - Filters
@@ -902,6 +937,11 @@ export class ProcessConfigDialogComponent implements OnInit {
 
     // Initialize data binding mode
     this.dataBindingMode = this.initialDataBindingMode ?? 'none';
+
+    // Initialize stream-data binding state + available entity selectors (for scope picker)
+    this.bindingIgnoreTimeFilter = this.initialBindingIgnoreTimeFilter ?? false;
+    this.bindingEntitySelectorId = this.initialBindingEntitySelectorId;
+    this.entitySelectors = this.stateService.getEntitySelectors();
 
     // Initialize filter variables from MeshBoard
     this.initFilterVariables();
@@ -1184,6 +1224,13 @@ export class ProcessConfigDialogComponent implements OnInit {
   onQuerySelected(query: PersistentQueryItem | null): void {
     this.selectedPersistentQuery = query;
 
+    // Reset stream-data-only binding state when the picked query is not a
+    // stream-data query (the toggle/scope picker are hidden in that case).
+    if (this.selectedQueryFamily !== 'streamData') {
+      this.bindingIgnoreTimeFilter = false;
+      this.bindingEntitySelectorId = undefined;
+    }
+
     // Load attributes if query has associated CK type
     if (query?.queryCkTypeId) {
       this.loadAttributesForCkType(query.queryCkTypeId);
@@ -1209,6 +1256,7 @@ export class ProcessConfigDialogComponent implements OnInit {
           rtId: item.rtId,
           name: item.name,
           description: item.description,
+          ckTypeId: item.ckTypeId,
           queryCkTypeId: item.queryCkTypeId
         }));
     } finally {
@@ -1289,6 +1337,17 @@ export class ProcessConfigDialogComponent implements OnInit {
     if (this.dataBindingMode === 'persistentQuery' && this.selectedPersistentQuery) {
       result.bindingQueryRtId = this.selectedPersistentQuery.rtId;
       result.bindingQueryName = this.selectedPersistentQuery.name;
+      const family = this.selectedQueryFamily;
+      result.bindingQueryFamily = family;
+      // Stream-data-only overrides — persisted only when they apply.
+      if (family === 'streamData') {
+        if (this.bindingIgnoreTimeFilter) {
+          result.bindingIgnoreTimeFilter = true;
+        }
+        if (this.bindingEntitySelectorId) {
+          result.bindingEntitySelectorId = this.bindingEntitySelectorId;
+        }
+      }
     }
 
     // Filters

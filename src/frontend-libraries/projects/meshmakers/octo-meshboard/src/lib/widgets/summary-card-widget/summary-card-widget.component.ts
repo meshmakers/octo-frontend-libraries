@@ -1,10 +1,15 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SummaryCardWidgetConfig, SummaryCardTile } from '../../models/meshboard.models';
+import { SummaryCardWidgetConfig, SummaryCardTile, PersistentQueryCellSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { GetDashboardEntityDtoGQL } from '../../graphQL/getDashboardEntity';
 import { DashboardDataService } from '../../services/meshboard-data.service';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
+import { QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
+import { extractPersistentQueryCellValue } from '../../utils/persistent-query-cell';
+import { FieldFilterDto } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 
 interface TileValue {
@@ -102,6 +107,9 @@ interface TileValue {
 export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWidgetConfig, TileValue[]>, OnInit, OnChanges {
   private readonly entityGQL = inject(GetDashboardEntityDtoGQL);
   private readonly dataService = inject(DashboardDataService);
+  private readonly queryExecutor = inject(QueryExecutorService);
+  private readonly stateService = inject(MeshBoardStateService);
+  private readonly variableService = inject(MeshBoardVariableService);
 
   @Input() config!: SummaryCardWidgetConfig;
 
@@ -165,6 +173,10 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
   }
 
   private async fetchTileValue(tile: SummaryCardTile, entityCache: Map<string, Map<string, unknown>>): Promise<unknown> {
+    if (tile.persistentQuerySource) {
+      return this.fetchPersistentQueryValue(tile.persistentQuerySource);
+    }
+
     if (tile.entitySource) {
       const { rtId, ckTypeId, attributePath } = tile.entitySource;
 
@@ -189,6 +201,30 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
     }
 
     return null;
+  }
+
+  private async fetchPersistentQueryValue(source: PersistentQueryCellSource): Promise<unknown> {
+    const result = await firstValueFrom(
+      this.queryExecutor.execute(source.queryFamily, source.queryRtId, {
+        fieldFilter: this.convertFiltersToDto(source.filters),
+        streamDataArgs: this.buildStreamDataArgs(source)
+      })
+    );
+    return extractPersistentQueryCellValue(result, source);
+  }
+
+  private buildStreamDataArgs(source: PersistentQueryCellSource): StreamDataExecutionArgs | undefined {
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(source.ignoreTimeFilter);
+    const rtIds = this.stateService.resolveStreamDataRtIds(source.entitySelectorId);
+    if (!timeArgs && !rtIds) {
+      return undefined;
+    }
+    return { ...timeArgs, rtIds };
+  }
+
+  private convertFiltersToDto(filters?: WidgetFilterConfig[]): FieldFilterDto[] | undefined {
+    const variables = this.stateService.getVariables();
+    return this.variableService.convertToFieldFilterDto(filters, variables) ?? undefined;
   }
 
   private async fetchEntityAttributes(rtId: string, ckTypeId: string): Promise<Map<string, unknown>> {

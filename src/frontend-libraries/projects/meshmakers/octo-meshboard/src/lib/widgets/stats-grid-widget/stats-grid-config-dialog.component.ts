@@ -6,7 +6,9 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
-import { StatItem, StatColor, AggregationQuery, AggregationType } from '../../models/meshboard.models';
+import { StatItem, StatColor, AggregationQuery, AggregationType, PersistentQueryCellSource, EntitySelectorConfig } from '../../models/meshboard.models';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { PersistentQueryCellEditorComponent } from '../../components/persistent-query-cell-editor/persistent-query-cell-editor.component';
 
 export interface StatsGridConfigResult extends WidgetConfigResult {
   ckTypeId: string;
@@ -14,6 +16,8 @@ export interface StatsGridConfigResult extends WidgetConfigResult {
   queries: AggregationQuery[];
   columns: number;
 }
+
+type StatSourceType = 'aggregation' | 'persistentQuery';
 
 interface ColorOption {
   value: StatColor;
@@ -29,8 +33,10 @@ interface CkTypeOption {
 interface EditableStat {
   id: string;
   label: string;
+  sourceType: StatSourceType;
   ckTypeId: string;
   aggregation: AggregationType;
+  persistentQuerySource?: PersistentQueryCellSource;
   color: StatColor;
   prefix?: string;
   suffix?: string;
@@ -44,7 +50,8 @@ interface EditableStat {
     FormsModule,
     ButtonsModule,
     InputsModule,
-    DropDownsModule
+    DropDownsModule,
+    PersistentQueryCellEditorComponent
   ],
   template: `
     <div class="config-container">
@@ -125,27 +132,52 @@ interface EditableStat {
                 </div>
 
                 <div class="form-row">
-                  <div class="form-field flex-2">
-                    <label>CK Type <span class="required">*</span></label>
+                  <div class="form-field flex-1">
+                    <label>Data Source</label>
                     <kendo-dropdownlist
-                      [data]="ckTypeOptions"
+                      [data]="sourceTypeOptions"
                       textField="label"
                       valueField="value"
                       [valuePrimitive]="true"
-                      [(ngModel)]="stat.ckTypeId"
-                      [filterable]="true"
-                      (filterChange)="onCkTypeFilter($event)">
-                    </kendo-dropdownlist>
-                  </div>
-                  <div class="form-field flex-1">
-                    <label>Aggregation</label>
-                    <kendo-dropdownlist
-                      [data]="aggregationOptions"
-                      [valuePrimitive]="true"
-                      [(ngModel)]="stat.aggregation">
+                      [(ngModel)]="stat.sourceType">
                     </kendo-dropdownlist>
                   </div>
                 </div>
+
+                @if (stat.sourceType !== 'persistentQuery') {
+                  <div class="form-row">
+                    <div class="form-field flex-2">
+                      <label>CK Type <span class="required">*</span></label>
+                      <kendo-dropdownlist
+                        [data]="ckTypeOptions"
+                        textField="label"
+                        valueField="value"
+                        [valuePrimitive]="true"
+                        [(ngModel)]="stat.ckTypeId"
+                        [filterable]="true"
+                        (filterChange)="onCkTypeFilter($event)">
+                      </kendo-dropdownlist>
+                    </div>
+                    <div class="form-field flex-1">
+                      <label>Aggregation</label>
+                      <kendo-dropdownlist
+                        [data]="aggregationOptions"
+                        [valuePrimitive]="true"
+                        [(ngModel)]="stat.aggregation">
+                      </kendo-dropdownlist>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="form-row">
+                    <div class="form-field flex-1">
+                      <mm-persistent-query-cell-editor
+                        [initialSource]="stat.persistentQuerySource"
+                        [selectors]="entitySelectors"
+                        (sourceChange)="stat.persistentQuerySource = $event">
+                      </mm-persistent-query-cell-editor>
+                    </div>
+                  </div>
+                }
 
                 <div class="form-row">
                   <div class="form-field flex-1">
@@ -300,10 +332,18 @@ interface EditableStat {
 })
 export class StatsGridConfigDialogComponent implements OnInit {
   private readonly windowRef = inject(WindowRef);
+  private readonly stateService = inject(MeshBoardStateService);
 
   @Input() initialStats?: StatItem[];
   @Input() initialQueries?: AggregationQuery[];
   @Input() initialColumns?: number;
+
+  entitySelectors: EntitySelectorConfig[] = [];
+
+  sourceTypeOptions = [
+    { value: 'aggregation' as StatSourceType, label: 'Runtime aggregation' },
+    { value: 'persistentQuery' as StatSourceType, label: 'Persistent query' }
+  ];
 
   colorOptions: ColorOption[] = [
     { value: 'mint', label: 'Mint', color: '#98d9c2' },
@@ -337,24 +377,30 @@ export class StatsGridConfigDialogComponent implements OnInit {
 
   get isValid(): boolean {
     if (this.form.stats.length === 0) return false;
-    return this.form.stats.every(stat =>
-      stat.label?.trim() && stat.ckTypeId?.trim()
-    );
+    return this.form.stats.every(stat => {
+      if (!stat.label?.trim()) return false;
+      return stat.sourceType === 'persistentQuery'
+        ? !!stat.persistentQuerySource?.queryRtId
+        : !!stat.ckTypeId?.trim();
+    });
   }
 
   ngOnInit(): void {
     this.filteredCkTypeOptions = [...this.ckTypeOptions];
     this.form.columns = this.initialColumns ?? 3;
+    this.entitySelectors = this.stateService.getEntitySelectors();
 
     // Convert initial stats and queries to editable format
-    if (this.initialStats && this.initialQueries) {
+    if (this.initialStats) {
       this.form.stats = this.initialStats.map(stat => {
         const query = this.initialQueries?.find(q => q.id === stat.queryId);
         return {
           id: `stat-${this.nextId++}`,
           label: stat.label,
+          sourceType: stat.persistentQuerySource ? 'persistentQuery' : 'aggregation',
           ckTypeId: query?.ckTypeId ?? '',
           aggregation: query?.aggregation ?? 'count',
+          persistentQuerySource: stat.persistentQuerySource,
           color: stat.color ?? 'default',
           prefix: stat.prefix,
           suffix: stat.suffix
@@ -375,6 +421,7 @@ export class StatsGridConfigDialogComponent implements OnInit {
     this.form.stats.push({
       id: `stat-${this.nextId++}`,
       label: '',
+      sourceType: 'aggregation',
       ckTypeId: 'ConstructionKit/CkType',
       aggregation: 'count',
       color: 'default'
@@ -392,6 +439,19 @@ export class StatsGridConfigDialogComponent implements OnInit {
 
     for (const stat of this.form.stats) {
       const queryId = `query-${stat.id}`;
+
+      if (stat.sourceType === 'persistentQuery') {
+        // Persistent-query stat — value comes from the executor, no aggregation query.
+        stats.push({
+          label: stat.label,
+          queryId,
+          persistentQuerySource: stat.persistentQuerySource,
+          color: stat.color,
+          prefix: stat.prefix,
+          suffix: stat.suffix
+        });
+        continue;
+      }
 
       stats.push({
         label: stat.label,

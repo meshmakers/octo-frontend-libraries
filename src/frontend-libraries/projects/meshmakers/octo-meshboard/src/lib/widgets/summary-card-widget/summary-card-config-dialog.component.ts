@@ -6,12 +6,16 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
-import { SummaryCardTile } from '../../models/meshboard.models';
+import { SummaryCardTile, PersistentQueryCellSource, EntitySelectorConfig } from '../../models/meshboard.models';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { PersistentQueryCellEditorComponent } from '../../components/persistent-query-cell-editor/persistent-query-cell-editor.component';
 
 export interface SummaryCardConfigResult extends WidgetConfigResult {
   columns: number;
   tiles: SummaryCardTile[];
 }
+
+type TileSourceType = 'entity' | 'aggregation' | 'persistentQuery';
 
 interface EditableTile {
   id: string;
@@ -20,18 +24,19 @@ interface EditableTile {
   suffix: string;
   color: string;
   size: string;
-  sourceType: 'entity' | 'aggregation';
+  sourceType: TileSourceType;
   rtId: string;
   ckTypeId: string;
   attributePath: string;
   aggregation: string;
   aggAttribute: string;
+  persistentQuerySource?: PersistentQueryCellSource;
 }
 
 @Component({
   selector: 'mm-summary-card-config-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonsModule, InputsModule, DropDownsModule],
+  imports: [CommonModule, FormsModule, ButtonsModule, InputsModule, DropDownsModule, PersistentQueryCellEditorComponent],
   template: `
     <div class="config-container">
       <div class="config-form">
@@ -71,6 +76,16 @@ interface EditableTile {
                 <kendo-textbox [(ngModel)]="tile.aggAttribute" placeholder="Attribute (for sum/avg)" style="flex: 1;"></kendo-textbox>
               </div>
             }
+            @if (tile.sourceType === 'persistentQuery') {
+              <div class="tile-row">
+                <mm-persistent-query-cell-editor
+                  style="flex: 1;"
+                  [initialSource]="tile.persistentQuerySource"
+                  [selectors]="entitySelectors"
+                  (sourceChange)="tile.persistentQuerySource = $event">
+                </mm-persistent-query-cell-editor>
+              </div>
+            }
           </div>
         }
         <button kendoButton fillMode="flat" (click)="addTile()">+ Add Tile</button>
@@ -98,9 +113,12 @@ interface EditableTile {
 })
 export class SummaryCardConfigDialogComponent implements OnInit {
   private readonly windowRef = inject(WindowRef);
+  private readonly stateService = inject(MeshBoardStateService);
 
   @Input() initialColumns?: number;
   @Input() initialTiles?: SummaryCardTile[];
+
+  entitySelectors: EntitySelectorConfig[] = [];
 
   form = {
     columns: 2,
@@ -109,15 +127,19 @@ export class SummaryCardConfigDialogComponent implements OnInit {
 
   colorOptions = ['default', 'primary', 'success', 'warning', 'error'];
   sizeOptions = ['normal', 'full'];
-  sourceTypeOptions = ['entity', 'aggregation'];
+  sourceTypeOptions: TileSourceType[] = ['entity', 'aggregation', 'persistentQuery'];
   aggregationOptions = ['count', 'sum', 'avg', 'min', 'max'];
 
   get isValid(): boolean {
-    return this.form.tiles.length > 0 && this.form.tiles.every(t => t.label && t.ckTypeId);
+    return this.form.tiles.length > 0 && this.form.tiles.every(t => {
+      if (!t.label) return false;
+      return t.sourceType === 'persistentQuery' ? !!t.persistentQuerySource?.queryRtId : !!t.ckTypeId;
+    });
   }
 
   ngOnInit(): void {
     this.form.columns = this.initialColumns ?? 2;
+    this.entitySelectors = this.stateService.getEntitySelectors();
     if (this.initialTiles) {
       this.form.tiles = this.initialTiles.map((t, i) => ({
         id: t.id || `tile-${i}`,
@@ -126,12 +148,13 @@ export class SummaryCardConfigDialogComponent implements OnInit {
         suffix: t.suffix ?? '',
         color: t.color ?? 'default',
         size: t.size ?? 'normal',
-        sourceType: t.entitySource ? 'entity' : 'aggregation',
+        sourceType: t.persistentQuerySource ? 'persistentQuery' : t.entitySource ? 'entity' : 'aggregation',
         rtId: t.entitySource?.rtId ?? '',
         ckTypeId: t.entitySource?.ckTypeId ?? t.aggregationSource?.ckTypeId ?? '',
         attributePath: t.entitySource?.attributePath ?? '',
         aggregation: t.aggregationSource?.aggregation ?? 'count',
-        aggAttribute: t.aggregationSource?.attribute ?? ''
+        aggAttribute: t.aggregationSource?.attribute ?? '',
+        persistentQuerySource: t.persistentQuerySource
       }));
     }
   }
@@ -162,7 +185,9 @@ export class SummaryCardConfigDialogComponent implements OnInit {
         size: (t.size as SummaryCardTile['size']) || undefined
       };
 
-      if (t.sourceType === 'entity') {
+      if (t.sourceType === 'persistentQuery') {
+        tile.persistentQuerySource = t.persistentQuerySource;
+      } else if (t.sourceType === 'entity') {
         tile.entitySource = { rtId: t.rtId, ckTypeId: t.ckTypeId, attributePath: t.attributePath };
       } else {
         tile.aggregationSource = {

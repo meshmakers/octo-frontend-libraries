@@ -1,4 +1,5 @@
 import { WidgetConfig, WidgetFilterConfig } from '../../models/meshboard.models';
+import type { QueryFamily } from '../../utils/query-family';
 import type { ProcessWidgetSpecificConfig } from '@meshmakers/octo-process-diagrams';
 
 /**
@@ -141,6 +142,31 @@ export interface ProcessWidgetConfig extends WidgetConfig, ProcessWidgetSpecific
    * Display name of the persistent query (for UI)
    */
   bindingQueryName?: string;
+
+  /**
+   * Query family of the bound persistent query: `'runtime'` or `'streamData'`.
+   * Derived from the query's `queryCkTypeId` when absent (one-time lookup by the
+   * executor). Persisted so a stream-data binding picks the correct executor
+   * without an extra round-trip — switching runtime ↔ stream-data is a config
+   * change, not a different widget.
+   */
+  bindingQueryFamily?: QueryFamily;
+
+  /**
+   * Stream-data opt-out: when `true`, the MeshBoard time filter is NOT bound to
+   * the bound query's `streamDataArgs.from/.to`, so the query's intrinsic time
+   * bounds win. Default (absent/`false`) auto-binds the active time filter.
+   * Ignored for runtime queries (they don't consume `streamDataArgs`).
+   */
+  bindingIgnoreTimeFilter?: boolean;
+
+  /**
+   * Asset-scope binding: the `id` of an entity selector whose selection scopes
+   * the bound stream-data query. The selector's resolved source rtIds are passed
+   * as `streamDataArgs.rtIds`, replacing the persisted scope at execution time.
+   * Ignored for runtime queries.
+   */
+  bindingEntitySelectorId?: string;
 
   // --- Field Filters (for both modes) ---
 

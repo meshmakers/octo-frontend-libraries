@@ -1,8 +1,14 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StatsGridWidgetConfig, AggregationDataSource } from '../../models/meshboard.models';
+import { StatsGridWidgetConfig, AggregationDataSource, StatItem, PersistentQueryCellSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
+import { QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
+import { extractPersistentQueryCellValue } from '../../utils/persistent-query-cell';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { FieldFilterDto } from '@meshmakers/octo-services';
+import { firstValueFrom } from 'rxjs';
 
 export interface StatValue {
   label: string;
@@ -23,6 +29,9 @@ export interface StatValue {
 })
 export class StatsGridWidgetComponent implements OnInit, OnChanges {
   private readonly dataService = inject(MeshBoardDataService);
+  private readonly queryExecutor = inject(QueryExecutorService);
+  private readonly stateService = inject(MeshBoardStateService);
+  private readonly variableService = inject(MeshBoardVariableService);
 
   @Input() config!: StatsGridWidgetConfig;
 
@@ -76,28 +85,25 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
     this._error.set(null);
 
     try {
+      // Runtime aggregation queries are only needed for stats WITHOUT a
+      // per-stat persistent-query source — those run through the executor below.
       const dataSource = this.config.dataSource as AggregationDataSource;
-      if (dataSource?.type !== 'aggregation' || !dataSource.queries?.length) {
-        // No aggregation queries configured - show zeros
-        this._statValues.set(initialValues.map(v => ({ ...v, value: 0, isLoading: false })));
-        return;
-      }
+      const aggregationQueries = dataSource?.type === 'aggregation' ? (dataSource.queries ?? []) : [];
+      const aggregationResults = aggregationQueries.length > 0
+        ? await this.dataService.fetchAggregations(aggregationQueries)
+        : new Map<string, number>();
 
-      // Load all aggregation queries
-      const results = await this.dataService.fetchAggregations(dataSource.queries);
-
-      // Map results to stat values
-      const updatedValues: StatValue[] = this.config.stats.map(stat => {
-        const result = results.get(stat.queryId);
-        return {
+      // Resolve every stat's value (persistent-query stats execute in parallel).
+      const updatedValues: StatValue[] = await Promise.all(
+        this.config.stats.map(async stat => ({
           label: stat.label,
-          value: result ?? null,
+          value: await this.resolveStatValue(stat, aggregationResults),
           color: this.getColorClass(stat.color),
           prefix: stat.prefix,
           suffix: stat.suffix,
           isLoading: false
-        };
-      });
+        }))
+      );
 
       this._statValues.set(updatedValues);
     } catch (err) {
@@ -107,6 +113,46 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
     } finally {
       this._isLoading.set(false);
     }
+  }
+
+  /**
+   * Resolves a single stat's value: a per-stat persistent query (runtime or
+   * stream-data) when configured, otherwise the runtime aggregation result.
+   */
+  private async resolveStatValue(stat: StatItem, aggregationResults: Map<string, number>): Promise<number | null> {
+    if (stat.persistentQuerySource) {
+      return this.loadPersistentQueryValue(stat.persistentQuerySource);
+    }
+    return aggregationResults.get(stat.queryId) ?? null;
+  }
+
+  private async loadPersistentQueryValue(source: PersistentQueryCellSource): Promise<number | null> {
+    try {
+      const result = await firstValueFrom(
+        this.queryExecutor.execute(source.queryFamily, source.queryRtId, {
+          fieldFilter: this.convertFiltersToDto(source.filters),
+          streamDataArgs: this.buildStreamDataArgs(source)
+        })
+      );
+      return extractPersistentQueryCellValue(result, source);
+    } catch (err) {
+      console.error('Error loading stat persistent-query data:', err);
+      return null;
+    }
+  }
+
+  private buildStreamDataArgs(source: PersistentQueryCellSource): StreamDataExecutionArgs | undefined {
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(source.ignoreTimeFilter);
+    const rtIds = this.stateService.resolveStreamDataRtIds(source.entitySelectorId);
+    if (!timeArgs && !rtIds) {
+      return undefined;
+    }
+    return { ...timeArgs, rtIds };
+  }
+
+  private convertFiltersToDto(filters?: WidgetFilterConfig[]): FieldFilterDto[] | undefined {
+    const variables = this.stateService.getVariables();
+    return this.variableService.convertToFieldFilterDto(filters, variables) ?? undefined;
   }
 
   private getColorClass(color?: string): string {
