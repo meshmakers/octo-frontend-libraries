@@ -166,6 +166,54 @@ export class IdentityService {
     }
   }
 
+  // ----- Client role assignment (AB#4183) -----
+
+  async getClientRoles(clientId: string): Promise<string[] | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<string[] | null>(baseUrl + `clients/${clientId}/roles`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  async updateClientRoles(clientId: string, roleIds: string[]): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<void>(baseUrl + `clients/${clientId}/roles`, roleIds, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async addClientToRole(clientId: string, roleName: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<void>(baseUrl + `clients/${clientId}/roles/${roleName}`, null, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async removeRoleFromClient(clientId: string, roleName: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `clients/${clientId}/roles/${roleName}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
   async mergeUsers(targetUserName: string, sourceUserName: string): Promise<void> {
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
@@ -691,6 +739,28 @@ export class IdentityService {
     if (baseUrl) {
       await firstValueFrom(
         this.httpClient.delete<void>(baseUrl + `groups/${rtId}/members/users/${userId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async addClientToGroup(rtId: string, clientId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.put<void>(baseUrl + `groups/${rtId}/members/clients/${clientId}`, null, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async removeClientFromGroup(rtId: string, clientId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `groups/${rtId}/members/clients/${clientId}`, {
           observe: 'response'
         })
       );

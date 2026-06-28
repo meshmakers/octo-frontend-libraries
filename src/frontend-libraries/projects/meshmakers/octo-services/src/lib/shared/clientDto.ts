@@ -1,4 +1,6 @@
 export interface ClientDto {
+  /** Runtime ID of the client entity. Read-only; used to identify the client as a group member. */
+  rtId?: string;
   isEnabled: boolean;
   clientId: string;
   clientName: string;

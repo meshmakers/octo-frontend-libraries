@@ -173,6 +173,12 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `createClient(clientDto)` | Create client |
 | `updateClient(clientId, clientDto)` | Update client |
 | `deleteClient(clientId)` | Delete client |
+| `getClientRoles(clientId)` | Get a client's directly-assigned role IDs (AB#4183) |
+| `updateClientRoles(clientId, roleIds)` | Replace a client's directly-assigned roles (AB#4183) |
+| `addClientToRole(clientId, roleName)` | Assign a single role (by name) to a client (AB#4183) |
+| `removeRoleFromClient(clientId, roleName)` | Remove a single role (by name) from a client (AB#4183) |
+| `addClientToGroup(rtId, clientId)` | Add a client (by RtId) as a group member (AB#4183) |
+| `removeClientFromGroup(rtId, clientId)` | Remove a client (by RtId) from a group (AB#4183) |
 
 **Identity Provider Management:**
 
@@ -503,6 +509,7 @@ interface GroupDto {
   roleIds: string[];
   memberUserIds: string[];
   memberExternalUserIds: string[];
+  memberClientIds: string[];   // Client members (RtIds) — AB#4183
   memberGroupIds: string[];
 }
 

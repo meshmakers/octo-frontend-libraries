@@ -5,6 +5,7 @@ export interface GroupDto {
   roleIds: string[];
   memberUserIds: string[];
   memberExternalUserIds: string[];
+  memberClientIds: string[];
   memberGroupIds: string[];
 }
 
