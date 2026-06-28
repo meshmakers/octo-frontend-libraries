@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, AfterViewInit, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef } from '@angular/core';
+import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LineChartWidgetConfig, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -222,9 +222,16 @@ interface ValueAxisConfig {
     }
   `]
 })
-export class LineChartWidgetComponent implements DashboardWidget<LineChartWidgetConfig, LineSeriesData[]>, AfterViewInit, OnChanges {
+export class LineChartWidgetComponent implements DashboardWidget<LineChartWidgetConfig, LineSeriesData[]>, AfterViewInit, OnChanges, OnDestroy {
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly elementRef = inject(ElementRef);
+  private readonly ngZone = inject(NgZone);
+
+  // FE-2 resize handling: re-query at a new resolution when the chart is resized materially.
+  private resizeObserver?: ResizeObserver;
+  private resizeTimer?: ReturnType<typeof setTimeout>;
+  /** The downsampling `limit` used by the last load; 0 when the last load wasn't downsampled. */
+  private lastLimit = 0;
 
   private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
     'RtSimpleQueryRow',
@@ -322,6 +329,31 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     // Defer the initial load to after view init so the host has a measured width — the
     // downsampling bucket count (FE-1) is derived from the rendered pixel width.
     this.loadData();
+    this.setupResizeObserver();
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+    if (this.resizeTimer) clearTimeout(this.resizeTimer);
+  }
+
+  /**
+   * FE-2: when the chart is resized so the pixel-derived bucket count would change materially
+   * (>15%), re-query at the new resolution after a 300 ms debounce. Only relevant while
+   * downsampling is active (lastLimit > 0); raw charts don't depend on width.
+   */
+  private setupResizeObserver(): void {
+    if (typeof ResizeObserver === 'undefined') return;
+    this.resizeObserver = new ResizeObserver(() => this.onResize());
+    this.resizeObserver.observe(this.elementRef.nativeElement as HTMLElement);
+  }
+
+  private onResize(): void {
+    if (this.lastLimit <= 0) return; // last load wasn't downsampled (or hasn't completed yet)
+    const newLimit = this.computeDownsampleLimit();
+    if (Math.abs(newLimit - this.lastLimit) / this.lastLimit < 0.15) return;
+    if (this.resizeTimer) clearTimeout(this.resizeTimer);
+    this.resizeTimer = setTimeout(() => this.ngZone.run(() => this.loadData()), 300);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -369,6 +401,8 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       // falls back to a one-time lookup by rtId. streamDataArgs is sent
       // unconditionally because the runtime path ignores it.
       const streamDataArgs = this.buildStreamDataArgs();
+      // Remember the resolution used so a later resize can decide whether to re-query (FE-2).
+      this.lastLimit = streamDataArgs?.limit ?? 0;
 
       const result = await firstValueFrom(
         this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
