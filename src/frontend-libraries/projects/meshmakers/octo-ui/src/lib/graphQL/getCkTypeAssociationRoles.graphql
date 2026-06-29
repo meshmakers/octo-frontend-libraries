@@ -17,6 +17,7 @@ query getCkTypeAssociationRoles($ckTypeId: String!) {
                 fullName
               }
               rtTargetCkTypeId
+              rtOriginCkTypeId
             }
           }
           out {
@@ -32,6 +33,7 @@ query getCkTypeAssociationRoles($ckTypeId: String!) {
                 fullName
               }
               rtTargetCkTypeId
+              rtOriginCkTypeId
             }
           }
         }

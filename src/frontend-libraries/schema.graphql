@@ -5569,6 +5569,8 @@ type CkTypeAssociation {
   navigationPropertyName: String!
   "Type id of the construction kit type of the origin side of the association"
   originCkTypeId: CkTypeId!
+  "Runtime construction kit type id of the origin side of the association"
+  rtOriginCkTypeId: RtCkTypeId!
   "Construction kit attribute id."
   roleId: CkAssociationRoleId!
   "Runtime construction kit id of the association role."

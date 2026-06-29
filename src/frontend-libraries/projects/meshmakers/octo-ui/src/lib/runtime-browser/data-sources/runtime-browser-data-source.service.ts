@@ -70,6 +70,16 @@ interface InboundAssociationRole {
 /** Well-known role id of the hierarchical parent-child association. */
 const PARENT_CHILD_ROLE_ID = 'System/ParentChild';
 
+/**
+ * Target CK types that cannot be navigated in the tree. `System/Entity` is the
+ * universal abstract base type and has no defining collection root, so the
+ * generic `System/Related` association (target `System/Entity`, present as an
+ * inbound role on every type) makes `targets(ckId: "System/Entity")` throw
+ * server-side ("has no defining collection root"). Skipping it here keeps the
+ * tree from firing a guaranteed-failing query for every entity.
+ */
+const NON_NAVIGABLE_TARGET_CK_TYPES = new Set<string>(['System/Entity']);
+
 @Injectable({
   providedIn: 'root',
 })
@@ -261,10 +271,21 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
           if (!role) {
             continue;
           }
+          // Use the RUNTIME ids from the backend, never the versioned fullName.
+          // For an INBOUND role this entity is the association's TARGET side, so the
+          // related entities to navigate to are on the ORIGIN side: query
+          // targets(direction: INBOUND, ckId: rtOriginCkTypeId). rtTargetCkTypeId
+          // here is this entity's own (target) type and would return nothing.
+          // The runtime form must come from the backend (rtOriginCkTypeId) — it
+          // follows a resolution logic that simply stripping the version does not.
+          const targetCkTypeId = String(role.rtOriginCkTypeId ?? '');
+          if (!targetCkTypeId || NON_NAVIGABLE_TARGET_CK_TYPES.has(targetCkTypeId)) {
+            continue;
+          }
           roles.push({
-            roleId: role.roleId.fullName,
+            roleId: String(role.rtRoleId ?? ''),
             navigationPropertyName: role.navigationPropertyName,
-            targetCkTypeId: role.targetCkTypeId.fullName,
+            targetCkTypeId,
             multiplicity: role.multiplicity,
           });
         }

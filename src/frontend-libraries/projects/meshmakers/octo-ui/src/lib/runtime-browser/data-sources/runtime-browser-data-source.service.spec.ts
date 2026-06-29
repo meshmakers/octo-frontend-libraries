@@ -146,7 +146,10 @@ describe('RuntimeBrowserDataSource', () => {
                     navigationPropertyName: r.navigationPropertyName,
                     multiplicity: 'N',
                     targetCkTypeId: { fullName: r.targetCkTypeId },
-                    rtTargetCkTypeId: r.targetCkTypeId,
+                    // For an inbound role the related (navigable) type is the
+                    // origin side; the data source queries targets() with this.
+                    rtOriginCkTypeId: r.targetCkTypeId,
+                    rtTargetCkTypeId: 'Self/Type',
                   })),
                 },
                 out: { all: [] },
