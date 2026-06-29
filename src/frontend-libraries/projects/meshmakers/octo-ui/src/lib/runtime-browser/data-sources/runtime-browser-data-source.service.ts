@@ -318,40 +318,55 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       return [];
     }
 
-    // Friendly inbound names from the CK type schema (when the role is declared).
-    const schemaRoles = await this.getInboundRoles(ckTypeId);
-    const navNameByKey = new Map<string, string>();
-    for (const r of schemaRoles) {
-      navNameByKey.set(`${r.roleId}::${r.targetCkTypeId}`, r.navigationPropertyName);
-      if (!navNameByKey.has(r.roleId)) {
-        navNameByKey.set(r.roleId, r.navigationPropertyName);
-      }
-    }
-
-    const groups = new Map<string, EntityInboundRoleGroup>();
+    // Count edges per role and remember a representative concrete origin type
+    // (used as a fallback ckId for orphan roles not declared on the type).
+    const edgeCount = new Map<string, number>();
+    const edgeOrigin = new Map<string, string>();
     for (const def of definitions) {
       const roleId = String(def?.ckAssociationRoleId ?? '');
       const origin = String(def?.originCkTypeId ?? '');
       if (!roleId || !origin || NON_NAVIGABLE_TARGET_CK_TYPES.has(origin)) {
         continue;
       }
-      const key = `${roleId}::${origin}`;
-      const existing = groups.get(key);
-      if (existing) {
-        existing.count++;
-        continue;
+      edgeCount.set(roleId, (edgeCount.get(roleId) ?? 0) + 1);
+      if (!edgeOrigin.has(roleId)) {
+        edgeOrigin.set(roleId, origin);
       }
-      groups.set(key, {
+    }
+
+    // Declared roles from the CK type schema give the friendly inbound name and,
+    // crucially, the origin BASE type — using it as the ckId aggregates all
+    // concrete subtypes into a single group (e.g. one "Sensoren (5)" instead of
+    // one group per concrete sensor type).
+    const schemaRoles = await this.getInboundRoles(ckTypeId);
+    const schemaByRole = new Map<
+      string,
+      { origin: string; nav: string }
+    >();
+    for (const r of schemaRoles) {
+      if (!schemaByRole.has(r.roleId)) {
+        schemaByRole.set(r.roleId, {
+          origin: r.targetCkTypeId,
+          nav: r.navigationPropertyName,
+        });
+      }
+    }
+
+    // One group per role actually present on the entity. Declared roles use the
+    // schema base type as ckId; orphan roles (edge exists but role not declared
+    // on the type in the installed model, e.g. EnergyIQ/StoreyElements) fall back
+    // to the concrete edge origin type and a derived label.
+    const groups: EntityInboundRoleGroup[] = [];
+    for (const [roleId, count] of edgeCount) {
+      const schema = schemaByRole.get(roleId);
+      groups.push({
         roleId,
-        targetCkTypeId: origin,
-        navigationPropertyName:
-          navNameByKey.get(key) ??
-          navNameByKey.get(roleId) ??
-          this.deriveRoleLabel(roleId),
-        count: 1,
+        targetCkTypeId: schema?.origin ?? edgeOrigin.get(roleId) ?? '',
+        navigationPropertyName: schema?.nav ?? this.deriveRoleLabel(roleId),
+        count,
       });
     }
-    return [...groups.values()];
+    return groups;
   }
 
   /** Readable fallback label for a role id without a schema navigation name. */

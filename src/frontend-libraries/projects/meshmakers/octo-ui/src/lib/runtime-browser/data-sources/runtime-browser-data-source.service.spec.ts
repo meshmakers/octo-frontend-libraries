@@ -619,6 +619,53 @@ describe('RuntimeBrowserDataSource', () => {
       ).toBeTrue();
     });
 
+    it('aggregates one role across concrete origin subtypes into a single group', async () => {
+      // Two RelatedClassification edges from two different concrete asset
+      // subtypes must collapse into ONE group, sized by the edge count, using
+      // the schema origin base (Basic/Asset) as the ckId.
+      mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.and.callFake(
+        (options: { variables: { roleId?: string } }) =>
+          options.variables.roleId
+            ? of(mockAssocResponse)
+            : of({
+                data: {
+                  runtime: {
+                    runtimeEntities: {
+                      items: [
+                        {
+                          associations: {
+                            definitions: {
+                              items: [
+                                {
+                                  ckAssociationRoleId: 'Basic/RelatedClassification',
+                                  originCkTypeId: 'Basic/AssetTypeA',
+                                  originRtId: 'a1',
+                                },
+                                {
+                                  ckAssociationRoleId: 'Basic/RelatedClassification',
+                                  originCkTypeId: 'Basic/AssetTypeB',
+                                  originRtId: 'b1',
+                                },
+                              ],
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              }),
+      );
+
+      const children = await service.fetchChildren(makeTreeEntityNode());
+
+      const groups = children.filter((c) =>
+        c.text?.startsWith('RelatedClassifications'),
+      );
+      expect(groups.length).toBe(1);
+      expect(groups[0].text).toBe('RelatedClassifications (2)');
+    });
+
     it('should mark a child entity expandable only when its type has inbound roles', async () => {
       const children = await service.fetchChildren(makeTreeEntityNode());
 
