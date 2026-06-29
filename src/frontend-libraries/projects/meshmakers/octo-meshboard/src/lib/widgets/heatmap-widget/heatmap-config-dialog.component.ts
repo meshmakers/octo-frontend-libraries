@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { HeatmapColorScheme, HeatmapAggregation, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
+import { HeatmapColorScheme, HeatmapColorMode, HeatmapAggregation, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -36,6 +36,8 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
   valueField?: string;
   aggregation: HeatmapAggregation;
   colorScheme: HeatmapColorScheme;
+  colorMode?: HeatmapColorMode;
+  thresholdTarget?: number;
   showLegend: boolean;
   legendPosition: 'top' | 'bottom' | 'left' | 'right';
   decimalPlaces?: number;
@@ -191,23 +193,62 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
           <h3 class="section-title">Display Options</h3>
 
           <div class="form-field">
-            <label>Color Scheme</label>
+            <label>Color Mode</label>
             <div class="color-scheme-grid">
-              @for (scheme of colorSchemeOptions; track scheme.value) {
+              @for (mode of colorModeOptions; track mode.value) {
                 <label class="radio-label">
                   <input type="radio"
-                         name="colorScheme"
-                         [value]="scheme.value"
-                         [(ngModel)]="form.colorScheme"
+                         name="colorMode"
+                         [value]="mode.value"
+                         [(ngModel)]="form.colorMode"
                          kendoRadioButton />
-                  <span class="color-scheme-preview">
-                    <span class="color-swatch" [style.background]="scheme.previewColor"></span>
-                    {{ scheme.label }}
-                  </span>
+                  <span class="color-scheme-preview">{{ mode.label }}</span>
                 </label>
               }
             </div>
+            <p class="field-hint">
+              Gradient colors relative to the data's min/max. Threshold colors each cell
+              against an expected count: equal = green, below (incl. empty) = amber, above = red.
+            </p>
           </div>
+
+          @if (form.colorMode === 'gradient') {
+            <div class="form-field">
+              <label>Color Scheme</label>
+              <div class="color-scheme-grid">
+                @for (scheme of colorSchemeOptions; track scheme.value) {
+                  <label class="radio-label">
+                    <input type="radio"
+                           name="colorScheme"
+                           [value]="scheme.value"
+                           [(ngModel)]="form.colorScheme"
+                           kendoRadioButton />
+                    <span class="color-scheme-preview">
+                      <span class="color-swatch" [style.background]="scheme.previewColor"></span>
+                      {{ scheme.label }}
+                    </span>
+                  </label>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="form-field">
+              <label>Target Value</label>
+              <kendo-numerictextbox
+                [(ngModel)]="form.thresholdTarget"
+                [min]="0"
+                [step]="1"
+                [decimals]="0"
+                format="n0"
+                placeholder="Auto (number of scoped sources)">
+              </kendo-numerictextbox>
+              <p class="field-hint">
+                Expected value per cell. Leave empty to auto-derive it from the number of
+                asset-scoped sources (e.g. the EnergyMeasurements under the picked MeteringPoint),
+                which requires a "Scope to entity selector" binding above.
+              </p>
+            </div>
+          }
 
           <div class="form-field">
             <label>Decimal Places</label>
@@ -429,6 +470,8 @@ export class HeatmapConfigDialogComponent implements OnInit {
   @Input() initialValueField?: string;
   @Input() initialAggregation?: HeatmapAggregation;
   @Input() initialColorScheme?: HeatmapColorScheme;
+  @Input() initialColorMode?: HeatmapColorMode;
+  @Input() initialThresholdTarget?: number;
   @Input() initialShowLegend?: boolean;
   @Input() initialLegendPosition?: 'top' | 'bottom' | 'left' | 'right';
   @Input() initialDecimalPlaces?: number;
@@ -457,6 +500,12 @@ export class HeatmapConfigDialogComponent implements OnInit {
     { value: 'count', label: 'Count (number of rows)' },
     { value: 'sum', label: 'Sum (total of values)' },
     { value: 'avg', label: 'Average (mean of values)' }
+  ];
+
+  // Color mode options
+  colorModeOptions = [
+    { value: 'gradient' as HeatmapColorMode, label: 'Gradient' },
+    { value: 'threshold' as HeatmapColorMode, label: 'Threshold' }
   ];
 
   // Color scheme options
@@ -489,6 +538,8 @@ export class HeatmapConfigDialogComponent implements OnInit {
     valueField: '' as string | undefined,
     aggregation: 'count' as HeatmapAggregation,
     colorScheme: 'green' as HeatmapColorScheme,
+    colorMode: 'gradient' as HeatmapColorMode,
+    thresholdTarget: undefined as number | undefined,
     showLegend: true,
     legendPosition: 'bottom' as 'top' | 'bottom' | 'left' | 'right',
     decimalPlaces: 2,
@@ -523,6 +574,8 @@ export class HeatmapConfigDialogComponent implements OnInit {
     this.form.valueField = this.initialValueField;
     this.form.aggregation = this.initialAggregation ?? 'count';
     this.form.colorScheme = this.initialColorScheme ?? 'green';
+    this.form.colorMode = this.initialColorMode ?? 'gradient';
+    this.form.thresholdTarget = this.initialThresholdTarget;
     this.form.showLegend = this.initialShowLegend ?? true;
     this.form.legendPosition = this.initialLegendPosition ?? 'bottom';
     this.form.decimalPlaces = this.initialDecimalPlaces ?? 2;
@@ -670,6 +723,8 @@ export class HeatmapConfigDialogComponent implements OnInit {
       valueField: this.form.valueField || undefined,
       aggregation: this.form.aggregation,
       colorScheme: this.form.colorScheme,
+      colorMode: this.form.colorMode,
+      thresholdTarget: this.form.colorMode === 'threshold' ? (this.form.thresholdTarget ?? undefined) : undefined,
       showLegend: this.form.showLegend,
       legendPosition: this.form.legendPosition,
       decimalPlaces: this.form.decimalPlaces,
