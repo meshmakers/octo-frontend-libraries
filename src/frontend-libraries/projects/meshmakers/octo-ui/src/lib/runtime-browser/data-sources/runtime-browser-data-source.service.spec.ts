@@ -220,6 +220,7 @@ describe('RuntimeBrowserDataSource', () => {
   const node2 = { rtId: 'node-2', ckTypeId: 'Basic/TreeNode', name: 'Node 2' };
   const asset1 = { rtId: 'asset-1', ckTypeId: 'Basic/Asset', name: 'Asset 1' };
 
+  // getParentChildAssociation reads target* fields (roleId-scoped call).
   const mockAssocResponse = {
     data: {
       runtime: {
@@ -239,6 +240,46 @@ describe('RuntimeBrowserDataSource', () => {
       },
     },
   };
+
+  // Role discovery reads the entity's ACTUAL inbound edges (no roleId filter):
+  // 2 ParentChild (from TreeNode) + 1 RelatedClassification (from Asset).
+  const discoveryDefsResponse = {
+    data: {
+      runtime: {
+        runtimeEntities: {
+          items: [
+            {
+              associations: {
+                definitions: {
+                  items: [
+                    {
+                      ckAssociationRoleId: 'System/ParentChild',
+                      originCkTypeId: 'Basic/TreeNode',
+                      originRtId: 'node-1',
+                    },
+                    {
+                      ckAssociationRoleId: 'System/ParentChild',
+                      originCkTypeId: 'Basic/TreeNode',
+                      originRtId: 'node-2',
+                    },
+                    {
+                      ckAssociationRoleId: 'Basic/RelatedClassification',
+                      originCkTypeId: 'Basic/Asset',
+                      originRtId: 'asset-1',
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+
+  // roleId present → getParentChildAssociation; absent → inbound-edge discovery.
+  const assocFetchFake = (options: { variables: { roleId?: string } }) =>
+    of(options.variables.roleId ? mockAssocResponse : discoveryDefsResponse);
 
   const mockDeleteResponse = {
     data: {
@@ -295,7 +336,7 @@ describe('RuntimeBrowserDataSource', () => {
   };
 
   const mockGetRuntimeEntityAssociationsByIdDtoGQL = {
-    fetch: jasmine.createSpy('fetch').and.returnValue(of(mockAssocResponse)),
+    fetch: jasmine.createSpy('fetch').and.callFake(assocFetchFake),
   };
 
   const mockDeleteEntitiesDtoGQL = {
@@ -375,8 +416,8 @@ describe('RuntimeBrowserDataSource', () => {
     mockGetCkModelsGQL.fetch.and.returnValue(of(mockCkModelsResponse));
     mockGetCkTypesGQL.fetch.and.returnValue(of(mockCkTypesResponse));
     mockGetCkModelByIdGQL.fetch.and.returnValue(of(mockBasicCkResponse));
-    mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.and.returnValue(
-      of(mockAssocResponse),
+    mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.and.callFake(
+      assocFetchFake,
     );
     mockDeleteEntitiesDtoGQL.mutate.and.returnValue(of(mockDeleteResponse));
     mockUpdateTreeNodesGQL.mutate.calls.reset();
@@ -569,7 +610,7 @@ describe('RuntimeBrowserDataSource', () => {
       const children = await service.fetchChildren(makeTreeEntityNode());
 
       const group = children.find(
-        (c) => c.text === 'RelatedClassifications (2)',
+        (c) => c.text === 'RelatedClassifications (1)',
       );
       expect(group).toBeTruthy();
       expect(group?.expandable).toBeTrue();
@@ -589,7 +630,7 @@ describe('RuntimeBrowserDataSource', () => {
     it('should lazily load the targets of an association group node', async () => {
       const children = await service.fetchChildren(makeTreeEntityNode());
       const group = children.find(
-        (c) => c.text === 'RelatedClassifications (2)',
+        (c) => c.text === 'RelatedClassifications (1)',
       )!;
 
       const groupChildren = await service.fetchChildren(

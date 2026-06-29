@@ -68,6 +68,19 @@ interface InboundAssociationRole {
   multiplicity: MultiplicitiesDto;
 }
 
+/**
+ * A navigable inbound role group discovered from an entity's ACTUAL edges
+ * (associations.definitions), keyed by (roleId, origin CK type). `targetCkTypeId`
+ * is the concrete origin runtime CK type used as the ckId to load the targets;
+ * `count` is the exact number of edges.
+ */
+interface EntityInboundRoleGroup {
+  roleId: string;
+  targetCkTypeId: string;
+  navigationPropertyName: string;
+  count: number;
+}
+
 /** Well-known role id of the hierarchical parent-child association. */
 const PARENT_CHILD_ROLE_ID = 'System/ParentChild';
 
@@ -180,26 +193,31 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       return [];
     }
 
-    // Discover the inbound association roles of this entity's type from the CK
-    // schema. Inbound roles are the "contained / children" direction (the same
-    // direction the tree historically used for System/ParentChild), so they
-    // generalize the old hard-coded behavior to every association.
-    const roles = await this.getInboundRoles(rtEntity.ckTypeId);
+    // Discover the inbound association roles from the entity's ACTUAL inbound
+    // edges (associations.definitions), not the CK type schema. This mirrors the
+    // entity detail "Associations" tab and also surfaces roles that exist as
+    // runtime edges but are no longer declared on the type in the installed CK
+    // model (orphan roles after model evolution). Each group carries its concrete
+    // origin CK type (the ckId used to load its targets) and an exact count.
+    const roleGroups = await this.discoverEntityInboundRoleGroups(
+      rtEntity.rtId,
+      rtEntity.ckTypeId,
+    );
 
     // Apply the optional per-tenant TreeNavigationConfiguration overrides on top
     // of auto-discovery: hide (visible), relabel (displayName), reorder
     // (sortIndex), flatten vs group (grouped), icon. Defaults reproduce Phase 1:
     // System/ParentChild flat, every other role grouped.
     const annotated = await Promise.all(
-      roles.map(async (role) => {
+      roleGroups.map(async (group) => {
         const override = await this.treeNavConfig.resolve(
           rtEntity.ckTypeId,
-          role.roleId,
+          group.roleId,
         );
         return {
-          role,
+          group,
           visible: override?.visible !== false,
-          grouped: override?.grouped ?? role.roleId !== PARENT_CHILD_ROLE_ID,
+          grouped: override?.grouped ?? group.roleId !== PARENT_CHILD_ROLE_ID,
           displayName: override?.displayName,
           sortIndex: override?.sortIndex,
           icon: override?.icon,
@@ -212,56 +230,44 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
 
     // 1. Flattened roles (default: System/ParentChild) — their targets appear
     //    directly under the node to preserve the familiar hierarchy navigation.
-    const flattenedRoles = visibleRoles.filter((a) => !a.grouped);
     const flattenedTargetLists = await Promise.all(
-      flattenedRoles.map((a) =>
-        this.fetchAssociationTargets(
-          rtEntity.rtId,
-          rtEntity.ckTypeId,
-          a.role.roleId,
-          a.role.targetCkTypeId,
-          GraphDirectionDto.InboundDto,
+      visibleRoles
+        .filter((a) => !a.grouped)
+        .map((a) =>
+          this.fetchAssociationTargets(
+            rtEntity.rtId,
+            rtEntity.ckTypeId,
+            a.group.roleId,
+            a.group.targetCkTypeId,
+            GraphDirectionDto.InboundDto,
+          ),
         ),
-      ),
     );
     result.push(
       ...(await this.buildEntityTreeItems(flattenedTargetLists.flat())),
     );
 
-    // 2. Grouped roles become expandable group nodes, but only when they have
-    //    targets (avoids empty, noisy groups). Ordered by configured sortIndex.
-    const groupedRoles = visibleRoles.filter((a) => a.grouped);
-    const counts = await Promise.all(
-      groupedRoles.map((a) =>
-        this.fetchAssociationCount(
-          rtEntity.rtId,
-          rtEntity.ckTypeId,
-          a.role.roleId,
-          a.role.targetCkTypeId,
-          GraphDirectionDto.InboundDto,
-        ),
-      ),
-    );
-    const groupNodes = groupedRoles
-      .map((a, index) => ({ a, count: counts[index] }))
-      .filter((x) => x.count > 0)
-      .sort((x, y) => this.compareGroupOrder(x.a, y.a));
-    for (const { a, count } of groupNodes) {
-      const role = a.role;
+    // 2. Grouped roles become expandable group nodes (counts already known from
+    //    the discovered edges). Ordered by configured sortIndex.
+    const groupNodes = visibleRoles
+      .filter((a) => a.grouped && a.group.count > 0)
+      .sort((x, y) => this.compareGroupOrder(x, y));
+    for (const a of groupNodes) {
+      const group = a.group;
       const groupNode: AssociationGroupNode = {
         isAssociationGroup: true,
         parentRtId: rtEntity.rtId,
         parentCkTypeId: rtEntity.ckTypeId,
-        roleId: role.roleId,
-        targetCkTypeId: role.targetCkTypeId,
+        roleId: group.roleId,
+        targetCkTypeId: group.targetCkTypeId,
         direction: GraphDirectionDto.InboundDto,
       };
-      const label = `${a.displayName ?? role.navigationPropertyName} (${count})`;
+      const label = `${a.displayName ?? group.navigationPropertyName} (${group.count})`;
       result.push(
         new TreeItemDataTyped<BrowserItem>(
-          this.buildGroupNodeId(rtEntity.rtId, rtEntity.ckTypeId, role),
+          this.buildGroupNodeId(rtEntity.rtId, rtEntity.ckTypeId, group),
           label,
-          `${role.roleId} → ${role.targetCkTypeId}`,
+          `${group.roleId} → ${group.targetCkTypeId}`,
           groupNode,
           this.resolveGroupIcon(a.icon),
           true,
@@ -273,20 +279,102 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   }
 
   /**
+   * Discovers the navigable inbound role groups of an entity from its ACTUAL
+   * inbound edges (associations.definitions), grouped by (roleId, origin CK
+   * type) with exact counts. Labels are enriched from the CK type schema
+   * (friendly inbound navigation property name) when the role is declared on the
+   * type, and otherwise derived from the role id (so orphan roles still get a
+   * readable label).
+   */
+  private async discoverEntityInboundRoleGroups(
+    rtId: string,
+    ckTypeId: string,
+  ): Promise<EntityInboundRoleGroup[]> {
+    let definitions: ({
+      ckAssociationRoleId?: string | null;
+      originCkTypeId?: string | null;
+    } | null)[] = [];
+    try {
+      const response = await firstValueFrom(
+        this.getRuntimeEntityAssociationsByIdDtoGQL.fetch({
+          variables: {
+            rtId,
+            ckTypeId,
+            direction: GraphDirectionDto.InboundDto,
+            first: 2000,
+          },
+          fetchPolicy: 'network-only',
+        }),
+      );
+      definitions =
+        response.data?.runtime?.runtimeEntities?.items?.[0]?.associations
+          ?.definitions?.items ?? [];
+    } catch (error) {
+      console.error(
+        'Error discovering inbound association edges',
+        { ckTypeId, rtId },
+        error,
+      );
+      return [];
+    }
+
+    // Friendly inbound names from the CK type schema (when the role is declared).
+    const schemaRoles = await this.getInboundRoles(ckTypeId);
+    const navNameByKey = new Map<string, string>();
+    for (const r of schemaRoles) {
+      navNameByKey.set(`${r.roleId}::${r.targetCkTypeId}`, r.navigationPropertyName);
+      if (!navNameByKey.has(r.roleId)) {
+        navNameByKey.set(r.roleId, r.navigationPropertyName);
+      }
+    }
+
+    const groups = new Map<string, EntityInboundRoleGroup>();
+    for (const def of definitions) {
+      const roleId = String(def?.ckAssociationRoleId ?? '');
+      const origin = String(def?.originCkTypeId ?? '');
+      if (!roleId || !origin || NON_NAVIGABLE_TARGET_CK_TYPES.has(origin)) {
+        continue;
+      }
+      const key = `${roleId}::${origin}`;
+      const existing = groups.get(key);
+      if (existing) {
+        existing.count++;
+        continue;
+      }
+      groups.set(key, {
+        roleId,
+        targetCkTypeId: origin,
+        navigationPropertyName:
+          navNameByKey.get(key) ??
+          navNameByKey.get(roleId) ??
+          this.deriveRoleLabel(roleId),
+        count: 1,
+      });
+    }
+    return [...groups.values()];
+  }
+
+  /** Readable fallback label for a role id without a schema navigation name. */
+  private deriveRoleLabel(roleId: string): string {
+    const slash = roleId.lastIndexOf('/');
+    return slash >= 0 ? roleId.slice(slash + 1) : roleId;
+  }
+
+  /**
    * Orders group nodes by configured sortIndex (ascending, unconfigured last),
    * then by navigation property name for a stable, readable order.
    */
   private compareGroupOrder(
-    x: { sortIndex?: number; role: InboundAssociationRole },
-    y: { sortIndex?: number; role: InboundAssociationRole },
+    x: { sortIndex?: number; group: EntityInboundRoleGroup },
+    y: { sortIndex?: number; group: EntityInboundRoleGroup },
   ): number {
     const xi = x.sortIndex ?? Number.MAX_SAFE_INTEGER;
     const yi = y.sortIndex ?? Number.MAX_SAFE_INTEGER;
     if (xi !== yi) {
       return xi - yi;
     }
-    return x.role.navigationPropertyName.localeCompare(
-      y.role.navigationPropertyName,
+    return x.group.navigationPropertyName.localeCompare(
+      y.group.navigationPropertyName,
     );
   }
 
@@ -392,34 +480,6 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     }
   }
 
-  /** Counts the target entities reachable through one role (without loading them). */
-  private async fetchAssociationCount(
-    rtId: string,
-    ckTypeId: string,
-    roleId: string,
-    targetCkTypeId: string,
-    direction: GraphDirectionDto,
-  ): Promise<number> {
-    try {
-      const response = await firstValueFrom(
-        this.getTreeAssociationTargetsDtoGQL.fetch({
-          variables: { rtId, ckTypeId, roleId, targetCkTypeId, direction, first: 1 },
-        }),
-      );
-      return (
-        response.data?.runtime?.runtimeEntities?.items?.[0]?.associations
-          ?.targets?.totalCount ?? 0
-      );
-    } catch (error) {
-      console.error(
-        'Error counting association targets',
-        { ckTypeId, roleId, targetCkTypeId },
-        error,
-      );
-      return 0;
-    }
-  }
-
   /**
    * Builds tree items for runtime entities, de-duplicating by rtId and marking
    * an entity expandable when its CK type defines at least one inbound
@@ -463,7 +523,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   private buildGroupNodeId(
     parentRtId: string,
     parentCkTypeId: string,
-    role: InboundAssociationRole,
+    role: { roleId: string; targetCkTypeId: string },
   ): string {
     return `assoc:${parentCkTypeId}@${parentRtId}:${role.roleId}:${role.targetCkTypeId}`;
   }

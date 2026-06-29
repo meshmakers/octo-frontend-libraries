@@ -65,15 +65,23 @@ app's translation system.
 `entity-selector-dialog` picker used by data-mappings) navigates **every**
 association of an entity, not only `System/ParentChild`.
 
-- **Auto-discovery:** when an entity node is expanded, the data source reads the
-  entity type's inbound association roles from the CK schema via
-  `getCkTypeAssociationRoles` (cached per CK type id). No association is
-  hard-coded — new models (e.g. EnergyIQ spaces) work with zero configuration.
+- **Auto-discovery from actual edges:** when an entity node is expanded, the data
+  source discovers its navigable roles from the entity's **real inbound edges**
+  (`associations.definitions`, via `getRuntimeEntityAssociationsById` with
+  `direction: INBOUND`, no role filter), grouped by `(roleId, origin CK type)`
+  with exact counts. This mirrors the entity detail "Associations" tab and also
+  surfaces **orphan roles** — runtime edges whose role is no longer declared on
+  the type in the installed CK model (model evolution). The CK type schema
+  (`getCkTypeAssociationRoles`, cached) is used only to enrich the friendly
+  inbound navigation-property label; unknown roles fall back to the role-id tail.
+  No association is hard-coded — new models (e.g. EnergyIQ spaces) work with zero
+  configuration. (Earlier iterations discovered from the type schema, which
+  silently dropped orphan-edge roles — don't reintroduce that.)
 - **Layout:** `System/ParentChild` children stay flattened directly under the
-  node (familiar hierarchy). Every other role with ≥1 target becomes an
-  expandable **group node** (`AssociationGroupNode`, label
-  `<navigationPropertyName> (<count>)`) whose targets load lazily on expand via
-  `getTreeAssociationTargets`.
+  node (familiar hierarchy). Every other role becomes an expandable **group
+  node** (`AssociationGroupNode`, label `<navigationPropertyName> (<count>)`)
+  whose targets load lazily on expand via `getTreeAssociationTargets`. The origin
+  CK type from the edge is the `ckId` used to load the targets.
 - A child entity is marked expandable when its CK type defines at least one
   inbound association role (schema-based, so an expand arrow may open to an empty
   set for an instance that has no related entities — acceptable; refined later).
