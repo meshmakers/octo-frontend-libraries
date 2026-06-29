@@ -69,7 +69,10 @@
 @use "@progress/kendo-theme-material/scss/tilelayout/_index.scss" as *;
 @use "@progress/kendo-theme-material/scss/gridlayout/_index.scss" as *;
 @use "@progress/kendo-theme-material/scss/stacklayout/_index.scss" as *;
-@use "@progress/kendo-theme-material/scss/adaptive/_index.scss" as *;
+// NOTE: the standalone "adaptive" module was removed in kendo-theme-material 14.2.0
+// (its rendering was folded into the component modules). This slim theme never
+// emitted adaptive CSS anyway — there was no `@include kendo-adaptive--styles()` —
+// so the import was dead code. Removed so the theme builds on both 14.1.x and 14.2.x.
 @use "@progress/kendo-theme-material/scss/grid/_index.scss" as *;
 @use "@progress/kendo-theme-material/scss/filter/_index.scss" as *;
 @use "@progress/kendo-theme-material/scss/utils/_index.scss" as *;
