@@ -79,9 +79,16 @@ association of an entity, not only `System/ParentChild`.
   set for an instance that has no related entities — acceptable; refined later).
 - Group nodes are **not** runtime entities, so the toolbar create/edit/delete
   actions and the picker's "Select" button stay disabled for them.
-- **Planned (AB#4262 Phase 2):** a per-tenant `System.UI/TreeNavigationConfiguration`
-  entity will let tenants hide / rename / reorder / icon-tag discovered roles;
-  auto-discovery remains the default when no config entity exists.
+- **Per-tenant overrides (AB#4262 Phase 2):** `TreeNavigationConfigService` loads the
+  optional `System.UI/TreeNavigationConfiguration` singleton (rtWellKnownName
+  `TreeNavigation`, System.UI ≥ 2.2.0) and merges per-role overrides onto the
+  auto-discovered roles: `visible` (hide), `displayName` (relabel), `sortIndex`
+  (order), `grouped` (flatten vs group node), `icon`. Rules match by
+  `(SourceCkTypeId, RoleId)` with `*` as a type wildcard; exact beats wildcard.
+  The service probes the CK schema first (`constructionKit.types`) and only queries
+  the singleton when the type is installed, so tenants on older System.UI fall back
+  to pure auto-discovery without errors. Uses inline `gql` (not codegen) to stay
+  decoupled from a schema re-introspection that includes the new CK type.
 
 ## Branding (theming + per-tenant identity)
 

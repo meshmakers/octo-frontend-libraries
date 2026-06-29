@@ -34,6 +34,7 @@ import { GetTreesDtoGQL } from '../../graphQL/getTrees';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../graphQL/updateRuntimeEntities';
 import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
 import { code, storage } from '../icons/custom-svg-icons';
+import { TreeNavigationConfigService } from '../services/tree-navigation-config.service';
 import { TypeHelperService } from '../services/type-helper.service';
 
 // Extended type to handle both Runtime Entities and CK Models/Types
@@ -101,6 +102,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   private readonly updateRuntimeEntitiesDtoGQL = inject(UpdateRuntimeEntitiesDtoGQL);
   private readonly updateTreeNodesDtoGQL = inject(UpdateTreeNodesDtoGQL);
   private readonly typeHelperService = inject(TypeHelperService);
+  private readonly treeNavConfig = inject(TreeNavigationConfigService);
   private isCkModelsRoot(
     item: BrowserItem,
   ): item is { isCkModelsRoot?: boolean; ckModelId?: string } {
@@ -183,48 +185,69 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     // direction the tree historically used for System/ParentChild), so they
     // generalize the old hard-coded behavior to every association.
     const roles = await this.getInboundRoles(rtEntity.ckTypeId);
-    const parentChildRoles = roles.filter(
-      (r) => r.roleId === PARENT_CHILD_ROLE_ID,
+
+    // Apply the optional per-tenant TreeNavigationConfiguration overrides on top
+    // of auto-discovery: hide (visible), relabel (displayName), reorder
+    // (sortIndex), flatten vs group (grouped), icon. Defaults reproduce Phase 1:
+    // System/ParentChild flat, every other role grouped.
+    const annotated = await Promise.all(
+      roles.map(async (role) => {
+        const override = await this.treeNavConfig.resolve(
+          rtEntity.ckTypeId,
+          role.roleId,
+        );
+        return {
+          role,
+          visible: override?.visible !== false,
+          grouped: override?.grouped ?? role.roleId !== PARENT_CHILD_ROLE_ID,
+          displayName: override?.displayName,
+          sortIndex: override?.sortIndex,
+          icon: override?.icon,
+        };
+      }),
     );
-    const otherRoles = roles.filter((r) => r.roleId !== PARENT_CHILD_ROLE_ID);
+    const visibleRoles = annotated.filter((a) => a.visible);
 
     const result: TreeItemDataTyped<BrowserItem>[] = [];
 
-    // 1. System/ParentChild children stay flattened directly under the node
-    //    (top) to preserve the familiar hierarchy navigation.
-    const parentChildTargetLists = await Promise.all(
-      parentChildRoles.map((r) =>
+    // 1. Flattened roles (default: System/ParentChild) — their targets appear
+    //    directly under the node to preserve the familiar hierarchy navigation.
+    const flattenedRoles = visibleRoles.filter((a) => !a.grouped);
+    const flattenedTargetLists = await Promise.all(
+      flattenedRoles.map((a) =>
         this.fetchAssociationTargets(
           rtEntity.rtId,
           rtEntity.ckTypeId,
-          r.roleId,
-          r.targetCkTypeId,
+          a.role.roleId,
+          a.role.targetCkTypeId,
           GraphDirectionDto.InboundDto,
         ),
       ),
     );
     result.push(
-      ...(await this.buildEntityTreeItems(parentChildTargetLists.flat())),
+      ...(await this.buildEntityTreeItems(flattenedTargetLists.flat())),
     );
 
-    // 2. Every other association role becomes an expandable group node, but
-    //    only when it actually has targets (avoids empty, noisy groups).
+    // 2. Grouped roles become expandable group nodes, but only when they have
+    //    targets (avoids empty, noisy groups). Ordered by configured sortIndex.
+    const groupedRoles = visibleRoles.filter((a) => a.grouped);
     const counts = await Promise.all(
-      otherRoles.map((r) =>
+      groupedRoles.map((a) =>
         this.fetchAssociationCount(
           rtEntity.rtId,
           rtEntity.ckTypeId,
-          r.roleId,
-          r.targetCkTypeId,
+          a.role.roleId,
+          a.role.targetCkTypeId,
           GraphDirectionDto.InboundDto,
         ),
       ),
     );
-    otherRoles.forEach((role, index) => {
-      const count = counts[index];
-      if (count <= 0) {
-        return;
-      }
+    const groupNodes = groupedRoles
+      .map((a, index) => ({ a, count: counts[index] }))
+      .filter((x) => x.count > 0)
+      .sort((x, y) => this.compareGroupOrder(x.a, y.a));
+    for (const { a, count } of groupNodes) {
+      const role = a.role;
       const groupNode: AssociationGroupNode = {
         isAssociationGroup: true,
         parentRtId: rtEntity.rtId,
@@ -233,19 +256,55 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         targetCkTypeId: role.targetCkTypeId,
         direction: GraphDirectionDto.InboundDto,
       };
+      const label = `${a.displayName ?? role.navigationPropertyName} (${count})`;
       result.push(
         new TreeItemDataTyped<BrowserItem>(
           this.buildGroupNodeId(rtEntity.rtId, rtEntity.ckTypeId, role),
-          `${role.navigationPropertyName} (${count})`,
+          label,
           `${role.roleId} → ${role.targetCkTypeId}`,
           groupNode,
-          folderMoreIcon,
+          this.resolveGroupIcon(a.icon),
           true,
         ),
       );
-    });
+    }
 
     return result;
+  }
+
+  /**
+   * Orders group nodes by configured sortIndex (ascending, unconfigured last),
+   * then by navigation property name for a stable, readable order.
+   */
+  private compareGroupOrder(
+    x: { sortIndex?: number; role: InboundAssociationRole },
+    y: { sortIndex?: number; role: InboundAssociationRole },
+  ): number {
+    const xi = x.sortIndex ?? Number.MAX_SAFE_INTEGER;
+    const yi = y.sortIndex ?? Number.MAX_SAFE_INTEGER;
+    if (xi !== yi) {
+      return xi - yi;
+    }
+    return x.role.navigationPropertyName.localeCompare(
+      y.role.navigationPropertyName,
+    );
+  }
+
+  /** Resolves a configured group icon name to an SVG icon (folder by default). */
+  private resolveGroupIcon(name: string | undefined) {
+    switch (name) {
+      case 'file':
+        return fileIcon;
+      case 'gear':
+        return gearIcon;
+      case 'database':
+        return storage;
+      case 'code':
+        return code;
+      case 'folder':
+      default:
+        return folderMoreIcon;
+    }
   }
 
   /**

@@ -24,6 +24,7 @@ import {
 } from '../../graphQL/globalTypes';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../graphQL/updateRuntimeEntities';
 import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
+import { TreeNavigationConfigService } from '../services/tree-navigation-config.service';
 import { TypeHelperService } from '../services/type-helper.service';
 import { RuntimeBrowserDataSource } from './runtime-browser-data-source.service';
 
@@ -313,6 +314,11 @@ describe('RuntimeBrowserDataSource', () => {
     isRuntimeEntity: jasmine.createSpy('isRuntimeEntity').and.returnValue(true),
   };
 
+  // No per-tenant overrides by default → pure auto-discovery (Phase 1 behavior).
+  const mockTreeNavConfig = {
+    resolve: jasmine.createSpy('resolve').and.resolveTo(undefined),
+  };
+
   beforeEach(async () => {
     consoleErrorSpy = spyOn(console, 'error');
     consoleWarnSpy = spyOn(console, 'warn');
@@ -342,6 +348,7 @@ describe('RuntimeBrowserDataSource', () => {
         { provide: UpdateTreeNodesDtoGQL, useValue: mockUpdateTreeNodesGQL },
         { provide: UpdateRuntimeEntitiesDtoGQL, useValue: mockUpdateRuntimeEntitiesGQL },
         { provide: TypeHelperService, useValue: mockTypeHelperService },
+        { provide: TreeNavigationConfigService, useValue: mockTreeNavConfig },
       ],
     }).compileComponents();
 
@@ -359,6 +366,8 @@ describe('RuntimeBrowserDataSource', () => {
     mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.calls.reset();
     mockDeleteEntitiesDtoGQL.mutate.calls.reset();
     mockTypeHelperService.isRuntimeEntity.calls.reset();
+    mockTreeNavConfig.resolve.calls.reset();
+    mockTreeNavConfig.resolve.and.resolveTo(undefined);
 
     mockGetTreesGQL.fetch.and.returnValue(of(mockTreesResponse));
     mockGetCkTypeAssociationRolesGQL.fetch.and.callFake(rolesFetchFake);
@@ -588,6 +597,43 @@ describe('RuntimeBrowserDataSource', () => {
       );
 
       expect(groupChildren.find((c) => c.text === 'Asset 1')).toBeTruthy();
+    });
+
+    it('hides a role when the tenant config sets visible=false', async () => {
+      mockTreeNavConfig.resolve.and.callFake((_ckTypeId, roleId) =>
+        Promise.resolve(
+          roleId === 'Basic/RelatedClassification'
+            ? { visible: false }
+            : undefined,
+        ),
+      );
+
+      const children = await service.fetchChildren(makeTreeEntityNode());
+
+      expect(
+        children.find((c) => c.text?.startsWith('RelatedClassifications')),
+      ).toBeUndefined();
+      // ParentChild children remain.
+      expect(children.find((c) => c.text === 'Node 1')).toBeTruthy();
+    });
+
+    it('flattens a role and applies the displayName override', async () => {
+      mockTreeNavConfig.resolve.and.callFake((_ckTypeId, roleId) =>
+        Promise.resolve(
+          roleId === 'Basic/RelatedClassification'
+            ? { grouped: false, displayName: 'Klassifizierungen' }
+            : undefined,
+        ),
+      );
+
+      const children = await service.fetchChildren(makeTreeEntityNode());
+
+      // grouped=false → the target is flattened directly under the entity...
+      expect(children.find((c) => c.text === 'Asset 1')).toBeTruthy();
+      // ...and there is no group node for it.
+      expect(
+        children.find((c) => c.text?.startsWith('Klassifizierungen')),
+      ).toBeUndefined();
     });
 
     it('should handle CK models fetch error', async () => {
