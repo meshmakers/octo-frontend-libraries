@@ -59,6 +59,30 @@ namespace is exposed.
 `DEFAULT_RUNTIME_BROWSER_MESSAGES` for English defaults or build translated values using the
 app's translation system.
 
+## Runtime Browser association navigation
+
+`RuntimeBrowserDataSource` (shared by the repository browser **and** the
+`entity-selector-dialog` picker used by data-mappings) navigates **every**
+association of an entity, not only `System/ParentChild`.
+
+- **Auto-discovery:** when an entity node is expanded, the data source reads the
+  entity type's inbound association roles from the CK schema via
+  `getCkTypeAssociationRoles` (cached per CK type id). No association is
+  hard-coded — new models (e.g. EnergyIQ spaces) work with zero configuration.
+- **Layout:** `System/ParentChild` children stay flattened directly under the
+  node (familiar hierarchy). Every other role with ≥1 target becomes an
+  expandable **group node** (`AssociationGroupNode`, label
+  `<navigationPropertyName> (<count>)`) whose targets load lazily on expand via
+  `getTreeAssociationTargets`.
+- A child entity is marked expandable when its CK type defines at least one
+  inbound association role (schema-based, so an expand arrow may open to an empty
+  set for an instance that has no related entities — acceptable; refined later).
+- Group nodes are **not** runtime entities, so the toolbar create/edit/delete
+  actions and the picker's "Select" button stay disabled for them.
+- **Planned (AB#4262 Phase 2):** a per-tenant `System.UI/TreeNavigationConfiguration`
+  entity will let tenants hide / rename / reorder / icon-tag discovered roles;
+  auto-discovery remains the default when no config entity exists.
+
 ## Branding (theming + per-tenant identity)
 
 `@meshmakers/octo-ui` exports a complete branding subsystem:

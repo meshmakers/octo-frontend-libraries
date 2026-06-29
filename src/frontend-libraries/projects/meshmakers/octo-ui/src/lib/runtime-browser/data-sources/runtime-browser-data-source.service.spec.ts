@@ -8,8 +8,9 @@ import {
 import { of, throwError } from 'rxjs';
 import { DeleteEntitiesDtoGQL } from '../../graphQL/deleteEntities';
 import { GetCkModelsDtoGQL } from '../../graphQL/getCkModels';
+import { GetCkTypeAssociationRolesDtoGQL } from '../../graphQL/getCkTypeAssociationRoles';
 import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../graphQL/getRuntimeEntityAssociationsById';
-import { GetTreeNodesDtoGQL } from '../../graphQL/getTreeNodes';
+import { GetTreeAssociationTargetsDtoGQL } from '../../graphQL/getTreeAssociationTargets';
 import { GetTreesDtoGQL } from '../../graphQL/getTrees';
 import {
   AssociationModOptionsDto,
@@ -120,35 +121,64 @@ describe('RuntimeBrowserDataSource', () => {
     },
   };
 
-  const mockTreeNodesResponse = {
+  // Build a getCkTypeAssociationRoles response from a list of inbound roles.
+  const rolesResponse = (
+    inAll: {
+      roleId: string;
+      navigationPropertyName: string;
+      targetCkTypeId: string;
+    }[],
+  ) => ({
+    data: {
+      constructionKit: {
+        types: {
+          items: [
+            {
+              rtCkTypeId: 'rt',
+              associations: {
+                in: {
+                  all: inAll.map((r) => ({
+                    roleId: {
+                      fullName: r.roleId,
+                      semanticVersionedFullName: `${r.roleId}:1.0.0`,
+                    },
+                    rtRoleId: r.roleId,
+                    navigationPropertyName: r.navigationPropertyName,
+                    multiplicity: 'N',
+                    targetCkTypeId: { fullName: r.targetCkTypeId },
+                    rtTargetCkTypeId: r.targetCkTypeId,
+                  })),
+                },
+                out: { all: [] },
+              },
+            },
+          ],
+        },
+      },
+    },
+  });
+
+  // Build a getTreeAssociationTargets response.
+  const targetsResponse = (
+    items: { rtId: string; ckTypeId: string; name: string }[],
+    totalCount: number,
+  ) => ({
     data: {
       runtime: {
         runtimeEntities: {
           items: [
             {
-              rtId: 'tree-1',
-              ckTypeId: 'Basic/Tree',
               associations: {
                 targets: {
-                  items: [
-                    {
-                      rtId: 'node-1',
-                      ckTypeId: 'Basic/TreeNode',
-                      attributes: {
-                        items: [{ attributeName: 'name', value: 'Node 1' }],
-                      },
-                      associations: { targets: { totalCount: 0 } },
+                  totalCount,
+                  items: items.map((i) => ({
+                    rtId: i.rtId,
+                    ckTypeId: i.ckTypeId,
+                    rtWellKnownName: null,
+                    attributes: {
+                      items: [{ attributeName: 'name', value: i.name }],
                     },
-                    {
-                      rtId: 'node-2',
-                      ckTypeId: 'Basic/TreeNode',
-                      attributes: {
-                        items: [{ attributeName: 'name', value: 'Node 2' }],
-                      },
-                      associations: { targets: { totalCount: 3 } },
-                    },
-                  ],
-                  totalCount: 2,
+                  })),
                 },
               },
             },
@@ -156,7 +186,35 @@ describe('RuntimeBrowserDataSource', () => {
         },
       },
     },
+  });
+
+  // Inbound roles per CK type: Basic/Tree has ParentChild (→TreeNode, flattened)
+  // and RelatedClassification (→Asset, grouped); other types have none.
+  const inboundRolesByType: Record<
+    string,
+    {
+      roleId: string;
+      navigationPropertyName: string;
+      targetCkTypeId: string;
+    }[]
+  > = {
+    'Basic/Tree': [
+      {
+        roleId: 'System/ParentChild',
+        navigationPropertyName: 'Children',
+        targetCkTypeId: 'Basic/TreeNode',
+      },
+      {
+        roleId: 'Basic/RelatedClassification',
+        navigationPropertyName: 'RelatedClassifications',
+        targetCkTypeId: 'Basic/Asset',
+      },
+    ],
   };
+
+  const node1 = { rtId: 'node-1', ckTypeId: 'Basic/TreeNode', name: 'Node 1' };
+  const node2 = { rtId: 'node-2', ckTypeId: 'Basic/TreeNode', name: 'Node 2' };
+  const asset1 = { rtId: 'asset-1', ckTypeId: 'Basic/Asset', name: 'Asset 1' };
 
   const mockAssocResponse = {
     data: {
@@ -192,10 +250,32 @@ describe('RuntimeBrowserDataSource', () => {
     fetch: jasmine.createSpy('fetch').and.returnValue(of(mockTreesResponse)),
   };
 
-  const mockGetTreeNodesGQL = {
-    fetch: jasmine
-      .createSpy('fetch')
-      .and.returnValue(of(mockTreeNodesResponse)),
+  // Returns inbound roles for the requested CK type (empty when unknown).
+  const rolesFetchFake = (options: {
+    variables: { ckTypeId: string };
+  }) => of(rolesResponse(inboundRolesByType[options.variables.ckTypeId] ?? []));
+
+  // Returns targets/counts per role. `first: 1` is a count call (no items).
+  const targetsFetchFake = (options: {
+    variables: { roleId: string; first?: number };
+  }) => {
+    const isCount = options.variables.first === 1;
+    switch (options.variables.roleId) {
+      case 'System/ParentChild':
+        return of(targetsResponse(isCount ? [] : [node1, node2], 2));
+      case 'Basic/RelatedClassification':
+        return of(targetsResponse(isCount ? [] : [asset1], 2));
+      default:
+        return of(targetsResponse([], 0));
+    }
+  };
+
+  const mockGetCkTypeAssociationRolesGQL = {
+    fetch: jasmine.createSpy('fetch').and.callFake(rolesFetchFake),
+  };
+
+  const mockGetTreeAssociationTargetsGQL = {
+    fetch: jasmine.createSpy('fetch').and.callFake(targetsFetchFake),
   };
 
   const mockGetCkModelsGQL = {
@@ -240,7 +320,14 @@ describe('RuntimeBrowserDataSource', () => {
       providers: [
         RuntimeBrowserDataSource,
         { provide: GetTreesDtoGQL, useValue: mockGetTreesGQL },
-        { provide: GetTreeNodesDtoGQL, useValue: mockGetTreeNodesGQL },
+        {
+          provide: GetCkTypeAssociationRolesDtoGQL,
+          useValue: mockGetCkTypeAssociationRolesGQL,
+        },
+        {
+          provide: GetTreeAssociationTargetsDtoGQL,
+          useValue: mockGetTreeAssociationTargetsGQL,
+        },
         { provide: GetCkModelsDtoGQL, useValue: mockGetCkModelsGQL },
         { provide: GetCkTypesDtoGQL, useValue: mockGetCkTypesGQL },
         { provide: GetCkModelByIdDtoGQL, useValue: mockGetCkModelByIdGQL },
@@ -261,7 +348,8 @@ describe('RuntimeBrowserDataSource', () => {
 
   afterEach(() => {
     mockGetTreesGQL.fetch.calls.reset();
-    mockGetTreeNodesGQL.fetch.calls.reset();
+    mockGetCkTypeAssociationRolesGQL.fetch.calls.reset();
+    mockGetTreeAssociationTargetsGQL.fetch.calls.reset();
     mockGetCkModelsGQL.fetch.calls.reset();
     mockGetCkTypesGQL.fetch.calls.reset();
     mockGetCkModelByIdGQL.fetch.calls.reset();
@@ -270,7 +358,8 @@ describe('RuntimeBrowserDataSource', () => {
     mockTypeHelperService.isRuntimeEntity.calls.reset();
 
     mockGetTreesGQL.fetch.and.returnValue(of(mockTreesResponse));
-    mockGetTreeNodesGQL.fetch.and.returnValue(of(mockTreeNodesResponse));
+    mockGetCkTypeAssociationRolesGQL.fetch.and.callFake(rolesFetchFake);
+    mockGetTreeAssociationTargetsGQL.fetch.and.callFake(targetsFetchFake);
     mockGetCkModelsGQL.fetch.and.returnValue(of(mockCkModelsResponse));
     mockGetCkTypesGQL.fetch.and.returnValue(of(mockCkTypesResponse));
     mockGetCkModelByIdGQL.fetch.and.returnValue(of(mockBasicCkResponse));
@@ -446,8 +535,8 @@ describe('RuntimeBrowserDataSource', () => {
       expect(children).toEqual([]);
     });
 
-    it('should fetch tree children for runtime entities', async () => {
-      const treeNode = new TreeItemDataTyped<BrowserItem>(
+    const makeTreeEntityNode = () =>
+      new TreeItemDataTyped<BrowserItem>(
         'Basic/Tree@tree-1',
         'Main Tree',
         '',
@@ -456,31 +545,46 @@ describe('RuntimeBrowserDataSource', () => {
         true,
       );
 
-      const children = await service.fetchChildren(treeNode);
+    it('should flatten System/ParentChild children directly under the entity', async () => {
+      const children = await service.fetchChildren(makeTreeEntityNode());
 
-      expect(mockGetTreeNodesGQL.fetch).toHaveBeenCalled();
-      expect(children.length).toBe(2);
-      expect(children[0].text).toBe('Node 1');
-      expect(children[1].text).toBe('Node 2');
+      expect(mockGetCkTypeAssociationRolesGQL.fetch).toHaveBeenCalled();
+      expect(children.find((c) => c.text === 'Node 1')).toBeTruthy();
+      expect(children.find((c) => c.text === 'Node 2')).toBeTruthy();
     });
 
-    it('should set expandable flag based on children count', async () => {
-      const treeNode = new TreeItemDataTyped<BrowserItem>(
-        'Basic/Tree@tree-1',
-        'Main Tree',
-        '',
-        { rtId: 'tree-1', ckTypeId: 'Basic/Tree' } as RtEntityDto,
-        fileIcon,
-        true,
+    it('should render non-parent-child roles as expandable group nodes', async () => {
+      const children = await service.fetchChildren(makeTreeEntityNode());
+
+      const group = children.find(
+        (c) => c.text === 'RelatedClassifications (2)',
+      );
+      expect(group).toBeTruthy();
+      expect(group?.expandable).toBeTrue();
+      expect(
+        (group?.item as { isAssociationGroup?: boolean }).isAssociationGroup,
+      ).toBeTrue();
+    });
+
+    it('should mark a child entity expandable only when its type has inbound roles', async () => {
+      const children = await service.fetchChildren(makeTreeEntityNode());
+
+      // Basic/TreeNode has no inbound roles in this fixture → not expandable.
+      const node1 = children.find((c) => c.text === 'Node 1');
+      expect(node1?.expandable).toBeFalse();
+    });
+
+    it('should lazily load the targets of an association group node', async () => {
+      const children = await service.fetchChildren(makeTreeEntityNode());
+      const group = children.find(
+        (c) => c.text === 'RelatedClassifications (2)',
+      )!;
+
+      const groupChildren = await service.fetchChildren(
+        group as TreeItemDataTyped<BrowserItem>,
       );
 
-      const children = await service.fetchChildren(treeNode);
-
-      const node1 = children.find((c) => c.text === 'Node 1');
-      const node2 = children.find((c) => c.text === 'Node 2');
-
-      expect(node1?.expandable).toBeFalse();
-      expect(node2?.expandable).toBeTrue();
+      expect(groupChildren.find((c) => c.text === 'Asset 1')).toBeTruthy();
     });
 
     it('should handle CK models fetch error', async () => {

@@ -8,9 +8,8 @@ import {
   GetCkModelByIdDtoGQL,
   GetCkTypesDtoGQL,
   GraphDirectionDto,
-  LevelMetaData,
+  MultiplicitiesDto,
   RtAssociationDto,
-  RtAssociationMetaData,
   RtEntityDto,
 } from '@meshmakers/octo-services';
 import { TreeItemDataTyped } from '@meshmakers/shared-services';
@@ -22,15 +21,15 @@ import {
 } from '@progress/kendo-svg-icons';
 import { Apollo } from 'apollo-angular';
 import { firstValueFrom } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { OctoGraphQlHierarchyDataSource } from '../../data-sources/octo-graph-ql-hierarchy-data-source';
 import { DeleteEntitiesDtoGQL } from '../../graphQL/deleteEntities';
 import { GetCkModelsDtoGQL } from '../../graphQL/getCkModels';
+import { GetCkTypeAssociationRolesDtoGQL } from '../../graphQL/getCkTypeAssociationRoles';
 import {
   GetRuntimeEntityAssociationsByIdDtoGQL,
   GetRuntimeEntityAssociationsByIdQueryDto,
 } from '../../graphQL/getRuntimeEntityAssociationsById';
-import { GetTreeNodesDtoGQL } from '../../graphQL/getTreeNodes';
+import { GetTreeAssociationTargetsDtoGQL } from '../../graphQL/getTreeAssociationTargets';
 import { GetTreesDtoGQL } from '../../graphQL/getTrees';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../graphQL/updateRuntimeEntities';
 import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
@@ -42,14 +41,46 @@ type BrowserItem =
   | RtEntityDto
   | CkModelDto
   | CkTypeDto
-  | { isCkModelsRoot?: boolean; ckModelId?: string };
+  | { isCkModelsRoot?: boolean; ckModelId?: string }
+  | AssociationGroupNode;
+
+/**
+ * Synthetic tree node that groups all entities reachable from a parent entity
+ * through a single association role (e.g. "ContainedSensors"). Its children are
+ * loaded lazily on expand. It is intentionally not a runtime entity, so the
+ * toolbar create/edit/delete actions and the entity picker stay disabled for it.
+ */
+interface AssociationGroupNode {
+  isAssociationGroup: true;
+  parentRtId: string;
+  parentCkTypeId: string;
+  roleId: string;
+  targetCkTypeId: string;
+  direction: GraphDirectionDto;
+}
+
+/** Inbound association role of a CK type, discovered from the CK schema. */
+interface InboundAssociationRole {
+  roleId: string;
+  navigationPropertyName: string;
+  targetCkTypeId: string;
+  multiplicity: MultiplicitiesDto;
+}
+
+/** Well-known role id of the hierarchical parent-child association. */
+const PARENT_CHILD_ROLE_ID = 'System/ParentChild';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<BrowserItem> {
   private readonly getTreesDtoGQL = inject(GetTreesDtoGQL);
-  private readonly getTreeNodesDtoGQL = inject(GetTreeNodesDtoGQL);
+  private readonly getCkTypeAssociationRolesDtoGQL = inject(
+    GetCkTypeAssociationRolesDtoGQL,
+  );
+  private readonly getTreeAssociationTargetsDtoGQL = inject(
+    GetTreeAssociationTargetsDtoGQL,
+  );
   private readonly getCkModelsGQL = inject(GetCkModelsDtoGQL);
   private readonly getCkTypesGQL = inject(GetCkTypesDtoGQL);
   private readonly getCkModelByIdDtoGQL = inject(GetCkModelByIdDtoGQL);
@@ -74,28 +105,22 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     return !!item && 'ckTypeId' in item && !('rtId' in item) && !('id' in item);
   }
 
-  // Define metadata for different entity types and their hierarchical relationships
-  private static readonly levelMetaData: LevelMetaData[] = [
-    new LevelMetaData(
-      'Basic/Tree',
-      [new RtAssociationMetaData('System/ParentChild', 'Basic/TreeNode')],
-      [
-        new RtAssociationMetaData('System/ParentChild', 'Basic/TreeNode'),
-        new RtAssociationMetaData('Basic/RelatedClassification', 'Basic/Asset'),
-      ],
-    ),
-    new LevelMetaData(
-      '*',
-      [
-        new RtAssociationMetaData('System/ParentChild', 'Basic/TreeNode'),
-        new RtAssociationMetaData('Basic/RelatedClassification', 'Basic/Asset'),
-      ],
-      [
-        new RtAssociationMetaData('System/ParentChild', 'Basic/TreeNode'),
-        new RtAssociationMetaData('Basic/RelatedClassification', 'Basic/Asset'),
-      ],
-    ),
-  ];
+  private isAssociationGroup(
+    item: BrowserItem,
+  ): item is AssociationGroupNode {
+    return !!item && 'isAssociationGroup' in item;
+  }
+
+  /**
+   * Cache of inbound association roles per CK type id. Discovered lazily from
+   * the CK schema and reused across tree expansions (and to decide whether a
+   * child entity node is expandable). Lives on the instance because the tree is
+   * created fresh per browser/picker mount.
+   */
+  private readonly inboundRolesCache = new Map<
+    string,
+    Promise<InboundAssociationRole[]>
+  >();
 
   // Define visual metadata for different entity types
   private static readonly ckTypeMetaData: CkTypeMetaData[] = [
@@ -124,131 +149,284 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       return [];
     }
 
+    // Handle association group node - lazily load its target entities
+    if (this.isAssociationGroup(item.item)) {
+      const group = item.item;
+      const targets = await this.fetchAssociationTargets(
+        group.parentRtId,
+        group.parentCkTypeId,
+        group.roleId,
+        group.targetCkTypeId,
+        group.direction,
+      );
+      return this.buildEntityTreeItems(targets);
+    }
+
     // Handle regular runtime entity
     const rtEntity = item.item as RtEntityDto;
     if (!rtEntity.rtId || !rtEntity.ckTypeId) {
       return [];
     }
 
-    // Find metadata for the current item type
-    let metaData = RuntimeBrowserDataSource.levelMetaData.find(
-      (x) => x.ckTypeId === rtEntity.ckTypeId,
+    // Discover the inbound association roles of this entity's type from the CK
+    // schema. Inbound roles are the "contained / children" direction (the same
+    // direction the tree historically used for System/ParentChild), so they
+    // generalize the old hard-coded behavior to every association.
+    const roles = await this.getInboundRoles(rtEntity.ckTypeId);
+    const parentChildRoles = roles.filter(
+      (r) => r.roleId === PARENT_CHILD_ROLE_ID,
     );
-    if (!metaData) {
-      metaData = RuntimeBrowserDataSource.levelMetaData.find(
-        (x) => x.ckTypeId === '*',
-      );
-    }
-    if (!metaData) {
-      return [];
-    }
+    const otherRoles = roles.filter((r) => r.roleId !== PARENT_CHILD_ROLE_ID);
 
-    const mergedResultsMap: Record<string, TreeItemDataTyped<BrowserItem>> = {};
+    const result: TreeItemDataTyped<BrowserItem>[] = [];
 
-    // Fetch children based on direct and indirect associations
-    for (const directRole of metaData.directRoles) {
-      const rtEntitiesOrigins = new Array<RtEntityDto>();
+    // 1. System/ParentChild children stay flattened directly under the node
+    //    (top) to preserve the familiar hierarchy navigation.
+    const parentChildTargetLists = await Promise.all(
+      parentChildRoles.map((r) =>
+        this.fetchAssociationTargets(
+          rtEntity.rtId,
+          rtEntity.ckTypeId,
+          r.roleId,
+          r.targetCkTypeId,
+          GraphDirectionDto.InboundDto,
+        ),
+      ),
+    );
+    result.push(
+      ...(await this.buildEntityTreeItems(parentChildTargetLists.flat())),
+    );
 
-      for (const indirectRole of metaData.indirectRoles) {
-        try {
-          const result = await firstValueFrom(
-            this.getTreeNodesDtoGQL
-              .fetch({
-                variables: {
-                  rtId: rtEntity.rtId,
-                  ckTypeId: rtEntity.ckTypeId,
-                  directRoleId: directRole.roleId,
-                  directTargetCkTypeId: directRole.ckTypeId,
-                  indirectRoleId: indirectRole.roleId,
-                  indirectTargetCkTypeId: indirectRole.ckTypeId,
-                },
-              })
-              .pipe(map((r) => r.data?.runtime?.runtimeEntities?.items?.at(0))),
-          );
-
-          if (result) {
-            rtEntitiesOrigins.push(result as RtEntityDto);
-          }
-        } catch (error) {
-          console.error('Error fetching tree nodes:', error);
-        }
+    // 2. Every other association role becomes an expandable group node, but
+    //    only when it actually has targets (avoids empty, noisy groups).
+    const counts = await Promise.all(
+      otherRoles.map((r) =>
+        this.fetchAssociationCount(
+          rtEntity.rtId,
+          rtEntity.ckTypeId,
+          r.roleId,
+          r.targetCkTypeId,
+          GraphDirectionDto.InboundDto,
+        ),
+      ),
+    );
+    otherRoles.forEach((role, index) => {
+      const count = counts[index];
+      if (count <= 0) {
+        return;
       }
+      const groupNode: AssociationGroupNode = {
+        isAssociationGroup: true,
+        parentRtId: rtEntity.rtId,
+        parentCkTypeId: rtEntity.ckTypeId,
+        roleId: role.roleId,
+        targetCkTypeId: role.targetCkTypeId,
+        direction: GraphDirectionDto.InboundDto,
+      };
+      result.push(
+        new TreeItemDataTyped<BrowserItem>(
+          this.buildGroupNodeId(rtEntity.rtId, rtEntity.ckTypeId, role),
+          `${role.navigationPropertyName} (${count})`,
+          `${role.roleId} → ${role.targetCkTypeId}`,
+          groupNode,
+          folderMoreIcon,
+          true,
+        ),
+      );
+    });
 
-      // Process children and build tree items
-      for (const root of rtEntitiesOrigins) {
-        if (!root?.associations?.targets?.items) {
-          continue;
-        }
+    return result;
+  }
 
-        for (const child of root.associations.targets.items) {
-          if (!child?.rtId || !child?.ckTypeId) {
+  /**
+   * Returns the inbound association roles of a CK type, discovered from the CK
+   * schema and cached per type id for the lifetime of this data source.
+   */
+  private getInboundRoles(
+    ckTypeId: string,
+  ): Promise<InboundAssociationRole[]> {
+    const cached = this.inboundRolesCache.get(ckTypeId);
+    if (cached) {
+      return cached;
+    }
+    const promise = firstValueFrom(
+      this.getCkTypeAssociationRolesDtoGQL.fetch({ variables: { ckTypeId } }),
+    )
+      .then((response) => {
+        const all =
+          response.data?.constructionKit?.types?.items?.[0]?.associations?.in
+            ?.all ?? [];
+        const roles: InboundAssociationRole[] = [];
+        for (const role of all) {
+          if (!role) {
             continue;
           }
-          const rtId = child?.rtId;
-
-          if (!mergedResultsMap[rtId]) {
-            // Find or create metadata for this child type
-            let childMetaData = RuntimeBrowserDataSource.ckTypeMetaData.find(
-              (x) => x.ckTypeId === child?.ckTypeId,
-            );
-            if (!childMetaData) {
-              childMetaData = new CkTypeMetaData(
-                child?.ckTypeId || 'Unknown',
-                child?.ckTypeId || 'Unknown',
-                child?.ckTypeId || 'Unknown',
-                code,
-              );
-            }
-
-            // Extract display name and description from attributes
-            const nameValue = child.attributes?.items?.find(
-              (x) => x?.attributeName === 'name',
-            )?.value;
-            const displayNameValue = child.attributes?.items?.find(
-              (x) => x?.attributeName === 'displayName',
-            )?.value;
-
-            // Debug logging
-            if (typeof nameValue === 'object') {
-              console.warn('Child name value is an object:', nameValue);
-            }
-
-            const text =
-              (typeof nameValue === 'string'
-                ? nameValue
-                : typeof nameValue === 'object' && nameValue !== null
-                  ? JSON.stringify(nameValue)
-                  : null) ||
-              (typeof displayNameValue === 'string'
-                ? displayNameValue
-                : null) ||
-              child.ckTypeId ||
-              'Unknown';
-            const descValue = child.attributes?.items?.find(
-              (x) => x?.attributeName === 'description',
-            )?.value;
-            const tooltip =
-              (typeof descValue === 'string' ? descValue : null) ||
-              `${child.ckTypeId} - ${child.rtId}`;
-
-            mergedResultsMap[rtId] = new TreeItemDataTyped<BrowserItem>(
-              rtId,
-              text,
-              tooltip,
-              child,
-              childMetaData.svgIcon,
-              (child?.associations?.targets?.totalCount ?? 0) > 0,
-            );
-          } else {
-            // Update expandable status if object already exists
-            mergedResultsMap[rtId].expandable ||=
-              (child?.associations?.targets?.totalCount ?? 0) > 0;
-          }
+          roles.push({
+            roleId: role.roleId.fullName,
+            navigationPropertyName: role.navigationPropertyName,
+            targetCkTypeId: role.targetCkTypeId.fullName,
+            multiplicity: role.multiplicity,
+          });
         }
+        return roles;
+      })
+      .catch((error) => {
+        console.error(
+          'Error fetching association roles for type',
+          ckTypeId,
+          error,
+        );
+        // Drop the failed promise from the cache so a later expand can retry.
+        this.inboundRolesCache.delete(ckTypeId);
+        return [];
+      });
+    this.inboundRolesCache.set(ckTypeId, promise);
+    return promise;
+  }
+
+  /** Loads the target entities reachable from an entity through one role. */
+  private async fetchAssociationTargets(
+    rtId: string,
+    ckTypeId: string,
+    roleId: string,
+    targetCkTypeId: string,
+    direction: GraphDirectionDto,
+  ): Promise<RtEntityDto[]> {
+    try {
+      const response = await firstValueFrom(
+        this.getTreeAssociationTargetsDtoGQL.fetch({
+          variables: { rtId, ckTypeId, roleId, targetCkTypeId, direction },
+        }),
+      );
+      const items =
+        response.data?.runtime?.runtimeEntities?.items?.[0]?.associations
+          ?.targets?.items ?? [];
+      return items.filter((i): i is RtEntityDto => !!i);
+    } catch (error) {
+      console.error(
+        'Error fetching association targets',
+        { ckTypeId, roleId, targetCkTypeId },
+        error,
+      );
+      return [];
+    }
+  }
+
+  /** Counts the target entities reachable through one role (without loading them). */
+  private async fetchAssociationCount(
+    rtId: string,
+    ckTypeId: string,
+    roleId: string,
+    targetCkTypeId: string,
+    direction: GraphDirectionDto,
+  ): Promise<number> {
+    try {
+      const response = await firstValueFrom(
+        this.getTreeAssociationTargetsDtoGQL.fetch({
+          variables: { rtId, ckTypeId, roleId, targetCkTypeId, direction, first: 1 },
+        }),
+      );
+      return (
+        response.data?.runtime?.runtimeEntities?.items?.[0]?.associations
+          ?.targets?.totalCount ?? 0
+      );
+    } catch (error) {
+      console.error(
+        'Error counting association targets',
+        { ckTypeId, roleId, targetCkTypeId },
+        error,
+      );
+      return 0;
+    }
+  }
+
+  /**
+   * Builds tree items for runtime entities, de-duplicating by rtId and marking
+   * an entity expandable when its CK type defines at least one inbound
+   * association role.
+   */
+  private async buildEntityTreeItems(
+    entities: RtEntityDto[],
+  ): Promise<TreeItemDataTyped<BrowserItem>[]> {
+    const unique = new Map<string, RtEntityDto>();
+    for (const entity of entities) {
+      if (entity?.rtId && entity?.ckTypeId && !unique.has(entity.rtId)) {
+        unique.set(entity.rtId, entity);
       }
     }
 
-    return Object.values(mergedResultsMap);
+    // Warm the role cache for every distinct child type in parallel so the
+    // expandable flag can be resolved without a per-entity round trip.
+    const distinctTypes = [
+      ...new Set([...unique.values()].map((e) => e.ckTypeId)),
+    ];
+    await Promise.all(distinctTypes.map((t) => this.getInboundRoles(t)));
+
+    const result: TreeItemDataTyped<BrowserItem>[] = [];
+    for (const entity of unique.values()) {
+      const roles = await this.getInboundRoles(entity.ckTypeId);
+      result.push(
+        new TreeItemDataTyped<BrowserItem>(
+          entity.rtId,
+          this.extractDisplayName(entity),
+          this.extractTooltip(entity),
+          entity,
+          this.resolveIcon(entity.ckTypeId),
+          roles.length > 0,
+        ),
+      );
+    }
+    return result;
+  }
+
+  /** Stable tree-node id for an association group node. */
+  private buildGroupNodeId(
+    parentRtId: string,
+    parentCkTypeId: string,
+    role: InboundAssociationRole,
+  ): string {
+    return `assoc:${parentCkTypeId}@${parentRtId}:${role.roleId}:${role.targetCkTypeId}`;
+  }
+
+  /** Resolves the display label of an entity from its name/displayName attributes. */
+  private extractDisplayName(entity: RtEntityDto): string {
+    const nameValue = entity.attributes?.items?.find(
+      (x) => x?.attributeName === 'name',
+    )?.value;
+    const displayNameValue = entity.attributes?.items?.find(
+      (x) => x?.attributeName === 'displayName',
+    )?.value;
+    return (
+      (typeof nameValue === 'string'
+        ? nameValue
+        : typeof nameValue === 'object' && nameValue !== null
+          ? JSON.stringify(nameValue)
+          : null) ||
+      (typeof displayNameValue === 'string' ? displayNameValue : null) ||
+      entity.rtWellKnownName ||
+      entity.ckTypeId ||
+      'Unknown'
+    );
+  }
+
+  /** Resolves the tooltip of an entity from its description attribute. */
+  private extractTooltip(entity: RtEntityDto): string {
+    const descValue = entity.attributes?.items?.find(
+      (x) => x?.attributeName === 'description',
+    )?.value;
+    return (
+      (typeof descValue === 'string' ? descValue : null) ||
+      `${entity.ckTypeId} - ${entity.rtId}`
+    );
+  }
+
+  /** Resolves the icon for a CK type, falling back to a generic entity icon. */
+  private resolveIcon(ckTypeId: string) {
+    return (
+      RuntimeBrowserDataSource.ckTypeMetaData.find(
+        (x) => x.ckTypeId === ckTypeId,
+      )?.svgIcon ?? code
+    );
   }
 
   public override async fetchRootNodes(): Promise<
