@@ -607,6 +607,15 @@ export interface ChartReferenceLine {
 export type HeatmapColorScheme = 'green' | 'redGreen' | 'blue' | 'heat';
 
 /**
+ * Heatmap coloring mode.
+ * - `gradient` (default): relative coloring across the data's own min/max using the
+ *   selected {@link HeatmapColorScheme}.
+ * - `threshold`: absolute ok/warn/high bands around a target count per cell — green
+ *   when the cell equals the target, amber below it (including empty cells), red above.
+ */
+export type HeatmapColorMode = 'gradient' | 'threshold';
+
+/**
  * Client-side aggregation function for simple queries
  */
 export type HeatmapAggregation = 'count' | 'sum' | 'avg';
@@ -632,8 +641,17 @@ export interface HeatmapWidgetConfig extends WidgetConfig {
   valueField?: string;
   /** Client-side aggregation function for simple queries */
   aggregation: HeatmapAggregation;
-  /** Color scheme for the heatmap */
+  /** Color scheme for the heatmap (used in `gradient` color mode) */
   colorScheme: HeatmapColorScheme;
+  /** Coloring mode — relative `gradient` (default) or absolute `threshold` bands */
+  colorMode?: HeatmapColorMode;
+  /**
+   * Threshold mode: the expected value per cell. A cell equal to the target is green,
+   * below it (including empty 0-cells) amber, above it red. When unset, the target is
+   * auto-derived from the number of asset-scoped source rtIds (the `entitySelectorId`
+   * binding) — e.g. the count of EnergyMeasurements under the picked MeteringPoint.
+   */
+  thresholdTarget?: number;
   /** Show the chart legend */
   showLegend?: boolean;
   /** Position of the legend */

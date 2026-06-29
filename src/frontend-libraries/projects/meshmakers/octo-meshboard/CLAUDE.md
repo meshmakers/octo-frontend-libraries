@@ -348,6 +348,19 @@ interface AggregationQuery {
 | `summaryCard` | Compact data tiles | runtimeEntity, aggregation, persistentQuery (per tile; runtime + stream-data) |
 | `process` | Process diagram (HMI) | runtimeEntity, persistentQuery (runtime + stream-data) |
 | `markdown` | Static markdown content with themed styling | static |
+| `heatmap` | Day × time-slot density grid (count/sum/avg per slot) | persistentQuery (runtime + stream-data) |
+
+> **Heatmap color modes.** `HeatmapWidgetConfig.colorMode` selects how cells are
+> colored:
+> - `gradient` (default): relative shading across the data's own min/max using the
+>   chosen `colorScheme`; empty (0) cells are transparent.
+> - `threshold`: absolute ok/warn/high bands around a target count — a cell equal to
+>   the target is green, below it (including empty 0-cells) amber, above it red.
+>   The target comes from `thresholdTarget` when set, otherwise it is auto-derived
+>   from the number of asset-scoped source rtIds (the `entitySelectorId` binding) —
+>   e.g. the EnergyMeasurements under a picked MeteringPoint, so a "healthy" 15-min
+>   slot holds exactly one value per source. Falls back to gradient when no target
+>   can be resolved.
 
 > **Per-cell persistent queries (stats-grid / summary-card).** Each stat / tile can
 > draw its value from a persistent query instead of a runtime aggregation. The

@@ -43,6 +43,16 @@ const COLOR_SCHEMES: Record<HeatmapColorScheme, (min: number, max: number) => He
   heat: (min, max) => buildGradientRanges(min, max, ['#fff9c4', '#ffcc02', '#ff9800', '#f44336', '#b71c1c'])
 };
 
+/**
+ * Fixed band colors for the `threshold` color mode: a cell equal to the target
+ * is "ok" (green), below it "warn" (amber), above it "high" (red).
+ */
+const THRESHOLD_COLORS = Object.freeze({
+  ok: '#2e7d32',
+  warn: '#ffb300',
+  high: '#c62828'
+});
+
 function buildGradientRanges(min: number, max: number, colors: string[]): HeatmapColorRange[] {
   if (max <= min) {
     return [{ from: min, to: min + 1, color: colors[0] }];
@@ -577,6 +587,17 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
    * Assigns colors to heatmap data items based on value range and color scheme.
    */
   private assignColors(data: HeatmapDataItem[]): void {
+    // Threshold mode: absolute ok/warn/high bands around an expected target.
+    // Falls back to gradient when no target can be resolved (so the widget never
+    // renders blank just because no scope/target is configured).
+    if ((this.config?.colorMode ?? 'gradient') === 'threshold') {
+      const target = this.resolveThresholdTarget();
+      if (target != null && target > 0) {
+        for (const item of data) item.color = this.getThresholdColor(item.value, target);
+        return;
+      }
+    }
+
     const scheme = this.config?.colorScheme ?? 'green';
     const nonZeroValues = data.filter(d => d.value !== 0).map(d => d.value);
     if (nonZeroValues.length === 0) {
@@ -589,6 +610,31 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     for (const item of data) {
       item.color = this.getColorForValue(item.value, ranges);
     }
+  }
+
+  /**
+   * Resolves the expected value per cell for `threshold` color mode. Uses the
+   * explicit {@link HeatmapWidgetConfig.thresholdTarget} when set; otherwise
+   * auto-derives it from the number of asset-scoped source rtIds (each scoped
+   * source contributes one value per interval, so a "healthy" cell equals the
+   * number of scoped sources — e.g. the EnergyMeasurements under a MeteringPoint).
+   * Returns `null` when neither is available.
+   */
+  private resolveThresholdTarget(): number | null {
+    const manual = this.config?.thresholdTarget;
+    if (manual != null && manual > 0) return manual;
+    const ds = this.config?.dataSource as PersistentQueryDataSource | undefined;
+    const rtIds = this.stateService.resolveStreamDataRtIds(ds?.entitySelectorId);
+    return rtIds && rtIds.length > 0 ? rtIds.length : null;
+  }
+
+  /**
+   * Bands a value around the target: equal → green, below (incl. empty 0-cells)
+   * → amber, above → red.
+   */
+  private getThresholdColor(value: number, target: number): string {
+    if (value === target) return THRESHOLD_COLORS.ok;
+    return value < target ? THRESHOLD_COLORS.warn : THRESHOLD_COLORS.high;
   }
 
   private aggregate(values: number[], aggregation: string): number {
