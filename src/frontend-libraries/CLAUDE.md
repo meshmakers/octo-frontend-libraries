@@ -21,6 +21,7 @@
 
 - **Node.js ≥ 22.22.3** (or ≥ 24.15.0 / ≥ 26.0.0) — required by Angular 22 / Angular CLI 22. The CLI hard-refuses older Node (e.g. Node 20 and Node 24.14.x are rejected). CI (`azure-pipelines.yml`) uses Node 24.15.x.
 - **TypeScript ~6.0** — required by Angular 22 (`@angular/compiler-cli` peer is `>=6.0 <6.1`).
+- **`@progress/kendo-theme-material` and `@progress/kendo-theme-default` are pinned to exact `14.1.0` (no `^`).** Version `14.2.0` removed the `scss/adaptive/` module that `octo-ui`'s `projects/meshmakers/octo-ui/src/lib/runtime-browser/styles/_kendo-theme.scss` still `@use`s (`@progress/kendo-theme-material/scss/adaptive/_index.scss`). A caret range drifts to the newest 14.x on a fresh install and breaks the SCSS build (`Can't find stylesheet to import`) in this repo and in every consumer (e.g. refinery-studio). Proper fix TODO: migrate `_kendo-theme.scss` off the removed `adaptive` import (Kendo folded it into core in 14.2), then the pin can be relaxed. Keep in sync with refinery-studio's pin.
 
 ## Angular 22 Notes
 
