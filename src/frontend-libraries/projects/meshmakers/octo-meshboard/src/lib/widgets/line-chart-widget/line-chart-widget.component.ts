@@ -139,11 +139,22 @@ interface ValueAxisConfig {
             [position]="config.legendPosition ?? 'right'">
           </kendo-chart-legend>
 
-          <kendo-chart-tooltip>
-            <ng-template kendoChartSeriesTooltipTemplate let-value="value" let-category="category" let-series="series">
+          <!--
+            Shared (category) tooltip: keyed on the category under the cursor's X, so the
+            reported point always matches the hovered time position. A non-shared tooltip
+            selects the nearest point by 2D distance, which makes the highlight jump
+            horizontally to an unrelated category whenever the cursor is off the (often flat)
+            line — see AB#4258. The min/max envelope (rangeArea) series is filtered out.
+          -->
+          <kendo-chart-tooltip [shared]="true">
+            <ng-template kendoChartSharedTooltipTemplate let-category="category" let-points="points">
               <div class="chart-tooltip">
-                <strong>{{ category }}</strong><br/>
-                {{ series.name }}: {{ formatValue(value) }}{{ getUnitForSeries(series.name) }}
+                <strong>{{ category }}</strong>
+                @for (point of points; track point.series.name) {
+                  @if (!isBandSeries(point.series.name)) {
+                    <br/>{{ point.series.name }}: {{ formatValue(point.value) }}{{ getUnitForSeries(point.series.name) }}
+                  }
+                }
               </div>
             </ng-template>
           </kendo-chart-tooltip>
@@ -394,6 +405,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   getUnitForSeries(seriesName: string): string {
     const unit = this._seriesUnitMap().get(seriesName);
     return unit ? ` ${unit}` : '';
+  }
+
+  /** The downsampling min/max envelope is rendered as a separate `<name> (min/max)` rangeArea
+   *  series; it is excluded from the shared tooltip so only the actual value lines are listed. */
+  isBandSeries(seriesName: string): boolean {
+    return seriesName.endsWith(' (min/max)');
   }
 
   private async loadData(): Promise<void> {
