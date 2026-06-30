@@ -3818,29 +3818,11 @@
     }
   }
 
-  // Fix Kendo TileLayout drag offset caused by CSS zoom on kendo-drawer-content.
-  // When a tile is dragged, Kendo sets position:fixed on the item and calculates
-  // coordinates in viewport space. The parent zoom (from DensityService) scales
-  // those coordinates, causing the dragged tile to appear offset from the cursor.
-  // Counter-zooming the dragged item restores correct coordinate mapping.
-  kendo-tilelayout-item[style*="position: fixed"] {
-    zoom: calc(1 / var(--density-zoom, 1));
-  }
-
-  // Fix Kendo popup positioning when CSS zoom (density) is active on kendo-drawer-content.
-  // Popups with appendTo:'root' are rendered as direct children of <app-root>, outside
-  // the zoomed container. The dropdown component uses wrapper.offsetWidth (inflated by
-  // the zoom factor) for min-width, causing popups to be too wide and mispositioned.
-  // Using transform:scale() instead of CSS zoom because:
-  // - CSS zoom scales BOTH content AND the element's left/top position interpretation,
-  //   causing the popup to shift up-left from its intended anchor position.
-  // - transform:scale() only scales the visual rendering from transform-origin,
-  //   keeping left/top positioning intact (calculated correctly by Kendo from
-  //   getBoundingClientRect of the anchor element).
-  app-root > .k-animation-container {
-    transform: scale(var(--density-zoom, 1));
-    transform-origin: top left;
-  }
+  // NOTE (AB#4258): the former CSS-`zoom`-based UI density was replaced by root
+  // font-size (rem) scaling, so there is no ancestor `zoom` anymore. The Kendo
+  // TileLayout drag-offset and popup-position counter-zoom hacks that used to live
+  // here (keyed on `--density-zoom`) are therefore obsolete and were removed —
+  // coordinates now map 1:1 without compensation.
 
   // Widget Error State
   .widget-error {
