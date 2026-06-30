@@ -9,6 +9,7 @@ export * from './runtime-browser.routes';
 export * from './runtime-browser.tokens';
 export * from './services/association-validation.service';
 export * from './services/runtime-browser-state.service';
+export * from './services/tree-navigation-config.service';
 export type { DataPointMappingItem, ExpressionValidatorFn, ExpressionValidationResult } from './components/data-mapping/data-mapping-list.component';
 export { DataMappingOverviewComponent } from './components/data-mapping-overview/data-mapping-overview.component';
 export type { DataPointMappingOverviewItem, MappingOverviewSummary, ValidationMessage } from './components/data-mapping-overview/data-mapping-overview.models';

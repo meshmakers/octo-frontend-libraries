@@ -1,0 +1,39 @@
+query getTreeAssociationTargets(
+  $rtId: OctoObjectId!
+  $ckTypeId: String!
+  $roleId: String!
+  $targetCkTypeId: String!
+  $direction: GraphDirection!
+  $first: Int
+) {
+  runtime {
+    runtimeEntities(rtId: $rtId, ckId: $ckTypeId, first: 1) {
+      items {
+        associations {
+          targets(
+            roleId: $roleId
+            ckId: $targetCkTypeId
+            direction: $direction
+            first: $first
+          ) {
+            totalCount
+            items {
+              rtId
+              ckTypeId
+              rtWellKnownName
+              attributes(
+                attributeNames: ["name", "displayName", "description"]
+                resolveEnumValuesToNames: true
+              ) {
+                items {
+                  attributeName
+                  value
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

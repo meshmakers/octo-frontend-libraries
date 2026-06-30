@@ -3828,6 +3828,8 @@ export type CkTypeAssociationDto = {
   originCkTypeId: CkTypeIdDto;
   /** Construction kit attribute id. */
   roleId: CkAssociationRoleIdDto;
+  /** Runtime construction kit type id of the origin side of the association */
+  rtOriginCkTypeId: Scalars['RtCkTypeId']['output'];
   /** Runtime construction kit id of the association role. */
   rtRoleId: Scalars['RtCkAssociationRoleId']['output'];
   /** Runtime construction kit type id of the target side of the association */

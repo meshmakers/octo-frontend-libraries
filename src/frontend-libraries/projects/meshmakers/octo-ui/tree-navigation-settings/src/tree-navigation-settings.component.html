@@ -1,0 +1,149 @@
+<div class="tree-nav-settings">
+  <header class="header">
+    <h2 class="title">{{ messages().title }}</h2>
+    <p class="description">{{ messages().description }}</p>
+  </header>
+
+  @if (loading()) {
+    <div class="state">…</div>
+  } @else if (!typePresent()) {
+    <div class="hint not-installed">{{ messages().notInstalled }}</div>
+  } @else {
+    <div class="toolbar mm-toolbar-actions">
+      <button kendoButton [svgIcon]="plusIcon" (click)="addRule()">
+        {{ messages().addRule }}
+      </button>
+      <button
+        kendoButton
+        [svgIcon]="exportIcon"
+        fillMode="flat"
+        (click)="export()"
+      >
+        {{ messages().export }}
+      </button>
+      <button
+        kendoButton
+        [svgIcon]="importIcon"
+        fillMode="flat"
+        (click)="fileInput.click()"
+      >
+        {{ messages().import }}
+      </button>
+      <input
+        #fileInput
+        type="file"
+        accept=".zip"
+        hidden
+        (change)="onFileSelected($event)"
+      />
+      <span class="toolbar-spacer"></span>
+      <button
+        kendoButton
+        [svgIcon]="reloadIcon"
+        fillMode="flat"
+        [disabled]="saving()"
+        (click)="reload()"
+      >
+        {{ messages().reload }}
+      </button>
+      <button
+        kendoButton
+        themeColor="primary"
+        [svgIcon]="saveIcon"
+        [disabled]="saving()"
+        (click)="onSave()"
+      >
+        {{ messages().save }}
+      </button>
+    </div>
+
+    @if (rules.length === 0) {
+      <div class="empty">{{ messages().empty }}</div>
+    } @else {
+      <div class="table-wrap">
+        <table class="rules">
+          <thead>
+            <tr>
+              <th>{{ messages().columnSourceType }}</th>
+              <th>{{ messages().columnRole }}</th>
+              <th>{{ messages().columnDisplayName }}</th>
+              <th class="narrow">{{ messages().columnSortIndex }}</th>
+              <th class="narrow">{{ messages().columnVisible }}</th>
+              <th class="narrow">{{ messages().columnGrouped }}</th>
+              <th>{{ messages().columnIcon }}</th>
+              <th class="actions">{{ messages().columnActions }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rules.controls; track $index) {
+              <tr [formGroup]="row">
+                <td>
+                  <kendo-combobox
+                    [data]="ckTypeSuggestions()"
+                    [allowCustom]="true"
+                    [filterable]="true"
+                    [valuePrimitive]="true"
+                    [placeholder]="messages().sourceTypeHint"
+                    formControlName="sourceCkTypeId"
+                    (open)="searchCkTypes('')"
+                    (filterChange)="searchCkTypes($event)"
+                  ></kendo-combobox>
+                </td>
+                <td>
+                  <kendo-combobox
+                    [data]="roleSuggestions()"
+                    textField="label"
+                    valueField="roleId"
+                    [allowCustom]="true"
+                    [filterable]="true"
+                    [valuePrimitive]="true"
+                    [placeholder]="messages().roleHint"
+                    formControlName="roleId"
+                    (open)="loadRoleSuggestions(row)"
+                  ></kendo-combobox>
+                </td>
+                <td><input kendoTextBox formControlName="displayName" /></td>
+                <td class="narrow">
+                  <kendo-numerictextbox
+                    formControlName="sortIndex"
+                    [decimals]="0"
+                    format="n0"
+                    [spinners]="false"
+                  ></kendo-numerictextbox>
+                </td>
+                <td class="narrow">
+                  <kendo-dropdownlist
+                    [data]="visibleOptions()"
+                    textField="text"
+                    valueField="value"
+                    [valuePrimitive]="true"
+                    formControlName="visible"
+                  ></kendo-dropdownlist>
+                </td>
+                <td class="narrow">
+                  <kendo-dropdownlist
+                    [data]="groupedOptions()"
+                    textField="text"
+                    valueField="value"
+                    [valuePrimitive]="true"
+                    formControlName="grouped"
+                  ></kendo-dropdownlist>
+                </td>
+                <td><input kendoTextBox formControlName="icon" /></td>
+                <td class="actions">
+                  <button
+                    kendoButton
+                    fillMode="flat"
+                    [svgIcon]="removeIcon"
+                    [title]="messages().removeRule"
+                    (click)="removeRule($index)"
+                  ></button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
