@@ -16,6 +16,16 @@ import { RUNTIME_BROWSER_MESSAGES } from './runtime-browser.tokens';
   imports: [RuntimeBrowserComponent],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `<mm-runtime-browser [messages]="messages" />`,
+  styles: [
+    `
+      :host {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+      }
+    `,
+  ],
 })
 export class RuntimeBrowserPageComponent {
   private readonly injectedMessages = inject(RUNTIME_BROWSER_MESSAGES, {

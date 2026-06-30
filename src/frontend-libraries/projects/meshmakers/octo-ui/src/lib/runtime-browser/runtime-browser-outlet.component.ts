@@ -11,5 +11,15 @@ import { RouterOutlet } from '@angular/router';
   imports: [RouterOutlet],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `<router-outlet />`,
+  styles: [
+    `
+      :host {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+      }
+    `,
+  ],
 })
 export class RuntimeBrowserOutletComponent {}

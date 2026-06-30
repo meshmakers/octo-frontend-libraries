@@ -3,6 +3,16 @@
 // Kendo theme and dockview overrides are scoped to this component via :host
 // ============================================================================
 
+// Host must stretch to full height so the container's height: 100% resolves
+// against a definite height (otherwise the LCARS footer floats up under the
+// content instead of sitting at the bottom of the viewport).
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
 // Container
 .runtime-browser-container {
   display: flex;
