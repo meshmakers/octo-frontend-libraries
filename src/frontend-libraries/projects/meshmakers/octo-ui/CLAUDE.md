@@ -97,6 +97,15 @@ association of an entity, not only `System/ParentChild`.
   the singleton when the type is installed, so tenants on older System.UI fall back
   to pure auto-discovery without errors. Uses inline `gql` (not codegen) to stay
   decoupled from a schema re-introspection that includes the new CK type.
+- **Settings editor (AB#4262 Phase 3):** the admin UI to maintain the config is a
+  separate secondary entry point `@meshmakers/octo-ui/tree-navigation-settings`
+  (`TreeNavigationSettingsComponent`, `TREE_NAVIGATION_SETTINGS_ROUTES`,
+  `TreeNavigationSettingsMessages`) — kept out of the primary entry so apps that
+  only render the trees don't pull in the reactive-form / Kendo modules. It edits
+  the rule list via `TreeNavigationConfigService.loadConfig()` / `saveConfig()`
+  (create or update of the singleton). Refinery Studio mounts it at
+  `/:tenantId/ui/tree-navigation` (UI section, `AdminPanelManagement` + System.UI
+  installed).
 
 ## Branding (theming + per-tenant identity)
 

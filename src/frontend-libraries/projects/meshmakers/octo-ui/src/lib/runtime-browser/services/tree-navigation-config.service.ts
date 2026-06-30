@@ -18,6 +18,28 @@ export interface TreeNavigationRoleOverride {
   icon?: string;
 }
 
+/** One editable override rule (a row in the settings editor). */
+export interface TreeNavigationRoleConfig {
+  /** Source CK type id this rule applies to, or `*` for every type. */
+  sourceCkTypeId: string;
+  /** Runtime association role id (e.g. `EnergyIQ/SpaceSensors`). */
+  roleId: string;
+  visible?: boolean;
+  displayName?: string;
+  sortIndex?: number;
+  grouped?: boolean;
+  icon?: string;
+}
+
+/** The full configuration as loaded for editing. */
+export interface TreeNavigationConfig {
+  /** rtId of the singleton, or null when it does not exist yet. */
+  rtId: string | null;
+  /** True when the CK type is installed on the tenant (System.UI >= 2.2.0). */
+  typePresent: boolean;
+  roles: TreeNavigationRoleConfig[];
+}
+
 interface RawRole {
   sourceCkTypeId?: string | null;
   roleId?: string | null;
@@ -64,6 +86,34 @@ const CONFIG_QUERY = gql`
             grouped
             icon
           }
+        }
+      }
+    }
+  }
+`;
+
+const CREATE_CONFIG_MUTATION = gql`
+  mutation createTreeNavigationConfiguration(
+    $entities: [SystemUITreeNavigationConfigurationInput!]!
+  ) {
+    runtime {
+      systemUITreeNavigationConfigurations {
+        create(entities: $entities) {
+          rtId
+        }
+      }
+    }
+  }
+`;
+
+const UPDATE_CONFIG_MUTATION = gql`
+  mutation updateTreeNavigationConfiguration(
+    $entities: [SystemUITreeNavigationConfigurationInputUpdate!]!
+  ) {
+    runtime {
+      systemUITreeNavigationConfigurations {
+        update(entities: $entities) {
+          rtId
         }
       }
     }
@@ -130,35 +180,8 @@ export class TreeNavigationConfigService {
 
   private async load(): Promise<Map<string, TreeNavigationRoleOverride>> {
     const map = new Map<string, TreeNavigationRoleOverride>();
-
-    // Guard: only query the singleton when the CK type is installed on the tenant.
-    const exists = await firstValueFrom(
-      this.apollo.query<{
-        constructionKit?: {
-          types?: { items?: ({ rtCkTypeId?: string } | null)[] | null } | null;
-        };
-      }>({ query: CONFIG_TYPE_EXISTS_QUERY, fetchPolicy: 'network-only' }),
-    );
-    const typePresent =
-      (exists.data?.constructionKit?.types?.items?.length ?? 0) > 0;
-    if (!typePresent) {
-      return map;
-    }
-
-    const result = await firstValueFrom(
-      this.apollo.query<{
-        runtime?: {
-          systemUITreeNavigationConfiguration?: {
-            items?: ({ rtId?: string; roles?: RawRole[] | null } | null)[] | null;
-          } | null;
-        };
-      }>({ query: CONFIG_QUERY, fetchPolicy: 'network-only' }),
-    );
-
-    const roles =
-      result.data?.runtime?.systemUITreeNavigationConfiguration?.items?.[0]
-        ?.roles ?? [];
-    for (const raw of roles) {
+    const { rawRoles } = await this.fetchSingleton();
+    for (const raw of rawRoles) {
       if (!raw?.sourceCkTypeId || !raw?.roleId) {
         continue;
       }
@@ -171,6 +194,152 @@ export class TreeNavigationConfigService {
       });
     }
     return map;
+  }
+
+  /**
+   * Loads the full configuration for editing (settings page). Returns whether
+   * the CK type is installed (so the page can show a clear "upgrade System.UI"
+   * hint), the singleton rtId (null when not created yet), and the role rules.
+   */
+  async loadConfig(): Promise<TreeNavigationConfig> {
+    const { typePresent, rtId, rawRoles } = await this.fetchSingleton();
+    const roles: TreeNavigationRoleConfig[] = [];
+    for (const raw of rawRoles) {
+      if (!raw?.sourceCkTypeId || !raw?.roleId) {
+        continue;
+      }
+      roles.push({
+        sourceCkTypeId: raw.sourceCkTypeId,
+        roleId: raw.roleId,
+        visible: raw.visible ?? undefined,
+        displayName: raw.displayName ?? undefined,
+        sortIndex: raw.sortIndex ?? undefined,
+        grouped: raw.grouped ?? undefined,
+        icon: raw.icon ?? undefined,
+      });
+    }
+    return { typePresent, rtId, roles };
+  }
+
+  /**
+   * Creates or updates the singleton with the given rules, then invalidates the
+   * resolve cache so the trees pick up the change on the next expand. Returns the
+   * singleton rtId.
+   */
+  async saveConfig(
+    rtId: string | null,
+    roles: TreeNavigationRoleConfig[],
+  ): Promise<string> {
+    const cleanRoles = roles
+      .filter((r) => r.sourceCkTypeId && r.roleId)
+      .map((r) => this.toRoleInput(r));
+
+    let savedRtId: string;
+    if (rtId) {
+      const result = await firstValueFrom(
+        this.apollo.mutate<{
+          runtime?: {
+            systemUITreeNavigationConfigurations?: {
+              update?: ({ rtId?: string } | null)[] | null;
+            };
+          };
+        }>({
+          mutation: UPDATE_CONFIG_MUTATION,
+          variables: { entities: [{ rtId, item: { roles: cleanRoles } }] },
+          fetchPolicy: 'no-cache',
+        }),
+      );
+      savedRtId =
+        result.data?.runtime?.systemUITreeNavigationConfigurations?.update?.[0]
+          ?.rtId ?? rtId;
+    } else {
+      const result = await firstValueFrom(
+        this.apollo.mutate<{
+          runtime?: {
+            systemUITreeNavigationConfigurations?: {
+              create?: ({ rtId?: string } | null)[] | null;
+            };
+          };
+        }>({
+          mutation: CREATE_CONFIG_MUTATION,
+          variables: {
+            entities: [
+              {
+                rtWellKnownName: CONFIG_WELL_KNOWN_NAME,
+                name: 'Tree Navigation',
+                roles: cleanRoles,
+              },
+            ],
+          },
+          fetchPolicy: 'no-cache',
+        }),
+      );
+      const created =
+        result.data?.runtime?.systemUITreeNavigationConfigurations?.create?.[0]
+          ?.rtId;
+      if (!created) {
+        throw new Error('createTreeNavigationConfiguration returned no entity');
+      }
+      savedRtId = created;
+    }
+
+    this.reset();
+    return savedRtId;
+  }
+
+  /** Drops undefined fields so the record-array input only carries set values. */
+  private toRoleInput(role: TreeNavigationRoleConfig): Record<string, unknown> {
+    const input: Record<string, unknown> = {
+      sourceCkTypeId: role.sourceCkTypeId,
+      roleId: role.roleId,
+    };
+    if (role.visible !== undefined) input['visible'] = role.visible;
+    if (role.displayName !== undefined && role.displayName !== '') {
+      input['displayName'] = role.displayName;
+    }
+    if (role.sortIndex !== undefined && role.sortIndex !== null) {
+      input['sortIndex'] = role.sortIndex;
+    }
+    if (role.grouped !== undefined) input['grouped'] = role.grouped;
+    if (role.icon !== undefined && role.icon !== '') input['icon'] = role.icon;
+    return input;
+  }
+
+  /** Probes the CK schema and (when present) loads the singleton's raw roles. */
+  private async fetchSingleton(): Promise<{
+    typePresent: boolean;
+    rtId: string | null;
+    rawRoles: (RawRole | null)[];
+  }> {
+    const exists = await firstValueFrom(
+      this.apollo.query<{
+        constructionKit?: {
+          types?: { items?: ({ rtCkTypeId?: string } | null)[] | null } | null;
+        };
+      }>({ query: CONFIG_TYPE_EXISTS_QUERY, fetchPolicy: 'network-only' }),
+    );
+    const typePresent =
+      (exists.data?.constructionKit?.types?.items?.length ?? 0) > 0;
+    if (!typePresent) {
+      return { typePresent: false, rtId: null, rawRoles: [] };
+    }
+
+    const result = await firstValueFrom(
+      this.apollo.query<{
+        runtime?: {
+          systemUITreeNavigationConfiguration?: {
+            items?: ({ rtId?: string; roles?: RawRole[] | null } | null)[] | null;
+          } | null;
+        };
+      }>({ query: CONFIG_QUERY, fetchPolicy: 'network-only' }),
+    );
+    const item =
+      result.data?.runtime?.systemUITreeNavigationConfiguration?.items?.[0];
+    return {
+      typePresent: true,
+      rtId: item?.rtId ?? null,
+      rawRoles: item?.roles ?? [],
+    };
   }
 }
 
