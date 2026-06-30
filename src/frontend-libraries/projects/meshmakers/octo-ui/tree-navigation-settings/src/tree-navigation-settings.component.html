@@ -15,6 +15,30 @@
       </button>
       <button
         kendoButton
+        [svgIcon]="exportIcon"
+        fillMode="flat"
+        (click)="export()"
+      >
+        {{ messages().export }}
+      </button>
+      <button
+        kendoButton
+        [svgIcon]="importIcon"
+        fillMode="flat"
+        (click)="fileInput.click()"
+      >
+        {{ messages().import }}
+      </button>
+      <input
+        #fileInput
+        type="file"
+        accept="application/json,.json"
+        hidden
+        (change)="onImport($event)"
+      />
+      <span class="toolbar-spacer"></span>
+      <button
+        kendoButton
         [svgIcon]="reloadIcon"
         fillMode="flat"
         [disabled]="saving()"
@@ -54,18 +78,29 @@
             @for (row of rules.controls; track $index) {
               <tr [formGroup]="row">
                 <td>
-                  <input
-                    kendoTextBox
+                  <kendo-combobox
+                    [data]="ckTypeSuggestions()"
+                    [allowCustom]="true"
+                    [filterable]="true"
+                    [valuePrimitive]="true"
+                    [placeholder]="messages().sourceTypeHint"
                     formControlName="sourceCkTypeId"
-                    [title]="messages().sourceTypeHint"
-                  />
+                    (open)="searchCkTypes('')"
+                    (filterChange)="searchCkTypes($event)"
+                  ></kendo-combobox>
                 </td>
                 <td>
-                  <input
-                    kendoTextBox
-                    formControlName="roleId"
+                  <kendo-combobox
+                    [data]="roleSuggestions()"
+                    textField="label"
+                    valueField="roleId"
+                    [allowCustom]="true"
+                    [filterable]="true"
+                    [valuePrimitive]="true"
                     [placeholder]="messages().roleHint"
-                  />
+                    formControlName="roleId"
+                    (open)="loadRoleSuggestions(row)"
+                  ></kendo-combobox>
                 </td>
                 <td><input kendoTextBox formControlName="displayName" /></td>
                 <td class="narrow">

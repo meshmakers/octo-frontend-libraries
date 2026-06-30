@@ -18,12 +18,21 @@ import {
   TreeNavigationConfigService,
   TreeNavigationRoleConfig,
 } from '@meshmakers/octo-ui';
+import { CkTypeSelectorService } from '@meshmakers/octo-services';
 import { MessageService } from '@meshmakers/shared-services';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
-import { plusIcon, saveIcon, arrowRotateCwIcon, xIcon } from '@progress/kendo-svg-icons';
+import {
+  plusIcon,
+  saveIcon,
+  arrowRotateCwIcon,
+  xIcon,
+  downloadIcon,
+  uploadIcon,
+} from '@progress/kendo-svg-icons';
+import { firstValueFrom } from 'rxjs';
 import {
   DEFAULT_TREE_NAVIGATION_SETTINGS_MESSAGES,
   TreeNavigationSettingsMessages,
@@ -32,10 +41,15 @@ import {
 /** Tri-state form value for the visibility/grouping dropdowns. */
 type TriState = 'auto' | string;
 
+/** Matches every source CK type. */
+const WILDCARD = '*';
+
 /**
  * Admin editor for the per-tenant `System.UI/TreeNavigationConfiguration`.
  * Each row is one override rule matched by (source type, role id); `*` as the
- * source type matches every type. Empty value = auto (default behavior).
+ * source type matches every type. Empty dropdown value = auto (default
+ * behavior). Source type and role id offer autocomplete suggestions but also
+ * accept custom values (so orphan roles remain configurable).
  */
 @Component({
   selector: 'mm-tree-navigation-settings',
@@ -59,6 +73,7 @@ export class TreeNavigationSettingsComponent implements OnInit {
 
   private readonly fb = inject(FormBuilder);
   private readonly config = inject(TreeNavigationConfigService);
+  private readonly ckTypeSelector = inject(CkTypeSelectorService);
   private readonly messageService = inject(MessageService);
 
   protected readonly loading = signal(true);
@@ -68,10 +83,19 @@ export class TreeNavigationSettingsComponent implements OnInit {
 
   protected readonly rules = this.fb.array<FormGroup>([]);
 
+  // Shared suggestion pools — only one combobox dropdown is open at a time, so a
+  // single signal per kind is enough (loaded on open / filter).
+  protected readonly ckTypeSuggestions = signal<string[]>([WILDCARD]);
+  protected readonly roleSuggestions = signal<{ roleId: string; label: string }[]>(
+    [],
+  );
+
   protected readonly saveIcon = saveIcon;
   protected readonly plusIcon = plusIcon;
   protected readonly reloadIcon = arrowRotateCwIcon;
   protected readonly removeIcon = xIcon;
+  protected readonly exportIcon = downloadIcon;
+  protected readonly importIcon = uploadIcon;
 
   protected readonly visibleOptions = computed(() => [
     { text: this.messages().visibleAuto, value: 'auto' },
@@ -111,6 +135,7 @@ export class TreeNavigationSettingsComponent implements OnInit {
 
   protected addRule(): void {
     this.rules.push(this.createRow());
+    this.rules.markAsDirty();
   }
 
   protected removeRule(index: number): void {
@@ -125,10 +150,7 @@ export class TreeNavigationSettingsComponent implements OnInit {
     }
     this.saving.set(true);
     try {
-      const roles = this.rules.controls
-        .map((group) => this.toRoleConfig(group as FormGroup))
-        .filter((r) => r.sourceCkTypeId && r.roleId);
-      this.rtId = await this.config.saveConfig(this.rtId, roles);
+      this.rtId = await this.config.saveConfig(this.rtId, this.collectRoles());
       this.messageService.showInformation(this.messages().saveSuccess);
       this.rules.markAsPristine();
     } catch (error) {
@@ -142,12 +164,108 @@ export class TreeNavigationSettingsComponent implements OnInit {
     }
   }
 
+  /** Loads CK type suggestions for the source-type combobox (server filter). */
+  protected async searchCkTypes(term: string): Promise<void> {
+    try {
+      const result = await firstValueFrom(
+        this.ckTypeSelector.getCkTypes({
+          searchText: term?.trim() || undefined,
+          first: 30,
+        }),
+      );
+      const ids = result.items
+        .map((i) => i.rtCkTypeId)
+        .filter((id): id is string => !!id && id !== WILDCARD);
+      this.ckTypeSuggestions.set([WILDCARD, ...ids]);
+    } catch (error) {
+      console.error('Error loading CK type suggestions', error);
+      this.ckTypeSuggestions.set([WILDCARD]);
+    }
+  }
+
+  /** Loads role suggestions for the source type of the opened row's combobox. */
+  protected async loadRoleSuggestions(row: FormGroup): Promise<void> {
+    const ckTypeId = (row.get('sourceCkTypeId')?.value as string) ?? '';
+    this.roleSuggestions.set(await this.config.getRoleSuggestions(ckTypeId));
+  }
+
+  /** Downloads the current rules as a JSON file. */
+  protected export(): void {
+    const data = JSON.stringify({ roles: this.collectRoles() }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'tree-navigation-config.json';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /** Loads rules from a JSON file into the form (user reviews, then saves). */
+  protected async onImport(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    try {
+      const parsed: unknown = JSON.parse(await file.text());
+      const roles = this.extractImportedRoles(parsed);
+      if (!roles) {
+        throw new Error('invalid configuration file');
+      }
+      this.rules.clear();
+      for (const role of roles) {
+        this.rules.push(this.createRow(role));
+      }
+      this.rules.markAsDirty();
+      this.messageService.showInformation(this.messages().importSuccess);
+    } catch (error) {
+      console.error('[TreeNavigationSettingsComponent] Import failed', error);
+      this.messageService.showError(this.messages().importError);
+    }
+  }
+
+  private extractImportedRoles(
+    parsed: unknown,
+  ): TreeNavigationRoleConfig[] | null {
+    const raw = Array.isArray(parsed)
+      ? parsed
+      : Array.isArray((parsed as { roles?: unknown })?.roles)
+        ? (parsed as { roles: unknown[] }).roles
+        : null;
+    if (!raw) {
+      return null;
+    }
+    const roles: TreeNavigationRoleConfig[] = [];
+    for (const entry of raw) {
+      const r = entry as Partial<TreeNavigationRoleConfig>;
+      if (typeof r?.sourceCkTypeId !== 'string' || typeof r?.roleId !== 'string') {
+        continue;
+      }
+      roles.push({
+        sourceCkTypeId: r.sourceCkTypeId,
+        roleId: r.roleId,
+        visible: typeof r.visible === 'boolean' ? r.visible : undefined,
+        displayName: typeof r.displayName === 'string' ? r.displayName : undefined,
+        sortIndex: typeof r.sortIndex === 'number' ? r.sortIndex : undefined,
+        grouped: typeof r.grouped === 'boolean' ? r.grouped : undefined,
+        icon: typeof r.icon === 'string' ? r.icon : undefined,
+      });
+    }
+    return roles;
+  }
+
+  private collectRoles(): TreeNavigationRoleConfig[] {
+    return this.rules.controls
+      .map((group) => this.toRoleConfig(group as FormGroup))
+      .filter((r) => r.sourceCkTypeId && r.roleId);
+  }
+
   private createRow(role?: TreeNavigationRoleConfig): FormGroup {
     return this.fb.group({
-      sourceCkTypeId: [
-        role?.sourceCkTypeId ?? '*',
-        [Validators.required],
-      ],
+      sourceCkTypeId: [role?.sourceCkTypeId ?? '*', [Validators.required]],
       roleId: [role?.roleId ?? '', [Validators.required]],
       displayName: [role?.displayName ?? ''],
       sortIndex: [role?.sortIndex ?? null],

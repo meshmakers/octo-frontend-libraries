@@ -24,10 +24,14 @@ export interface TreeNavigationSettingsMessages {
   removeRule: string;
   save: string;
   reload: string;
+  export: string;
+  import: string;
   empty: string;
   saveSuccess: string;
   saveError: string;
   loadError: string;
+  importSuccess: string;
+  importError: string;
 }
 
 /** English defaults; hosts may override via the `messages` input. */
@@ -58,8 +62,12 @@ export const DEFAULT_TREE_NAVIGATION_SETTINGS_MESSAGES: TreeNavigationSettingsMe
     removeRule: 'Remove',
     save: 'Save',
     reload: 'Reload',
+    export: 'Export',
+    import: 'Import',
     empty: 'No rules yet — every association uses its defaults.',
     saveSuccess: 'Tree navigation configuration saved.',
     saveError: 'Failed to save the tree navigation configuration.',
     loadError: 'Failed to load the tree navigation configuration.',
+    importSuccess: 'Configuration imported — review and save to apply.',
+    importError: 'The selected file is not a valid tree navigation configuration.',
   };

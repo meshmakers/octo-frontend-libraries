@@ -92,6 +92,25 @@ const CONFIG_QUERY = gql`
   }
 `;
 
+const ROLE_SUGGESTIONS_QUERY = gql`
+  query treeNavigationRoleSuggestions($ckTypeId: String!) {
+    constructionKit {
+      types(rtCkId: $ckTypeId, first: 1) {
+        items {
+          associations {
+            in {
+              all {
+                rtRoleId
+                navigationPropertyName
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 const CREATE_CONFIG_MUTATION = gql`
   mutation createTreeNavigationConfiguration(
     $entities: [SystemUITreeNavigationConfigurationInput!]!
@@ -164,6 +183,64 @@ export class TreeNavigationConfigService {
   /** Forces a reload on next access (e.g. after a tenant switch). */
   reset(): void {
     this.overridesPromise = undefined;
+  }
+
+  /**
+   * Returns the inbound association roles declared on a CK type, for the role
+   * autocomplete in the settings editor. Returns `{ roleId, label }` where the
+   * label is the friendly inbound name plus the role id. Empty for `*` or an
+   * unknown type (orphan roles can still be typed as custom values).
+   */
+  async getRoleSuggestions(
+    ckTypeId: string,
+  ): Promise<{ roleId: string; label: string }[]> {
+    if (!ckTypeId || ckTypeId === WILDCARD) {
+      return [];
+    }
+    try {
+      const result = await firstValueFrom(
+        this.apollo.query<{
+          constructionKit?: {
+            types?: {
+              items?:
+                | ({
+                    associations?: {
+                      in?: {
+                        all?:
+                          | ({
+                              rtRoleId?: string | null;
+                              navigationPropertyName?: string | null;
+                            } | null)[]
+                          | null;
+                      } | null;
+                    } | null;
+                  } | null)[]
+                | null;
+            } | null;
+          };
+        }>({
+          query: ROLE_SUGGESTIONS_QUERY,
+          variables: { ckTypeId },
+          fetchPolicy: 'network-only',
+        }),
+      );
+      const all =
+        result.data?.constructionKit?.types?.items?.[0]?.associations?.in
+          ?.all ?? [];
+      const byRole = new Map<string, string>();
+      for (const role of all) {
+        const roleId = String(role?.rtRoleId ?? '');
+        if (!roleId || byRole.has(roleId)) {
+          continue;
+        }
+        const nav = role?.navigationPropertyName ?? '';
+        byRole.set(roleId, nav ? `${nav} (${roleId})` : roleId);
+      }
+      return [...byRole.entries()].map(([roleId, label]) => ({ roleId, label }));
+    } catch (error) {
+      console.error('Error loading role suggestions for', ckTypeId, error);
+      return [];
+    }
   }
 
   private getOverrides(): Promise<Map<string, TreeNavigationRoleOverride>> {

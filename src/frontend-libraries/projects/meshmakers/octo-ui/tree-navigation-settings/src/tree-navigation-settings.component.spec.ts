@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormArray, FormGroup } from '@angular/forms';
 import { TreeNavigationConfigService } from '@meshmakers/octo-ui';
+import { CkTypeSelectorService } from '@meshmakers/octo-services';
 import { MessageService } from '@meshmakers/shared-services';
+import { of } from 'rxjs';
 import { TreeNavigationSettingsComponent } from './tree-navigation-settings.component';
 
 /** Protected-member view used by the spec. */
@@ -10,6 +12,7 @@ interface Testable {
   typePresent: () => boolean;
   onSave(): Promise<void>;
   addRule(): void;
+  onImport(event: Event): Promise<void>;
 }
 
 describe('TreeNavigationSettingsComponent', () => {
@@ -19,16 +22,21 @@ describe('TreeNavigationSettingsComponent', () => {
 
   let configSpy: jasmine.SpyObj<TreeNavigationConfigService>;
   let messageSpy: jasmine.SpyObj<MessageService>;
+  let ckTypeSpy: jasmine.SpyObj<CkTypeSelectorService>;
 
   beforeEach(async () => {
     configSpy = jasmine.createSpyObj('TreeNavigationConfigService', [
       'loadConfig',
       'saveConfig',
+      'getRoleSuggestions',
     ]);
+    configSpy.getRoleSuggestions.and.resolveTo([]);
     messageSpy = jasmine.createSpyObj('MessageService', [
       'showInformation',
       'showError',
     ]);
+    ckTypeSpy = jasmine.createSpyObj('CkTypeSelectorService', ['getCkTypes']);
+    ckTypeSpy.getCkTypes.and.returnValue(of({ items: [], totalCount: 0 }));
 
     configSpy.loadConfig.and.resolveTo({
       typePresent: true,
@@ -50,6 +58,7 @@ describe('TreeNavigationSettingsComponent', () => {
       providers: [
         { provide: TreeNavigationConfigService, useValue: configSpy },
         { provide: MessageService, useValue: messageSpy },
+        { provide: CkTypeSelectorService, useValue: ckTypeSpy },
       ],
     }).compileComponents();
 
@@ -102,6 +111,29 @@ describe('TreeNavigationSettingsComponent', () => {
     const sensors = roles.find((r) => r.roleId === 'EnergyIQ/SpaceSensors');
     expect(sensors?.visible).toBeFalse();
     expect(sensors?.displayName).toBe('Sensoren');
+    expect(messageSpy.showInformation).toHaveBeenCalled();
+  });
+
+  it('imports rules from a JSON file', async () => {
+    await component.ngOnInit();
+    const json = JSON.stringify({
+      roles: [
+        { sourceCkTypeId: '*', roleId: 'A/B', visible: false, sortIndex: 3 },
+      ],
+    });
+    const file = new File([json], 'config.json', { type: 'application/json' });
+    const event = {
+      target: { files: [file], value: 'config.json' },
+    } as unknown as Event;
+
+    await api.onImport(event);
+
+    expect(api.rules.length).toBe(1);
+    const row = api.rules.at(0).getRawValue();
+    expect(row.roleId).toBe('A/B');
+    expect(row.sourceCkTypeId).toBe('*');
+    expect(row.visible).toBe('hide');
+    expect(row.sortIndex).toBe(3);
     expect(messageSpy.showInformation).toHaveBeenCalled();
   });
 });
