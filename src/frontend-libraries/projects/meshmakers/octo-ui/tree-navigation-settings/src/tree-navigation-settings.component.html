@@ -32,9 +32,9 @@
       <input
         #fileInput
         type="file"
-        accept="application/json,.json"
+        accept=".zip"
         hidden
-        (change)="onImport($event)"
+        (change)="onFileSelected($event)"
       />
       <span class="toolbar-spacer"></span>
       <button

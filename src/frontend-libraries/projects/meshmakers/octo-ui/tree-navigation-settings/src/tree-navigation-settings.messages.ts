@@ -30,6 +30,8 @@ export interface TreeNavigationSettingsMessages {
   saveSuccess: string;
   saveError: string;
   loadError: string;
+  exportNothing: string;
+  exportError: string;
   importSuccess: string;
   importError: string;
 }
@@ -68,6 +70,8 @@ export const DEFAULT_TREE_NAVIGATION_SETTINGS_MESSAGES: TreeNavigationSettingsMe
     saveSuccess: 'Tree navigation configuration saved.',
     saveError: 'Failed to save the tree navigation configuration.',
     loadError: 'Failed to load the tree navigation configuration.',
-    importSuccess: 'Configuration imported — review and save to apply.',
-    importError: 'The selected file is not a valid tree navigation configuration.',
+    exportNothing: 'Save the configuration before exporting it.',
+    exportError: 'Failed to export the tree navigation configuration.',
+    importSuccess: 'Import completed successfully.',
+    importError: 'Failed to import the tree navigation configuration.',
   };

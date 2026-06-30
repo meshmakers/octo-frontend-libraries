@@ -14,11 +14,19 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import {
   TreeNavigationConfigService,
   TreeNavigationRoleConfig,
+  TREE_NAVIGATION_CONFIG_CONSTANTS,
 } from '@meshmakers/octo-ui';
-import { CkTypeSelectorService } from '@meshmakers/octo-services';
+import {
+  AssetRepoService,
+  CkTypeSelectorService,
+  ImportStrategyDto,
+  JobManagementService,
+} from '@meshmakers/octo-services';
+import { ImportStrategyDialogService } from '@meshmakers/shared-ui';
 import { MessageService } from '@meshmakers/shared-services';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -74,6 +82,10 @@ export class TreeNavigationSettingsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly config = inject(TreeNavigationConfigService);
   private readonly ckTypeSelector = inject(CkTypeSelectorService);
+  private readonly assetRepo = inject(AssetRepoService);
+  private readonly jobs = inject(JobManagementService);
+  private readonly importStrategyDialog = inject(ImportStrategyDialogService);
+  private readonly route = inject(ActivatedRoute);
   private readonly messageService = inject(MessageService);
 
   protected readonly loading = signal(true);
@@ -189,72 +201,105 @@ export class TreeNavigationSettingsComponent implements OnInit {
     this.roleSuggestions.set(await this.config.getRoleSuggestions(ckTypeId));
   }
 
-  /** Downloads the current rules as a JSON file. */
-  protected export(): void {
-    const data = JSON.stringify({ roles: this.collectRoles() }, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'tree-navigation-config.json';
-    anchor.click();
-    URL.revokeObjectURL(url);
+  /**
+   * Exports the saved configuration singleton as a deep-graph runtime model ZIP,
+   * via the standard asset-repo export job (same mechanism as pools / adapters /
+   * data flows). Requires the config to have been saved first.
+   */
+  protected async export(): Promise<void> {
+    if (!this.rtId) {
+      this.messageService.showInformation(this.messages().exportNothing);
+      return;
+    }
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      this.messageService.showError(this.messages().exportError);
+      return;
+    }
+    try {
+      const jobId = await this.assetRepo.exportRtModelDeepGraph(
+        tenantId,
+        [this.rtId],
+        TREE_NAVIGATION_CONFIG_CONSTANTS.CONFIG_CK_TYPE_ID,
+      );
+      if (!jobId) {
+        throw new Error('export job not started');
+      }
+      const ok = await this.jobs.waitForJob(
+        jobId,
+        this.messages().export,
+        this.messages().title,
+      );
+      if (ok) {
+        await this.jobs.downloadJobResult(
+          tenantId,
+          jobId,
+          'tree-navigation-config.zip',
+        );
+      }
+    } catch (error) {
+      console.error('[TreeNavigationSettingsComponent] Export failed', error);
+      this.messageService.showError(this.messages().exportError);
+    }
   }
 
-  /** Loads rules from a JSON file into the form (user reviews, then saves). */
-  protected async onImport(event: Event): Promise<void> {
+  /**
+   * Imports a configuration from a deep-graph runtime model ZIP via the standard
+   * import-strategy dialog + asset-repo import job, then reloads the editor.
+   */
+  protected async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
     if (!file) {
       return;
     }
+    const tenantId = this.getTenantId();
+    if (!tenantId) {
+      this.messageService.showError(this.messages().importError);
+      return;
+    }
+    const strategy = await this.importStrategyDialog.showImportStrategyDialog(
+      this.messages().import,
+    );
+    if (strategy === null) {
+      return;
+    }
     try {
-      const parsed: unknown = JSON.parse(await file.text());
-      const roles = this.extractImportedRoles(parsed);
-      if (!roles) {
-        throw new Error('invalid configuration file');
+      const jobId = await this.assetRepo.importRtModel(
+        tenantId,
+        file,
+        strategy as ImportStrategyDto,
+      );
+      if (!jobId) {
+        throw new Error('import job not started');
       }
-      this.rules.clear();
-      for (const role of roles) {
-        this.rules.push(this.createRow(role));
+      const ok = await this.jobs.waitForJob(
+        jobId,
+        this.messages().import,
+        file.name,
+      );
+      if (ok) {
+        this.messageService.showInformation(this.messages().importSuccess);
+        await this.reload();
       }
-      this.rules.markAsDirty();
-      this.messageService.showInformation(this.messages().importSuccess);
     } catch (error) {
       console.error('[TreeNavigationSettingsComponent] Import failed', error);
       this.messageService.showError(this.messages().importError);
     }
   }
 
-  private extractImportedRoles(
-    parsed: unknown,
-  ): TreeNavigationRoleConfig[] | null {
-    const raw = Array.isArray(parsed)
-      ? parsed
-      : Array.isArray((parsed as { roles?: unknown })?.roles)
-        ? (parsed as { roles: unknown[] }).roles
-        : null;
-    if (!raw) {
-      return null;
-    }
-    const roles: TreeNavigationRoleConfig[] = [];
-    for (const entry of raw) {
-      const r = entry as Partial<TreeNavigationRoleConfig>;
-      if (typeof r?.sourceCkTypeId !== 'string' || typeof r?.roleId !== 'string') {
-        continue;
+  /** Resolves the tenant id from the route hierarchy (route is /:tenantId/...). */
+  private getTenantId(): string | null {
+    let route: ActivatedRoute | null = this.route;
+    while (route) {
+      const tenantId = route.snapshot.paramMap.get('tenantId');
+      if (tenantId) {
+        return tenantId;
       }
-      roles.push({
-        sourceCkTypeId: r.sourceCkTypeId,
-        roleId: r.roleId,
-        visible: typeof r.visible === 'boolean' ? r.visible : undefined,
-        displayName: typeof r.displayName === 'string' ? r.displayName : undefined,
-        sortIndex: typeof r.sortIndex === 'number' ? r.sortIndex : undefined,
-        grouped: typeof r.grouped === 'boolean' ? r.grouped : undefined,
-        icon: typeof r.icon === 'string' ? r.icon : undefined,
-      });
+      route = route.parent;
     }
-    return roles;
+    return null;
   }
 
   private collectRoles(): TreeNavigationRoleConfig[] {
