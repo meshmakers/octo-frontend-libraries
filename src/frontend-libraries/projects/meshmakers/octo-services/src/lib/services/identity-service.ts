@@ -8,6 +8,7 @@ import {RoleDto} from '../shared/roleDto';
 import {PagedResultDto} from '@meshmakers/shared-services';
 import {ClientDto} from '../shared/clientDto';
 import {ClientMirrorBackfillResponseDto, ClientMirrorDto, ClientMirrorProvisionResponseDto} from '../shared/clientMirrorDto';
+import {CleanOverlayEntriesResultDto} from '../shared/clientOverlayDto';
 import {IdentityProviderDto, IdentityProvidersResult} from '../shared/identityProviderDto';
 import {EmailDomainGroupRuleDto, EmailDomainGroupRulesResult} from '../shared/emailDomainGroupRuleDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
@@ -30,6 +31,16 @@ export class IdentityService {
     if (this.tenantIdProvider) {
       tenantId = await this.tenantIdProvider() ?? 'octosystem';
     }
+    return this.getApiBaseUrlForTenant(tenantId);
+  }
+
+  /**
+   * Builds the identity API base URL for an explicit tenant, bypassing the ambient
+   * {@link TENANT_ID_PROVIDER}. Used when an operation must target a tenant other than the
+   * currently-routed one — e.g. cleaning overlay URIs on a child tenant before its backup.
+   */
+  private getApiBaseUrlForTenant(tenantId: string): string | null {
+    if (!this.configurationService.config?.issuer) return null;
     return `${this.configurationService.config.issuer}${tenantId}/v1/`;
   }
 
@@ -390,6 +401,38 @@ export class IdentityService {
         )
       );
     }
+  }
+
+  // ---- Client overlay URIs (AB#4209, deliverable 7) -----------------------
+
+  /**
+   * Strips overlay URI entries from every blueprint-managed client of a tenant. Without
+   * {@link overlayName} every `overlay:*` source is removed; with it, only `overlay:<name>`.
+   * `base` and `api` sourced URIs are always preserved. Destructive — the typical use is
+   * producing a template-clean tenant dump; overlays can be re-applied afterwards via the
+   * octo-tools `Apply-IdentityOverlay` cmdlet.
+   *
+   * `tenantId` targets a specific tenant explicitly (e.g. a child tenant being backed up),
+   * bypassing the ambient route tenant. Omit it to use the current route tenant.
+   */
+  async cleanOverlayEntries(overlayName?: string, tenantId?: string): Promise<CleanOverlayEntriesResultDto | null> {
+    const baseUrl = tenantId
+      ? this.getApiBaseUrlForTenant(tenantId)
+      : await this.getApiBaseUrl();
+    if (!baseUrl) return null;
+
+    let params = new HttpParams();
+    if (overlayName) {
+      params = params.set('overlayName', overlayName);
+    }
+
+    const response = await firstValueFrom(
+      this.httpClient.delete<CleanOverlayEntriesResultDto>(baseUrl + 'clients/cleanOverlayEntries', {
+        params,
+        observe: 'response'
+      })
+    );
+    return response.body;
   }
 
   async generatePassword(): Promise<GeneratedPasswordDto | null> {

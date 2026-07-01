@@ -179,6 +179,7 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `removeRoleFromClient(clientId, roleName)` | Remove a single role (by name) from a client (AB#4183) |
 | `addClientToGroup(rtId, clientId)` | Add a client (by RtId) as a group member (AB#4183) |
 | `removeClientFromGroup(rtId, clientId)` | Remove a client (by RtId) from a group (AB#4183) |
+| `cleanOverlayEntries(overlayName?, tenantId?)` | Strip `overlay:*` URIs (or a specific `overlay:<name>`) from every blueprint-managed client, preserving `base`/`api` URIs (AB#4209 deliverable 7). `tenantId` targets a specific tenant (e.g. a child tenant being backed up) instead of the ambient route tenant. `DELETE {issuer}{tenantId}/v1/clients/cleanOverlayEntries` |
 
 **Identity Provider Management:**
 

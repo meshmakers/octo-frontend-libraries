@@ -427,6 +427,52 @@ describe('IdentityService', () => {
         await service.deleteClient('client-1');
       });
     });
+
+    describe('cleanOverlayEntries', () => {
+      it('should DELETE cleanOverlayEntries on the current tenant with no filter', async () => {
+        const resultPromise = service.cleanOverlayEntries();
+        await tick();
+
+        const req = httpMock.expectOne(`${apiPrefix}clients/cleanOverlayEntries`);
+        expect(req.request.method).toBe('DELETE');
+        expect(req.request.params.has('overlayName')).toBeFalse();
+        req.flush({ overlayName: null, clientsAffected: 2, totalEntriesRemoved: 5, clientResults: [] });
+
+        const result = await resultPromise;
+        expect(result?.totalEntriesRemoved).toBe(5);
+      });
+
+      it('should pass overlayName as a query parameter when provided', async () => {
+        const resultPromise = service.cleanOverlayEntries('local-dev');
+        await tick();
+
+        const req = httpMock.expectOne(
+          (r) => r.url === `${apiPrefix}clients/cleanOverlayEntries` && r.params.get('overlayName') === 'local-dev'
+        );
+        expect(req.request.method).toBe('DELETE');
+        req.flush({ overlayName: 'local-dev', clientsAffected: 0, totalEntriesRemoved: 0, clientResults: [] });
+
+        await resultPromise;
+      });
+
+      it('should target an explicit tenant, bypassing the route tenant', async () => {
+        const resultPromise = service.cleanOverlayEntries(undefined, 'child-tenant');
+        await tick();
+
+        const req = httpMock.expectOne(`${baseUrl}child-tenant/v1/clients/cleanOverlayEntries`);
+        expect(req.request.method).toBe('DELETE');
+        req.flush({ overlayName: null, clientsAffected: 1, totalEntriesRemoved: 3, clientResults: [] });
+
+        const result = await resultPromise;
+        expect(result?.clientsAffected).toBe(1);
+      });
+
+      it('should return null when config is not available', async () => {
+        mockConfigService.config = null;
+        const result = await service.cleanOverlayEntries(undefined, 'child-tenant');
+        expect(result).toBeNull();
+      });
+    });
   });
 
   describe('Role Management', () => {

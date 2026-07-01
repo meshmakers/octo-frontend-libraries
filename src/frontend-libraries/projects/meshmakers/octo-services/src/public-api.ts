@@ -32,6 +32,7 @@ export * from './lib/shared/exportModelResponseDto';
 export * from './lib/shared/diagnosticsModel';
 export * from './lib/shared/clientDto';
 export * from './lib/shared/clientMirrorDto';
+export * from './lib/shared/clientOverlayDto';
 export * from './lib/shared/clientScope';
 export * from './lib/shared/groupDto';
 export * from './lib/shared/identityProviderDto';
