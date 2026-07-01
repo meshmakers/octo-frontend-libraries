@@ -24354,6 +24354,44 @@ type RollupArchiveInfo {
     watermarkLagMs: Long!
 }
 
+"Archive-selection decision for a resolution-aware series query (AB#4290)."
+type ResolveSeriesQueryResult {
+    "The deliverable point count when below the requested target (RESOLUTION_LIMITED) or the native raw count on the refuse path. Null when the target was met."
+    actualPoints: Int
+    "The archive to query — a rollup, or the base archive on the refuse/raw paths."
+    archiveRtId: OctoObjectId!
+    "Optional human-readable explanation of the chosen route / signal."
+    diagnostic: String
+    "Width in milliseconds of one output bucket; 0 when no bucketing applies / grain unknown."
+    effectiveBucketMs: Long!
+    "Number of points the caller can expect from the downsampling query."
+    points: Int!
+    "Aggregation function the downsampling query must use."
+    reducingFunction: CkRollupFunction!
+    "Outcome classification (OK / NO_SUITABLE_ROLLUP / RESOLUTION_LIMITED / UNKNOWN_BASE_GRAIN / EMPTY_LADDER)."
+    signal: SeriesResolutionSignal!
+}
+
+"Identifies a logical series (base archive + optional rtId/OBIS scope), a time window, a target point count and the required aggregation."
+input ResolveSeriesQueryInput {
+    "Runtime id of the base (raw / time-range) archive of the series' resolution family."
+    baseArchiveRtId: OctoObjectId!
+    "Inclusive start of the query window (UTC)."
+    from: DateTime!
+    "Optional OBIS-code filter narrowing the series."
+    obisFilter: String
+    "Aggregation the series must be reduced with (energy = SUM, demand = MAX, …). Never guessed; supplied by the caller."
+    requiredAggregation: CkRollupFunction!
+    "Optional source-entity rtId scope (e.g. the EnergyMeasurement entities of a MeteringPoint)."
+    rtIds: [OctoObjectId!]
+    "Logical CK attribute path of the measured column (e.g. Amount.Value) — used to match a rollup's aggregation spec."
+    sourcePath: String!
+    "Desired number of output points (pixel-driven, ~600 typical). Must be positive."
+    targetPoints: Int!
+    "Exclusive end of the query window (UTC)."
+    to: DateTime!
+}
+
 "Per-rollup metadata the studio's stream-data query editor needs (bucket size, logical attribute paths derived via chain walking)."
 type RollupQueryMetadata {
     "Native bucket size of this rollup in milliseconds. Drives the downsampling bucket-alignment warning."
@@ -29185,6 +29223,11 @@ type StreamDataModelQuery {
         "Runtime id of the CkRollupArchive to list recompute jobs for."
         rtId: OctoObjectId!
     ): [RecomputeJobInfo!]!
+    "Resolution-aware series routing (AB#4290): given a base archive family, a time window, a target point count and the required aggregation, returns the archive/rollup to query at the best resolution — without the caller knowing which physical archive holds the data at a usable grain. The caller then runs the existing downsampling query against the returned archiveRtId with limit = points. Null if StreamData is not enabled for the tenant."
+    resolveSeriesQuery(
+        "The series identity, time window, target point count and required aggregation."
+        input: ResolveSeriesQueryInput!
+    ): ResolveSeriesQueryResult
     "Returns the studio's query-editor metadata for a rollup archive: bucket size and the distinct *logical* CK-attribute paths the rollup aggregates. Cascade rollups (rollup over rollup) have their physical sourcePath storage columns reversed back to the original CK attribute paths via RollupLogicalPathResolver (concept-time-range §7). Null if the rtId doesn't resolve to a rollup archive."
     rollupQueryMetadata(
         "Runtime id of the rollup archive to fetch metadata for."
@@ -54837,6 +54880,15 @@ enum CkRollupFunction {
     MAX
     MIN
     SUM
+}
+
+"Outcome of resolution-aware series routing (AB#4290). Non-OK values are truthful signals the caller can surface."
+enum SeriesResolutionSignal {
+    EMPTY_LADDER
+    NO_SUITABLE_ROLLUP
+    OK
+    RESOLUTION_LIMITED
+    UNKNOWN_BASE_GRAIN
 }
 
 "Defines possible delete strategies of a runtime type"

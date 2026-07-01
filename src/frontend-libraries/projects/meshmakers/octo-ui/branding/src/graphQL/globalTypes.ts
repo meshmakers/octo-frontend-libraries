@@ -24302,6 +24302,45 @@ export type RecomputeJobInfoDto = {
   windowsProcessed?: Maybe<Scalars['Int']['output']>;
 };
 
+/** Identifies a logical series (base archive + optional rtId/OBIS scope), a time window, a target point count and the required aggregation. */
+export type ResolveSeriesQueryInputDto = {
+  /** Runtime id of the base (raw / time-range) archive of the series' resolution family. */
+  baseArchiveRtId: Scalars['OctoObjectId']['input'];
+  /** Inclusive start of the query window (UTC). */
+  from: Scalars['DateTime']['input'];
+  /** Optional OBIS-code filter narrowing the series. */
+  obisFilter?: InputMaybe<Scalars['String']['input']>;
+  /** Aggregation the series must be reduced with (energy = SUM, demand = MAX, …). Never guessed; supplied by the caller. */
+  requiredAggregation: CkRollupFunctionDto;
+  /** Optional source-entity rtId scope (e.g. the EnergyMeasurement entities of a MeteringPoint). */
+  rtIds?: InputMaybe<Array<Scalars['OctoObjectId']['input']>>;
+  /** Logical CK attribute path of the measured column (e.g. Amount.Value) — used to match a rollup's aggregation spec. */
+  sourcePath: Scalars['String']['input'];
+  /** Desired number of output points (pixel-driven, ~600 typical). Must be positive. */
+  targetPoints: Scalars['Int']['input'];
+  /** Exclusive end of the query window (UTC). */
+  to: Scalars['DateTime']['input'];
+};
+
+/** Archive-selection decision for a resolution-aware series query (AB#4290). */
+export type ResolveSeriesQueryResultDto = {
+  __typename?: 'ResolveSeriesQueryResult';
+  /** The deliverable point count when below the requested target (RESOLUTION_LIMITED) or the native raw count on the refuse path. Null when the target was met. */
+  actualPoints?: Maybe<Scalars['Int']['output']>;
+  /** The archive to query — a rollup, or the base archive on the refuse/raw paths. */
+  archiveRtId: Scalars['OctoObjectId']['output'];
+  /** Optional human-readable explanation of the chosen route / signal. */
+  diagnostic?: Maybe<Scalars['String']['output']>;
+  /** Width in milliseconds of one output bucket; 0 when no bucketing applies / grain unknown. */
+  effectiveBucketMs: Scalars['Long']['output'];
+  /** Number of points the caller can expect from the downsampling query. */
+  points: Scalars['Int']['output'];
+  /** Aggregation function the downsampling query must use. */
+  reducingFunction: CkRollupFunctionDto;
+  /** Outcome classification (OK / NO_SUITABLE_ROLLUP / RESOLUTION_LIMITED / UNKNOWN_BASE_GRAIN / EMPTY_LADDER). */
+  signal: SeriesResolutionSignalDto;
+};
+
 export type ResultAggregationInputDto = {
   avgAttributePaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   countAttributePaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
@@ -28027,6 +28066,15 @@ export enum SearchFilterTypesDto {
   TextSearchDto = 'TEXT_SEARCH'
 }
 
+/** Outcome of resolution-aware series routing (AB#4290). Non-OK values are truthful signals the caller can surface. */
+export enum SeriesResolutionSignalDto {
+  EmptyLadderDto = 'EMPTY_LADDER',
+  NoSuitableRollupDto = 'NO_SUITABLE_ROLLUP',
+  OkDto = 'OK',
+  ResolutionLimitedDto = 'RESOLUTION_LIMITED',
+  UnknownBaseGrainDto = 'UNKNOWN_BASE_GRAIN'
+}
+
 export type SortDto = {
   attributePath: Scalars['String']['input'];
   sortOrder?: InputMaybe<SortOrdersDto>;
@@ -28055,6 +28103,8 @@ export type StreamDataModelQueryDto = {
   archivesStorageStats: Array<ArchiveStorageStatsDto>;
   /** Returns the most recent recompute jobs for a rollup archive (newest first, capped at 50) — for debugging why a recompute failed. AB#4184. */
   recomputeJobsFor: Array<RecomputeJobInfoDto>;
+  /** Resolution-aware series routing (AB#4290): given a base archive family, a time window, a target point count and the required aggregation, returns the archive/rollup to query at the best resolution — without the caller knowing which physical archive holds the data at a usable grain. The caller then runs the existing downsampling query against the returned archiveRtId with limit = points. Null if StreamData is not enabled for the tenant. */
+  resolveSeriesQuery?: Maybe<ResolveSeriesQueryResultDto>;
   /** Returns the studio's query-editor metadata for a rollup archive: bucket size and the distinct *logical* CK-attribute paths the rollup aggregates. Cascade rollups (rollup over rollup) have their physical sourcePath storage columns reversed back to the original CK attribute paths via RollupLogicalPathResolver (concept-time-range §7). Null if the rtId doesn't resolve to a rollup archive. */
   rollupQueryMetadata?: Maybe<RollupQueryMetadataDto>;
   /** Returns every non-soft-deleted rollup archive attached to the given source archive — runtime id, status, schedule, watermark, freeze state. Rollup-archives concept §9. */
@@ -28072,6 +28122,11 @@ export type StreamDataModelQueryArchivesStorageStatsArgsDto = {
 
 export type StreamDataModelQueryRecomputeJobsForArgsDto = {
   rtId: Scalars['OctoObjectId']['input'];
+};
+
+
+export type StreamDataModelQueryResolveSeriesQueryArgsDto = {
+  input: ResolveSeriesQueryInputDto;
 };
 
 

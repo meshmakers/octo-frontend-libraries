@@ -98,6 +98,19 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
    * queries (the archive `rtIds` override is a stream-data concept).
    */
   entitySelectorId?: string;
+  /**
+   * Resolution-aware routing (AB#4290): when `true`, a stream-data chart resolves the
+   * best archive/rollup for the visible time window + target point count via
+   * `QueryExecutorService.resolveSeriesQuery` before querying, instead of always hitting
+   * the persisted archive. Requires `sourcePath` + the series' aggregation to be known.
+   * Ignored for runtime queries. Default (absent/`false`) keeps the direct query.
+   */
+  resolutionAware?: boolean;
+  /**
+   * Optional OBIS-code filter forwarded to resolution-aware routing / the downsampling
+   * query to narrow the series (e.g. `1.8.0` active-energy import). Stream-data only.
+   */
+  obisFilter?: string;
 }
 
 /**

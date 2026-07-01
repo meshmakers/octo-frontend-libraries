@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of, throwError } from 'rxjs';
-import { QueryModeDto } from '@meshmakers/octo-services';
+import { CkRollupFunctionDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { QueryExecutorService } from './query-executor.service';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
 import { GetSystemPersistentQueriesDtoGQL } from '../graphQL/getSystemPersistentQueries';
+import { ResolveSeriesQueryDtoGQL } from '../graphQL/resolveSeriesQuery';
 
 /**
  * Specs for QueryExecutorService — covers the GraphQL-shape → flat result mapping
@@ -19,6 +20,7 @@ describe('QueryExecutorService', () => {
   let runtimeGqlSpy: jasmine.SpyObj<ExecuteRuntimeQueryDtoGQL>;
   let streamDataGqlSpy: jasmine.SpyObj<ExecuteStreamDataQueryDtoGQL>;
   let persistentQueriesGqlSpy: jasmine.SpyObj<GetSystemPersistentQueriesDtoGQL>;
+  let resolveSeriesGqlSpy: jasmine.SpyObj<ResolveSeriesQueryDtoGQL>;
 
   function makeApolloResult(data: unknown): { data: unknown; loading: false; networkStatus: 7 } {
     return { data, loading: false, networkStatus: 7 };
@@ -28,13 +30,15 @@ describe('QueryExecutorService', () => {
     runtimeGqlSpy = jasmine.createSpyObj('ExecuteRuntimeQueryDtoGQL', ['fetch']);
     streamDataGqlSpy = jasmine.createSpyObj('ExecuteStreamDataQueryDtoGQL', ['fetch']);
     persistentQueriesGqlSpy = jasmine.createSpyObj('GetSystemPersistentQueriesDtoGQL', ['fetch']);
+    resolveSeriesGqlSpy = jasmine.createSpyObj('ResolveSeriesQueryDtoGQL', ['fetch']);
 
     TestBed.configureTestingModule({
       providers: [
         QueryExecutorService,
         { provide: ExecuteRuntimeQueryDtoGQL, useValue: runtimeGqlSpy },
         { provide: ExecuteStreamDataQueryDtoGQL, useValue: streamDataGqlSpy },
-        { provide: GetSystemPersistentQueriesDtoGQL, useValue: persistentQueriesGqlSpy }
+        { provide: GetSystemPersistentQueriesDtoGQL, useValue: persistentQueriesGqlSpy },
+        { provide: ResolveSeriesQueryDtoGQL, useValue: resolveSeriesGqlSpy }
       ]
     });
 
@@ -314,6 +318,54 @@ describe('QueryExecutorService', () => {
 
       expect(runtimeGqlSpy.fetch).toHaveBeenCalledTimes(1);
       expect(streamDataGqlSpy.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // resolveSeriesQuery (AB#4290)
+  // ==========================================================================
+  describe('resolveSeriesQuery', () => {
+    const input = {
+      baseArchiveRtId: 'base-1',
+      from: new Date('2025-01-01T00:00:00Z'),
+      to: new Date('2026-01-01T00:00:00Z'),
+      targetPoints: 600,
+      requiredAggregation: CkRollupFunctionDto.SumDto,
+      sourcePath: 'Amount.Value'
+    };
+
+    it('maps the backend routing decision to a flat result', async () => {
+      resolveSeriesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+        streamData: {
+          resolveSeriesQuery: {
+            archiveRtId: 'rollup-1h',
+            effectiveBucketMs: 52_560_000,
+            points: 600,
+            reducingFunction: CkRollupFunctionDto.SumDto,
+            signal: SeriesResolutionSignalDto.OkDto,
+            actualPoints: null,
+            diagnostic: null
+          }
+        }
+      })) as ReturnType<typeof resolveSeriesGqlSpy.fetch>);
+
+      const result = await service.resolveSeriesQuery(input);
+
+      expect(result).not.toBeNull();
+      expect(result!.archiveRtId).toBe('rollup-1h');
+      expect(result!.points).toBe(600);
+      expect(result!.reducingFunction).toBe(CkRollupFunctionDto.SumDto);
+      expect(result!.signal).toBe(SeriesResolutionSignalDto.OkDto);
+    });
+
+    it('returns null when StreamData is not enabled (no decision)', async () => {
+      resolveSeriesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+        streamData: { resolveSeriesQuery: null }
+      })) as ReturnType<typeof resolveSeriesGqlSpy.fetch>);
+
+      const result = await service.resolveSeriesQuery(input);
+
+      expect(result).toBeNull();
     });
   });
 });

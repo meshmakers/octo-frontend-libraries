@@ -1,0 +1,13 @@
+query resolveSeriesQuery($input: ResolveSeriesQueryInput!) {
+  streamData {
+    resolveSeriesQuery(input: $input) {
+      archiveRtId
+      effectiveBucketMs
+      points
+      reducingFunction
+      signal
+      actualPoints
+      diagnostic
+    }
+  }
+}

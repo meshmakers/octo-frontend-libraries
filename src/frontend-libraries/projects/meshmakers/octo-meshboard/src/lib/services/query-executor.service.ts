@@ -1,11 +1,28 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, firstValueFrom, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { FieldFilterDto, FieldFilterOperatorsDto, QueryModeDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
+import { CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
 import { GetSystemPersistentQueriesDtoGQL } from '../graphQL/getSystemPersistentQueries';
+import { ResolveSeriesQueryDtoGQL } from '../graphQL/resolveSeriesQuery';
 import { QueryFamily, queryFamily } from '../utils/query-family';
+
+/**
+ * Result of resolution-aware series routing (AB#4290). The caller runs the existing
+ * stream-data downsampling query against {@link archiveRtId} with `limit = points`
+ * and the column aggregation set to {@link reducingFunction}. `signal` is a truthful
+ * outcome the widget can surface (e.g. a "resolution-limited" hint).
+ */
+export interface SeriesResolutionResult {
+  archiveRtId: string;
+  effectiveBucketMs: number;
+  points: number;
+  reducingFunction: CkRollupFunctionDto;
+  signal: SeriesResolutionSignalDto;
+  actualPoints: number | null;
+  diagnostic: string | null;
+}
 
 /**
  * Time-range and downsampling arguments for stream-data persistent queries.
@@ -126,6 +143,7 @@ export class QueryExecutorService {
   private readonly runtimeGql = inject(ExecuteRuntimeQueryDtoGQL);
   private readonly streamDataGql = inject(ExecuteStreamDataQueryDtoGQL);
   private readonly persistentQueriesGql = inject(GetSystemPersistentQueriesDtoGQL);
+  private readonly resolveSeriesGql = inject(ResolveSeriesQueryDtoGQL);
 
   /**
    * Cache of resolved query families, keyed by query rtId. Filled lazily for
@@ -237,6 +255,32 @@ export class QueryExecutorService {
         };
       })
     );
+  }
+
+  /**
+   * Resolution-aware series routing (AB#4290): asks the backend which archive/rollup to
+   * query for a base archive family, time window and target point count — so a widget can
+   * render ~`targetPoints` points without knowing which physical archive holds the data at a
+   * usable grain. The caller then runs {@link executeStreamData} (downsampling) against the
+   * returned `archiveRtId` with `limit = points`. Returns null when StreamData is not enabled.
+   */
+  async resolveSeriesQuery(input: ResolveSeriesQueryInputDto): Promise<SeriesResolutionResult | null> {
+    const result = await firstValueFrom(
+      this.resolveSeriesGql.fetch({ variables: { input }, fetchPolicy: 'network-only' })
+    );
+    const decision = result.data?.streamData?.resolveSeriesQuery;
+    if (!decision) {
+      return null;
+    }
+    return {
+      archiveRtId: String(decision.archiveRtId),
+      effectiveBucketMs: Number(decision.effectiveBucketMs),
+      points: decision.points,
+      reducingFunction: decision.reducingFunction,
+      signal: decision.signal,
+      actualPoints: decision.actualPoints ?? null,
+      diagnostic: decision.diagnostic ?? null
+    };
   }
 
   private buildStreamDataArg(args: StreamDataExecutionArgs): StreamDataArgumentsDto | undefined {
