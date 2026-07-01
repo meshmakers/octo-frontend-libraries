@@ -75,6 +75,7 @@ export * from './lib/services/health.service';
 export * from './lib/services/identity-service';
 export * from './lib/services/job-management.service';
 export * from './lib/services/communication.service';
+export * from './lib/services/reporting.service';
 export * from './lib/services/tus-upload.service';
 export * from './lib/services/ck-model-catalog.service';
 

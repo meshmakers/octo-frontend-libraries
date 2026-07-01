@@ -43,6 +43,7 @@ export class AppConfigurationService implements IConfigurationService {
     this._config.botServices = adminPanelConfig.botServices;
     this._config.communicationServices = adminPanelConfig.communicationServices;
     this._config.meshAdapterUrl = adminPanelConfig.meshAdapterUrl;
+    this._config.reportingServices = adminPanelConfig.reportingServices;
     this._config.grafanaUrl = adminPanelConfig.grafanaUrl;
     this._config.crateDbAdminUrl = adminPanelConfig.crateDbAdminUrl;
     this._config.systemTenantId = adminPanelConfig.systemTenantId;

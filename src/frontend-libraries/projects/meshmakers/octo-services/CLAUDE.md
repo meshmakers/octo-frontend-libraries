@@ -58,6 +58,8 @@ export interface AddInConfiguration {
   assetServices: string;          // Asset Repository API base URL
   botServices: string;            // Bot Service API base URL
   meshAdapterUrl: string;         // Mesh Adapter API base URL
+  aiServices: string;             // AI Adapter API base URL
+  reportingServices: string;      // Reporting service API base URL (tenant feature enable/disable)
   crateDbAdminUrl: string;        // CrateDB Admin URL
   issuer: string;                 // Identity Service / OAuth issuer URL
   grafanaUrl: string;             // Grafana dashboard URL
@@ -133,6 +135,13 @@ Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `importCkModel(tenantId, file)` | Import construction kit model |
 | `exportRtModelByQuery(tenantId, queryId)` | Export RT model by query |
 | `exportRtModelDeepGraph(tenantId, rtIds, ckTypeId)` | Export deep graph |
+
+**Tenant Feature Toggle — Stream Data (AB#4215):**
+
+| Method | Description |
+|--------|-------------|
+| `enableStreamData(tenantId)` | Enable Stream Data feature — `POST {assetServices}{tenantId}/v1/streamdata/enable` |
+| `disableStreamData(tenantId)` | Disable Stream Data feature (destructive: drops backing time-series storage) — `POST {assetServices}{tenantId}/v1/streamdata/disable` |
 
 ### IdentityService
 
@@ -256,6 +265,8 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 
 | Method | Description |
 |--------|-------------|
+| `enableCommunication(tenantId)` | Enable Communication feature (AB#4215) — `POST {communicationServices}{tenantId}/v1/communication/enable` |
+| `disableCommunication(tenantId)` | Disable Communication feature (destructive: tears down adapter wiring, AB#4215) — `POST {communicationServices}{tenantId}/v1/communication/disable` |
 | `deployTrigger(tenantId)` | Deploy all data pipeline triggers |
 | `deployAdapterConfigurationUpdate(tenantId, adapterRtId, adapterCkTypeId)` | Deploy adapter config update |
 | `deployAllAdaptersOfPool(tenantId, poolRtId)` | Deploy all adapters of a pool |
@@ -273,6 +284,18 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | `getLatestPipelineExecution(tenantId, pipelineRtId, pipelineCkTypeId)` | Get latest execution |
 | `getPipelineExecutionDebugPointNodes(tenantId, pipelineRtId, pipelineCkTypeId, executionId)` | Get debug point tree |
 | `getDebugPoint(tenantId, pipelineRtId, pipelineCkTypeId, executionId, nodeId)` | Get data at debug point |
+
+### ReportingService
+
+Tenant feature toggle for the Reporting feature (AB#4215). Backed by
+`config.reportingServices`.
+
+| Method | Description |
+|--------|-------------|
+| `enableReporting(tenantId)` | Enable Reporting feature — `POST {reportingServices}{tenantId}/v1/reporting/enable` |
+| `disableReporting(tenantId)` | Disable Reporting feature (destructive: drops backing storage) — `POST {reportingServices}{tenantId}/v1/reporting/disable` |
+
+Throws when `reportingServices` is not configured; HTTP errors propagate to the caller.
 
 ### TusUploadService
 

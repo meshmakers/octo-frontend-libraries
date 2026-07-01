@@ -17,6 +17,7 @@ describe('CommunicationService', () => {
     botServices: 'https://api.example.com/bot/',
     meshAdapterUrl: '',
     aiServices: '',
+    reportingServices: 'https://api.example.com/reporting/',
     crateDbAdminUrl: '',
     issuer: '',
     grafanaUrl: '',
@@ -48,6 +49,58 @@ describe('CommunicationService', () => {
 
   afterEach(() => {
     httpMock.verify();
+  });
+
+  describe('enableCommunication', () => {
+    it('should POST the tenant-scoped enable endpoint', async () => {
+      const promise = service.enableCommunication(tenantId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/communication/enable`
+      );
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      req.flush(null);
+
+      await promise;
+    });
+
+    it('should propagate errors', async () => {
+      const promise = service.enableCommunication(tenantId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/communication/enable`
+      );
+      req.flush({errorMessage: 'boom'}, {status: 500, statusText: 'Server Error'});
+
+      await expectAsync(promise).toBeRejected();
+    });
+  });
+
+  describe('disableCommunication', () => {
+    it('should POST the tenant-scoped disable endpoint', async () => {
+      const promise = service.disableCommunication(tenantId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/communication/disable`
+      );
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      req.flush(null);
+
+      await promise;
+    });
+
+    it('should propagate errors', async () => {
+      const promise = service.disableCommunication(tenantId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/communication/disable`
+      );
+      req.flush({errorMessage: 'boom'}, {status: 500, statusText: 'Server Error'});
+
+      await expectAsync(promise).toBeRejected();
+    });
   });
 
   describe('deployTrigger', () => {

@@ -10,6 +10,11 @@ export interface AddInConfiguration {
    * (the Mesh Adapter and the AI service ship as separate workloads).
    */
   aiServices: string;
+  /**
+   * Reporting service (octo-report-services) public base URL. Used to build the
+   * tenant-scoped enable/disable REST endpoints for the reporting feature.
+   */
+  reportingServices: string;
   crateDbAdminUrl: string;
   issuer: string;
   grafanaUrl: string;

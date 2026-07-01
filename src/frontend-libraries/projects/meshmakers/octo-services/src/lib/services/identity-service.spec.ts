@@ -27,6 +27,7 @@ describe('IdentityService', () => {
     communicationServices: 'https://comm.example.com/',
     meshAdapterUrl: 'https://mesh.example.com/',
     aiServices: 'https://ai.example.com/',
+    reportingServices: 'https://reporting.example.com/',
     crateDbAdminUrl: 'https://crate.example.com/',
     grafanaUrl: 'https://grafana.example.com/',
     systemTenantId: 'system',

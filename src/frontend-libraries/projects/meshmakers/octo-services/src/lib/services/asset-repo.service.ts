@@ -101,6 +101,35 @@ export class AssetRepoService {
     }
   }
 
+  /**
+   * Enables the Stream Data feature for a tenant. Installs the
+   * `System.StreamData` CK model and provisions the backing time-series
+   * storage. Errors propagate to the caller.
+   *
+   * Tenant-scoped REST endpoint: `POST {assetServices}{tenantId}/v1/streamdata/enable`.
+   */
+  public async enableStreamData(tenantId: string): Promise<void> {
+    if (this.configurationService.config?.assetServices) {
+      const uri = `${this.configurationService.config.assetServices}${tenantId}/v1/streamdata/enable`;
+      await firstValueFrom(this.httpClient.post<void>(uri, null, {observe: 'response'}));
+    }
+  }
+
+  /**
+   * Disables the Stream Data feature for a tenant. Drops the backing
+   * time-series storage and removes the `System.StreamData` model.
+   * Destructive — the UI must confirm before calling. Errors propagate to the
+   * caller.
+   *
+   * Tenant-scoped REST endpoint: `POST {assetServices}{tenantId}/v1/streamdata/disable`.
+   */
+  public async disableStreamData(tenantId: string): Promise<void> {
+    if (this.configurationService.config?.assetServices) {
+      const uri = `${this.configurationService.config.assetServices}${tenantId}/v1/streamdata/disable`;
+      await firstValueFrom(this.httpClient.post<void>(uri, null, {observe: 'response'}));
+    }
+  }
+
   public async importRtModel(tenantId: string, file: File, importStrategy: ImportStrategyDto = ImportStrategyDto.InsertOnly): Promise<string | null> {
     const params = new HttpParams()
       .set('importStrategy', importStrategy.toString());

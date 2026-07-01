@@ -43,6 +43,40 @@ export class CommunicationService {
   }
 
   // ============================================================================
+  // Tenant Feature Toggle — Communication
+  // ============================================================================
+
+  /**
+   * Enables the Communication feature for a tenant. Installs the
+   * `System.Communication` CK model and provisions the required runtime wiring
+   * for adapters/pools. Errors propagate to the caller.
+   */
+  async enableCommunication(tenantId: string): Promise<void> {
+    if (!this.communicationServicesUrl) {
+      throw new Error('Communication services URL is not configured');
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/communication/enable`;
+    await firstValueFrom(
+      this.httpClient.post<void>(uri, null, {observe: 'response'})
+    );
+  }
+
+  /**
+   * Disables the Communication feature for a tenant. Tears down the adapter
+   * wiring and removes the `System.Communication` model. Destructive — the UI
+   * must confirm before calling. Errors propagate to the caller.
+   */
+  async disableCommunication(tenantId: string): Promise<void> {
+    if (!this.communicationServicesUrl) {
+      throw new Error('Communication services URL is not configured');
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/communication/disable`;
+    await firstValueFrom(
+      this.httpClient.post<void>(uri, null, {observe: 'response'})
+    );
+  }
+
+  // ============================================================================
   // Trigger Deployment
   // ============================================================================
 

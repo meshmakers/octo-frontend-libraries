@@ -24,6 +24,7 @@ describe('AssetRepoService', () => {
     communicationServices: 'https://comm.example.com/',
     meshAdapterUrl: 'https://mesh.example.com/',
     aiServices: 'https://ai.example.com/',
+    reportingServices: 'https://reporting.example.com/',
     crateDbAdminUrl: 'https://crate.example.com/',
     grafanaUrl: 'https://grafana.example.com/',
     systemTenantId: 'system',
@@ -273,6 +274,64 @@ describe('AssetRepoService', () => {
       req.flush(mockTenantsResponse);
 
       await resultPromise;
+    });
+  });
+
+  describe('enableStreamData', () => {
+    it('should POST the tenant-scoped enable endpoint', async () => {
+      const resultPromise = service.enableStreamData('tenant-1');
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/enable`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      req.flush(null);
+
+      await resultPromise;
+    });
+
+    it('should propagate errors', async () => {
+      const resultPromise = service.enableStreamData('tenant-1');
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/enable`);
+      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
+
+      await expectAsync(resultPromise).toBeRejected();
+    });
+
+    it('should not make request when config is not available', async () => {
+      mockConfigService.config = null;
+
+      await service.enableStreamData('tenant-1');
+      // No HTTP request should be made
+    });
+  });
+
+  describe('disableStreamData', () => {
+    it('should POST the tenant-scoped disable endpoint', async () => {
+      const resultPromise = service.disableStreamData('tenant-1');
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/disable`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      req.flush(null);
+
+      await resultPromise;
+    });
+
+    it('should propagate errors', async () => {
+      const resultPromise = service.disableStreamData('tenant-1');
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/disable`);
+      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
+
+      await expectAsync(resultPromise).toBeRejected();
+    });
+
+    it('should not make request when config is not available', async () => {
+      mockConfigService.config = null;
+
+      await service.disableStreamData('tenant-1');
+      // No HTTP request should be made
     });
   });
 
