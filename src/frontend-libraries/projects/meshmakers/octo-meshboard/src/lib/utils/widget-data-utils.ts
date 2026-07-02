@@ -118,6 +118,38 @@ export function matchesAttributePath(cellPath: string | null | undefined, config
 }
 
 /**
+ * Finds the single cell in a row that a config field refers to, preferring an
+ * exact `sanitizeFieldName` match over the loose canonical fallback of
+ * {@link matchesAttributePath}.
+ *
+ * This disambiguation matters for grouping-aggregation results, where a group-by
+ * cell (`state`) coexists with an aggregation cell over the same attribute
+ * (`state_count`). A bare category config (`state`) loose-matches BOTH via the
+ * canonical fallback; iterating cells and assigning on every match let the later
+ * `state_count` cell overwrite the category with the raw count, so the pie/bar
+ * legend showed the count instead of the enum label (AB#4293). Resolving each
+ * field to its best cell — exact wins — keeps the group-by and aggregation cells
+ * on their intended fields while still honouring the loose fallback for legacy
+ * configs whose only matching cell is the wire-form aggregation column.
+ */
+export function findCellForField<T extends { attributePath?: string | null }>(
+  cells: readonly (T | null | undefined)[],
+  configField: string | null | undefined
+): T | undefined {
+  if (!configField) return undefined;
+
+  let looseMatch: T | undefined;
+  for (const cell of cells) {
+    if (!cell?.attributePath) continue;
+    if (sanitizeFieldName(cell.attributePath) === configField) return cell; // exact wins
+    if (looseMatch === undefined && matchesAttributePath(cell.attributePath, configField)) {
+      looseMatch = cell;
+    }
+  }
+  return looseMatch;
+}
+
+/**
  * Parses a value to a number.
  * Returns 0 for NaN or non-numeric values.
  * @param value The value to parse
@@ -155,11 +187,9 @@ export function extractAggregationValue(
 
   // Find the value field if specified
   if (valueField) {
-    for (const cell of cells) {
-      if (!cell?.attributePath) continue;
-      if (matchesAttributePath(cell.attributePath, valueField)) {
-        return parseNumericValue(cell.value);
-      }
+    const cell = findCellForField(cells, valueField);
+    if (cell) {
+      return parseNumericValue(cell.value);
     }
   }
 
@@ -196,23 +226,10 @@ export function extractGroupedAggregationValue(
 
     const cells = row.cells?.items ?? [];
 
-    let categoryMatch = false;
-    let value = 0;
-
-    for (const cell of cells) {
-      if (!cell?.attributePath) continue;
-
-      if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
-        categoryMatch = true;
-      }
-
-      if (matchesAttributePath(cell.attributePath, valueField)) {
-        value = parseNumericValue(cell.value);
-      }
-    }
-
-    if (categoryMatch) {
-      return value;
+    const categoryCell = findCellForField(cells, categoryField);
+    if (categoryCell && String(categoryCell.value) === categoryValue) {
+      const valueCell = findCellForField(cells, valueField);
+      return valueCell ? parseNumericValue(valueCell.value) : 0;
     }
   }
 
@@ -271,21 +288,14 @@ export function processStaticSeriesData(
 
     const cells = row.cells?.items ?? [];
 
-    let categoryValue = '';
+    const categoryCell = findCellForField(cells, categoryField);
+    const categoryValue = categoryCell ? String(categoryCell.value ?? '') : '';
+
     const rowValues = new Map<string, number>();
-
-    for (const cell of cells) {
-      if (!cell?.attributePath) continue;
-
-      if (matchesAttributePath(cell.attributePath, categoryField)) {
-        categoryValue = String(cell.value ?? '');
-      }
-
-      // Check if this cell is one of our series fields
-      for (const seriesConfig of seriesConfigs) {
-        if (matchesAttributePath(cell.attributePath, seriesConfig.field)) {
-          rowValues.set(seriesConfig.field, parseNumericValue(cell.value));
-        }
+    for (const seriesConfig of seriesConfigs) {
+      const seriesCell = findCellForField(cells, seriesConfig.field);
+      if (seriesCell) {
+        rowValues.set(seriesConfig.field, parseNumericValue(seriesCell.value));
       }
     }
 
@@ -335,21 +345,13 @@ export function processDynamicSeriesData(
 
     const cells = row.cells?.items ?? [];
 
-    let categoryValue = '';
-    let seriesGroupValue = '';
-    let numericValue = 0;
+    const categoryCell = findCellForField(cells, categoryField);
+    const seriesGroupCell = findCellForField(cells, seriesGroupField);
+    const valueCell = findCellForField(cells, valueField);
 
-    for (const cell of cells) {
-      if (!cell?.attributePath) continue;
-
-      if (matchesAttributePath(cell.attributePath, categoryField)) {
-        categoryValue = String(cell.value ?? '');
-      } else if (matchesAttributePath(cell.attributePath, seriesGroupField)) {
-        seriesGroupValue = String(cell.value ?? '');
-      } else if (matchesAttributePath(cell.attributePath, valueField)) {
-        numericValue = parseNumericValue(cell.value);
-      }
-    }
+    const categoryValue = categoryCell ? String(categoryCell.value ?? '') : '';
+    const seriesGroupValue = seriesGroupCell ? String(seriesGroupCell.value ?? '') : '';
+    const numericValue = valueCell ? parseNumericValue(valueCell.value) : 0;
 
     if (categoryValue && seriesGroupValue) {
       allCategories.add(categoryValue);
@@ -408,18 +410,11 @@ export function processPieChartData(
 
     const cells = row.cells?.items ?? [];
 
-    let categoryValue = '';
-    let numericValue = 0;
+    const categoryCell = findCellForField(cells, categoryField);
+    const valueCell = findCellForField(cells, valueField);
 
-    for (const cell of cells) {
-      if (!cell?.attributePath) continue;
-
-      if (matchesAttributePath(cell.attributePath, categoryField)) {
-        categoryValue = String(cell.value ?? '');
-      } else if (matchesAttributePath(cell.attributePath, valueField)) {
-        numericValue = parseNumericValue(cell.value);
-      }
-    }
+    const categoryValue = categoryCell ? String(categoryCell.value ?? '') : '';
+    const numericValue = valueCell ? parseNumericValue(valueCell.value) : 0;
 
     if (categoryValue) {
       result.push({

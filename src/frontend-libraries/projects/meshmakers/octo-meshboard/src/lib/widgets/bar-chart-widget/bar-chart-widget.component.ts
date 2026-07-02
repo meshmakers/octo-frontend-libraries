@@ -9,7 +9,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { findCellForField } from '../../utils/widget-data-utils';
 import { isIsoDateTime, formatInstant } from '../../utils/meshboard-datetime';
 
 /**
@@ -385,20 +385,18 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     }
 
     for (const row of filteredRows) {
-      let categoryValue = '';
+      // Exact match wins over the loose aggregation-suffix fallback so a group-by
+      // category is not overwritten by an aggregation cell over the same attribute
+      // (e.g. `state` vs `state_count`) — AB#4293.
+      const categoryCell = findCellForField(row.cells, this.config.categoryField);
+      const categoryValue = categoryCell ? this.formatCategoryValue(categoryCell.value) : '';
+
       const rowValues = new Map<string, number>();
-
-      for (const cell of row.cells) {
-        if (matchesAttributePath(cell.attributePath, this.config.categoryField)) {
-          categoryValue = this.formatCategoryValue(cell.value);
-        }
-
-        // Check if this cell is one of our series fields
-        for (const seriesConfig of (this.config.series ?? [])) {
-          if (matchesAttributePath(cell.attributePath, seriesConfig.field)) {
-            const numValue = typeof cell.value === 'number' ? cell.value : parseFloat(String(cell.value));
-            rowValues.set(seriesConfig.field, isNaN(numValue) ? 0 : numValue);
-          }
+      for (const seriesConfig of (this.config.series ?? [])) {
+        const seriesCell = findCellForField(row.cells, seriesConfig.field);
+        if (seriesCell) {
+          const numValue = typeof seriesCell.value === 'number' ? seriesCell.value : parseFloat(String(seriesCell.value));
+          rowValues.set(seriesConfig.field, isNaN(numValue) ? 0 : numValue);
         }
       }
 
@@ -453,20 +451,18 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const allSeriesGroups = new Set<string>();
 
     for (const row of filteredRows) {
-      let categoryValue = '';
-      let seriesGroupValue = '';
-      let numericValue = 0;
+      // Exact match wins over the loose aggregation-suffix fallback (AB#4293).
+      const categoryCell = findCellForField(row.cells, categoryField);
+      const seriesGroupCell = findCellForField(row.cells, seriesGroupField);
+      const valueCell = findCellForField(row.cells, valueField);
 
-      for (const cell of row.cells) {
-        if (matchesAttributePath(cell.attributePath, categoryField)) {
-          categoryValue = this.formatCategoryValue(cell.value);
-        } else if (matchesAttributePath(cell.attributePath, seriesGroupField)) {
-          seriesGroupValue = String(cell.value ?? '');
-        } else if (matchesAttributePath(cell.attributePath, valueField)) {
-          const val = cell.value;
-          numericValue = typeof val === 'number' ? val : parseFloat(String(val));
-          if (isNaN(numericValue)) numericValue = 0;
-        }
+      const categoryValue = categoryCell ? this.formatCategoryValue(categoryCell.value) : '';
+      const seriesGroupValue = seriesGroupCell ? String(seriesGroupCell.value ?? '') : '';
+      let numericValue = 0;
+      if (valueCell) {
+        const val = valueCell.value;
+        numericValue = typeof val === 'number' ? val : parseFloat(String(val));
+        if (isNaN(numericValue)) numericValue = 0;
       }
 
       if (categoryValue && seriesGroupValue) {

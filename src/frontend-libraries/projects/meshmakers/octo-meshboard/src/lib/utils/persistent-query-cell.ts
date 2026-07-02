@@ -8,7 +8,7 @@
  */
 import type { QueryExecutionResult } from '../services/query-executor.service';
 import type { PersistentQueryCellSource } from '../models/meshboard.models';
-import { matchesAttributePath, parseNumericValue } from './widget-data-utils';
+import { findCellForField, parseNumericValue } from './widget-data-utils';
 
 /**
  * Row `__typename`s the value extraction recognises. Runtime queries
@@ -26,10 +26,9 @@ function extractAggregation(result: QueryExecutionResult, valueField?: string): 
   if (!firstRow) return 0;
 
   if (valueField) {
-    for (const cell of firstRow.cells) {
-      if (matchesAttributePath(cell.attributePath, valueField)) {
-        return parseNumericValue(cell.value);
-      }
+    const cell = findCellForField(firstRow.cells, valueField);
+    if (cell) {
+      return parseNumericValue(cell.value);
     }
   }
 
@@ -48,19 +47,11 @@ function extractGroupedAggregation(
   for (const row of result.rows) {
     if (!SUPPORTED_ROW_TYPES.has(row.__typename ?? '')) continue;
 
-    let categoryMatch = false;
-    let value = 0;
-
-    for (const cell of row.cells) {
-      if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
-        categoryMatch = true;
-      }
-      if (matchesAttributePath(cell.attributePath, valueField)) {
-        value = parseNumericValue(cell.value);
-      }
+    const categoryCell = findCellForField(row.cells, categoryField);
+    if (categoryCell && String(categoryCell.value) === categoryValue) {
+      const valueCell = findCellForField(row.cells, valueField);
+      return valueCell ? parseNumericValue(valueCell.value) : 0;
     }
-
-    if (categoryMatch) return value;
   }
 
   return 0;

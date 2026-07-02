@@ -682,6 +682,34 @@ const barData = processStaticSeriesData(rows, 'month', [
 const pieData = processPieChartData(rows, 'category', 'value');
 ```
 
+### Cell → field resolution (`matchesAttributePath` vs `findCellForField`)
+
+`matchesAttributePath(cellPath, configField)` answers "could this cell belong to
+this field?" — an exact `sanitizeFieldName` match, plus a **loose** canonical
+fallback that strips the aggregation suffix off the *cell* (so a legacy config
+saved as the bare CK path, e.g. `amount_value`, still matches the wire-form
+aggregation cell `amountvalue_sum`).
+
+That loose fallback is intentionally ambiguous: in a grouping-aggregation result
+the group-by cell (`state`) coexists with an aggregation cell over the same
+attribute (`state_count`), and a bare category config `state` loose-matches
+**both**. An extraction loop that assigns on every match let the later
+`state_count` cell overwrite the category with the raw count — the pie/bar legend
+then showed the count instead of the enum label (**AB#4293**).
+
+**Rule:** when reducing a row's cells to one value per config field, resolve each
+field with `findCellForField(cells, configField)` — it prefers an exact
+`sanitizeFieldName` match and only falls back to the loose match when no exact
+cell exists. Do **not** hand-roll a `for cell … if matchesAttributePath(…)` loop
+that writes the category/value on each hit; that reintroduces the AB#4293
+overwrite. `processPieChartData` / `processStaticSeriesData` /
+`processDynamicSeriesData` / `extractAggregationValue` /
+`extractGroupedAggregationValue` and the pie-/bar-chart widget components all use
+`findCellForField`. (The line-chart / heatmap widgets keep their own loops on
+purpose: their category is a timestamp, and line-chart downsampling maps one
+config value field onto *several* cells `<field>_min/_max/_avg`, which a
+single-cell resolver would collapse.)
+
 ---
 
 ## Testing
@@ -737,7 +765,7 @@ Current test files:
 - `meshboard-state.service.spec.ts` - State management (74 tests, includes entity selector management + stream-data time-arg binding)
 - `meshboard-data.service.spec.ts` - Data fetching (32 tests)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
-- `widget-data-utils.spec.ts` - Utility functions (61 tests)
+- `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests)
 
 ---
 

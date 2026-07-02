@@ -10,7 +10,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
  * Data item for the pie chart
@@ -321,17 +321,17 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     const chartData: ChartDataItem[] = result.rows
       .filter(row => PieChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? ''))
       .map(row => {
-        let category = '';
-        let value = 0;
+        // Resolve each field to its best cell (exact match wins over the loose
+        // aggregation-suffix fallback) so a `state` category is not overwritten
+        // by the `state_count` aggregation cell — AB#4293.
+        const categoryCell = findCellForField(row.cells, this.config.categoryField);
+        const valueCell = findCellForField(row.cells, this.config.valueField);
 
-        for (const cell of row.cells) {
-          if (matchesAttributePath(cell.attributePath, this.config.categoryField)) {
-            category = String(cell.value ?? '');
-          }
-          if (matchesAttributePath(cell.attributePath, this.config.valueField)) {
-            const numValue = typeof cell.value === 'number' ? cell.value : parseFloat(String(cell.value));
-            value = isNaN(numValue) ? 0 : numValue;
-          }
+        const category = categoryCell ? String(categoryCell.value ?? '') : '';
+        let value = 0;
+        if (valueCell) {
+          const numValue = typeof valueCell.value === 'number' ? valueCell.value : parseFloat(String(valueCell.value));
+          value = isNaN(numValue) ? 0 : numValue;
         }
 
         return { category, value };

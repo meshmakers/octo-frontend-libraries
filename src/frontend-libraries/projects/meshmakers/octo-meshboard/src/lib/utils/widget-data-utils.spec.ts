@@ -6,6 +6,7 @@ import {
   processStaticSeriesData,
   processDynamicSeriesData,
   processPieChartData,
+  findCellForField,
   QueryRow,
   QueryResult,
   SeriesConfig,
@@ -709,6 +710,60 @@ describe('Widget Data Utils', () => {
 
       expect(result.length).toBe(1);
       expect(result[0].category).toBe('Valid');
+    });
+
+    // AB#4293: a grouping-aggregation query emits a group-by cell (`state`) alongside
+    // an aggregation cell over the same attribute (`state_count`). The bare category
+    // config `state` loose-matches BOTH; before the exact-match-priority fix the later
+    // `state_count` cell overwrote the category with the raw count, so the legend showed
+    // "1"/"3" instead of the enum labels "Active"/"New".
+    it('should not overwrite the group-by category with the same-attribute aggregation cell', () => {
+      const rows: QueryRow[] = [
+        createRow('RtGroupingAggregationQueryRow', [
+          createCell('state', 'Active'),
+          createCell('carriertype', 'Electricity'),
+          createCell('state_count', 1)
+        ]),
+        createRow('RtGroupingAggregationQueryRow', [
+          createCell('state', 'New'),
+          createCell('carriertype', 'Electricity'),
+          createCell('state_count', 3)
+        ])
+      ];
+
+      const result = processPieChartData(rows, 'state', 'state_count');
+
+      expect(result).toEqual([
+        { category: 'Active', value: 1 },
+        { category: 'New', value: 3 }
+      ]);
+    });
+  });
+
+  describe('findCellForField', () => {
+    it('prefers an exact sanitized match over the loose aggregation-suffix fallback', () => {
+      const cells = [
+        createCell('state', 'Active'),
+        createCell('state_count', 7)
+      ];
+
+      expect(findCellForField(cells, 'state')?.value).toBe('Active');
+      expect(findCellForField(cells, 'state_count')?.value).toBe(7);
+    });
+
+    it('falls back to the wire-form aggregation cell when no exact match exists (legacy configs)', () => {
+      const cells = [createCell('state_count', 7)];
+
+      // Legacy config saved the bare CK path before the engine emitted wire-form keys.
+      expect(findCellForField(cells, 'state')?.value).toBe(7);
+    });
+
+    it('returns undefined for an unknown field or empty config', () => {
+      const cells = [createCell('state', 'Active')];
+
+      expect(findCellForField(cells, 'carrierType')).toBeUndefined();
+      expect(findCellForField(cells, '')).toBeUndefined();
+      expect(findCellForField(cells, null)).toBeUndefined();
     });
   });
 
