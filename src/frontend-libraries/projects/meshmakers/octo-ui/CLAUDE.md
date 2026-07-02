@@ -107,6 +107,55 @@ association of an entity, not only `System/ParentChild`.
   `/:tenantId/ui/tree-navigation` (UI section, `AdminPanelManagement` + System.UI
   installed).
 
+## Runtime Browser tree perspectives (AB#4263)
+
+On top of per-node association navigation, the trees support **multiple
+switchable perspectives**, each with its own root. Requires `System.UI >= 2.3.0`
+(the `TreeNavigationConfiguration.Perspectives` record array); purely additive
+and backend-free (reuses the existing `targets` resolver).
+
+- **Perspective model (`PerspectiveDefinition`):** `key`, `displayName`,
+  `sortIndex?`, `icon?`, `rootMode` (`Spatial` | `Type`), `rootCkTypeId?`,
+  `primaryRoleId?`, `primaryDirection?` (`Inbound` | `Outbound`),
+  `secondaryRoleIds?`. Loaded via `TreeNavigationConfigService.perspectives()`
+  (same optional singleton, probe-then-query, cached, cleared by `reset()`).
+  The `perspectives` field is fetched by a **separate** query
+  (`getTreeNavigationPerspectives`), kept out of the roles `CONFIG_QUERY` on
+  purpose: on a tenant still on System.UI **2.2.0** the type exists but the
+  `perspectives` field does not, so a combined query would fail validation and
+  break the 4262 roles feature. `fetchPerspectivesRaw` swallows that error →
+  roles keep working and perspectives come back empty until 2.3.0. For the same
+  reason `saveConfig` omits `perspectives` from the mutation when the array is
+  empty (trade-off: clearing the last perspective on 2.3.0 is not persisted).
+- **Built-in Spatial default:** `RuntimeBrowserDataSource.getPerspectives()`
+  synthesizes a `Spatial` perspective (all `Basic/Tree` roots, the pre-4263
+  behaviour) and prepends it to the configured list, de-duped by key. With no
+  configuration there is exactly one perspective, so the switcher hides itself
+  and behaviour is unchanged.
+- **Roots per `rootMode`:** `fetchRootNodes()` branches on the active perspective
+  — `Spatial` keeps the `Basic/Tree` roots; `Type` loads all runtime instances of
+  `rootCkTypeId` as roots (inline `getRuntimeEntitiesByCkType` query) and records
+  their rtIds in `perspectiveRootRtIds`.
+- **Whitelist-at-root-only:** for a `Type` perspective, the direct children of a
+  root are restricted to `primaryRoleId` (flattened at the top, like ParentChild)
+  + `secondaryRoleIds` (group nodes). Deeper nodes are not in
+  `perspectiveRootRtIds`, so they fall back to full auto-discovery — e.g. a
+  DistributionSystem root shows its `SystemMembers`; the served spaces appear one
+  hop deeper under each member. N:N members legitimately appear under more than
+  one system (MVP: no explicit "shared" badge).
+- **Switcher:** `PerspectiveSwitcherComponent` (`mm-perspective-switcher`, theme-
+  neutral Kendo dropdown) is wired into **both** trees — `RuntimeBrowserComponent`
+  and the `entity-selector-dialog` picker. Selecting a perspective calls
+  `dataSource.setActivePerspective(key)` then reloads the tree
+  (`refreshTree()`), which re-runs `fetchRootNodes()`.
+- **Settings editor:** `TreeNavigationSettingsComponent` gained a perspectives
+  section (key, label, root mode, root CK type, primary role, comma-separated
+  secondary roles, order, icon). `saveConfig(rtId, roles, perspectives)` persists
+  both arrays — callers must round-trip perspectives to avoid wiping them.
+- The per-tenant `Systems` perspective for EnergyIQ (`EnergyIQ/DistributionSystem`
+  + `SystemMembers`) is seeded from the **demo-energy-iq** repo, not here; no CK
+  model change is required.
+
 ## Branding (theming + per-tenant identity)
 
 `@meshmakers/octo-ui` exports a complete branding subsystem:

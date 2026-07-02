@@ -74,6 +74,7 @@ describe('TreeNavigationSettingsComponent', () => {
           visible: false,
         },
       ],
+      perspectives: [],
     });
     configSpy.saveConfig.and.resolveTo('cfg-1');
 
@@ -117,6 +118,7 @@ describe('TreeNavigationSettingsComponent', () => {
       typePresent: false,
       rtId: null,
       roles: [],
+      perspectives: [],
     });
     await component.ngOnInit();
     expect(api.typePresent()).toBeFalse();
@@ -168,6 +170,7 @@ describe('TreeNavigationSettingsComponent', () => {
       typePresent: true,
       rtId: null,
       roles: [],
+      perspectives: [],
     });
     await component.ngOnInit();
 

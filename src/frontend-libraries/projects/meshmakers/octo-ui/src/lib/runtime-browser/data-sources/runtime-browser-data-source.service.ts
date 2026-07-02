@@ -19,7 +19,7 @@ import {
   folderOpenIcon,
   gearIcon,
 } from '@progress/kendo-svg-icons';
-import { Apollo } from 'apollo-angular';
+import { Apollo, gql } from 'apollo-angular';
 import { firstValueFrom } from 'rxjs';
 import { OctoGraphQlHierarchyDataSource } from '../../data-sources/octo-graph-ql-hierarchy-data-source';
 import { DeleteEntitiesDtoGQL } from '../../graphQL/deleteEntities';
@@ -34,7 +34,10 @@ import { GetTreesDtoGQL } from '../../graphQL/getTrees';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../graphQL/updateRuntimeEntities';
 import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
 import { code, storage } from '../icons/custom-svg-icons';
-import { TreeNavigationConfigService } from '../services/tree-navigation-config.service';
+import {
+  PerspectiveDefinition,
+  TreeNavigationConfigService,
+} from '../services/tree-navigation-config.service';
 import { TypeHelperService } from '../services/type-helper.service';
 
 // Extended type to handle both Runtime Entities and CK Models/Types
@@ -94,6 +97,47 @@ const PARENT_CHILD_ROLE_ID = 'System/ParentChild';
  */
 const NON_NAVIGABLE_TARGET_CK_TYPES = new Set<string>(['System/Entity']);
 
+/** Key of the built-in spatial perspective (all Basic/Tree roots, as before). */
+const SPATIAL_PERSPECTIVE_KEY = 'Spatial';
+
+/**
+ * The always-available built-in perspective. It reproduces the pre-AB#4263
+ * behaviour (roots = all Basic/Tree entities) and is synthesized rather than
+ * stored, so a zero-config tenant still has exactly one perspective.
+ */
+const BUILT_IN_SPATIAL_PERSPECTIVE: PerspectiveDefinition = {
+  key: SPATIAL_PERSPECTIVE_KEY,
+  displayName: 'Spatial',
+  rootMode: 'Spatial',
+  sortIndex: 0,
+};
+
+/**
+ * Loads all runtime instances of a CK type as the roots of a `Type` perspective
+ * (AB#4263). Inline gql (like TreeNavigationConfigService) to stay decoupled
+ * from a schema re-introspection; the selection mirrors getTrees so the existing
+ * root-node rendering keeps working.
+ */
+const GET_ROOT_ENTITIES_BY_CK_TYPE = gql`
+  query getRuntimeEntitiesByCkType($ckTypeId: String!, $first: Int!) {
+    runtime {
+      runtimeEntities(ckId: $ckTypeId, first: $first) {
+        items {
+          rtId
+          ckTypeId
+          rtWellKnownName
+          attributes(attributeNames: ["name", "displayName", "description"]) {
+            items {
+              attributeName
+              value
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -116,6 +160,107 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   private readonly updateTreeNodesDtoGQL = inject(UpdateTreeNodesDtoGQL);
   private readonly typeHelperService = inject(TypeHelperService);
   private readonly treeNavConfig = inject(TreeNavigationConfigService);
+  private readonly apollo = inject(Apollo);
+
+  /** Key of the currently active tree perspective (AB#4263). */
+  private activePerspectiveKey = SPATIAL_PERSPECTIVE_KEY;
+
+  /**
+   * The perspective resolved during the last `fetchRootNodes()`. Used by
+   * `fetchChildren()` to apply the root-level whitelist for `Type` perspectives.
+   */
+  private activePerspective: PerspectiveDefinition = BUILT_IN_SPATIAL_PERSPECTIVE;
+
+  /**
+   * rtIds of the current perspective's root nodes. The primary/secondary role
+   * whitelist is applied ONLY to the direct children of these roots — deeper
+   * nodes keep full auto-discovery (whitelist-at-root-only).
+   */
+  private readonly perspectiveRootRtIds = new Set<string>();
+
+  /**
+   * Selects the active perspective by key. The host is responsible for reloading
+   * the tree afterwards (e.g. `treeDetail.refreshTree()`), which re-runs
+   * `fetchRootNodes()` and re-resolves the perspective.
+   */
+  public setActivePerspective(key: string): void {
+    this.activePerspectiveKey = key || SPATIAL_PERSPECTIVE_KEY;
+  }
+
+  /** The currently selected perspective key. */
+  public getActivePerspectiveKey(): string {
+    return this.activePerspectiveKey;
+  }
+
+  /**
+   * Returns all selectable perspectives: the built-in spatial one first, then the
+   * per-tenant configured perspectives, de-duplicated by key (a configured
+   * `Spatial` overrides the built-in). With no configuration this is a single
+   * entry, so the host can hide the switcher.
+   */
+  public async getPerspectives(): Promise<PerspectiveDefinition[]> {
+    let configured: PerspectiveDefinition[] = [];
+    try {
+      configured = await this.treeNavConfig.perspectives();
+    } catch (error) {
+      console.error('Error loading perspectives', error);
+    }
+    const byKey = new Map<string, PerspectiveDefinition>();
+    byKey.set(BUILT_IN_SPATIAL_PERSPECTIVE.key, BUILT_IN_SPATIAL_PERSPECTIVE);
+    for (const p of configured) {
+      byKey.set(p.key, p);
+    }
+    return [...byKey.values()].sort(
+      (a, b) =>
+        (a.sortIndex ?? Number.MAX_SAFE_INTEGER) -
+          (b.sortIndex ?? Number.MAX_SAFE_INTEGER) ||
+        a.displayName.localeCompare(b.displayName),
+    );
+  }
+
+  /**
+   * The role-id whitelist of the active perspective (primary + secondary), or
+   * null when the perspective is not a `Type` perspective or declares no roles.
+   */
+  private activePerspectiveWhitelist(): Set<string> | null {
+    const p = this.activePerspective;
+    if (p.rootMode !== 'Type') {
+      return null;
+    }
+    const allowed = new Set<string>();
+    if (p.primaryRoleId) {
+      allowed.add(p.primaryRoleId);
+    }
+    for (const roleId of p.secondaryRoleIds ?? []) {
+      allowed.add(roleId);
+    }
+    return allowed.size > 0 ? allowed : null;
+  }
+
+  /**
+   * The set of role ids the given entity's direct children are restricted to,
+   * or null for full auto-discovery. Non-null only when the entity is a root of
+   * the active `Type` perspective (whitelist-at-root-only).
+   */
+  private rootWhitelistFor(rtId: string): Set<string> | null {
+    return this.perspectiveRootRtIds.has(rtId)
+      ? this.activePerspectiveWhitelist()
+      : null;
+  }
+
+  /**
+   * Resolves the active perspective from the configured list, falling back to a
+   * configured/built-in spatial one when the selected key is unknown.
+   */
+  private async resolveActivePerspective(): Promise<PerspectiveDefinition> {
+    const perspectives = await this.getPerspectives();
+    return (
+      perspectives.find((p) => p.key === this.activePerspectiveKey) ??
+      perspectives.find((p) => p.key === SPATIAL_PERSPECTIVE_KEY) ??
+      BUILT_IN_SPATIAL_PERSPECTIVE
+    );
+  }
+
   private isCkModelsRoot(
     item: BrowserItem,
   ): item is { isCkModelsRoot?: boolean; ckModelId?: string } {
@@ -199,25 +344,39 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     // runtime edges but are no longer declared on the type in the installed CK
     // model (orphan roles after model evolution). Each group carries its concrete
     // origin CK type (the ckId used to load its targets) and an exact count.
-    const roleGroups = await this.discoverEntityInboundRoleGroups(
+    const discoveredGroups = await this.discoverEntityInboundRoleGroups(
       rtEntity.rtId,
       rtEntity.ckTypeId,
     );
 
+    // AB#4263: when this entity is a root of the active `Type` perspective,
+    // restrict its direct children to the perspective's primary + secondary
+    // roles (whitelist-at-root-only). Deeper nodes are not in
+    // perspectiveRootRtIds, so they keep full auto-discovery.
+    const whitelist = this.rootWhitelistFor(rtEntity.rtId);
+    const primaryRoleId = whitelist ? this.activePerspective.primaryRoleId : undefined;
+    const roleGroups = whitelist
+      ? discoveredGroups.filter((g) => whitelist.has(g.roleId))
+      : discoveredGroups;
+
     // Apply the optional per-tenant TreeNavigationConfiguration overrides on top
     // of auto-discovery: hide (visible), relabel (displayName), reorder
     // (sortIndex), flatten vs group (grouped), icon. Defaults reproduce Phase 1:
-    // System/ParentChild flat, every other role grouped.
+    // System/ParentChild flat, every other role grouped. In a perspective root
+    // the perspective's primary role is flattened at the top instead.
     const annotated = await Promise.all(
       roleGroups.map(async (group) => {
         const override = await this.treeNavConfig.resolve(
           rtEntity.ckTypeId,
           group.roleId,
         );
+        const defaultGrouped = primaryRoleId
+          ? group.roleId !== primaryRoleId
+          : group.roleId !== PARENT_CHILD_ROLE_ID;
         return {
           group,
           visible: override?.visible !== false,
-          grouped: override?.grouped ?? group.roleId !== PARENT_CHILD_ROLE_ID,
+          grouped: override?.grouped ?? defaultGrouped,
           displayName: override?.displayName,
           sortIndex: override?.sortIndex,
           icon: override?.icon,
@@ -603,6 +762,25 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         ),
       );
 
+      // AB#4263: resolve the active perspective and reset the root-id set that
+      // scopes the whitelist to the direct children of these roots.
+      this.perspectiveRootRtIds.clear();
+      this.activePerspective = await this.resolveActivePerspective();
+
+      // `Type` perspective: roots are all instances of the configured CK type.
+      if (
+        this.activePerspective.rootMode === 'Type' &&
+        this.activePerspective.rootCkTypeId
+      ) {
+        result.push(
+          ...(await this.fetchTypePerspectiveRoots(
+            this.activePerspective.rootCkTypeId,
+          )),
+        );
+        return result;
+      }
+
+      // Spatial perspective (default): all Basic/Tree entities, exactly as before.
       // Check if Basic construction kit is available before trying to fetch Tree entities
       const isBasicCkAvailable =
         await this.checkBasicConstructionKitAvailable();
@@ -680,6 +858,67 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       return result;
     } catch (error) {
       console.error('Error fetching root nodes:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Loads all runtime instances of a CK type as the roots of a `Type`
+   * perspective (AB#4263), registering their rtIds so the whitelist applies to
+   * their direct children only. Expandability is schema-based (does the type
+   * declare an inbound role, restricted to the whitelist when set).
+   */
+  private async fetchTypePerspectiveRoots(
+    ckTypeId: string,
+  ): Promise<TreeItemDataTyped<BrowserItem>[]> {
+    try {
+      const response = await firstValueFrom(
+        this.apollo.query<{
+          runtime?: {
+            runtimeEntities?: {
+              items?: (RtEntityDto | null)[] | null;
+            } | null;
+          };
+        }>({
+          query: GET_ROOT_ENTITIES_BY_CK_TYPE,
+          variables: { ckTypeId, first: 2000 },
+          fetchPolicy: 'network-only',
+        }),
+      );
+      const items = (response.data?.runtime?.runtimeEntities?.items ?? []).filter(
+        (i): i is RtEntityDto => !!i && !!i.rtId && !!i.ckTypeId,
+      );
+
+      // Expandable when the root type declares at least one inbound role that
+      // survives the whitelist (avoids always-empty expand arrows).
+      const whitelist = this.activePerspectiveWhitelist();
+      const roles =
+        items.length > 0 ? await this.getInboundRoles(items[0].ckTypeId) : [];
+      const expandable = whitelist
+        ? roles.some((r) => whitelist.has(r.roleId))
+        : roles.length > 0;
+
+      const result: TreeItemDataTyped<BrowserItem>[] = [];
+      for (const item of items) {
+        this.perspectiveRootRtIds.add(item.rtId);
+        result.push(
+          new TreeItemDataTyped<BrowserItem>(
+            `${item.ckTypeId}@${item.rtId}`,
+            this.extractDisplayName(item),
+            this.extractTooltip(item),
+            item,
+            this.resolveIcon(item.ckTypeId),
+            expandable,
+          ),
+        );
+      }
+      return result;
+    } catch (error) {
+      console.error(
+        'Error fetching type-perspective roots for',
+        ckTypeId,
+        error,
+      );
       return [];
     }
   }

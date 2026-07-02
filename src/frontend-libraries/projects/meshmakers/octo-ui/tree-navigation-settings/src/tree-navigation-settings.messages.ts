@@ -34,6 +34,21 @@ export interface TreeNavigationSettingsMessages {
   exportError: string;
   importSuccess: string;
   importError: string;
+
+  // --- Perspectives editor (AB#4263) ---
+  perspectivesTitle: string;
+  perspectivesDescription: string;
+  columnKey: string;
+  columnPerspectiveName: string;
+  columnRootMode: string;
+  columnRootType: string;
+  columnPrimaryRole: string;
+  columnSecondaryRoles: string;
+  rootModeSpatial: string;
+  rootModeType: string;
+  secondaryRolesHint: string;
+  addPerspective: string;
+  perspectivesEmpty: string;
 }
 
 /** English defaults; hosts may override via the `messages` input. */
@@ -74,4 +89,18 @@ export const DEFAULT_TREE_NAVIGATION_SETTINGS_MESSAGES: TreeNavigationSettingsMe
     exportError: 'Failed to export the tree navigation configuration.',
     importSuccess: 'Import completed successfully.',
     importError: 'Failed to import the tree navigation configuration.',
+    perspectivesTitle: 'Tree perspectives',
+    perspectivesDescription:
+      'Switchable tree roots offered next to the built-in Spatial perspective. A Type perspective roots on all instances of a CK type and, at the root level, shows only its primary and secondary roles (deeper levels use auto-discovery).',
+    columnKey: 'Key',
+    columnPerspectiveName: 'Label',
+    columnRootMode: 'Root',
+    columnRootType: 'Root CK type',
+    columnPrimaryRole: 'Primary role',
+    columnSecondaryRoles: 'Secondary roles',
+    rootModeSpatial: 'Spatial',
+    rootModeType: 'Type',
+    secondaryRolesHint: 'comma-separated role ids',
+    addPerspective: 'Add perspective',
+    perspectivesEmpty: 'No extra perspectives — only the built-in Spatial view.',
   };

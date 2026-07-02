@@ -5,6 +5,7 @@ import {
   computed,
   inject,
   input,
+  signal,
   ViewChild,
   ChangeDetectionStrategy
 } from '@angular/core';
@@ -37,7 +38,9 @@ import {
   RuntimeBrowserDetailsComponent,
 } from './components/runtime-browser-details.component';
 import type { ExpressionValidatorFn } from './components/data-mapping/data-mapping-list.component';
+import { PerspectiveSwitcherComponent } from './components/perspective-switcher/perspective-switcher.component';
 import { RuntimeBrowserDataSource } from './data-sources/runtime-browser-data-source.service';
+import { PerspectiveDefinition } from './services/tree-navigation-config.service';
 import { RtEntityIdHelper } from './models/rt-entity-id';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
@@ -58,7 +61,11 @@ type BrowserItem =
 
 @Component({
   selector: 'mm-runtime-browser',
-  imports: [BaseTreeDetailComponent, RuntimeBrowserDetailsComponent],
+  imports: [
+    BaseTreeDetailComponent,
+    RuntimeBrowserDetailsComponent,
+    PerspectiveSwitcherComponent,
+  ],
   template: `
     <div class="runtime-browser-container kendo-theme-provider">
       <!-- LCARS Header -->
@@ -86,6 +93,12 @@ type BrowserItem =
       <!-- Main Content -->
       <div class="lcars-content-panel">
         <div class="panel-accent-top"></div>
+        <mm-perspective-switcher
+          [perspectives]="perspectives()"
+          [activeKey]="activePerspectiveKey()"
+          [label]="resolvedMessages().perspective ?? 'Perspective'"
+          (perspectiveChange)="onPerspectiveChange($event)"
+        ></mm-perspective-switcher>
         <mm-base-tree-detail
           #treeDetail
           [treeDataSource]="dataSource"
@@ -154,6 +167,28 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       ...this.messages(),
     }),
   );
+
+  /** Selectable tree perspectives (AB#4263); switcher hides itself when <= 1. */
+  protected readonly perspectives = signal<PerspectiveDefinition[]>([]);
+  protected readonly activePerspectiveKey = signal<string>(
+    this.dataSource.getActivePerspectiveKey(),
+  );
+
+  /** Switches the active perspective and reloads the tree from its new roots. */
+  protected async onPerspectiveChange(key: string): Promise<void> {
+    this.dataSource.setActivePerspective(key);
+    this.activePerspectiveKey.set(key);
+    await this.treeDetail?.refreshTree();
+  }
+
+  private async loadPerspectives(): Promise<void> {
+    try {
+      this.perspectives.set(await this.dataSource.getPerspectives());
+      this.activePerspectiveKey.set(this.dataSource.getActivePerspectiveKey());
+    } catch (error) {
+      console.error('Error loading perspectives', error);
+    }
+  }
 
   @ViewChild('treeDetail', { static: false })
   treeDetail!: BaseTreeDetailComponent<BrowserItem>;
@@ -241,6 +276,8 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    // Load the selectable perspectives for the switcher (AB#4263).
+    void this.loadPerspectives();
     // Restore tree state after the tree has been initialized
     this.waitForTreeComponent().then((isReady) => {
       if (isReady) {

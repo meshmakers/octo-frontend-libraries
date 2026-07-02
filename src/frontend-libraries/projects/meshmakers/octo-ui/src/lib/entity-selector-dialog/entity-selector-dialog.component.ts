@@ -1,11 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  ViewChild,
+  OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { TreeItemData } from '@meshmakers/shared-services';
 import { TreeComponent } from '@meshmakers/shared-ui';
 import { RtEntityDto } from '../graphQL/globalTypes';
 import { RuntimeBrowserDataSource } from '../runtime-browser/data-sources/runtime-browser-data-source.service';
+import { PerspectiveSwitcherComponent } from '../runtime-browser/components/perspective-switcher/perspective-switcher.component';
+import { PerspectiveDefinition } from '../runtime-browser/services/tree-navigation-config.service';
 import { EntitySelectorDialogData, EntitySelectorDialogResult } from './entity-selector-dialog.models';
 
 @Component({
@@ -15,13 +24,20 @@ import { EntitySelectorDialogData, EntitySelectorDialogResult } from './entity-s
     CommonModule,
     ButtonModule,
     TreeComponent,
+    PerspectiveSwitcherComponent,
   ],
   providers: [RuntimeBrowserDataSource],
   template: `
     <div class="entity-selector">
       <div class="entity-selector-body">
+        <mm-perspective-switcher
+          [perspectives]="perspectives()"
+          [activeKey]="activePerspectiveKey()"
+          (perspectiveChange)="onPerspectiveChange($event)"
+        ></mm-perspective-switcher>
         <div class="tree-section">
           <mm-tree-view
+            #tree
             [dataSource]="treeDataSource"
             (nodeSelected)="onNodeSelected($event)"
           ></mm-tree-view>
@@ -148,12 +164,39 @@ import { EntitySelectorDialogData, EntitySelectorDialogResult } from './entity-s
     }
   `],
 })
-export class EntitySelectorDialogComponent {
+export class EntitySelectorDialogComponent implements OnInit {
   private readonly windowRef = inject(WindowRef);
   readonly treeDataSource = inject(RuntimeBrowserDataSource);
 
+  @ViewChild('tree') private readonly tree?: TreeComponent;
+
+  /** Selectable tree perspectives (AB#4263); switcher hides itself when <= 1. */
+  protected readonly perspectives = signal<PerspectiveDefinition[]>([]);
+  protected readonly activePerspectiveKey = signal<string>(
+    this.treeDataSource.getActivePerspectiveKey(),
+  );
+
   data: EntitySelectorDialogData = {};
   selectedEntity: { rtId: string; ckTypeId: string; name?: string } | null = null;
+
+  async ngOnInit(): Promise<void> {
+    try {
+      this.perspectives.set(await this.treeDataSource.getPerspectives());
+      this.activePerspectiveKey.set(
+        this.treeDataSource.getActivePerspectiveKey(),
+      );
+    } catch (error) {
+      console.error('Error loading perspectives', error);
+    }
+  }
+
+  /** Switches the active perspective and reloads the picker tree. */
+  async onPerspectiveChange(key: string): Promise<void> {
+    this.treeDataSource.setActivePerspective(key);
+    this.activePerspectiveKey.set(key);
+    this.selectedEntity = null;
+    await this.tree?.refreshTree();
+  }
 
   onNodeSelected(node: TreeItemData): void {
     const item = node.item;

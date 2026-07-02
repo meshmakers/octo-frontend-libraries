@@ -145,5 +145,103 @@
         </table>
       </div>
     }
+
+    <header class="header perspectives-header">
+      <h2 class="title">{{ messages().perspectivesTitle }}</h2>
+      <p class="description">{{ messages().perspectivesDescription }}</p>
+    </header>
+
+    <div class="toolbar mm-toolbar-actions">
+      <button kendoButton [svgIcon]="plusIcon" (click)="addPerspective()">
+        {{ messages().addPerspective }}
+      </button>
+    </div>
+
+    @if (perspectiveRows.length === 0) {
+      <div class="empty">{{ messages().perspectivesEmpty }}</div>
+    } @else {
+      <div class="table-wrap">
+        <table class="rules">
+          <thead>
+            <tr>
+              <th>{{ messages().columnKey }}</th>
+              <th>{{ messages().columnPerspectiveName }}</th>
+              <th class="narrow">{{ messages().columnRootMode }}</th>
+              <th>{{ messages().columnRootType }}</th>
+              <th>{{ messages().columnPrimaryRole }}</th>
+              <th>{{ messages().columnSecondaryRoles }}</th>
+              <th class="narrow">{{ messages().columnSortIndex }}</th>
+              <th>{{ messages().columnIcon }}</th>
+              <th class="actions">{{ messages().columnActions }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of perspectiveRows.controls; track $index) {
+              <tr [formGroup]="row">
+                <td><input kendoTextBox formControlName="key" /></td>
+                <td><input kendoTextBox formControlName="displayName" /></td>
+                <td class="narrow">
+                  <kendo-dropdownlist
+                    [data]="rootModeOptions()"
+                    textField="text"
+                    valueField="value"
+                    [valuePrimitive]="true"
+                    formControlName="rootMode"
+                  ></kendo-dropdownlist>
+                </td>
+                <td>
+                  <kendo-combobox
+                    [data]="ckTypeSuggestions()"
+                    [allowCustom]="true"
+                    [filterable]="true"
+                    [valuePrimitive]="true"
+                    formControlName="rootCkTypeId"
+                    (open)="searchCkTypes('')"
+                    (filterChange)="searchCkTypes($event)"
+                  ></kendo-combobox>
+                </td>
+                <td>
+                  <kendo-combobox
+                    [data]="roleSuggestions()"
+                    textField="label"
+                    valueField="roleId"
+                    [allowCustom]="true"
+                    [filterable]="true"
+                    [valuePrimitive]="true"
+                    formControlName="primaryRoleId"
+                    (open)="loadRoleSuggestionsForType(row)"
+                  ></kendo-combobox>
+                </td>
+                <td>
+                  <input
+                    kendoTextBox
+                    formControlName="secondaryRoleIds"
+                    [placeholder]="messages().secondaryRolesHint"
+                  />
+                </td>
+                <td class="narrow">
+                  <kendo-numerictextbox
+                    formControlName="sortIndex"
+                    [decimals]="0"
+                    format="n0"
+                    [spinners]="false"
+                  ></kendo-numerictextbox>
+                </td>
+                <td><input kendoTextBox formControlName="icon" /></td>
+                <td class="actions">
+                  <button
+                    kendoButton
+                    fillMode="flat"
+                    [svgIcon]="removeIcon"
+                    [title]="messages().removeRule"
+                    (click)="removePerspective($index)"
+                  ></button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
   }
 </div>

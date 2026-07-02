@@ -206,6 +206,9 @@ export interface RuntimeBrowserMessages {
   mappingSelect?: string;
   /** Empty-state hint shown when no mappings exist. Default: "No data point mappings configured yet." */
   mappingNoneConfigured?: string;
+
+  /** Label before the tree perspective switcher (AB#4263). Default: "Perspective" */
+  perspective?: string;
 }
 
 /**
@@ -330,4 +333,5 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   mappingNotSet: '(not set)',
   mappingSelect: 'Select...',
   mappingNoneConfigured: 'No data point mappings configured yet.',
+  perspective: 'Perspective',
 };

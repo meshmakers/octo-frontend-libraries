@@ -356,8 +356,10 @@ describe('RuntimeBrowserDataSource', () => {
   };
 
   // No per-tenant overrides by default → pure auto-discovery (Phase 1 behavior).
+  // No configured perspectives → only the built-in spatial perspective (AB#4263).
   const mockTreeNavConfig = {
     resolve: jasmine.createSpy('resolve').and.resolveTo(undefined),
+    perspectives: jasmine.createSpy('perspectives').and.resolveTo([]),
   };
 
   beforeEach(async () => {
@@ -409,6 +411,8 @@ describe('RuntimeBrowserDataSource', () => {
     mockTypeHelperService.isRuntimeEntity.calls.reset();
     mockTreeNavConfig.resolve.calls.reset();
     mockTreeNavConfig.resolve.and.resolveTo(undefined);
+    mockTreeNavConfig.perspectives.calls.reset();
+    mockTreeNavConfig.perspectives.and.resolveTo([]);
 
     mockGetTreesGQL.fetch.and.returnValue(of(mockTreesResponse));
     mockGetCkTypeAssociationRolesGQL.fetch.and.callFake(rolesFetchFake);
@@ -502,6 +506,168 @@ describe('RuntimeBrowserDataSource', () => {
 
       const treeNode = nodes.find((n) => n.text === 'Main Tree');
       expect(treeNode?.expandable).toBeTrue();
+    });
+  });
+
+  describe('tree perspectives (AB#4263)', () => {
+    const systemsPerspective = {
+      key: 'Systems',
+      displayName: 'Systems',
+      sortIndex: 1,
+      rootMode: 'Type' as const,
+      rootCkTypeId: 'EnergyIQ/DistributionSystem',
+      primaryRoleId: 'EnergyIQ/SystemMembers',
+      secondaryRoleIds: ['EnergyIQ/SystemSpaces'],
+    };
+
+    // The root-entities-by-type inline query goes through Apollo; flush it while
+    // fetchRootNodes is still awaiting.
+    async function flushInline(
+      operationName: string,
+      response: { data: Record<string, unknown> },
+    ): Promise<void> {
+      for (let i = 0; i < 20; i++) {
+        const matches = controller.match(
+          (op) => op.operationName === operationName,
+        );
+        if (matches.length > 0) {
+          matches[0].flush(response);
+          return;
+        }
+        await Promise.resolve();
+      }
+      throw new Error(`inline operation not issued: ${operationName}`);
+    }
+
+    const oneDistributionSystem = {
+      data: {
+        runtime: {
+          runtimeEntities: {
+            items: [
+              {
+                rtId: 'ds-1',
+                ckTypeId: 'EnergyIQ/DistributionSystem',
+                rtWellKnownName: null,
+                attributes: {
+                  items: [{ attributeName: 'name', value: 'Heating circuit' }],
+                },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    it('getPerspectives prepends the built-in Spatial perspective and de-dupes by key', async () => {
+      mockTreeNavConfig.perspectives.and.resolveTo([systemsPerspective]);
+      const list = await service.getPerspectives();
+      expect(list[0].key).toBe('Spatial');
+      expect(list.map((p) => p.key)).toContain('Systems');
+      expect(list.filter((p) => p.key === 'Spatial').length).toBe(1);
+    });
+
+    it('roots a Type perspective on all instances of its CK type (no Basic/Tree fetch)', async () => {
+      mockTreeNavConfig.perspectives.and.resolveTo([systemsPerspective]);
+      mockGetCkTypeAssociationRolesGQL.fetch.and.callFake(() =>
+        of(
+          rolesResponse([
+            {
+              roleId: 'EnergyIQ/SystemMembers',
+              navigationPropertyName: 'SystemMembers',
+              targetCkTypeId: 'Basic/NamedEntity',
+            },
+          ]),
+        ),
+      );
+
+      service.setActivePerspective('Systems');
+      const rootsPromise = service.fetchRootNodes();
+      await flushInline('getRuntimeEntitiesByCkType', oneDistributionSystem);
+      const roots = await rootsPromise;
+
+      expect(mockGetTreesGQL.fetch).not.toHaveBeenCalled();
+      const ds = roots.find((n) => n.text === 'Heating circuit');
+      expect(ds).toBeTruthy();
+      expect(ds?.expandable).toBeTrue();
+    });
+
+    it('restricts a Type-perspective root to its primary + secondary roles (whitelist-at-root-only)', async () => {
+      mockTreeNavConfig.perspectives.and.resolveTo([systemsPerspective]);
+      mockGetCkTypeAssociationRolesGQL.fetch.and.callFake(() =>
+        of(
+          rolesResponse([
+            {
+              roleId: 'EnergyIQ/SystemMembers',
+              navigationPropertyName: 'SystemMembers',
+              targetCkTypeId: 'Basic/NamedEntity',
+            },
+            {
+              roleId: 'EnergyIQ/SystemSpaces',
+              navigationPropertyName: 'ServesSpaces',
+              targetCkTypeId: 'EnergyIQ/Space',
+            },
+          ]),
+        ),
+      );
+      // The root DistributionSystem has whitelisted edges plus a non-whitelisted
+      // 'Noise' role that must be filtered out at the root level.
+      mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.and.callFake(
+        (opts: { variables: { roleId?: string } }) =>
+          opts.variables.roleId
+            ? of(mockAssocResponse)
+            : of({
+                data: {
+                  runtime: {
+                    runtimeEntities: {
+                      items: [
+                        {
+                          associations: {
+                            definitions: {
+                              items: [
+                                {
+                                  ckAssociationRoleId: 'EnergyIQ/SystemMembers',
+                                  originCkTypeId: 'EnergyIQ/HeatPump',
+                                  originRtId: 'hp-1',
+                                },
+                                {
+                                  ckAssociationRoleId: 'EnergyIQ/SystemSpaces',
+                                  originCkTypeId: 'EnergyIQ/Space',
+                                  originRtId: 'sp-1',
+                                },
+                                {
+                                  ckAssociationRoleId: 'EnergyIQ/SystemSpaces',
+                                  originCkTypeId: 'EnergyIQ/Space',
+                                  originRtId: 'sp-2',
+                                },
+                                {
+                                  ckAssociationRoleId: 'EnergyIQ/Noise',
+                                  originCkTypeId: 'EnergyIQ/Thing',
+                                  originRtId: 'th-1',
+                                },
+                              ],
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              }),
+      );
+
+      service.setActivePerspective('Systems');
+      const rootsPromise = service.fetchRootNodes();
+      await flushInline('getRuntimeEntitiesByCkType', oneDistributionSystem);
+      const roots = await rootsPromise;
+      const dsRoot = roots.find((n) => n.text === 'Heating circuit')!;
+
+      const children = await service.fetchChildren(dsRoot);
+      const texts = children.map((c) => c.text);
+      // Secondary role → group node; non-whitelisted role dropped; primary role
+      // is flattened (not a group node).
+      expect(texts.some((t) => t.includes('ServesSpaces'))).toBeTrue();
+      expect(texts.some((t) => t.includes('Noise'))).toBeFalse();
+      expect(texts.some((t) => t.includes('SystemMembers'))).toBeFalse();
     });
   });
 

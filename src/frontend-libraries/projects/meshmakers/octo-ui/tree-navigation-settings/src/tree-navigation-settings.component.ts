@@ -16,6 +16,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
+  PerspectiveDefinition,
   TreeNavigationConfigService,
   TreeNavigationRoleConfig,
   TREE_NAVIGATION_CONFIG_CONSTANTS,
@@ -94,6 +95,12 @@ export class TreeNavigationSettingsComponent implements OnInit {
   private rtId: string | null = null;
 
   protected readonly rules = this.fb.array<FormGroup>([]);
+  protected readonly perspectiveRows = this.fb.array<FormGroup>([]);
+
+  protected readonly rootModeOptions = computed(() => [
+    { text: this.messages().rootModeSpatial, value: 'Spatial' },
+    { text: this.messages().rootModeType, value: 'Type' },
+  ]);
 
   // Shared suggestion pools — only one combobox dropdown is open at a time, so a
   // single signal per kind is enough (loaded on open / filter).
@@ -134,6 +141,10 @@ export class TreeNavigationSettingsComponent implements OnInit {
       for (const role of config.roles) {
         this.rules.push(this.createRow(role));
       }
+      this.perspectiveRows.clear();
+      for (const perspective of config.perspectives) {
+        this.perspectiveRows.push(this.createPerspectiveRow(perspective));
+      }
     } catch (error) {
       console.error(
         '[TreeNavigationSettingsComponent] Failed to load config',
@@ -155,16 +166,32 @@ export class TreeNavigationSettingsComponent implements OnInit {
     this.rules.markAsDirty();
   }
 
+  protected addPerspective(): void {
+    this.perspectiveRows.push(this.createPerspectiveRow());
+    this.perspectiveRows.markAsDirty();
+  }
+
+  protected removePerspective(index: number): void {
+    this.perspectiveRows.removeAt(index);
+    this.perspectiveRows.markAsDirty();
+  }
+
   protected async onSave(): Promise<void> {
-    if (this.rules.invalid) {
+    if (this.rules.invalid || this.perspectiveRows.invalid) {
       this.rules.markAllAsTouched();
+      this.perspectiveRows.markAllAsTouched();
       return;
     }
     this.saving.set(true);
     try {
-      this.rtId = await this.config.saveConfig(this.rtId, this.collectRoles());
+      this.rtId = await this.config.saveConfig(
+        this.rtId,
+        this.collectRoles(),
+        this.collectPerspectives(),
+      );
       this.messageService.showInformation(this.messages().saveSuccess);
       this.rules.markAsPristine();
+      this.perspectiveRows.markAsPristine();
     } catch (error) {
       console.error(
         '[TreeNavigationSettingsComponent] Failed to save config',
@@ -198,6 +225,12 @@ export class TreeNavigationSettingsComponent implements OnInit {
   /** Loads role suggestions for the source type of the opened row's combobox. */
   protected async loadRoleSuggestions(row: FormGroup): Promise<void> {
     const ckTypeId = (row.get('sourceCkTypeId')?.value as string) ?? '';
+    this.roleSuggestions.set(await this.config.getRoleSuggestions(ckTypeId));
+  }
+
+  /** Loads role suggestions for the root CK type of a perspective row. */
+  protected async loadRoleSuggestionsForType(row: FormGroup): Promise<void> {
+    const ckTypeId = (row.get('rootCkTypeId')?.value as string) ?? '';
     this.roleSuggestions.set(await this.config.getRoleSuggestions(ckTypeId));
   }
 
@@ -306,6 +339,53 @@ export class TreeNavigationSettingsComponent implements OnInit {
     return this.rules.controls
       .map((group) => this.toRoleConfig(group as FormGroup))
       .filter((r) => r.sourceCkTypeId && r.roleId);
+  }
+
+  private collectPerspectives(): PerspectiveDefinition[] {
+    return this.perspectiveRows.controls
+      .map((group) => this.toPerspectiveConfig(group as FormGroup))
+      .filter((p) => p.key);
+  }
+
+  private createPerspectiveRow(p?: PerspectiveDefinition): FormGroup {
+    return this.fb.group({
+      key: [p?.key ?? '', [Validators.required]],
+      displayName: [p?.displayName ?? ''],
+      rootMode: [p?.rootMode ?? 'Type'],
+      rootCkTypeId: [p?.rootCkTypeId ?? ''],
+      primaryRoleId: [p?.primaryRoleId ?? ''],
+      secondaryRoleIds: [(p?.secondaryRoleIds ?? []).join(', ')],
+      sortIndex: [p?.sortIndex ?? null],
+      icon: [p?.icon ?? ''],
+    });
+  }
+
+  private toPerspectiveConfig(group: FormGroup): PerspectiveDefinition {
+    const value = group.getRawValue() as {
+      key: string;
+      displayName: string;
+      rootMode: 'Spatial' | 'Type';
+      rootCkTypeId: string;
+      primaryRoleId: string;
+      secondaryRoleIds: string;
+      sortIndex: number | null;
+      icon: string;
+    };
+    const secondary = (value.secondaryRoleIds ?? '')
+      .split(/[\n,]/)
+      .map((r) => r.trim())
+      .filter((r) => r.length > 0);
+    const key = (value.key ?? '').trim();
+    return {
+      key,
+      displayName: value.displayName?.trim() || key,
+      rootMode: value.rootMode === 'Spatial' ? 'Spatial' : 'Type',
+      rootCkTypeId: value.rootCkTypeId?.trim() || undefined,
+      primaryRoleId: value.primaryRoleId?.trim() || undefined,
+      secondaryRoleIds: secondary.length > 0 ? secondary : undefined,
+      sortIndex: value.sortIndex ?? undefined,
+      icon: value.icon?.trim() || undefined,
+    };
   }
 
   private createRow(role?: TreeNavigationRoleConfig): FormGroup {
