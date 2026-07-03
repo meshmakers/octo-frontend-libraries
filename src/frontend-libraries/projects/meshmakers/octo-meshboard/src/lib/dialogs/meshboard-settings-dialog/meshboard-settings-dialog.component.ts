@@ -7,6 +7,7 @@ import { InputsModule, CheckBoxModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { FormFieldModule } from '@progress/kendo-angular-inputs';
 import { TabStripModule } from '@progress/kendo-angular-layout';
+import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { MeshBoardVariable, MeshBoardTimeFilterConfig, MeshBoardTimeZoneMode, DEFAULT_TIME_ZONE_MODE, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
 import { VariablesEditorComponent } from '../../components/variables-editor/variables-editor.component';
 import { EntitySelectorEditorComponent } from '../../components/entity-selector-editor/entity-selector-editor.component';
@@ -50,6 +51,7 @@ export class MeshBoardSettingsResult {
     LabelModule,
     FormFieldModule,
     TabStripModule,
+    DropDownListModule,
     VariablesEditorComponent,
     EntitySelectorEditorComponent,
     TimeRangePickerComponent
