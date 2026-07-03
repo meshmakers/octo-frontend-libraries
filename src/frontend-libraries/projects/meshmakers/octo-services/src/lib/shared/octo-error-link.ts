@@ -14,7 +14,7 @@ export class OctoErrorLink extends ApolloLink {
 
     // There is currently no other way to inject a service into an Apollo Link,
     // because Apollo deprecated without replacement
-    this.errorLink = onError(({error, operation, forward}) => {
+    this.errorLink = onError(({error}) => {
 
       if (error) {
 
@@ -25,7 +25,10 @@ export class OctoErrorLink extends ApolloLink {
         }
       }
 
-      return forward(operation);
+      // Display-only link: do NOT return forward(operation). Returning it re-runs the failed
+      // operation (re-submitting the mutation) and re-invokes this handler, so the same error
+      // toast appears twice — observed on the AB#4289 rollup-activation reject. Returning nothing
+      // lets the original error propagate to the caller's own error handling.
     });
   }
 
@@ -84,9 +87,13 @@ export class OctoErrorLink extends ApolloLink {
           }
         }
       }
-      messageService.showErrorWithDetails(title, details);
     }
 
+    // Show ONE toast after accumulating every error into title + details. Calling this inside the
+    // loop showed one toast per error in the array — and since `title` is only set by the first
+    // error, a multi-error response (e.g. a domain error + GraphQL's generic "Error trying to
+    // resolve field …" wrapper) surfaced the same title twice (the AB#4289 reject appeared doubled).
+    messageService.showErrorWithDetails(title, details);
   }
 
   override request(operation: ApolloLink.Operation, forward: ApolloLink.ForwardFunction) {
