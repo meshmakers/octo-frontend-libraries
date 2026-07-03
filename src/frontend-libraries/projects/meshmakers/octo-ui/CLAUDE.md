@@ -143,6 +143,15 @@ and backend-free (reuses the existing `targets` resolver).
   DistributionSystem root shows its `SystemMembers`; the served spaces appear one
   hop deeper under each member. N:N members legitimately appear under more than
   one system (MVP: no explicit "shared" badge).
+- **Navigation direction (`primaryDirection`):** the default auto-discovery is
+  INBOUND (the containment side). When the association is authored on the root
+  entity — e.g. `EnergyIQ/DistributionSystem --SystemMembers--> member` — the
+  members are reached OUTBOUND, so the perspective must set
+  `primaryDirection: Outbound`. At a perspective root, discovery
+  (`discoverEntityRoleGroups`), the flattened primary fetch and the group-node
+  direction all use `perspectiveNavDirection()`; outbound uses the edge
+  `targetCkTypeId` and the CK type's `out` roles (`getOutboundRoles`). The
+  direction applies to the whole root whitelist (primary + secondary).
 - **Switcher:** `PerspectiveSwitcherComponent` (`mm-perspective-switcher`, theme-
   neutral Kendo dropdown) is wired into **both** trees — `RuntimeBrowserComponent`
   and the `entity-selector-dialog` picker. Selecting a perspective calls

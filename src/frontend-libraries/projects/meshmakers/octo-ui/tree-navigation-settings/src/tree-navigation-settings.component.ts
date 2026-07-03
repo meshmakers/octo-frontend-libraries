@@ -102,6 +102,11 @@ export class TreeNavigationSettingsComponent implements OnInit {
     { text: this.messages().rootModeType, value: 'Type' },
   ]);
 
+  protected readonly directionOptions = computed(() => [
+    { text: this.messages().directionInbound, value: 'Inbound' },
+    { text: this.messages().directionOutbound, value: 'Outbound' },
+  ]);
+
   // Shared suggestion pools — only one combobox dropdown is open at a time, so a
   // single signal per kind is enough (loaded on open / filter).
   protected readonly ckTypeSuggestions = signal<string[]>([WILDCARD]);
@@ -354,6 +359,7 @@ export class TreeNavigationSettingsComponent implements OnInit {
       rootMode: [p?.rootMode ?? 'Type'],
       rootCkTypeId: [p?.rootCkTypeId ?? ''],
       primaryRoleId: [p?.primaryRoleId ?? ''],
+      primaryDirection: [p?.primaryDirection ?? 'Inbound'],
       secondaryRoleIds: [(p?.secondaryRoleIds ?? []).join(', ')],
       sortIndex: [p?.sortIndex ?? null],
       icon: [p?.icon ?? ''],
@@ -367,6 +373,7 @@ export class TreeNavigationSettingsComponent implements OnInit {
       rootMode: 'Spatial' | 'Type';
       rootCkTypeId: string;
       primaryRoleId: string;
+      primaryDirection: 'Inbound' | 'Outbound';
       secondaryRoleIds: string;
       sortIndex: number | null;
       icon: string;
@@ -382,6 +389,8 @@ export class TreeNavigationSettingsComponent implements OnInit {
       rootMode: value.rootMode === 'Spatial' ? 'Spatial' : 'Type',
       rootCkTypeId: value.rootCkTypeId?.trim() || undefined,
       primaryRoleId: value.primaryRoleId?.trim() || undefined,
+      primaryDirection:
+        value.primaryDirection === 'Outbound' ? 'Outbound' : undefined,
       secondaryRoleIds: secondary.length > 0 ? secondary : undefined,
       sortIndex: value.sortIndex ?? undefined,
       icon: value.icon?.trim() || undefined,

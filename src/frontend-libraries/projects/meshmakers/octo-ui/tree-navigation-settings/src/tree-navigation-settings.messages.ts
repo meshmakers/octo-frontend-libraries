@@ -43,9 +43,12 @@ export interface TreeNavigationSettingsMessages {
   columnRootMode: string;
   columnRootType: string;
   columnPrimaryRole: string;
+  columnPrimaryDirection: string;
   columnSecondaryRoles: string;
   rootModeSpatial: string;
   rootModeType: string;
+  directionInbound: string;
+  directionOutbound: string;
   secondaryRolesHint: string;
   addPerspective: string;
   perspectivesEmpty: string;
@@ -97,9 +100,12 @@ export const DEFAULT_TREE_NAVIGATION_SETTINGS_MESSAGES: TreeNavigationSettingsMe
     columnRootMode: 'Root',
     columnRootType: 'Root CK type',
     columnPrimaryRole: 'Primary role',
+    columnPrimaryDirection: 'Direction',
     columnSecondaryRoles: 'Secondary roles',
     rootModeSpatial: 'Spatial',
     rootModeType: 'Type',
+    directionInbound: 'Inbound',
+    directionOutbound: 'Outbound',
     secondaryRolesHint: 'comma-separated role ids',
     addPerspective: 'Add perspective',
     perspectivesEmpty: 'No extra perspectives — only the built-in Spatial view.',

@@ -219,6 +219,19 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   }
 
   /**
+   * The graph direction the active perspective navigates its root roles in
+   * (AB#4263). Defaults to Inbound (the containment side, as for auto-discovery);
+   * `primaryDirection: Outbound` is required when the association is authored on
+   * the root entity (e.g. DistributionSystem --SystemMembers--> members). Applied
+   * to the whole root whitelist (primary + secondary) for simplicity.
+   */
+  private perspectiveNavDirection(): GraphDirectionDto {
+    return this.activePerspective.primaryDirection === 'Outbound'
+      ? GraphDirectionDto.OutboundDto
+      : GraphDirectionDto.InboundDto;
+  }
+
+  /**
    * The role-id whitelist of the active perspective (primary + secondary), or
    * null when the perspective is not a `Type` perspective or declares no roles.
    */
@@ -292,6 +305,17 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     Promise<InboundAssociationRole[]>
   >();
 
+  /**
+   * Same as inboundRolesCache but for OUTBOUND roles (AB#4263). A `Type`
+   * perspective whose association is authored on the root entity (e.g.
+   * EnergyIQ/DistributionSystem --SystemMembers--> members) reaches its members
+   * on the outbound side, so perspective roots may navigate outbound.
+   */
+  private readonly outboundRolesCache = new Map<
+    string,
+    Promise<InboundAssociationRole[]>
+  >();
+
   // Define visual metadata for different entity types
   private static readonly ckTypeMetaData: CkTypeMetaData[] = [
     new CkTypeMetaData('Basic/Tree', 'Tree', 'Tree Structure', folderMoreIcon),
@@ -338,23 +362,29 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       return [];
     }
 
-    // Discover the inbound association roles from the entity's ACTUAL inbound
-    // edges (associations.definitions), not the CK type schema. This mirrors the
-    // entity detail "Associations" tab and also surfaces roles that exist as
-    // runtime edges but are no longer declared on the type in the installed CK
-    // model (orphan roles after model evolution). Each group carries its concrete
-    // origin CK type (the ckId used to load its targets) and an exact count.
-    const discoveredGroups = await this.discoverEntityInboundRoleGroups(
-      rtEntity.rtId,
-      rtEntity.ckTypeId,
-    );
-
     // AB#4263: when this entity is a root of the active `Type` perspective,
     // restrict its direct children to the perspective's primary + secondary
-    // roles (whitelist-at-root-only). Deeper nodes are not in
-    // perspectiveRootRtIds, so they keep full auto-discovery.
+    // roles (whitelist-at-root-only) and navigate in the perspective's direction.
+    // Deeper nodes are not in perspectiveRootRtIds, so they keep the default
+    // inbound auto-discovery.
     const whitelist = this.rootWhitelistFor(rtEntity.rtId);
     const primaryRoleId = whitelist ? this.activePerspective.primaryRoleId : undefined;
+    const navDirection = whitelist
+      ? this.perspectiveNavDirection()
+      : GraphDirectionDto.InboundDto;
+
+    // Discover the association roles from the entity's ACTUAL edges
+    // (associations.definitions) in navDirection, not the CK type schema. This
+    // mirrors the entity detail "Associations" tab and also surfaces roles that
+    // exist as runtime edges but are no longer declared on the type in the
+    // installed CK model (orphan roles after model evolution). Each group carries
+    // the CK type used as the ckId to load its targets and an exact count.
+    const discoveredGroups = await this.discoverEntityRoleGroups(
+      rtEntity.rtId,
+      rtEntity.ckTypeId,
+      navDirection,
+    );
+
     const roleGroups = whitelist
       ? discoveredGroups.filter((g) => whitelist.has(g.roleId))
       : discoveredGroups;
@@ -398,7 +428,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
             rtEntity.ckTypeId,
             a.group.roleId,
             a.group.targetCkTypeId,
-            GraphDirectionDto.InboundDto,
+            navDirection,
           ),
         ),
     );
@@ -419,7 +449,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         parentCkTypeId: rtEntity.ckTypeId,
         roleId: group.roleId,
         targetCkTypeId: group.targetCkTypeId,
-        direction: GraphDirectionDto.InboundDto,
+        direction: navDirection,
       };
       const label = `${a.displayName ?? group.navigationPropertyName} (${group.count})`;
       result.push(
@@ -438,20 +468,25 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   }
 
   /**
-   * Discovers the navigable inbound role groups of an entity from its ACTUAL
-   * inbound edges (associations.definitions), grouped by (roleId, origin CK
-   * type) with exact counts. Labels are enriched from the CK type schema
-   * (friendly inbound navigation property name) when the role is declared on the
-   * type, and otherwise derived from the role id (so orphan roles still get a
-   * readable label).
+   * Discovers the navigable role groups of an entity from its ACTUAL edges
+   * (associations.definitions) in the given direction, grouped by (roleId, other-
+   * end CK type) with exact counts. For INBOUND the other end is the edge origin,
+   * for OUTBOUND it is the edge target (AB#4263 — a perspective root may navigate
+   * outbound, e.g. DistributionSystem --SystemMembers--> members). Labels are
+   * enriched from the CK type schema (friendly navigation property name + base
+   * type) when the role is declared on the type, otherwise derived from the role
+   * id (so orphan roles still get a readable label).
    */
-  private async discoverEntityInboundRoleGroups(
+  private async discoverEntityRoleGroups(
     rtId: string,
     ckTypeId: string,
+    direction: GraphDirectionDto = GraphDirectionDto.InboundDto,
   ): Promise<EntityInboundRoleGroup[]> {
+    const outbound = direction === GraphDirectionDto.OutboundDto;
     let definitions: ({
       ckAssociationRoleId?: string | null;
       originCkTypeId?: string | null;
+      targetCkTypeId?: string | null;
     } | null)[] = [];
     try {
       const response = await firstValueFrom(
@@ -459,7 +494,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
           variables: {
             rtId,
             ckTypeId,
-            direction: GraphDirectionDto.InboundDto,
+            direction,
             first: 2000,
           },
           fetchPolicy: 'network-only',
@@ -470,34 +505,39 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
           ?.definitions?.items ?? [];
     } catch (error) {
       console.error(
-        'Error discovering inbound association edges',
-        { ckTypeId, rtId },
+        'Error discovering association edges',
+        { ckTypeId, rtId, direction },
         error,
       );
       return [];
     }
 
-    // Count edges per role and remember a representative concrete origin type
-    // (used as a fallback ckId for orphan roles not declared on the type).
+    // Count edges per role and remember a representative concrete other-end type
+    // (used as a fallback ckId for orphan roles not declared on the type). The
+    // "other end" is the origin for inbound, the target for outbound.
     const edgeCount = new Map<string, number>();
-    const edgeOrigin = new Map<string, string>();
+    const edgeOtherEnd = new Map<string, string>();
     for (const def of definitions) {
       const roleId = String(def?.ckAssociationRoleId ?? '');
-      const origin = String(def?.originCkTypeId ?? '');
-      if (!roleId || !origin || NON_NAVIGABLE_TARGET_CK_TYPES.has(origin)) {
+      const otherEnd = String(
+        (outbound ? def?.targetCkTypeId : def?.originCkTypeId) ?? '',
+      );
+      if (!roleId || !otherEnd || NON_NAVIGABLE_TARGET_CK_TYPES.has(otherEnd)) {
         continue;
       }
       edgeCount.set(roleId, (edgeCount.get(roleId) ?? 0) + 1);
-      if (!edgeOrigin.has(roleId)) {
-        edgeOrigin.set(roleId, origin);
+      if (!edgeOtherEnd.has(roleId)) {
+        edgeOtherEnd.set(roleId, otherEnd);
       }
     }
 
-    // Declared roles from the CK type schema give the friendly inbound name and,
-    // crucially, the origin BASE type — using it as the ckId aggregates all
-    // concrete subtypes into a single group (e.g. one "Sensoren (5)" instead of
-    // one group per concrete sensor type).
-    const schemaRoles = await this.getInboundRoles(ckTypeId);
+    // Declared roles from the CK type schema give the friendly navigation name
+    // and, crucially, the other-end BASE type — using it as the ckId aggregates
+    // all concrete subtypes into a single group (e.g. one "Sensoren (5)" instead
+    // of one group per concrete sensor type).
+    const schemaRoles = outbound
+      ? await this.getOutboundRoles(ckTypeId)
+      : await this.getInboundRoles(ckTypeId);
     const schemaByRole = new Map<
       string,
       { origin: string; nav: string }
@@ -514,13 +554,13 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     // One group per role actually present on the entity. Declared roles use the
     // schema base type as ckId; orphan roles (edge exists but role not declared
     // on the type in the installed model, e.g. EnergyIQ/StoreyElements) fall back
-    // to the concrete edge origin type and a derived label.
+    // to the concrete edge other-end type and a derived label.
     const groups: EntityInboundRoleGroup[] = [];
     for (const [roleId, count] of edgeCount) {
       const schema = schemaByRole.get(roleId);
       groups.push({
         roleId,
-        targetCkTypeId: schema?.origin ?? edgeOrigin.get(roleId) ?? '',
+        targetCkTypeId: schema?.origin ?? edgeOtherEnd.get(roleId) ?? '',
         navigationPropertyName: schema?.nav ?? this.deriveRoleLabel(roleId),
         count,
       });
@@ -623,6 +663,59 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         return [];
       });
     this.inboundRolesCache.set(ckTypeId, promise);
+    return promise;
+  }
+
+  /**
+   * Returns the OUTBOUND association roles of a CK type (AB#4263), discovered
+   * from the CK schema and cached per type id. Mirrors getInboundRoles but reads
+   * the `out` roles: for an OUTBOUND role this entity is the association's ORIGIN
+   * side, so the related entities to navigate to are on the TARGET side —
+   * targets(direction: OUTBOUND, ckId: rtTargetCkTypeId).
+   */
+  private getOutboundRoles(
+    ckTypeId: string,
+  ): Promise<InboundAssociationRole[]> {
+    const cached = this.outboundRolesCache.get(ckTypeId);
+    if (cached) {
+      return cached;
+    }
+    const promise = firstValueFrom(
+      this.getCkTypeAssociationRolesDtoGQL.fetch({ variables: { ckTypeId } }),
+    )
+      .then((response) => {
+        const all =
+          response.data?.constructionKit?.types?.items?.[0]?.associations?.out
+            ?.all ?? [];
+        const roles: InboundAssociationRole[] = [];
+        for (const role of all) {
+          if (!role) {
+            continue;
+          }
+          // Runtime target type from the backend (never the versioned fullName).
+          const targetCkTypeId = String(role.rtTargetCkTypeId ?? '');
+          if (!targetCkTypeId || NON_NAVIGABLE_TARGET_CK_TYPES.has(targetCkTypeId)) {
+            continue;
+          }
+          roles.push({
+            roleId: String(role.rtRoleId ?? ''),
+            navigationPropertyName: role.navigationPropertyName,
+            targetCkTypeId,
+            multiplicity: role.multiplicity,
+          });
+        }
+        return roles;
+      })
+      .catch((error) => {
+        console.error(
+          'Error fetching outbound association roles for type',
+          ckTypeId,
+          error,
+        );
+        this.outboundRolesCache.delete(ckTypeId);
+        return [];
+      });
+    this.outboundRolesCache.set(ckTypeId, promise);
     return promise;
   }
 
@@ -866,7 +959,8 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
    * Loads all runtime instances of a CK type as the roots of a `Type`
    * perspective (AB#4263), registering their rtIds so the whitelist applies to
    * their direct children only. Expandability is schema-based (does the type
-   * declare an inbound role, restricted to the whitelist when set).
+   * declare a role in the perspective's navigation direction, restricted to the
+   * whitelist when set).
    */
   private async fetchTypePerspectiveRoots(
     ckTypeId: string,
@@ -889,11 +983,16 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         (i): i is RtEntityDto => !!i && !!i.rtId && !!i.ckTypeId,
       );
 
-      // Expandable when the root type declares at least one inbound role that
-      // survives the whitelist (avoids always-empty expand arrows).
+      // Expandable when the root type declares at least one role (in the
+      // perspective's navigation direction) that survives the whitelist — avoids
+      // always-empty expand arrows.
       const whitelist = this.activePerspectiveWhitelist();
       const roles =
-        items.length > 0 ? await this.getInboundRoles(items[0].ckTypeId) : [];
+        items.length > 0
+          ? this.perspectiveNavDirection() === GraphDirectionDto.OutboundDto
+            ? await this.getOutboundRoles(items[0].ckTypeId)
+            : await this.getInboundRoles(items[0].ckTypeId)
+          : [];
       const expandable = whitelist
         ? roles.some((r) => whitelist.has(r.roleId))
         : roles.length > 0;

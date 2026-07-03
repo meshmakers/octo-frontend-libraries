@@ -669,6 +669,117 @@ describe('RuntimeBrowserDataSource', () => {
       expect(texts.some((t) => t.includes('Noise'))).toBeFalse();
       expect(texts.some((t) => t.includes('SystemMembers'))).toBeFalse();
     });
+
+    it('navigates a perspective root OUTBOUND when primaryDirection is Outbound', async () => {
+      // Canonical EnergyIQ case: the SystemMembers association is authored on the
+      // DistributionSystem (System --SystemMembers--> member), so members are
+      // reached outbound. Discovery + schema roles must use the outbound side.
+      mockTreeNavConfig.perspectives.and.resolveTo([
+        { ...systemsPerspective, secondaryRoleIds: undefined, primaryDirection: 'Outbound' },
+      ]);
+
+      // Schema: SystemMembers is an OUTBOUND role of DistributionSystem → members
+      // are NamedEntity (used as the ckId for the flattened target fetch).
+      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(
+        of({
+          data: {
+            constructionKit: {
+              types: {
+                items: [
+                  {
+                    rtCkTypeId: 'rt',
+                    associations: {
+                      in: { all: [] },
+                      out: {
+                        all: [
+                          {
+                            roleId: {
+                              fullName: 'EnergyIQ/SystemMembers',
+                              semanticVersionedFullName: 'EnergyIQ/SystemMembers:1.0.0',
+                            },
+                            rtRoleId: 'EnergyIQ/SystemMembers',
+                            navigationPropertyName: 'SystemMembers',
+                            multiplicity: 'N',
+                            targetCkTypeId: { fullName: 'Basic/NamedEntity' },
+                            rtOriginCkTypeId: 'Self/Type',
+                            rtTargetCkTypeId: 'Basic/NamedEntity',
+                          },
+                        ],
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+
+      // Discovery (no roleId) in OUTBOUND direction: the root's outbound edges
+      // point to the members via targetCkTypeId.
+      mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.and.callFake(
+        (opts: { variables: { roleId?: string } }) =>
+          opts.variables.roleId
+            ? of(mockAssocResponse)
+            : of({
+                data: {
+                  runtime: {
+                    runtimeEntities: {
+                      items: [
+                        {
+                          associations: {
+                            definitions: {
+                              items: [
+                                {
+                                  ckAssociationRoleId: 'EnergyIQ/SystemMembers',
+                                  targetCkTypeId: 'EnergyIQ/HeatPump',
+                                  targetRtId: 'hp-1',
+                                },
+                              ],
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              }),
+      );
+
+      // Flattened primary members loaded via getTreeAssociationTargets.
+      mockGetTreeAssociationTargetsGQL.fetch.and.returnValue(
+        of(
+          targetsResponse(
+            [{ rtId: 'hp-1', ckTypeId: 'EnergyIQ/HeatPump', name: 'Heat pump' }],
+            1,
+          ),
+        ),
+      );
+
+      service.setActivePerspective('Systems');
+      const rootsPromise = service.fetchRootNodes();
+      await flushInline('getRuntimeEntitiesByCkType', oneDistributionSystem);
+      const roots = await rootsPromise;
+      const dsRoot = roots.find((n) => n.text === 'Heating circuit')!;
+      expect(dsRoot.expandable).toBeTrue();
+
+      const children = await service.fetchChildren(dsRoot);
+      // Member flattened directly under the system → outbound navigation reached it.
+      expect(children.map((c) => c.text)).toContain('Heat pump');
+
+      // Discovery was issued OUTBOUND, and the flattened target fetch too.
+      const discoveryDirections = mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.calls
+        .all()
+        .map((c) => c.args[0] as { variables: { roleId?: string; direction?: string } })
+        .filter((a) => !a.variables.roleId)
+        .map((a) => a.variables.direction);
+      expect(discoveryDirections).toContain(GraphDirectionDto.OutboundDto);
+      expect(
+        (mockGetTreeAssociationTargetsGQL.fetch.calls.mostRecent().args[0] as {
+          variables: { direction: string };
+        }).variables.direction,
+      ).toBe(GraphDirectionDto.OutboundDto);
+    });
   });
 
   describe('fetchChildren', () => {

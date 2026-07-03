@@ -169,6 +169,7 @@
               <th class="narrow">{{ messages().columnRootMode }}</th>
               <th>{{ messages().columnRootType }}</th>
               <th>{{ messages().columnPrimaryRole }}</th>
+              <th class="narrow">{{ messages().columnPrimaryDirection }}</th>
               <th>{{ messages().columnSecondaryRoles }}</th>
               <th class="narrow">{{ messages().columnSortIndex }}</th>
               <th>{{ messages().columnIcon }}</th>
@@ -211,6 +212,15 @@
                     formControlName="primaryRoleId"
                     (open)="loadRoleSuggestionsForType(row)"
                   ></kendo-combobox>
+                </td>
+                <td class="narrow">
+                  <kendo-dropdownlist
+                    [data]="directionOptions()"
+                    textField="text"
+                    valueField="value"
+                    [valuePrimitive]="true"
+                    formControlName="primaryDirection"
+                  ></kendo-dropdownlist>
                 </td>
                 <td>
                   <input
