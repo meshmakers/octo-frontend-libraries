@@ -40,11 +40,18 @@ export type Quarter = 1 | 2 | 3 | 4;
  *   local timezone — e.g. year 2026 = `[Jan 1 00:00 local, Jan 1 next-year 00:00 local)`.
  * - `'utc'`: boundaries are wall-clock instants in UTC — e.g. year 2026 =
  *   `[2026-01-01T00:00:00Z, 2027-01-01T00:00:00Z)`.
+ * - any **IANA time-zone id** (e.g. `'Europe/Vienna'`, `'Europe/Lisbon'`): boundaries
+ *   are wall-clock instants in that zone, resolved DST-correctly regardless of the
+ *   browser's own zone — so "yesterday in `Europe/Lisbon`" is right even from a Vienna
+ *   browser (AB#4190). A local calendar day across a DST transition is 23 h or 25 h.
  *
  * Relative ranges (last N hours/days) are timezone-independent (a fixed offset
  * from "now") and ignore this setting.
+ *
+ * The `(string & {})` member keeps the `'local'` / `'utc'` literals in editor
+ * autocomplete while still accepting an arbitrary IANA id.
  */
-export type TimeRangeZone = 'local' | 'utc';
+export type TimeRangeZone = 'local' | 'utc' | (string & {});
 
 /**
  * Configuration for the time range picker
@@ -166,20 +173,116 @@ export const DEFAULT_TIME_RANGE_LABELS: TimeRangePickerLabels = {
  */
 export class TimeRangeUtils {
   /**
+   * Offset (wall-clock − UTC), in milliseconds, of an IANA `zone` at the instant `utcMs`.
+   * Computed via `Intl.DateTimeFormat` so it is DST-correct and independent of the browser's
+   * own zone. Positive east of UTC (e.g. +7 200 000 for `Europe/Vienna` in summer).
+   */
+  private static zoneOffsetMs(utcMs: number, zone: string): number {
+    const dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone: zone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23'
+    });
+    const parts: Record<string, string> = {};
+    for (const part of dtf.formatToParts(new Date(utcMs))) {
+      parts[part.type] = part.value;
+    }
+    const asUtc = Date.UTC(
+      Number(parts['year']),
+      Number(parts['month']) - 1,
+      Number(parts['day']),
+      Number(parts['hour']),
+      Number(parts['minute']),
+      Number(parts['second'])
+    );
+    return asUtc - utcMs;
+  }
+
+  /**
+   * The UTC instant whose wall-clock time in IANA `zone` equals the given civil fields.
+   * Two-pass so DST transitions resolve correctly (the offset is re-read at the candidate
+   * instant, not just at the naive UTC guess). Field overflow normalizes like `Date.UTC`
+   * (e.g. month 12 ⇒ next January, day 32 ⇒ next month).
+   */
+  private static zonedCivilToUtc(
+    year: number,
+    month: number,
+    day: number,
+    hour = 0,
+    minute = 0,
+    second = 0,
+    ms = 0,
+    zone: string
+  ): Date {
+    const guessUtc = Date.UTC(year, month, day, hour, minute, second, ms);
+    const offset1 = this.zoneOffsetMs(guessUtc, zone);
+    const candidate = guessUtc - offset1;
+    const offset2 = this.zoneOffsetMs(candidate, zone);
+    return new Date(offset1 === offset2 ? candidate : guessUtc - offset2);
+  }
+
+  /**
+   * Build a calendar-boundary instant for the given civil fields in `zone`.
+   * `'utc'` and `'local'` keep the historical `Date.UTC` / browser-local-constructor
+   * behaviour byte-for-byte; any other value is treated as an IANA id (AB#4190).
+   */
+  private static boundary(
+    zone: TimeRangeZone,
+    year: number,
+    month: number,
+    day: number,
+    hour = 0,
+    minute = 0,
+    second = 0,
+    ms = 0
+  ): Date {
+    if (zone === 'utc') {
+      return new Date(Date.UTC(year, month, day, hour, minute, second, ms));
+    }
+    if (zone === 'local') {
+      return new Date(year, month, day, hour, minute, second, ms);
+    }
+    return this.zonedCivilToUtc(year, month, day, hour, minute, second, ms, zone);
+  }
+
+  /**
+   * Extract the calendar year/month/day of `date` as seen in `zone`. Used to normalize
+   * custom ranges to that zone's civil-day boundaries.
+   */
+  private static civilDateParts(date: Date, zone: TimeRangeZone): { year: number; month: number; day: number } {
+    if (zone === 'utc') {
+      return { year: date.getUTCFullYear(), month: date.getUTCMonth(), day: date.getUTCDate() };
+    }
+    if (zone === 'local') {
+      return { year: date.getFullYear(), month: date.getMonth(), day: date.getDate() };
+    }
+    const dtf = new Intl.DateTimeFormat('en-US', {
+      timeZone: zone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const parts: Record<string, string> = {};
+    for (const part of dtf.formatToParts(date)) {
+      parts[part.type] = part.value;
+    }
+    return { year: Number(parts['year']), month: Number(parts['month']) - 1, day: Number(parts['day']) };
+  }
+
+  /**
    * Calculate time range for a specific year.
    * Uses exclusive end boundary (start of next year) for correct LESS_THAN filtering.
    * @param zone Timezone basis for the boundaries (defaults to `'local'`).
    */
   static getYearRange(year: number, zone: TimeRangeZone = 'local'): TimeRange {
-    if (zone === 'utc') {
-      return {
-        from: new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)),
-        to: new Date(Date.UTC(year + 1, 0, 1, 0, 0, 0, 0))
-      };
-    }
     return {
-      from: new Date(year, 0, 1, 0, 0, 0, 0),
-      to: new Date(year + 1, 0, 1, 0, 0, 0, 0)
+      from: this.boundary(zone, year, 0, 1),
+      to: this.boundary(zone, year + 1, 0, 1)
     };
   }
 
@@ -190,15 +293,9 @@ export class TimeRangeUtils {
    */
   static getQuarterRange(year: number, quarter: Quarter, zone: TimeRangeZone = 'local'): TimeRange {
     const startMonth = (quarter - 1) * 3;
-    if (zone === 'utc') {
-      return {
-        from: new Date(Date.UTC(year, startMonth, 1, 0, 0, 0, 0)),
-        to: new Date(Date.UTC(year, startMonth + 3, 1, 0, 0, 0, 0))
-      };
-    }
     return {
-      from: new Date(year, startMonth, 1, 0, 0, 0, 0),
-      to: new Date(year, startMonth + 3, 1, 0, 0, 0, 0)
+      from: this.boundary(zone, year, startMonth, 1),
+      to: this.boundary(zone, year, startMonth + 3, 1)
     };
   }
 
@@ -208,15 +305,9 @@ export class TimeRangeUtils {
    * @param zone Timezone basis for the boundaries (defaults to `'local'`).
    */
   static getMonthRange(year: number, month: number, zone: TimeRangeZone = 'local'): TimeRange {
-    if (zone === 'utc') {
-      return {
-        from: new Date(Date.UTC(year, month, 1, 0, 0, 0, 0)),
-        to: new Date(Date.UTC(year, month + 1, 1, 0, 0, 0, 0))
-      };
-    }
     return {
-      from: new Date(year, month, 1, 0, 0, 0, 0),
-      to: new Date(year, month + 1, 1, 0, 0, 0, 0)
+      from: this.boundary(zone, year, month, 1),
+      to: this.boundary(zone, year, month + 1, 1)
     };
   }
 
@@ -238,19 +329,11 @@ export class TimeRangeUtils {
   ): TimeRange {
     const fromHour = hourFrom ?? 0;
     const toHour = hourTo ?? 24;
-    if (zone === 'utc') {
-      return {
-        from: new Date(Date.UTC(year, month, day, fromHour, 0, 0, 0)),
-        to: toHour === 24
-          ? new Date(Date.UTC(year, month, day + 1, 0, 0, 0, 0))
-          : new Date(Date.UTC(year, month, day, toHour, 0, 0, 0))
-      };
-    }
     return {
-      from: new Date(year, month, day, fromHour, 0, 0, 0),
+      from: this.boundary(zone, year, month, day, fromHour),
       to: toHour === 24
-        ? new Date(year, month, day + 1, 0, 0, 0, 0)
-        : new Date(year, month, day, toHour, 0, 0, 0)
+        ? this.boundary(zone, year, month, day + 1)
+        : this.boundary(zone, year, month, day, toHour)
     };
   }
 
@@ -327,19 +410,13 @@ export class TimeRangeUtils {
               to: selection.customTo
             };
           }
-          // Normalize to full-day boundaries (exclusive end, like year/quarter/month)
-          const from = new Date(selection.customFrom);
-          const to = new Date(selection.customTo);
-          if (zone === 'utc') {
-            from.setUTCHours(0, 0, 0, 0);
-            to.setUTCHours(0, 0, 0, 0);
-            to.setUTCDate(to.getUTCDate() + 1);
-          } else {
-            from.setHours(0, 0, 0, 0);
-            to.setHours(0, 0, 0, 0);
-            to.setDate(to.getDate() + 1);
-          }
-          return { from, to };
+          // Normalize to full-day boundaries in `zone` (exclusive end, like year/quarter/month)
+          const fromParts = this.civilDateParts(selection.customFrom, zone);
+          const toParts = this.civilDateParts(selection.customTo, zone);
+          return {
+            from: this.boundary(zone, fromParts.year, fromParts.month, fromParts.day),
+            to: this.boundary(zone, toParts.year, toParts.month, toParts.day + 1)
+          };
         }
         break;
     }
