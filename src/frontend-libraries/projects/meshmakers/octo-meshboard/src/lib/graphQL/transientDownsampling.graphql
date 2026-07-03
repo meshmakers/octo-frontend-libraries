@@ -1,0 +1,45 @@
+# Ad-hoc (transient) downsampling query against an explicit archive (AB#4290 / AB#4233).
+# Resolution-aware widgets first call resolveSeriesQuery to pick the archive/rollup, then
+# run this against the returned archiveRtId with limit = points and the resolver's
+# reducing function. The downsampling reduces to `limit` buckets per query; it groups by
+# bin (not by source rtId), so callers that need per-series lines scope `rtIds` to one
+# source entity per call.
+query transientDownsampling(
+  $archiveRtId: OctoObjectId!
+  $from: DateTime!
+  $to: DateTime!
+  $limit: Int!
+  $columnPaths: [StreamDataQueryColumnInput!]!
+  $rtIds: [OctoObjectId]
+  $fieldFilter: [FieldFilter]
+) {
+  streamData {
+    transientStreamDataQuery {
+      downsampling(
+        archiveRtId: $archiveRtId
+        from: $from
+        to: $to
+        limit: $limit
+        columnPaths: $columnPaths
+        rtIds: $rtIds
+        fieldFilter: $fieldFilter
+      ) {
+        items {
+          rows {
+            totalCount
+            items {
+              rtId
+              timestamp
+              cells {
+                items {
+                  attributePath
+                  value
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

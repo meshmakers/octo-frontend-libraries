@@ -1,0 +1,15 @@
+# Metadata-only lookup of a persisted stream-data query's base archive (AB#4290).
+# Selects the query descriptor WITHOUT the `rows` sub-connection, so the query is
+# not executed — only its stored ArchiveRtId is returned. Used by resolution-aware
+# widgets to derive the base archive of the series' resolution family.
+query getStreamDataQueryArchive($rtId: OctoObjectId!) {
+  streamData {
+    streamDataQuery(rtId: $rtId) {
+      items {
+        queryRtId
+        associatedCkTypeId
+        archiveRtId
+      }
+    }
+  }
+}

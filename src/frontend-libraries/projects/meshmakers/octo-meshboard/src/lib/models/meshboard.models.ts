@@ -102,8 +102,9 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
    * Resolution-aware routing (AB#4290): when `true`, a stream-data chart resolves the
    * best archive/rollup for the visible time window + target point count via
    * `QueryExecutorService.resolveSeriesQuery` before querying, instead of always hitting
-   * the persisted archive. Requires `sourcePath` + the series' aggregation to be known.
-   * Ignored for runtime queries. Default (absent/`false`) keeps the direct query.
+   * the persisted archive. The chart's value field doubles as the series' source path, and
+   * `requiredAggregation` supplies the reducer. Ignored for runtime queries. Default
+   * (absent/`false`) keeps the direct query.
    */
   resolutionAware?: boolean;
   /**
@@ -111,7 +112,20 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
    * query to narrow the series (e.g. `1.8.0` active-energy import). Stream-data only.
    */
   obisFilter?: string;
+  /**
+   * Resolution-aware routing (AB#4290): the aggregation the series must be reduced with
+   * (`SUM` for additive energy, `MAX` for demand, …). Required when `resolutionAware` is on —
+   * the resolver never guesses it. Matched against a rollup's stored aggregation function; it is
+   * also the reducer applied by the downsampling query. Stream-data only.
+   */
+  requiredAggregation?: SeriesAggregationFunction;
 }
+
+/**
+ * The canonical aggregation functions a resolution-aware series can be reduced with
+ * (AB#4290). Values match the backend `CkRollupFunction` / `AggregationType` GraphQL enums.
+ */
+export type SeriesAggregationFunction = 'AVG' | 'MIN' | 'MAX' | 'SUM' | 'COUNT';
 
 /**
  * Aggregation types supported
@@ -588,6 +602,11 @@ export interface LineChartWidgetConfig extends WidgetConfig {
   legendPosition?: 'top' | 'bottom' | 'left' | 'right';
   /** Show data point markers on lines */
   showMarkers?: boolean;
+  /**
+   * Show the top-right data-count badge (`rows · pts`). Default `true`. When `false` the badge is
+   * hidden — except when a resolution-aware warning is present, which always shows.
+   */
+  showDataBadge?: boolean;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
   /** Title for the value axis (e.g. 'kW') */

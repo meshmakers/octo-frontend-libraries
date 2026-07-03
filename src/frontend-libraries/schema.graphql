@@ -29362,6 +29362,8 @@ type StreamDataQuery {
     "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
     first: Int
   ): QueryAggregationResultConnection
+  "The rtId of the archive this persisted query reads from. For a resolution-aware series query (AB#4290) this is the base archive of the series' resolution family, so a caller can resolve the best rollup/archive without a separate lookup."
+  archiveRtId: OctoObjectId!
   associatedCkTypeId: RtCkTypeId!
   columns: [RtQueryColumn!]!
   queryRtId: OctoObjectId!

@@ -130,6 +130,15 @@ function buildDataSourceFromPersisted(data: PersistedWidgetData, config: Record<
     if (typeof config['entitySelectorId'] === 'string' && config['entitySelectorId']) {
       persisted.entitySelectorId = config['entitySelectorId'];
     }
+    // Resolution-aware routing (AB#4290).
+    if (config['resolutionAware'] === true) {
+      persisted.resolutionAware = true;
+    }
+    const persistedAggregation = config['requiredAggregation'];
+    if (persistedAggregation === 'AVG' || persistedAggregation === 'MIN' || persistedAggregation === 'MAX'
+        || persistedAggregation === 'SUM' || persistedAggregation === 'COUNT') {
+      persisted.requiredAggregation = persistedAggregation;
+    }
     return persisted;
   }
 
@@ -1250,6 +1259,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
         initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
+        initialResolutionAware: isPersistentQuery ? (dataSource as PersistentQueryDataSource).resolutionAware : undefined,
+        initialRequiredAggregation: isPersistentQuery ? (dataSource as PersistentQueryDataSource).requiredAggregation : undefined,
         initialChartType: lineWidget.chartType,
         initialCategoryField: lineWidget.categoryField,
         initialSeriesGroupField: lineWidget.seriesGroupField,
@@ -1258,6 +1269,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowLegend: lineWidget.showLegend,
         initialLegendPosition: lineWidget.legendPosition,
         initialShowMarkers: lineWidget.showMarkers,
+        initialShowDataBadge: lineWidget.showDataBadge,
         initialReferenceLines: lineWidget.referenceLines,
         initialFilters: lineWidget.filters
       };
@@ -1269,7 +1281,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         queryName: result.queryName,
         queryFamily: result.queryFamily,
         ignoreTimeFilter: result.ignoreTimeFilter,
-        entitySelectorId: result.entitySelectorId
+        entitySelectorId: result.entitySelectorId,
+        resolutionAware: result.resolutionAware,
+        requiredAggregation: result.requiredAggregation
       };
 
       const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
@@ -1289,6 +1303,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: result.showLegend,
         legendPosition: result.legendPosition,
         showMarkers: result.showMarkers,
+        showDataBadge: result.showDataBadge,
         referenceLines: result.referenceLines,
         filters
       } as LineChartWidgetConfig;
@@ -1321,6 +1336,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: widget.showLegend,
         legendPosition: widget.legendPosition,
         showMarkers: widget.showMarkers,
+        showDataBadge: widget.showDataBadge,
         referenceLines: widget.referenceLines,
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
@@ -1332,6 +1348,12 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         }),
         ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
           entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
+        }),
+        ...((widget.dataSource as PersistentQueryDataSource).resolutionAware && {
+          resolutionAware: true
+        }),
+        ...((widget.dataSource as PersistentQueryDataSource).requiredAggregation && {
+          requiredAggregation: (widget.dataSource as PersistentQueryDataSource).requiredAggregation
         }),
         filters: widget.filters
       }
@@ -1354,6 +1376,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLegend: (config['showLegend'] as boolean) ?? true,
         legendPosition: (config['legendPosition'] as LineChartWidgetConfig['legendPosition']) ?? 'right',
         showMarkers: (config['showMarkers'] as boolean) ?? false,
+        showDataBadge: (config['showDataBadge'] as boolean | undefined) ?? true,
         referenceLines: config['referenceLines'] as LineChartWidgetConfig['referenceLines'],
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };

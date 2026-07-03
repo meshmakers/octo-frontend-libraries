@@ -4,16 +4,25 @@ import { LineChartWidgetConfig, PersistentQueryDataSource, WidgetFilterConfig } 
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
-import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
+import { QueryExecutorService, QueryResultRow, SeriesResolutionResult, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
-import { FieldFilterDto, QueryModeDto } from '@meshmakers/octo-services';
+import { CkRollupFunctionDto, FieldFilterDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 import { formatInstant } from '../../utils/meshboard-datetime';
 
 /** Series colours so a series' min/max band and its avg line share one hue. */
 const SERIES_PALETTE = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+/**
+ * Resolution-aware routing (AB#4290): only surface the "resolution limited" warning when the line
+ * would be *visibly* steppy — i.e. each delivered point spans at least this many pixels of chart
+ * width. Falling short of the pixel-ideal target is not itself a problem: 240 points on a 1300px
+ * chart (~5.4 px/point) reads perfectly smooth. Only a genuinely coarse rung (few points spread
+ * over a wide chart) is worth flagging. Comparing against a raw point-count ratio cries wolf.
+ */
+const RESOLUTION_LIMIT_WARN_PX = 12;
 
 /**
  * Series data for the line chart
@@ -59,9 +68,22 @@ interface ValueAxisConfig {
         </div>
       } @else {
         @if (dataInfo(); as info) {
-          <span class="data-count" [title]="'Loaded rows · distinct category points (totalCount ' + info.total + ')'">
-            {{ info.rows }} rows · {{ info.points }} pts
-          </span>
+          @if (config.showDataBadge !== false || resolutionHint()) {
+            <span class="data-count" [class.warn]="!!resolutionHint()" [class.has-info]="!!resolutionHint()"
+                  [title]="badgeTitle(info.total)"
+                  (click)="resolutionHint() && toggleResolutionInfo($event)">
+              {{ info.rows }} rows · {{ info.points }} pts@if (resolutionHint(); as hint) {<span class="rl-flag"> · {{ hint.text }}</span>}
+            </span>
+          }
+        }
+        @if (showResolutionInfo() && resolutionExplanation(); as msg) {
+          <div class="resolution-info">
+            <div class="ri-head">
+              <span>Resolution-aware</span>
+              <button type="button" class="ri-close" (click)="closeResolutionInfo($event)" aria-label="Close">✕</button>
+            </div>
+            <p class="ri-body">{{ msg }}</p>
+          </div>
         }
         <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: { top: 0, right: 0, bottom: 0, left: 0 } }">
           <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
@@ -203,6 +225,62 @@ interface ValueAxisConfig {
       font-variant-numeric: tabular-nums;
     }
 
+    /* Resolution-aware warning (AB#4290) folded into the top-right data-count badge. */
+    .data-count.warn {
+      color: var(--kendo-color-warning, #b8860b);
+      background: color-mix(in srgb, var(--kendo-color-warning, #f0ad4e) 16%, transparent);
+    }
+
+    .data-count.has-info {
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .data-count .rl-flag {
+      font-weight: 600;
+    }
+
+    .resolution-info {
+      position: absolute;
+      top: 26px;
+      right: 6px;
+      z-index: 5;
+      max-width: min(340px, calc(100% - 12px));
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      line-height: 1.4;
+      color: var(--kendo-color-on-app-surface, #212529);
+      background: var(--kendo-color-app-surface, #fff);
+      border: 1px solid color-mix(in srgb, var(--kendo-color-warning, #f0ad4e) 55%, transparent);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+      text-align: left;
+    }
+
+    .resolution-info .ri-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+      font-weight: 600;
+      color: var(--kendo-color-warning, #b8860b);
+    }
+
+    .resolution-info .ri-close {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.8rem;
+      line-height: 1;
+      color: var(--kendo-color-subtle, #6c757d);
+      padding: 0 2px;
+    }
+
+    .resolution-info .ri-body {
+      margin: 0;
+    }
+
     .line-chart-widget.loading,
     .line-chart-widget.error {
       opacity: 0.7;
@@ -275,6 +353,15 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   // actually plotted. A large `rows` with tiny `points` flags a data collapse
   // (e.g. all rows sharing one category/timestamp).
   private readonly _dataInfo = signal<{ rows: number; points: number; total: number } | null>(null);
+  // Resolution-aware routing outcome (AB#4290): drives the archive/rollup hint badge so the
+  // user sees when the server delivered fewer points than requested or refused to reduce.
+  private readonly _resolutionSignal = signal<SeriesResolutionResult | null>(null);
+  // The point count the widget requested (pixel-driven), kept so the resolution-limited hint can
+  // show delivered-vs-requested — the resolver only returns the delivered count in `points`.
+  private readonly _resolutionTarget = signal<number | null>(null);
+  // Whether the click-through explanation panel for the resolution warning is open.
+  private readonly _showResolutionInfo = signal(false);
+  readonly showResolutionInfo = this._showResolutionInfo.asReadonly();
 
   readonly isLoading = this._isLoading.asReadonly();
   readonly categories = this._categories.asReadonly();
@@ -282,6 +369,89 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   readonly valueAxes = this._valueAxes.asReadonly();
   readonly error = this._error.asReadonly();
   readonly dataInfo = this._dataInfo.asReadonly();
+
+  /**
+   * Resolution-aware hint (AB#4290): a short badge describing the archive-selection outcome —
+   * `null` for a clean reduction (signal OK), a warning otherwise (fewer points delivered, or no
+   * compatible rollup so the raw archive was returned unreduced). Mirrors the resolver's signal.
+   */
+  readonly resolutionHint = computed((): { text: string; title: string } | null => {
+    const s = this._resolutionSignal();
+    if (!s) return null;
+    const diag = s.diagnostic ?? '';
+    switch (s.signal) {
+      case SeriesResolutionSignalDto.ResolutionLimitedDto: {
+        const delivered = s.actualPoints ?? s.points;
+        const requested = this._resolutionTarget();
+        // Only flag when the line would be *visibly* steppy — each point spans ≥ N px of chart
+        // width. A dense-enough line (e.g. 240 pts on a 1300px chart ≈ 5 px/pt) reads fine even
+        // below the pixel-ideal target, so it must not warn.
+        const width = (this.elementRef.nativeElement as HTMLElement)?.offsetWidth ?? 0;
+        if (width > 0 && delivered > 0 && width / delivered < RESOLUTION_LIMIT_WARN_PX) return null;
+        const ofReq = requested && requested > delivered ? ` (of ${requested})` : '';
+        return { text: `⚠ limited${ofReq}`, title: diag || 'Resolution limited: the coarsest available rollup delivers fewer points than requested for this range.' };
+      }
+      case SeriesResolutionSignalDto.NoSuitableRollupDto:
+        return { text: '⚠ no rollup', title: diag || 'No compatible rollup for this aggregation — the raw archive was returned unreduced.' };
+      case SeriesResolutionSignalDto.UnknownBaseGrainDto:
+        return { text: '⚠ raw', title: diag || 'Base archive grain unknown — returned unreduced.' };
+      case SeriesResolutionSignalDto.EmptyLadderDto:
+        return { text: '⚠ no archive', title: diag || 'No resolvable archive for this series.' };
+      default:
+        return null;
+    }
+  });
+
+  /**
+   * Plain-language explanation shown when the user clicks the resolution warning — spells out why
+   * fewer points were delivered and what to do about it, instead of the terse backend diagnostic.
+   */
+  readonly resolutionExplanation = computed((): string | null => {
+    const s = this._resolutionSignal();
+    if (!s || !this.resolutionHint()) return null;
+    const delivered = s.actualPoints ?? s.points;
+    const requested = this._resolutionTarget();
+    const ofReq = requested ? ` (the chart could show ~${requested})` : '';
+    switch (s.signal) {
+      case SeriesResolutionSignalDto.ResolutionLimitedDto:
+        return `This chart auto-selects the coarsest stored resolution that still fits the view. `
+          + `For this time range the finest matching rollup only provides ${delivered} point(s)${ofReq}, `
+          + `so the line is drawn at a coarser resolution than the screen could show. The values are correct — `
+          + `to see finer detail, narrow the time range or provision a finer rollup for this series.`;
+      case SeriesResolutionSignalDto.NoSuitableRollupDto:
+        return `No rollup matches this series' aggregation, so the raw archive was returned unreduced `
+          + `(${delivered} points). Add a matching rollup to enable server-side reduction, or narrow the time range.`;
+      case SeriesResolutionSignalDto.UnknownBaseGrainDto:
+        return `The base archive's native resolution is undeclared, so the data was returned unreduced. `
+          + `Set the archive's period/grain to enable resolution-aware selection.`;
+      case SeriesResolutionSignalDto.EmptyLadderDto:
+        return `No queryable archive was found for this series, so nothing could be plotted.`;
+      default:
+        return null;
+    }
+  });
+
+  /** Toggles the click-through explanation panel for the resolution warning. */
+  toggleResolutionInfo(event?: Event): void {
+    event?.stopPropagation();
+    this._showResolutionInfo.update(v => !v);
+  }
+
+  /** Closes the resolution explanation panel (e.g. its close button). */
+  closeResolutionInfo(event?: Event): void {
+    event?.stopPropagation();
+    this._showResolutionInfo.set(false);
+  }
+
+  /**
+   * Tooltip for the data-count badge: explains what `rows`/`pts` mean, and — when a resolution
+   * warning is present — prefixes the diagnostic and prompts the click-through explanation.
+   */
+  badgeTitle(total: number): string {
+    const legend = `rows = data rows fetched (points × series) · pts = distinct time points plotted (totalCount ${total})`;
+    const hint = this.resolutionHint();
+    return hint ? `${hint.title}\nClick for details.\n\n${legend}` : legend;
+  }
 
   readonly data = computed(() => this._seriesData());
 
@@ -423,6 +593,28 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
     try {
       const fieldFilter = this.convertFiltersToDto(this.config.filters);
+
+      // Resolution-aware routing (AB#4290): let the server pick the archive/rollup for the visible
+      // window + target point count, then downsample each source series against it. Requires a
+      // stream-data query, a resolved time range, and a value field (which doubles as the series'
+      // source path — the resolver matches it against the rollup's aggregation spec, case-insensitively).
+      const timeArgs = this.stateService.resolveStreamDataTimeArgs(queryDataSource.ignoreTimeFilter);
+      if (queryDataSource.resolutionAware && queryDataSource.queryFamily === 'streamData'
+          && this.config.valueField && timeArgs?.from && timeArgs?.to) {
+        const sourceRtIds = this.stateService.resolveStreamDataRtIds(queryDataSource.entitySelectorId);
+        const { rows, signal, requestedPoints } = await this.loadResolutionAware(
+          queryDataSource, timeArgs.from, timeArgs.to, sourceRtIds, fieldFilter ?? undefined);
+        this._resolutionSignal.set(signal);
+        this._resolutionTarget.set(requestedPoints);
+        this.lastLimit = signal?.points ?? this.computeDownsampleLimit();
+        this.processData(rows, true);
+        this._dataInfo.set({ rows: rows.length, points: this._categories().length, total: rows.length });
+        this._isLoading.set(false);
+        return;
+      }
+      this._resolutionSignal.set(null);
+      this._resolutionTarget.set(null);
+
       // queryFamily may be undefined for legacy widget configs — the executor
       // falls back to a one-time lookup by rtId. streamDataArgs is sent
       // unconditionally because the runtime path ignores it.
@@ -455,8 +647,110 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       console.error('Error loading Line Chart data:', err);
       this._error.set('Failed to load data');
       this._dataInfo.set(null);
+      this._resolutionSignal.set(null);
       this._isLoading.set(false);
     }
+  }
+
+  /**
+   * Resolution-aware routing (AB#4290): resolve the best archive/rollup for the window + target
+   * point count, then downsample each source series against it. The transient downsampling groups
+   * by bin (merging source rtIds), so this fans out one call per source rtId to keep each register
+   * a separate line; each series' bins are reshaped onto the widget's configured value/series
+   * fields so the shared {@link processData} pipeline renders them unchanged.
+   */
+  private async loadResolutionAware(
+    ds: PersistentQueryDataSource,
+    from: Date,
+    to: Date,
+    sourceRtIds: string[] | undefined,
+    fieldFilter: FieldFilterDto[] | undefined
+  ): Promise<{ rows: QueryResultRow[]; signal: SeriesResolutionResult | null; requestedPoints: number }> {
+    const targetPoints = this.computeDownsampleLimit();
+    const info = await this.queryExecutor.fetchQueryArchive(ds.queryRtId);
+    if (!info) {
+      throw new Error('Resolution-aware line chart: base archive not found for the selected query.');
+    }
+
+    // The Y-axis value field is the column being reduced, so it doubles as the resolver's
+    // source path (matched case-insensitively against the rollup's aggregation spec).
+    const sourcePath = this.config.valueField;
+    const aggregation = (ds.requiredAggregation ?? 'SUM') as CkRollupFunctionDto;
+
+    const resolution = await this.queryExecutor.resolveSeriesQuery({
+      baseArchiveRtId: info.archiveRtId,
+      from,
+      to,
+      targetPoints,
+      requiredAggregation: aggregation,
+      sourcePath,
+      rtIds: sourceRtIds && sourceRtIds.length > 0 ? sourceRtIds : undefined,
+      obisFilter: ds.obisFilter || undefined
+    });
+    if (!resolution) {
+      return { rows: [], signal: null, requestedPoints: targetPoints };
+    }
+
+    // Snap the query window to the resolver's effective-bucket grid. The downsampling engine only
+    // aggregates a stored point into a bin when the bin width equals the data grain AND the window
+    // start sits on that grid (from the epoch). An unaligned window — e.g. a relative "last N days"
+    // filter ending at the current wall-clock time (…:42:54) — otherwise makes every bin miss the
+    // hourly/interval data and yields an all-null (blank) chart. Aligning from + sizing to
+    // points × bucket makes each bin land exactly on a stored point.
+    let qFrom = from;
+    let qTo = to;
+    if (resolution.effectiveBucketMs > 0) {
+      const bucket = resolution.effectiveBucketMs;
+      const alignedFrom = Math.floor(from.getTime() / bucket) * bucket;
+      qFrom = new Date(alignedFrom);
+      qTo = new Date(alignedFrom + Math.max(1, resolution.points) * bucket);
+    }
+
+    // One downsampling call per source rtId → each register stays its own series (the transient
+    // downsampling groups by bin, merging rtIds otherwise). With no source scope, a single merged
+    // series is produced (labeled by the series-group field name).
+    const seriesRtIds: (string | undefined)[] = sourceRtIds && sourceRtIds.length > 0 ? sourceRtIds : [undefined];
+    const labels = info.ckTypeId
+      ? await this.queryExecutor.fetchSeriesLabels(info.ckTypeId, sourceRtIds ?? [], this.config.seriesGroupField)
+      : new Map<string, string>();
+
+    const rows: QueryResultRow[] = [];
+    for (const rtId of seriesRtIds) {
+      const seriesRows = await this.queryExecutor.downsampleByArchive({
+        archiveRtId: resolution.archiveRtId,
+        from: qFrom,
+        to: qTo,
+        limit: Math.max(1, resolution.points),
+        sourcePath,
+        aggregation: resolution.reducingFunction,
+        rtIds: rtId ? [rtId] : undefined,
+        fieldFilter
+      });
+      const label = rtId ? (labels.get(rtId) ?? rtId) : this.config.seriesGroupField;
+      for (const r of seriesRows) {
+        rows.push(this.reshapeResolutionRow(r, label));
+      }
+    }
+    return { rows, signal: resolution, requestedPoints: targetPoints };
+  }
+
+  /**
+   * Reshapes one downsampling bin onto the widget's configured value + series-group fields so the
+   * shared {@link processData} path plots it. The transient row carries the reduced value under a
+   * wire column name (e.g. `amountvalue_sum`) plus the bin `timestamp`; the value is re-emitted
+   * under `valueField` and the series label under `seriesGroupField`.
+   */
+  private reshapeResolutionRow(row: QueryResultRow, seriesLabel: string): QueryResultRow {
+    const valueCell = row.cells.find(c => c.attributePath.toLowerCase() !== 'timestamp');
+    return {
+      __typename: 'StreamDataQueryRow',
+      rtId: row.rtId,
+      timestamp: row.timestamp,
+      cells: [
+        { attributePath: this.config.valueField, value: valueCell?.value ?? null },
+        { attributePath: this.config.seriesGroupField, value: seriesLabel }
+      ]
+    };
   }
 
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {

@@ -1,11 +1,14 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, firstValueFrom, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
-import { CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
+import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
+import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
+import { GetStreamDataQueryArchiveDtoGQL } from '../graphQL/getStreamDataQueryArchive';
 import { GetSystemPersistentQueriesDtoGQL } from '../graphQL/getSystemPersistentQueries';
 import { ResolveSeriesQueryDtoGQL } from '../graphQL/resolveSeriesQuery';
+import { TransientDownsamplingDtoGQL } from '../graphQL/transientDownsampling';
 import { QueryFamily, queryFamily } from '../utils/query-family';
 
 /**
@@ -144,6 +147,9 @@ export class QueryExecutorService {
   private readonly streamDataGql = inject(ExecuteStreamDataQueryDtoGQL);
   private readonly persistentQueriesGql = inject(GetSystemPersistentQueriesDtoGQL);
   private readonly resolveSeriesGql = inject(ResolveSeriesQueryDtoGQL);
+  private readonly queryArchiveGql = inject(GetStreamDataQueryArchiveDtoGQL);
+  private readonly downsampleGql = inject(TransientDownsamplingDtoGQL);
+  private readonly entitiesGql = inject(GetEntitiesByCkTypeDtoGQL);
 
   /**
    * Cache of resolved query families, keyed by query rtId. Filled lazily for
@@ -281,6 +287,85 @@ export class QueryExecutorService {
       actualPoints: decision.actualPoints ?? null,
       diagnostic: decision.diagnostic ?? null
     };
+  }
+
+  /**
+   * Resolution-aware routing (AB#4290): reads a persisted stream-data query's base archive rtId
+   * and target CK type WITHOUT executing the query (the `rows` sub-connection is not selected), so
+   * a widget can feed the archive to {@link resolveSeriesQuery} and use the CK type to resolve
+   * per-series labels. Returns null when the query is missing or has no archive.
+   */
+  async fetchQueryArchive(queryRtId: string): Promise<{ archiveRtId: string; ckTypeId: string | null } | null> {
+    const result = await firstValueFrom(
+      this.queryArchiveGql.fetch({ variables: { rtId: queryRtId }, fetchPolicy: 'cache-first' })
+    );
+    const item = result.data?.streamData?.streamDataQuery?.items?.[0];
+    if (item?.archiveRtId == null) {
+      return null;
+    }
+    return { archiveRtId: String(item.archiveRtId), ckTypeId: item.associatedCkTypeId != null ? String(item.associatedCkTypeId) : null };
+  }
+
+  /**
+   * Resolution-aware routing (AB#4290): runs the AB#4233 downsampling query against an explicit
+   * archive rtId (the rollup/base chosen by {@link resolveSeriesQuery}), reducing `sourcePath`
+   * with `aggregation` to at most `limit` buckets. The transient downsampling groups by bin
+   * (not by source rtId), so callers that need per-series lines scope `rtIds` to one source
+   * entity per call. Returns the unified rows; each row's single value cell carries the reduced
+   * value under its wire column name (e.g. `amountvalue_sum`) alongside the bin `timestamp`.
+   */
+  async downsampleByArchive(params: {
+    archiveRtId: string;
+    from: Date;
+    to: Date;
+    limit: number;
+    sourcePath: string;
+    aggregation: string;
+    rtIds?: string[] | null;
+    fieldFilter?: FieldFilterDto[] | null;
+  }): Promise<QueryResultRow[]> {
+    const result = await firstValueFrom(
+      this.downsampleGql.fetch({
+        variables: {
+          archiveRtId: params.archiveRtId,
+          from: params.from,
+          to: params.to,
+          limit: params.limit,
+          columnPaths: [{ attributePath: params.sourcePath, aggregationType: params.aggregation as AggregationTypeDto }],
+          rtIds: params.rtIds && params.rtIds.length > 0 ? params.rtIds : undefined,
+          fieldFilter: params.fieldFilter ?? undefined
+        },
+        fetchPolicy: 'network-only'
+      })
+    );
+    const rows = result.data?.streamData?.transientStreamDataQuery?.downsampling?.items?.[0]?.rows?.items;
+    return this.mapStreamDataRows(rows);
+  }
+
+  /**
+   * Best-effort per-series labels for resolution-aware fan-out (AB#4290): reads each source
+   * entity's attribute matching `labelField` (canonical, case/underscore-insensitive so an archive
+   * column like `obis_code` maps to the CK attribute `obisCode`). Entities that fail to load or
+   * lack the attribute are simply omitted; the caller falls back to the rtId. Returns a
+   * `rtId → label` map.
+   */
+  async fetchSeriesLabels(ckTypeId: string, rtIds: string[], labelField: string): Promise<Map<string, string>> {
+    const map = new Map<string, string>();
+    const canon = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const wanted = canon(labelField);
+    await Promise.all(rtIds.map(async rtId => {
+      try {
+        const res = await firstValueFrom(this.entitiesGql.fetch({ variables: { ckTypeId, rtId, first: 1 } }));
+        const item = res.data?.runtime?.runtimeEntities?.items?.[0];
+        const attr = item?.attributes?.items?.find(a => !!a?.attributeName && canon(a.attributeName) === wanted);
+        if (attr?.value != null) {
+          map.set(rtId, String(attr.value));
+        }
+      } catch {
+        // Labels are best-effort; the fan-out falls back to the rtId.
+      }
+    }));
+    return map;
   }
 
   private buildStreamDataArg(args: StreamDataExecutionArgs): StreamDataArgumentsDto | undefined {

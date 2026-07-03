@@ -6,6 +6,9 @@ import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
 import { GetSystemPersistentQueriesDtoGQL } from '../graphQL/getSystemPersistentQueries';
 import { ResolveSeriesQueryDtoGQL } from '../graphQL/resolveSeriesQuery';
+import { GetStreamDataQueryArchiveDtoGQL } from '../graphQL/getStreamDataQueryArchive';
+import { TransientDownsamplingDtoGQL } from '../graphQL/transientDownsampling';
+import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
 
 /**
  * Specs for QueryExecutorService — covers the GraphQL-shape → flat result mapping
@@ -21,6 +24,9 @@ describe('QueryExecutorService', () => {
   let streamDataGqlSpy: jasmine.SpyObj<ExecuteStreamDataQueryDtoGQL>;
   let persistentQueriesGqlSpy: jasmine.SpyObj<GetSystemPersistentQueriesDtoGQL>;
   let resolveSeriesGqlSpy: jasmine.SpyObj<ResolveSeriesQueryDtoGQL>;
+  let queryArchiveGqlSpy: jasmine.SpyObj<GetStreamDataQueryArchiveDtoGQL>;
+  let downsampleGqlSpy: jasmine.SpyObj<TransientDownsamplingDtoGQL>;
+  let entitiesGqlSpy: jasmine.SpyObj<GetEntitiesByCkTypeDtoGQL>;
 
   function makeApolloResult(data: unknown): { data: unknown; loading: false; networkStatus: 7 } {
     return { data, loading: false, networkStatus: 7 };
@@ -31,6 +37,9 @@ describe('QueryExecutorService', () => {
     streamDataGqlSpy = jasmine.createSpyObj('ExecuteStreamDataQueryDtoGQL', ['fetch']);
     persistentQueriesGqlSpy = jasmine.createSpyObj('GetSystemPersistentQueriesDtoGQL', ['fetch']);
     resolveSeriesGqlSpy = jasmine.createSpyObj('ResolveSeriesQueryDtoGQL', ['fetch']);
+    queryArchiveGqlSpy = jasmine.createSpyObj('GetStreamDataQueryArchiveDtoGQL', ['fetch']);
+    downsampleGqlSpy = jasmine.createSpyObj('TransientDownsamplingDtoGQL', ['fetch']);
+    entitiesGqlSpy = jasmine.createSpyObj('GetEntitiesByCkTypeDtoGQL', ['fetch']);
 
     TestBed.configureTestingModule({
       providers: [
@@ -38,7 +47,10 @@ describe('QueryExecutorService', () => {
         { provide: ExecuteRuntimeQueryDtoGQL, useValue: runtimeGqlSpy },
         { provide: ExecuteStreamDataQueryDtoGQL, useValue: streamDataGqlSpy },
         { provide: GetSystemPersistentQueriesDtoGQL, useValue: persistentQueriesGqlSpy },
-        { provide: ResolveSeriesQueryDtoGQL, useValue: resolveSeriesGqlSpy }
+        { provide: ResolveSeriesQueryDtoGQL, useValue: resolveSeriesGqlSpy },
+        { provide: GetStreamDataQueryArchiveDtoGQL, useValue: queryArchiveGqlSpy },
+        { provide: TransientDownsamplingDtoGQL, useValue: downsampleGqlSpy },
+        { provide: GetEntitiesByCkTypeDtoGQL, useValue: entitiesGqlSpy }
       ]
     });
 
@@ -366,6 +378,61 @@ describe('QueryExecutorService', () => {
       const result = await service.resolveSeriesQuery(input);
 
       expect(result).toBeNull();
+    });
+  });
+
+  // ==========================================================================
+  // Resolution-aware routing (AB#4290): archive lookup, transient downsample, labels
+  // ==========================================================================
+  describe('resolution-aware routing (AB#4290)', () => {
+    it('fetchQueryArchive returns the base archive rtId and ck type without executing the query', async () => {
+      queryArchiveGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+        streamData: { streamDataQuery: { items: [{ queryRtId: 'q1', associatedCkTypeId: 'Basic.Energy/EnergyMeasurement', archiveRtId: 'base-1' }] } }
+      })) as ReturnType<typeof queryArchiveGqlSpy.fetch>);
+
+      const info = await service.fetchQueryArchive('q1');
+
+      expect(info).toEqual({ archiveRtId: 'base-1', ckTypeId: 'Basic.Energy/EnergyMeasurement' });
+    });
+
+    it('fetchQueryArchive returns null when the query has no archive', async () => {
+      queryArchiveGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+        streamData: { streamDataQuery: { items: [] } }
+      })) as ReturnType<typeof queryArchiveGqlSpy.fetch>);
+
+      expect(await service.fetchQueryArchive('missing')).toBeNull();
+    });
+
+    it('downsampleByArchive sends one column path with the reducer + scope and flattens the rows', async () => {
+      downsampleGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+        streamData: { transientStreamDataQuery: { downsampling: { items: [{ rows: { totalCount: 1, items: [
+          { rtId: '0', timestamp: '2026-01-01T00:00:00Z', cells: { items: [{ attributePath: 'amountvalue_sum', value: 42 }] } }
+        ] } }] } } }
+      })) as ReturnType<typeof downsampleGqlSpy.fetch>);
+
+      const rows = await service.downsampleByArchive({
+        archiveRtId: 'rollup-1', from: new Date('2026-01-01T00:00:00Z'), to: new Date('2026-12-31T00:00:00Z'),
+        limit: 600, sourcePath: 'Amount.Value', aggregation: 'SUM', rtIds: ['em-1']
+      });
+
+      const options = downsampleGqlSpy.fetch.calls.mostRecent().args[0] as { variables: Record<string, unknown> };
+      expect(options.variables['columnPaths']).toEqual([{ attributePath: 'Amount.Value', aggregationType: 'SUM' }]);
+      expect(options.variables['rtIds']).toEqual(['em-1']);
+      expect(rows.length).toBe(1);
+      expect(rows[0].cells).toEqual([{ attributePath: 'amountvalue_sum', value: 42 }]);
+    });
+
+    it('fetchSeriesLabels maps the archive-column series field to the CK attribute (obis_code → obisCode)', async () => {
+      entitiesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+        runtime: { runtimeEntities: { items: [{ attributes: { items: [
+          { attributeName: 'obisCode', value: '1-1:1.9.0 P.01' },
+          { attributeName: 'amount', value: 5 }
+        ] } }] } }
+      })) as ReturnType<typeof entitiesGqlSpy.fetch>);
+
+      const labels = await service.fetchSeriesLabels('Basic.Energy/EnergyMeasurement', ['em-1'], 'obis_code');
+
+      expect(labels.get('em-1')).toBe('1-1:1.9.0 P.01');
     });
   });
 });

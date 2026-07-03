@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig } from '../../models/meshboard.models';
+import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -31,6 +31,10 @@ export interface LineChartConfigResult extends WidgetConfigResult {
   ignoreTimeFilter?: boolean;
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
+  /** Resolution-aware routing (AB#4290): auto-select the best archive/rollup before querying. */
+  resolutionAware?: boolean;
+  /** Aggregation the series is reduced with (required when resolutionAware). */
+  requiredAggregation?: SeriesAggregationFunction;
   chartType: LineChartType;
   categoryField: string;
   seriesGroupField: string;
@@ -39,6 +43,7 @@ export interface LineChartConfigResult extends WidgetConfigResult {
   showLegend: boolean;
   legendPosition: 'top' | 'bottom' | 'left' | 'right';
   showMarkers: boolean;
+  showDataBadge: boolean;
   filters?: FieldFilterDto[];
   referenceLines?: ChartReferenceLine[];
 }
@@ -94,6 +99,30 @@ export interface LineChartConfigResult extends WidgetConfigResult {
             [selectors]="availableEntitySelectors"
             [(entitySelectorId)]="entitySelectorId">
           </mm-entity-selector-scope-picker>
+
+          @if (selectedQueryFamily === 'streamData') {
+            <div class="form-field checkbox-field">
+              <label>
+                <input type="checkbox" [(ngModel)]="resolutionAware" kendoCheckBox />
+                Resolution-aware archive selection
+              </label>
+            </div>
+            <p class="field-hint">Picks the coarsest rollup that still yields the target point count for the visible time range, then downsamples against it. Each scoped source entity renders as its own line.</p>
+
+            @if (resolutionAware) {
+              <div class="form-field">
+                <label>Aggregation <span class="required">*</span></label>
+                <kendo-dropdownlist
+                  [data]="aggregationOptions"
+                  [textField]="'label'"
+                  [valueField]="'value'"
+                  [valuePrimitive]="true"
+                  [(ngModel)]="requiredAggregation">
+                </kendo-dropdownlist>
+                <p class="field-hint">How the <strong>Value Field</strong> is reduced across buckets. Energy registers are additive → Sum. Never guessed.</p>
+              </div>
+            }
+          }
         </div>
 
         <!-- Field Mapping Section -->
@@ -233,6 +262,13 @@ export interface LineChartConfigResult extends WidgetConfigResult {
               <label>
                 <input type="checkbox" [(ngModel)]="form.showMarkers" kendoCheckBox />
                 Show Markers
+              </label>
+            </div>
+
+            <div class="form-field checkbox-field">
+              <label>
+                <input type="checkbox" [(ngModel)]="form.showDataBadge" kendoCheckBox />
+                Show data badge
               </label>
             </div>
           </div>
@@ -426,6 +462,8 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
   @Input() initialEntitySelectorId?: string;
+  @Input() initialResolutionAware?: boolean;
+  @Input() initialRequiredAggregation?: SeriesAggregationFunction;
   @Input() initialChartType?: LineChartType;
   @Input() initialCategoryField?: string;
   @Input() initialSeriesGroupField?: string;
@@ -434,6 +472,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialShowLegend?: boolean;
   @Input() initialLegendPosition?: 'top' | 'bottom' | 'left' | 'right';
   @Input() initialShowMarkers?: boolean;
+  @Input() initialShowDataBadge?: boolean;
   @Input() initialReferenceLines?: ChartReferenceLine[];
   @Input() initialFilters?: WidgetFilterConfig[];
 
@@ -452,6 +491,20 @@ export class LineChartConfigDialogComponent implements OnInit {
 
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
+
+  /** Resolution-aware routing (AB#4290): auto-select the best archive/rollup before querying. */
+  resolutionAware = false;
+  /** Aggregation the series is reduced with (required when resolutionAware). */
+  requiredAggregation: SeriesAggregationFunction = 'SUM';
+
+  /** Aggregation options for the resolution-aware reducer dropdown. */
+  readonly aggregationOptions: { value: SeriesAggregationFunction; label: string }[] = [
+    { value: 'SUM', label: 'Sum (additive, e.g. energy)' },
+    { value: 'AVG', label: 'Average (instantaneous)' },
+    { value: 'MAX', label: 'Max (e.g. demand)' },
+    { value: 'MIN', label: 'Min' },
+    { value: 'COUNT', label: 'Count' }
+  ];
 
   /** Entity selectors available on the current MeshBoard (for the scope picker). */
   get availableEntitySelectors(): EntitySelectorConfig[] {
@@ -485,6 +538,7 @@ export class LineChartConfigDialogComponent implements OnInit {
     showLegend: true,
     legendPosition: 'right' as 'top' | 'bottom' | 'left' | 'right',
     showMarkers: false,
+    showDataBadge: true,
     referenceLines: [] as ChartReferenceLine[]
   };
 
@@ -506,6 +560,8 @@ export class LineChartConfigDialogComponent implements OnInit {
     // Initialize form with initial values
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
     this.entitySelectorId = this.initialEntitySelectorId;
+    this.resolutionAware = this.initialResolutionAware ?? false;
+    this.requiredAggregation = this.initialRequiredAggregation ?? 'SUM';
     this.form.chartType = this.initialChartType ?? 'line';
     this.form.categoryField = this.initialCategoryField ?? '';
     this.form.seriesGroupField = this.initialSeriesGroupField ?? '';
@@ -514,6 +570,7 @@ export class LineChartConfigDialogComponent implements OnInit {
     this.form.showLegend = this.initialShowLegend ?? true;
     this.form.legendPosition = this.initialLegendPosition ?? 'right';
     this.form.showMarkers = this.initialShowMarkers ?? false;
+    this.form.showDataBadge = this.initialShowDataBadge ?? true;
     this.form.referenceLines = this.initialReferenceLines ? [...this.initialReferenceLines] : [];
 
     // Initialize filters
@@ -639,6 +696,8 @@ export class LineChartConfigDialogComponent implements OnInit {
       queryFamily: family,
       ignoreTimeFilter: this.ignoreTimeFilter,
       entitySelectorId: this.entitySelectorId,
+      resolutionAware: this.resolutionAware || undefined,
+      requiredAggregation: this.resolutionAware ? this.requiredAggregation : undefined,
       chartType: this.form.chartType,
       categoryField: this.form.categoryField,
       seriesGroupField: this.form.seriesGroupField,
@@ -647,6 +706,7 @@ export class LineChartConfigDialogComponent implements OnInit {
       showLegend: this.form.showLegend,
       legendPosition: this.form.legendPosition,
       showMarkers: this.form.showMarkers,
+      showDataBadge: this.form.showDataBadge,
       referenceLines: this.form.referenceLines.length > 0 ? this.form.referenceLines : undefined,
       filters: filtersDto
     };

@@ -28317,6 +28317,8 @@ export type StreamDataQueryDto = {
   __typename?: 'StreamDataQuery';
   /** Computes statistical aggregations over the same data set as the persisted query. Accepts optional runtime field filters AND-combined with the persisted FieldFilter. */
   aggregations?: Maybe<QueryAggregationResultConnectionDto>;
+  /** The rtId of the archive this persisted query reads from. For a resolution-aware series query (AB#4290) this is the base archive of the series' resolution family, so a caller can resolve the best rollup/archive without a separate lookup. */
+  archiveRtId: Scalars['OctoObjectId']['output'];
   associatedCkTypeId: Scalars['RtCkTypeId']['output'];
   columns: Array<RtQueryColumnDto>;
   queryRtId: Scalars['OctoObjectId']['output'];
