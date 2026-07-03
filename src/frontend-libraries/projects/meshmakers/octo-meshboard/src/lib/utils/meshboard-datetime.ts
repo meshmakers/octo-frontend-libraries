@@ -36,9 +36,18 @@ export function toInstant(value: unknown): Date | null {
   return null;
 }
 
-/** Maps the board mode to the `Intl` `timeZone` option (`undefined` = browser local). */
+/**
+ * Maps the board mode to the `Intl` `timeZone` option (`undefined` = browser local).
+ * An IANA id (AB#4190) is passed straight through to `Intl`, which already resolves it.
+ */
 function timeZoneOption(mode: MeshBoardTimeZoneMode): string | undefined {
-  return mode === 'utc' ? 'UTC' : undefined;
+  if (mode === 'utc') {
+    return 'UTC';
+  }
+  if (mode === 'local') {
+    return undefined;
+  }
+  return mode;
 }
 
 /** Calendar/clock components of an instant, evaluated in a board timezone. */

@@ -1135,12 +1135,18 @@ export type RelativeTimeUnit = 'hours' | 'days' | 'weeks' | 'months';
  *   local calendar year and datetime cells render in local wall-clock time.
  * - `'utc'`: UTC. "Year 2026" spans the UTC calendar year and datetime cells
  *   render in UTC.
+ * - any **IANA time-zone id** (e.g. `'Europe/Vienna'`): "Year 2026" spans that
+ *   zone's civil year (DST-correct, independent of the browser) and datetime
+ *   cells render in that zone. This zone is also forwarded to the resolution-
+ *   aware series query so calendar rollups are selected in it (AB#4190).
  *
  * Keeping filter and display on the same basis avoids the boundary artifact
  * where a local-year filter selects rows whose UTC timestamps fall in the
- * neighbouring calendar year. Mirrors shared-ui's `TimeRangeZone`.
+ * neighbouring calendar year. Mirrors shared-ui's `TimeRangeZone`. The
+ * `(string & {})` member keeps the literals in autocomplete while accepting
+ * an arbitrary IANA id.
  */
-export type MeshBoardTimeZoneMode = 'local' | 'utc';
+export type MeshBoardTimeZoneMode = 'local' | 'utc' | (string & {});
 
 /** The board-level default timezone mode applied when none is persisted. */
 export const DEFAULT_TIME_ZONE_MODE: MeshBoardTimeZoneMode = 'local';

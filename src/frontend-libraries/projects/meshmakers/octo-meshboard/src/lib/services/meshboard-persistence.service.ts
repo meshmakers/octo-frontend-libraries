@@ -465,11 +465,11 @@ export class MeshBoardPersistenceService {
     // Filter out timeFilter and entitySelector variables (they are derived, not persisted directly)
     const staticVariables = variables?.filter(v => v.source !== 'timeFilter' && v.source !== 'entitySelector');
 
-    // Check if there's anything to encode. 'local' is the default, so only the
-    // non-default 'utc' mode needs persisting.
+    // Check if there's anything to encode. 'local' is the default, so any other
+    // value — 'utc' or an IANA id (AB#4190) — needs persisting.
     const hasEntitySelectors = entitySelectors && entitySelectors.length > 0;
     const hasAutoRefresh = !!autoRefreshSeconds && autoRefreshSeconds > 0;
-    const hasTimeZoneMode = timeZoneMode === 'utc';
+    const hasTimeZoneMode = !!timeZoneMode && timeZoneMode !== 'local';
     if (
       (!staticVariables || staticVariables.length === 0) &&
       !timeFilter?.enabled && !hasEntitySelectors && !hasAutoRefresh && !hasTimeZoneMode
@@ -567,7 +567,7 @@ export class MeshBoardPersistenceService {
         description,
         variables: parsed.variables ?? [],
         timeFilter: parsed.timeFilter,
-        timeZoneMode: parsed.timeZoneMode === 'utc' || parsed.timeZoneMode === 'local' ? parsed.timeZoneMode : undefined,
+        timeZoneMode: typeof parsed.timeZoneMode === 'string' && parsed.timeZoneMode !== 'local' ? parsed.timeZoneMode : undefined,
         entitySelectors: parsed.entitySelectors,
         autoRefreshSeconds: typeof parsed.autoRefreshSeconds === 'number' ? parsed.autoRefreshSeconds : undefined
       };

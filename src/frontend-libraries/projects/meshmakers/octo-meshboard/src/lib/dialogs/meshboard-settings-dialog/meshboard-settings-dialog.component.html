@@ -171,9 +171,33 @@
                     id="timeZoneModeUtc"/>
                   <kendo-label [for]="tzUtc" text="UTC" class="radio-label"></kendo-label>
                 </div>
+                <div class="radio-wrapper">
+                  <input
+                    type="radio"
+                    kendoRadioButton
+                    #tzZone
+                    [(ngModel)]="timeZoneMode"
+                    name="timeZoneMode"
+                    [value]="zoneSelection"
+                    id="timeZoneModeZone"/>
+                  <kendo-label [for]="tzZone" text="Specific time zone" class="radio-label"></kendo-label>
+                  <select
+                    class="tz-zone-select"
+                    name="timeZoneZoneSelection"
+                    [ngModel]="zoneSelection"
+                    (ngModelChange)="onZoneSelectionChange($event)"
+                    [disabled]="!isSpecificZone"
+                    aria-label="IANA time zone">
+                    @for (zone of commonTimeZones; track zone) {
+                      <option [value]="zone">{{ zone }}</option>
+                    }
+                  </select>
+                </div>
               </div>
               <kendo-formhint>
                 Basis for the time filter and for how all widgets display dates and times. Local time is the default.
+                A specific time zone resolves civil days (today / yesterday / this month) DST-correctly in that
+                zone and selects matching calendar rollups.
               </kendo-formhint>
             </kendo-formfield>
 

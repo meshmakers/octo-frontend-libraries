@@ -409,6 +409,29 @@ describe('MeshBoardStateService', () => {
         service.updateSettings({ name: 'C', description: '', columns: 4, rowHeight: 150, gap: 8 });
         expect(service.timeZoneMode()).toBe('utc');
       });
+
+      it('reflects an explicit IANA zone set via updateSettings (AB#4190)', () => {
+        service.updateSettings({
+          name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'Europe/Vienna'
+        });
+        expect(service.timeZoneMode()).toBe('Europe/Vienna');
+      });
+    });
+
+    describe('resolveStreamDataTimeZone', () => {
+      it('returns undefined for local (browser zone has no server meaning)', () => {
+        expect(service.resolveStreamDataTimeZone()).toBeUndefined();
+      });
+
+      it('maps utc to "UTC"', () => {
+        service.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
+        expect(service.resolveStreamDataTimeZone()).toBe('UTC');
+      });
+
+      it('passes an IANA id straight through (AB#4190)', () => {
+        service.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'Europe/Vienna' });
+        expect(service.resolveStreamDataTimeZone()).toBe('Europe/Vienna');
+      });
     });
   });
 

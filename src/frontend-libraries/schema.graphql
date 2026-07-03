@@ -58072,6 +58072,8 @@ input PositionInput {
 input ResolveSeriesQueryInput {
   "Runtime id of the base (raw / time-range) archive of the series' resolution family."
   baseArchiveRtId: OctoObjectId!
+  "How civil boundaries are resolved across mixed-timezone series (AB#4190). PER_QUERY (default) applies the query timeZone uniformly; PER_SERIES aligns each series to its own archive reference time zone."
+  comparisonPolicy: SeriesComparisonPolicy
   "Inclusive start of the query window (UTC)."
   from: DateTime!
   "Optional OBIS-code filter narrowing the series. Forwarded by the caller to the downsampling query."
@@ -58084,8 +58086,16 @@ input ResolveSeriesQueryInput {
   sourcePath: String!
   "Desired number of output points (pixel-driven, ~600 typical). Must be positive."
   targetPoints: Int!
+  "Optional IANA time zone (e.g. Europe/Vienna) the query is resolved in (AB#4190). Aligns calendar (day/week/month/year) rungs to that zone's DST-correct civil boundaries; null ⇒ UTC. Sub-day rungs are unaffected."
+  timeZone: String
   "Exclusive end of the query window (UTC)."
   to: DateTime!
+}
+
+"How civil boundaries are resolved for a series query that spans multiple reference time zones (AB#4190)."
+enum SeriesComparisonPolicy {
+  PER_QUERY
+  PER_SERIES
 }
 
 input ResultAggregationInput {

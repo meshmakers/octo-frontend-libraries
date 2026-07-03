@@ -24319,6 +24319,8 @@ export type RecomputeJobInfoDto = {
 export type ResolveSeriesQueryInputDto = {
   /** Runtime id of the base (raw / time-range) archive of the series' resolution family. */
   baseArchiveRtId: Scalars['OctoObjectId']['input'];
+  /** How civil boundaries are resolved across mixed-timezone series (AB#4190). PER_QUERY (default) applies the query timeZone uniformly; PER_SERIES aligns each series to its own archive reference time zone. */
+  comparisonPolicy?: InputMaybe<SeriesComparisonPolicyDto>;
   /** Inclusive start of the query window (UTC). */
   from: Scalars['DateTime']['input'];
   /** Optional OBIS-code filter narrowing the series. Forwarded by the caller to the downsampling query. */
@@ -24331,6 +24333,8 @@ export type ResolveSeriesQueryInputDto = {
   sourcePath: Scalars['String']['input'];
   /** Desired number of output points (pixel-driven, ~600 typical). Must be positive. */
   targetPoints: Scalars['Int']['input'];
+  /** Optional IANA time zone (e.g. Europe/Vienna) the query is resolved in (AB#4190). Aligns calendar (day/week/month/year) rungs to that zone's DST-correct civil boundaries; null ⇒ UTC. Sub-day rungs are unaffected. */
+  timeZone?: InputMaybe<Scalars['String']['input']>;
   /** Exclusive end of the query window (UTC). */
   to: Scalars['DateTime']['input'];
 };
@@ -28092,6 +28096,12 @@ export type SearchFilterDto = {
 export enum SearchFilterTypesDto {
   AttributeFilterDto = 'ATTRIBUTE_FILTER',
   TextSearchDto = 'TEXT_SEARCH'
+}
+
+/** How civil boundaries are resolved for a series query that spans multiple reference time zones (AB#4190). */
+export enum SeriesComparisonPolicyDto {
+  PerQueryDto = 'PER_QUERY',
+  PerSeriesDto = 'PER_SERIES'
 }
 
 /** Outcome of resolution-aware series routing. Non-Ok values are truthful signals the caller can surface — the resolver never silently produces a wrong or degraded result. */

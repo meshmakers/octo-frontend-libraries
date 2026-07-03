@@ -77,6 +77,15 @@
         font-weight: normal;
         cursor: pointer;
       }
+
+      .tz-zone-select {
+        min-width: 12rem;
+        padding: 0.15rem 0.25rem;
+
+        &:disabled {
+          opacity: 0.5;
+        }
+      }
     }
 
     .radio-group {

@@ -636,14 +636,15 @@ Entity selector configs are persisted in the MeshBoard description field alongsi
 
 ## Timezone Mode
 
-`MeshBoardConfig.timeZoneMode` (`'local' | 'utc'`, default `'local'`) is a **board-level** setting that governs BOTH halves of time handling, keeping them consistent:
+`MeshBoardConfig.timeZoneMode` (`'local' | 'utc' | <IANA id>`, default `'local'`) is a **board-level** setting that governs BOTH halves of time handling, keeping them consistent:
 
-1. **Filter boundaries** — `MeshBoardStateService.resolveCurrentTimeRange()` passes the mode to shared-ui's `TimeRangeUtils.getTimeRangeFromSelection(selection, showTime, zone)`. In `'local'` mode "Year 2026" spans the local calendar year; in `'utc'` mode it spans the UTC year.
-2. **Datetime display** — every widget formats timestamps through `utils/meshboard-datetime.ts` (`formatInstant` / `formatBoardDate` / `formatBoardDateTime` / `formatTableCellValue`), which inject `timeZone: 'UTC'` when the mode is `'utc'`. The table widget attaches `formatTableCellValue` as a per-column `formatter` so raw ISO-8601 archive cells (e.g. `window_start`/`window_end`) render in the board's zone instead of as raw `…Z` strings.
+1. **Filter boundaries** — `MeshBoardStateService.resolveCurrentTimeRange()` passes the mode to shared-ui's `TimeRangeUtils.getTimeRangeFromSelection(selection, showTime, zone)`. In `'local'` mode "Year 2026" spans the local calendar year; in `'utc'` mode it spans the UTC year; with an IANA id (e.g. `'Europe/Vienna'`) it spans that zone's civil year, DST-correctly and independent of the browser (AB#4190).
+2. **Datetime display** — every widget formats timestamps through `utils/meshboard-datetime.ts` (`formatInstant` / `formatBoardDate` / `formatBoardDateTime` / `formatTableCellValue`). `timeZoneOption()` maps the mode to the `Intl` `timeZone` option: `'utc'` → `'UTC'`, `'local'` → `undefined` (browser), an IANA id → itself. The table widget attaches `formatTableCellValue` as a per-column `formatter` so raw ISO-8601 archive cells (e.g. `window_start`/`window_end`) render in the board's zone instead of as raw `…Z` strings.
+3. **Resolution-aware series queries (AB#4190)** — the line-chart widget forwards the zone to `resolveSeriesQuery` via `MeshBoardStateService.resolveStreamDataTimeZone()` (`'local'` → `undefined`/UTC, `'utc'` → `'UTC'`, IANA → itself). The backend then selects the calendar rollup whose `ReferenceTimeZone` matches, so the civil-day buckets line up with the window computed on the same zone. `FixedSize` (sub-day) rollups are zone-independent.
 
 Why this matters: a local-year filter selects rows whose UTC timestamps fall in the neighbouring calendar year (CET year 2026 starts at `2025-12-31T23:00:00Z`). Formatting display on the same basis as the filter removes that artifact.
 
-Consumers read the mode reactively via `MeshBoardStateService.timeZoneMode()` (a computed signal). The setting is edited in the Settings dialog's *Time Filter* tab and persisted in the description blob (only the non-default `'utc'` is written). Changing it recomputes the active range and refreshes widgets (`MeshBoardViewComponent.reapplyTimeFilterRange()`).
+Consumers read the mode reactively via `MeshBoardStateService.timeZoneMode()` (a computed signal). The setting is edited in the Settings dialog's *Time Filter* tab — Local / UTC / **Specific time zone** (a curated IANA dropdown; any IANA id is accepted) — and persisted in the description blob (any non-default value, i.e. `'utc'` or an IANA id, is written; on load any non-`'local'` string is accepted). Changing it recomputes the active range and refreshes widgets (`MeshBoardViewComponent.reapplyTimeFilterRange()`).
 
 ---
 

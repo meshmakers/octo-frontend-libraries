@@ -86,6 +86,43 @@ export class MeshBoardSettingsDialogComponent {
    */
   timeZoneMode: MeshBoardTimeZoneMode = DEFAULT_TIME_ZONE_MODE;
 
+  /**
+   * Curated IANA zones offered in the "Specific time zone" picker (AB#4190). Not exhaustive —
+   * a board can hold any IANA id; this is the convenient shortlist shown in the settings UI.
+   */
+  readonly commonTimeZones: string[] = [
+    'Europe/Vienna',
+    'Europe/Berlin',
+    'Europe/Lisbon',
+    'Europe/London',
+    'Europe/Istanbul',
+    'America/New_York',
+    'America/Sao_Paulo',
+    'America/Los_Angeles',
+    'Asia/Shanghai',
+    'Asia/Tokyo',
+    'Australia/Sydney'
+  ];
+
+  /** The IANA id bound to the picker; only applied to {@link timeZoneMode} while "Specific time zone" is selected. */
+  zoneSelection = 'Europe/Vienna';
+
+  /** True when the board zone is an explicit IANA id (i.e. neither `'local'` nor `'utc'`). */
+  get isSpecificZone(): boolean {
+    return this.timeZoneMode !== 'local' && this.timeZoneMode !== 'utc';
+  }
+
+  /** Selects the "Specific time zone" option, applying the currently-picked IANA id. */
+  selectSpecificZone(): void {
+    this.timeZoneMode = this.zoneSelection;
+  }
+
+  /** Handles a change in the IANA dropdown; keeps {@link timeZoneMode} in sync while that option is active. */
+  onZoneSelectionChange(zone: string): void {
+    this.zoneSelection = zone;
+    this.timeZoneMode = zone;
+  }
+
   /** Static and time filter variable names for duplicate detection in entity selector editor */
   get staticVariableNames(): string[] {
     return this.variables
@@ -128,6 +165,13 @@ export class MeshBoardSettingsDialogComponent {
     this.gap = settings.gap;
     this.autoRefreshSeconds = settings.autoRefreshSeconds ?? 0;
     this.timeZoneMode = settings.timeZoneMode ?? DEFAULT_TIME_ZONE_MODE;
+    if (this.isSpecificZone) {
+      // Seed the picker with the persisted IANA id; add it to the shortlist if custom.
+      this.zoneSelection = this.timeZoneMode;
+      if (!this.commonTimeZones.includes(this.timeZoneMode)) {
+        this.commonTimeZones.unshift(this.timeZoneMode);
+      }
+    }
     this.variables = settings.variables ? [...settings.variables] : [];
     this.entitySelectors = settings.entitySelectors ? settings.entitySelectors.map(es => ({ ...es })) : [];
     this.timeFilterEnabled = settings.timeFilter?.enabled ?? false;

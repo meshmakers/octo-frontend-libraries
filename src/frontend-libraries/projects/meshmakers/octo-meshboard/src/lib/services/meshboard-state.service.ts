@@ -642,6 +642,22 @@ export class MeshBoardStateService {
   }
 
   /**
+   * The IANA time zone to forward to the resolution-aware series query so calendar
+   * rollups are selected in the board's zone (AB#4190). Maps the board mode:
+   * `'utc'` → `'UTC'`, an IANA id → itself, and `'local'` → `undefined` (the browser's
+   * own zone has no server-side meaning, so the resolver stays on UTC — the same
+   * basis its calendar rungs use by default). The result is consistent with the zone
+   * `resolveCurrentTimeRange()` used to compute the `{from, to}` window.
+   */
+  resolveStreamDataTimeZone(): string | undefined {
+    const mode = this.timeZoneMode();
+    if (mode === 'local') {
+      return undefined;
+    }
+    return mode === 'utc' ? 'UTC' : mode;
+  }
+
+  /**
    * Stores the source rtIds resolved from an entity selector's current
    * selection. Called by the view component after a selection resolves (the
    * one-hop childScope traversal, or the picked entity's own rtId when the
