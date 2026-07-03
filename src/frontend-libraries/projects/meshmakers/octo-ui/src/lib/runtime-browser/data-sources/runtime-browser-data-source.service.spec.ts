@@ -780,6 +780,57 @@ describe('RuntimeBrowserDataSource', () => {
         }).variables.direction,
       ).toBe(GraphDirectionDto.OutboundDto);
     });
+
+    it('does not re-apply the perspective at a deep recurrence of a root (no cycle)', async () => {
+      mockTreeNavConfig.perspectives.and.resolveTo([
+        { ...systemsPerspective, secondaryRoleIds: undefined, primaryDirection: 'Outbound' },
+      ]);
+      service.setActivePerspective('Systems');
+      const rootsPromise = service.fetchRootNodes();
+      await flushInline('getRuntimeEntitiesByCkType', oneDistributionSystem);
+      await rootsPromise;
+
+      // A deep occurrence of the same DistributionSystem carries a NORMAL id (no
+      // perspective-root prefix) — e.g. reached as a member's back-reference.
+      const deepDs = new TreeItemDataTyped<BrowserItem>(
+        'EnergyIQ/DistributionSystem@ds-1',
+        'Heating circuit',
+        '',
+        { rtId: 'ds-1', ckTypeId: 'EnergyIQ/DistributionSystem' } as RtEntityDto,
+        fileIcon,
+        true,
+      );
+      // Inbound discovery for the deep node returns nothing → no members re-appear.
+      mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.and.callFake(
+        (opts: { variables: { roleId?: string } }) =>
+          opts.variables.roleId
+            ? of(mockAssocResponse)
+            : of({
+                data: {
+                  runtime: {
+                    runtimeEntities: {
+                      items: [
+                        { associations: { definitions: { items: [] } } },
+                      ],
+                    },
+                  },
+                },
+              }),
+      );
+
+      const children = await service.fetchChildren(deepDs);
+      expect(children.length).toBe(0);
+
+      // The deep node was discovered INBOUND (default), not OUTBOUND — proving the
+      // perspective's outbound navigation is not re-applied, so no cycle.
+      const discoveryDirections = mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.calls
+        .all()
+        .map((c) => c.args[0] as { variables: { roleId?: string; direction?: string } })
+        .filter((a) => !a.variables.roleId)
+        .map((a) => a.variables.direction);
+      expect(discoveryDirections).toContain(GraphDirectionDto.InboundDto);
+      expect(discoveryDirections).not.toContain(GraphDirectionDto.OutboundDto);
+    });
   });
 
   describe('fetchChildren', () => {

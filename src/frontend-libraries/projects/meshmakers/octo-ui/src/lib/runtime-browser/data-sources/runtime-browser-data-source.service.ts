@@ -101,6 +101,18 @@ const NON_NAVIGABLE_TARGET_CK_TYPES = new Set<string>(['System/Entity']);
 const SPATIAL_PERSPECTIVE_KEY = 'Spatial';
 
 /**
+ * Id prefix marking a TreeItem as a TOP-LEVEL root of a `Type` perspective
+ * (AB#4263). The perspective's whitelist + navigation direction apply ONLY to
+ * nodes carrying this prefix, so a root entity that recurs deeper in the tree
+ * (e.g. a member's back-reference to its DistributionSystem) is expanded with
+ * normal inbound auto-discovery instead of re-navigating outbound — which would
+ * otherwise cycle (system -> member -> system -> member -> …). The component
+ * derives its own selection/expansion key from the entity data, not this id, so
+ * the prefix is safe.
+ */
+const PERSPECTIVE_ROOT_ID_PREFIX = 'perspective-root:';
+
+/**
  * The always-available built-in perspective. It reproduces the pre-AB#4263
  * behaviour (roots = all Basic/Tree entities) and is synthesized rather than
  * stored, so a zero-config tenant still has exactly one perspective.
@@ -171,12 +183,6 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
    */
   private activePerspective: PerspectiveDefinition = BUILT_IN_SPATIAL_PERSPECTIVE;
 
-  /**
-   * rtIds of the current perspective's root nodes. The primary/secondary role
-   * whitelist is applied ONLY to the direct children of these roots — deeper
-   * nodes keep full auto-discovery (whitelist-at-root-only).
-   */
-  private readonly perspectiveRootRtIds = new Set<string>();
 
   /**
    * Selects the active perspective by key. The host is responsible for reloading
@@ -251,12 +257,14 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   }
 
   /**
-   * The set of role ids the given entity's direct children are restricted to,
-   * or null for full auto-discovery. Non-null only when the entity is a root of
-   * the active `Type` perspective (whitelist-at-root-only).
+   * The set of role ids the given tree item's direct children are restricted to,
+   * or null for full auto-discovery. Non-null only when the item is a TOP-LEVEL
+   * root of the active `Type` perspective (whitelist-at-root-only) — identified
+   * by its id prefix, so a root entity recurring deeper in the tree is NOT
+   * re-treated as a root (which would cycle).
    */
-  private rootWhitelistFor(rtId: string): Set<string> | null {
-    return this.perspectiveRootRtIds.has(rtId)
+  private rootWhitelistFor(item: TreeItemDataTyped<BrowserItem>): Set<string> | null {
+    return item.id.startsWith(PERSPECTIVE_ROOT_ID_PREFIX)
       ? this.activePerspectiveWhitelist()
       : null;
   }
@@ -362,12 +370,13 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       return [];
     }
 
-    // AB#4263: when this entity is a root of the active `Type` perspective,
-    // restrict its direct children to the perspective's primary + secondary
-    // roles (whitelist-at-root-only) and navigate in the perspective's direction.
-    // Deeper nodes are not in perspectiveRootRtIds, so they keep the default
-    // inbound auto-discovery.
-    const whitelist = this.rootWhitelistFor(rtEntity.rtId);
+    // AB#4263: when this item is a TOP-LEVEL root of the active `Type`
+    // perspective (id-prefix marked), restrict its direct children to the
+    // perspective's primary + secondary roles (whitelist-at-root-only) and
+    // navigate in the perspective's direction. A root entity recurring deeper in
+    // the tree is NOT prefixed, so it keeps the default inbound auto-discovery —
+    // this prevents the system -> member -> system … navigation cycle.
+    const whitelist = this.rootWhitelistFor(item);
     const primaryRoleId = whitelist ? this.activePerspective.primaryRoleId : undefined;
     const navDirection = whitelist
       ? this.perspectiveNavDirection()
@@ -855,9 +864,8 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         ),
       );
 
-      // AB#4263: resolve the active perspective and reset the root-id set that
-      // scopes the whitelist to the direct children of these roots.
-      this.perspectiveRootRtIds.clear();
+      // AB#4263: resolve the active perspective used by fetchChildren to apply
+      // the whitelist + direction at perspective roots (identified by id prefix).
       this.activePerspective = await this.resolveActivePerspective();
 
       // `Type` perspective: roots are all instances of the configured CK type.
@@ -957,8 +965,8 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
 
   /**
    * Loads all runtime instances of a CK type as the roots of a `Type`
-   * perspective (AB#4263), registering their rtIds so the whitelist applies to
-   * their direct children only. Expandability is schema-based (does the type
+   * perspective (AB#4263), tagging them with the root id prefix so the whitelist
+   * applies to their direct children only. Expandability is schema-based (does the type
    * declare a role in the perspective's navigation direction, restricted to the
    * whitelist when set).
    */
@@ -999,10 +1007,11 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
 
       const result: TreeItemDataTyped<BrowserItem>[] = [];
       for (const item of items) {
-        this.perspectiveRootRtIds.add(item.rtId);
+        // Prefix the id so fetchChildren applies the whitelist + direction only
+        // to these top-level roots, never to a deep recurrence of the same entity.
         result.push(
           new TreeItemDataTyped<BrowserItem>(
-            `${item.ckTypeId}@${item.rtId}`,
+            `${PERSPECTIVE_ROOT_ID_PREFIX}${item.ckTypeId}@${item.rtId}`,
             this.extractDisplayName(item),
             this.extractTooltip(item),
             item,

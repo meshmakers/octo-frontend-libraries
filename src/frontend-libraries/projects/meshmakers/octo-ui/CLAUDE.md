@@ -138,11 +138,20 @@ and backend-free (reuses the existing `targets` resolver).
   their rtIds in `perspectiveRootRtIds`.
 - **Whitelist-at-root-only:** for a `Type` perspective, the direct children of a
   root are restricted to `primaryRoleId` (flattened at the top, like ParentChild)
-  + `secondaryRoleIds` (group nodes). Deeper nodes are not in
-  `perspectiveRootRtIds`, so they fall back to full auto-discovery — e.g. a
-  DistributionSystem root shows its `SystemMembers`; the served spaces appear one
-  hop deeper under each member. N:N members legitimately appear under more than
-  one system (MVP: no explicit "shared" badge).
+  + `secondaryRoleIds` (group nodes). Only TOP-LEVEL roots carry this behaviour:
+  their TreeItem id is tagged with `PERSPECTIVE_ROOT_ID_PREFIX`, and
+  `rootWhitelistFor(item)` checks that prefix. Deeper nodes have normal ids and
+  fall back to full inbound auto-discovery — e.g. a DistributionSystem root shows
+  its `SystemMembers`; the served spaces appear one hop deeper under each member.
+  N:N members legitimately appear under more than one system (MVP: no explicit
+  "shared" badge).
+- **Cycle prevention:** with outbound navigation a member's inbound auto-discovery
+  surfaces a back-reference to its root system (system → member → system). Because
+  the deep recurrence of the root is NOT prefixed, it is expanded with inbound
+  auto-discovery (which finds no outbound members) instead of re-navigating
+  outbound — so the tree terminates instead of looping infinitely. Keying the root
+  marker on the TreeItem id (not the entity rtId) is what distinguishes the
+  top-level root from its deep recurrence.
 - **Navigation direction (`primaryDirection`):** the default auto-discovery is
   INBOUND (the containment side). When the association is authored on the root
   entity — e.g. `EnergyIQ/DistributionSystem --SystemMembers--> member` — the
