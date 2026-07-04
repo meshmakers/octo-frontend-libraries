@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { GraphDirectionDto } from '@meshmakers/octo-services';
 import { TreeItemDataTyped } from '@meshmakers/shared-services';
 import {
   checkCircleIcon,
@@ -23,6 +24,20 @@ import {
 } from './mapping-coverage-tree.models';
 
 /**
+ * Navigation override applied at the ROOT level when a `Type` tree perspective
+ * (AB#4263) is active: the root's direct children are resolved through the
+ * perspective's primary role/direction (e.g. `EnergyIQ/SystemMembers`,
+ * OUTBOUND) instead of the spatial `childRoleId`. Deeper levels always fall
+ * back to the spatial hierarchy (whitelist-at-root-only, mirroring the
+ * runtime browser). The child CK type filter stays `config.childCkTypeId`
+ * (polymorphic), so perspective members must derive from it.
+ */
+export interface CoveragePerspectiveNav {
+  childRoleId: string;
+  childDirection: GraphDirectionDto;
+}
+
+/**
  * Generic hierarchy data source for the Mapping Coverage Tree.
  *
  * Configure with `setRoot(...)` and `setConfig(...)` before passing to a
@@ -38,6 +53,7 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
   private _config: MappingCoverageTreeConfig | null = null;
   private _rootMappingCount = 0;
   private _validationMap: ReadonlyMap<string, CoverageValidationDetail> = new Map();
+  private _rootPerspectiveNav: CoveragePerspectiveNav | null = null;
 
   public setRoot(root: CoverageEntityRef | null): void {
     this._root = root;
@@ -45,6 +61,18 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
 
   public setConfig(config: MappingCoverageTreeConfig): void {
     this._config = config;
+  }
+
+  /**
+   * Sets (or clears with null) the root-level navigation override of the
+   * active `Type` perspective. The caller must reload the tree afterwards.
+   */
+  public setRootPerspectiveNav(nav: CoveragePerspectiveNav | null): void {
+    this._rootPerspectiveNav = nav;
+  }
+
+  public getRootPerspectiveNav(): CoveragePerspectiveNav | null {
+    return this._rootPerspectiveNav;
   }
 
   /**
@@ -73,7 +101,7 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
       return [];
     }
 
-    const result = await this.queryNode(this._root.rtId, this._root.ckTypeId);
+    const result = await this.queryNode(this._root.rtId, this._root.ckTypeId, true);
     if (!result) {
       // Fall back: show the root even if we could not load its children counts.
       return [this.buildItem(this._root, true, 0, true)];
@@ -89,7 +117,7 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
       return [];
     }
 
-    const result = await this.queryNode(item.item.rtId, item.item.ckTypeId);
+    const result = await this.queryNode(item.item.rtId, item.item.ckTypeId, item.item.isRoot);
     if (!result) {
       return [];
     }
@@ -110,7 +138,7 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
    * collapsing the surrounding subtree.
    */
   public async refreshNode(rtId: string, ckTypeId: string): Promise<CoverageNodePayload | null> {
-    const result = await this.queryNode(rtId, ckTypeId);
+    const result = await this.queryNode(rtId, ckTypeId, this._root?.rtId === rtId);
     if (!result) {
       return null;
     }
@@ -158,8 +186,19 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
     );
   }
 
-  private async queryNode(rtId: string, ckTypeId: string): Promise<QueryNodeResult | null> {
+  private async queryNode(
+    rtId: string,
+    ckTypeId: string,
+    atRootLevel: boolean,
+  ): Promise<QueryNodeResult | null> {
     if (!this._config) return null;
+
+    // The perspective's primary role applies to the ROOT level only; deeper
+    // levels (including the grandchild look-ahead below the root's children)
+    // always use the spatial hierarchy from the config.
+    const nav = atRootLevel ? this._rootPerspectiveNav : null;
+    const childRoleId = nav?.childRoleId ?? this._config.childRoleId;
+    const childDirection = nav?.childDirection ?? GraphDirectionDto.InboundDto;
 
     try {
       const data = await firstValueFrom(
@@ -168,8 +207,12 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
             variables: {
               rtId,
               ckTypeId,
-              childRoleId: this._config.childRoleId,
+              childRoleId,
               childCkTypeId: this._config.childCkTypeId,
+              childDirection,
+              grandChildRoleId: this._config.childRoleId,
+              grandChildCkTypeId: this._config.childCkTypeId,
+              grandChildDirection: GraphDirectionDto.InboundDto,
               mappingRoleId: this._config.mappingRoleId,
               mappingCkTypeId: this._config.mappingCkTypeId,
             },

@@ -8,6 +8,10 @@ export type GetMappingCoverageNodeQueryVariablesDto = Types.Exact<{
   ckTypeId: Types.Scalars['String']['input'];
   childRoleId: Types.Scalars['String']['input'];
   childCkTypeId: Types.Scalars['String']['input'];
+  childDirection: Types.GraphDirectionDto;
+  grandChildRoleId: Types.Scalars['String']['input'];
+  grandChildCkTypeId: Types.Scalars['String']['input'];
+  grandChildDirection: Types.GraphDirectionDto;
   mappingRoleId: Types.Scalars['String']['input'];
   mappingCkTypeId: Types.Scalars['String']['input'];
 }>;
@@ -16,7 +20,7 @@ export type GetMappingCoverageNodeQueryVariablesDto = Types.Exact<{
 export type GetMappingCoverageNodeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', ownMappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null, children?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', grandChildren?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null, mappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetMappingCoverageNodeDocumentDto = gql`
-    query getMappingCoverageNode($rtId: OctoObjectId!, $ckTypeId: String!, $childRoleId: String!, $childCkTypeId: String!, $mappingRoleId: String!, $mappingCkTypeId: String!) {
+    query getMappingCoverageNode($rtId: OctoObjectId!, $ckTypeId: String!, $childRoleId: String!, $childCkTypeId: String!, $childDirection: GraphDirection!, $grandChildRoleId: String!, $grandChildCkTypeId: String!, $grandChildDirection: GraphDirection!, $mappingRoleId: String!, $mappingCkTypeId: String!) {
   runtime {
     runtimeEntities(rtId: $rtId, ckId: $ckTypeId) {
       items {
@@ -40,7 +44,7 @@ export const GetMappingCoverageNodeDocumentDto = gql`
           children: targets(
             roleId: $childRoleId
             ckId: $childCkTypeId
-            direction: INBOUND
+            direction: $childDirection
           ) {
             totalCount
             items {
@@ -54,9 +58,9 @@ export const GetMappingCoverageNodeDocumentDto = gql`
               }
               associations {
                 grandChildren: targets(
-                  roleId: $childRoleId
-                  ckId: $childCkTypeId
-                  direction: INBOUND
+                  roleId: $grandChildRoleId
+                  ckId: $grandChildCkTypeId
+                  direction: $grandChildDirection
                 ) {
                   totalCount
                 }

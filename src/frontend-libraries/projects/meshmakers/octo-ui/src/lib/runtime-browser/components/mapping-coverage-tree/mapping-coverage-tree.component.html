@@ -21,11 +21,15 @@
 
   @if (activeTab() === 'coverage') {
   <div class="coverage-toolbar">
+    <mm-perspective-switcher
+      [perspectives]="perspectives()"
+      [activeKey]="activePerspectiveKey()"
+      (perspectiveChange)="onPerspectiveChange($event)"></mm-perspective-switcher>
     <label class="toolbar-label">Tree:</label>
     <select class="root-select"
             [value]="selectedRoot()?.rtId ?? ''"
             (change)="onRootSelectChange($any($event.target).value)">
-      <option value="" disabled>— Pick a {{ config.rootCkTypeId }} —</option>
+      <option value="" disabled>— Pick a {{ activeRootCkTypeId() }} —</option>
       @for (root of rootCandidates(); track root.rtId) {
         <option [value]="root.rtId" [title]="root.description">{{ root.name }}</option>
       }

@@ -205,6 +205,18 @@ configured through `MappingCoverageTreeConfig` (roles + CK type ids;
   NB: `GraphQL.offsetToCursor(0)` returns `null` by contract ("start at the
   beginning"), so the loop is guarded by `hasNextPage`, never by the cursor
   value being non-null.
+- **Tree perspectives:** the coverage tree reuses the runtime browser's
+  perspectives (AB#4263) — `TreeNavigationConfigService.perspectives()` plus a
+  synthesized built-in `Spatial` entry, surfaced via `mm-perspective-switcher`
+  in the toolbar (hidden when only one perspective exists). Selecting a `Type`
+  perspective repopulates the root dropdown from its `rootCkTypeId` and applies
+  a ROOT-LEVEL-ONLY navigation override (`primaryRoleId` +
+  `primaryDirection`) via `MappingCoverageTreeDataSource.setRootPerspectiveNav`;
+  deeper levels always continue with the spatial hierarchy
+  (whitelist-at-root-only, so outbound member navigation cannot cycle). The
+  child CK type filter stays `config.childCkTypeId` (polymorphic) — perspective
+  members must derive from it. `getMappingCoverageNode` carries separate
+  child/grandChild role+direction variables for this.
 - **Per-tenant source-type persistence:** `MappingCoverageConfigService`
   (`runtime-browser/services/mapping-coverage-config.service.ts`) loads/saves
   the optional `System.UI/MappingCoverageConfiguration` singleton

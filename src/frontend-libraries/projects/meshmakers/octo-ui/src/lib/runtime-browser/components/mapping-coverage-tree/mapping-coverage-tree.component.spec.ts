@@ -1,7 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { ConfirmationService } from '@meshmakers/shared-ui';
-import { CommunicationService, GetEntitiesByCkTypeDtoGQL } from '@meshmakers/octo-services';
+import {
+  CommunicationService,
+  GetEntitiesByCkTypeDtoGQL,
+  GraphDirectionDto,
+} from '@meshmakers/octo-services';
 import { CreateEntitiesDtoGQL } from '../../../graphQL/createEntities';
 import { DeleteEntitiesDtoGQL } from '../../../graphQL/deleteEntities';
 import { GetLatestValidationExecutionDtoGQL } from '../../../graphQL/getLatestValidationExecution';
@@ -11,6 +15,10 @@ import { GetOrphanCandidatesDtoGQL } from '../../../graphQL/getOrphanCandidates'
 import { GetRuntimeEntityByIdDtoGQL } from '../../../graphQL/getRuntimeEntityById';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../../graphQL/updateRuntimeEntities';
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
+import {
+  PerspectiveDefinition,
+  TreeNavigationConfigService,
+} from '../../services/tree-navigation-config.service';
 import { MappingCoverageTreeComponent } from './mapping-coverage-tree.component';
 import { MappingEditDialogService } from './mapping-edit-dialog.service';
 
@@ -56,9 +64,29 @@ describe('MappingCoverageTreeComponent', () => {
   let component: MappingCoverageTreeComponent;
   let fixture: ComponentFixture<MappingCoverageTreeComponent>;
   let getOrphanCandidatesGQL: jasmine.SpyObj<GetOrphanCandidatesDtoGQL>;
+  let getEntitiesByCkTypeGQL: jasmine.SpyObj<GetEntitiesByCkTypeDtoGQL>;
+  let treeNavConfig: jasmine.SpyObj<TreeNavigationConfigService>;
+
+  const SYSTEMS_PERSPECTIVE: PerspectiveDefinition = {
+    key: 'Systems',
+    displayName: 'Systems',
+    rootMode: 'Type',
+    rootCkTypeId: 'EnergyIQ/DistributionSystem',
+    primaryRoleId: 'EnergyIQ/SystemMembers',
+    primaryDirection: 'Outbound',
+    sortIndex: 1,
+  };
 
   beforeEach(async () => {
     getOrphanCandidatesGQL = jasmine.createSpyObj('GetOrphanCandidatesDtoGQL', ['fetch']);
+    getEntitiesByCkTypeGQL = jasmine.createSpyObj('GetEntitiesByCkTypeDtoGQL', ['fetch']);
+    getEntitiesByCkTypeGQL.fetch.and.returnValue(
+      of({ data: { runtime: { runtimeEntities: { items: [] } } } }) as unknown as ReturnType<
+        GetEntitiesByCkTypeDtoGQL['fetch']
+      >,
+    );
+    treeNavConfig = jasmine.createSpyObj('TreeNavigationConfigService', ['perspectives']);
+    treeNavConfig.perspectives.and.resolveTo([]);
 
     await TestBed.configureTestingModule({
       imports: [MappingCoverageTreeComponent],
@@ -67,7 +95,7 @@ describe('MappingCoverageTreeComponent', () => {
         { provide: MappingEditDialogService, useValue: {} },
         { provide: ConfirmationService, useValue: {} },
         { provide: CommunicationService, useValue: {} },
-        { provide: GetEntitiesByCkTypeDtoGQL, useValue: {} },
+        { provide: GetEntitiesByCkTypeDtoGQL, useValue: getEntitiesByCkTypeGQL },
         { provide: GetNodeMappingsDtoGQL, useValue: {} },
         { provide: GetRuntimeEntityByIdDtoGQL, useValue: {} },
         { provide: GetLatestValidationExecutionDtoGQL, useValue: {} },
@@ -76,6 +104,7 @@ describe('MappingCoverageTreeComponent', () => {
         { provide: CreateEntitiesDtoGQL, useValue: {} },
         { provide: DeleteEntitiesDtoGQL, useValue: {} },
         { provide: UpdateRuntimeEntitiesDtoGQL, useValue: {} },
+        { provide: TreeNavigationConfigService, useValue: treeNavConfig },
       ],
     }).compileComponents();
 
@@ -139,6 +168,57 @@ describe('MappingCoverageTreeComponent', () => {
 
       expect(component['orphanError']()).toBe('Failed to load source candidates.');
       expect(component['orphanCandidates']().length).toBe(0);
+    });
+  });
+
+  describe('perspective switching', () => {
+    it('merges the built-in Spatial perspective with the configured ones', async () => {
+      treeNavConfig.perspectives.and.resolveTo([SYSTEMS_PERSPECTIVE]);
+
+      await component['loadPerspectives']();
+
+      expect(component['perspectives']().map(p => p.key)).toEqual(['Spatial', 'Systems']);
+    });
+
+    it('keeps only the built-in perspective when loading fails', async () => {
+      treeNavConfig.perspectives.and.rejectWith(new Error('boom'));
+
+      await component['loadPerspectives']();
+
+      expect(component['perspectives']().map(p => p.key)).toEqual(['Spatial']);
+    });
+
+    it('applies the Type perspective: root nav override + roots from its root CK type', async () => {
+      treeNavConfig.perspectives.and.resolveTo([SYSTEMS_PERSPECTIVE]);
+      await component['loadPerspectives']();
+
+      await component['onPerspectiveChange']('Systems');
+
+      expect(component['activePerspectiveKey']()).toBe('Systems');
+      expect(component['activeRootCkTypeId']()).toBe('EnergyIQ/DistributionSystem');
+      expect(component['dataSource'].getRootPerspectiveNav()).toEqual({
+        childRoleId: 'EnergyIQ/SystemMembers',
+        childDirection: GraphDirectionDto.OutboundDto,
+      });
+      const rootQueryVariables =
+        getEntitiesByCkTypeGQL.fetch.calls.mostRecent().args[0]?.variables;
+      expect(rootQueryVariables?.ckTypeId).toBe('EnergyIQ/DistributionSystem');
+      expect(component['selectedRoot']()).toBeNull();
+      expect(component['selectedNode']()).toBeNull();
+    });
+
+    it('clears the nav override when switching back to Spatial', async () => {
+      treeNavConfig.perspectives.and.resolveTo([SYSTEMS_PERSPECTIVE]);
+      await component['loadPerspectives']();
+      await component['onPerspectiveChange']('Systems');
+
+      await component['onPerspectiveChange']('Spatial');
+
+      expect(component['dataSource'].getRootPerspectiveNav()).toBeNull();
+      expect(component['activeRootCkTypeId']()).toBe(component.config.rootCkTypeId);
+      const rootQueryVariables =
+        getEntitiesByCkTypeGQL.fetch.calls.mostRecent().args[0]?.variables;
+      expect(rootQueryVariables?.ckTypeId).toBe(component.config.rootCkTypeId);
     });
   });
 });

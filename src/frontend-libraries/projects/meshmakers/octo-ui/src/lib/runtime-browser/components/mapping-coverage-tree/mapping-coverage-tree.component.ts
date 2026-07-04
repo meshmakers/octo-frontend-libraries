@@ -34,6 +34,7 @@ import {
   CommunicationService,
   DeleteStrategiesDto,
   GetEntitiesByCkTypeDtoGQL,
+  GraphDirectionDto,
   GraphQL,
 } from '@meshmakers/octo-services';
 import { GetLatestValidationExecutionDtoGQL } from '../../../graphQL/getLatestValidationExecution';
@@ -42,6 +43,11 @@ import { GetOrphanCandidatesDtoGQL, GetOrphanCandidatesQueryDto } from '../../..
 import { GetRuntimeEntityByIdDtoGQL } from '../../../graphQL/getRuntimeEntityById';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../../graphQL/updateRuntimeEntities';
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
+import {
+  PerspectiveDefinition,
+  TreeNavigationConfigService,
+} from '../../services/tree-navigation-config.service';
+import { PerspectiveSwitcherComponent } from '../perspective-switcher/perspective-switcher.component';
 import { MappingCoverageTreeDataSource } from './mapping-coverage-tree-data-source';
 import { MappingEditDialogService, MappingEditValue } from './mapping-edit-dialog.service';
 import {
@@ -95,6 +101,23 @@ interface OrphanGroup {
   items: OrphanCandidate[];
 }
 
+/** Key of the built-in spatial perspective (the pre-perspective default tree). */
+const SPATIAL_PERSPECTIVE_KEY = 'Spatial';
+
+/**
+ * The always-available built-in perspective: roots and hierarchy exactly as
+ * configured in {@link MappingCoverageTreeConfig} (Basic/Tree + ParentChild by
+ * default). Synthesized rather than stored, mirroring the runtime browser
+ * (AB#4263), so a zero-config tenant has exactly one perspective and the
+ * switcher hides itself.
+ */
+const BUILT_IN_SPATIAL_PERSPECTIVE: PerspectiveDefinition = {
+  key: SPATIAL_PERSPECTIVE_KEY,
+  displayName: 'Spatial',
+  rootMode: 'Spatial',
+  sortIndex: 0,
+};
+
 /**
  * Master-detail component that visualises mapping coverage on a generic entity
  * hierarchy (defaults: Basic/Tree + Basic/TreeNode, mappings via
@@ -115,6 +138,7 @@ interface OrphanGroup {
     LayoutModule,
     SVGIconModule,
     TreeComponent,
+    PerspectiveSwitcherComponent,
   ],
   providers: [MappingCoverageTreeDataSource],
   templateUrl: './mapping-coverage-tree.component.html',
@@ -122,6 +146,7 @@ interface OrphanGroup {
 })
 export class MappingCoverageTreeComponent implements OnInit {
   private readonly entitySelector = inject(EntitySelectorDialogService);
+  private readonly treeNavConfig = inject(TreeNavigationConfigService);
   private readonly editDialog = inject(MappingEditDialogService);
   private readonly confirmation = inject(ConfirmationService);
   private readonly communicationService = inject(CommunicationService);
@@ -163,6 +188,23 @@ export class MappingCoverageTreeComponent implements OnInit {
     trash: trashIcon,
     link: linkIcon,
   };
+
+  /** Selectable tree perspectives (built-in Spatial + per-tenant configured). */
+  protected readonly perspectives = signal<PerspectiveDefinition[]>([
+    BUILT_IN_SPATIAL_PERSPECTIVE,
+  ]);
+  protected readonly activePerspectiveKey = signal<string>(SPATIAL_PERSPECTIVE_KEY);
+
+  /**
+   * CK type whose instances populate the root dropdown: the active `Type`
+   * perspective's rootCkTypeId, or the config default for Spatial.
+   */
+  protected readonly activeRootCkTypeId = computed<string>(() => {
+    const active = this.perspectives().find(p => p.key === this.activePerspectiveKey());
+    return active?.rootMode === 'Type' && active.rootCkTypeId
+      ? active.rootCkTypeId
+      : this.config.rootCkTypeId;
+  });
 
   protected readonly rootCandidates = signal<RootCandidate[]>([]);
   protected readonly selectedRoot = signal<RootCandidate | null>(null);
@@ -267,7 +309,11 @@ export class MappingCoverageTreeComponent implements OnInit {
     if (this.config.sourceCandidateCkTypeIds.length > 0) {
       this.orphanCkType.set(this.config.sourceCandidateCkTypeIds[0]);
     }
-    await Promise.all([this.loadRootCandidates(), this.loadValidationPipelines()]);
+    await Promise.all([
+      this.loadRootCandidates(),
+      this.loadValidationPipelines(),
+      this.loadPerspectives(),
+    ]);
 
     if (this.initialRoot) {
       const match = this.rootCandidates().find(r => r.rtId === this.initialRoot?.rtId);
@@ -275,6 +321,64 @@ export class MappingCoverageTreeComponent implements OnInit {
         await this.selectRoot(match);
       }
     }
+  }
+
+  /**
+   * Loads the per-tenant tree perspectives (AB#4263) shared with the runtime
+   * browser via {@link TreeNavigationConfigService} and prepends the built-in
+   * Spatial one, de-duplicated by key (a configured `Spatial` overrides the
+   * built-in). Failures degrade to the built-in perspective only.
+   */
+  private async loadPerspectives(): Promise<void> {
+    try {
+      const configured = await this.treeNavConfig.perspectives();
+      const byKey = new Map<string, PerspectiveDefinition>();
+      byKey.set(BUILT_IN_SPATIAL_PERSPECTIVE.key, BUILT_IN_SPATIAL_PERSPECTIVE);
+      for (const p of configured) {
+        byKey.set(p.key, p);
+      }
+      this.perspectives.set(
+        [...byKey.values()].sort(
+          (a, b) =>
+            (a.sortIndex ?? Number.MAX_SAFE_INTEGER) -
+              (b.sortIndex ?? Number.MAX_SAFE_INTEGER) ||
+            a.displayName.localeCompare(b.displayName),
+        ),
+      );
+    } catch (error) {
+      console.error('Failed to load tree perspectives:', error);
+    }
+  }
+
+  /**
+   * Switches the active perspective: applies the root-level navigation
+   * override on the data source (primary role + direction for `Type`
+   * perspectives), clears the current selection and reloads the root
+   * candidates from the perspective's root CK type.
+   */
+  protected async onPerspectiveChange(key: string): Promise<void> {
+    if (key === this.activePerspectiveKey()) return;
+    this.activePerspectiveKey.set(key);
+
+    const active = this.perspectives().find(p => p.key === key);
+    if (active?.rootMode === 'Type' && active.primaryRoleId) {
+      this.dataSource.setRootPerspectiveNav({
+        childRoleId: active.primaryRoleId,
+        childDirection:
+          active.primaryDirection === 'Outbound'
+            ? GraphDirectionDto.OutboundDto
+            : GraphDirectionDto.InboundDto,
+      });
+    } else {
+      this.dataSource.setRootPerspectiveNav(null);
+    }
+
+    // The root list changes with the perspective — reset the selection.
+    this.selectedRoot.set(null);
+    this.selectedNode.set(null);
+    this.mappings.set([]);
+    this.dataSource.setRoot(null);
+    await this.loadRootCandidates();
   }
 
   protected onPipelineSelectChange(rtId: string): void {
@@ -633,7 +737,7 @@ export class MappingCoverageTreeComponent implements OnInit {
 
   protected async pickRoot(): Promise<void> {
     const result = await this.entitySelector.openEntitySelector({
-      title: `Select ${this.config.rootCkTypeId}`,
+      title: `Select ${this.activeRootCkTypeId()}`,
     });
     if (!result.confirmed || !result.entity) return;
 
@@ -903,7 +1007,7 @@ export class MappingCoverageTreeComponent implements OnInit {
         this.getEntitiesByCkType
           .fetch({
             variables: {
-              ckTypeId: this.config.rootCkTypeId,
+              ckTypeId: this.activeRootCkTypeId(),
               first: 200,
               after: GraphQL.offsetToCursor(0),
             },

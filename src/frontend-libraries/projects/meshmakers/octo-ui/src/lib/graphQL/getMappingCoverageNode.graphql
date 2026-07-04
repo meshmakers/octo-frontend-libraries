@@ -3,6 +3,10 @@ query getMappingCoverageNode(
   $ckTypeId: String!
   $childRoleId: String!
   $childCkTypeId: String!
+  $childDirection: GraphDirection!
+  $grandChildRoleId: String!
+  $grandChildCkTypeId: String!
+  $grandChildDirection: GraphDirection!
   $mappingRoleId: String!
   $mappingCkTypeId: String!
 ) {
@@ -26,10 +30,14 @@ query getMappingCoverageNode(
           ) {
             totalCount
           }
+          # Child navigation is variable: the spatial hierarchy uses
+          # System/ParentChild INBOUND on every level, while a `Type`
+          # perspective root (e.g. DistributionSystem) navigates its
+          # primaryRoleId (e.g. SystemMembers), possibly OUTBOUND.
           children: targets(
             roleId: $childRoleId
             ckId: $childCkTypeId
-            direction: INBOUND
+            direction: $childDirection
           ) {
             totalCount
             items {
@@ -42,10 +50,15 @@ query getMappingCoverageNode(
                 }
               }
               associations {
+                # Grandchildren get their own navigation variables because the
+                # perspective's primary role applies to the ROOT level only —
+                # below a perspective root the tree continues with the spatial
+                # hierarchy (whitelist-at-root-only, mirrors the runtime
+                # browser's AB#4263 behaviour).
                 grandChildren: targets(
-                  roleId: $childRoleId
-                  ckId: $childCkTypeId
-                  direction: INBOUND
+                  roleId: $grandChildRoleId
+                  ckId: $grandChildCkTypeId
+                  direction: $grandChildDirection
                 ) {
                   totalCount
                 }
