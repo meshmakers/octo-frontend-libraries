@@ -186,6 +186,37 @@ and backend-free (reuses the existing `targets` resolver).
   + `SystemMembers`) is seeded from the **demo-energy-iq** repo, not here; no CK
   model change is required.
 
+## Mapping Coverage Tree (data mappings)
+
+`MappingCoverageTreeComponent` (`mm-mapping-coverage-tree`,
+`src/lib/runtime-browser/components/mapping-coverage-tree/`) is the master-detail
+view behind Refinery Studio's Communication → Data Mappings page: hierarchy tree
+with per-node DataPointMapping counts, validation overlay (report of the
+`ValidateDataPointCoverage` pipeline node), mapping CRUD via
+`MappingEditDialogComponent`, and the Orphan Sources tab listing source-catalogue
+entities (e.g. `Loxone/Control`) split into mapped/unmapped. Everything is
+configured through `MappingCoverageTreeConfig` (roles + CK type ids;
+`DEFAULT_MAPPING_COVERAGE_TREE_CONFIG` covers Basic/Tree + System.Communication).
+
+- **Orphan catalogue paging:** `loadOrphanCandidates` walks the
+  `getOrphanCandidates` connection cursor (`pageInfo.hasNextPage`/`endCursor`,
+  500 rows/page, hard stop at 200 pages) until exhausted — an earlier version
+  fetched a single 1000-row page and silently truncated larger catalogues.
+  NB: `GraphQL.offsetToCursor(0)` returns `null` by contract ("start at the
+  beginning"), so the loop is guarded by `hasNextPage`, never by the cursor
+  value being non-null.
+- **Per-tenant source-type persistence:** `MappingCoverageConfigService`
+  (`runtime-browser/services/mapping-coverage-config.service.ts`) loads/saves
+  the optional `System.UI/MappingCoverageConfiguration` singleton
+  (rtWellKnownName `MappingCoverage`, System.UI ≥ 2.4.0, model owned by
+  `octo-platform-services`) carrying `SourceCandidateCkTypeIds` — the CK types
+  offered in the Orphan Sources tab. Same probe-then-query + inline-`gql`
+  pattern as `TreeNavigationConfigService`; when the type is absent the host
+  (Refinery Studio) falls back to its legacy per-browser localStorage
+  persistence and migrates it to the singleton once the model is upgraded.
+  Unlike `TreeNavigationConfigService` it holds no session cache — the page
+  loads once per visit/tenant switch.
+
 ## Branding (theming + per-tenant identity)
 
 `@meshmakers/octo-ui` exports a complete branding subsystem:

@@ -16,6 +16,10 @@ query getOrphanCandidates(
       searchFilter: $searchFilter
     ) {
       totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       items {
         rtId
         ckTypeId

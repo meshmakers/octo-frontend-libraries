@@ -38,7 +38,7 @@ import {
 } from '@meshmakers/octo-services';
 import { GetLatestValidationExecutionDtoGQL } from '../../../graphQL/getLatestValidationExecution';
 import { GetNodeMappingsDtoGQL } from '../../../graphQL/getNodeMappings';
-import { GetOrphanCandidatesDtoGQL } from '../../../graphQL/getOrphanCandidates';
+import { GetOrphanCandidatesDtoGQL, GetOrphanCandidatesQueryDto } from '../../../graphQL/getOrphanCandidates';
 import { GetRuntimeEntityByIdDtoGQL } from '../../../graphQL/getRuntimeEntityById';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../../graphQL/updateRuntimeEntities';
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
@@ -56,6 +56,19 @@ import {
   OrphanCandidate,
   OrphanCandidateParent,
 } from './mapping-coverage-tree.models';
+
+type OrphanCandidatesConnection = NonNullable<
+  NonNullable<GetOrphanCandidatesQueryDto['runtime']>['runtimeEntities']
+>;
+type OrphanCandidateQueryItem = NonNullable<OrphanCandidatesConnection['items']>[number];
+
+/** Page size for the orphan-candidate catalogue walk. */
+const ORPHAN_PAGE_SIZE = 500;
+/**
+ * Safety valve against a backend paging bug (endCursor not advancing):
+ * 200 pages × 500 rows = 100k candidates, far beyond any real source catalogue.
+ */
+const ORPHAN_MAX_PAGES = 200;
 
 interface RootCandidate {
   rtId: string;
@@ -375,6 +388,10 @@ export class MappingCoverageTreeComponent implements OnInit {
    * its inbound MapsFrom DataPointMapping count. The view filters the list
    * down to mappingCount === 0 by default, but the user can flip the toggle
    * to see all candidates (mapped + unmapped) for verification.
+   *
+   * Pages through the connection cursor until `hasNextPage` is false so
+   * catalogues larger than one page are loaded completely (an earlier
+   * version fetched a single 1000-row page and silently truncated).
    */
   private async loadOrphanCandidates(): Promise<void> {
     const ckTypeId = this.orphanCkType();
@@ -383,22 +400,41 @@ export class MappingCoverageTreeComponent implements OnInit {
     this.orphanLoading.set(true);
     this.orphanError.set(null);
     try {
-      const result = await firstValueFrom(
-        this.getOrphanCandidatesGQL
-          .fetch({
-            variables: {
-              ckTypeId,
-              mapsFromRoleId: this.config.mappingSourceRoleId,
-              mappingCkTypeId: this.config.mappingCkTypeId,
-              childRoleId: this.config.childRoleId,
-              childCkTypeId: this.config.childCkTypeId,
-              first: 1000,
-              after: GraphQL.offsetToCursor(0),
-            },
-            fetchPolicy: 'network-only',
-          })
-          .pipe(map(r => r.data?.runtime?.runtimeEntities?.items ?? [])),
-      );
+      const result: OrphanCandidateQueryItem[] = [];
+      // offsetToCursor(0) is null by contract ("start at the beginning"), so
+      // the loop is guarded by hasNextPage, not by the cursor value.
+      let after: string | null = GraphQL.offsetToCursor(0);
+      let hasNextPage = true;
+      for (let page = 0; page < ORPHAN_MAX_PAGES && hasNextPage; page++) {
+        const connection: OrphanCandidatesConnection | null | undefined = await firstValueFrom(
+          this.getOrphanCandidatesGQL
+            .fetch({
+              variables: {
+                ckTypeId,
+                mapsFromRoleId: this.config.mappingSourceRoleId,
+                mappingCkTypeId: this.config.mappingCkTypeId,
+                childRoleId: this.config.childRoleId,
+                childCkTypeId: this.config.childCkTypeId,
+                first: ORPHAN_PAGE_SIZE,
+                after,
+              },
+              fetchPolicy: 'network-only',
+            })
+            .pipe(map(r => r.data?.runtime?.runtimeEntities)),
+        );
+        result.push(...(connection?.items ?? []));
+        const pageInfo = connection?.pageInfo;
+        const nextCursor = pageInfo?.hasNextPage ? pageInfo.endCursor : null;
+        hasNextPage = nextCursor != null;
+        if (nextCursor != null) {
+          after = String(nextCursor);
+        }
+      }
+      if (hasNextPage) {
+        console.warn(
+          `Orphan candidate load stopped after ${ORPHAN_MAX_PAGES} pages (${result.length} rows) — increase ORPHAN_MAX_PAGES if this catalogue is legitimately that large.`,
+        );
+      }
 
       const candidates: OrphanCandidate[] = (result ?? [])
         .filter((e): e is NonNullable<typeof e> => !!e && !!e.rtId && !!e.ckTypeId)
