@@ -217,6 +217,26 @@ configured through `MappingCoverageTreeConfig` (roles + CK type ids;
   child CK type filter stays `config.childCkTypeId` (polymorphic) — perspective
   members must derive from it. `getMappingCoverageNode` carries separate
   child/grandChild role+direction variables for this.
+- **Auto-mapping from the UI (Generation row):** a third toolbar row (shown
+  only with a `tenantId`) picks any `System.Communication/Pipeline` — intended
+  for `GenerateDataPointMappings@1`-based auto-mapping pipelines — and runs it
+  via `CommunicationService.executePipeline`. Polling is shared with the
+  validation Run button (`executePipelineAndAwaitCompletion`: new-execution-id
+  + not-Running, 60 s timeout). On completion the execution's `OutputData` is
+  parsed as the node's `MappingStatistics` (`totalSuggestions`, matched/
+  unmatched containers, `ruleHits`) and shown as badges — the pipeline must end
+  with `SetPipelineExecutionResult` on its `statisticsTargetPath` (the
+  demo-energy-iq rules pipeline does); foreign payloads degrade to a plain
+  "completed" note. Tree, selected-node mappings and orphan catalogue reload
+  afterwards.
+- **Orphan bulk mapping:** every orphan row has a checkbox; Select all
+  (visible under the current filter) / Clear / "Map N selected…" live in the
+  orphan toolbar. The `BulkMappingDialogComponent` (via
+  `BulkMappingDialogService`) collects ONE shared target entity + source data
+  point + target attribute + expression (source data-point options come from
+  the first selected entity), and the host creates one DataPointMapping per
+  source in a single atomic `CreateEntities` mutation (per-source MapsFrom,
+  shared MapsTo, generated names).
 - **Per-tenant source-type persistence:** `MappingCoverageConfigService`
   (`runtime-browser/services/mapping-coverage-config.service.ts`) loads/saves
   the optional `System.UI/MappingCoverageConfiguration` singleton

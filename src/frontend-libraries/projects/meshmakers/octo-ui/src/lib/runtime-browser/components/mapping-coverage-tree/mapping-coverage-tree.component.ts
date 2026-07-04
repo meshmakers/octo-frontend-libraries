@@ -48,6 +48,7 @@ import {
   TreeNavigationConfigService,
 } from '../../services/tree-navigation-config.service';
 import { PerspectiveSwitcherComponent } from '../perspective-switcher/perspective-switcher.component';
+import { BulkMappingDialogService } from './bulk-mapping-dialog.service';
 import { MappingCoverageTreeDataSource } from './mapping-coverage-tree-data-source';
 import { MappingEditDialogService, MappingEditValue } from './mapping-edit-dialog.service';
 import {
@@ -101,6 +102,22 @@ interface OrphanGroup {
   items: OrphanCandidate[];
 }
 
+/**
+ * Statistics object emitted by the GenerateDataPointMappings@1 node (its
+ * `statisticsTargetPath` output, stored into PipelineExecution.OutputData via
+ * SetPipelineExecutionResult). All fields optional — the UI shows whatever the
+ * pipeline provided and falls back to a plain "completed" note otherwise.
+ */
+interface GenerationStatistics {
+  totalContainers?: number;
+  matchedContainers?: number;
+  unmatchedContainers?: number;
+  unmatchedContainerNames?: string[];
+  totalSuggestions?: number;
+  ruleHits?: Record<string, number>;
+  definedRuleIds?: string[];
+}
+
 /** Key of the built-in spatial perspective (the pre-perspective default tree). */
 const SPATIAL_PERSPECTIVE_KEY = 'Spatial';
 
@@ -148,6 +165,7 @@ export class MappingCoverageTreeComponent implements OnInit {
   private readonly entitySelector = inject(EntitySelectorDialogService);
   private readonly treeNavConfig = inject(TreeNavigationConfigService);
   private readonly editDialog = inject(MappingEditDialogService);
+  private readonly bulkDialog = inject(BulkMappingDialogService);
   private readonly confirmation = inject(ConfirmationService);
   private readonly communicationService = inject(CommunicationService);
   private readonly getEntitiesByCkType = inject(GetEntitiesByCkTypeDtoGQL);
@@ -221,6 +239,13 @@ export class MappingCoverageTreeComponent implements OnInit {
   protected readonly validationError = signal<string | null>(null);
   protected readonly validationRunning = signal<boolean>(false);
 
+  /** Generation: run a GenerateDataPointMappings-based pipeline from the UI. */
+  protected readonly selectedGenerationPipeline = signal<PipelineCandidate | null>(null);
+  protected readonly generationRunning = signal<boolean>(false);
+  protected readonly generationError = signal<string | null>(null);
+  protected readonly generationStats = signal<GenerationStatistics | null>(null);
+  protected readonly generationCompletedAt = signal<string | null>(null);
+
   /** Active tab: 'coverage' shows the tree, 'orphans' shows the unmapped sources. */
   protected readonly activeTab = signal<'coverage' | 'orphans'>('coverage');
 
@@ -235,6 +260,10 @@ export class MappingCoverageTreeComponent implements OnInit {
     const all = this.orphanCandidates();
     return this.orphanHideMapped() ? all.filter(c => c.mappingCount === 0) : all;
   });
+
+  /** rtIds of the orphan rows selected for the bulk "Map selected…" action. */
+  protected readonly orphanSelectedIds = signal<ReadonlySet<string>>(new Set<string>());
+  protected readonly orphanSelectedCount = computed(() => this.orphanSelectedIds().size);
   protected readonly orphanStats = computed(() => {
     const all = this.orphanCandidates();
     const unmapped = all.filter(c => c.mappingCount === 0).length;
@@ -462,6 +491,7 @@ export class MappingCoverageTreeComponent implements OnInit {
   protected onOrphanCkTypeChange(ckTypeId: string): void {
     this.orphanCkType.set(ckTypeId || null);
     this.orphanCandidates.set([]);
+    this.clearOrphanSelection();
     if (ckTypeId) void this.loadOrphanCandidates();
   }
 
@@ -557,6 +587,11 @@ export class MappingCoverageTreeComponent implements OnInit {
         return a.name.localeCompare(b.name);
       });
       this.orphanCandidates.set(candidates);
+      // Prune the bulk selection to rows that still exist after the reload.
+      this.orphanSelectedIds.update(current => {
+        const valid = new Set(candidates.map(c => c.rtId));
+        return new Set([...current].filter(id => valid.has(id)));
+      });
     } catch (error) {
       console.error('Failed to load orphan candidates:', error);
       this.orphanError.set('Failed to load source candidates.');
@@ -602,14 +637,101 @@ export class MappingCoverageTreeComponent implements OnInit {
     return item.rtId;
   }
 
+  // ─── Orphan multi-select + bulk mapping ────────────────────────────────────
+
+  protected isOrphanSelected(rtId: string): boolean {
+    return this.orphanSelectedIds().has(rtId);
+  }
+
+  protected toggleOrphanSelected(rtId: string): void {
+    this.orphanSelectedIds.update(current => {
+      const next = new Set(current);
+      if (next.has(rtId)) next.delete(rtId);
+      else next.add(rtId);
+      return next;
+    });
+  }
+
+  /** Selects every row currently visible under the active filter. */
+  protected selectAllVisibleOrphans(): void {
+    this.orphanSelectedIds.set(new Set(this.orphanFilteredList().map(c => c.rtId)));
+  }
+
+  protected clearOrphanSelection(): void {
+    this.orphanSelectedIds.set(new Set<string>());
+  }
+
+  /**
+   * Opens the bulk mapping dialog for all selected orphan rows and, on
+   * confirm, creates one DataPointMapping per source in a single atomic
+   * CreateEntities mutation (shared target entity + paths + expression,
+   * per-source MapsFrom association and generated name).
+   */
+  protected async bulkMapSelected(): Promise<void> {
+    const selectedIds = this.orphanSelectedIds();
+    const sources = this.orphanCandidates().filter(c => selectedIds.has(c.rtId));
+    if (sources.length === 0) return;
+
+    const result = await this.bulkDialog.open({
+      sources: sources.map(s => ({
+        rtId: s.rtId,
+        ckTypeId: s.ckTypeId,
+        name: s.name,
+        description: s.description,
+      })),
+    });
+    if (!result.confirmed) return;
+    const value = result.value;
+
+    const targetLabel = value.targetName || value.targetRtId;
+    const entities = sources.map(source => ({
+      ckTypeId: this.config.mappingCkTypeId,
+      attributes: [
+        {
+          attributeName: 'Name',
+          value: `${source.name} ${value.sourceAttributePath} → ${targetLabel} ${value.targetAttributePath}`,
+        },
+        { attributeName: 'Enabled', value: value.enabled },
+        { attributeName: 'SourceAttributePath', value: value.sourceAttributePath },
+        { attributeName: 'MappingExpression', value: value.mappingExpression },
+        { attributeName: 'TargetAttributePath', value: value.targetAttributePath },
+      ],
+      associations: [
+        {
+          roleName: this.config.mappingSourceOutboundRoleName,
+          targets: [
+            {
+              modOption: AssociationModOptionsDto.CreateDto,
+              target: { rtId: source.rtId, ckTypeId: source.ckTypeId },
+            },
+          ],
+        },
+        {
+          roleName: this.config.mappingTargetOutboundRoleName,
+          targets: [
+            {
+              modOption: AssociationModOptionsDto.CreateDto,
+              target: { rtId: value.targetRtId, ckTypeId: value.targetCkTypeId },
+            },
+          ],
+        },
+      ],
+    }));
+
+    try {
+      await firstValueFrom(this.createEntitiesGQL.mutate({ variables: { entities } }));
+      this.clearOrphanSelection();
+      await this.loadOrphanCandidates();
+    } catch (error) {
+      console.error('Failed to bulk-create mappings:', error);
+      this.orphanError.set('Failed to create mappings for the selection.');
+    }
+  }
+
   /**
    * Triggers the selected validation pipeline on the Communication Controller
    * and, when it completes, automatically refreshes the coverage report so the
    * tree colour-codes update. Requires {@link tenantId} to be set.
-   *
-   * Polling strategy: every 1.5 s, fetch the latest execution metadata for the
-   * pipeline. When `dateTime` differs from the snapshot taken before the run,
-   * we know a new execution finished — refresh and stop. Aborts after 60 s.
    */
   protected async runValidation(): Promise<void> {
     const pipeline = this.selectedPipeline();
@@ -624,6 +746,119 @@ export class MappingCoverageTreeComponent implements OnInit {
     this.validationRunning.set(true);
     this.validationError.set(null);
 
+    const outcome = await this.executePipelineAndAwaitCompletion(pipeline, tenant);
+    this.validationRunning.set(false);
+    if (outcome === 'start-failed') {
+      this.validationError.set('Failed to start validation pipeline.');
+      return;
+    }
+    if (outcome === 'timeout') {
+      // Leave the button usable again; the user can hit Load Report manually
+      // if the pipeline is just slow.
+      this.validationError.set('Validation is still running — use Load Report to refresh later.');
+      return;
+    }
+    await this.refreshValidation();
+  }
+
+  /**
+   * Triggers the selected mapping-generation pipeline (GenerateDataPointMappings-
+   * based auto-mapping) and, on completion, loads its statistics from the
+   * execution's OutputData and refreshes the tree, the selected node's mapping
+   * list and the orphan catalogue — all of which change when mappings are
+   * created in bulk. Requires {@link tenantId} to be set.
+   */
+  protected async runGeneration(): Promise<void> {
+    const pipeline = this.selectedGenerationPipeline();
+    const tenant = this.tenantId;
+    if (!pipeline || !tenant) {
+      this.generationError.set(
+        !pipeline ? 'Pick a generation pipeline first.' : 'Tenant context missing — Run is unavailable.',
+      );
+      return;
+    }
+
+    this.generationRunning.set(true);
+    this.generationError.set(null);
+    this.generationStats.set(null);
+    this.generationCompletedAt.set(null);
+
+    const outcome = await this.executePipelineAndAwaitCompletion(pipeline, tenant);
+    this.generationRunning.set(false);
+    if (outcome === 'start-failed') {
+      this.generationError.set('Failed to start generation pipeline.');
+      return;
+    }
+    if (outcome === 'timeout') {
+      this.generationError.set('Generation is still running — reload the page state manually later.');
+      return;
+    }
+
+    await this.loadGenerationResult(pipeline);
+    await this.refreshTreeOverlay();
+    if (this.selectedNode()) {
+      await this.loadMappingsForSelected();
+    }
+    if (this.orphanCkType()) {
+      await this.loadOrphanCandidates();
+    }
+  }
+
+  protected onGenerationSelectChange(rtId: string): void {
+    const match = this.validationPipelines().find(p => p.rtId === rtId);
+    this.selectedGenerationPipeline.set(match ?? null);
+  }
+
+  /**
+   * Loads the latest execution's OutputData for the generation pipeline and
+   * parses the GenerateDataPointMappings statistics from it (the pipeline is
+   * expected to end with SetPipelineExecutionResult on its statisticsTargetPath).
+   * Missing/foreign OutputData degrades to "completed without statistics".
+   */
+  private async loadGenerationResult(pipeline: PipelineCandidate): Promise<void> {
+    try {
+      const data = await firstValueFrom(
+        this.getLatestValidationGQL
+          .fetch({
+            variables: {
+              pipelineRtId: pipeline.rtId,
+              pipelineCkTypeId: pipeline.ckTypeId,
+              executesRoleId: this.config.validationExecutesRoleId,
+              executionCkTypeId: this.config.validationExecutionCkTypeId,
+            },
+            fetchPolicy: 'network-only',
+          })
+          .pipe(map(r => r.data?.runtime?.runtimeEntities?.items?.[0])),
+      );
+      const execution = data?.associations?.executions?.items?.[0];
+      const attrs = execution?.attributes?.items;
+      this.generationCompletedAt.set(readAttr(attrs, 'CompletedAt'));
+      this.generationStats.set(parseGenerationStatistics(readAttr(attrs, 'OutputData')));
+    } catch (error) {
+      console.error('Failed to load generation result:', error);
+      this.generationError.set('Generation finished but loading its result failed.');
+    }
+  }
+
+  /**
+   * Executes a pipeline on the Communication Controller and polls until a NEW
+   * execution leaves the Running state.
+   *
+   * Polling strategy: snapshot the latest execution's id first; then every
+   * 1.5 s fetch the latest execution metadata. When the id differs from the
+   * snapshot AND the status is not Running, the run finished. Treats absent
+   * status as "done": the in-memory debug-cache branch of
+   * GET /pipelineDebug/.../latest doesn't populate Status (only the MongoDB
+   * fallback does), so a sub-second pipeline that hits the cache path before
+   * the DB row is visible would never satisfy a strict `status === 'Completed'`
+   * check and the button would freeze. We only keep polling while the
+   * controller *explicitly* reports "Running" (case-insensitive). Aborts after
+   * 60 s ('timeout').
+   */
+  private async executePipelineAndAwaitCompletion(
+    pipeline: PipelineCandidate,
+    tenant: string,
+  ): Promise<'completed' | 'timeout' | 'start-failed'> {
     // Snapshot the latest execution's id so we can detect the new one finishing.
     let previousExecutionId: string | null = null;
     try {
@@ -639,16 +874,10 @@ export class MappingCoverageTreeComponent implements OnInit {
     try {
       await this.communicationService.executePipeline(tenant, pipeline.rtId);
     } catch (error) {
-      console.error('Failed to start validation pipeline:', error);
-      this.validationError.set('Failed to start validation pipeline.');
-      this.validationRunning.set(false);
-      return;
+      console.error('Failed to start pipeline:', error);
+      return 'start-failed';
     }
 
-    // Poll for completion. We accept that the new execution id may equal
-    // previousExecutionId for a brief moment until the controller flushes it
-    // — that's why we also accept any latest execution whose status leaves
-    // Running (Completed / Failed / Interrupted / Cancelled).
     const startedAt = Date.now();
     const timeoutMs = 60_000;
     const pollIntervalMs = 1500;
@@ -661,29 +890,16 @@ export class MappingCoverageTreeComponent implements OnInit {
         );
         if (!latest) continue;
         const idChanged = latest.id !== previousExecutionId;
-        // Treat absent status as "done". The in-memory debug-cache branch of
-        // GET /pipelineDebug/.../latest doesn't populate Status (only the
-        // MongoDB fallback does), so a sub-second pipeline that hits the
-        // cache path before the DB row is visible would never satisfy a
-        // strict `status === 'Completed'` check and the button would freeze.
-        // We only keep polling while the controller *explicitly* reports
-        // "Running" (case-insensitive for safety).
         const stillRunning =
           typeof latest.status === 'string' && latest.status.toLowerCase() === 'running';
         if (idChanged && !stillRunning) {
-          this.validationRunning.set(false);
-          await this.refreshValidation();
-          return;
+          return 'completed';
         }
       } catch (error) {
-        console.warn('Polling validation execution failed:', error);
+        console.warn('Polling pipeline execution failed:', error);
       }
     }
-
-    // Timeout: leave running flag off so the button is usable again; user can
-    // hit Load Report manually if the pipeline is just slow.
-    this.validationRunning.set(false);
-    this.validationError.set('Validation is still running — use Load Report to refresh later.');
+    return 'timeout';
   }
 
   private async refreshTreeOverlay(): Promise<void> {
@@ -1275,6 +1491,35 @@ function normaliseStatus(value: string | undefined): CoverageNodeStatus {
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Parses the OutputData of a generation-pipeline execution into the
+ * GenerateDataPointMappings statistics shape. Returns null when the payload is
+ * missing, not JSON, or clearly something else (e.g. a validation report) —
+ * the UI then shows a plain "completed" note instead of numbers.
+ */
+function parseGenerationStatistics(serialised: string | null): GenerationStatistics | null {
+  if (!serialised) return null;
+  try {
+    const parsed = JSON.parse(serialised) as Record<string, unknown> | null;
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (!('totalSuggestions' in parsed) && !('ruleHits' in parsed) && !('matchedContainers' in parsed)) {
+      return null;
+    }
+    const stats = parsed as GenerationStatistics;
+    return {
+      totalContainers: stats.totalContainers,
+      matchedContainers: stats.matchedContainers,
+      unmatchedContainers: stats.unmatchedContainers,
+      unmatchedContainerNames: stats.unmatchedContainerNames ?? [],
+      totalSuggestions: stats.totalSuggestions,
+      ruleHits: stats.ruleHits ?? {},
+      definedRuleIds: stats.definedRuleIds ?? [],
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**

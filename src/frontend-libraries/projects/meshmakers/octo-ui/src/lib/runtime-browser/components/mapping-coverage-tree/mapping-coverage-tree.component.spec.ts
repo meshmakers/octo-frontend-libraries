@@ -19,6 +19,7 @@ import {
   PerspectiveDefinition,
   TreeNavigationConfigService,
 } from '../../services/tree-navigation-config.service';
+import { BulkMappingDialogService } from './bulk-mapping-dialog.service';
 import { MappingCoverageTreeComponent } from './mapping-coverage-tree.component';
 import { MappingEditDialogService } from './mapping-edit-dialog.service';
 
@@ -66,6 +67,9 @@ describe('MappingCoverageTreeComponent', () => {
   let getOrphanCandidatesGQL: jasmine.SpyObj<GetOrphanCandidatesDtoGQL>;
   let getEntitiesByCkTypeGQL: jasmine.SpyObj<GetEntitiesByCkTypeDtoGQL>;
   let treeNavConfig: jasmine.SpyObj<TreeNavigationConfigService>;
+  let bulkDialog: jasmine.SpyObj<BulkMappingDialogService>;
+  let createEntitiesGQL: jasmine.SpyObj<CreateEntitiesDtoGQL>;
+  let getLatestValidationGQL: jasmine.SpyObj<GetLatestValidationExecutionDtoGQL>;
 
   const SYSTEMS_PERSPECTIVE: PerspectiveDefinition = {
     key: 'Systems',
@@ -87,6 +91,9 @@ describe('MappingCoverageTreeComponent', () => {
     );
     treeNavConfig = jasmine.createSpyObj('TreeNavigationConfigService', ['perspectives']);
     treeNavConfig.perspectives.and.resolveTo([]);
+    bulkDialog = jasmine.createSpyObj('BulkMappingDialogService', ['open']);
+    createEntitiesGQL = jasmine.createSpyObj('CreateEntitiesDtoGQL', ['mutate']);
+    getLatestValidationGQL = jasmine.createSpyObj('GetLatestValidationExecutionDtoGQL', ['fetch']);
 
     await TestBed.configureTestingModule({
       imports: [MappingCoverageTreeComponent],
@@ -98,13 +105,14 @@ describe('MappingCoverageTreeComponent', () => {
         { provide: GetEntitiesByCkTypeDtoGQL, useValue: getEntitiesByCkTypeGQL },
         { provide: GetNodeMappingsDtoGQL, useValue: {} },
         { provide: GetRuntimeEntityByIdDtoGQL, useValue: {} },
-        { provide: GetLatestValidationExecutionDtoGQL, useValue: {} },
+        { provide: GetLatestValidationExecutionDtoGQL, useValue: getLatestValidationGQL },
         { provide: GetOrphanCandidatesDtoGQL, useValue: getOrphanCandidatesGQL },
         { provide: GetMappingCoverageNodeDtoGQL, useValue: {} },
-        { provide: CreateEntitiesDtoGQL, useValue: {} },
+        { provide: CreateEntitiesDtoGQL, useValue: createEntitiesGQL },
         { provide: DeleteEntitiesDtoGQL, useValue: {} },
         { provide: UpdateRuntimeEntitiesDtoGQL, useValue: {} },
         { provide: TreeNavigationConfigService, useValue: treeNavConfig },
+        { provide: BulkMappingDialogService, useValue: bulkDialog },
       ],
     }).compileComponents();
 
@@ -219,6 +227,160 @@ describe('MappingCoverageTreeComponent', () => {
       const rootQueryVariables =
         getEntitiesByCkTypeGQL.fetch.calls.mostRecent().args[0]?.variables;
       expect(rootQueryVariables?.ckTypeId).toBe(component.config.rootCkTypeId);
+    });
+  });
+
+  describe('orphan multi-select + bulk mapping', () => {
+    beforeEach(async () => {
+      component['orphanCkType'].set('Loxone/Control');
+      getOrphanCandidatesGQL.fetch.and.returnValue(
+        of(orphanPage([orphanItem('a1', 'Alpha'), orphanItem('b2', 'Beta')], false, null)),
+      );
+      await component['loadOrphanCandidates']();
+    });
+
+    it('toggles, selects all visible and clears the selection', () => {
+      component['toggleOrphanSelected']('a1');
+      expect(component['orphanSelectedCount']()).toBe(1);
+      expect(component['isOrphanSelected']('a1')).toBeTrue();
+
+      component['toggleOrphanSelected']('a1');
+      expect(component['orphanSelectedCount']()).toBe(0);
+
+      component['selectAllVisibleOrphans']();
+      expect(component['orphanSelectedCount']()).toBe(2);
+
+      component['clearOrphanSelection']();
+      expect(component['orphanSelectedCount']()).toBe(0);
+    });
+
+    it('creates one mapping per selected source in a single mutation', async () => {
+      component['selectAllVisibleOrphans']();
+      bulkDialog.open.and.resolveTo({
+        confirmed: true,
+        value: {
+          targetRtId: 'space-1',
+          targetCkTypeId: 'EnergyIQ/Space',
+          targetName: 'Wohnzimmer',
+          sourceAttributePath: 'tempActual',
+          targetAttributePath: 'Temperature',
+          mappingExpression: 'value',
+          enabled: true,
+        },
+      });
+      createEntitiesGQL.mutate.and.returnValue(of({ data: {} }) as never);
+
+      await component['bulkMapSelected']();
+
+      expect(createEntitiesGQL.mutate).toHaveBeenCalledTimes(1);
+      const variables = createEntitiesGQL.mutate.calls.mostRecent().args[0]
+        ?.variables as { entities: Record<string, unknown>[] };
+      expect(variables.entities.length).toBe(2);
+      const first = variables.entities[0] as {
+        ckTypeId: string;
+        attributes: { attributeName: string; value: unknown }[];
+        associations: { roleName: string; targets: { target: { rtId: string } }[] }[];
+      };
+      expect(first.ckTypeId).toBe(component.config.mappingCkTypeId);
+      expect(first.attributes.find(a => a.attributeName === 'TargetAttributePath')?.value)
+        .toBe('Temperature');
+      expect(first.associations.map(a => a.roleName)).toEqual([
+        component.config.mappingSourceOutboundRoleName,
+        component.config.mappingTargetOutboundRoleName,
+      ]);
+      expect(first.associations[0].targets[0].target.rtId).toBe('a1');
+      expect(first.associations[1].targets[0].target.rtId).toBe('space-1');
+      // Selection is cleared and the catalogue reloaded.
+      expect(component['orphanSelectedCount']()).toBe(0);
+      expect(getOrphanCandidatesGQL.fetch.calls.count()).toBeGreaterThan(1);
+    });
+
+    it('creates nothing when the dialog is cancelled', async () => {
+      component['toggleOrphanSelected']('a1');
+      bulkDialog.open.and.resolveTo({ confirmed: false });
+
+      await component['bulkMapSelected']();
+
+      expect(createEntitiesGQL.mutate).not.toHaveBeenCalled();
+      expect(component['orphanSelectedCount']()).toBe(1);
+    });
+  });
+
+  describe('generation result loading', () => {
+    function latestExecutionResponse(
+      outputData: string | null,
+    ): ReturnType<GetLatestValidationExecutionDtoGQL['fetch']> {
+      return of({
+        data: {
+          runtime: {
+            runtimeEntities: {
+              items: [
+                {
+                  rtId: 'pipe-1',
+                  associations: {
+                    executions: {
+                      items: [
+                        {
+                          rtId: 'exec-1',
+                          attributes: {
+                            items: [
+                              { attributeName: 'outputData', value: outputData },
+                              { attributeName: 'completedAt', value: '2026-07-04T10:00:00Z' },
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      }) as unknown as ReturnType<GetLatestValidationExecutionDtoGQL['fetch']>;
+    }
+
+    it('parses GenerateDataPointMappings statistics from OutputData', async () => {
+      getLatestValidationGQL.fetch.and.returnValue(
+        latestExecutionResponse(
+          JSON.stringify({
+            totalContainers: 10,
+            matchedContainers: 8,
+            unmatchedContainers: 2,
+            unmatchedContainerNames: ['Keller', 'Dach'],
+            totalSuggestions: 42,
+            ruleHits: { temp: 20, co2: 22 },
+            definedRuleIds: ['temp', 'co2'],
+          }),
+        ),
+      );
+
+      await component['loadGenerationResult']({
+        rtId: 'pipe-1',
+        ckTypeId: 'System.Communication/Pipeline',
+        name: 'Auto-Map',
+      });
+
+      const stats = component['generationStats']();
+      expect(stats?.totalSuggestions).toBe(42);
+      expect(stats?.matchedContainers).toBe(8);
+      expect(stats?.unmatchedContainerNames).toEqual(['Keller', 'Dach']);
+      expect(component['generationCompletedAt']()).toBe('2026-07-04T10:00:00Z');
+    });
+
+    it('degrades to null statistics for a non-statistics OutputData payload', async () => {
+      getLatestValidationGQL.fetch.and.returnValue(
+        latestExecutionResponse(JSON.stringify({ summary: { ok: 1 }, nodes: [] })),
+      );
+
+      await component['loadGenerationResult']({
+        rtId: 'pipe-1',
+        ckTypeId: 'System.Communication/Pipeline',
+        name: 'Auto-Map',
+      });
+
+      expect(component['generationStats']()).toBeNull();
+      expect(component['generationCompletedAt']()).toBe('2026-07-04T10:00:00Z');
     });
   });
 });

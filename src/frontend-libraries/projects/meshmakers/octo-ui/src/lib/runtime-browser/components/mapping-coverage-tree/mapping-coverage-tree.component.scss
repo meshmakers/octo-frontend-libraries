@@ -332,6 +332,13 @@
     align-items: center;
     gap: 8px;
 
+    .orphan-check {
+      flex-shrink: 0;
+      margin: 0;
+      cursor: pointer;
+      accent-color: var(--kendo-color-primary, #ff6358);
+    }
+
     .orphan-name {
       flex: 1;
       font-weight: 600;

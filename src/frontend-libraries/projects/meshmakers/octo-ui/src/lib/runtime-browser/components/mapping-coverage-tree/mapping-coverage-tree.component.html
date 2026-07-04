@@ -94,6 +94,56 @@
     }
   </div>
 
+  @if (tenantId) {
+    <div class="coverage-toolbar coverage-toolbar-validation">
+      <label class="toolbar-label">Generation:</label>
+      <select class="root-select"
+              [value]="selectedGenerationPipeline()?.rtId ?? ''"
+              (change)="onGenerationSelectChange($any($event.target).value)">
+        <option value="" disabled>— Pick an auto-mapping pipeline —</option>
+        @for (p of validationPipelines(); track p.rtId) {
+          <option [value]="p.rtId">{{ p.name }}</option>
+        }
+      </select>
+      <button kendoButton themeColor="primary" size="small"
+              [disabled]="!selectedGenerationPipeline() || generationRunning()"
+              (click)="runGeneration()"
+              [title]="generationRunning() ? 'Generation running…' : 'Run the auto-mapping pipeline and reload counts'">
+        @if (generationRunning()) { Running… } @else { Generate }
+      </button>
+
+      <div class="toolbar-spacer"></div>
+
+      @if (generationRunning()) {
+        <span class="toolbar-meta">Generating mappings…</span>
+      } @else if (generationError(); as err) {
+        <span class="toolbar-meta validation-error-text">{{ err }}</span>
+      } @else if (generationStats(); as s) {
+        <span class="validation-summary">
+          @if (s.totalSuggestions !== undefined) {
+            <span class="badge badge-ok" title="mapping suggestions produced">{{ s.totalSuggestions }} mappings</span>
+          }
+          @if (s.matchedContainers !== undefined && s.totalContainers !== undefined) {
+            <span class="badge" title="containers (e.g. rooms) matched to a target">
+              {{ s.matchedContainers }}/{{ s.totalContainers }} matched
+            </span>
+          }
+          @if (s.unmatchedContainers) {
+            <span class="badge badge-warning"
+                  [attr.title]="'Unmatched: ' + (s.unmatchedContainerNames ?? []).join(', ')">
+              {{ s.unmatchedContainers }} unmatched
+            </span>
+          }
+          @if (generationCompletedAt(); as ts) {
+            <span class="validation-timestamp">{{ ts }}</span>
+          }
+        </span>
+      } @else if (generationCompletedAt(); as ts) {
+        <span class="toolbar-meta">Completed {{ ts }} (no statistics in OutputData)</span>
+      }
+    </div>
+  }
+
   <div class="coverage-body">
     <div class="coverage-tree-pane">
       @if (selectedRoot()) {
@@ -227,6 +277,20 @@
 
       <div class="toolbar-spacer"></div>
 
+      <button kendoButton size="small" fillMode="flat"
+              [disabled]="orphanFilteredList().length === 0"
+              (click)="selectAllVisibleOrphans()"
+              title="Select every row visible under the current filter">Select all</button>
+      <button kendoButton size="small" fillMode="flat"
+              [disabled]="orphanSelectedCount() === 0"
+              (click)="clearOrphanSelection()">Clear</button>
+      <button kendoButton themeColor="primary" size="small"
+              [disabled]="orphanSelectedCount() === 0"
+              (click)="bulkMapSelected()"
+              title="Create one mapping per selected source (shared target + paths)">
+        Map {{ orphanSelectedCount() }} selected…
+      </button>
+
       @if (orphanStats(); as s) {
         <span class="validation-summary">
           <span class="badge badge-error" title="unmapped — no DataPointMapping yet">{{ s.unmapped }} unmapped</span>
@@ -274,6 +338,10 @@
       <ng-template #orphanRowTpl let-item>
         <li class="orphan-row" [class.orphan-mapped]="item.mappingCount > 0">
           <div class="orphan-line">
+            <input type="checkbox" class="orphan-check"
+                   [checked]="isOrphanSelected(item.rtId)"
+                   (change)="toggleOrphanSelected(item.rtId)"
+                   [attr.aria-label]="'Select ' + item.name" />
             <span class="orphan-name">{{ item.name }}</span>
             @if (item.mappingCount > 0) {
               <span class="orphan-badge orphan-badge-mapped">

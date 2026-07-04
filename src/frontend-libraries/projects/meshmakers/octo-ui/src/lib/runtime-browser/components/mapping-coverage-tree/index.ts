@@ -7,6 +7,13 @@ export type {
   MappingEditDialogResult,
   MappingEditValue,
 } from './mapping-edit-dialog.service';
+export { BulkMappingDialogComponent } from './bulk-mapping-dialog.component';
+export { BulkMappingDialogService } from './bulk-mapping-dialog.service';
+export type {
+  BulkMappingDialogData,
+  BulkMappingDialogResult,
+  BulkMappingValue,
+} from './bulk-mapping-dialog.service';
 export {
   DEFAULT_MAPPING_COVERAGE_TREE_CONFIG,
 } from './mapping-coverage-tree.models';
