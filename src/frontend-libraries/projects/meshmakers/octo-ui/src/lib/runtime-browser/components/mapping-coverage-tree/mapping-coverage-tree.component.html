@@ -254,6 +254,7 @@
       <select class="root-select"
               [value]="orphanCkType() ?? ''"
               (change)="onOrphanCkTypeChange($any($event.target).value)">
+        <option value="" disabled>— Pick a source type —</option>
         @for (ckType of config.sourceCandidateCkTypeIds; track ckType) {
           <option [value]="ckType">{{ ckType }}</option>
         }

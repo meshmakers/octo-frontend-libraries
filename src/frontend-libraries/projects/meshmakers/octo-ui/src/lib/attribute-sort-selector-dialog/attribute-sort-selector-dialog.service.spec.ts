@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { WindowStateService } from '@meshmakers/shared-ui';
 import { Subject } from 'rxjs';
 import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { AttributeItem } from '@meshmakers/octo-services';
@@ -68,6 +69,13 @@ describe('AttributeSortSelectorDialogService', () => {
     });
 
     service = TestBed.inject(AttributeSortSelectorDialogService);
+    // Pin the viewport clamp in the shared-ui WindowStateService to a large
+    // screen — the karma browser window is small and would otherwise shrink
+    // the dimensions these specs assert verbatim.
+    const windowState = TestBed.inject(WindowStateService);
+    spyOn<never>(windowState as never, 'viewportSize' as never).and.returnValue(
+      { width: 1920, height: 1080 } as never,
+    );
   });
 
   it('should be created', () => {

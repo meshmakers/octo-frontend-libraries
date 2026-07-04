@@ -1,3 +1,4 @@
+import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { ConfirmationService } from '@meshmakers/shared-ui';
@@ -176,6 +177,58 @@ describe('MappingCoverageTreeComponent', () => {
 
       expect(component['orphanError']()).toBe('Failed to load source candidates.');
       expect(component['orphanCandidates']().length).toBe(0);
+    });
+  });
+
+  describe('late-arriving source-candidate config (ngOnChanges)', () => {
+    function changeConfigTo(sourceCandidateCkTypeIds: string[]): void {
+      const previous = component.config;
+      component.config = { ...component.config, sourceCandidateCkTypeIds };
+      component.ngOnChanges({
+        config: new SimpleChange(previous, component.config, false),
+      });
+    }
+
+    it('initialises the orphan type selection when the config arrives late', () => {
+      expect(component['orphanCkType']()).toBeNull();
+
+      changeConfigTo(['Loxone/Control', 'MQTT/Topic']);
+
+      expect(component['orphanCkType']()).toBe('Loxone/Control');
+    });
+
+    it('loads the catalogue immediately when the orphan tab is already active', () => {
+      getOrphanCandidatesGQL.fetch.and.returnValue(
+        of(orphanPage([orphanItem('a1', 'Alpha')], false, null)),
+      );
+      component['activeTab'].set('orphans');
+
+      changeConfigTo(['Loxone/Control']);
+
+      expect(getOrphanCandidatesGQL.fetch).toHaveBeenCalled();
+    });
+
+    it('does not reload when the tab is inactive', () => {
+      changeConfigTo(['Loxone/Control']);
+
+      expect(getOrphanCandidatesGQL.fetch).not.toHaveBeenCalled();
+    });
+
+    it('clears a selection whose type was removed from the config', () => {
+      changeConfigTo(['Loxone/Control']);
+      expect(component['orphanCkType']()).toBe('Loxone/Control');
+
+      changeConfigTo(['MQTT/Topic']);
+
+      expect(component['orphanCkType']()).toBe('MQTT/Topic');
+    });
+
+    it('ignores the first change (ngOnInit handles the initial config)', () => {
+      const config = { ...component.config, sourceCandidateCkTypeIds: ['Loxone/Control'] };
+      component.config = config;
+      component.ngOnChanges({ config: new SimpleChange(undefined, config, true) });
+
+      expect(component['orphanCkType']()).toBeNull();
     });
   });
 

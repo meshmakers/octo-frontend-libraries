@@ -4,8 +4,10 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnChanges,
   OnInit,
   Output,
+  SimpleChanges,
   ViewChild,
   computed,
   inject,
@@ -162,7 +164,7 @@ const BUILT_IN_SPATIAL_PERSPECTIVE: PerspectiveDefinition = {
   templateUrl: './mapping-coverage-tree.component.html',
   styleUrls: ['./mapping-coverage-tree.component.scss'],
 })
-export class MappingCoverageTreeComponent implements OnInit {
+export class MappingCoverageTreeComponent implements OnInit, OnChanges {
   private readonly entitySelector = inject(EntitySelectorDialogService);
   private readonly treeNavConfig = inject(TreeNavigationConfigService);
   private readonly editDialog = inject(MappingEditDialogService);
@@ -357,6 +359,36 @@ export class MappingCoverageTreeComponent implements OnInit {
       const match = this.rootCandidates().find(r => r.rtId === this.initialRoot?.rtId);
       if (match) {
         await this.selectRoot(match);
+      }
+    }
+  }
+
+  /**
+   * The Studio loads the per-tenant source-candidate CK types ASYNCHRONOUSLY
+   * (System.UI singleton) and re-emits the `config` input when they arrive —
+   * after this component's ngOnInit already ran with an empty list. Pick up
+   * the late config here: refresh the data source and initialise the orphan
+   * tab's type selection once, loading the catalogue immediately when the
+   * tab is already active (otherwise it silently stays empty).
+   */
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['config'] || changes['config'].isFirstChange()) {
+      return;
+    }
+    this.dataSource.setConfig(this.config);
+
+    const sourceTypes = this.config.sourceCandidateCkTypeIds;
+    const current = this.orphanCkType();
+    if (current && !sourceTypes.includes(current)) {
+      // The selected type was removed from the configuration.
+      this.orphanCkType.set(null);
+      this.orphanCandidates.set([]);
+      this.clearOrphanSelection();
+    }
+    if (!this.orphanCkType() && sourceTypes.length > 0) {
+      this.orphanCkType.set(sourceTypes[0]);
+      if (this.activeTab() === 'orphans') {
+        void this.loadOrphanCandidates();
       }
     }
   }
