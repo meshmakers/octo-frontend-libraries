@@ -229,6 +229,12 @@ configured through `MappingCoverageTreeConfig` (roles + CK type ids;
   demo-energy-iq rules pipeline does); foreign payloads degrade to a plain
   "completed" note. Tree, selected-node mappings and orphan catalogue reload
   afterwards.
+- **Orphan full-text search:** the orphan toolbar filters the loaded
+  catalogue client-side (case-insensitive contains over name, description,
+  rtId AND the parent breadcrumb — searching a room name lists all its
+  controls; combined with "Select all" that is a per-room bulk mapping).
+  Cleared on source-type change; empty-result and "N shown" states are
+  explicit.
 - **Orphan bulk mapping:** every orphan row has a checkbox; Select all
   (visible under the current filter) / Clear / "Map N selected…" live in the
   orphan toolbar. The `BulkMappingDialogComponent` (via

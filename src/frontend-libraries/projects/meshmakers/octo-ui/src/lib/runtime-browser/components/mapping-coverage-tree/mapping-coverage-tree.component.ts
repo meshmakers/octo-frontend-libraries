@@ -24,6 +24,7 @@ import {
   pencilIcon,
   plusIcon,
   trashIcon,
+  xIcon,
 } from '@progress/kendo-svg-icons';
 import { TreeItemData, TreeItemDataTyped } from '@meshmakers/shared-services';
 import { ConfirmationService, TreeComponent } from '@meshmakers/shared-ui';
@@ -216,6 +217,7 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
     pencil: pencilIcon,
     trash: trashIcon,
     link: linkIcon,
+    x: xIcon,
   };
 
   /** Selectable tree perspectives (built-in Spatial + per-tenant configured). */
@@ -267,9 +269,17 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
   protected readonly orphanError = signal<string | null>(null);
   protected readonly orphanHideMapped = signal<boolean>(true);
 
+  /** Full-text filter over the loaded orphan catalogue (client-side). */
+  protected readonly orphanSearchText = signal<string>('');
+
   protected readonly orphanFilteredList = computed(() => {
     const all = this.orphanCandidates();
-    return this.orphanHideMapped() ? all.filter(c => c.mappingCount === 0) : all;
+    const hideMapped = this.orphanHideMapped();
+    const needle = this.orphanSearchText().trim().toLowerCase();
+    return all.filter(c => {
+      if (hideMapped && c.mappingCount > 0) return false;
+      return !needle || matchesOrphanSearch(c, needle);
+    });
   });
 
   /** rtIds of the orphan rows selected for the bulk "Map selected…" action. */
@@ -532,6 +542,7 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
   protected onOrphanCkTypeChange(ckTypeId: string): void {
     this.orphanCkType.set(ckTypeId || null);
     this.orphanCandidates.set([]);
+    this.orphanSearchText.set('');
     this.clearOrphanSelection();
     if (ckTypeId) void this.loadOrphanCandidates();
   }
@@ -1539,6 +1550,19 @@ function normaliseStatus(value: string | undefined): CoverageNodeStatus {
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Case-insensitive contains-match over everything a user might remember about
+ * an orphan row: entity name, description, rtId and the parent breadcrumb
+ * (so searching a ROOM name finds all its controls — combine with
+ * "Select all" for a per-room bulk mapping).
+ */
+function matchesOrphanSearch(candidate: OrphanCandidate, needle: string): boolean {
+  if (candidate.name.toLowerCase().includes(needle)) return true;
+  if (candidate.description?.toLowerCase().includes(needle)) return true;
+  if (candidate.rtId.toLowerCase().includes(needle)) return true;
+  return candidate.parentPath.some(p => p.name.toLowerCase().includes(needle));
 }
 
 /**

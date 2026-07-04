@@ -180,6 +180,55 @@ describe('MappingCoverageTreeComponent', () => {
     });
   });
 
+  describe('orphan full-text search', () => {
+    beforeEach(async () => {
+      component['orphanCkType'].set('Loxone/Control');
+      const withParent = orphanItem('a1', 'Raumregler', 0);
+      withParent.associations.parent.items = [
+        {
+          rtId: 'p1',
+          ckTypeId: 'Loxone/Room',
+          rtWellKnownName: null,
+          attributes: { items: [{ attributeName: 'name', value: 'Wohnzimmer' }] },
+          associations: { parent: { items: [] } },
+        },
+      ] as never[];
+      getOrphanCandidatesGQL.fetch.and.returnValue(
+        of(orphanPage([withParent, orphanItem('b2', 'Meter Keller', 0)], false, null)),
+      );
+      await component['loadOrphanCandidates']();
+    });
+
+    it('filters by entity name (case-insensitive contains)', () => {
+      component['orphanSearchText'].set('meter');
+      expect(component['orphanFilteredList']().map(c => c.name)).toEqual(['Meter Keller']);
+    });
+
+    it('matches the parent breadcrumb (search by room)', () => {
+      component['orphanSearchText'].set('wohnzimmer');
+      expect(component['orphanFilteredList']().map(c => c.name)).toEqual(['Raumregler']);
+    });
+
+    it('shows everything again when cleared', () => {
+      component['orphanSearchText'].set('meter');
+      component['orphanSearchText'].set('');
+      expect(component['orphanFilteredList']().length).toBe(2);
+    });
+
+    it('select-all respects the active search filter', () => {
+      component['orphanSearchText'].set('meter');
+      component['selectAllVisibleOrphans']();
+      expect(component['orphanSelectedIds']().has('b2')).toBeTrue();
+      expect(component['orphanSelectedCount']()).toBe(1);
+    });
+
+    it('is reset when the source type changes', () => {
+      component['orphanSearchText'].set('meter');
+      component['onOrphanCkTypeChange']('MQTT/Topic');
+      expect(component['orphanSearchText']()).toBe('');
+    });
+  });
+
   describe('late-arriving source-candidate config (ngOnChanges)', () => {
     function changeConfigTo(sourceCandidateCkTypeIds: string[]): void {
       const previous = component.config;

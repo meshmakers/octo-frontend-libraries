@@ -262,6 +262,18 @@
       <button kendoButton fillMode="flat" size="small" [svgIcon]="icons.refresh"
               [disabled]="!orphanCkType() || orphanLoading()"
               (click)="refreshOrphans()" title="Reload"></button>
+      <span class="orphan-search-wrap">
+        <input type="text" class="root-select orphan-search"
+               placeholder="Search name, room, description…"
+               [value]="orphanSearchText()"
+               (input)="orphanSearchText.set($any($event.target).value)" />
+        @if (orphanSearchText()) {
+          <button kendoButton fillMode="flat" size="small" [svgIcon]="icons.x"
+                  class="orphan-search-clear"
+                  (click)="orphanSearchText.set('')"
+                  title="Clear search" aria-label="Clear search"></button>
+        }
+      </span>
       <label class="orphan-toggle">
         <input type="checkbox" [checked]="orphanHideMapped()" (change)="toggleOrphanHideMapped()" />
         Hide already-mapped
@@ -294,6 +306,9 @@
 
       @if (orphanStats(); as s) {
         <span class="validation-summary">
+          @if (orphanSearchText().trim()) {
+            <span class="badge badge-info" title="rows matching the search">{{ orphanFilteredList().length }} shown</span>
+          }
           <span class="badge badge-error" title="unmapped — no DataPointMapping yet">{{ s.unmapped }} unmapped</span>
           <span class="badge badge-ok" title="already covered by at least one mapping">{{ s.mapped }} mapped</span>
           <span class="badge">{{ s.total }} total</span>
@@ -308,7 +323,9 @@
         <div class="error-hint">{{ err }}</div>
       } @else if (orphanFilteredList().length === 0) {
         <div class="empty-hint">
-          @if (orphanHideMapped()) {
+          @if (orphanSearchText().trim()) {
+            No entries match "{{ orphanSearchText() }}".
+          } @else if (orphanHideMapped()) {
             All {{ orphanCkType() }} entities are mapped at least once. 🎉
           } @else {
             No entities of type {{ orphanCkType() }} found.

@@ -45,6 +45,17 @@
     height: 30px;
   }
 
+  .orphan-search-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+
+    .orphan-search {
+      flex: 1 1 220px;
+      min-width: 140px;
+    }
+  }
+
   .toolbar-spacer {
     flex: 1;
   }
