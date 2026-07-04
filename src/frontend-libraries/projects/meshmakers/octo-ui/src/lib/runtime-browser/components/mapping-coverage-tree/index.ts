@@ -14,6 +14,12 @@ export type {
   BulkMappingDialogResult,
   BulkMappingValue,
 } from './bulk-mapping-dialog.service';
+export { coerceDataPointValue, computeExpressionPreview } from './mapping-expression-preview';
+export type {
+  ExpressionPreview,
+  MappingExpressionEvaluatorFn,
+  MappingExpressionPreviewResult,
+} from './mapping-expression-preview';
 export {
   DEFAULT_MAPPING_COVERAGE_TREE_CONFIG,
 } from './mapping-coverage-tree.models';

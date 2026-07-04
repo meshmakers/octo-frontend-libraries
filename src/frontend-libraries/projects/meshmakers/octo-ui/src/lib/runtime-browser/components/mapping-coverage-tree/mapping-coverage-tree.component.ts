@@ -50,6 +50,7 @@ import {
 import { PerspectiveSwitcherComponent } from '../perspective-switcher/perspective-switcher.component';
 import { BulkMappingDialogService } from './bulk-mapping-dialog.service';
 import { MappingCoverageTreeDataSource } from './mapping-coverage-tree-data-source';
+import { MappingExpressionEvaluatorFn } from './mapping-expression-preview';
 import { MappingEditDialogService, MappingEditValue } from './mapping-edit-dialog.service';
 import {
   CoverageEntityRef,
@@ -195,6 +196,14 @@ export class MappingCoverageTreeComponent implements OnInit {
    * the pipeline externally.
    */
   @Input() tenantId: string | null = null;
+
+  /**
+   * Optional host-provided expression evaluator (e.g. expr-eval via
+   * `@meshmakers/octo-process-diagrams`' ExpressionEvaluatorService). When
+   * set, the mapping edit dialogs show a live preview of the expression
+   * applied to the source data point's current value.
+   */
+  @Input() expressionEvaluator: MappingExpressionEvaluatorFn | null = null;
 
   @Output() readonly entitySelected = new EventEmitter<CoverageEntityRef>();
 
@@ -622,7 +631,10 @@ export class MappingCoverageTreeComponent implements OnInit {
       mappingExpression: '',
       targetAttributePath: '',
     };
-    const result = await this.editDialog.open({ mapping: skeleton });
+    const result = await this.editDialog.open({
+      mapping: skeleton,
+      expressionEvaluator: this.expressionEvaluator ?? undefined,
+    });
     if (!result.confirmed) return;
     try {
       await this.saveEditedMapping(result.mapping);
@@ -673,6 +685,7 @@ export class MappingCoverageTreeComponent implements OnInit {
     if (sources.length === 0) return;
 
     const result = await this.bulkDialog.open({
+      expressionEvaluator: this.expressionEvaluator ?? undefined,
       sources: sources.map(s => ({
         rtId: s.rtId,
         ckTypeId: s.ckTypeId,
@@ -1078,7 +1091,10 @@ export class MappingCoverageTreeComponent implements OnInit {
       targetName: node?.name,
       targetAttributePath: mapping.targetAttributePath,
     };
-    const result = await this.editDialog.open({ mapping: initial });
+    const result = await this.editDialog.open({
+      mapping: initial,
+      expressionEvaluator: this.expressionEvaluator ?? undefined,
+    });
     if (!result.confirmed) return;
     await this.saveEditedMapping(result.mapping);
   }

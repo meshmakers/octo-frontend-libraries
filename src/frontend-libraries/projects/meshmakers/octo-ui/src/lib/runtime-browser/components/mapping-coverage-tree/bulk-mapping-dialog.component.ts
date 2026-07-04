@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { WindowRef } from '@progress/kendo-angular-dialog';
@@ -12,6 +12,10 @@ import { AttributeSelectorDialogService } from '../../../attribute-selector-dial
 import { DataPointPickerComponent } from '../../../data-point-picker/data-point-picker.component';
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
 import { CoverageEntityRef } from './mapping-coverage-tree.models';
+import {
+  computeExpressionPreview,
+  MappingExpressionEvaluatorFn,
+} from './mapping-expression-preview';
 
 /**
  * Shared settings applied to every mapping created by the bulk flow: one
@@ -33,6 +37,12 @@ export interface BulkMappingDialogData {
   /** The selected source entities (orphan-tab multi-select). */
   sources: CoverageEntityRef[];
   title?: string;
+  /**
+   * Optional host-provided expression evaluator. When set, the dialog shows a
+   * live preview of the mapping expression applied to the FIRST selected
+   * source's current data-point value.
+   */
+  expressionEvaluator?: MappingExpressionEvaluatorFn;
 }
 
 export type BulkMappingDialogResult =
@@ -95,6 +105,23 @@ export type BulkMappingDialogResult =
             placeholder="e.g. value, value / 100, value > 50 ? 1 : 0">
           </kendo-textbox>
           <span class="hint">Optional. mXparser expression. <code>value</code> = raw source value.</span>
+          @if (expressionPreview(); as p) {
+            <div class="expression-preview" [class.expression-preview-error]="p.result !== null && !p.result.valid">
+              <span class="preview-label">Preview ({{ firstSource()?.name }}):</span>
+              <code>value = {{ p.valueLabel }}</code>
+              @if (p.result; as r) {
+                @if (r.valid) {
+                  <span class="preview-arrow">→</span>
+                  <code>{{ r.preview }}</code>
+                  @if (p.passThrough) { <span class="preview-note">(pass-through)</span> }
+                } @else {
+                  <span class="preview-error-text">{{ r.error }}</span>
+                }
+              } @else {
+                <span class="preview-note">(no evaluator available)</span>
+              }
+            </div>
+          }
         </div>
 
         <div class="field-row">
@@ -289,6 +316,45 @@ export type BulkMappingDialogResult =
       font-style: italic;
     }
 
+    .expression-preview {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      background: color-mix(in srgb,
+        var(--kendo-color-success, #28a745) 10%, transparent);
+
+      &.expression-preview-error {
+        background: color-mix(in srgb,
+          var(--kendo-color-error, #dc3545) 10%, transparent);
+      }
+
+      .preview-label {
+        font-weight: 600;
+        color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
+      }
+
+      code {
+        font-family: monospace;
+      }
+
+      .preview-arrow {
+        opacity: 0.7;
+      }
+
+      .preview-note {
+        font-style: italic;
+        color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
+      }
+
+      .preview-error-text {
+        color: var(--kendo-color-error, #dc3545);
+      }
+    }
+
     .dialog-actions {
       flex: 0 0 auto;
       display: flex;
@@ -331,6 +397,25 @@ export class BulkMappingDialogComponent {
   private readonly targetAttributes = signal<AttributeItem[]>([]);
   protected readonly targetFilter = signal<string>('');
   protected readonly targetAttributesLoading = signal(false);
+
+  /** The source data-point picker; carries the selected point's current value. */
+  private readonly sourcePicker = viewChild(DataPointPickerComponent);
+
+  /** Optional host-provided evaluator (set via initialise). */
+  private expressionEvaluator: MappingExpressionEvaluatorFn | undefined;
+
+  /**
+   * Live "value = X → Y" preview of the shared mapping expression applied to
+   * the FIRST selected source's data-point value (the usual bulk case is a
+   * set of same-typed controls, so the first one is representative).
+   */
+  protected readonly expressionPreview = computed(() =>
+    computeExpressionPreview(
+      this.expressionEvaluator,
+      this.mappingExpression(),
+      this.sourcePicker()?.currentValue(),
+    ),
+  );
   protected readonly targetAttributeList = computed(() => {
     const filter = this.targetFilter().toLowerCase();
     const all = this.targetAttributes();
@@ -341,6 +426,7 @@ export class BulkMappingDialogComponent {
 
   public initialise(data: BulkMappingDialogData): void {
     this.sources.set(data.sources);
+    this.expressionEvaluator = data.expressionEvaluator;
   }
 
   protected isValid(): boolean {

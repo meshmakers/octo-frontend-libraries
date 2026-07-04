@@ -1,4 +1,4 @@
-import { DEFAULT_DATA_POINT, extractDataPointNames } from './data-point-picker.utils';
+import { DEFAULT_DATA_POINT, extractDataPointNames, extractDataPoints } from './data-point-picker.utils';
 
 describe('extractDataPointNames', () => {
   it('returns the default for null/undefined input', () => {
@@ -127,5 +127,52 @@ describe('extractDataPointNames', () => {
     expect(
       extractDataPointNames([{ attributeName: 'States', value: [] }]),
     ).toEqual([DEFAULT_DATA_POINT]);
+  });
+});
+
+describe('extractDataPoints', () => {
+  it('carries the entity-level CurrentValue on the default data point', () => {
+    const infos = extractDataPoints([
+      { attributeName: 'currentValue', value: '21.5' },
+    ]);
+    expect(infos).toEqual([{ name: DEFAULT_DATA_POINT, currentValue: '21.5' }]);
+  });
+
+  it('leaves currentValue undefined when the entity has none', () => {
+    const infos = extractDataPoints([{ attributeName: 'Name', value: 'X' }]);
+    expect(infos.length).toBe(1);
+    expect(infos[0].name).toBe(DEFAULT_DATA_POINT);
+    expect(infos[0].currentValue).toBeUndefined();
+  });
+
+  it('extracts CurrentValue from the GraphQL attributes-array record shape', () => {
+    const records = [
+      {
+        attributes: [
+          { attributeName: 'name', value: 'tempActual' },
+          { attributeName: 'currentValue', value: '22.3' },
+        ],
+      },
+    ];
+    const infos = extractDataPoints([{ attributeName: 'states', value: records }]);
+    expect(infos.find(i => i.name === 'tempActual')?.currentValue).toBe('22.3');
+  });
+
+  it('extracts CurrentValue from the attributes-object record shape', () => {
+    const records = [{ attributes: { Name: 'co2', CurrentValue: 640 } }];
+    const infos = extractDataPoints([{ attributeName: 'States', value: records }]);
+    expect(infos.find(i => i.name === 'co2')?.currentValue).toBe(640);
+  });
+
+  it('extracts CurrentValue from the flat record shape', () => {
+    const records = [{ Name: 'humidity', CurrentValue: '48' }];
+    const infos = extractDataPoints([{ attributeName: 'States', value: records }]);
+    expect(infos.find(i => i.name === 'humidity')?.currentValue).toBe('48');
+  });
+
+  it('leaves record currentValue undefined when the record carries none', () => {
+    const records = [{ Name: 'tempTarget' }];
+    const infos = extractDataPoints([{ attributeName: 'States', value: records }]);
+    expect(infos.find(i => i.name === 'tempTarget')?.currentValue).toBeUndefined();
   });
 });

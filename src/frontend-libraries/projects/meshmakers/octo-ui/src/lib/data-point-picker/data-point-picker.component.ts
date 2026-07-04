@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, output, signal, untracked } from '@angular/core';
 import { ComboBoxModule } from '@progress/kendo-angular-dropdowns';
 import { RtEntityDto } from '../graphQL/globalTypes';
-import { AttributeItemLike } from './data-point-picker.utils';
+import { AttributeItemLike, DataPointInfo } from './data-point-picker.utils';
 import { DataPointResolverService } from './data-point-resolver.service';
 
 /**
@@ -92,8 +92,23 @@ export class DataPointPickerComponent {
    *  want to refine a backing catalogue independently of the value selection. */
   readonly filterChange = output<string>();
 
-  protected readonly options = signal<string[]>([]);
+  /** Loaded data points incl. their last known values. */
+  private readonly dataPointInfos = signal<DataPointInfo[]>([]);
+
+  protected readonly options = computed<string[]>(() =>
+    this.dataPointInfos().map(info => info.name),
+  );
   protected readonly loading = signal<boolean>(false);
+
+  /**
+   * Last known value of the currently selected data point, or undefined when
+   * the selection is a custom/unknown name or the source carries no value.
+   * Public so hosts (e.g. the mapping-edit dialog's expression preview) can
+   * read it off a template reference.
+   */
+  readonly currentValue = computed<unknown>(
+    () => this.dataPointInfos().find(info => info.name === this.value())?.currentValue,
+  );
 
   /**
    * Current filter text entered into the combobox. Drives the case-insensitive
@@ -121,21 +136,21 @@ export class DataPointPickerComponent {
       const ckTypeId = this.entityCkTypeId();
       untracked(() => {
         if (ent) {
-          this.options.set(this.resolver.extractFromEntity(ent as Parameters<DataPointResolverService['extractFromEntity']>[0]));
+          this.dataPointInfos.set(this.resolver.extractInfosFromEntity(ent as Parameters<DataPointResolverService['extractInfosFromEntity']>[0]));
           this.loading.set(false);
           return;
         }
         if (!rtId || !ckTypeId) {
-          this.options.set([]);
+          this.dataPointInfos.set([]);
           this.loading.set(false);
           return;
         }
         this.loading.set(true);
-        void this.resolver.load(rtId, ckTypeId).then(opts => {
+        void this.resolver.loadInfos(rtId, ckTypeId).then(infos => {
           // Only commit if the inputs haven't changed underneath us. We compare
           // against the current input snapshot to avoid stomping a fresher load.
           if (this.entityRtId() === rtId && this.entityCkTypeId() === ckTypeId) {
-            this.options.set(opts);
+            this.dataPointInfos.set(infos);
             this.loading.set(false);
           }
         });
@@ -153,6 +168,6 @@ export class DataPointPickerComponent {
   }
 }
 
-/** Re-export the attribute item shape so consumers don't have to fish it out
- *  of the utils file when forwarding entities to the picker. */
-export type { AttributeItemLike };
+/** Re-export the attribute item shapes so consumers don't have to fish them
+ *  out of the utils file when forwarding entities to the picker. */
+export type { AttributeItemLike, DataPointInfo };

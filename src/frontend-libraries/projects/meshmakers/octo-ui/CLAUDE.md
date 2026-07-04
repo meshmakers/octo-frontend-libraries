@@ -237,6 +237,21 @@ configured through `MappingCoverageTreeConfig` (roles + CK type ids;
   the first selected entity), and the host creates one DataPointMapping per
   source in a single atomic `CreateEntities` mutation (per-source MapsFrom,
   shared MapsTo, generated names).
+- **Expression live preview:** the mapping edit + bulk dialogs show
+  "Preview: value = X → Y" — the selected source data point's last known
+  value run through the mapping expression. The evaluator is HOST-provided
+  (`MappingExpressionEvaluatorFn` via the `expressionEvaluator` input on
+  `mm-mapping-coverage-tree`, wired through the dialog data) — Refinery Studio
+  supplies expr-eval via `@meshmakers/octo-process-diagrams`'
+  `ExpressionEvaluatorService`, a client-side approximation of the backend's
+  mXparser. The pure pieces live in `mapping-expression-preview.ts`
+  (`computeExpressionPreview`, `coerceDataPointValue` — numeric/boolean string
+  coercion; empty expression = pass-through). The current value comes from
+  `DataPointPickerComponent.currentValue()` (public computed), backed by
+  `DataPointResolverService.loadInfos`/`extractInfosFromEntity` returning
+  `DataPointInfo { name, currentValue }` (record-level `CurrentValue` in all
+  three RecordArray shapes; the entity-level `CurrentValue` attribute for the
+  default `currentValue` data point).
 - **Per-tenant source-type persistence:** `MappingCoverageConfigService`
   (`runtime-browser/services/mapping-coverage-config.service.ts`) loads/saves
   the optional `System.UI/MappingCoverageConfiguration` singleton

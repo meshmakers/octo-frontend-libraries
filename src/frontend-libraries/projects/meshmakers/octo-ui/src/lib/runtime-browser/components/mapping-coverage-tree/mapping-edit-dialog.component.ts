@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { WindowRef } from '@progress/kendo-angular-dialog';
@@ -12,6 +12,10 @@ import { firstValueFrom } from 'rxjs';
 import { AttributeSelectorDialogService } from '../../../attribute-selector-dialog/attribute-selector-dialog.service';
 import { DataPointPickerComponent } from '../../../data-point-picker/data-point-picker.component';
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
+import {
+  computeExpressionPreview,
+  MappingExpressionEvaluatorFn,
+} from './mapping-expression-preview';
 
 /**
  * Editable view-model for one DataPointMapping. The fields mirror the CK
@@ -51,6 +55,12 @@ export interface MappingEditValue {
 export interface MappingEditDialogData {
   mapping: MappingEditValue;
   title?: string;
+  /**
+   * Optional host-provided expression evaluator. When set, the dialog shows a
+   * live preview of the mapping expression applied to the selected source
+   * data point's current value.
+   */
+  expressionEvaluator?: MappingExpressionEvaluatorFn;
   /**
    * Default CK type id for the Target Attribute Path autocomplete when the
    * mapping has no target picked yet. Once the user picks a target entity,
@@ -137,6 +147,7 @@ export type MappingEditDialogResult =
       <div class="field-row">
         <label>Source Data Point</label>
         <mm-data-point-picker
+          #sourcePicker
           [entityRtId]="model().sourceRtId"
           [entityCkTypeId]="model().sourceCkTypeId"
           [value]="model().sourceAttributePath"
@@ -157,10 +168,28 @@ export type MappingEditDialogResult =
 
       <div class="field-row">
         <label>Mapping Expression</label>
-        <kendo-textbox [(value)]="model().mappingExpression"
+        <kendo-textbox [value]="model().mappingExpression"
+          (valueChange)="onExpressionChange($event)"
           placeholder="e.g. value, value / 100, value > 50 ? 1 : 0">
         </kendo-textbox>
         <span class="hint">Optional. mXparser expression. <code>value</code> = raw source value.</span>
+        @if (expressionPreview(); as p) {
+          <div class="expression-preview" [class.expression-preview-error]="p.result !== null && !p.result.valid">
+            <span class="preview-label">Preview:</span>
+            <code>value = {{ p.valueLabel }}</code>
+            @if (p.result; as r) {
+              @if (r.valid) {
+                <span class="preview-arrow">→</span>
+                <code>{{ r.preview }}</code>
+                @if (p.passThrough) { <span class="preview-note">(pass-through)</span> }
+              } @else {
+                <span class="preview-error-text">{{ r.error }}</span>
+              }
+            } @else {
+              <span class="preview-note">(no evaluator available)</span>
+            }
+          </div>
+        }
       </div>
 
       <div class="field-row">
@@ -384,6 +413,45 @@ export type MappingEditDialogResult =
       letter-spacing: 0;
       font-style: italic;
     }
+
+    .expression-preview {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      background: color-mix(in srgb,
+        var(--kendo-color-success, #28a745) 10%, transparent);
+
+      &.expression-preview-error {
+        background: color-mix(in srgb,
+          var(--kendo-color-error, #dc3545) 10%, transparent);
+      }
+
+      .preview-label {
+        font-weight: 600;
+        color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
+      }
+
+      code {
+        font-family: monospace;
+      }
+
+      .preview-arrow {
+        opacity: 0.7;
+      }
+
+      .preview-note {
+        font-style: italic;
+        color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
+      }
+
+      .preview-error-text {
+        color: var(--kendo-color-error, #dc3545);
+      }
+    }
   `],
 })
 export class MappingEditDialogComponent {
@@ -424,6 +492,22 @@ export class MappingEditDialogComponent {
    */
   protected readonly effectiveTargetCkTypeId = computed<string | undefined>(() =>
     this.model().targetCkTypeId ?? this.data.targetCkTypeId,
+  );
+
+  /** The source data-point picker; carries the selected point's current value. */
+  private readonly sourcePicker = viewChild(DataPointPickerComponent);
+
+  /**
+   * Live "value = X → Y" preview of the mapping expression applied to the
+   * selected source data point's last known value. Null when the value is
+   * unknown; the evaluation itself requires a host-provided evaluator.
+   */
+  protected readonly expressionPreview = computed(() =>
+    computeExpressionPreview(
+      this.data.expressionEvaluator,
+      this.model().mappingExpression,
+      this.sourcePicker()?.currentValue(),
+    ),
   );
 
   public initialise(data: MappingEditDialogData): void {
@@ -530,6 +614,12 @@ export class MappingEditDialogComponent {
 
   protected onSourceAttributePathChange(value: string): void {
     this.model.update(m => ({ ...m, sourceAttributePath: value }));
+  }
+
+  protected onExpressionChange(value: string): void {
+    // Signal-updating (not in-place mutation) so the expression preview
+    // recomputes on every keystroke.
+    this.model.update(m => ({ ...m, mappingExpression: value ?? '' }));
   }
 
   protected onTargetAttributePathChange(value: string | null): void {
