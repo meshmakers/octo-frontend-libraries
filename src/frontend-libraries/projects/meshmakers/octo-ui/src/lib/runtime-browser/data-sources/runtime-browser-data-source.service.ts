@@ -61,6 +61,12 @@ interface AssociationGroupNode {
   roleId: string;
   targetCkTypeId: string;
   direction: GraphDirectionDto;
+  /**
+   * rtId of the GRANDparent entity (the tree parent of the entity this group
+   * belongs to). Its targets exclude this entity so the node the user came from
+   * does not reappear inside the group (direct-parent back-edge suppression).
+   */
+  excludeRtId?: string;
 }
 
 /** Inbound association role of a CK type, discovered from the CK schema. */
@@ -104,11 +110,12 @@ const SPATIAL_PERSPECTIVE_KEY = 'Spatial';
  * Id prefix marking a TreeItem as a TOP-LEVEL root of a `Type` perspective
  * (AB#4263). The perspective's whitelist + navigation direction apply ONLY to
  * nodes carrying this prefix, so a root entity that recurs deeper in the tree
- * (e.g. a member's back-reference to its DistributionSystem) is expanded with
- * normal inbound auto-discovery instead of re-navigating outbound — which would
- * otherwise cycle (system -> member -> system -> member -> …). The component
- * derives its own selection/expansion key from the entity data, not this id, so
- * the prefix is safe.
+ * (reached over a longer association path; the DIRECT parent back-edge itself
+ * is suppressed via `parentEntityRtIds`) is expanded with normal inbound
+ * auto-discovery instead of re-navigating outbound — which would otherwise
+ * cycle (system -> member -> system -> member -> …). The component derives its
+ * own selection/expansion key from the entity data, not this id, so the prefix
+ * is safe.
  */
 const PERSPECTIVE_ROOT_ID_PREFIX = 'perspective-root:';
 
@@ -324,6 +331,18 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     Promise<InboundAssociationRole[]>
   >();
 
+  /**
+   * The rtId of the entity tree node each entity item was loaded under
+   * (association group nodes are transparent — they record the entity that owns
+   * the group). Used to suppress the direct parent's back-edge on expand: an
+   * edge traversed downwards (e.g. system --SystemMembers--> member) is the very
+   * same edge the child's opposite-direction auto-discovery finds again, which
+   * would render the parent as its own child's child. Keyed by item object
+   * identity (every fetch builds fresh DTOs), so entries are collected together
+   * with their tree nodes. Roots are never registered and get no exclusion.
+   */
+  private readonly parentEntityRtIds = new WeakMap<object, string>();
+
   // Define visual metadata for different entity types
   private static readonly ckTypeMetaData: CkTypeMetaData[] = [
     new CkTypeMetaData('Basic/Tree', 'Tree', 'Tree Structure', folderMoreIcon),
@@ -361,7 +380,10 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         group.targetCkTypeId,
         group.direction,
       );
-      return this.buildEntityTreeItems(targets);
+      return this.buildEntityTreeItems(targets, {
+        parentRtId: group.parentRtId,
+        excludeRtId: group.excludeRtId,
+      });
     }
 
     // Handle regular runtime entity
@@ -382,6 +404,12 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       ? this.perspectiveNavDirection()
       : GraphDirectionDto.InboundDto;
 
+    // The entity tree node this one was loaded under (undefined for roots). Its
+    // edges are excluded below so the direct parent never reappears as a child —
+    // e.g. a DistributionSystem navigated outbound to a member would otherwise
+    // resurface on the member's inbound side via the very same edge.
+    const parentRtId = this.parentEntityRtIds.get(rtEntity);
+
     // Discover the association roles from the entity's ACTUAL edges
     // (associations.definitions) in navDirection, not the CK type schema. This
     // mirrors the entity detail "Associations" tab and also surfaces roles that
@@ -392,6 +420,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       rtEntity.rtId,
       rtEntity.ckTypeId,
       navDirection,
+      parentRtId,
     );
 
     const roleGroups = whitelist
@@ -442,7 +471,10 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         ),
     );
     result.push(
-      ...(await this.buildEntityTreeItems(flattenedTargetLists.flat())),
+      ...(await this.buildEntityTreeItems(flattenedTargetLists.flat(), {
+        parentRtId: rtEntity.rtId,
+        excludeRtId: parentRtId,
+      })),
     );
 
     // 2. Grouped roles become expandable group nodes (counts already known from
@@ -459,6 +491,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         roleId: group.roleId,
         targetCkTypeId: group.targetCkTypeId,
         direction: navDirection,
+        excludeRtId: parentRtId,
       };
       const label = `${a.displayName ?? group.navigationPropertyName} (${group.count})`;
       result.push(
@@ -484,18 +517,24 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
    * outbound, e.g. DistributionSystem --SystemMembers--> members). Labels are
    * enriched from the CK type schema (friendly navigation property name + base
    * type) when the role is declared on the type, otherwise derived from the role
-   * id (so orphan roles still get a readable label).
+   * id (so orphan roles still get a readable label). Edges whose other end is
+   * `excludeRtId` (the entity's direct tree parent) are skipped, so a group that
+   * only contains the parent's back-edge is dropped entirely and counts never
+   * include it.
    */
   private async discoverEntityRoleGroups(
     rtId: string,
     ckTypeId: string,
     direction: GraphDirectionDto = GraphDirectionDto.InboundDto,
+    excludeRtId?: string,
   ): Promise<EntityInboundRoleGroup[]> {
     const outbound = direction === GraphDirectionDto.OutboundDto;
     let definitions: ({
       ckAssociationRoleId?: string | null;
       originCkTypeId?: string | null;
+      originRtId?: string | null;
       targetCkTypeId?: string | null;
+      targetRtId?: string | null;
     } | null)[] = [];
     try {
       const response = await firstValueFrom(
@@ -532,6 +571,12 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
         (outbound ? def?.targetCkTypeId : def?.originCkTypeId) ?? '',
       );
       if (!roleId || !otherEnd || NON_NAVIGABLE_TARGET_CK_TYPES.has(otherEnd)) {
+        continue;
+      }
+      // Direct-parent back-edge: the edge we traversed to reach this entity,
+      // seen from its other side. Never show the parent as its own child's child.
+      const otherEndRtId = outbound ? def?.targetRtId : def?.originRtId;
+      if (excludeRtId && otherEndRtId === excludeRtId) {
         continue;
       }
       edgeCount.set(roleId, (edgeCount.get(roleId) ?? 0) + 1);
@@ -759,14 +804,22 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   /**
    * Builds tree items for runtime entities, de-duplicating by rtId and marking
    * an entity expandable when its CK type defines at least one inbound
-   * association role.
+   * association role. `opts.excludeRtId` drops the direct parent's back-edge
+   * target; `opts.parentRtId` registers the built items' tree parent so their
+   * own expansion can exclude it in turn.
    */
   private async buildEntityTreeItems(
     entities: RtEntityDto[],
+    opts?: { parentRtId?: string; excludeRtId?: string },
   ): Promise<TreeItemDataTyped<BrowserItem>[]> {
     const unique = new Map<string, RtEntityDto>();
     for (const entity of entities) {
-      if (entity?.rtId && entity?.ckTypeId && !unique.has(entity.rtId)) {
+      if (
+        entity?.rtId &&
+        entity?.ckTypeId &&
+        entity.rtId !== opts?.excludeRtId &&
+        !unique.has(entity.rtId)
+      ) {
         unique.set(entity.rtId, entity);
       }
     }
@@ -780,6 +833,9 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
 
     const result: TreeItemDataTyped<BrowserItem>[] = [];
     for (const entity of unique.values()) {
+      if (opts?.parentRtId) {
+        this.parentEntityRtIds.set(entity, opts.parentRtId);
+      }
       const roles = await this.getInboundRoles(entity.ckTypeId);
       result.push(
         new TreeItemDataTyped<BrowserItem>(

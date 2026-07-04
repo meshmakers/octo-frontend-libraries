@@ -145,13 +145,25 @@ and backend-free (reuses the existing `targets` resolver).
   its `SystemMembers`; the served spaces appear one hop deeper under each member.
   N:N members legitimately appear under more than one system (MVP: no explicit
   "shared" badge).
-- **Cycle prevention:** with outbound navigation a member's inbound auto-discovery
-  surfaces a back-reference to its root system (system → member → system). Because
-  the deep recurrence of the root is NOT prefixed, it is expanded with inbound
-  auto-discovery (which finds no outbound members) instead of re-navigating
-  outbound — so the tree terminates instead of looping infinitely. Keying the root
-  marker on the TreeItem id (not the entity rtId) is what distinguishes the
-  top-level root from its deep recurrence.
+- **Cycle prevention (two layers):**
+  1. *Direct-parent back-edge suppression:* the edge traversed downwards (e.g.
+     system `--SystemMembers-->` member) is the very same edge the child's
+     opposite-direction auto-discovery finds again, so without filtering the
+     parent reappears as its own child's child (system → member → system). The
+     data source remembers each entity item's tree-parent rtId in a WeakMap
+     (`parentEntityRtIds`, registered by `buildEntityTreeItems`, propagated
+     through group nodes via `AssociationGroupNode.excludeRtId`) and excludes
+     that rtId from the child's edge discovery (counts) and target lists. A
+     group whose only edge is the back-edge is dropped entirely; an N:N
+     member still shows its *other* systems (only the direct parent is
+     excluded, matching by rtId across all roles).
+  2. *No perspective re-application on deep recurrences:* should a root entity
+     still recur deeper in the tree (over a longer association path), it is NOT
+     prefixed and is expanded with inbound auto-discovery (which finds no
+     outbound members) instead of re-navigating outbound — so the tree
+     terminates instead of looping infinitely. Keying the root marker on the
+     TreeItem id (not the entity rtId) is what distinguishes the top-level root
+     from its deep recurrence.
 - **Navigation direction (`primaryDirection`):** the default auto-discovery is
   INBOUND (the containment side). When the association is authored on the root
   entity — e.g. `EnergyIQ/DistributionSystem --SystemMembers--> member` — the

@@ -831,6 +831,187 @@ describe('RuntimeBrowserDataSource', () => {
       expect(discoveryDirections).toContain(GraphDirectionDto.InboundDto);
       expect(discoveryDirections).not.toContain(GraphDirectionDto.OutboundDto);
     });
+
+    // Direct-parent back-edge suppression: the edge traversed downwards (system
+    // --SystemMembers--> member) is the same edge the member's inbound
+    // auto-discovery finds again; the parent must not reappear under its child.
+    describe('direct-parent back-edge suppression', () => {
+      // Schema: DistributionSystem navigates SystemMembers OUTBOUND; a member
+      // (HeatPump) sees the same role INBOUND as 'MemberOfSystem'.
+      interface SchemaRole {
+        roleId: string;
+        navigationPropertyName: string;
+        rtOriginCkTypeId?: string;
+        rtTargetCkTypeId?: string;
+      }
+      const schemaByType: Record<string, { in: SchemaRole[]; out: SchemaRole[] }> = {
+        'EnergyIQ/DistributionSystem': {
+          in: [],
+          out: [
+            {
+              roleId: 'EnergyIQ/SystemMembers',
+              navigationPropertyName: 'SystemMembers',
+              rtTargetCkTypeId: 'Basic/NamedEntity',
+            },
+          ],
+        },
+        'EnergyIQ/HeatPump': {
+          in: [
+            {
+              roleId: 'EnergyIQ/SystemMembers',
+              navigationPropertyName: 'MemberOfSystem',
+              rtOriginCkTypeId: 'EnergyIQ/DistributionSystem',
+            },
+          ],
+          out: [],
+        },
+      };
+
+      const schemaRolesFake = (opts: { variables: { ckTypeId: string } }) => {
+        const schema = schemaByType[opts.variables.ckTypeId] ?? { in: [], out: [] };
+        const toRole = (r: SchemaRole) => ({
+          roleId: { fullName: r.roleId, semanticVersionedFullName: `${r.roleId}:1` },
+          rtRoleId: r.roleId,
+          navigationPropertyName: r.navigationPropertyName,
+          multiplicity: 'N',
+          targetCkTypeId: { fullName: 'x' },
+          rtOriginCkTypeId: r.rtOriginCkTypeId ?? 'Self/Type',
+          rtTargetCkTypeId: r.rtTargetCkTypeId ?? 'Self/Type',
+        });
+        return of({
+          data: {
+            constructionKit: {
+              types: {
+                items: [
+                  {
+                    rtCkTypeId: 'rt',
+                    associations: {
+                      in: { all: schema.in.map(toRole) },
+                      out: { all: schema.out.map(toRole) },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        });
+      };
+
+      // Discovery per entity: the root's outbound members, the member's inbound
+      // back-edge to its parent system plus (optionally) a second system.
+      const discoveryFake =
+        (memberSystems: { rtId: string }[]) =>
+        (opts: { variables: { roleId?: string; rtId: string } }) => {
+          if (opts.variables.roleId) {
+            return of(mockAssocResponse);
+          }
+          const items =
+            opts.variables.rtId === 'ds-1'
+              ? [
+                  {
+                    ckAssociationRoleId: 'EnergyIQ/SystemMembers',
+                    targetCkTypeId: 'EnergyIQ/HeatPump',
+                    targetRtId: 'hp-1',
+                  },
+                ]
+              : memberSystems.map((s) => ({
+                  ckAssociationRoleId: 'EnergyIQ/SystemMembers',
+                  originCkTypeId: 'EnergyIQ/DistributionSystem',
+                  originRtId: s.rtId,
+                }));
+          return of({
+            data: {
+              runtime: {
+                runtimeEntities: {
+                  items: [{ associations: { definitions: { items } } }],
+                },
+              },
+            },
+          });
+        };
+
+      // Expands the Systems root and returns the flattened HeatPump member item.
+      // (Return type inferred — the service's internal BrowserItem union differs
+      // from the spec-local one by the AssociationGroupNode member.)
+      async function expandRootToMember() {
+        service.setActivePerspective('Systems');
+        const rootsPromise = service.fetchRootNodes();
+        await flushInline('getRuntimeEntitiesByCkType', oneDistributionSystem);
+        const roots = await rootsPromise;
+        const dsRoot = roots.find((n) => n.text === 'Heating circuit')!;
+        const children = await service.fetchChildren(dsRoot);
+        return children.find((c) => c.text === 'Heat pump')!;
+      }
+
+      beforeEach(() => {
+        mockTreeNavConfig.perspectives.and.resolveTo([
+          {
+            ...systemsPerspective,
+            secondaryRoleIds: undefined,
+            primaryDirection: 'Outbound',
+          },
+        ]);
+        mockGetCkTypeAssociationRolesGQL.fetch.and.callFake(schemaRolesFake);
+        mockGetTreeAssociationTargetsGQL.fetch.and.callFake(
+          (opts: { variables: { rtId: string } }) =>
+            of(
+              opts.variables.rtId === 'ds-1'
+                ? targetsResponse(
+                    [{ rtId: 'hp-1', ckTypeId: 'EnergyIQ/HeatPump', name: 'Heat pump' }],
+                    1,
+                  )
+                : targetsResponse(
+                    [
+                      {
+                        rtId: 'ds-1',
+                        ckTypeId: 'EnergyIQ/DistributionSystem',
+                        name: 'Heating circuit',
+                      },
+                      {
+                        rtId: 'ds-2',
+                        ckTypeId: 'EnergyIQ/DistributionSystem',
+                        name: 'Cooling circuit',
+                      },
+                    ],
+                    2,
+                  ),
+            ),
+        );
+      });
+
+      it('does not show the parent system again under a member reached from it', async () => {
+        mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.and.callFake(
+          discoveryFake([{ rtId: 'ds-1' }]),
+        );
+
+        const member = await expandRootToMember();
+        expect(member).toBeTruthy();
+
+        // The member's only inbound edge is the back-edge to ds-1 → no children.
+        const memberChildren = await service.fetchChildren(member);
+        expect(memberChildren.length).toBe(0);
+      });
+
+      it('keeps the other systems of an N:N member and excludes only the parent', async () => {
+        mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch.and.callFake(
+          discoveryFake([{ rtId: 'ds-1' }, { rtId: 'ds-2' }]),
+        );
+
+        const member = await expandRootToMember();
+        const memberChildren = await service.fetchChildren(member);
+
+        // The back-edge to ds-1 is excluded from the count; ds-2 remains.
+        const group = memberChildren.find((c) =>
+          c.text.includes('MemberOfSystem'),
+        )!;
+        expect(group).toBeTruthy();
+        expect(group.text).toBe('MemberOfSystem (1)');
+
+        // Expanding the group loads both systems but drops the direct parent.
+        const groupChildren = await service.fetchChildren(group);
+        expect(groupChildren.map((c) => c.text)).toEqual(['Cooling circuit']);
+      });
+    });
   });
 
   describe('fetchChildren', () => {
