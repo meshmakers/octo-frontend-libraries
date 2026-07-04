@@ -75,6 +75,36 @@
   min-height: 0;
 }
 
+// Small screens: the side-by-side master-detail split leaves both panes too
+// narrow to work with — stack them instead (tree on top, detail below) and
+// let the fixed-width toolbar selects shrink with the row.
+@media (max-width: 900px) {
+  .coverage-body {
+    flex-direction: column;
+  }
+
+  .coverage-tree-pane {
+    flex: 0 0 38vh;
+    min-width: 0;
+    min-height: 180px;
+  }
+
+  .coverage-detail-pane {
+    min-height: 180px;
+  }
+
+  .coverage-toolbar {
+    .toolbar-label {
+      flex: 0 0 auto;
+    }
+
+    .root-select {
+      flex: 1 1 200px;
+      max-width: 100%;
+    }
+  }
+}
+
 .coverage-tree-pane {
   flex: 0 0 40%;
   min-width: 240px;

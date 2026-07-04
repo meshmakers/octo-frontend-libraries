@@ -131,6 +131,24 @@ Use the optional `formatter` callback when the standard `dataType` rendering is 
 
 All components use **neutral, theme-agnostic defaults**. Host applications override via CSS custom properties or `::ng-deep`. No hardcoded theme colors in the library.
 
+### Window sizing (`WindowStateService`)
+
+`resolveWindowSize(dialogKey, defaults, min?)` resolves a dialog's opening size
+from the per-session persisted state (sessionStorage `mm-window-states`) with
+two guards:
+
+- **Sub-min stored sizes** fall back to the caller's defaults (presumed
+  corrupt captures), never clamp-to-min — clamping would trap the dialog at
+  min permanently.
+- **Viewport clamp:** the resolved size (defaults OR stored) is clamped to the
+  current viewport minus a 24px margin per side, so a large default or a size
+  captured on a bigger monitor can never push the dialog's action bar below
+  the fold on small resolutions. The clamp deliberately wins over the dialog's
+  minWidth/minHeight; stored sizes stay untouched, so returning to a larger
+  screen restores them. Tests pin the protected `viewportSize()` seam
+  (`spyOn`) because `window.innerWidth` is not assignable in Karma — specs
+  that assert verbatim dialog dimensions must pin it to a large screen.
+
 ## Key Development Patterns
 
 1. **Service-based dialogs** — Dialogs opened via injected services, not direct component instantiation

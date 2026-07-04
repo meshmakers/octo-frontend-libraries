@@ -283,10 +283,12 @@ export type BulkMappingDialogResult =
     .entity-meta {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 2px;
       font-size: 0.7rem;
       font-family: monospace;
       color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
+      word-break: break-all;
 
       .sep {
         opacity: 0.7;

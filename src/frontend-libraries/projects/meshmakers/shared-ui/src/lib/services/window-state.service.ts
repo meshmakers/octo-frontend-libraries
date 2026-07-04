@@ -34,18 +34,40 @@ export class WindowStateService {
     min?: WindowDimensions
   ): WindowDimensions {
     const stored = this.getDimensions(dialogKey);
-    if (!stored) {
-      return defaults;
-    }
+    let size = defaults;
     // Sub-min stored values are presumed corrupt (e.g. captured before the dialog's current
     // min was raised, or under a CSS zoom that distorted the saved rect). Fall back to the
     // caller's defaults instead of clamping to min — clamping would trap the dialog at min
     // permanently, since the next captureAndSave would store min and resolveWindowSize would
     // happily return it forever after.
-    if (min && (stored.width < min.width || stored.height < min.height)) {
-      return defaults;
+    if (stored && !(min && (stored.width < min.width || stored.height < min.height))) {
+      size = stored;
     }
-    return stored;
+    return this.clampToViewport(size);
+  }
+
+  /**
+   * Keeps a dialog fully on screen: neither a large default nor a size stored
+   * on a bigger monitor may exceed the current viewport (minus a margin), or
+   * the action bar ends up unreachable below the fold on small resolutions.
+   * The clamp deliberately wins over the dialog's minWidth/minHeight — a
+   * slightly-too-small dialog is usable, an off-screen one is not. Stored
+   * sizes stay untouched, so returning to a larger screen restores them.
+   */
+  private clampToViewport(size: WindowDimensions): WindowDimensions {
+    const viewport = this.viewportSize();
+    const margin = 24;
+    const maxWidth = Math.max(280, viewport.width - margin * 2);
+    const maxHeight = Math.max(240, viewport.height - margin * 2);
+    return {
+      width: Math.min(size.width, maxWidth),
+      height: Math.min(size.height, maxHeight)
+    };
+  }
+
+  /** Seam for tests — window.innerWidth/innerHeight are not assignable in Karma. */
+  protected viewportSize(): WindowDimensions {
+    return { width: window.innerWidth, height: window.innerHeight };
   }
 
   captureAndSave(

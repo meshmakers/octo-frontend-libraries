@@ -5,6 +5,7 @@ import { WindowStateService, WindowDimensions } from './window-state.service';
 
 describe('WindowStateService', () => {
   let service: WindowStateService;
+  let viewportSpy: jasmine.Spy;
 
   beforeEach(() => {
     sessionStorage.clear();
@@ -12,6 +13,12 @@ describe('WindowStateService', () => {
     document.querySelectorAll('.mm-window-backdrop').forEach(el => el.remove());
     TestBed.configureTestingModule({});
     service = TestBed.inject(WindowStateService);
+    // Pin the viewport seam to a large screen so the viewport clamp in
+    // resolveWindowSize is inert for the classic persistence specs (the karma
+    // browser window is small); the clamp itself has dedicated specs below.
+    viewportSpy = spyOn<never>(service as never, 'viewportSize' as never).and.returnValue(
+      { width: 1920, height: 1080 } as never,
+    );
   });
 
   afterEach(() => {
@@ -72,6 +79,52 @@ describe('WindowStateService', () => {
     const defaults: WindowDimensions = { width: 900, height: 640 };
     const min: WindowDimensions = { width: 550, height: 400 };
     expect(service.resolveWindowSize('valid-dialog', defaults, min)).toEqual(saved);
+  });
+
+  describe('viewport clamp', () => {
+    it('clamps defaults that exceed the viewport (24px margin per side)', () => {
+      viewportSpy.and.returnValue({ width: 700, height: 600 } as never);
+      const defaults: WindowDimensions = { width: 760, height: 760 };
+      expect(service.resolveWindowSize('small-screen', defaults)).toEqual({
+        width: 700 - 48,
+        height: 600 - 48
+      });
+    });
+
+    it('clamps stored sizes captured on a larger screen', () => {
+      service.saveDimensions('roamer', { width: 1400, height: 900 });
+      viewportSpy.and.returnValue({ width: 1024, height: 700 } as never);
+      expect(service.resolveWindowSize('roamer', { width: 700, height: 500 })).toEqual({
+        width: 1024 - 48,
+        height: 700 - 48
+      });
+      // The stored size stays untouched — a larger screen restores it.
+      expect(service.getDimensions('roamer')).toEqual({ width: 1400, height: 900 });
+    });
+
+    it('wins over the dialog minimum on very small viewports', () => {
+      viewportSpy.and.returnValue({ width: 500, height: 480 } as never);
+      const defaults: WindowDimensions = { width: 760, height: 760 };
+      const min: WindowDimensions = { width: 540, height: 480 };
+      expect(service.resolveWindowSize('tiny', defaults, min)).toEqual({
+        width: 500 - 48,
+        height: 480 - 48
+      });
+    });
+
+    it('never clamps below the hard floor', () => {
+      viewportSpy.and.returnValue({ width: 200, height: 180 } as never);
+      expect(service.resolveWindowSize('nano', { width: 760, height: 760 })).toEqual({
+        width: 280,
+        height: 240
+      });
+    });
+
+    it('leaves sizes that already fit untouched', () => {
+      viewportSpy.and.returnValue({ width: 1920, height: 1080 } as never);
+      const defaults: WindowDimensions = { width: 760, height: 760 };
+      expect(service.resolveWindowSize('fits', defaults)).toEqual(defaults);
+    });
   });
 
   it('should keep multiple dialog keys independent', () => {

@@ -252,6 +252,10 @@ configured through `MappingCoverageTreeConfig` (roles + CK type ids;
   `DataPointInfo { name, currentValue }` (record-level `CurrentValue` in all
   three RecordArray shapes; the entity-level `CurrentValue` attribute for the
   default `currentValue` data point).
+- **Small screens:** below 900px viewport width the master-detail split
+  stacks vertically (tree pane 38vh on top, detail below) and the fixed-width
+  toolbar selects become flexible; dialog sizes are kept on screen by the
+  shared-ui `WindowStateService` viewport clamp.
 - **Per-tenant source-type persistence:** `MappingCoverageConfigService`
   (`runtime-browser/services/mapping-coverage-config.service.ts`) loads/saves
   the optional `System.UI/MappingCoverageConfiguration` singleton
