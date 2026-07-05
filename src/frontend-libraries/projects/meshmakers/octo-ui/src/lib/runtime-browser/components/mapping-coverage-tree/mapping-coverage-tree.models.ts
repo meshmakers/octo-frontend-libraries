@@ -110,6 +110,29 @@ export interface CoverageValidationDetail {
 }
 
 /**
+ * Descriptor of a synthetic association group node (AB#4262 port): groups all
+ * entities reachable from a parent entity through ONE inbound association role
+ * (e.g. `EnergyIQ/SpaceSensors` → "Sensors (5)"). Its target entities load
+ * lazily on expand. Group nodes are not runtime entities — the detail panel
+ * and mapping CRUD stay disabled for them.
+ */
+export interface CoverageGroupNodeInfo {
+  /** Entity the grouped edges belong to (the group's tree parent). */
+  parentRtId: string;
+  parentCkTypeId: string;
+  /** Runtime association role id navigated INBOUND from the parent. */
+  roleId: string;
+  /** CK type used as the `ckId` to load the targets (schema origin base). */
+  targetCkTypeId: string;
+  /**
+   * rtId of the GRANDparent entity — excluded from the group's targets so the
+   * node the user came from does not reappear inside the group (direct-parent
+   * back-edge suppression, relevant under `Type` perspective roots).
+   */
+  excludeRtId?: string;
+}
+
+/**
  * Payload attached to every tree item in the coverage tree. Stored as the `item`
  * of a `TreeItemDataTyped<CoverageNodePayload>` so the host can render and react.
  */
@@ -124,6 +147,12 @@ export interface CoverageNodePayload extends CoverageEntityRef {
   validationStatus: CoverageNodeStatus | null;
   /** Full validation detail (missing/present lists) when loaded. */
   validationDetail: CoverageValidationDetail | null;
+  /**
+   * Set when this item is a synthetic association group node instead of a
+   * runtime entity. `rtId` then holds the synthetic tree-node id and
+   * `ckTypeId` is empty — consumers must not treat such an item as an entity.
+   */
+  associationGroup?: CoverageGroupNodeInfo;
 }
 
 export type CoverageTreeItem = TreeItemDataTyped<CoverageNodePayload>;

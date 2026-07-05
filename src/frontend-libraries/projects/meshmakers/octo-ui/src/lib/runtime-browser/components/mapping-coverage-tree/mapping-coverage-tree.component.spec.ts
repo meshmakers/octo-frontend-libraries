@@ -9,10 +9,12 @@ import {
 } from '@meshmakers/octo-services';
 import { CreateEntitiesDtoGQL } from '../../../graphQL/createEntities';
 import { DeleteEntitiesDtoGQL } from '../../../graphQL/deleteEntities';
+import { GetCkTypeAssociationRolesDtoGQL } from '../../../graphQL/getCkTypeAssociationRoles';
 import { GetLatestValidationExecutionDtoGQL } from '../../../graphQL/getLatestValidationExecution';
 import { GetMappingCoverageNodeDtoGQL } from '../../../graphQL/getMappingCoverageNode';
 import { GetNodeMappingsDtoGQL } from '../../../graphQL/getNodeMappings';
 import { GetOrphanCandidatesDtoGQL } from '../../../graphQL/getOrphanCandidates';
+import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../../graphQL/getRuntimeEntityAssociationsById';
 import { GetRuntimeEntityByIdDtoGQL } from '../../../graphQL/getRuntimeEntityById';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../../graphQL/updateRuntimeEntities';
 import { EntitySelectorDialogService } from '../../../entity-selector-dialog/entity-selector-dialog.service';
@@ -91,8 +93,9 @@ describe('MappingCoverageTreeComponent', () => {
         GetEntitiesByCkTypeDtoGQL['fetch']
       >,
     );
-    treeNavConfig = jasmine.createSpyObj('TreeNavigationConfigService', ['perspectives']);
+    treeNavConfig = jasmine.createSpyObj('TreeNavigationConfigService', ['perspectives', 'resolve']);
     treeNavConfig.perspectives.and.resolveTo([]);
+    treeNavConfig.resolve.and.resolveTo(undefined);
     bulkDialog = jasmine.createSpyObj('BulkMappingDialogService', ['open']);
     createEntitiesGQL = jasmine.createSpyObj('CreateEntitiesDtoGQL', ['mutate']);
     getLatestValidationGQL = jasmine.createSpyObj('GetLatestValidationExecutionDtoGQL', ['fetch']);
@@ -114,6 +117,8 @@ describe('MappingCoverageTreeComponent', () => {
         { provide: GetLatestValidationExecutionDtoGQL, useValue: getLatestValidationGQL },
         { provide: GetOrphanCandidatesDtoGQL, useValue: getOrphanCandidatesGQL },
         { provide: GetMappingCoverageNodeDtoGQL, useValue: {} },
+        { provide: GetRuntimeEntityAssociationsByIdDtoGQL, useValue: {} },
+        { provide: GetCkTypeAssociationRolesDtoGQL, useValue: {} },
         { provide: CreateEntitiesDtoGQL, useValue: createEntitiesGQL },
         { provide: DeleteEntitiesDtoGQL, useValue: {} },
         { provide: UpdateRuntimeEntitiesDtoGQL, useValue: {} },

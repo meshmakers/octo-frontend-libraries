@@ -198,6 +198,31 @@ entities (e.g. `Loxone/Control`) split into mapped/unmapped. Everything is
 configured through `MappingCoverageTreeConfig` (roles + CK type ids;
 `DEFAULT_MAPPING_COVERAGE_TREE_CONFIG` covers Basic/Tree + System.Communication).
 
+- **Association auto-discovery (AB#4262 port):** the coverage tree is no longer
+  limited to the single spatial `childRoleId` hierarchy. On expand, every entity
+  node additionally discovers its OTHER inbound association roles from its
+  ACTUAL edges (`getRuntimeEntityAssociationsById`, INBOUND, grouped by roleId
+  with exact counts) and renders one lazy group node per role (e.g.
+  `containedSensors (5)` via `EnergyIQ/SpaceSensors`) — this is what makes
+  sensors/actuators/terminals of a Space visible and mappable. The CK type
+  schema (`getCkTypeAssociationRoles`, cached per type) supplies the friendly
+  label and the origin BASE type used as the `ckId` to load the targets (one
+  group across concrete subtypes); orphan roles fall back to the concrete edge
+  origin. Excluded from discovery: the spatial `childRoleId` (already
+  flattened), `mappingRoleId`/`mappingSourceRoleId` (their edges ARE the
+  mapping counts / detail panel) and `validationExecutesRoleId`; origins in
+  `NON_NAVIGABLE_TARGET_CK_TYPES` (`System/Entity`) are skipped. Group
+  expansion reuses `getMappingCoverageNode` with the group's role as the child
+  navigation, so targets carry mapping counts + the spatial look-ahead. A child
+  is expandable when it has spatial grandchildren OR its type declares a
+  navigable inbound role (schema-based — the arrow may open empty). The
+  per-tenant `TreeNavigationConfiguration` overrides (visible / displayName /
+  sortIndex / grouped / icon) apply exactly as in the runtime browser;
+  `grouped: false` flattens a role's targets into the level. Direct-parent
+  back-edges are suppressed (WeakMap parent tracking + `excludeRtId` on group
+  nodes, relevant under outbound `Type` perspective roots). Group nodes are
+  synthetic (`payload.associationGroup` set, empty `ckTypeId`) — selecting one
+  clears the detail pane instead of loading mappings.
 - **Orphan catalogue paging:** `loadOrphanCandidates` walks the
   `getOrphanCandidates` connection cursor (`pageInfo.hasNextPage`/`endCursor`,
   500 rows/page, hard stop at 200 pages) until exhausted — an earlier version

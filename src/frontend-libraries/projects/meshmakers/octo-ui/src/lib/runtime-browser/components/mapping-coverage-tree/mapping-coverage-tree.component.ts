@@ -1292,6 +1292,13 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
 
   protected async onNodeSelected(item: TreeItemData): Promise<void> {
     const payload = (item as TreeItemDataTyped<CoverageNodePayload>).item;
+    if (!payload || payload.associationGroup) {
+      // Association group nodes (AB#4262 port) are synthetic, not runtime
+      // entities — no mappings to show or edit. Reset the detail pane.
+      this.selectedNode.set(null);
+      this.mappings.set([]);
+      return;
+    }
     this.selectedNode.set(payload);
     this.entitySelected.emit({
       rtId: payload.rtId,
