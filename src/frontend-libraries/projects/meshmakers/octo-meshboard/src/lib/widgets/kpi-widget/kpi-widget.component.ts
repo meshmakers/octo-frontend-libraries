@@ -11,7 +11,7 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons';
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { applyValueMultiplier, matchesAttributePath } from '../../utils/widget-data-utils';
 
 @Component({
   selector: 'mm-kpi-widget',
@@ -356,6 +356,10 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
           value = this.extractGroupedAggregationValue(result);
           break;
       }
+
+      // Optional scale factor (e.g. Σ(kW samples) × sampleInterval → kWh).
+      // Applied to numeric values only; strings pass through unchanged.
+      value = applyValueMultiplier(value, this.config.valueMultiplier);
 
       // Create a synthetic entity with the value
       const kpiEntity: RuntimeEntityData = {

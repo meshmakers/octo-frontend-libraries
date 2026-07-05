@@ -403,6 +403,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryValueField: widget.queryValueField,
           queryCategoryField: widget.queryCategoryField,
           queryCategoryValue: widget.queryCategoryValue,
+          valueMultiplier: widget.valueMultiplier,
           filters: widget.filters,
           ...(isPersistentQuery && {
             queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
@@ -453,6 +454,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryValueField: config['queryValueField'] as string | undefined,
           queryCategoryField: config['queryCategoryField'] as string | undefined,
           queryCategoryValue: config['queryCategoryValue'] as string | undefined,
+          valueMultiplier: config['valueMultiplier'] as number | undefined,
           prefix: config['prefix'] as string | undefined,
           suffix: config['suffix'] as string | undefined,
           icon: config['icon'] as string | undefined,

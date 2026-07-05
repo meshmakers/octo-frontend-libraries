@@ -335,7 +335,7 @@ interface AggregationQuery {
 
 | Type | Description | Data Sources |
 |------|-------------|--------------|
-| `kpi` | Single numeric value with optional trend | runtimeEntity, persistentQuery, aggregation, static |
+| `kpi` | Single numeric value with optional trend. Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge) | runtimeEntity, persistentQuery, aggregation, static |
 | `gauge` | Arc, Circular, Linear, or Radial gauge | runtimeEntity, persistentQuery, aggregation, static |
 | `barChart` | Bar/Column chart | persistentQuery, constructionKitQuery |
 | `pieChart` | Pie/Donut chart | persistentQuery, constructionKitQuery |

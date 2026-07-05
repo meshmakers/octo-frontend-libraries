@@ -426,3 +426,18 @@ export function processPieChartData(
 
   return result;
 }
+
+/**
+ * Applies an optional scale factor to a query value (KPI `valueMultiplier`).
+ * Only numeric values are scaled — strings (e.g. enum labels or error
+ * placeholders) pass through unchanged, as does everything when no multiplier
+ * is configured. Use case: cumulated energy from uniformly sampled power
+ * (Σ(kW samples) × sampleIntervalHours → kWh); the factor is window-independent
+ * because SUM is linear in the sample count.
+ */
+export function applyValueMultiplier(value: number | string, multiplier: number | undefined): number | string {
+  if (typeof multiplier !== 'number' || typeof value !== 'number') {
+    return value;
+  }
+  return value * multiplier;
+}

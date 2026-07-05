@@ -1,4 +1,5 @@
 import {
+  applyValueMultiplier,
   sanitizeFieldName,
   parseNumericValue,
   extractAggregationValue,
@@ -777,5 +778,24 @@ describe('Widget Data Utils', () => {
     it('should have exactly 3 supported types', () => {
       expect(SUPPORTED_ROW_TYPES.length).toBe(3);
     });
+  });
+});
+
+describe('applyValueMultiplier', () => {
+  it('scales numeric values by the multiplier', () => {
+    // Σ(kW samples every 10 s) → kWh
+    expect(applyValueMultiplier(3600, 10 / 3600)).toBeCloseTo(10, 10);
+  });
+
+  it('supports negative multipliers (signed magnitudes, e.g. battery discharge)', () => {
+    expect(applyValueMultiplier(-1800, -(10 / 3600))).toBeCloseTo(5, 10);
+  });
+
+  it('passes non-numeric values through unchanged', () => {
+    expect(applyValueMultiplier('n/a', 2)).toBe('n/a');
+  });
+
+  it('passes values through when no multiplier is configured', () => {
+    expect(applyValueMultiplier(42, undefined)).toBe(42);
   });
 });
