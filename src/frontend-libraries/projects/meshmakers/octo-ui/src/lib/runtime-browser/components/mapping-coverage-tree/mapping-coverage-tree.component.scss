@@ -56,6 +56,11 @@
     }
   }
 
+  .orphan-group-filter {
+    flex: 0 1 320px;
+    min-width: 160px;
+  }
+
   .toolbar-spacer {
     flex: 1;
   }

@@ -15,6 +15,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
+import { MultiSelectModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LayoutModule } from '@progress/kendo-angular-layout';
 import {
@@ -116,16 +117,22 @@ interface ImportStatistics {
 }
 
 /**
- * A bucket of orphan candidates sharing the same immediate parent. Produced
- * by `orphanGroupedList` when the "group by parent" toggle is on.
+ * A bucket of orphan candidates sharing the same parent NAME (not instance).
+ * Produced by `orphanGroupedList` when the "group by parent" toggle is on.
+ * Keying on the name merges same-named parents into one section — e.g. the
+ * Loxone/Category "Beleuchtung" exists once per room as its own rtId, but the
+ * user thinks of it as ONE category.
  */
 interface OrphanGroup {
-  /** Stable key — parent's CkTypeId@RtId, or `__no_parent__` for the catch-all bucket. */
+  /** Stable key — the parent's name, or `__no_parent__` for the catch-all bucket. */
   key: string;
   /** Human-readable label rendered as the section heading. */
   label: string;
   items: OrphanCandidate[];
 }
+
+/** Catch-all group label for candidates without an ancestor of the chosen type. */
+const NO_PARENT_GROUP_LABEL = '(no parent of this type)';
 
 /**
  * Statistics object emitted by the GenerateDataPointMappings@1 node (its
@@ -178,6 +185,7 @@ const BUILT_IN_SPATIAL_PERSPECTIVE: PerspectiveDefinition = {
     FormsModule,
     ButtonModule,
     LayoutModule,
+    MultiSelectModule,
     SVGIconModule,
     TreeComponent,
     PerspectiveSwitcherComponent,
@@ -334,13 +342,59 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
   /**
    * Which parent CK type to group by, or null for a flat list. We let the user
    * pick the type instead of just "immediate parent" because Loxone-style trees
-   * include intermediate buckets (Loxone/Category) where each parent rtId is
-   * unique per room — grouping by Category produces dozens of look-alike
-   * sections ("Stellantrieb" appears N times, once per room). The user almost
-   * always wants Loxone/Room or whichever level genuinely partitions the data,
-   * so we expose all parent types seen in the loaded data and let them choose.
+   * include intermediate buckets (Loxone/Category) alongside the spatial level
+   * (Loxone/Room); which one meaningfully partitions the data depends on the
+   * task, so we expose all parent types seen in the loaded data and let them
+   * choose. Groups are merged by parent NAME (see {@link orphanGroupedList}),
+   * so per-room duplicates of the same category collapse into one section.
    */
   protected readonly orphanGroupParentType = signal<string | null>(null);
+
+  /**
+   * Multi-select filter over the group names of the active grouping type —
+   * e.g. show only the "Beleuchtung" and "Klima" categories. Empty = no
+   * filter. Cleared whenever the grouping type or the source type changes.
+   */
+  protected readonly orphanSelectedGroupNames = signal<string[]>([]);
+
+  /**
+   * Distinct group names available for the active grouping type, offered as
+   * options in the group-name filter. Derived from ALL loaded candidates (not
+   * the filtered list) so the option set stays stable while filters are
+   * applied. The catch-all "(no parent…)" label sorts last.
+   */
+  protected readonly orphanAvailableGroupNames = computed<string[]>(() => {
+    const groupBy = this.orphanGroupParentType();
+    if (!groupBy) return [];
+    const names = new Set<string>();
+    let hasNoParent = false;
+    for (const item of this.orphanCandidates()) {
+      const ancestor = item.parentPath.find(p => p.ckTypeId === groupBy);
+      if (ancestor) names.add(ancestor.name);
+      else hasNoParent = true;
+    }
+    const sorted = Array.from(names).sort((a, b) => a.localeCompare(b));
+    if (hasNoParent) sorted.push(NO_PARENT_GROUP_LABEL);
+    return sorted;
+  });
+
+  /**
+   * The rows actually rendered (flat or grouped): the text/mapped filter
+   * narrowed further by the group-name multi-select. Select-all and the
+   * "N shown" badge operate on this list so bulk actions match what the user
+   * sees.
+   */
+  protected readonly orphanVisibleList = computed<OrphanCandidate[]>(() => {
+    const base = this.orphanFilteredList();
+    const groupBy = this.orphanGroupParentType();
+    const selected = this.orphanSelectedGroupNames();
+    if (!groupBy || selected.length === 0) return base;
+    const wanted = new Set(selected);
+    return base.filter(item => {
+      const ancestor = item.parentPath.find(p => p.ckTypeId === groupBy);
+      return wanted.has(ancestor?.name ?? NO_PARENT_GROUP_LABEL);
+    });
+  });
 
   /**
    * Distinct parent CK type ids found in the loaded candidates, sorted so the
@@ -365,12 +419,14 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
     const groupBy = this.orphanGroupParentType();
     if (!groupBy) return [];
     const groups = new Map<string, OrphanGroup>();
-    for (const item of this.orphanFilteredList()) {
+    for (const item of this.orphanVisibleList()) {
       // First ancestor of the chosen type (closest to leaf wins). Falls back to
       // the catch-all bucket when no ancestor of that type is in the chain.
+      // Keyed by the ancestor's NAME, not its rtId — same-named parents (e.g.
+      // one Category instance per room) merge into a single section.
       const ancestor = item.parentPath.find(p => p.ckTypeId === groupBy);
-      const key = ancestor ? `${ancestor.ckTypeId}@${ancestor.rtId}` : '__no_parent__';
-      const label = ancestor?.name ?? '(no parent of this type)';
+      const key = ancestor ? ancestor.name : '__no_parent__';
+      const label = ancestor?.name ?? NO_PARENT_GROUP_LABEL;
       let group = groups.get(key);
       if (!group) {
         group = { key, label, items: [] };
@@ -583,6 +639,7 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
     this.orphanCkType.set(ckTypeId || null);
     this.orphanCandidates.set([]);
     this.orphanSearchText.set('');
+    this.orphanSelectedGroupNames.set([]);
     this.clearOrphanSelection();
     if (ckTypeId) void this.loadOrphanCandidates();
   }
@@ -597,6 +654,13 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
 
   protected onOrphanGroupParentTypeChange(value: string): void {
     this.orphanGroupParentType.set(value ? value : null);
+    // Names belong to the previous grouping type — a stale selection would
+    // silently filter everything out.
+    this.orphanSelectedGroupNames.set([]);
+  }
+
+  protected onOrphanGroupNamesChange(names: string[]): void {
+    this.orphanSelectedGroupNames.set(names ?? []);
   }
 
   /**
@@ -749,7 +813,7 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
 
   /** Selects every row currently visible under the active filter. */
   protected selectAllVisibleOrphans(): void {
-    this.orphanSelectedIds.set(new Set(this.orphanFilteredList().map(c => c.rtId)));
+    this.orphanSelectedIds.set(new Set(this.orphanVisibleList().map(c => c.rtId)));
   }
 
   protected clearOrphanSelection(): void {

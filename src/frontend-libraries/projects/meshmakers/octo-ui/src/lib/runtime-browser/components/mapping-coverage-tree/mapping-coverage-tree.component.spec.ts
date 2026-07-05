@@ -234,6 +234,87 @@ describe('MappingCoverageTreeComponent', () => {
     });
   });
 
+  describe('orphan grouping + group-name filter', () => {
+    function withParent(
+      item: OrphanItemStub,
+      parentRtId: string,
+      parentName: string,
+      parentCkTypeId = 'Loxone/Category',
+    ): OrphanItemStub {
+      item.associations.parent.items = [
+        {
+          rtId: parentRtId,
+          ckTypeId: parentCkTypeId,
+          rtWellKnownName: null,
+          attributes: { items: [{ attributeName: 'name', value: parentName }] },
+          associations: { parent: { items: [] } },
+        },
+      ] as never[];
+      return item;
+    }
+
+    beforeEach(async () => {
+      component['orphanCkType'].set('Loxone/Control');
+      getOrphanCandidatesGQL.fetch.and.returnValue(
+        of(orphanPage([
+          // Same category name "Beleuchtung" as two DIFFERENT instances
+          // (one per room) — must merge into ONE group.
+          withParent(orphanItem('a1', 'Spot Wohnzimmer'), 'cat-1', 'Beleuchtung'),
+          withParent(orphanItem('b2', 'Spot Küche'), 'cat-2', 'Beleuchtung'),
+          withParent(orphanItem('c3', 'Klimagerät'), 'cat-3', 'Klima'),
+          orphanItem('d4', 'Verwaist'),
+        ], false, null)),
+      );
+      await component['loadOrphanCandidates']();
+      component['onOrphanGroupParentTypeChange']('Loxone/Category');
+    });
+
+    it('merges same-named parent instances into one group', () => {
+      const groups = component['orphanGroupedList']();
+      expect(groups.map(g => g.label)).toEqual(['Beleuchtung', 'Klima', '(no parent of this type)']);
+      // Candidate order (alphabetical): Spot Küche before Spot Wohnzimmer.
+      expect(groups[0].items.map(i => i.rtId)).toEqual(['b2', 'a1']);
+    });
+
+    it('offers distinct group names sorted, catch-all last', () => {
+      expect(component['orphanAvailableGroupNames']()).toEqual([
+        'Beleuchtung', 'Klima', '(no parent of this type)',
+      ]);
+    });
+
+    it('filters the visible list by the selected group names (multi-select)', () => {
+      component['onOrphanGroupNamesChange'](['Beleuchtung', 'Klima']);
+      expect(component['orphanVisibleList']().map(c => c.rtId)).toEqual(['c3', 'b2', 'a1']);
+      expect(component['orphanGroupedList']().map(g => g.label)).toEqual(['Beleuchtung', 'Klima']);
+    });
+
+    it('supports filtering on the catch-all bucket', () => {
+      component['onOrphanGroupNamesChange'](['(no parent of this type)']);
+      expect(component['orphanVisibleList']().map(c => c.rtId)).toEqual(['d4']);
+    });
+
+    it('select-all respects the group-name filter', () => {
+      component['onOrphanGroupNamesChange'](['Klima']);
+      component['selectAllVisibleOrphans']();
+      expect(component['orphanSelectedIds']().has('c3')).toBeTrue();
+      expect(component['orphanSelectedCount']()).toBe(1);
+    });
+
+    it('clears the group-name selection when the grouping type changes', () => {
+      component['onOrphanGroupNamesChange'](['Beleuchtung']);
+      component['onOrphanGroupParentTypeChange']('Loxone/Room');
+      expect(component['orphanSelectedGroupNames']()).toEqual([]);
+      // Stale names of the previous type would silently hide everything.
+      expect(component['orphanVisibleList']().length).toBe(4);
+    });
+
+    it('clears the group-name selection when the source type changes', () => {
+      component['onOrphanGroupNamesChange'](['Beleuchtung']);
+      component['onOrphanCkTypeChange']('MQTT/Topic');
+      expect(component['orphanSelectedGroupNames']()).toEqual([]);
+    });
+  });
+
   describe('late-arriving source-candidate config (ngOnChanges)', () => {
     function changeConfigTo(sourceCandidateCkTypeIds: string[]): void {
       const previous = component.config;

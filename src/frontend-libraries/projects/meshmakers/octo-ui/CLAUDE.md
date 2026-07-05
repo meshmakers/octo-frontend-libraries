@@ -235,6 +235,19 @@ configured through `MappingCoverageTreeConfig` (roles + CK type ids;
   controls; combined with "Select all" that is a per-room bulk mapping).
   Cleared on source-type change; empty-result and "N shown" states are
   explicit.
+- **Orphan grouping + group-name filter:** "Group by" picks any parent CK
+  type seen in the loaded candidates; groups are merged by the parent's
+  NAME, not its rtId — Loxone-style trees instantiate the same Category once
+  per room, so keying on the instance produced dozens of duplicate sections
+  ("Beleuchtung" × N rooms). Candidates without an ancestor of the chosen
+  type land in a "(no parent of this type)" bucket that sorts last. A
+  `kendo-multiselect` next to the Group-by select (visible only while
+  grouping) filters to specific group names (e.g. Beleuchtung + Klima,
+  multi-select); the catch-all bucket is selectable too. Select-all, the
+  "N shown" badge and the empty state operate on `orphanVisibleList`
+  (text/mapped filter ∩ group-name filter), so bulk actions match what is
+  rendered. The name selection resets on grouping-type and source-type
+  change (stale names of another type would silently hide everything).
 - **Orphan bulk mapping:** every orphan row has a checkbox; Select all
   (visible under the current filter) / Clear / "Map N selected…" live in the
   orphan toolbar. The `BulkMappingDialogComponent` (via

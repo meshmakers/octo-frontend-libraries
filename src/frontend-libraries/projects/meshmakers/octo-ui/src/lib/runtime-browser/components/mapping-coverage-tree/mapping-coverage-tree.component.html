@@ -337,11 +337,23 @@
           <option [value]="t">{{ t }}</option>
         }
       </select>
+      @if (orphanGroupParentType()) {
+        <kendo-multiselect class="orphan-group-filter"
+                           [data]="orphanAvailableGroupNames()"
+                           [value]="orphanSelectedGroupNames()"
+                           (valueChange)="onOrphanGroupNamesChange($event)"
+                           [autoClose]="false"
+                           [clearButton]="true"
+                           size="small"
+                           placeholder="Filter groups…"
+                           title="Show only the selected groups (e.g. specific categories)">
+        </kendo-multiselect>
+      }
 
       <div class="toolbar-spacer"></div>
 
       <button kendoButton size="small" fillMode="flat"
-              [disabled]="orphanFilteredList().length === 0"
+              [disabled]="orphanVisibleList().length === 0"
               (click)="selectAllVisibleOrphans()"
               title="Select every row visible under the current filter">Select all</button>
       <button kendoButton size="small" fillMode="flat"
@@ -356,8 +368,8 @@
 
       @if (orphanStats(); as s) {
         <span class="validation-summary">
-          @if (orphanSearchText().trim()) {
-            <span class="badge badge-info" title="rows matching the search">{{ orphanFilteredList().length }} shown</span>
+          @if (orphanSearchText().trim() || orphanSelectedGroupNames().length > 0) {
+            <span class="badge badge-info" title="rows matching search + group filter">{{ orphanVisibleList().length }} shown</span>
           }
           <span class="badge badge-error" title="unmapped — no DataPointMapping yet">{{ s.unmapped }} unmapped</span>
           <span class="badge badge-ok" title="already covered by at least one mapping">{{ s.mapped }} mapped</span>
@@ -371,9 +383,11 @@
         <div class="empty-hint">Loading source candidates…</div>
       } @else if (orphanError(); as err) {
         <div class="error-hint">{{ err }}</div>
-      } @else if (orphanFilteredList().length === 0) {
+      } @else if (orphanVisibleList().length === 0) {
         <div class="empty-hint">
-          @if (orphanSearchText().trim()) {
+          @if (orphanSelectedGroupNames().length > 0) {
+            No entries in the selected group(s) match the current filters.
+          } @else if (orphanSearchText().trim()) {
             No entries match "{{ orphanSearchText() }}".
           } @else if (orphanHideMapped()) {
             All {{ orphanCkType() }} entities are mapped at least once. 🎉
@@ -397,7 +411,7 @@
         }
       } @else {
         <ul class="orphan-list">
-          @for (item of orphanFilteredList(); track trackOrphanByRtId($index, item)) {
+          @for (item of orphanVisibleList(); track trackOrphanByRtId($index, item)) {
             <ng-container *ngTemplateOutlet="orphanRowTpl; context: { $implicit: item }"></ng-container>
           }
         </ul>
