@@ -8151,6 +8151,8 @@ type CkType {
     attributeValueType: AttributeValueType,
     "Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified."
     first: Int,
+    "When true, value navigation columns across inbound and N-multiplicity associations are included (first-match semantics). Default: false."
+    includeManyNavigations: Boolean,
     "When false, navigation properties are excluded. Default: true."
     includeNavigationProperties: Boolean,
     "Limits the depth of navigation property traversal."

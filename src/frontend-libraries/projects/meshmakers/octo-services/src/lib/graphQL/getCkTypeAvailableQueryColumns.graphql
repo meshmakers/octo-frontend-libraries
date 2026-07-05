@@ -1,4 +1,4 @@
-query getCkTypeAvailableQueryColumns($after: String, $first: Int, $rtCkId: String!, $filter: String, $attributeValueType: AttributeValueType, $searchTerm: String, $includeNavigationProperties: Boolean, $maxDepth: Int, $attributePaths: [String]) {
+query getCkTypeAvailableQueryColumns($after: String, $first: Int, $rtCkId: String!, $filter: String, $attributeValueType: AttributeValueType, $searchTerm: String, $includeNavigationProperties: Boolean, $maxDepth: Int, $attributePaths: [String], $includeManyNavigations: Boolean) {
   constructionKit {
     types(rtCkId: $rtCkId) {
       items {
@@ -16,6 +16,7 @@ query getCkTypeAvailableQueryColumns($after: String, $first: Int, $rtCkId: Strin
           includeNavigationProperties: $includeNavigationProperties
           maxDepth: $maxDepth
           attributePaths: $attributePaths
+          includeManyNavigations: $includeManyNavigations
         ) {
           totalCount
           pageInfo {

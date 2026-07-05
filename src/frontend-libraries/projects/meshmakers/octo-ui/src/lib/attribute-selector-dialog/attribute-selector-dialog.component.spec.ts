@@ -352,7 +352,7 @@ describe('AttributeSelectorDialogComponent', () => {
       tick(300);
 
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, undefined, 'test', true, 1
+        'TestType/Entity', undefined, undefined, undefined, undefined, 'test', true, 1, undefined, false
       );
     }));
   });
@@ -375,7 +375,7 @@ describe('AttributeSelectorDialogComponent', () => {
       component.onValueTypeFilterChange(component.selectedValueTypeFilter);
 
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, 'STRING', undefined, true, 1
+        'TestType/Entity', undefined, undefined, undefined, 'STRING', undefined, true, 1, undefined, false
       );
     }));
   });
@@ -414,7 +414,7 @@ describe('AttributeSelectorDialogComponent', () => {
       component.onNavigationPropertiesChange();
 
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, false, undefined
+        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, false, undefined, undefined, false
       );
     }));
 
@@ -433,7 +433,7 @@ describe('AttributeSelectorDialogComponent', () => {
 
       expect(component.maxDepth).toBe(2);
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, true, 2
+        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, true, 2, undefined, false
       );
     }));
 
@@ -442,6 +442,98 @@ describe('AttributeSelectorDialogComponent', () => {
       component.onMaxDepthChange(null);
 
       expect(component.maxDepth).toBeNull();
+    }));
+  });
+
+  // =========================================================================
+  // Multi-association value columns + entity selector (AB#4323)
+  // =========================================================================
+
+  describe('Multi-Associations', () => {
+    beforeEach(fakeAsync(() => {
+      component.data = { rtCkTypeId: 'TestType/Entity' };
+      component.ngOnInit();
+      tick(300);
+    }));
+
+    it('should default includeManyNavigations to false', () => {
+      expect(component.includeManyNavigations).toBe(false);
+    });
+
+    it('should reload attributes with includeManyNavigations=true when toggled', fakeAsync(() => {
+      attributeServiceMock.getAvailableAttributes.calls.reset();
+
+      component.includeManyNavigations = true;
+      component.onIncludeManyNavigationsChange();
+
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
+        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, true, 1, undefined, true
+      );
+    }));
+
+    it('should clear includeManyNavigations when navigation properties are unchecked', () => {
+      component.includeManyNavigations = true;
+      component.includeNavigationProperties = false;
+      component.onNavigationPropertiesChange();
+
+      expect(component.includeManyNavigations).toBe(false);
+    });
+
+    it('should apply an entity selector to the selected column path', () => {
+      const item: AttributeItem = {
+        attributePath: 'containedSensors.temperatureSensor->currentValue',
+        attributeValueType: 'DOUBLE'
+      };
+      component.selectedAttributes = [item];
+
+      component.openSelectorEditor(item);
+      component.selectorKind = 'wellKnownName';
+      component.selectorValue = 'Sensor 1';
+      component.applySelectorToTarget();
+
+      expect(component.selectedAttributes[0].attributePath)
+        .toBe("containedSensors.temperatureSensor[wellKnownName='Sensor 1']->currentValue");
+      expect(component.selectorEditorTarget).toBeNull();
+    });
+
+    it('should remove an entity selector from the selected column path', () => {
+      const item: AttributeItem = {
+        attributePath: "containedSensors.temperatureSensor[rtId='abc']->currentValue",
+        attributeValueType: 'DOUBLE'
+      };
+      component.selectedAttributes = [item];
+
+      component.openSelectorEditor(item);
+      component.removeSelectorFromTarget();
+
+      expect(component.selectedAttributes[0].attributePath)
+        .toBe('containedSensors.temperatureSensor->currentValue');
+    });
+
+    it('should preserve stored selector paths when reopening the dialog', fakeAsync(() => {
+      attributeServiceMock.getAvailableAttributes.and.returnValue(of({
+        items: [
+          ...mockAttributes,
+          { attributePath: 'containedSensors.temperatureSensor->currentValue', attributeValueType: 'DOUBLE' }
+        ],
+        totalCount: mockAttributes.length + 1
+      }));
+
+      component.data = {
+        rtCkTypeId: 'TestType/Entity',
+        selectedAttributes: [
+          "containedSensors.temperatureSensor[wellKnownName='S1']->currentValue",
+          'unknownStoredPath->column'
+        ]
+      };
+      component.ngOnInit();
+      tick(300);
+
+      const paths = component.selectedAttributes.map((a) => a.attributePath);
+      // Selector path resolves via its selector-stripped base path and keeps the selector
+      expect(paths).toContain("containedSensors.temperatureSensor[wellKnownName='S1']->currentValue");
+      // Unknown stored paths are preserved verbatim instead of being dropped
+      expect(paths).toContain('unknownStoredPath->column');
     }));
   });
 

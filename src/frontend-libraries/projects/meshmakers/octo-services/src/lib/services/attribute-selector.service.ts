@@ -30,7 +30,8 @@ export class AttributeSelectorService {
     searchTerm?: string,
     includeNavigationProperties?: boolean,
     maxDepth?: number,
-    attributePaths?: string[]
+    attributePaths?: string[],
+    includeManyNavigations?: boolean
   ): Observable<AttributeSelectorResult> {
     return this.getCkTypeAvailableQueryColumnsGQL.fetch({
       variables: {
@@ -42,7 +43,8 @@ export class AttributeSelectorService {
         searchTerm: searchTerm,
         includeNavigationProperties: includeNavigationProperties,
         maxDepth: maxDepth,
-        attributePaths: attributePaths
+        attributePaths: attributePaths,
+        includeManyNavigations: includeManyNavigations
       },
       fetchPolicy: 'network-only'
     }).pipe(

@@ -13,13 +13,14 @@ export type GetCkTypeAvailableQueryColumnsQueryVariablesDto = Types.Exact<{
   includeNavigationProperties?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
   maxDepth?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   attributePaths?: Types.InputMaybe<Array<Types.InputMaybe<Types.Scalars['String']['input']>> | Types.InputMaybe<Types.Scalars['String']['input']>>;
+  includeManyNavigations?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
 }>;
 
 
 export type GetCkTypeAvailableQueryColumnsQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', rtCkTypeId: any, ckTypeId: { __typename?: 'CkTypeId', fullName: string, semanticVersionedFullName: string }, availableQueryColumns?: { __typename?: 'CkTypeQueryColumnDtoConnection', totalCount?: number | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null }, items?: Array<{ __typename?: 'CkTypeQueryColumn', attributePath: string, attributeValueType: Types.AttributeValueTypeDto, description?: string | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetCkTypeAvailableQueryColumnsDocumentDto = gql`
-    query getCkTypeAvailableQueryColumns($after: String, $first: Int, $rtCkId: String!, $filter: String, $attributeValueType: AttributeValueType, $searchTerm: String, $includeNavigationProperties: Boolean, $maxDepth: Int, $attributePaths: [String]) {
+    query getCkTypeAvailableQueryColumns($after: String, $first: Int, $rtCkId: String!, $filter: String, $attributeValueType: AttributeValueType, $searchTerm: String, $includeNavigationProperties: Boolean, $maxDepth: Int, $attributePaths: [String], $includeManyNavigations: Boolean) {
   constructionKit {
     types(rtCkId: $rtCkId) {
       items {
@@ -37,6 +38,7 @@ export const GetCkTypeAvailableQueryColumnsDocumentDto = gql`
           includeNavigationProperties: $includeNavigationProperties
           maxDepth: $maxDepth
           attributePaths: $attributePaths
+          includeManyNavigations: $includeManyNavigations
         ) {
           totalCount
           pageInfo {

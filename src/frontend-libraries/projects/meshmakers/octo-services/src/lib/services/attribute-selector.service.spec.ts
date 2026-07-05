@@ -87,7 +87,8 @@ describe('AttributeSelectorService', () => {
           searchTerm: undefined,
           includeNavigationProperties: undefined,
           maxDepth: undefined,
-          attributePaths: undefined
+          attributePaths: undefined,
+          includeManyNavigations: undefined
         },
         fetchPolicy: 'network-only'
       });

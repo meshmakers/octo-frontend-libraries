@@ -6114,6 +6114,7 @@ export type CkTypeAvailableQueryColumnsArgsDto = {
   attributePaths?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   attributeValueType?: InputMaybe<AttributeValueTypeDto>;
   first?: InputMaybe<Scalars['Int']['input']>;
+  includeManyNavigations?: InputMaybe<Scalars['Boolean']['input']>;
   includeNavigationProperties?: InputMaybe<Scalars['Boolean']['input']>;
   maxDepth?: InputMaybe<Scalars['Int']['input']>;
   searchTerm?: InputMaybe<Scalars['String']['input']>;

@@ -548,6 +548,20 @@ export class QueryBuilderComponent {
 | `selectedAttributes` | `AttributeItem[]` | Pre-selected attributes |
 | `dialogTitle` | `string` | Custom dialog title |
 
+**Multi-association value columns + entity selector (AB#4323):** the dialog's navigation
+options row carries an opt-in "Include Multi-Associations" checkbox (backed by the
+`includeManyNavigations` argument of `availableQueryColumns`). When enabled, value columns
+across inbound and N-multiplicity associations are offered (e.g.
+`containedSensors.energyIQTemperatureSensor->currentValue`); such a column resolves per row
+to the FIRST matching target entity (deterministic by rtId). Rows in the Selected grid whose
+path contains `->` get a pencil action that opens the entity-selector editor: pin the exact
+target via `[rtId=…]`, `[wellKnownName=…]` or `[attributeName=value]` on the first navigation
+segment. Path helpers live in `attribute-selector-dialog/entity-selector-path.ts`
+(`applyEntitySelector` / `parseEntitySelector` / `stripEntitySelector`, unit-tested). Stored
+paths that carry a selector (or cross a multi-association while the toggle is off) are
+preserved when the dialog reopens — they resolve via their selector-stripped base path
+instead of being dropped.
+
 ### AttributeSortSelectorDialogService
 
 Opens a dialog for selecting attributes with sort order configuration.
