@@ -441,7 +441,10 @@ export class AttributeSelectorDialogComponent implements OnInit {
   public selectedSingleKey: string[] = [];
   public selectedValueTypeFilter: AttributeValueTypeDto | null = null;
   public includeNavigationProperties = true;
-  public maxDepth: number | null = null;
+  // A null depth means unbounded navigation expansion server-side — on densely connected
+  // models that trips the backend's column cap and the picker ends up empty. Default to one
+  // navigation level; the user can raise the depth explicitly.
+  public maxDepth: number | null = 1;
   public hideNavigationControls = false;
   private attributePathsSet: Set<string> | null = null;
 
@@ -485,7 +488,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
     this.dialogTitle = data.dialogTitle || 'Select Attributes';
     this.singleSelect = data.singleSelect ?? false;
     this.includeNavigationProperties = data.includeNavigationProperties ?? true;
-    this.maxDepth = data.maxDepth ?? null;
+    this.maxDepth = data.maxDepth ?? (this.includeNavigationProperties ? 1 : null);
     this.additionalAttributes = data.additionalAttributes ?? [];
     this.hideNavigationControls = data.hideNavigationControls ?? false;
     this.attributePathsSet = data.attributePaths
@@ -614,9 +617,7 @@ export class AttributeSelectorDialogComponent implements OnInit {
   }
 
   public onNavigationPropertiesChange(): void {
-    if (!this.includeNavigationProperties) {
-      this.maxDepth = null;
-    }
+    this.maxDepth = this.includeNavigationProperties ? 1 : null;
     this.loadAvailableAttributes(this.searchText || undefined);
   }
 

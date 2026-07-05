@@ -352,7 +352,7 @@ describe('AttributeSelectorDialogComponent', () => {
       tick(300);
 
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, undefined, 'test', true, undefined
+        'TestType/Entity', undefined, undefined, undefined, undefined, 'test', true, 1
       );
     }));
   });
@@ -375,7 +375,7 @@ describe('AttributeSelectorDialogComponent', () => {
       component.onValueTypeFilterChange(component.selectedValueTypeFilter);
 
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, 'STRING', undefined, true, undefined
+        'TestType/Entity', undefined, undefined, undefined, 'STRING', undefined, true, 1
       );
     }));
   });
@@ -391,9 +391,11 @@ describe('AttributeSelectorDialogComponent', () => {
       tick(300);
     }));
 
-    it('should have default includeNavigationProperties=true and maxDepth=null', () => {
+    it('should have default includeNavigationProperties=true and maxDepth=1', () => {
       expect(component.includeNavigationProperties).toBe(true);
-      expect(component.maxDepth).toBeNull();
+      // One navigation level by default — unbounded expansion (null) trips the backend's
+      // column cap on densely connected models and the picker ends up empty.
+      expect(component.maxDepth).toBe(1);
     });
 
     it('should initialize from data when provided', fakeAsync(() => {

@@ -583,7 +583,10 @@ export class FieldFilterEditorComponent implements OnChanges {
 
   /** Controls for self-loading mode (when ckTypeId is set) */
   public includeNavigationProperties = true;
-  public maxDepth: number | null = null;
+  // A null depth means unbounded navigation expansion server-side — on densely connected
+  // models that trips the backend's column cap and the picker ends up empty. Default to one
+  // navigation level; the user can raise the depth explicitly.
+  public maxDepth: number | null = 1;
   public isLoadingAttributes = false;
 
   private _filters: FieldFilterItem[] = [];
@@ -654,9 +657,7 @@ export class FieldFilterEditorComponent implements OnChanges {
   // ============================================================================
 
   public onNavigationPropertiesChange(): void {
-    if (!this.includeNavigationProperties) {
-      this.maxDepth = null;
-    }
+    this.maxDepth = this.includeNavigationProperties ? 1 : null;
     this.loadAttributesFromCkType();
   }
 
