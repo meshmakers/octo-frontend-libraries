@@ -19,11 +19,13 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LayoutModule } from '@progress/kendo-angular-layout';
 import {
   arrowRotateCwIcon,
+  downloadIcon,
   folderOpenIcon,
   linkIcon,
   pencilIcon,
   plusIcon,
   trashIcon,
+  uploadIcon,
   xIcon,
 } from '@progress/kendo-svg-icons';
 import { TreeItemData, TreeItemDataTyped } from '@meshmakers/shared-services';
@@ -92,6 +94,25 @@ interface PipelineCandidate {
   rtId: string;
   ckTypeId: string;
   name: string;
+  /**
+   * Raw PipelineDefinition YAML (when the list query returned it). Used to
+   * auto-detect the mapping backup pipelines by their node types
+   * (ExportDataPointMappings@ / ImportDataPointMappings@) so the Export/Import
+   * actions need no manual pipeline picking.
+   */
+  definition: string | null;
+}
+
+/**
+ * Statistics object emitted by the ImportDataPointMappings@1 node (its
+ * `statisticsTargetPath` output, returned via SetPipelineExecutionResult).
+ * Mirrors the node's ImportStatistics record.
+ */
+interface ImportStatistics {
+  total?: number;
+  resolved?: number;
+  unresolved?: number;
+  unresolvedEntries?: { name?: string; reason?: string }[];
 }
 
 /**
@@ -218,6 +239,8 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
     trash: trashIcon,
     link: linkIcon,
     x: xIcon,
+    download: downloadIcon,
+    upload: uploadIcon,
   };
 
   /** Selectable tree perspectives (built-in Spatial + per-tenant configured). */
@@ -258,6 +281,23 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
   protected readonly generationError = signal<string | null>(null);
   protected readonly generationStats = signal<GenerationStatistics | null>(null);
   protected readonly generationCompletedAt = signal<string | null>(null);
+
+  /**
+   * Backup: export/import DataPointMappings via the mapping-backup pipelines
+   * (ExportDataPointMappings@1 / ImportDataPointMappings@1 nodes). The
+   * pipelines are auto-detected from the loaded pipeline definitions; the
+   * Backup toolbar row only shows when at least one is deployed.
+   */
+  protected readonly exportBackupPipeline = computed<PipelineCandidate | null>(
+    () => this.validationPipelines().find(p => p.definition?.includes('ExportDataPointMappings@')) ?? null,
+  );
+  protected readonly importBackupPipeline = computed<PipelineCandidate | null>(
+    () => this.validationPipelines().find(p => p.definition?.includes('ImportDataPointMappings@')) ?? null,
+  );
+  protected readonly backupRunning = signal<'export' | 'import' | null>(null);
+  protected readonly backupError = signal<string | null>(null);
+  protected readonly importStats = signal<ImportStatistics | null>(null);
+  protected readonly importCompletedAt = signal<string | null>(null);
 
   /** Active tab: 'coverage' shows the tree, 'orphans' shows the unmapped sources. */
   protected readonly activeTab = signal<'coverage' | 'orphans'>('coverage');
@@ -873,27 +913,162 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
    */
   private async loadGenerationResult(pipeline: PipelineCandidate): Promise<void> {
     try {
-      const data = await firstValueFrom(
-        this.getLatestValidationGQL
-          .fetch({
-            variables: {
-              pipelineRtId: pipeline.rtId,
-              pipelineCkTypeId: pipeline.ckTypeId,
-              executesRoleId: this.config.validationExecutesRoleId,
-              executionCkTypeId: this.config.validationExecutionCkTypeId,
-            },
-            fetchPolicy: 'network-only',
-          })
-          .pipe(map(r => r.data?.runtime?.runtimeEntities?.items?.[0])),
-      );
-      const execution = data?.associations?.executions?.items?.[0];
-      const attrs = execution?.attributes?.items;
-      this.generationCompletedAt.set(readAttr(attrs, 'CompletedAt'));
-      this.generationStats.set(parseGenerationStatistics(readAttr(attrs, 'OutputData')));
+      const { outputData, completedAt } = await this.loadLatestExecutionOutput(pipeline);
+      this.generationCompletedAt.set(completedAt);
+      this.generationStats.set(parseGenerationStatistics(outputData));
     } catch (error) {
       console.error('Failed to load generation result:', error);
       this.generationError.set('Generation finished but loading its result failed.');
     }
+  }
+
+  /**
+   * Loads the latest execution's OutputData + CompletedAt for any pipeline
+   * (shared by the generation statistics and the backup export/import flows).
+   */
+  private async loadLatestExecutionOutput(
+    pipeline: PipelineCandidate,
+  ): Promise<{ outputData: string | null; completedAt: string | null }> {
+    const data = await firstValueFrom(
+      this.getLatestValidationGQL
+        .fetch({
+          variables: {
+            pipelineRtId: pipeline.rtId,
+            pipelineCkTypeId: pipeline.ckTypeId,
+            executesRoleId: this.config.validationExecutesRoleId,
+            executionCkTypeId: this.config.validationExecutionCkTypeId,
+          },
+          fetchPolicy: 'network-only',
+        })
+        .pipe(map(r => r.data?.runtime?.runtimeEntities?.items?.[0])),
+    );
+    const execution = data?.associations?.executions?.items?.[0];
+    const attrs = execution?.attributes?.items;
+    return {
+      outputData: readAttr(attrs, 'OutputData'),
+      completedAt: readAttr(attrs, 'CompletedAt'),
+    };
+  }
+
+  /**
+   * Runs the auto-detected export pipeline (ExportDataPointMappings@1) via the
+   * Communication Controller and offers the execution's OutputData — the
+   * portable mapping export document — as a JSON file download.
+   */
+  protected async exportMappings(): Promise<void> {
+    const pipeline = this.exportBackupPipeline();
+    const tenant = this.tenantId;
+    if (!pipeline || !tenant) return;
+
+    this.backupRunning.set('export');
+    this.backupError.set(null);
+
+    try {
+      const outcome = await this.executePipelineAndAwaitCompletion(pipeline, tenant);
+      if (outcome === 'start-failed') {
+        this.backupError.set('Failed to start the export pipeline.');
+        return;
+      }
+      if (outcome === 'timeout') {
+        this.backupError.set('Export is still running — try again in a moment.');
+        return;
+      }
+
+      const { outputData } = await this.loadLatestExecutionOutput(pipeline);
+      if (!outputData) {
+        this.backupError.set('Export finished but produced no output document.');
+        return;
+      }
+      this.saveJsonFile(outputData, 'datapoint-mappings.json');
+    } catch (error) {
+      console.error('Mapping export failed:', error);
+      this.backupError.set('Mapping export failed.');
+    } finally {
+      this.backupRunning.set(null);
+    }
+  }
+
+  /**
+   * Handles the hidden file input: parses the selected export document and
+   * runs the auto-detected import pipeline (ImportDataPointMappings@1) with
+   * `{ body: document }` as the pipeline input — the same shape the pipeline's
+   * HTTP POST trigger produces, so one definition serves both entry points.
+   * On completion the import statistics (resolved/unresolved) are shown and
+   * the tree, mapping list and orphan catalogue reload.
+   */
+  protected async onImportFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    const pipeline = this.importBackupPipeline();
+    const tenant = this.tenantId;
+    if (!file || !pipeline || !tenant) return;
+
+    this.backupError.set(null);
+    this.importStats.set(null);
+    this.importCompletedAt.set(null);
+
+    let document: unknown;
+    try {
+      document = JSON.parse(await file.text());
+    } catch {
+      this.backupError.set(`"${file.name}" is not valid JSON.`);
+      return;
+    }
+
+    this.backupRunning.set('import');
+    try {
+      const outcome = await this.executePipelineAndAwaitCompletion(
+        pipeline, tenant, { body: document },
+      );
+      if (outcome === 'start-failed') {
+        this.backupError.set('Failed to start the import pipeline.');
+        return;
+      }
+      if (outcome === 'timeout') {
+        this.backupError.set('Import is still running — reload the page state manually later.');
+        return;
+      }
+
+      const { outputData, completedAt } = await this.loadLatestExecutionOutput(pipeline);
+      this.importCompletedAt.set(completedAt);
+      this.importStats.set(parseImportStatistics(outputData));
+
+      await this.refreshTreeOverlay();
+      if (this.selectedNode()) {
+        await this.loadMappingsForSelected();
+      }
+      if (this.orphanCkType()) {
+        await this.loadOrphanCandidates();
+      }
+    } catch (error) {
+      console.error('Mapping import failed:', error);
+      this.backupError.set('Mapping import failed.');
+    } finally {
+      this.backupRunning.set(null);
+    }
+  }
+
+  /** Tooltip text for the "unresolved" badge — first 10 entry names + reason. */
+  protected unresolvedImportNames(): string {
+    const entries = this.importStats()?.unresolvedEntries ?? [];
+    const shown = entries.slice(0, 10)
+      .map(e => e.reason ? `${e.name ?? '?'} (${e.reason})` : e.name ?? '?');
+    return shown.join(', ') + (entries.length > 10 ? ', …' : '');
+  }
+
+  /**
+   * Offers a string as a JSON file download. Kept as a small overridable seam
+   * so tests can intercept the browser download plumbing.
+   */
+  protected saveJsonFile(content: string, fileName: string): void {
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = window.document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   /**
@@ -914,6 +1089,7 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
   private async executePipelineAndAwaitCompletion(
     pipeline: PipelineCandidate,
     tenant: string,
+    pipelineInput: unknown = null,
   ): Promise<'completed' | 'timeout' | 'start-failed'> {
     // Snapshot the latest execution's id so we can detect the new one finishing.
     let previousExecutionId: string | null = null;
@@ -928,7 +1104,7 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
     }
 
     try {
-      await this.communicationService.executePipeline(tenant, pipeline.rtId);
+      await this.communicationService.executePipeline(tenant, pipeline.rtId, pipelineInput);
     } catch (error) {
       console.error('Failed to start pipeline:', error);
       return 'start-failed';
@@ -994,6 +1170,7 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
           rtId: e.rtId as string,
           ckTypeId: e.ckTypeId as string,
           name: readAttr(e.attributes?.items, 'name') ?? e.rtWellKnownName ?? (e.rtId as string),
+          definition: readAttr(e.attributes?.items, 'pipelineDefinition'),
         }));
       candidates.sort((a, b) => a.name.localeCompare(b.name));
       this.validationPipelines.set(candidates);
@@ -1588,6 +1765,32 @@ function parseGenerationStatistics(serialised: string | null): GenerationStatist
       totalSuggestions: stats.totalSuggestions,
       ruleHits: stats.ruleHits ?? {},
       definedRuleIds: stats.definedRuleIds ?? [],
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parses the OutputData of an ImportDataPointMappings pipeline execution into
+ * the node's ImportStatistics shape ({ total, resolved, unresolved,
+ * unresolvedEntries }). Returns null for missing/foreign payloads — the UI
+ * then shows a plain "completed" note instead of numbers.
+ */
+function parseImportStatistics(serialised: string | null): ImportStatistics | null {
+  if (!serialised) return null;
+  try {
+    const parsed = JSON.parse(serialised) as Record<string, unknown> | null;
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (!('resolved' in parsed) && !('unresolved' in parsed) && !('unresolvedEntries' in parsed)) {
+      return null;
+    }
+    const stats = parsed as ImportStatistics;
+    return {
+      total: stats.total,
+      resolved: stats.resolved,
+      unresolved: stats.unresolved,
+      unresolvedEntries: stats.unresolvedEntries ?? [],
     };
   } catch {
     return null;

@@ -262,6 +262,24 @@ configured through `MappingCoverageTreeConfig` (roles + CK type ids;
   stacks vertically (tree pane 38vh on top, detail below) and the fixed-width
   toolbar selects become flexible; dialog sizes are kept on screen by the
   shared-ui `WindowStateService` viewport clamp.
+- **Mapping backup (Export/Import row):** a fourth toolbar row (shown only with a
+  `tenantId` AND when a backup pipeline is deployed) auto-detects the mapping
+  backup pipelines by scanning the loaded `PipelineDefinition`s for
+  `ExportDataPointMappings@` / `ImportDataPointMappings@`. **Export** runs the
+  export pipeline via `CommunicationService.executePipeline` (same polling as
+  Run/Generate) and downloads the execution's `OutputData` — the portable
+  mapping document — as `datapoint-mappings.json`. **Import…** opens a file
+  picker and executes the import pipeline with `{ body: <document> }` as
+  pipeline input; that mirrors the `$.body` shape of the pipeline's HTTP POST
+  trigger, so one pipeline definition serves both entry points (the
+  ExecutePipelineCommand chain carries the JSON body end-to-end:
+  controller `POST /pipeline/execute` body → `ExecutePipelineRequest.PipelineInput`
+  → adapter `FromExecutePipelineCommandNode` parses it as the initial
+  DataContext). Import statistics (`resolved`/`unresolved` + entry tooltip)
+  come from the execution's `OutputData` (`ImportDataPointMappings`'
+  `statisticsTargetPath`); tree, mapping list and orphan catalogue reload after
+  an import. `saveJsonFile` is a protected seam so tests can intercept the
+  browser download.
 - **Per-tenant source-type persistence:** `MappingCoverageConfigService`
   (`runtime-browser/services/mapping-coverage-config.service.ts`) loads/saves
   the optional `System.UI/MappingCoverageConfiguration` singleton

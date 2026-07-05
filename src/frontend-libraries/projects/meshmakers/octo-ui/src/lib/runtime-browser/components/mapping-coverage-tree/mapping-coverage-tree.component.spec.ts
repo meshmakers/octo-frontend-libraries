@@ -71,6 +71,7 @@ describe('MappingCoverageTreeComponent', () => {
   let bulkDialog: jasmine.SpyObj<BulkMappingDialogService>;
   let createEntitiesGQL: jasmine.SpyObj<CreateEntitiesDtoGQL>;
   let getLatestValidationGQL: jasmine.SpyObj<GetLatestValidationExecutionDtoGQL>;
+  let communicationService: jasmine.SpyObj<CommunicationService>;
 
   const SYSTEMS_PERSPECTIVE: PerspectiveDefinition = {
     key: 'Systems',
@@ -95,6 +96,10 @@ describe('MappingCoverageTreeComponent', () => {
     bulkDialog = jasmine.createSpyObj('BulkMappingDialogService', ['open']);
     createEntitiesGQL = jasmine.createSpyObj('CreateEntitiesDtoGQL', ['mutate']);
     getLatestValidationGQL = jasmine.createSpyObj('GetLatestValidationExecutionDtoGQL', ['fetch']);
+    communicationService = jasmine.createSpyObj('CommunicationService', [
+      'executePipeline',
+      'getLatestPipelineExecution',
+    ]);
 
     await TestBed.configureTestingModule({
       imports: [MappingCoverageTreeComponent],
@@ -102,7 +107,7 @@ describe('MappingCoverageTreeComponent', () => {
         { provide: EntitySelectorDialogService, useValue: {} },
         { provide: MappingEditDialogService, useValue: {} },
         { provide: ConfirmationService, useValue: {} },
-        { provide: CommunicationService, useValue: {} },
+        { provide: CommunicationService, useValue: communicationService },
         { provide: GetEntitiesByCkTypeDtoGQL, useValue: getEntitiesByCkTypeGQL },
         { provide: GetNodeMappingsDtoGQL, useValue: {} },
         { provide: GetRuntimeEntityByIdDtoGQL, useValue: {} },
@@ -461,6 +466,7 @@ describe('MappingCoverageTreeComponent', () => {
         rtId: 'pipe-1',
         ckTypeId: 'System.Communication/Pipeline',
         name: 'Auto-Map',
+        definition: null,
       });
 
       const stats = component['generationStats']();
@@ -479,10 +485,134 @@ describe('MappingCoverageTreeComponent', () => {
         rtId: 'pipe-1',
         ckTypeId: 'System.Communication/Pipeline',
         name: 'Auto-Map',
+        definition: null,
       });
 
       expect(component['generationStats']()).toBeNull();
       expect(component['generationCompletedAt']()).toBe('2026-07-04T10:00:00Z');
+    });
+  });
+
+  describe('mapping backup export/import', () => {
+    const EXPORT_PIPELINE = {
+      rtId: 'exp-1',
+      ckTypeId: 'System.Communication/Pipeline',
+      name: 'Export DataPoint Mappings',
+      definition: 'transformations:\n  - type: ExportDataPointMappings@1\n',
+    };
+    const IMPORT_PIPELINE = {
+      rtId: 'imp-1',
+      ckTypeId: 'System.Communication/Pipeline',
+      name: 'Import DataPoint Mappings',
+      definition: 'transformations:\n  - type: ImportDataPointMappings@1\n',
+    };
+
+    function latestBackupExecutionResponse(
+      outputData: string | null,
+    ): ReturnType<GetLatestValidationExecutionDtoGQL['fetch']> {
+      return of({
+        data: {
+          runtime: {
+            runtimeEntities: {
+              items: [
+                {
+                  rtId: 'pipe-1',
+                  associations: {
+                    executions: {
+                      items: [
+                        {
+                          rtId: 'exec-1',
+                          attributes: {
+                            items: [
+                              { attributeName: 'outputData', value: outputData },
+                              { attributeName: 'completedAt', value: '2026-07-04T11:00:00Z' },
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      }) as unknown as ReturnType<GetLatestValidationExecutionDtoGQL['fetch']>;
+    }
+
+    beforeEach(() => {
+      component.tenantId = 'energyiq';
+      component['validationPipelines'].set([EXPORT_PIPELINE, IMPORT_PIPELINE]);
+      // Poll snapshot ('prev') + first poll result (new id, done).
+      communicationService.getLatestPipelineExecution.and.returnValues(
+        Promise.resolve({ id: 'prev' } as never),
+        Promise.resolve({ id: 'new', status: 'Completed' } as never),
+      );
+      communicationService.executePipeline.and.resolveTo(null);
+    });
+
+    it('detects the backup pipelines from their definitions', () => {
+      expect(component['exportBackupPipeline']()?.rtId).toBe('exp-1');
+      expect(component['importBackupPipeline']()?.rtId).toBe('imp-1');
+
+      component['validationPipelines'].set([
+        { rtId: 'x', ckTypeId: 'System.Communication/Pipeline', name: 'Other', definition: null },
+      ]);
+      expect(component['exportBackupPipeline']()).toBeNull();
+      expect(component['importBackupPipeline']()).toBeNull();
+    });
+
+    it('exports: runs the export pipeline and downloads the OutputData document', async () => {
+      const exportDocument = JSON.stringify({ mappings: [{ name: 'M1' }] });
+      getLatestValidationGQL.fetch.and.returnValue(latestBackupExecutionResponse(exportDocument));
+      const saveSpy = spyOn(
+        component as unknown as { saveJsonFile: (content: string, fileName: string) => void },
+        'saveJsonFile',
+      );
+
+      await component['exportMappings']();
+
+      expect(communicationService.executePipeline).toHaveBeenCalledWith('energyiq', 'exp-1', null);
+      expect(saveSpy).toHaveBeenCalledWith(exportDocument, 'datapoint-mappings.json');
+      expect(component['backupError']()).toBeNull();
+      expect(component['backupRunning']()).toBeNull();
+    });
+
+    it('imports: sends { body: document } as pipeline input and shows statistics', async () => {
+      getLatestValidationGQL.fetch.and.returnValue(
+        latestBackupExecutionResponse(JSON.stringify({
+          total: 5,
+          resolved: 4,
+          unresolved: 1,
+          unresolvedEntries: [{ name: 'M5', reason: 'source not found' }],
+        })),
+      );
+      const documentContent = { mappings: [{ name: 'M1' }] };
+      const file = new File([JSON.stringify(documentContent)], 'datapoint-mappings.json', {
+        type: 'application/json',
+      });
+      const event = { target: { files: [file], value: '' } } as unknown as Event;
+
+      await component['onImportFileSelected'](event);
+
+      expect(communicationService.executePipeline).toHaveBeenCalledWith(
+        'energyiq', 'imp-1', { body: documentContent });
+      const stats = component['importStats']();
+      expect(stats?.resolved).toBe(4);
+      expect(stats?.unresolved).toBe(1);
+      expect(component['importCompletedAt']()).toBe('2026-07-04T11:00:00Z');
+      expect(component['unresolvedImportNames']()).toBe('M5 (source not found)');
+      expect(component['backupRunning']()).toBeNull();
+    });
+
+    it('rejects a non-JSON file without starting the pipeline', async () => {
+      const file = new File(['not json {'], 'broken.json', { type: 'application/json' });
+      const event = { target: { files: [file], value: '' } } as unknown as Event;
+
+      await component['onImportFileSelected'](event);
+
+      expect(communicationService.executePipeline).not.toHaveBeenCalled();
+      expect(component['backupError']()).toContain('broken.json');
     });
   });
 });

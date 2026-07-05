@@ -144,6 +144,56 @@
     </div>
   }
 
+  @if (tenantId && (exportBackupPipeline() || importBackupPipeline())) {
+    <div class="coverage-toolbar coverage-toolbar-validation">
+      <label class="toolbar-label">Backup:</label>
+      <button kendoButton size="small" [svgIcon]="icons.download"
+              [disabled]="!exportBackupPipeline() || backupRunning() !== null"
+              (click)="exportMappings()"
+              title="Run the export pipeline and download the mapping document as JSON">
+        @if (backupRunning() === 'export') { Exporting… } @else { Export }
+      </button>
+      <button kendoButton size="small" [svgIcon]="icons.upload"
+              [disabled]="!importBackupPipeline() || backupRunning() !== null"
+              (click)="importFileInput.click()"
+              title="Import a previously exported mapping document (JSON)">
+        @if (backupRunning() === 'import') { Importing… } @else { Import… }
+      </button>
+      <input #importFileInput type="file" accept=".json,application/json" hidden
+             (change)="onImportFileSelected($event)" />
+
+      <div class="toolbar-spacer"></div>
+
+      @if (backupRunning() === 'export') {
+        <span class="toolbar-meta">Exporting mappings…</span>
+      } @else if (backupRunning() === 'import') {
+        <span class="toolbar-meta">Importing mappings…</span>
+      } @else if (backupError(); as err) {
+        <span class="toolbar-meta validation-error-text">{{ err }}</span>
+      } @else if (importStats(); as s) {
+        <span class="validation-summary">
+          @if (s.resolved !== undefined) {
+            <span class="badge badge-ok" title="mappings resolved and imported">{{ s.resolved }} imported</span>
+          }
+          @if (s.unresolved) {
+            <span class="badge badge-warning"
+                  [attr.title]="'Unresolved: ' + unresolvedImportNames()">
+              {{ s.unresolved }} unresolved
+            </span>
+          }
+          @if (s.total !== undefined) {
+            <span class="badge">{{ s.total }} total</span>
+          }
+          @if (importCompletedAt(); as ts) {
+            <span class="validation-timestamp">{{ ts }}</span>
+          }
+        </span>
+      } @else if (importCompletedAt(); as ts) {
+        <span class="toolbar-meta">Import completed {{ ts }} (no statistics in OutputData)</span>
+      }
+    </div>
+  }
+
   <div class="coverage-body">
     <div class="coverage-tree-pane">
       @if (selectedRoot()) {

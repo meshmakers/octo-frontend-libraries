@@ -315,17 +315,25 @@ export class CommunicationService {
 
   /**
    * Executes a data pipeline manually.
+   *
+   * The optional `pipelineInput` is serialized as the JSON request body and
+   * becomes the pipeline's initial DataContext on the adapter side
+   * (FromExecutePipelineCommand trigger). Pipelines that were written for an
+   * HTTP POST trigger read their payload at `$.body`, so callers mirror that
+   * shape by passing `{ body: <document> }`. Omitting it preserves the
+   * classic empty-context execution.
    */
   async executePipeline(
     tenantId: string,
-    pipelineRtId: string
+    pipelineRtId: string,
+    pipelineInput: unknown = null
   ): Promise<PipelineExecutionDataDto | null> {
     if (this.communicationServicesUrl) {
       const params = new HttpParams().set('pipelineRtId', pipelineRtId);
       const uri = `${this.communicationServicesUrl}${tenantId}/v1/pipeline/execute`;
 
       const response = await firstValueFrom(
-        this.httpClient.post<PipelineExecutionDataDto>(uri, null, {
+        this.httpClient.post<PipelineExecutionDataDto>(uri, pipelineInput, {
           params,
           observe: 'response'
         })
