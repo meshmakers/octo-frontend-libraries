@@ -1197,6 +1197,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         legendPosition: widget.legendPosition,
         showDataLabels: widget.showDataLabels,
         dataLabelSuffix: widget.dataLabelSuffix,
+        valueScale: widget.valueScale,
         colorThresholds: widget.colorThresholds,
         defaultBarColor: widget.defaultBarColor,
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
@@ -1233,6 +1234,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         legendPosition: (config['legendPosition'] as BarChartWidgetConfig['legendPosition']) ?? 'right',
         showDataLabels: (config['showDataLabels'] as boolean) ?? false,
         dataLabelSuffix: config['dataLabelSuffix'] as string | undefined,
+        valueScale: config['valueScale'] as number | undefined,
         colorThresholds: config['colorThresholds'] as BarChartWidgetConfig['colorThresholds'],
         defaultBarColor: config['defaultBarColor'] as string | undefined,
         filters: config['filters'] as WidgetFilterConfig[] | undefined

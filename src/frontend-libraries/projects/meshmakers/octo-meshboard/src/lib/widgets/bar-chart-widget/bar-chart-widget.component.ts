@@ -481,9 +481,10 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const seriesGroups = Array.from(allSeriesGroups);
 
     // Build series data
+    const valueScale = this.config?.valueScale ?? 1;
     const seriesData: SeriesData[] = seriesGroups.map(seriesGroup => {
       const rawData = categories.map(category => {
-        return dataMap.get(category)?.get(seriesGroup) ?? 0;
+        return (dataMap.get(category)?.get(seriesGroup) ?? 0) * valueScale;
       });
 
       return {

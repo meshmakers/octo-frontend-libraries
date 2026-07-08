@@ -561,6 +561,12 @@ export interface BarChartWidgetConfig extends WidgetConfig {
   filters?: WidgetFilterConfig[];
   /** Suffix appended to data labels (e.g. ' kW') */
   dataLabelSuffix?: string;
+  /**
+   * Factor every raw value is multiplied with before charting (default 1). Lets a widget render
+   * engine units in display units without a second query — e.g. 1/3600000 turns the
+   * millisecond StateDuration aggregation (AB#4336) into hours, 0.001 turns Wh into kWh.
+   */
+  valueScale?: number;
   /** Threshold-based per-bar coloring. Thresholds sorted ascending by value. */
   colorThresholds?: BarChartColorThreshold[];
   /** Default bar color when value exceeds all thresholds */
