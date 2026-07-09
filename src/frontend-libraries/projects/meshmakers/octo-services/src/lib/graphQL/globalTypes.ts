@@ -6070,7 +6070,9 @@ export enum CkRollupFunctionDto {
   CountDto = 'COUNT',
   MaxDto = 'MAX',
   MinDto = 'MIN',
-  SumDto = 'SUM'
+  StateDurationDto = 'STATE_DURATION',
+  SumDto = 'SUM',
+  TimeWeightedAvgDto = 'TIME_WEIGHTED_AVG'
 }
 
 /** Definition of a construction kit type with name, associations and attributes. */
@@ -6395,6 +6397,8 @@ export type CreateRollupArchiveInputDto = {
   bucketAlignment?: InputMaybe<BucketAlignmentInputDto>;
   /** Bucket width in milliseconds. Must be > 0. */
   bucketSizeMs: Scalars['Long']['input'];
+  /** Optional bound on the TIME_WEIGHTED_AVG carry-in scan (last observation carried forward) in milliseconds. Null keeps the engine default of 35 days. Only meaningful when the aggregations include TIME_WEIGHTED_AVG; ignored otherwise. Must be > 0 when set. */
+  carryLookbackMs?: InputMaybe<Scalars['Long']['input']>;
   /** Optional IANA reference time-zone (e.g. 'Europe/Vienna') that aligns calendar bucket boundaries to local wall-clock time so they are DST-correct. Null keeps UTC boundaries. Ignored for FIXED_SIZE; an unknown zone id is rejected. */
   referenceTimeZone?: InputMaybe<Scalars['String']['input']>;
   /** Optional human-readable name for the rollup archive. */
@@ -24379,6 +24383,8 @@ export type RollupAggregationInfoDto = {
 
 /** One aggregation: source-path on the source archive plus the aggregation function and optional explicit column name. */
 export type RollupAggregationInputDto = {
+  /** State literal a STATE_DURATION aggregation matches the source column against — a number ('2', '100'), a boolean ('true'/'false') or a string state name. Required for STATE_DURATION; ignored for every other function. */
+  comparisonValue?: InputMaybe<Scalars['String']['input']>;
   /** Aggregation function (AVG materialises as two columns: {base}_sum and {base}_count). */
   function: CkRollupFunctionDto;
   /** Attribute path on the source archive (must resolve against its captured Columns at activation time). */

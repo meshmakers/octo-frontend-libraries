@@ -124,8 +124,10 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
 /**
  * The canonical aggregation functions a resolution-aware series can be reduced with
  * (AB#4290). Values match the backend `CkRollupFunction` / `AggregationType` GraphQL enums.
+ * `TIME_WEIGHTED_AVG` (AB#4336) reduces an event-based rollup to its LOCF-weighted duty cycle;
+ * the series resolver matches TWA rollups (incl. cascades) the same way it matches the others.
  */
-export type SeriesAggregationFunction = 'AVG' | 'MIN' | 'MAX' | 'SUM' | 'COUNT';
+export type SeriesAggregationFunction = 'AVG' | 'MIN' | 'MAX' | 'SUM' | 'COUNT' | 'TIME_WEIGHTED_AVG';
 
 /**
  * Aggregation types supported

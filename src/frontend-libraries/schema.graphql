@@ -54908,7 +54908,9 @@ enum CkRollupFunction {
   COUNT
   MAX
   MIN
+  STATE_DURATION
   SUM
+  TIME_WEIGHTED_AVG
 }
 
 "Defines possible delete strategies of a runtime type"
@@ -56449,6 +56451,8 @@ input CreateRollupArchiveInput {
   bucketAlignment: BucketAlignmentInput = FIXED_SIZE
   "Bucket width in milliseconds. Must be > 0."
   bucketSizeMs: Long!
+  "Optional bound on the TIME_WEIGHTED_AVG carry-in scan (last observation carried forward) in milliseconds. Null keeps the engine default of 35 days. Only meaningful when the aggregations include TIME_WEIGHTED_AVG; ignored otherwise. Must be > 0 when set."
+  carryLookbackMs: Long
   "Optional IANA reference time-zone (e.g. 'Europe/Vienna') that aligns calendar bucket boundaries to local wall-clock time so they are DST-correct. Null keeps UTC boundaries. Ignored for FIXED_SIZE; an unknown zone id is rejected."
   referenceTimeZone: String
   "Optional human-readable name for the rollup archive."
@@ -58111,6 +58115,8 @@ input ResultAggregationInput {
 
 "One aggregation: source-path on the source archive plus the aggregation function and optional explicit column name."
 input RollupAggregationInput {
+  "State literal a STATE_DURATION aggregation matches the source column against — a number ('2', '100'), a boolean ('true'/'false') or a string state name. Required for STATE_DURATION; ignored for every other function."
+  comparisonValue: String
   "Aggregation function (AVG materialises as two columns: {base}_sum and {base}_count)."
   function: CkRollupFunction!
   "Attribute path on the source archive (must resolve against its captured Columns at activation time)."

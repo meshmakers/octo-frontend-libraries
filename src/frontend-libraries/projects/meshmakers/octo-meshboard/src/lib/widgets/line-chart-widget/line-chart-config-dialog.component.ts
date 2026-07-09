@@ -503,7 +503,8 @@ export class LineChartConfigDialogComponent implements OnInit {
     { value: 'AVG', label: 'Average (instantaneous)' },
     { value: 'MAX', label: 'Max (e.g. demand)' },
     { value: 'MIN', label: 'Min' },
-    { value: 'COUNT', label: 'Count' }
+    { value: 'COUNT', label: 'Count' },
+    { value: 'TIME_WEIGHTED_AVG', label: 'Time-weighted average (event-based duty cycle)' }
   ];
 
   /** Entity selectors available on the current MeshBoard (for the scope picker). */
