@@ -17,6 +17,25 @@
   width: 165px;
 }
 
+// Action buttons stay on one line. Kendo's command cell flows its buttons as
+// inline content with an 8px margin between them, so a tight actions column
+// wraps them into a vertical stack — density scales the buttons in rem while
+// the column width is px. Flex with a fixed gap keeps them side by side; if a
+// caller passes a width that is genuinely too small, the cell clips instead of
+// growing the row height.
+:host ::ng-deep .k-command-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+
+  .k-button {
+    flex-shrink: 0;
+    margin: 0;
+  }
+}
+
 // Compact toolbar for phone-width hosts (class set by the component below 600px):
 // controls wrap into rows instead of stacking every button vertically, and the
 // search input takes a full row of its own. Layout-only — theming stays with the host.
