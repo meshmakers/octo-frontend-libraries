@@ -58,8 +58,7 @@
     <kendo-grid-spacer></kendo-grid-spacer>
     @if (searchTextBoxEnabled) {
       <input
-        class="k-textbox k-input k-input-md k-rounded-md"
-        [style.width.px]="165"
+        class="k-textbox k-input k-input-md k-rounded-md mm-search-input"
         [placeholder]="_messages.searchPlaceholder"
         [value]="searchValue"
         (input)="onFilter($any($event.target).value || null)"
@@ -108,7 +107,7 @@
     <button kendoTooltip kendoButton themeColor="primary" fillMode="flat" [svgIcon]="refreshIcon" (click)="onRefresh()" [disabled]="isLoading()" [title]="_messages.refreshData"></button>
   </ng-template>
 
-  @if (showRowCheckBoxes && selectable.enabled) {
+  @if (showCheckboxColumn()) {
     <kendo-grid-checkbox-column [showSelectAll]="showRowSelectAllCheckBox"
                                 [width]="checkboxColumnWidth"></kendo-grid-checkbox-column>
   }

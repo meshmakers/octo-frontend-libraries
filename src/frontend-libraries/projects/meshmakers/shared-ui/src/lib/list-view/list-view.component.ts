@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, NgZone, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
 import {
   BooleanFilterCellComponent,
   CellClickEvent,
@@ -173,6 +173,24 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public actionsColumnWidth = 220;
 
   /**
+   * Hides the row-checkbox column while the list view is narrower than this many
+   * pixels — on phone-sized layouts multi-select via checkboxes is impractical and
+   * the 40px are better spent on the data columns. Pass `null` to always show them.
+   */
+  @Input() public hideCheckboxesBelow: number | null = 600;
+
+  /**
+   * Compact-toolbar breakpoint: below this component width the host gets the
+   * `mm-list-view-narrow` class, which wraps the grid toolbar and stretches the
+   * search input to a full row instead of stacking every control vertically.
+   */
+  @HostBinding('class.mm-list-view-narrow')
+  protected get isNarrow(): boolean {
+    const width = this.containerWidth();
+    return width !== null && width < 600;
+  }
+
+  /**
    * Callback for applying CSS classes to grid rows based on row data.
    * Passed through to Kendo Grid's [rowClass] input.
    */
@@ -272,6 +290,15 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return width !== null && column.hideBelow !== undefined && width < column.hideBelow;
   }
 
+  /** Whether the row-checkbox column is rendered (selection enabled AND above `hideCheckboxesBelow`). */
+  protected showCheckboxColumn(): boolean {
+    if (!this.showRowCheckBoxes || !this.selectable.enabled) {
+      return false;
+    }
+    const width = this.containerWidth();
+    return this.hideCheckboxesBelow === null || width === null || width >= this.hideCheckboxesBelow;
+  }
+
   /**
    * Resolves the width passed to the Kendo column. Fixed-width columns keep their
    * configured width. Auto columns normally stay auto (undefined) so they stretch into
@@ -294,7 +321,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
     const visibleColumns = this._columns.filter(c => !this.isColumnHidden(c));
     let fixedWidth = visibleColumns.reduce((sum, c) => sum + (c.width ?? 0), 0);
-    if (this.showRowCheckBoxes && this.selectable.enabled) {
+    if (this.showCheckboxColumn()) {
       fixedWidth += this.checkboxColumnWidth;
     }
     if (this._actionMenuItems.length > 0 || (this._contextMenuItems.length > 0 && this.contextMenuType == 'actionMenu')) {

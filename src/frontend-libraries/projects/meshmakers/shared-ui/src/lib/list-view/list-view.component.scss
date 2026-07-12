@@ -13,6 +13,27 @@
   }
 }
 
+.mm-search-input {
+  width: 165px;
+}
+
+// Compact toolbar for phone-width hosts (class set by the component below 600px):
+// controls wrap into rows instead of stacking every button vertically, and the
+// search input takes a full row of its own. Layout-only — theming stays with the host.
+:host(.mm-list-view-narrow) ::ng-deep .k-grid-toolbar {
+  flex-wrap: wrap;
+  row-gap: 6px;
+
+  .mm-search-input {
+    width: 100%;
+    order: 10;
+  }
+
+  kendo-grid-spacer {
+    display: none;
+  }
+}
+
 // Single-line, ellipsised cell text. Pairs with the cell's native `title` tooltip so the
 // full value stays reachable on hover — used by columns flagged `truncate: true` (typically
 // long error messages or log lines that would otherwise wrap and bloat the row height).

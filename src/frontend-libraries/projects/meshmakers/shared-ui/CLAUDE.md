@@ -128,8 +128,11 @@ prevent that:
   identity columns keep their room.
 
 Component width is tracked via ResizeObserver. Related component inputs: `resizable`
-(default `true` — drag column edges) and `actionsColumnWidth` (default `220`; lists with only an
-edit button + context-menu trigger should pass ~100). The host element is a vertical flex
+(default `true` — drag column edges), `actionsColumnWidth` (default `220`; lists with only an
+edit button + context-menu trigger should pass ~100) and `hideCheckboxesBelow` (default `600` —
+the row-checkbox column disappears on phone-width hosts; pass `null` to always show it). Below
+600px component width the host also gets the `mm-list-view-narrow` class: the toolbar wraps and
+the search input stretches to a full row. The host element is a vertical flex
 container: grant it height (e.g. `flex: 1` from the page layout) and the grid fills it, scrolling
 its body internally with the pager pinned to the bottom edge.
 

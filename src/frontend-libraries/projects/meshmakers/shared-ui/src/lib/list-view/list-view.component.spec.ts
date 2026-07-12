@@ -112,6 +112,42 @@ describe('MmTableComponent', () => {
     });
   });
 
+  describe('checkbox column hiding (hideCheckboxesBelow)', () => {
+    interface CheckboxApi {
+      containerWidth: { set: (value: number | null) => void };
+      showCheckboxColumn: () => boolean;
+    }
+    const api = () => component as unknown as CheckboxApi;
+
+    beforeEach(() => {
+      component.selectable = { mode: 'multiple', enabled: true };
+      component.showRowCheckBoxes = true;
+    });
+
+    it('shows checkboxes before the first width measurement', () => {
+      expect(api().showCheckboxColumn()).toBeTrue();
+    });
+
+    it('hides checkboxes below the default 600px breakpoint and shows them above', () => {
+      api().containerWidth.set(400);
+      expect(api().showCheckboxColumn()).toBeFalse();
+      api().containerWidth.set(800);
+      expect(api().showCheckboxColumn()).toBeTrue();
+    });
+
+    it('always shows checkboxes when hideCheckboxesBelow is null', () => {
+      component.hideCheckboxesBelow = null;
+      api().containerWidth.set(400);
+      expect(api().showCheckboxColumn()).toBeTrue();
+    });
+
+    it('never shows checkboxes when selection is disabled', () => {
+      component.selectable = { enabled: false };
+      api().containerWidth.set(800);
+      expect(api().showCheckboxColumn()).toBeFalse();
+    });
+  });
+
   describe('badge columns', () => {
     const badgeColumn = {
       field: 'flag',
