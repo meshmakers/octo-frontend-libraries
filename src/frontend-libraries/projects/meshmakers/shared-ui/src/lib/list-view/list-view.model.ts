@@ -60,6 +60,23 @@ export interface TableColumn {
    */
   width?: number;
   /**
+   * Minimum width in pixels for auto-sized columns (columns without `width`).
+   * Without it, fixed-width siblings can squeeze an auto column to zero on narrow
+   * viewports. When the available space per auto column drops below this value, the
+   * column is pinned to `minWidth` and the grid overflows into a horizontal scrollbar
+   * instead of collapsing the column. Also applied as the Kendo `minResizableWidth`,
+   * so user resizing cannot shrink the column below it either.
+   */
+  minWidth?: number;
+  /**
+   * Hides the column while the list view is narrower than this many pixels.
+   * Measured against the component's own width (not the browser viewport), so the
+   * column set also adapts when surrounding layout (drawer, split panes) takes space.
+   * Use it to declare column priority: give low-value detail columns a breakpoint so
+   * the identifying columns keep their room on small screens.
+   */
+  hideBelow?: number;
+  /**
    * Status mapping for single-field statusIcons columns.
    * Use this when the column displays icons for a single field.
    */

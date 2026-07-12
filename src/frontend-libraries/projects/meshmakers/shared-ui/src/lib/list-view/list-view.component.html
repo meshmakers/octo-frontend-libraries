@@ -6,6 +6,7 @@
   [pageable]="pageable"
   [sortable]="sortable"
   [filterable]="_showRowFilter"
+  [resizable]="resizable"
   [rowClass]="rowClass ?? defaultRowClass"
 >
   <kendo-grid-messages
@@ -109,13 +110,15 @@
 
   @if (showRowCheckBoxes && selectable.enabled) {
     <kendo-grid-checkbox-column [showSelectAll]="showRowSelectAllCheckBox"
-                                [width]="40"></kendo-grid-checkbox-column>
+                                [width]="checkboxColumnWidth"></kendo-grid-checkbox-column>
   }
 
   @for (column of columns; track column.field) {
     <kendo-grid-column [field]="column.field"
                        [filter]="getFilterType(column)" format="{{column.format}}"
-                       [width]="$any(column.width)"
+                       [width]="$any(getEffectiveWidth(column))"
+                       [minResizableWidth]="column.minWidth ?? 10"
+                       [hidden]="isColumnHidden(column)"
                        [sortable]="column.sortable !== false"
                        [filterable]="column.filterable !== false"
                        [title]="getDisplayName(column) | pascalCase">
@@ -271,7 +274,7 @@
   }
 
   @if (_actionMenuItems.length > 0 || (_contextMenuItems.length > 0 &&  contextMenuType == 'actionMenu')) {
-    <kendo-grid-command-column [title]="_messages.actionsColumnTitle" [width]="220">
+    <kendo-grid-command-column [title]="_messages.actionsColumnTitle" [width]="actionsColumnWidth">
       <ng-template kendoGridCellTemplate let-dataItem>
         @if (_actionMenuItems.length > 0) {
           @for (menuItem of _actionMenuItems; track menuItem.text) {

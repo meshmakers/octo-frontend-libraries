@@ -41,6 +41,77 @@ describe('MmTableComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('responsive columns (hideBelow / minWidth)', () => {
+    interface ResponsiveApi {
+      containerWidth: { set: (value: number | null) => void };
+      isColumnHidden: (col: unknown) => boolean;
+      getEffectiveWidth: (col: unknown) => number | undefined;
+    }
+    const api = () => component as unknown as ResponsiveApi;
+
+    it('keeps all columns visible before the first width measurement', () => {
+      const column = { field: 'version', hideBelow: 1280 };
+      expect(api().isColumnHidden(column)).toBeFalse();
+    });
+
+    it('hides a column below its hideBelow breakpoint and shows it above', () => {
+      const column = { field: 'version', hideBelow: 1280 };
+      api().containerWidth.set(1000);
+      expect(api().isColumnHidden(column)).toBeTrue();
+      api().containerWidth.set(1400);
+      expect(api().isColumnHidden(column)).toBeFalse();
+    });
+
+    it('never hides columns without hideBelow', () => {
+      const column = { field: 'name' };
+      api().containerWidth.set(100);
+      expect(api().isColumnHidden(column)).toBeFalse();
+    });
+
+    it('keeps fixed-width columns at their configured width', () => {
+      component.columns = [{ field: 'type', width: 80, minWidth: 200 }];
+      api().containerWidth.set(500);
+      expect(api().getEffectiveWidth(component.columns[0])).toBe(80);
+    });
+
+    it('leaves auto columns auto while there is enough room', () => {
+      component.columns = [
+        { field: 'name', minWidth: 200 },
+        { field: 'type', width: 80 }
+      ];
+      component.selectable = { enabled: false };
+      api().containerWidth.set(1200);
+      expect(api().getEffectiveWidth(component.columns[0])).toBeUndefined();
+    });
+
+    it('pins auto columns to minWidth when fixed columns squeeze them below it', () => {
+      component.columns = [
+        { field: 'name', minWidth: 200 },
+        { field: 'type', width: 900 }
+      ];
+      component.selectable = { enabled: false };
+      api().containerWidth.set(1000);
+      expect(api().getEffectiveWidth(component.columns[0])).toBe(200);
+    });
+
+    it('ignores hidden columns when computing the remaining space', () => {
+      component.columns = [
+        { field: 'name', minWidth: 200 },
+        { field: 'message', width: 900, hideBelow: 1600 }
+      ];
+      component.selectable = { enabled: false };
+      // At 1000px the 900px column is hidden, so the auto column has plenty of room.
+      api().containerWidth.set(1000);
+      expect(api().getEffectiveWidth(component.columns[0])).toBeUndefined();
+    });
+
+    it('returns undefined for auto columns without minWidth', () => {
+      component.columns = [{ field: 'name' }];
+      api().containerWidth.set(100);
+      expect(api().getEffectiveWidth(component.columns[0])).toBeUndefined();
+    });
+  });
+
   describe('badge columns', () => {
     const badgeColumn = {
       field: 'flag',

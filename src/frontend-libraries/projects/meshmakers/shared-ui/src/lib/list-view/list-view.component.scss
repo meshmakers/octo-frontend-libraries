@@ -1,3 +1,18 @@
+// Fill whatever height the parent grants the host: the grid gets a definite height and
+// switches to internal body scrolling, which puts the pager at the bottom edge instead of
+// leaving a content-height strip with dead space below it. In content-sized parents the
+// flex basis stays `auto`, so the grid keeps its natural height there.
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  > kendo-grid {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
 // Single-line, ellipsised cell text. Pairs with the cell's native `title` tooltip so the
 // full value stays reachable on hover — used by columns flagged `truncate: true` (typically
 // long error messages or log lines that would otherwise wrap and bloat the row height).

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, NgZone, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
 import {
   BooleanFilterCellComponent,
   CellClickEvent,
@@ -103,6 +103,16 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   /** Indicates if the data source is currently loading data */
   protected isLoading = signal(false);
 
+  /**
+   * The component's own width in pixels, kept current via ResizeObserver.
+   * `null` until the first measurement (before that, all columns render visible
+   * and auto-sized). Drives `hideBelow` column hiding and `minWidth` pinning.
+   */
+  protected readonly containerWidth = signal<number | null>(null);
+  private readonly hostElement = inject(ElementRef<HTMLElement>);
+  private readonly ngZone = inject(NgZone);
+  private resizeObserver?: ResizeObserver;
+
   @ViewChild(GridComponent) private gridComponent?: GridComponent;
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;
   @ViewChild("gridmenu") public gridContextMenu?: ContextMenuComponent;
@@ -151,6 +161,16 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public sortable = false;
   @Input() public rowFilterEnabled = false;
   @Input() public searchTextBoxEnabled = false;
+
+  /** Whether users can resize columns by dragging the header edges. */
+  @Input() public resizable = true;
+
+  /**
+   * Width in pixels of the trailing actions command column. The default fits the
+   * historical five-button layouts; lists with only an edit button plus the
+   * context-menu trigger should pass something around 100.
+   */
+  @Input() public actionsColumnWidth = 220;
 
   /**
    * Callback for applying CSS classes to grid rows based on row data.
@@ -224,12 +244,69 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
         this.isLoading.set(loading);
       });
     }
+
+    // Track the component's own width for hideBelow/minWidth column behavior.
+    // The callback fires outside the Angular zone; re-enter it so the signal
+    // update schedules change detection for this OnPush component.
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(entries => {
+        const width = entries[entries.length - 1]?.contentRect.width;
+        if (width === undefined) {
+          return;
+        }
+        this.ngZone.run(() => this.containerWidth.set(width));
+      });
+      this.resizeObserver.observe(this.hostElement.nativeElement);
+    }
   }
 
   ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  /** Whether the column is hidden at the current component width (`hideBelow`). */
+  protected isColumnHidden(column: TableColumn): boolean {
+    const width = this.containerWidth();
+    return width !== null && column.hideBelow !== undefined && width < column.hideBelow;
+  }
+
+  /**
+   * Resolves the width passed to the Kendo column. Fixed-width columns keep their
+   * configured width. Auto columns normally stay auto (undefined) so they stretch into
+   * the remaining space — but once the space left over per auto column drops below the
+   * column's `minWidth`, the column is pinned to `minWidth`. The grid's total width then
+   * exceeds the container and Kendo shows a horizontal scrollbar instead of silently
+   * collapsing the auto columns to zero.
+   */
+  protected getEffectiveWidth(column: TableColumn): number | undefined {
+    if (column.width !== undefined) {
+      return column.width;
+    }
+    if (column.minWidth === undefined) {
+      return undefined;
+    }
+    const containerWidth = this.containerWidth();
+    if (containerWidth === null) {
+      return undefined;
+    }
+
+    const visibleColumns = this._columns.filter(c => !this.isColumnHidden(c));
+    let fixedWidth = visibleColumns.reduce((sum, c) => sum + (c.width ?? 0), 0);
+    if (this.showRowCheckBoxes && this.selectable.enabled) {
+      fixedWidth += this.checkboxColumnWidth;
+    }
+    if (this._actionMenuItems.length > 0 || (this._contextMenuItems.length > 0 && this.contextMenuType == 'actionMenu')) {
+      fixedWidth += this.actionsColumnWidth;
+    }
+
+    const autoColumns = visibleColumns.filter(c => c.width === undefined);
+    const widthPerAutoColumn = (containerWidth - fixedWidth) / Math.max(autoColumns.length, 1);
+    return widthPerAutoColumn < column.minWidth ? column.minWidth : undefined;
+  }
+
+  protected readonly checkboxColumnWidth = 40;
 
   protected getDisplayName(column: TableColumn): string {
     return column.displayName ?? column.field;

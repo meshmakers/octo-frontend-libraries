@@ -114,6 +114,25 @@ interface TableColumn {
 
 Status icon columns use `StatusIconMapping` for icon/color/tooltip per value.
 
+**Responsive column behavior (`minWidth` / `hideBelow`)**
+
+Column widths are px numbers; auto columns (no `width`) share the leftover space and — without
+guards — collapse to zero once fixed-width siblings exceed the container. Two per-column knobs
+prevent that:
+
+- `minWidth` — floor for auto columns. When the leftover space per auto column drops below it,
+  the column is pinned to `minWidth` and the grid overflows into a horizontal scrollbar. Also
+  used as Kendo's `minResizableWidth`.
+- `hideBelow` — hides the column while the list view itself (not the browser viewport) is
+  narrower than the given px. Use it to declare column priority: detail columns get breakpoints,
+  identity columns keep their room.
+
+Component width is tracked via ResizeObserver. Related component inputs: `resizable`
+(default `true` — drag column edges) and `actionsColumnWidth` (default `220`; lists with only an
+edit button + context-menu trigger should pass ~100). The host element is a vertical flex
+container: grant it height (e.g. `flex: 1` from the page layout) and the grid fills it, scrolling
+its body internally with the pager pinned to the bottom edge.
+
 **Custom cell formatting (`formatter`)**
 
 Use the optional `formatter` callback when the standard `dataType` rendering is not enough — currency, units, conditional labels, etc. The callback receives the raw field value and the full row item, and returns the cell's display string. Filtering and sorting still operate on the underlying field, so a numeric column with a currency formatter still sorts numerically and filters via the numeric input cell.
