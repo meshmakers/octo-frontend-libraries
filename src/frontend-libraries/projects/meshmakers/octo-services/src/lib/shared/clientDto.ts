@@ -30,4 +30,19 @@ export interface ClientDto {
    * would overwrite the change. Empty / undefined on locally-owned clients.
    */
   provisionedByParentTenantId?: string;
+
+  /**
+   * When true, this client was self-registered via RFC 7591 Dynamic Client
+   * Registration (client id prefix `octo-dcr-`). Such clients are server-managed
+   * and expire automatically; UIs render them read-only and exclude them from
+   * export. Read-only — the backend ignores it on write.
+   */
+  dynamicRegistration?: boolean;
+
+  /**
+   * Expiry of a dynamically-registered client (registration time + TTL) as an
+   * ISO 8601 string. After this moment the backend erases the client and its
+   * per-tenant mirrors. Undefined on regular clients. Read-only.
+   */
+  dynamicRegistrationExpiresAt?: string;
 }
