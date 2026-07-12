@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
 import { TileLayoutModule, TileLayoutComponent, TileLayoutReorderEvent, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
@@ -32,6 +32,7 @@ import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.service';
 import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
+import { compactTierForWidth, columnsForTier, placeWidgetsForTier } from '../../utils/compact-layout';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
 import {
   EntitySelectorToolbarComponent,
@@ -168,6 +169,22 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly hasGridWidgets = computed(() => this.gridWidgets().length > 0);
   protected readonly canSave = computed(() => this.isEditMode() && !this.isSaving());
 
+  // Compact layout (AB#4353): the TileLayout renders its configured column
+  // count at any width, so narrow containers get a presentation-side remap —
+  // single column below 700px, at most 3 columns below 1100px, persisted
+  // config untouched. Editing stays native-tier-only because drag/resize
+  // against remapped positions would corrupt the stored anchors.
+  private readonly hostElement = inject(ElementRef<HTMLElement>);
+  private readonly ngZone = inject(NgZone);
+  private resizeObserver?: ResizeObserver;
+  private readonly containerWidth = signal<number | null>(null);
+  protected readonly compactTier = computed(() => compactTierForWidth(this.containerWidth()));
+  protected readonly displayColumns = computed(() => columnsForTier(this.compactTier(), this.config().columns));
+  protected readonly displayAutoFlow = computed(() => this.compactTier() === 'none' ? 'column' as const : 'row' as const);
+  protected readonly canEditLayout = computed(() => this.isEditMode() && this.compactTier() === 'none');
+  protected readonly displayGridWidgets = computed(() =>
+    placeWidgetsForTier(this.gridWidgets(), this.compactTier(), this.config().columns));
+
   // Time Filter computed signals
   protected readonly isTimeFilterEnabled = computed(() => this.stateService.isTimeFilterEnabled());
   protected readonly timeFilterConfig = computed(() => this.stateService.getTimeFilterConfig());
@@ -279,6 +296,20 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   }
 
   async ngOnInit(): Promise<void> {
+    // Track the component's own width for the compact layout tiers. The callback
+    // fires outside the Angular zone; re-enter it so the signal update schedules
+    // change detection for this OnPush component.
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(entries => {
+        const width = entries[entries.length - 1]?.contentRect.width;
+        if (width === undefined) {
+          return;
+        }
+        this.ngZone.run(() => this.containerWidth.set(width));
+      });
+      this.resizeObserver.observe(this.hostElement.nativeElement);
+    }
+
     // Reset edit mode state when entering the page to clear any lingering state from previous sessions
     this.editModeService.reset();
 
@@ -363,6 +394,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   }
 
   ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
     this.closeConfigDialog();
     this.navigationSubscription?.unsubscribe();
     this.autoRefreshTimer.stop();

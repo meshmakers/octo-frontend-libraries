@@ -58,6 +58,26 @@ src/lib/
 
 ---
 
+## Compact Layout (responsive tiers, AB#4353)
+
+The Kendo TileLayout renders its configured column count at any container width — on a
+390px phone a 6-column board yields ~42px columns. `MeshBoardViewComponent` therefore
+applies a **presentation-side** remap driven by its own width (ResizeObserver):
+
+| Container width | Tier | Rendering |
+|---|---|---|
+| ≥ 1100px | `none` | Configured columns, persisted col/row anchors, editing enabled |
+| 700–1099px | `tablet` | `min(columns, 3)` columns, anchors dropped (CSS grid auto-flow `row` in reading order), colSpan clamped |
+| < 700px | `phone` | Single column, widgets stacked in reading order (sorted by row, then col) |
+
+The persisted board config is **never modified** — the remap lives in
+`utils/compact-layout.ts` (`compactTierForWidth` / `columnsForTier` / `placeWidgetsForTier`,
+pure and unit-tested) and feeds the `displayColumns` / `displayGridWidgets` computed signals.
+Edit mode (drag/resize/reorder) is only offered in the `none` tier (`canEditLayout`), because
+dragging against remapped positions would corrupt the stored anchors.
+
+---
+
 ## Core Services
 
 ### MeshBoardStateService
