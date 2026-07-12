@@ -251,7 +251,7 @@
                 [style.borderColor]="badge.borderColor ?? badge.backgroundColor">
                 {{ badge.label ?? getValue(dataItem, column) }}
               </span>
-            } @else {
+            } @else if (!column.badgeHideUnmapped) {
               <span class="badge-cell badge-cell-default">{{ getValue(dataItem, column) }}</span>
             }
           }

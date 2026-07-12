@@ -100,6 +100,13 @@ export interface TableColumn {
    */
   badgeMapping?: BadgeMappingTable;
   /**
+   * When true, values without a `badgeMapping` entry render an empty cell instead of the
+   * neutral raw-value pill (only consulted for `dataType: 'badge'`). Use for flag-style
+   * columns where only some values carry a badge — e.g. a boolean marker column that shows
+   * a pill for `true` and nothing (rather than a "false" pill) for `false`.
+   */
+  badgeHideUnmapped?: boolean;
+  /**
    * Optional callback that produces the cell's display string.
    * When set, this overrides the default rendering selected by `dataType`.
    * Filter/sort behaviour still follow `dataType` and the underlying `field` value,

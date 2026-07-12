@@ -40,4 +40,27 @@ describe('MmTableComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('badge columns', () => {
+    const badgeColumn = {
+      field: 'flag',
+      displayName: 'Flag',
+      dataType: 'badge' as const,
+      badgeMapping: { true: { label: 'Dynamic', color: '#64ceb9' } }
+    };
+
+    it('resolves a mapped value to its badge appearance', () => {
+      const badge = (component as unknown as {
+        getBadgeMapping: (item: Record<string, unknown>, col: unknown) => { label?: string } | null;
+      }).getBadgeMapping({ flag: true }, badgeColumn);
+      expect(badge?.label).toBe('Dynamic');
+    });
+
+    it('resolves an unmapped value to null (template renders the neutral pill, or nothing with badgeHideUnmapped)', () => {
+      const badge = (component as unknown as {
+        getBadgeMapping: (item: Record<string, unknown>, col: unknown) => unknown;
+      }).getBadgeMapping({ flag: false }, badgeColumn);
+      expect(badge).toBeNull();
+    });
+  });
 });
