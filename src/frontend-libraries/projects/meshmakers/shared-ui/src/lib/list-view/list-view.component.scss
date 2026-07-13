@@ -17,6 +17,14 @@
   width: 165px;
 }
 
+// The checkbox column holds a widget, not text — never render an ellipsis for
+// it. Defensive companion to the 48px column width: should a future density
+// tier outgrow the column again, the checkbox clips instead of gaining a "…".
+:host ::ng-deep .k-grid th:has(input[type='checkbox']),
+:host ::ng-deep .k-grid td:has(> kendo-checkbox) {
+  text-overflow: clip;
+}
+
 // Action buttons stay on one line. Kendo's command cell flows its buttons as
 // inline content with an 8px margin between them, so a tight actions column
 // wraps them into a vertical stack — density scales the buttons in rem while

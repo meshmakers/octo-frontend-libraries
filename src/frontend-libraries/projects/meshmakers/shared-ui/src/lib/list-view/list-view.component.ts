@@ -333,7 +333,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return widthPerAutoColumn < column.minWidth ? column.minWidth : undefined;
   }
 
-  protected readonly checkboxColumnWidth = 40;
+  // Wide enough for the largest density tier: at an 18px root font the cell
+  // carries 13.5px padding per side plus an 18px checkbox (= 45px). At 40px
+  // the cell overflowed and Kendo's ellipsis rendered a stray "…" next to
+  // every checkbox on xlarge density.
+  protected readonly checkboxColumnWidth = 48;
 
   protected getDisplayName(column: TableColumn): string {
     return column.displayName ?? column.field;
