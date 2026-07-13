@@ -377,12 +377,12 @@ export class CommunicationService {
 
   /**
    * Enables or disables debug capture for a pipeline via the dedicated debug
-   * endpoint (`PATCH /pipeline/{id}/debug`). Unlike a pipeline (re)deploy —
-   * which force-enables debugging on every deploy — this persists the flag
-   * EXACTLY as requested and re-pushes the running adapter without
-   * force-enabling, so both enable and disable take effect immediately.
-   * `appliedToRunningAdapter` is false when the owning adapter is offline (the
-   * flag is still persisted and applies on the next deploy).
+   * endpoint (`PATCH /pipeline/{id}/debug`). This is the ONLY way debug capture
+   * is toggled (AB#4364): deploying a pipeline pushes the persisted flag as-is
+   * and never changes it. The endpoint persists the flag exactly as requested
+   * and re-pushes the running adapter, so both enable and disable take effect
+   * immediately. `appliedToRunningAdapter` is false when the owning adapter is
+   * offline (the flag is still persisted and applies on the next deploy).
    */
   async setPipelineDebugging(
     tenantId: string,
