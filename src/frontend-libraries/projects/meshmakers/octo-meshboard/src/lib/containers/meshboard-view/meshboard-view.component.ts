@@ -630,7 +630,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       content: MeshBoardManagerDialogComponent,
       title: 'Manage MeshBoards',
       width: 700,
-      height: 500
+      maxHeight: '80vh'
     });
 
     // Pass the tenantIdProvider to the dialog component instance

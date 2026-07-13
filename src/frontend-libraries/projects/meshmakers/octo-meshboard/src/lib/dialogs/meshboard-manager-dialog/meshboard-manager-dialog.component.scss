@@ -1,6 +1,18 @@
+// The dialog is opened with maxHeight only, so the host must pass the
+// available height down: uncapped it sizes to content (no scrollbar), capped
+// it constrains the list so only the list scrolls (header/footer stay fixed).
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
 .meshboard-manager-dialog {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   gap: 0.75rem;
   padding: 0.75rem;
   padding-bottom: 1.5rem;
@@ -59,7 +71,9 @@
 
   .meshboards-list {
     flex: 1;
-    min-height: 250px;
+    // Small floor for the empty/loading states only — the list itself sizes
+    // to its content and scrolls internally when the dialog hits maxHeight.
+    min-height: 80px;
     overflow-y: auto;
     border: 1px solid var(--kendo-color-border, #e0e0e0);
     border-radius: 4px;
