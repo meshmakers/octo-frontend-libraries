@@ -60,6 +60,8 @@ export interface AddInConfiguration {
   meshAdapterUrl: string;         // Mesh Adapter API base URL
   aiServices: string;             // AI Adapter API base URL
   reportingServices: string;      // Reporting service API base URL (tenant feature enable/disable)
+  mcpServices?: string;           // MCP service API base URL (optional; absent on older platform-services)
+  platformServices?: string;      // Platform service base URL (optional; apps set it from their bootstrap platformUri)
   crateDbAdminUrl: string;        // CrateDB Admin URL
   issuer: string;                 // Identity Service / OAuth issuer URL
   grafanaUrl: string;             // Grafana dashboard URL

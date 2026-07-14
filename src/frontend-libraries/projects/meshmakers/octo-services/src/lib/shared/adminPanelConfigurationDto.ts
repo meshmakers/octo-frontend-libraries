@@ -7,6 +7,8 @@ export interface AdminPanelConfigurationDto {
   aiServices: string;
   /** Reporting service public base URL. See {@link AddInConfiguration.reportingServices}. */
   reportingServices: string;
+  /** MCP service public base URL. See {@link AddInConfiguration.mcpServices}. */
+  mcpServices?: string;
   grafanaUrl: string;
   crateDbAdminUrl: string;
   issuer: string;

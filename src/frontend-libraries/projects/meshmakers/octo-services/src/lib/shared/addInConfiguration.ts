@@ -15,6 +15,18 @@ export interface AddInConfiguration {
    * tenant-scoped enable/disable REST endpoints for the reporting feature.
    */
   reportingServices: string;
+  /**
+   * MCP service (octo-mcp-service) public base URL. Optional because older
+   * platform-services deployments do not serve the `mcpServices` field yet —
+   * consumers must hide MCP-dependent UI when it is absent.
+   */
+  mcpServices?: string;
+  /**
+   * Platform service (octo-platform-services) public base URL. Not part of the
+   * `_configuration` payload (the service does not describe itself there) —
+   * apps populate it from their bootstrap config's `platformUri`.
+   */
+  platformServices?: string;
   crateDbAdminUrl: string;
   issuer: string;
   grafanaUrl: string;
