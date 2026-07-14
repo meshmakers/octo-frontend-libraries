@@ -1,7 +1,7 @@
 import {State} from "@progress/kendo-data-query/dist/npm/state";
 import {BehaviorSubject, Observable} from "rxjs";
 import {ListViewComponent} from '../list-view/list-view.component';
-import {EventEmitter} from '@angular/core';
+import {EventEmitter, signal} from '@angular/core';
 import {FetchResult} from '../models/fetchResult';
 
 export interface FetchDataOptions {
@@ -23,6 +23,20 @@ export abstract class DataSourceBase {
   /** Current loading state */
   public get isLoading(): boolean {
     return this._isLoading$.value;
+  }
+
+  private readonly _totalCount = signal<number | null>(null);
+
+  /**
+   * Total row count reported by the last fetch (`null` before the first result).
+   * Kept current by MmListViewDataBindingDirective; lets host pages show the
+   * overall count (e.g. in a header badge) without a second query.
+   */
+  public readonly totalCount = this._totalCount.asReadonly();
+
+  /** Set the total row count (called by MmListViewDataBindingDirective) */
+  public setTotalCount(count: number | null): void {
+    this._totalCount.set(count);
   }
 
   protected constructor(public readonly listViewComponent: ListViewComponent) {

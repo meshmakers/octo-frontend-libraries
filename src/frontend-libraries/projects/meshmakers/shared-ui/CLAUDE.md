@@ -136,6 +136,25 @@ the search input stretches to a full row. The host element is a vertical flex
 container: grant it height (e.g. `flex: 1` from the page layout) and the grid fills it, scrolling
 its body internally with the pager pinned to the bottom edge.
 
+**Paging (`pageSize` / `autoPageSize`)**
+
+- `pageSize` defaults to **20** (raised from 10 — ten rows left large screens half empty with a
+  detached pager).
+- `autoPageSize` (default `false`) enables fit-to-height paging: the component measures the grid
+  content viewport and the rendered row height (ResizeObserver on host + `.k-grid-content`,
+  re-measure after every load) and applies `floor(contentHeight / rowHeight)` (min 5) as the page
+  size via `MmListViewDataBindingDirective.applyPageSize()`, which realigns `skip` to the new page
+  grid and refetches. `pageSize` acts as the initial page size until the first measurement, so the
+  very first fetch may be adjusted once. The pager's page-size dropdown is hidden in this mode —
+  a manual choice would be overridden on the next resize.
+
+**Total count (`DataSourceBase.totalCount`)**
+
+`DataSourceBase` exposes a readonly signal `totalCount` (`null` before the first result), kept
+current by `MmListViewDataBindingDirective` from each fetch's `totalCount`. Host pages can bind it
+(e.g. a header badge showing "14 Data Flows") without issuing a second query:
+`<span>{{ dir.totalCount() }}</span>` via the exported data-source directive reference.
+
 **Custom cell formatting (`formatter`)**
 
 Use the optional `formatter` callback when the standard `dataType` rendering is not enough — currency, units, conditional labels, etc. The callback receives the raw field value and the full row item, and returns the cell's display string. Filtering and sorting still operate on the underlying field, so a numeric column with a currency formatter still sorts numerically and filters via the numeric input cell.

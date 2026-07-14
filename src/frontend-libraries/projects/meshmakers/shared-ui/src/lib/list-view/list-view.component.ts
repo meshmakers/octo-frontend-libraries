@@ -113,14 +113,33 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   private readonly ngZone = inject(NgZone);
   private resizeObserver?: ResizeObserver;
 
+  /** Never auto-page below this many rows, even in a tiny viewport. */
+  private static readonly MIN_AUTO_PAGE_SIZE = 5;
+
+  /** Measured fit-to-height page size (`autoPageSize`); null until the first measurement. */
+  private readonly autoPageSizeValue = signal<number | null>(null);
+  /** Last measured row height — reused while a page renders no rows (e.g. empty filter result). */
+  private lastMeasuredRowHeight: number | null = null;
+  private readonly autoPageSizeRecompute$ = new Subject<void>();
+
   @ViewChild(GridComponent) private gridComponent?: GridComponent;
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;
   @ViewChild("gridmenu") public gridContextMenu?: ContextMenuComponent;
 
   @Output() rowClicked = new EventEmitter<unknown[]>();
 
-  @Input() public pageSize = 10;
+  @Input() public pageSize = 20;
   @Input() public skip = 0;
+
+  /**
+   * Fit-to-height paging: when enabled, the page size is derived from the grid's
+   * available content height and the measured row height, so a page always fills
+   * the viewport instead of leaving a half-empty grid with a detached pager on
+   * large screens. The pager's page-size dropdown is hidden (a manual choice
+   * would be overridden on the next resize). `pageSize` serves as the initial
+   * page size until the first measurement; the minimum auto page size is 5.
+   */
+  @Input() public autoPageSize = false;
   @Input() public rowIsClickable = true;
   @Input() public showRowCheckBoxes = true;
   @Input() public showRowSelectAllCheckBox = true;
@@ -161,6 +180,27 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public sortable = false;
   @Input() public rowFilterEnabled = false;
   @Input() public searchTextBoxEnabled = false;
+
+  /** The page size the grid actually uses: the measured fit-to-height value in `autoPageSize` mode, `pageSize` otherwise. */
+  protected effectivePageSize(): number {
+    return (this.autoPageSize ? this.autoPageSizeValue() : null) ?? this.pageSize;
+  }
+
+  private _cachedAutoPageable?: { source: PagerSettings; result: PagerSettings };
+
+  /** Pager settings the grid uses; in `autoPageSize` mode the page-size dropdown is stripped. Cached per source object to keep the input reference stable across change detection. */
+  protected get effectivePageable(): PagerSettings {
+    if (!this.autoPageSize) {
+      return this.pageable;
+    }
+    if (this._cachedAutoPageable?.source !== this.pageable) {
+      this._cachedAutoPageable = {
+        source: this.pageable,
+        result: {...this.pageable, pageSizes: false}
+      };
+    }
+    return this._cachedAutoPageable.result;
+  }
 
   /** Whether users can resize columns by dragging the header edges. */
   @Input() public resizable = true;
@@ -247,6 +287,14 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     ).subscribe((value) => {
       this.onExecuteFilter.emit(value);
     });
+
+    // Debounced fit-to-height recomputation (resize bursts, load-completions)
+    this.autoPageSizeRecompute$.pipe(
+      debounceTime(150),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.recomputeAutoPageSize();
+    });
   }
 
   ngAfterViewInit(): void {
@@ -260,6 +308,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
         takeUntil(this.destroy$)
       ).subscribe(loading => {
         this.isLoading.set(loading);
+        // Rows just (re)rendered — row height may have changed (density switch,
+        // first data arrival), so re-measure the fit-to-height page size.
+        if (!loading && this.autoPageSize) {
+          this.autoPageSizeRecompute$.next();
+        }
       });
     }
 
@@ -267,15 +320,64 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     // The callback fires outside the Angular zone; re-enter it so the signal
     // update schedules change detection for this OnPush component.
     if (typeof ResizeObserver !== 'undefined') {
+      const hostNative = this.hostElement.nativeElement;
       this.resizeObserver = new ResizeObserver(entries => {
-        const width = entries[entries.length - 1]?.contentRect.width;
-        if (width === undefined) {
-          return;
+        let hostWidth: number | undefined;
+        let resized = false;
+        for (const entry of entries) {
+          resized = true;
+          if (entry.target === hostNative) {
+            hostWidth = entry.contentRect.width;
+          }
         }
-        this.ngZone.run(() => this.containerWidth.set(width));
+        this.ngZone.run(() => {
+          if (hostWidth !== undefined) {
+            this.containerWidth.set(hostWidth);
+          }
+          if (resized && this.autoPageSize) {
+            this.autoPageSizeRecompute$.next();
+          }
+        });
       });
-      this.resizeObserver.observe(this.hostElement.nativeElement);
+      this.resizeObserver.observe(hostNative);
+
+      // The grid content viewport shrinks/grows independently of the host
+      // (toolbar wrap, filter row toggle) — observe it too in auto mode.
+      if (this.autoPageSize) {
+        const content = hostNative.querySelector('.k-grid-content');
+        if (content) {
+          this.resizeObserver.observe(content);
+        }
+      }
     }
+  }
+
+  /**
+   * Measures the grid's content viewport and the rendered row height, derives the
+   * number of rows that fit and applies it as the new page size (grid + query state)
+   * when it differs from the current one. No-op until a row has been rendered at
+   * least once (there is nothing to measure on a fully empty grid).
+   */
+  private recomputeAutoPageSize(): void {
+    if (!this.autoPageSize) {
+      return;
+    }
+    const content = this.hostElement.nativeElement.querySelector('.k-grid-content');
+    if (!content) {
+      return;
+    }
+    const row = content.querySelector('tbody tr');
+    const rowHeight = row?.getBoundingClientRect().height || this.lastMeasuredRowHeight;
+    if (!rowHeight || content.clientHeight <= 0) {
+      return;
+    }
+    this.lastMeasuredRowHeight = rowHeight;
+    const take = Math.max(ListViewComponent.MIN_AUTO_PAGE_SIZE, Math.floor(content.clientHeight / rowHeight));
+    if (take === this.effectivePageSize()) {
+      return;
+    }
+    this.autoPageSizeValue.set(take);
+    this.dataBindingDirective?.applyPageSize(take);
   }
 
   ngOnDestroy(): void {

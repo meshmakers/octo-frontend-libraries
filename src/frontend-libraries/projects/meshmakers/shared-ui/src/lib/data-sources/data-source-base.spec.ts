@@ -75,6 +75,23 @@ describe('DataSourceBase', () => {
     });
   });
 
+  describe('totalCount', () => {
+    it('should initially be null', () => {
+      expect(dataSource.totalCount()).toBeNull();
+    });
+
+    it('should reflect the value set via setTotalCount', () => {
+      dataSource.setTotalCount(42);
+      expect(dataSource.totalCount()).toBe(42);
+    });
+
+    it('should accept null to reset', () => {
+      dataSource.setTotalCount(42);
+      dataSource.setTotalCount(null);
+      expect(dataSource.totalCount()).toBeNull();
+    });
+  });
+
   describe('fetchAgain', () => {
     it('should emit fetchAgainEvent', (done) => {
       dataSource.fetchAgainEvent.subscribe(() => {

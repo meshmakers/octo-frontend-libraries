@@ -82,6 +82,18 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
     this.rebind();
   }
 
+  /**
+   * Applies a programmatic page-size change (fit-to-height mode of mm-list-view).
+   * The inherited setters sync grid and query state; `skip` is realigned to the
+   * new page grid so the pager stays on a valid page, then the data is refetched.
+   */
+  public applyPageSize(take: number): void {
+    const skip = this.state.skip ?? 0;
+    this.pageSize = take;
+    this.skip = Math.floor(skip / take) * take;
+    this.rebind();
+  }
+
   public override rebind(): void {
     try {
       if (!this.dataSource) {
@@ -100,6 +112,7 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
       }).subscribe({
         next: value => {
           this.dataSource.setLoading(false);
+          this.dataSource.setTotalCount(value?.totalCount ?? 0);
           this.grid.data = {
             data: (value?.data ?? []) as unknown[],
             total: value?.totalCount || 0
