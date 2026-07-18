@@ -170,4 +170,65 @@ describe('MmTableComponent', () => {
       expect(badge).toBeNull();
     });
   });
+
+  describe('autoPageSize (fit-to-height paging)', () => {
+    interface AutoApi {
+      recomputeAutoPageSize: () => void;
+      effectivePageSize: () => number;
+    }
+    const api = () => component as unknown as AutoApi;
+    let applyPageSizeSpy: jasmine.Spy;
+    let contentStub: { clientHeight: number; querySelectorAll: () => { getBoundingClientRect: () => { height: number } }[] } | null;
+
+    function setContent(clientHeight: number, rowHeights: number[]): void {
+      contentStub = {
+        clientHeight,
+        querySelectorAll: () => rowHeights.map(height => ({ getBoundingClientRect: () => ({ height }) }))
+      };
+    }
+
+    beforeEach(() => {
+      component.autoPageSize = true;
+      contentStub = null;
+      applyPageSizeSpy = jasmine.createSpy('applyPageSize');
+      (component as unknown as { dataBindingDirective: unknown }).dataBindingDirective = { applyPageSize: applyPageSizeSpy };
+      const host = (component as unknown as { hostElement: { nativeElement: HTMLElement } }).hostElement.nativeElement;
+      spyOn(host, 'querySelector').and.callFake(() => contentStub as unknown as Element);
+    });
+
+    it('derives the page size from the TALLEST rendered row, not the first', () => {
+      // First row is short (30px) but a later row is tall (100px). Fit must key
+      // off the tallest so a full page never overflows: 600 / 100 = 6.
+      setContent(600, [30, 30, 100]);
+      api().recomputeAutoPageSize();
+      expect(applyPageSizeSpy).toHaveBeenCalledOnceWith(6);
+      expect(api().effectivePageSize()).toBe(6);
+    });
+
+    it('ignores ±1 jitter after the first measurement (no extra fetch on page change)', () => {
+      setContent(400, [60]);           // first measurement -> floor(400/60) = 6
+      api().recomputeAutoPageSize();
+      expect(applyPageSizeSpy).toHaveBeenCalledOnceWith(6);
+      applyPageSizeSpy.calls.reset();
+
+      // A page whose tallest row is slightly shorter would fit 7 (400/57 = 7.01).
+      // That ±1 change must be suppressed — otherwise it refetches with a
+      // realigned skip and overlaps the page the user just opened.
+      setContent(400, [57]);
+      api().recomputeAutoPageSize();
+      expect(applyPageSizeSpy).not.toHaveBeenCalled();
+      expect(api().effectivePageSize()).toBe(6);
+    });
+
+    it('still applies a genuine resize that exceeds the hysteresis band', () => {
+      setContent(400, [60]);           // -> 6
+      api().recomputeAutoPageSize();
+      applyPageSizeSpy.calls.reset();
+
+      setContent(800, [60]);           // viewport doubled -> floor(800/60) = 13
+      api().recomputeAutoPageSize();
+      expect(applyPageSizeSpy).toHaveBeenCalledOnceWith(13);
+      expect(api().effectivePageSize()).toBe(13);
+    });
+  });
 });
