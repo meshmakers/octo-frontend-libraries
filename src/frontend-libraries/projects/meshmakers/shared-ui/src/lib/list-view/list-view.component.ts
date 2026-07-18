@@ -116,6 +116,18 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   /** Never auto-page below this many rows, even in a tiny viewport. */
   private static readonly MIN_AUTO_PAGE_SIZE = 5;
 
+  /**
+   * Minimum change (in rows) before an already-measured `autoPageSize` is
+   * re-applied. Rows can vary in height (component cells such as sparklines,
+   * wrapping text) so the derived fit-to-height count jitters by ±1 as the user
+   * pages through content. Without this dead-band every page change would
+   * re-derive the page size and fire an extra fetch with a realigned `skip`,
+   * overlapping the page the user actually navigated to. The very first
+   * measurement always applies (it converts the initial default into the fitted
+   * size); genuine resizes/density changes move by more than this threshold.
+   */
+  private static readonly AUTO_PAGE_SIZE_HYSTERESIS = 2;
+
   /** Measured fit-to-height page size (`autoPageSize`); null until the first measurement. */
   private readonly autoPageSizeValue = signal<number | null>(null);
   /** Last measured row height — reused while a page renders no rows (e.g. empty filter result). */
@@ -308,9 +320,14 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
         takeUntil(this.destroy$)
       ).subscribe(loading => {
         this.isLoading.set(loading);
-        // Rows just (re)rendered — row height may have changed (density switch,
-        // first data arrival), so re-measure the fit-to-height page size.
-        if (!loading && this.autoPageSize) {
+        // Measure the fit-to-height page size only ONCE, when data first
+        // renders (initial default → fitted). After that, page-size changes come
+        // solely from the ResizeObserver (genuine viewport/density changes).
+        // Re-measuring after every load would let per-page row-height
+        // differences (wrapping descriptions, sparklines) re-derive the page
+        // size mid-navigation, firing a second fetch that realigns `skip` and
+        // overlaps the page the user just opened.
+        if (!loading && this.autoPageSize && this.autoPageSizeValue() === null) {
           this.autoPageSizeRecompute$.next();
         }
       });
@@ -366,14 +383,35 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     if (!content) {
       return;
     }
-    const row = content.querySelector('tbody tr');
-    const rowHeight = row?.getBoundingClientRect().height || this.lastMeasuredRowHeight;
+    // Measure the TALLEST rendered row, not just the first one. Rows in a list
+    // can vary greatly in height (component cells such as sparklines / last-run,
+    // wrapping descriptions), and the first row's height differs from page to
+    // page. Measuring only the first row made the derived page size swing
+    // between pages; keying off the tallest row keeps it stable and guarantees
+    // a full page never overflows into a scrollbar.
+    let measuredRowHeight = 0;
+    content.querySelectorAll('tbody tr').forEach((row: HTMLElement) => {
+      const height = row.getBoundingClientRect().height;
+      if (height > measuredRowHeight) {
+        measuredRowHeight = height;
+      }
+    });
+    const rowHeight = measuredRowHeight || this.lastMeasuredRowHeight;
     if (!rowHeight || content.clientHeight <= 0) {
       return;
     }
     this.lastMeasuredRowHeight = rowHeight;
     const take = Math.max(ListViewComponent.MIN_AUTO_PAGE_SIZE, Math.floor(content.clientHeight / rowHeight));
-    if (take === this.effectivePageSize()) {
+    const current = this.effectivePageSize();
+    if (take === current) {
+      return;
+    }
+    // After the first measurement, ignore small (±1) changes: they come from
+    // per-page row-height jitter, and applying them would fire an extra fetch
+    // that realigns `skip` and overlaps the page the user just opened. Genuine
+    // resizes/density changes exceed the hysteresis band and still apply.
+    if (this.autoPageSizeValue() !== null &&
+        Math.abs(take - current) < ListViewComponent.AUTO_PAGE_SIZE_HYSTERESIS) {
       return;
     }
     this.autoPageSizeValue.set(take);
