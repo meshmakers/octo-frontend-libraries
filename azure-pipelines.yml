@@ -347,12 +347,15 @@ stages:
                 echo "=== demo-app contents ==="
                 ls -la "$CONTEXT/demo-app" | head -20
 
+          # Multi-arch image (AB#4451): arm64 for Apple-Silicon kind clusters and
+          # edge devices, amd64 for the managed clusters.
           - template: templates/steps/build-and-push-docker.yml@pipelineTemplates
             parameters:
               publicRegistryServiceConnection: $(DockerRegistryPublicConnection)
               privateRegistryName: $(DockerRegistryPrivateUri)
               repository: meshmakers/octo-mesh-demo-app
               dockerfile: $(Pipeline.Workspace)/docker-context/Dockerfile.prebuilt
+              platforms: 'linux/arm64,linux/amd64'
               dockerContext: $(Pipeline.Workspace)/docker-context
               enableMainLatestTag: true
 
