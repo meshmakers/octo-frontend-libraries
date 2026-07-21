@@ -52,6 +52,9 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
 
     this._executeFilterSubscription = this.dataSource.listViewComponent.onExecuteFilter.subscribe((value: string | null) => {
       this._textSearchValue = value;
+      // A changed search term changes the result set — the current page offset
+      // would point into stale data (or past the end), so return to page 1.
+      this.skip = 0;
       this.rebind();
     });
 
@@ -76,9 +79,13 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
   /**
    * Triggers a rebind when the filter state changes programmatically.
    * Syncs the grid's filter into the DataBindingDirective state before rebinding.
+   * Resets `skip` to page 1: a changed filter changes the result set, so the
+   * current page offset would point into stale data or past the end (Kendo's
+   * own filter-row path does the same reset via its dataStateChange event).
    */
   public notifyFilterChange(filter: CompositeFilterDescriptor): void {
     this.state.filter = filter;
+    this.skip = 0;
     this.rebind();
   }
 
@@ -99,6 +106,12 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
       if (!this.dataSource) {
         return;
       }
+      // Cancel a still-running fetch before starting a new one. Without this,
+      // overlapping fetches (sort/page click while a load is in flight, or the
+      // autoPageSize measurement refetch) race: whichever response arrives LAST
+      // wins, so a stale response could overwrite newer data — e.g. an unsorted
+      // page replacing the sorted one the user just requested.
+      this._serviceSubscription?.unsubscribe();
       // Only use dataSource.setLoading() (tracked via isLoading$ / isLoading signal).
       // Do NOT set grid.loading directly — it triggers Kendo's internal loading overlay.
       this.dataSource.setLoading(true);

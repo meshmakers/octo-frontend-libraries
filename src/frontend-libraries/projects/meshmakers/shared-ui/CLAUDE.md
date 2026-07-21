@@ -148,6 +148,19 @@ its body internally with the pager pinned to the bottom edge.
   very first fetch may be adjusted once. The pager's page-size dropdown is hidden in this mode —
   a manual choice would be overridden on the next resize.
 
+**Server-binding invariants (`MmListViewDataBindingDirective`)**
+
+- **Filter/search changes reset to page 1.** `notifyFilterChange()` (the path used by the
+  dropdown/range filter cells) and the debounced text search reset `skip` to 0 before
+  refetching — a changed filter changes the result set, so the old page offset would point
+  into stale data or past the end. Kendo's own filter-row path already does this via its
+  `dataStateChange` event; the programmatic paths must mirror it.
+- **`rebind()` cancels the previous in-flight fetch** before starting a new one. Overlapping
+  fetches (sort/page click while a load is in flight, autoPageSize measurement refetch)
+  would otherwise race last-response-wins, letting a stale response overwrite newer data.
+- Sort and filter state survive paging and `applyPageSize()` — covered by
+  `mm-list-view-data-binding.directive.spec.ts` (real Kendo grid + directive harness).
+
 **Total count (`DataSourceBase.totalCount`)**
 
 `DataSourceBase` exposes a readonly signal `totalCount` (`null` before the first result), kept
