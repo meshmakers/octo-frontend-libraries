@@ -28,19 +28,25 @@
 // Action buttons stay on one line. Kendo's command cell flows its buttons as
 // inline content with an 8px margin between them, so a tight actions column
 // wraps them into a vertical stack — density scales the buttons in rem while
-// the column width is px. Flex with a fixed gap keeps them side by side; if a
-// caller passes a width that is genuinely too small, the cell clips instead of
-// growing the row height.
+// the column width is px. The cell itself must stay `table-cell`: display:flex
+// on a <td> takes it out of table layout, so it no longer stretches to the row
+// height and its bottom border sits above the row's — the horizontal row line
+// visibly breaks at the actions column. nowrap + inline-flex buttons keep them
+// side by side instead; a genuinely too-small column width clips the buttons
+// rather than growing the row height.
 :host ::ng-deep .k-command-cell {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: nowrap;
+  white-space: nowrap;
   overflow: hidden;
+  vertical-align: middle;
 
   .k-button {
-    flex-shrink: 0;
+    display: inline-flex;
+    vertical-align: middle;
     margin: 0;
+
+    + .k-button {
+      margin-left: 4px;
+    }
   }
 }
 
