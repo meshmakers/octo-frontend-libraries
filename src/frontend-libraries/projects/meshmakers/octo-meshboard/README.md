@@ -72,6 +72,36 @@ To set a Well-Known Name for a MeshBoard:
 
 The Well-Known Name should be lowercase with hyphens, similar to URL slugs.
 
+### URL Sync on Board Switch (`meshBoardSyncUrl`)
+
+After a post-init board switch (e.g. via the manager dialog), the view syncs the
+loaded board's rtId into the URL:
+
+- If the active route has an `:rtId` param, the last URL segment is replaced —
+  always enabled, no configuration needed.
+- If the route has **no** `:rtId` param, appending the rtId is **opt-in** via
+  the `meshBoardSyncUrl: true` route data flag. Only set it when a matching
+  `<path>/:rtId` sibling route exists:
+
+```typescript
+{
+  path: "meshboards",
+  loadComponent: () =>
+    import('@meshmakers/octo-meshboard').then(m => m.MeshBoardViewComponent),
+  data: { meshBoardSyncUrl: true }
+},
+{
+  path: "meshboards/:rtId",
+  loadComponent: () =>
+    import('@meshmakers/octo-meshboard').then(m => m.MeshBoardViewComponent)
+}
+```
+
+Without the flag, embedded boards (e.g. readonly `meshBoardWellKnownName`
+routes) never rewrite the URL. Appending an rtId to a route without an
+`:rtId` variant would fall through to the app's `'**'` wildcard route (bouncing
+the user back to home) or fail with a `NavigationError` (AB#4457).
+
 ## Architecture
 
 ```

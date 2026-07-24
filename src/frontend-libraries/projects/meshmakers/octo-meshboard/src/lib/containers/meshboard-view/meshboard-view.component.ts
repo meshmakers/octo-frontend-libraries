@@ -33,6 +33,7 @@ import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.service';
 import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
 import { compactTierForWidth, columnsForTier, placeWidgetsForTier } from '../../utils/compact-layout';
+import { buildUrlWithRtId } from '../../utils/url-sync';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
 import {
   EntitySelectorToolbarComponent,
@@ -273,25 +274,23 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   }
 
   /**
-   * Updates the URL to include the current MeshBoard rtId.
-   * Preserves existing query parameters.
+   * Updates the URL to include the current MeshBoard rtId, preserving query
+   * parameters. Only rewrites the URL when the route can represent the rtId:
+   * the route has an `:rtId` param, or the host app opted in with the
+   * `meshBoardSyncUrl: true` route data flag (which requires a matching
+   * `<path>/:rtId` sibling route). Embedded boards without either stay on
+   * their URL — appending would fall through to the app's `'**'` wildcard or
+   * fail with a NavigationError (AB#4457).
    */
   private updateUrlWithRtId(rtId: string): void {
-    const currentUrl = this.router.url;
-    const hasRtIdParam = this.route.snapshot.paramMap.has('rtId');
-
-    // Split off query string to preserve it
-    const [pathPart, queryPart] = currentUrl.split('?');
-    const querySuffix = queryPart ? '?' + queryPart : '';
-
-    if (hasRtIdParam) {
-      // Replace the last URL segment (the old rtId) with the new one
-      const lastSlashIndex = pathPart.lastIndexOf('/');
-      const newPath = pathPart.substring(0, lastSlashIndex + 1) + rtId;
-      this.router.navigateByUrl(newPath + querySuffix, { replaceUrl: true });
-    } else {
-      // Append the rtId to the current URL
-      this.router.navigateByUrl(`${pathPart}/${rtId}${querySuffix}`, { replaceUrl: true });
+    const targetUrl = buildUrlWithRtId({
+      currentUrl: this.router.url,
+      rtId,
+      hasRtIdParam: this.route.snapshot.paramMap.has('rtId'),
+      syncUrlOptIn: this.route.snapshot.data['meshBoardSyncUrl'] === true
+    });
+    if (targetUrl !== null) {
+      this.router.navigateByUrl(targetUrl, { replaceUrl: true });
     }
   }
 

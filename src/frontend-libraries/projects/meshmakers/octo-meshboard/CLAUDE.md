@@ -608,6 +608,19 @@ Entity selector selections are synced to URL query parameters for bookmarkabilit
 
 Example: `?es_mp=rt-123&es_anlage=rt-456`
 
+### URL Sync on Board Switch (`meshBoardSyncUrl`, AB#4457)
+
+After a post-init board switch, `MeshBoardViewComponent` syncs the loaded
+board's rtId into the URL (`utils/url-sync.ts`, pure + unit-tested):
+
+- Route has an `:rtId` param → last URL segment is replaced (always on).
+- Route has no `:rtId` param → appending the rtId is **opt-in** via the
+  `meshBoardSyncUrl: true` route data flag, which requires a matching
+  `<path>/:rtId` sibling route (see Refinery Studio's `ui/meshboards`).
+- Neither → the URL is never rewritten. Appending to a route without an
+  `:rtId` variant falls through to the app's `'**'` wildcard (bounce to home,
+  e.g. voest-app) or fails with a `NavigationError` (e.g. energy-community).
+
 ### External Embedding via Route Data
 
 When embedding a MeshBoard in another application, entity selectors can be pre-populated via route data:
@@ -787,6 +800,7 @@ Current test files:
 - `meshboard-data.service.spec.ts` - Data fetching (32 tests)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests)
+- `url-sync.spec.ts` - URL sync on board switch: `:rtId` replace, `meshBoardSyncUrl` opt-in append, no-rewrite default (AB#4457)
 
 ---
 
