@@ -53,6 +53,26 @@ export class AssetRepoService {
     return null;
   }
 
+  /**
+   * Returns the tenant the caller is currently signed into, including its database name.
+   *
+   * The tenants list only contains child tenants, and a tenant's own registry entry lives in
+   * its parent's database — so the current tenant's database name is not derivable client-side
+   * and comes from this dedicated endpoint (AB#4601). Needed by any operation that has to name
+   * the database of the current tenant, such as restoring it from a backup.
+   */
+  public async getOwnTenant(): Promise<TenantDto | null> {
+    const baseUrl = await this.getTenantApiBaseUrl();
+    if (baseUrl) {
+      const r = await firstValueFrom(this.httpClient
+        .get<TenantDto>(`${baseUrl}/self`, {
+          observe: 'response'
+        }));
+      return r.body;
+    }
+    return null;
+  }
+
   public async createTenant(tenantDto: TenantDto): Promise<void> {
     const params = new HttpParams().set('childTenantId', tenantDto.tenantId).set('databaseName', tenantDto.database);
 

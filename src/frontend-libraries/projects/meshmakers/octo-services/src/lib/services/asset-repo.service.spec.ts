@@ -81,6 +81,27 @@ describe('AssetRepoService', () => {
     expect(service).toBeTruthy();
   });
 
+  describe('getOwnTenant', () => {
+    it('should return the current tenant from the self endpoint', async () => {
+      const ownTenant: TenantDto = { tenantId, database: 'meshtest_db' };
+
+      const resultPromise = service.getOwnTenant();
+      await flushTenantProvider();
+
+      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/self`);
+      expect(req.request.method).toBe('GET');
+      req.flush(ownTenant);
+
+      expect(await resultPromise).toEqual(ownTenant);
+    });
+
+    it('should return null when config is not loaded', async () => {
+      mockConfigService.config = null;
+
+      expect(await service.getOwnTenant()).toBeNull();
+    });
+  });
+
   describe('getTenants', () => {
     it('should return paged tenants on success', async () => {
       const resultPromise = service.getTenants(0, 10);
