@@ -161,6 +161,55 @@ its body internally with the pager pinned to the bottom edge.
 - Sort and filter state survive paging and `applyPageSize()` — covered by
   `mm-list-view-data-binding.directive.spec.ts` (real Kendo grid + directive harness).
 
+**State persistence (`persistListState` / `listStateKey` / `ListStateService`)**
+
+The user's sort, row filter, free-text "search all columns" value and current
+page **survive navigation and browser restarts** so lists no longer reset on
+every visit. **On by default** for every `mm-list-view` in every app.
+
+The free-text search lives outside the Kendo `state` (it is passed to
+`fetchData` as `textSearch`), so it is persisted separately: the directive
+saves `_textSearchValue` alongside the state and, on restore, both carries it
+into the initial fetch and mirrors it into the search box via
+`ListViewComponent.restoreSearchValue()`.
+
+- `MmListViewDataBindingDirective.restoreState()` runs in `ngOnInit` **before**
+  the first `rebind()`, so the initial fetch already carries the remembered
+  sort/filter/skip (via the inherited Kendo setters). It persists again from
+  `onStateChange` (header sort, filter row, pager), `notifyFilterChange`
+  (dropdown/range filter cells) and `applyPageSize`.
+- `ListStateService` (`services/list-state.service.ts`, `providedIn: 'root'`)
+  stores a single `localStorage` blob `mm-list-view-state` = `{ [key]: { sort,
+  filter, skip } }`, mirroring `WindowStateService`. Every access is guarded —
+  a corrupt/unavailable store falls back to no state, never breaking a list.
+- **`take`/`pageSize` is deliberately not persisted** — in `autoPageSize` mode
+  it is re-derived from the viewport each load; restoring it would fight the
+  measurement.
+- **Date filter values** are `Date` objects; `JSON` round-trips them to ISO
+  strings, so `ListStateService.load()` re-hydrates ISO-8601 strings back to
+  `Date` (the Kendo date filter cell needs a real `Date` or date filtering
+  breaks after restore).
+- **Key:** `listStateKey` if set, else the current route path (without query
+  string), which is stable per list page. Set an explicit `listStateKey` when
+  two lists share a route, or to keep state stable across a route rename.
+- **Opt out** a transient/embedded list with `[persistListState]="false"`.
+- Coarse app-side "quick view" bars (e.g. an Active/Done/All toggle, a category
+  or date-range filter held in an app signal, not in the Kendo grid state) are
+  the host app's own state. It can persist them under the **same list key** via
+  `ListStateService.saveExtra(key, value)` / `loadExtra<T>(key)` — stored as an
+  opaque `extra` blob merged into the same entry as the grid state (neither
+  clobbers the other).
+
+**Reset filters button (`resetFilters` output)**
+
+A toolbar "Reset Filters" button (`filterClearIcon`) sits next to the reload
+button. It calls `MmListViewDataBindingDirective.resetState()` — clears row
+filter, sort, free-text search and page, and **drops the persisted entry**
+(incl. the app `extra`) so nothing is restored next visit — then emits the
+`ListViewComponent.resetFilters` output. The host binds `(resetFilters)` to
+reset its own quick-view/bar-filter signals back to their defaults. Tooltip
+text: `ListViewMessages.resetFilters`.
+
 **Total count (`DataSourceBase.totalCount`)**
 
 `DataSourceBase` exposes a readonly signal `totalCount` (`null` before the first result), kept

@@ -21,7 +21,7 @@ import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSA
 import {DatePipe, DecimalPipe, NgComponentOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
-import {fileExcelIcon, filePdfIcon, filterIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
+import {fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
 import {ButtonComponent, DropDownButtonComponent} from '@progress/kendo-angular-buttons';
@@ -192,6 +192,38 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public sortable = false;
   @Input() public rowFilterEnabled = false;
   @Input() public searchTextBoxEnabled = false;
+
+  /**
+   * Persist the user's sort/row-filter/page across visits (localStorage) so they
+   * are not re-applied every time. On by default. Set `false` to opt a list out
+   * (e.g. a transient/embedded list where a remembered filter would confuse).
+   */
+  @Input() public persistListState = true;
+
+  /**
+   * Storage key for {@link persistListState}. Defaults to the current route path
+   * (without query string), which is stable per list page. Set an explicit key
+   * when two lists share a route, or to keep the stored state stable across a
+   * route rename.
+   */
+  @Input() public listStateKey?: string;
+
+  private readonly routerRef = inject(Router);
+
+  /**
+   * Resolves the effective storage key for this list, or `null` when
+   * persistence is disabled. Used by {@link MmListViewDataBindingDirective}.
+   */
+  public resolveListStateKey(): string | null {
+    if (!this.persistListState) {
+      return null;
+    }
+    if (this.listStateKey) {
+      return this.listStateKey;
+    }
+    const path = (this.routerRef.url ?? '').split('?')[0].split('#')[0];
+    return path || null;
+  }
 
   /** The page size the grid actually uses: the measured fit-to-height value in `autoPageSize` mode, `pageSize` otherwise. */
   protected effectivePageSize(): number {
@@ -704,18 +736,42 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this.onRefreshData.emit();
   }
 
+  /**
+   * Resets all filtering back to the default view: clears the row filter,
+   * column sort, free-text search and page offset, drops the persisted state,
+   * and emits {@link onResetFilters} so the host can also reset its own
+   * quick-view/bar filters.
+   */
+  protected onReset(): void {
+    this.dataBindingDirective?.resetState();
+    this.restoreSearchValue(null);
+    this.resetFilters.emit();
+  }
+
   public onExecuteFilter = new EventEmitter<string | null>();
   public onRefreshData = new EventEmitter<void>();
+  /** Emitted when the toolbar "Reset Filters" button is clicked (host resets its bar filters). */
+  @Output() public resetFilters = new EventEmitter<void>();
 
   protected async onFilter(value: string | null): Promise<void> {
     this.searchValue = value || '';
     this.searchSubject.next(value);
   }
 
+  /**
+   * Restores the search box's displayed text without re-triggering a fetch
+   * (used by {@link MmListViewDataBindingDirective} when replaying a persisted
+   * list state — the directive already carries the value into the initial fetch).
+   */
+  public restoreSearchValue(value: string | null): void {
+    this.searchValue = value || '';
+  }
+
   protected readonly filterIcon = filterIcon;
   protected readonly pdfSVG: SVGIcon = filePdfIcon;
   protected readonly excelSVG: SVGIcon = fileExcelIcon;
   protected readonly refreshIcon = arrowRotateCwIcon;
+  protected readonly resetFilterIcon = filterClearIcon;
 
   protected onRowSelect(event: SelectionEvent) {
     // _selectedRows is an array of selected rows

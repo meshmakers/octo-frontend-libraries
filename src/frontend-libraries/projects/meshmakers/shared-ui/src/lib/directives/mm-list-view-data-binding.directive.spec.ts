@@ -205,3 +205,112 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     flush();
   }));
 });
+
+describe('MmListViewDataBindingDirective (state persistence)', () => {
+  const STORAGE_KEY = 'mm-list-view-state';
+  const LIST_KEY = '/documents';
+
+  const configure = async () => {
+    await TestBed.configureTestingModule({
+      imports: [HostComponent],
+      providers: [
+        provideNoopAnimations(),
+        // A url makes resolveListStateKey() return '/documents' -> persistence on.
+        { provide: Router, useValue: { navigate: jasmine.createSpy('navigate'), url: '/documents?tab=all' } },
+        { provide: CommandSettingsService, useValue: { navigateRelativeToRoute: {}, commandItems: [] } }
+      ]
+    }).compileComponents();
+  };
+
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  it('persists the sort under the route-derived key after a sort change', fakeAsync(async () => {
+    await configure();
+    const fixture = TestBed.createComponent(HostComponent);
+    fixture.detectChanges();
+    const grid = fixture.debugElement.query(By.directive(GridComponent)).componentInstance as GridComponent;
+
+    grid.sortChange.emit([{ field: 'name', dir: 'asc' }]);
+    fixture.detectChanges();
+    tick();
+
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    expect(stored[LIST_KEY]?.sort).toEqual([{ field: 'name', dir: 'asc' }]);
+    flush();
+  }));
+
+  it('restores a persisted sort + skip into the very first fetch', fakeAsync(async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      [LIST_KEY]: { sort: [{ field: 'name', dir: 'desc' }], skip: 40 }
+    }));
+    await configure();
+    const fixture = TestBed.createComponent(HostComponent);
+    const host = fixture.componentInstance;
+    fixture.detectChanges();
+    tick();
+
+    const firstCall = host.dataSource.calls[0];
+    expect(firstCall.state.sort)
+      .withContext('the initial fetch must already carry the restored sort')
+      .toEqual([{ field: 'name', dir: 'desc' }]);
+    expect(firstCall.state.skip).toBe(40);
+    flush();
+  }));
+
+  it('persists the free-text search value', fakeAsync(async () => {
+    await configure();
+    const fixture = TestBed.createComponent(HostComponent);
+    const host = fixture.componentInstance;
+    fixture.detectChanges();
+
+    host.dataSource.listViewComponent.onExecuteFilter.emit('acme');
+    fixture.detectChanges();
+    tick();
+
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    expect(stored[LIST_KEY]?.textSearch).toBe('acme');
+    flush();
+  }));
+
+  it('restores the free-text search into the very first fetch', fakeAsync(async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      [LIST_KEY]: { textSearch: 'acme' }
+    }));
+    await configure();
+    const fixture = TestBed.createComponent(HostComponent);
+    const host = fixture.componentInstance;
+    fixture.detectChanges();
+    tick();
+
+    expect(host.dataSource.calls[0].textSearch)
+      .withContext('the initial fetch must already carry the restored search term')
+      .toBe('acme');
+    flush();
+  }));
+
+  it('resetState() clears sort/filter/search + drops the persisted entry', fakeAsync(async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      [LIST_KEY]: { sort: [{ field: 'name', dir: 'desc' }], textSearch: 'acme', extra: { view: 'done' } }
+    }));
+    await configure();
+    const fixture = TestBed.createComponent(HostComponent);
+    const host = fixture.componentInstance;
+    fixture.detectChanges();
+    const directive = fixture.debugElement.query(By.directive(MmListViewDataBindingDirective))
+      .injector.get(MmListViewDataBindingDirective);
+    tick();
+
+    directive.resetState();
+    fixture.detectChanges();
+    tick();
+
+    const lastCall = host.dataSource.calls[host.dataSource.calls.length - 1];
+    expect(lastCall.state.sort ?? []).toEqual([]);
+    expect(lastCall.state.filter?.filters ?? []).toEqual([]);
+    expect(lastCall.textSearch).toBeNull();
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    expect(stored[LIST_KEY]).withContext('the whole entry (incl. app extra) is dropped').toBeUndefined();
+    flush();
+  }));
+});

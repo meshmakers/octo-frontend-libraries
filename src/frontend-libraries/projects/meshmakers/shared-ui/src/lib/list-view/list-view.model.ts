@@ -195,6 +195,8 @@ export interface ListViewMessages {
   exportToPdf: string;
   /** Tooltip for "Refresh Data" button. Default: "Refresh Data" */
   refreshData: string;
+  /** Tooltip for the "Reset Filters" button. Default: "Reset Filters" */
+  resetFilters: string;
   /** Title for the actions command column. Default: "Actions" */
   actionsColumnTitle: string;
   /** PDF footer page template. Default: "Page {pageNum} of {totalPages}" */
@@ -230,6 +232,7 @@ export const DEFAULT_LIST_VIEW_MESSAGES: ListViewMessages = {
   exportToExcel: 'Export to Excel',
   exportToPdf: 'Export to PDF',
   refreshData: 'Refresh Data',
+  resetFilters: 'Reset Filters',
   actionsColumnTitle: 'Actions',
   pdfPageTemplate: 'Page {pageNum} of {totalPages}',
   pagerItemsPerPage: 'items per page',

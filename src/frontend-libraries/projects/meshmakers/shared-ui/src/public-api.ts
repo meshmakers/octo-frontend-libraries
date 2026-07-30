@@ -42,6 +42,7 @@ export * from './lib/services/input.service';
 export * from './lib/services/notification-display.service';
 export * from './lib/services/notification-display.messages';
 export * from './lib/services/message-listener.service';
+export * from './lib/services/list-state.service';
 export * from './lib/message-details-dialog/message-details-dialog.component';
 export * from './lib/message-details-dialog/message-details-dialog.service';
 export * from './lib/message-details-dialog/message-details-dialog.messages';

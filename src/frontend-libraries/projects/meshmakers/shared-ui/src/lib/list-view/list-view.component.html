@@ -104,6 +104,7 @@
     }
     <button kendoTooltip kendoGridExcelCommand themeColor="primary" fillMode="flat" [svgIcon]="excelSVG" [disabled]="isLoading()" [title]="_messages.exportToExcel"></button>
     <button kendoTooltip kendoGridPDFCommand themeColor="primary" fillMode="flat" [svgIcon]="pdfSVG" [disabled]="isLoading()" [title]="_messages.exportToPdf"></button>
+    <button kendoTooltip kendoButton themeColor="primary" fillMode="flat" [svgIcon]="resetFilterIcon" (click)="onReset()" [disabled]="isLoading()" [title]="_messages.resetFilters"></button>
     <button kendoTooltip kendoButton themeColor="primary" fillMode="flat" [svgIcon]="refreshIcon" (click)="onRefresh()" [disabled]="isLoading()" [title]="_messages.refreshData"></button>
   </ng-template>
 
