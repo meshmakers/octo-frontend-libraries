@@ -123,6 +123,7 @@ Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVI
 | Method | Description |
 |--------|-------------|
 | `getTenants(skip, take)` | List child tenants with pagination |
+| `getOwnTenant()` | Get the tenant the caller is signed into, including its `database` — `GET {assetServices}{tenantId}/v1/tenants/self` (AB#4601). The tenants list holds only children and a tenant's registry entry lives in its parent's database, so the current tenant's database name is not derivable client-side; needed to restore the current tenant from a backup. |
 | `getTenantDetails(childTenantId)` | Get child tenant details |
 | `createTenant(tenantDto)` | Create a new child tenant |
 | `attachTenant(tenantDto)` | Attach existing database as child tenant |
