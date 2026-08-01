@@ -249,6 +249,8 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `deleteAdminProvisioning(targetTenantId, mappingRtId)` | Remove a mapping |
 | `getProvisioningSourceUsers(targetTenantId, search?, take=20)` | Search provisionable users from the target's ancestor tenants (powers the user picker) |
 | `getProvisioningRoles(targetTenantId)` | List the target tenant's roles (assignable options for a mapping) |
+| `getProvisioningGroups(targetTenantId)` | List the target tenant's groups (assignable options for a mapping) |
+| `createAdminProvisioningWithGroups(targetTenantId, dto)` | Create a mapping and make it a member of the given target-tenant groups (group-based grant used by the Studio Add User dialog) |
 
 ### BotService
 

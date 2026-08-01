@@ -16,6 +16,7 @@ import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 import {CreateGroupDto, GroupDto, UpdateGroupDto} from '../shared/groupDto';
 import {CreateExternalTenantUserMappingDto, ExternalTenantUserMappingDto} from '../shared/externalTenantUserMappingDto';
 import {ProvisioningSourceUserDto} from '../shared/provisioningSourceUserDto';
+import {CreateExternalTenantUserGroupMappingDto, ProvisioningGroupDto} from '../shared/provisioningGroupDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 
 @Injectable({
@@ -931,6 +932,44 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.get<RoleDto[]>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/roles`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the groups defined in the target tenant, offered as assignable options when creating a
+   * cross-tenant user mapping. Assigning a group makes the mapping a GroupMember (group-based role
+   * inheritance) — the idiomatic grant, consistent with provisionCurrentUser.
+   */
+  async getProvisioningGroups(targetTenantId: string): Promise<ProvisioningGroupDto[] | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<ProvisioningGroupDto[]>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/groups`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  /**
+   * Creates a cross-tenant user mapping and makes it a member of the given target-tenant groups, so
+   * the user inherits the groups' roles.
+   */
+  async createAdminProvisioningWithGroups(
+    targetTenantId: string, dto: CreateExternalTenantUserGroupMappingDto): Promise<ExternalTenantUserMappingDto | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<ExternalTenantUserMappingDto>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/withGroups`, dto, {
           observe: 'response'
         })
       );
