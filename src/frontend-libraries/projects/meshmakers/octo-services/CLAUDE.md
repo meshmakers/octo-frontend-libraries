@@ -239,6 +239,17 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `mergeUsers(targetUserName, sourceUserName)` | Merge source user into target user |
 | `userDiagnostics()` | Get user diagnostics info |
 
+**Cross-Tenant Admin Provisioning** (routed via the system tenant, `{issuer}octosystem/v1/adminProvisioning/{targetTenantId}/...`):
+
+| Method | Description |
+|--------|-------------|
+| `getAdminProvisionedUsers(targetTenantId)` | List existing cross-tenant user mappings in the target tenant |
+| `provisionCurrentUser(targetTenantId)` | Provision the caller into the target tenant with all roles |
+| `createAdminProvisioning(targetTenantId, dto)` | Create a mapping for an arbitrary parent-tenant user with chosen roles |
+| `deleteAdminProvisioning(targetTenantId, mappingRtId)` | Remove a mapping |
+| `getProvisioningSourceUsers(targetTenantId, search?, take=20)` | Search provisionable users from the target's ancestor tenants (powers the user picker) |
+| `getProvisioningRoles(targetTenantId)` | List the target tenant's roles (assignable options for a mapping) |
+
 ### BotService
 
 Manages background jobs and repository operations.

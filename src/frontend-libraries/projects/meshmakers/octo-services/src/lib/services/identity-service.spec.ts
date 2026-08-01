@@ -679,4 +679,48 @@ describe('IdentityService', () => {
       tenantHttpMock.verify();
     });
   });
+
+  describe('admin provisioning source users & roles', () => {
+    it('should search provisioning source users via the system tenant', async () => {
+      const resultPromise = service.getProvisioningSourceUsers('meshmakers', 'ger');
+      await tick();
+
+      const req = httpMock.expectOne(
+        `${apiPrefix}adminProvisioning/meshmakers/sourceUsers?take=20&search=ger`);
+      expect(req.request.method).toBe('GET');
+      req.flush([
+        { sourceTenantId: 'octosystem', userId: 'u1', userName: 'gerald@x', email: 'gerald@x' }
+      ]);
+
+      const result = await resultPromise;
+      expect(result?.length).toBe(1);
+      expect(result?.[0].sourceTenantId).toBe('octosystem');
+      httpMock.verify();
+    });
+
+    it('should omit the search param when no term is given', async () => {
+      const resultPromise = service.getProvisioningSourceUsers('meshmakers');
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}adminProvisioning/meshmakers/sourceUsers?take=20`);
+      expect(req.request.method).toBe('GET');
+      req.flush([]);
+
+      await resultPromise;
+      httpMock.verify();
+    });
+
+    it('should fetch provisioning roles via the system tenant', async () => {
+      const resultPromise = service.getProvisioningRoles('meshmakers');
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}adminProvisioning/meshmakers/roles`);
+      expect(req.request.method).toBe('GET');
+      req.flush([{ id: 'role-1', name: 'DashboardViewer' }]);
+
+      const result = await resultPromise;
+      expect(result?.[0].name).toBe('DashboardViewer');
+      httpMock.verify();
+    });
+  });
 });

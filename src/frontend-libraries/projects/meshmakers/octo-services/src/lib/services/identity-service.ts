@@ -15,6 +15,7 @@ import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 import {CreateGroupDto, GroupDto, UpdateGroupDto} from '../shared/groupDto';
 import {CreateExternalTenantUserMappingDto, ExternalTenantUserMappingDto} from '../shared/externalTenantUserMappingDto';
+import {ProvisioningSourceUserDto} from '../shared/provisioningSourceUserDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 
 @Injectable({
@@ -893,5 +894,48 @@ export class IdentityService {
         })
       );
     }
+  }
+
+  /**
+   * Searches provisionable users from the target tenant's ancestor (parent) tenants. Powers the
+   * cross-tenant user picker on the Admin Provisioning page. Matches on username or email; an empty
+   * search returns the first users. Cross-tenant shadow users (xt_) are excluded server-side.
+   */
+  async getProvisioningSourceUsers(
+    targetTenantId: string, search?: string, take = 20): Promise<ProvisioningSourceUserDto[] | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      let params = new HttpParams().set('take', take.toString());
+      if (search) {
+        params = params.set('search', search);
+      }
+      const response = await firstValueFrom(
+        this.httpClient.get<ProvisioningSourceUserDto[]>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/sourceUsers`, {
+          params,
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the roles defined in the target tenant, offered as assignable options when creating a
+   * cross-tenant user mapping.
+   */
+  async getProvisioningRoles(targetTenantId: string): Promise<RoleDto[] | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<RoleDto[]>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/roles`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
   }
 }
