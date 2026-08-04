@@ -1,5 +1,12 @@
 import { inject } from '@angular/core';
-import { HttpHandlerFn, HttpInterceptorFn, HttpParams, HttpRequest } from '@angular/common/http';
+import {
+  HttpErrorResponse,
+  HttpHandlerFn,
+  HttpInterceptorFn,
+  HttpParams,
+  HttpRequest
+} from '@angular/common/http';
+import { from, catchError, switchMap, throwError } from 'rxjs';
 import { AuthorizeService } from './authorize.service';
 
 // =============================================================================
@@ -36,12 +43,41 @@ function isSameOriginUrl(req: HttpRequest<unknown>): boolean {
 function isKnownServiceUri(req: HttpRequest<unknown>, serviceUris: string[] | null): boolean {
   if (serviceUris != null) {
     for (const serviceUri of serviceUris) {
-      if (req.url.startsWith(serviceUri)) {
+      // A blank entry is a prefix of every URL, so one unset host in an app's
+      // allow-list would hand the token to every origin it calls.
+      if (serviceUri && req.url.startsWith(serviceUri)) {
         return true;
       }
     }
   }
   return false;
+}
+
+/**
+ * Checks if the request targets the OIDC token endpoint.
+ */
+function isTokenEndpointUrl(req: HttpRequest<unknown>): boolean {
+  return req.url.endsWith('/connect/token');
+}
+
+// =============================================================================
+// SINGLE-FLIGHT TOKEN REFRESH
+// =============================================================================
+
+/**
+ * Module-level so parallel 401s share one refresh: with refresh-token rotation each
+ * exchange invalidates the previous token, so concurrent grants end the session.
+ */
+let refreshInFlight: Promise<void> | null = null;
+
+function refreshAccessTokenOnce(authorizeService: AuthorizeService): Promise<void> {
+  refreshInFlight ??= Promise.resolve()
+    .then(() => authorizeService.refreshAccessToken())
+    .finally(() => {
+      refreshInFlight = null;
+    });
+
+  return refreshInFlight;
 }
 
 // =============================================================================
@@ -59,6 +95,10 @@ function isKnownServiceUri(req: HttpRequest<unknown>, serviceUris: string[] | nu
  * For token endpoint POST requests (`/connect/token`), appends
  * `acr_values=tenant:{tenantId}` to the form body so the Identity Server
  * can resolve the correct tenant during refresh token exchanges.
+ *
+ * When a request that carried a token comes back `401`, the access token is refreshed
+ * and the request retried once with the new bearer. A refresh that fails or yields no
+ * new token rethrows the original `401`, so hosts can still classify it.
  *
  * @example
  * ```typescript
@@ -79,7 +119,8 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
   const token = authorizeService.getAccessTokenSync();
   const serviceUris = authorizeService.getServiceUris();
 
-  if (token && (isSameOriginUrl(req) || isKnownServiceUri(req, serviceUris))) {
+  const tokenAttached = !!token && (isSameOriginUrl(req) || isKnownServiceUri(req, serviceUris));
+  if (tokenAttached) {
     req = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
@@ -108,5 +149,40 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
     }
   }
 
-  return next(req);
+  // Never retry the token endpoint itself: refreshing posts to that very endpoint,
+  // so a retry would recurse into the refresh it is trying to perform.
+  if (!tokenAttached || isTokenEndpointUrl(req)) {
+    return next(req);
+  }
+
+  const authorizedReq = req;
+
+  return next(authorizedReq).pipe(
+    catchError((error: unknown) => {
+      if (!(error instanceof HttpErrorResponse) || error.status !== 401) {
+        return throwError(() => error);
+      }
+
+      return from(refreshAccessTokenOnce(authorizeService)).pipe(
+        // Surface the original 401, not the refresh error: consuming apps classify the
+        // status code to pick their message, and AuthorizeService already reacts to
+        // `token_refresh_error` by clearing the session.
+        catchError(() => throwError(() => error)),
+        switchMap(() => {
+          const refreshedToken = authorizeService.getAccessTokenSync();
+          if (!refreshedToken || refreshedToken === token) {
+            return throwError(() => error);
+          }
+
+          // `next()` hands off to the rest of the chain, so the retried request
+          // does not re-enter this interceptor — at most one retry by construction.
+          return next(authorizedReq.clone({
+            setHeaders: {
+              Authorization: `Bearer ${refreshedToken}`
+            }
+          }));
+        })
+      );
+    })
+  );
 };

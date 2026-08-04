@@ -99,6 +99,33 @@ The interceptor only adds tokens to:
 
 External/unknown URLs never receive the token.
 
+Matching is a plain `startsWith`, so **blank entries are skipped** — a host that leaves an
+unset URL in its allow-list would otherwise match every URL and hand the operator's token to
+every origin the app calls, telemetry included. The guard lives here rather than in each app,
+because that is where the matching happens; apps do not need their own falsy filter.
+
+### Refresh and Retry on 401
+
+A request the interceptor attached a token to and that comes back `401` triggers
+`AuthorizeService.refreshAccessToken()` and is then retried once with the new bearer.
+This is the only 401 recovery path in the stack — apps must not add their own, so that
+pipeline calls behave exactly like every other authenticated call (AB#4185).
+
+Two non-obvious properties:
+
+- **Single-flight:** the in-flight refresh promise lives at module level (cleared in a
+  `finally`), so ten parallel 401s cause one refresh. Per-request refreshes would rotate
+  the refresh token concurrently and kill the session.
+- **At most one retry, without a counter:** the retry goes out via `next()`, which
+  continues down the chain instead of re-entering the interceptor. Do not add retry
+  bookkeeping unless re-entry is actually proven.
+
+Never retried: requests without a token, and the token endpoint itself
+(`/connect/token`) — retrying that would recurse into the refresh. A refresh that fails,
+or that yields no new token, rethrows the **original** `HttpErrorResponse`, because hosts
+classify `401`/`403` to choose their user-facing message. The library shows no UI: the
+`token_refresh_error` handler in `AuthorizeService` clears the session and reloads.
+
 ## Styling
 
 The `LoginAppBarSectionComponent` uses CSS custom properties with neutral defaults. Host applications override these to apply their theme:

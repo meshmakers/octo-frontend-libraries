@@ -142,6 +142,12 @@ The interceptor adds the `Authorization: Bearer <token>` header to:
 - Same-origin requests (relative URLs)
 - Requests to configured `wellKnownServiceUris`
 
+It also recovers from an expired access token: when a request that carried a token
+comes back `401`, the token is refreshed and the request is retried once with the new
+bearer. The refresh is single-flight (concurrent 401s share one refresh) and the retry
+is never retried again. Requests without a token and the token endpoint itself are left
+alone, and if the refresh fails the original `401` reaches the caller.
+
 ### UI Components
 
 #### LoginAppBarSectionComponent

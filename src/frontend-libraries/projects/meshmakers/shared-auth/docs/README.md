@@ -229,6 +229,31 @@ Functional HTTP interceptor that automatically adds Bearer tokens to requests.
   - Same-origin requests (relative URLs)
   - Requests to configured `wellKnownServiceUris`
 - Does NOT add tokens to external/unknown URLs (security measure)
+- Refreshes the access token and retries the request once on `401` (see below)
+
+### Refresh and Retry on 401
+
+When a request **to which the interceptor attached a token** fails with `401`, the
+interceptor calls `AuthorizeService.refreshAccessToken()` and retries the request with
+the new bearer. Every authenticated call — including calls to mesh-adapter pipelines —
+therefore survives an access token that expired between two operator actions, without
+any per-call handling in the app.
+
+- **Single-flight refresh:** the in-flight refresh promise is module-level, so parallel
+  requests that all fail with `401` share one refresh. Firing one refresh per request
+  would rotate the refresh token several times in parallel and invalidate the session.
+- **At most one retry:** the retry is issued through `next()`, which hands the request
+  to the rest of the chain and therefore does not re-enter this interceptor. No retry
+  counter is needed.
+- **Not retried:** requests that carried no token (a `401` no refresh can repair) and
+  requests to the token endpoint (`/connect/token`), which would recurse into the very
+  refresh being performed.
+- **No new token, no retry:** if the token is missing or unchanged after the refresh,
+  the original error is rethrown.
+- **Failed refresh surfaces the original `401`,** not the refresh error, so apps can keep
+  classifying `401`/`403` for their user-facing messages. The library renders no UI:
+  `AuthorizeService` already reacts to `token_refresh_error` by clearing the local session
+  and reloading, which triggers a fresh login.
 
 ### Setup
 
