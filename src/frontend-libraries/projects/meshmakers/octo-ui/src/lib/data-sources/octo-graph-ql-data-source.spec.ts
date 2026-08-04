@@ -515,6 +515,43 @@ describe('OctoGraphQlDataSource', () => {
   });
 
   // =========================================================================
+  // isPageOutOfRangeError
+  // =========================================================================
+
+  describe('isPageOutOfRangeError', () => {
+    it('should detect INCOMPLETE_SLICE in the extensions codes list', () => {
+      const apolloError = {
+        graphQLErrors: [
+          { extensions: { code: 'ASSET1002', codes: ['ASSET1002', 'INCOMPLETE_SLICE'] } }
+        ]
+      };
+      expect(dataSource.isPageOutOfRangeError(apolloError)).toBeTrue();
+    });
+
+    it('should detect INCOMPLETE_SLICE as the single extensions code', () => {
+      const apolloError = {
+        graphQLErrors: [{ extensions: { code: 'INCOMPLETE_SLICE' } }]
+      };
+      expect(dataSource.isPageOutOfRangeError(apolloError)).toBeTrue();
+    });
+
+    it('should return false for other GraphQL errors', () => {
+      const apolloError = {
+        graphQLErrors: [{ extensions: { code: 'ASSET1001', codes: ['ASSET1001'] } }]
+      };
+      expect(dataSource.isPageOutOfRangeError(apolloError)).toBeFalse();
+    });
+
+    it('should return false for non-GraphQL errors', () => {
+      expect(dataSource.isPageOutOfRangeError(new Error('network down'))).toBeFalse();
+      expect(dataSource.isPageOutOfRangeError(null)).toBeFalse();
+      expect(dataSource.isPageOutOfRangeError(undefined)).toBeFalse();
+      expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [] })).toBeFalse();
+      expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [{}] })).toBeFalse();
+    });
+  });
+
+  // =========================================================================
   // Integration Tests
   // =========================================================================
 

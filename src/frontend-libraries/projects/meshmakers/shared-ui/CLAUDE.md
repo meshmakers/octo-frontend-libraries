@@ -155,6 +155,18 @@ its body internally with the pager pinned to the bottom edge.
   refetching — a changed filter changes the result set, so the old page offset would point
   into stale data or past the end. Kendo's own filter-row path already does this via its
   `dataStateChange` event; the programmatic paths must mirror it.
+- **Bar-filter changes reset to page 1 via `fetchAgain({ resetSkip: true })`.** App-side
+  quick-view/bar filters live in the data source, outside the Kendo state, so their change
+  path is `DataSourceBase.fetchAgain()`. Data sources MUST pass `{ resetSkip: true }` when
+  their own filters changed — the directive then resets `skip` to 0 and persists the reset
+  (same invariant as above). A plain `fetchAgain()` (data refresh) keeps the current page.
+- **Out-of-range pages self-heal.** When a fetch fails and
+  `DataSourceBase.isPageOutOfRangeError(err)` says the page offset lies beyond the result
+  set (e.g. a persisted `skip` restored against filters that now match fewer rows — the
+  OctoMesh API rejects that with an `INCOMPLETE_SLICE` GraphQL error, detected by
+  `OctoGraphQlDataSource`'s override in octo-ui), the directive resets to page 1, persists
+  it and refetches once (`skip === 0` cannot be out of range, so no loop). Without this the
+  grid would silently keep showing the PREVIOUS rows under the NEW filters.
 - **`rebind()` cancels the previous in-flight fetch** before starting a new one. Overlapping
   fetches (sort/page click while a load is in flight, autoPageSize measurement refetch)
   would otherwise race last-response-wins, letting a stale response overwrite newer data.

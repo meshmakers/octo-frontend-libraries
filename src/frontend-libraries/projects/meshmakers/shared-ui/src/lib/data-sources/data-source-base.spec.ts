@@ -101,6 +101,21 @@ describe('DataSourceBase', () => {
 
       dataSource.fetchAgain();
     });
+
+    it('should pass the options through to the event', (done) => {
+      dataSource.fetchAgainEvent.subscribe((options) => {
+        expect(options).toEqual({ resetSkip: true });
+        done();
+      });
+
+      dataSource.fetchAgain({ resetSkip: true });
+    });
+  });
+
+  describe('isPageOutOfRangeError', () => {
+    it('should default to false (base class cannot tell)', () => {
+      expect(dataSource.isPageOutOfRangeError(new Error('anything'))).toBeFalse();
+    });
   });
 
   describe('listViewComponent', () => {

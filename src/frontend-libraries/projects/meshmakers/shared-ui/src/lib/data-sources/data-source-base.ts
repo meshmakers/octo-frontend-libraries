@@ -11,9 +11,20 @@ export interface FetchDataOptions {
   forceRefresh?: boolean;
 }
 
+export interface FetchAgainOptions {
+  /**
+   * Reset paging to page 1 before refetching. Pass `true` whenever the data
+   * source's own filters (quick-view/bar filters outside the Kendo grid state)
+   * changed: the result set changes, so the current page offset would point
+   * into stale data or past the end — mirroring `notifyFilterChange()` and the
+   * text-search path, which already reset the page.
+   */
+  resetSkip?: boolean;
+}
+
 export abstract class DataSourceBase {
 
-  public readonly fetchAgainEvent = new EventEmitter<void>()
+  public readonly fetchAgainEvent = new EventEmitter<FetchAgainOptions | undefined>()
 
   private readonly _isLoading$ = new BehaviorSubject<boolean>(false);
 
@@ -47,8 +58,19 @@ export abstract class DataSourceBase {
     this._isLoading$.next(loading);
   }
 
-  public fetchAgain(): void {
-    this.fetchAgainEvent.emit();
+  public fetchAgain(options?: FetchAgainOptions): void {
+    this.fetchAgainEvent.emit(options);
+  }
+
+  /**
+   * Whether a failed fetch means the requested page offset lies beyond the
+   * (shrunken) result set. MmListViewDataBindingDirective then recovers by
+   * resetting to page 1 and refetching once instead of silently keeping the
+   * previous rows on screen. Protocol-specific subclasses (e.g. the OctoMesh
+   * GraphQL data source) override this; the default cannot tell and says no.
+   */
+  public isPageOutOfRangeError(_error: unknown): boolean {
+    return false;
   }
 
   public abstract fetchData(queryOptions: FetchDataOptions): Observable<FetchResult | null>;
