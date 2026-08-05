@@ -206,6 +206,19 @@ describe('authorizeInterceptor (functional)', () => {
         });
       });
 
+      it('should ignore a bare slash, which is what the platform returns for an unconfigured service', (done) => {
+        authServiceMock.getServiceUris.and.returnValue(['https://api.example.com', '/']);
+        const req = new HttpRequest('GET', '//telemetry.third-party.com/ingest');
+
+        TestBed.runInInjectionContext(() => {
+          authorizeInterceptor(req, nextFn).subscribe(() => {
+            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            expect(handledReq.headers.has('Authorization')).toBeFalse();
+            done();
+          });
+        });
+      });
+
       it('should still match the configured hosts when a blank entry is present', (done) => {
         authServiceMock.getServiceUris.and.returnValue(['', 'https://api.example.com']);
         const req = new HttpRequest('POST', 'https://api.example.com/meshtest/sendMessage', {});

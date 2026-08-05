@@ -43,9 +43,10 @@ function isSameOriginUrl(req: HttpRequest<unknown>): boolean {
 function isKnownServiceUri(req: HttpRequest<unknown>, serviceUris: string[] | null): boolean {
   if (serviceUris != null) {
     for (const serviceUri of serviceUris) {
-      // A blank entry is a prefix of every URL, so one unset host in an app's
-      // allow-list would hand the token to every origin it calls.
-      if (serviceUri && req.url.startsWith(serviceUri)) {
+      // An unset host must never match. Blank is a prefix of every URL, and the
+      // platform answers `/` for an unconfigured service, which would also match
+      // protocol-relative URLs that isSameOriginUrl deliberately rejects.
+      if (serviceUri && serviceUri !== '/' && req.url.startsWith(serviceUri)) {
         return true;
       }
     }
