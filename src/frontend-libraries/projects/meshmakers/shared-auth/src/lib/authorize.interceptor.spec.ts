@@ -219,6 +219,45 @@ describe('authorizeInterceptor (functional)', () => {
         });
       });
 
+      it('should not match a host that merely starts with a configured URI', (done) => {
+        // Plain prefix matching hands the operator's bearer to any origin whose name
+        // begins with a configured one, which an attacker can register at will.
+        const req = new HttpRequest('GET', 'https://api.example.com.attacker.test/steal');
+
+        TestBed.runInInjectionContext(() => {
+          authorizeInterceptor(req, nextFn).subscribe(() => {
+            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            expect(handledReq.headers.has('Authorization')).toBeFalse();
+            done();
+          });
+        });
+      });
+
+      it('should match a configured URI that already ends in a slash', (done) => {
+        authServiceMock.getServiceUris.and.returnValue(['https://api.example.com/']);
+        const req = new HttpRequest('GET', 'https://api.example.com/users');
+
+        TestBed.runInInjectionContext(() => {
+          authorizeInterceptor(req, nextFn).subscribe(() => {
+            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
+            done();
+          });
+        });
+      });
+
+      it('should match the configured URI itself, with nothing after it', (done) => {
+        const req = new HttpRequest('GET', 'https://api.example.com');
+
+        TestBed.runInInjectionContext(() => {
+          authorizeInterceptor(req, nextFn).subscribe(() => {
+            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
+            done();
+          });
+        });
+      });
+
       it('should still match the configured hosts when a blank entry is present', (done) => {
         authServiceMock.getServiceUris.and.returnValue(['', 'https://api.example.com']);
         const req = new HttpRequest('POST', 'https://api.example.com/meshtest/sendMessage', {});
@@ -652,6 +691,53 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
     retryFirst.flush({ ok: true });
     retrySecond.flush({ ok: true });
     tick();
+  }));
+
+  it('should NOT refresh again for a 401 that lands after an earlier refresh finished', fakeAsync(() => {
+    // Single-flight only covers the window while the refresh runs. A slower request that
+    // went out with the same stale token reports its 401 afterwards; its failure is already
+    // explained by the token that has just been replaced, so refreshing again buys nothing
+    // and spends an extra grant at the Identity Server.
+    refreshYieldsNewToken();
+
+    http.get('/api/fast').subscribe();
+    http.get('/api/slow').subscribe();
+
+    const fast = httpMock.expectOne('/api/fast');
+    const slow = httpMock.expectOne('/api/slow');
+    expect(fast.request.headers.get('Authorization')).toBe(`Bearer ${OLD_TOKEN}`);
+    expect(slow.request.headers.get('Authorization')).toBe(`Bearer ${OLD_TOKEN}`);
+
+    unauthorized(fast);
+    tick();
+    httpMock.expectOne('/api/fast').flush({ ok: true });
+    tick();
+
+    unauthorized(slow);
+    tick();
+
+    expect(authServiceMock.refreshAccessToken).toHaveBeenCalledTimes(1);
+
+    const slowRetry = httpMock.expectOne('/api/slow');
+    expect(slowRetry.request.headers.get('Authorization')).toBe(`Bearer ${NEW_TOKEN}`);
+    slowRetry.flush({ ok: true });
+    tick();
+  }));
+
+  it('should clear the single-flight state when the refresh rejects', fakeAsync(() => {
+    // The `finally` is load-bearing: a refresh that never clears the module-level promise
+    // would leave every later 401 in the page awaiting a promise nobody will settle.
+    authServiceMock.refreshAccessToken.and.rejectWith(new Error('refresh failed'));
+
+    http.get('/api/first').subscribe({ error: () => undefined });
+    unauthorized(httpMock.expectOne('/api/first'));
+    tick();
+
+    http.get('/api/second').subscribe({ error: () => undefined });
+    unauthorized(httpMock.expectOne('/api/second'));
+    tick();
+
+    expect(authServiceMock.refreshAccessToken).toHaveBeenCalledTimes(2);
   }));
 
   it('should surface the ORIGINAL 401 when the refresh itself fails', fakeAsync(() => {

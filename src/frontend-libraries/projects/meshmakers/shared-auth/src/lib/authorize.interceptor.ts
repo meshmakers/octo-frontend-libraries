@@ -46,7 +46,15 @@ function isKnownServiceUri(req: HttpRequest<unknown>, serviceUris: string[] | nu
       // An unset host must never match. Blank is a prefix of every URL, and the
       // platform answers `/` for an unconfigured service, which would also match
       // protocol-relative URLs that isSameOriginUrl deliberately rejects.
-      if (serviceUri && serviceUri !== '/' && req.url.startsWith(serviceUri)) {
+      if (!serviceUri || serviceUri === '/' || !req.url.startsWith(serviceUri)) {
+        continue;
+      }
+
+      // A bare prefix test would also accept a host that merely begins with a configured
+      // one — `https://api.example.com.attacker.test` — and hand it the operator's bearer.
+      // The match must therefore end on a path, query or fragment boundary.
+      const remainder = req.url.slice(serviceUri.length);
+      if (serviceUri.endsWith('/') || remainder === '' || '/?#'.includes(remainder.charAt(0))) {
         return true;
       }
     }
@@ -169,6 +177,19 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
     catchError((error: unknown) => {
       if (!(error instanceof HttpErrorResponse) || error.status !== 401) {
         return throwError(() => error);
+      }
+
+      // Single-flight only covers the window while a refresh runs. A slower request that
+      // went out with the same stale token reports its 401 after that window closed, and
+      // its failure is already explained by the token that has since been replaced —
+      // refreshing again would spend a second grant to learn the same thing.
+      const currentToken = authorizeService.getAccessTokenSync();
+      if (currentToken && currentToken !== token) {
+        return next(authorizedReq.clone({
+          setHeaders: {
+            Authorization: `Bearer ${currentToken}`
+          }
+        }));
       }
 
       return from(refreshAccessTokenOnce(authorizeService)).pipe(

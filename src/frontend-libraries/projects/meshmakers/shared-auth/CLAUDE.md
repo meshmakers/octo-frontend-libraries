@@ -99,10 +99,16 @@ The interceptor only adds tokens to:
 
 External/unknown URLs never receive the token.
 
-Matching is a plain `startsWith`, so **blank entries are skipped** — a host that leaves an
+Matching is a prefix test, so **blank entries are skipped** — a host that leaves an
 unset URL in its allow-list would otherwise match every URL and hand the operator's token to
 every origin the app calls, telemetry included. The guard lives here rather than in each app,
 because that is where the matching happens; apps do not need their own falsy filter.
+
+For the same reason the prefix must end on a boundary (`/`, `?`, `#`, or end of string).
+A bare `startsWith` also accepts `https://api.example.com.attacker.test`, a host anyone can
+register, and hands it the operator's bearer. Entries that already end in `/` match as they
+are, which is what `meshmakers-app` relies on: it normalises the issuer with `withSlash()`
+and builds `{issuer}{tenantId}/v1/users/getPaged` by concatenation.
 
 ### Refresh and Retry on 401
 
@@ -114,8 +120,12 @@ pipeline calls behave exactly like every other authenticated call (AB#4185).
 Two non-obvious properties:
 
 - **Single-flight:** the in-flight refresh promise lives at module level (cleared in a
-  `finally`), so ten parallel 401s cause one refresh. Per-request refreshes would rotate
-  the refresh token concurrently and kill the session.
+  `finally`), so ten parallel 401s cause one refresh. Per-request refreshes would spend one
+  grant each and, on a client configured for refresh-token rotation, race each other.
+  That covers only the window while the refresh runs, so there is a second guard: a 401 that
+  lands **after** the refresh finished is retried with the token already in the service
+  instead of triggering another one. Its failure is explained by the token that has since
+  been replaced, so a fresh grant would only buy the same answer.
 - **At most one retry, without a counter:** the retry goes out via `next()`, which
   continues down the chain instead of re-entering the interceptor. Do not add retry
   bookkeeping unless re-entry is actually proven.

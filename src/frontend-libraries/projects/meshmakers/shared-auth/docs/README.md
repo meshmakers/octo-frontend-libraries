@@ -241,7 +241,11 @@ any per-call handling in the app.
 
 - **Single-flight refresh:** the in-flight refresh promise is module-level, so parallel
   requests that all fail with `401` share one refresh. Firing one refresh per request
-  would rotate the refresh token several times in parallel and invalidate the session.
+  would spend a grant each and race on clients configured for refresh-token rotation.
+- **No second refresh once the first one finished:** single-flight only spans the refresh
+  itself. A slower request that went out with the same stale token reports its `401`
+  afterwards; it is retried with the token already held by `AuthorizeService` rather than
+  starting another refresh, which would only re-learn what the first one established.
 - **At most one retry:** the retry is issued through `next()`, which hands the request
   to the rest of the chain and therefore does not re-enter this interceptor. No retry
   counter is needed.
