@@ -81,8 +81,13 @@ function isTokenEndpointUrl(url: string): boolean {
 // =============================================================================
 
 /**
- * Module-level so parallel 401s share one refresh: with refresh-token rotation each
- * exchange invalidates the previous token, so concurrent grants end the session.
+ * Module-level so parallel 401s share one refresh instead of spending one grant each.
+ *
+ * Do not restate this as "concurrent grants would end the session": that holds only for a
+ * client whose `RefreshTokenUsage` is `OneTimeOnly`, and ours are not — Duende defaults the
+ * property to `ReUse` and nothing in octo-identity-services overrides it (the CK attribute
+ * carries no default and reaches Duende through AutoMapper's by-name convention, which is
+ * why grepping the C# for its name finds nothing).
  */
 let refreshInFlight: Promise<void> | null = null;
 
@@ -113,8 +118,10 @@ function refreshAccessTokenOnce(authorizeService: AuthorizeService): Promise<voi
  * can resolve the correct tenant during refresh token exchanges.
  *
  * When a request that carried a token comes back `401`, the access token is refreshed
- * and the request retried once with the new bearer. A refresh that fails or yields no
- * new token rethrows the original `401`, so hosts can still classify it.
+ * and the request retried once with the new bearer. If the token has already been replaced
+ * by then — a slower request reporting its `401` after someone else's refresh finished —
+ * the retry goes out with that token and no second refresh is started. A refresh that fails
+ * or yields no new token rethrows the original `401`, so hosts can still classify it.
  *
  * @example
  * ```typescript
@@ -165,8 +172,8 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
     }
   }
 
-  // Never retry the token endpoint itself: refreshing posts to that very endpoint,
-  // so a retry would recurse into the refresh it is trying to perform.
+  // Never let the token endpoint into the recovery path — see isTokenEndpointUrl for the
+  // deadlock this avoids.
   if (!tokenAttached || isTokenEndpointUrl(req.url)) {
     return next(req);
   }

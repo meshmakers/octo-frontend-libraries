@@ -241,7 +241,9 @@ any per-call handling in the app.
 
 - **Single-flight refresh:** the in-flight refresh promise is module-level, so parallel
   requests that all fail with `401` share one refresh. Firing one refresh per request
-  would spend a grant each and race on clients configured for refresh-token rotation.
+  would spend a grant each. It is tempting to add "and would end the session", but that
+  only applies to a client whose `RefreshTokenUsage` is `OneTimeOnly`; ours run on Duende's
+  `ReUse` default, so parallel grants are wasteful rather than fatal.
 - **No second refresh once the first one finished:** single-flight only spans the refresh
   itself. A slower request that went out with the same stale token reports its `401`
   afterwards; it is retried with the token already held by `AuthorizeService` rather than
@@ -250,10 +252,10 @@ any per-call handling in the app.
   to the rest of the chain and therefore does not re-enter this interceptor. No retry
   counter is needed.
 - **Not retried:** requests that carried no token (a `401` no refresh can repair) and
-  requests to the token endpoint (`/connect/token`), which would recurse into the very
-  refresh being performed. The endpoint is recognised by path, with any query string,
-  fragment or trailing slash stripped first — a guard keyed on the raw URL would let a
-  suffixed form through, and that miss is silent rather than noisy (see below).
+  requests to the token endpoint (`/connect/token`), which the refresh itself performs —
+  see the deadlock below. The endpoint is recognised by path, with any query string,
+  fragment or trailing slash stripped first: a guard keyed on the raw URL would let a
+  suffixed form through, and that miss is silent rather than noisy.
 - **No new token, no retry:** if the token is missing or unchanged after the refresh,
   the original error is rethrown.
 - **Failed refresh surfaces the original `401`,** not the refresh error, so apps can keep

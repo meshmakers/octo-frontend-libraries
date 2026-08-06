@@ -121,7 +121,10 @@ Two non-obvious properties:
 
 - **Single-flight:** the in-flight refresh promise lives at module level (cleared in a
   `finally`), so ten parallel 401s cause one refresh. Per-request refreshes would spend one
-  grant each and, on a client configured for refresh-token rotation, race each other.
+  grant each. They would **not** end the session — that is true only for a client whose
+  `RefreshTokenUsage` is `OneTimeOnly`, and ours inherit Duende's `ReUse` default because
+  nothing in octo-identity-services sets the property (the CK attribute has no default and
+  reaches Duende through AutoMapper's by-name convention, so grep finds no C# writing it).
   That covers only the window while the refresh runs, so there is a second guard: a 401 that
   lands **after** the refresh finished is retried with the token already in the service
   instead of triggering another one. Its failure is explained by the token that has since
