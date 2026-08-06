@@ -56,9 +56,16 @@ function isKnownServiceUri(req: HttpRequest<unknown>, serviceUris: string[] | nu
 
 /**
  * Checks if the request targets the OIDC token endpoint.
+ *
+ * The comparison runs on the path alone, because a guard keyed on the raw URL fails
+ * silently rather than loudly: a query string, fragment or trailing slash would make the
+ * refresh post to that endpoint through this same chain, and the single-flight promise
+ * would wait on itself. It never settles, its `finally` never runs, and since it is module
+ * state, every later 401 anywhere in the page would await a promise that cannot resolve.
  */
-function isTokenEndpointUrl(req: HttpRequest<unknown>): boolean {
-  return req.url.endsWith('/connect/token');
+function isTokenEndpointUrl(url: string): boolean {
+  const path = url.split('#')[0].split('?')[0].replace(/\/+$/, '');
+  return path.endsWith('/connect/token');
 }
 
 // =============================================================================
@@ -139,7 +146,7 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
   // and injecting a stale storage tenant (e.g., left over from a previous
   // session) would force a refresh-token mismatch on the very next call,
   // causing an infinite reload loop.
-  if (req.method === 'POST' && req.url.endsWith('/connect/token') && req.body instanceof HttpParams) {
+  if (req.method === 'POST' && isTokenEndpointUrl(req.url) && req.body instanceof HttpParams) {
     if (req.body.get('grant_type') === 'refresh_token') {
       const tenantId = authorizeService.getStorageTenantId();
       if (tenantId) {
@@ -152,7 +159,7 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
 
   // Never retry the token endpoint itself: refreshing posts to that very endpoint,
   // so a retry would recurse into the refresh it is trying to perform.
-  if (!tokenAttached || isTokenEndpointUrl(req)) {
+  if (!tokenAttached || isTokenEndpointUrl(req.url)) {
     return next(req);
   }
 

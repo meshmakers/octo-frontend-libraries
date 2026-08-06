@@ -121,10 +121,17 @@ Two non-obvious properties:
   bookkeeping unless re-entry is actually proven.
 
 Never retried: requests without a token, and the token endpoint itself
-(`/connect/token`) — retrying that would recurse into the refresh. A refresh that fails,
-or that yields no new token, rethrows the **original** `HttpErrorResponse`, because hosts
-classify `401`/`403` to choose their user-facing message. The library shows no UI: the
-`token_refresh_error` handler in `AuthorizeService` clears the session and reloads.
+(`/connect/token`), matched on the path with query string, fragment and trailing slashes
+stripped. Letting one through does not recurse loudly — it deadlocks silently: the refresh
+posts to that endpoint through this chain, so the single-flight promise waits on itself,
+never settles, never runs its `finally`, and every later 401 in the page then awaits a
+promise that cannot resolve. **Therefore `refreshAccessToken()` must issue no other
+`HttpClient` call**; `loadUserProfile()` and `loadJwks()` (reachable via `loadKeys` if the
+default `NullValidationHandler` is ever replaced) would reproduce the same cycle on their
+own URLs. A refresh that fails, or that yields no new token, rethrows the **original**
+`HttpErrorResponse`, because hosts classify `401`/`403` to choose their user-facing
+message. The library shows no UI: the `token_refresh_error` handler in `AuthorizeService`
+clears the session and reloads.
 
 ## Styling
 

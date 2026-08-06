@@ -356,6 +356,21 @@ describe('authorizeInterceptor (functional)', () => {
       });
     });
 
+    it('should inject acr_values into a token endpoint URL carrying a query string', (done) => {
+      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+
+      const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
+      const req = new HttpRequest('POST', 'https://auth.example.com/connect/token?x=1', body);
+
+      TestBed.runInInjectionContext(() => {
+        authorizeInterceptor(req, nextFn).subscribe(() => {
+          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
+          expect((handledReq.body as HttpParams).get('acr_values')).toBe('tenant:meshtest');
+          done();
+        });
+      });
+    });
+
     it('should preserve existing form body params when injecting acr_values for refresh_token', (done) => {
       authServiceMock.getStorageTenantId.and.returnValue('meshtest');
 
@@ -547,6 +562,44 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
 
     expect(authServiceMock.refreshAccessToken).not.toHaveBeenCalled();
     expect(errors[0].status).toBe(401);
+  }));
+
+  // A guard keyed on the raw URL misses every suffixed form of the same endpoint. The miss
+  // is silent rather than noisy: the refresh posts to that very endpoint through this very
+  // chain, so the single-flight promise ends up waiting on itself. It never settles, its
+  // `finally` never runs, and because it is module state, every later 401 anywhere in the
+  // page then awaits a promise that can no longer resolve.
+  [
+    { label: 'a query string', url: 'https://auth.example.com/connect/token?x=1' },
+    { label: 'a trailing slash', url: 'https://auth.example.com/connect/token/' },
+    { label: 'a hash fragment', url: 'https://auth.example.com/connect/token#fragment' }
+  ].forEach(({ label, url }) => {
+    it(`should NOT refresh a 401 from the token endpoint carrying ${label}`, fakeAsync(() => {
+      refreshYieldsNewToken();
+
+      const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
+      const errors: HttpErrorResponse[] = [];
+      http.post(url, body).subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
+
+      unauthorized(httpMock.expectOne(url));
+      tick();
+
+      expect(authServiceMock.refreshAccessToken).not.toHaveBeenCalled();
+      expect(errors[0].status).toBe(401);
+    }));
+  });
+
+  it('should still refresh a 401 from a path that merely starts like the token endpoint', fakeAsync(() => {
+    refreshYieldsNewToken();
+
+    http.get('https://auth.example.com/connect/tokens/list').subscribe();
+
+    unauthorized(httpMock.expectOne('https://auth.example.com/connect/tokens/list'));
+    tick();
+
+    expect(authServiceMock.refreshAccessToken).toHaveBeenCalledTimes(1);
+    httpMock.expectOne('https://auth.example.com/connect/tokens/list').flush({ ok: true });
+    tick();
   }));
 
   [

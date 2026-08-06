@@ -247,13 +247,32 @@ any per-call handling in the app.
   counter is needed.
 - **Not retried:** requests that carried no token (a `401` no refresh can repair) and
   requests to the token endpoint (`/connect/token`), which would recurse into the very
-  refresh being performed.
+  refresh being performed. The endpoint is recognised by path, with any query string,
+  fragment or trailing slash stripped first — a guard keyed on the raw URL would let a
+  suffixed form through, and that miss is silent rather than noisy (see below).
 - **No new token, no retry:** if the token is missing or unchanged after the refresh,
   the original error is rethrown.
 - **Failed refresh surfaces the original `401`,** not the refresh error, so apps can keep
   classifying `401`/`403` for their user-facing messages. The library renders no UI:
   `AuthorizeService` already reacts to `token_refresh_error` by clearing the local session
   and reloading, which triggers a fresh login.
+
+#### Why the token endpoint must never enter the retry path
+
+Not because of recursion — because of a deadlock. The refresh posts to the token endpoint
+through this same interceptor chain, so if that post is allowed into the recovery path it
+waits on the single-flight promise that is waiting on it. The promise never settles, its
+`finally` never runs, and since it is module state, every later `401` anywhere in the page
+awaits a promise that can no longer resolve: hanging spinners, no error, until reload.
+
+The consequence for maintenance: **`refreshAccessToken()` must not issue any other HTTP
+call through `HttpClient`.** Today it does not — `OAuthService.refreshToken()` posts to the
+token endpoint, and `loadUserAsync()` only reads claims already in storage. Two library
+paths would break that: `loadUserProfile()` (a `GET` on the userinfo endpoint) and
+`loadJwks()`, which the OIDC library reaches through `loadKeys` during id-token validation
+and which stays unreachable only because `provideOAuthClient()` is wired with the default
+`NullValidationHandler`. Either would reproduce the deadlock on its own URL — the endpoint
+is incidental, the cycle is not.
 
 ### Setup
 
