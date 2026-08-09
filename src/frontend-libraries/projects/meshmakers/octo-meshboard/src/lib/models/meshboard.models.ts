@@ -119,6 +119,21 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
    * also the reducer applied by the downsampling query. Stream-data only.
    */
   requiredAggregation?: SeriesAggregationFunction;
+  /**
+   * Group-aggregation mode (AB#4714). Only honoured together with {@link resolutionAware}.
+   *
+   * The default resolution-aware fan-out emits ONE line per source rtId. When several sources map
+   * to the same {@link seriesGroupField} value, the widget's client-side grouping then collapses
+   * them last-write-wins, so each line reflects one arbitrary source instead of the combined value.
+   *
+   * When `true`, the source rtIds are grouped by their `seriesGroupField` attribute value FIRST,
+   * and the downsampling query runs once per group with the whole group's rtIds. The transient
+   * downsampling groups only by time bin, so it reduces (per {@link requiredAggregation}) over
+   * every source in the group server-side — one aggregate line per distinct group value. The
+   * grouping is resolved from the source entities' attributes (a rollup archive does not carry the
+   * grouping column). Stream-data only.
+   */
+  aggregateSeriesByGroup?: boolean;
 }
 
 /**

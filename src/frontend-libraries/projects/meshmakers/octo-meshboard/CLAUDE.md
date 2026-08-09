@@ -746,6 +746,32 @@ single-cell resolver would collapse.)
 
 ---
 
+## Line-chart resolution-aware fan-out
+
+A `resolutionAware` stream-data line chart resolves the best archive/rollup for the visible window
++ target point count (`QueryExecutorService.resolveSeriesQuery`), then downsamples the sources
+against it. Two fan-out shapes (`line-chart-widget.component.ts`):
+
+| `PersistentQueryDataSource` flag | Fan-out | One line per … |
+|---|---|---|
+| default | `loadPerRtIdRows` — one downsampling call per source rtId | source rtId (labeled from its `seriesGroupField` attribute) |
+| `aggregateSeriesByGroup: true` | `loadGroupAggregatedRows` — one call per distinct `seriesGroupField` value, passing the whole group's rtIds | group value (server-side reduced over the group) |
+
+**Why the group mode exists.** When several sources share one `seriesGroupField` value, the default
+fan-out produces one line per source, and the widget's client-side grouping then collapses same-group
+lines last-write-wins — each line reflects one arbitrary source, not the combined value. Group mode
+buckets the source **entities** by their `seriesGroupField` attribute first (via
+`QueryExecutorService.fetchEntityGroups`, a single bulk read, canonical field match, population
+capped at 5000 with a warn on truncation) and runs one downsampling call per group. The transient
+downsampling groups only by time bin, so it reduces (per `requiredAggregation`) over every member —
+one aggregate line per group value. The grouping comes from the source entities' attributes because a
+rollup archive does not carry the `seriesGroupField` column.
+
+The mechanism is domain-neutral: it groups by whatever `seriesGroupField` / `requiredAggregation`
+the widget is configured with. Only meaningful with `resolutionAware`; stream-data only.
+
+---
+
 ## Testing
 
 ### Test Structure

@@ -654,10 +654,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   /**
    * Resolution-aware routing (AB#4290): resolve the best archive/rollup for the window + target
-   * point count, then downsample each source series against it. The transient downsampling groups
-   * by bin (merging source rtIds), so this fans out one call per source rtId to keep each register
-   * a separate line; each series' bins are reshaped onto the widget's configured value/series
-   * fields so the shared {@link processData} pipeline renders them unchanged.
+   * point count, then downsample the source series against it. Two fan-out shapes, both reshaped
+   * onto the widget's value/series fields so the shared {@link processData} pipeline renders them
+   * unchanged:
+   * - default: one call per source rtId → one line per register ({@link loadPerRtIdRows}).
+   * - `aggregateSeriesByGroup` (AB#4714): one call per `seriesGroupField` value with the whole
+   *   group's rtIds → one server-side-summed line per group ({@link loadGroupAggregatedRows}).
    */
   private async loadResolutionAware(
     ds: PersistentQueryDataSource,
@@ -709,32 +711,71 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       qTo = new Date(alignedFrom + Math.max(1, resolution.points) * bucket);
     }
 
-    // One downsampling call per source rtId → each register stays its own series (the transient
-    // downsampling groups by bin, merging rtIds otherwise). With no source scope, a single merged
-    // series is produced (labeled by the series-group field name).
-    const seriesRtIds: (string | undefined)[] = sourceRtIds && sourceRtIds.length > 0 ? sourceRtIds : [undefined];
-    const labels = info.ckTypeId
-      ? await this.queryExecutor.fetchSeriesLabels(info.ckTypeId, sourceRtIds ?? [], this.config.seriesGroupField)
-      : new Map<string, string>();
-
-    const rows: QueryResultRow[] = [];
-    for (const rtId of seriesRtIds) {
-      const seriesRows = await this.queryExecutor.downsampleByArchive({
+    // Group-aggregation mode (AB#4714): one downsampling call PER GROUP, each with the whole
+    // group's rtIds, so the transient downsampling reduces over every member (per
+    // requiredAggregation) into one aggregate line. Default mode: one call per source rtId, keeping
+    // each source its own series. See loadGroupAggregatedRows / loadPerRtIdRows.
+    const downsample = (rtIds: string[] | undefined, label: string): Promise<QueryResultRow[]> =>
+      this.queryExecutor.downsampleByArchive({
         archiveRtId: resolution.archiveRtId,
         from: qFrom,
         to: qTo,
         limit: Math.max(1, resolution.points),
         sourcePath,
         aggregation: resolution.reducingFunction,
-        rtIds: rtId ? [rtId] : undefined,
+        rtIds: rtIds && rtIds.length > 0 ? rtIds : undefined,
         fieldFilter
-      });
-      const label = rtId ? (labels.get(rtId) ?? rtId) : this.config.seriesGroupField;
-      for (const r of seriesRows) {
-        rows.push(this.reshapeResolutionRow(r, label));
-      }
-    }
+      }).then(seriesRows => seriesRows.map(r => this.reshapeResolutionRow(r, label)));
+
+    const rows = ds.aggregateSeriesByGroup && info.ckTypeId
+      ? await this.loadGroupAggregatedRows(info.ckTypeId, sourceRtIds, downsample)
+      : await this.loadPerRtIdRows(info.ckTypeId, sourceRtIds, downsample);
+
     return { rows, signal: resolution, requestedPoints: targetPoints };
+  }
+
+  /**
+   * Group-aggregation fan-out (AB#4714): buckets the source entities by `seriesGroupField` and runs
+   * one downsampling call per group with the group's rtIds. The transient downsampling reduces over
+   * the group's members server-side, yielding one aggregate line per distinct group value. Falls
+   * back to a single merged series when no group can be resolved.
+   */
+  private async loadGroupAggregatedRows(
+    ckTypeId: string,
+    sourceRtIds: string[] | undefined,
+    downsample: (rtIds: string[] | undefined, label: string) => Promise<QueryResultRow[]>
+  ): Promise<QueryResultRow[]> {
+    const groups = await this.queryExecutor.fetchEntityGroups(ckTypeId, this.config.seriesGroupField, sourceRtIds);
+    if (groups.size === 0) {
+      // No group attribute resolved → a single merged line over the whole (optionally scoped) set.
+      return downsample(sourceRtIds, this.config.seriesGroupField);
+    }
+    const perGroup = await Promise.all(
+      Array.from(groups.entries()).map(([groupValue, rtIds]) => downsample(rtIds, groupValue))
+    );
+    return perGroup.flat();
+  }
+
+  /**
+   * Default resolution-aware fan-out (AB#4290): one downsampling call per source rtId so each
+   * register stays its own line, labeled from its `seriesGroupField` attribute. With no source
+   * scope a single merged series is produced (labeled by the series-group field name).
+   */
+  private async loadPerRtIdRows(
+    ckTypeId: string | null,
+    sourceRtIds: string[] | undefined,
+    downsample: (rtIds: string[] | undefined, label: string) => Promise<QueryResultRow[]>
+  ): Promise<QueryResultRow[]> {
+    const seriesRtIds: (string | undefined)[] = sourceRtIds && sourceRtIds.length > 0 ? sourceRtIds : [undefined];
+    const labels = ckTypeId
+      ? await this.queryExecutor.fetchSeriesLabels(ckTypeId, sourceRtIds ?? [], this.config.seriesGroupField)
+      : new Map<string, string>();
+
+    const perSeries = await Promise.all(
+      seriesRtIds.map(rtId =>
+        downsample(rtId ? [rtId] : undefined, rtId ? (labels.get(rtId) ?? rtId) : this.config.seriesGroupField))
+    );
+    return perSeries.flat();
   }
 
   /**

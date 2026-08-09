@@ -368,6 +368,58 @@ export class QueryExecutorService {
     return map;
   }
 
+  /** Cap on the source-entity population read for group-aggregation (AB#4714). A truncated read is
+   *  logged, never silent. */
+  private static readonly ENTITY_GROUP_FETCH_CAP = 5000;
+
+  /**
+   * Group-aggregation source resolution (AB#4714): fetches the source entities of `ckTypeId` in a
+   * single bulk read and buckets their rtIds by the value of `groupField` (canonical match — case
+   * and non-alphanumerics are ignored, so an archive column name maps to its CK attribute). Returns
+   * `groupValue → rtIds`. Optionally restricted to `restrictRtIds` (an entity-selector scope) —
+   * entities outside that set are dropped. Entities whose group attribute is missing/null are
+   * omitted (they cannot be attributed to a line). The population is bounded to
+   * {@link ENTITY_GROUP_FETCH_CAP}; a truncated read is logged (never silently capped).
+   */
+  async fetchEntityGroups(
+    ckTypeId: string,
+    groupField: string,
+    restrictRtIds?: string[]
+  ): Promise<Map<string, string[]>> {
+    const groups = new Map<string, string[]>();
+    const canon = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const wanted = canon(groupField);
+    const restrict = restrictRtIds && restrictRtIds.length > 0 ? new Set(restrictRtIds) : null;
+
+    const res = await firstValueFrom(
+      this.entitiesGql.fetch({ variables: { ckTypeId, first: QueryExecutorService.ENTITY_GROUP_FETCH_CAP } })
+    );
+    const connection = res.data?.runtime?.runtimeEntities;
+    const items = connection?.items ?? [];
+    const total = connection?.totalCount ?? items.length;
+    if (total > items.length) {
+      console.warn(
+        `Group-aggregation: ${ckTypeId} has ${total} entities but only ${items.length} were read `
+        + `(cap ${QueryExecutorService.ENTITY_GROUP_FETCH_CAP}); some series may be incomplete.`
+      );
+    }
+
+    for (const item of items) {
+      const rtId = item?.rtId != null ? String(item.rtId) : null;
+      if (!rtId || (restrict && !restrict.has(rtId))) continue;
+      const attr = item?.attributes?.items?.find(a => !!a?.attributeName && canon(a.attributeName) === wanted);
+      if (attr?.value == null) continue;
+      const groupValue = String(attr.value);
+      const bucket = groups.get(groupValue);
+      if (bucket) {
+        bucket.push(rtId);
+      } else {
+        groups.set(groupValue, [rtId]);
+      }
+    }
+    return groups;
+  }
+
   private buildStreamDataArg(args: StreamDataExecutionArgs): StreamDataArgumentsDto | undefined {
     // Skip the entire `arg` field when the caller has nothing to override —
     // the persisted query then runs with its intrinsic from/to/limit and the

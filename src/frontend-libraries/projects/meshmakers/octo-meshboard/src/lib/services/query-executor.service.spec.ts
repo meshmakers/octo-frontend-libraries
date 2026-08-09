@@ -435,4 +435,63 @@ describe('QueryExecutorService', () => {
       expect(labels.get('em-1')).toBe('1-1:1.9.0 P.01');
     });
   });
+
+  describe('fetchEntityGroups (AB#4714)', () => {
+    // Domain-neutral fixtures: the mechanism buckets by whatever `groupField` is configured.
+    const entities = (rows: { rtId: string; group: string | null }[]) => makeApolloResult({
+      runtime: { runtimeEntities: { totalCount: rows.length, items: rows.map(r => ({
+        rtId: r.rtId,
+        attributes: { items: r.group == null ? [] : [{ attributeName: 'category', value: r.group }] }
+      })) } }
+    });
+
+    it('buckets source rtIds by the group attribute (many sources → few groups)', async () => {
+      entitiesGqlSpy.fetch.and.returnValue(of(entities([
+        { rtId: 's1', group: 'A' },
+        { rtId: 's2', group: 'A' },
+        { rtId: 's3', group: 'B' }
+      ])) as ReturnType<typeof entitiesGqlSpy.fetch>);
+
+      const groups = await service.fetchEntityGroups('Test/Type', 'category', undefined);
+
+      expect(groups.size).toBe(2);
+      expect(groups.get('A')).toEqual(['s1', 's2']);
+      expect(groups.get('B')).toEqual(['s3']);
+    });
+
+    it('matches the group field canonically (case / non-alphanumerics ignored)', async () => {
+      entitiesGqlSpy.fetch.and.returnValue(of(entities([{ rtId: 's1', group: 'A' }])) as ReturnType<typeof entitiesGqlSpy.fetch>);
+
+      // Configured field 'cate_gory' resolves to the CK attribute 'category'.
+      const groups = await service.fetchEntityGroups('Test/Type', 'Cate_Gory');
+
+      expect(groups.get('A')).toEqual(['s1']);
+    });
+
+    it('restricts to a caller scope and drops entities with no group value', async () => {
+      entitiesGqlSpy.fetch.and.returnValue(of(entities([
+        { rtId: 's1', group: 'A' },
+        { rtId: 's2', group: 'A' },
+        { rtId: 's3', group: null }
+      ])) as ReturnType<typeof entitiesGqlSpy.fetch>);
+
+      const groups = await service.fetchEntityGroups('Test/Type', 'category', ['s1']);
+
+      expect(groups.size).toBe(1);
+      expect(groups.get('A')).toEqual(['s1']);
+    });
+
+    it('warns when the population exceeds the fetched page', async () => {
+      const warn = spyOn(console, 'warn');
+      entitiesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+        runtime: { runtimeEntities: { totalCount: 9000, items: [{ rtId: 's1', attributes: { items: [
+          { attributeName: 'category', value: 'A' }
+        ] } }] } }
+      })) as ReturnType<typeof entitiesGqlSpy.fetch>);
+
+      await service.fetchEntityGroups('Test/Type', 'category');
+
+      expect(warn).toHaveBeenCalled();
+    });
+  });
 });
