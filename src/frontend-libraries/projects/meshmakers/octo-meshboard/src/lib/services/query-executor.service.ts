@@ -345,9 +345,8 @@ export class QueryExecutorService {
   /**
    * Best-effort per-series labels for resolution-aware fan-out (AB#4290): reads each source
    * entity's attribute matching `labelField` (canonical, case/underscore-insensitive so an archive
-   * column like `obis_code` maps to the CK attribute `obisCode`). Entities that fail to load or
-   * lack the attribute are simply omitted; the caller falls back to the rtId. Returns a
-   * `rtId → label` map.
+   * column name maps to its CK attribute). Entities that fail to load or lack the attribute are
+   * simply omitted; the caller falls back to the rtId. Returns a `rtId → label` map.
    */
   async fetchSeriesLabels(ckTypeId: string, rtIds: string[], labelField: string): Promise<Map<string, string>> {
     const map = new Map<string, string>();

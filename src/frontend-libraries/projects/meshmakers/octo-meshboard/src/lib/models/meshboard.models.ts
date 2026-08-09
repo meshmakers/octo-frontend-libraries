@@ -108,15 +108,10 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
    */
   resolutionAware?: boolean;
   /**
-   * Optional OBIS-code filter forwarded to resolution-aware routing / the downsampling
-   * query to narrow the series (e.g. `1.8.0` active-energy import). Stream-data only.
-   */
-  obisFilter?: string;
-  /**
    * Resolution-aware routing (AB#4290): the aggregation the series must be reduced with
-   * (`SUM` for additive energy, `MAX` for demand, …). Required when `resolutionAware` is on —
-   * the resolver never guesses it. Matched against a rollup's stored aggregation function; it is
-   * also the reducer applied by the downsampling query. Stream-data only.
+   * (`SUM`, `MAX`, …). Required when `resolutionAware` is on — the resolver never guesses it.
+   * Matched against a rollup's stored aggregation function; it is also the reducer applied by the
+   * downsampling query. Stream-data only.
    */
   requiredAggregation?: SeriesAggregationFunction;
   /**

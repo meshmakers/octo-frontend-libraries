@@ -687,7 +687,6 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       requiredAggregation: aggregation,
       sourcePath,
       rtIds: sourceRtIds && sourceRtIds.length > 0 ? sourceRtIds : undefined,
-      obisFilter: ds.obisFilter || undefined,
       // Resolve calendar rollups in the board's zone so civil-day buckets match the
       // window (computed on the same zone by resolveCurrentTimeRange) — AB#4190.
       timeZone: this.stateService.resolveStreamDataTimeZone()
