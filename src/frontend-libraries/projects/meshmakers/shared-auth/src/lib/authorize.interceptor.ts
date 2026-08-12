@@ -91,8 +91,13 @@ const REFRESHABLE_DENIAL_CODE = 'token_expired';
  * describe something every token of this session shares, so refreshing spends one grant per user
  * action and lands in exactly the same place, indefinitely.
  *
- * A response that names no reason keeps the old behaviour and is refreshed: services that have
- * not adopted the challenge must not lose the recovery this interceptor exists for.
+ * A response that names no reason keeps the old behaviour and is refreshed, and so does a standard
+ * challenge that carries no `error_code`. That is deliberate rather than a gap: every ASP.NET
+ * service in the platform answers `Bearer error="invalid_token"` with a framework-worded
+ * description and no such parameter, and RFC 6750 defines no code that separates an expired token
+ * from a rejected one — so treating a bare challenge as unrepairable would silently drop the
+ * recovery for every sibling service. The adapter closes the ambiguous case from its own side by
+ * naming `token_not_evaluated` when it holds a token it never evaluated.
  */
 function mayRefreshRepair(error: HttpErrorResponse): boolean {
   const challenge = error.headers?.get('WWW-Authenticate');
@@ -100,8 +105,10 @@ function mayRefreshRepair(error: HttpErrorResponse): boolean {
     return true;
   }
 
-  const code = /error_code="([^"]*)"/.exec(challenge)?.[1];
-  return code === undefined || code === REFRESHABLE_DENIAL_CODE;
+  // RFC 7235 allows an auth-param value as either a quoted-string or a bare token.
+  const code = /error_code=(?:"([^"]*)"|([^\s,]+))/.exec(challenge);
+  const value = code?.[1] ?? code?.[2];
+  return value === undefined || value === REFRESHABLE_DENIAL_CODE;
 }
 
 // =============================================================================

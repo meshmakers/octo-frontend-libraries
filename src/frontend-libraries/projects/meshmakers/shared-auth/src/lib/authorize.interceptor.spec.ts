@@ -620,6 +620,47 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
     tick();
   }));
 
+  // Every ASP.NET service in the platform answers like this: a standard challenge with the
+  // framework's wording and no error_code. Treating it as unrepairable would silently drop the
+  // recovery for all of them, so the absence of the code deliberately means "reason unknown".
+  it('should refresh a challenge that carries no error_code', fakeAsync(() => {
+    refreshYieldsNewToken();
+
+    http.get('/api/data').subscribe({ error: () => undefined });
+
+    httpMock.expectOne('/api/data').flush({ error: 'invalid_token' }, {
+      status: 401,
+      statusText: 'Unauthorized',
+      headers: {
+        'WWW-Authenticate': 'Bearer error="invalid_token", error_description="The token expired"'
+      }
+    });
+    tick();
+
+    expect(authServiceMock.refreshAccessToken).toHaveBeenCalledTimes(1);
+    httpMock.expectOne('/api/data').flush({ ok: true });
+    tick();
+  }));
+
+  // The adapter names this when it holds a token nothing evaluated - no identity service
+  // configured. Unquoted on purpose: RFC 7235 allows a bare token as the parameter value.
+  it('should NOT refresh an unquoted code the server could not evaluate', fakeAsync(() => {
+    refreshYieldsNewToken();
+
+    const errors: HttpErrorResponse[] = [];
+    http.get('/api/data').subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
+
+    httpMock.expectOne('/api/data').flush({ error: 'invalid_token' }, {
+      status: 401,
+      statusText: 'Unauthorized',
+      headers: { 'WWW-Authenticate': 'Bearer error="invalid_token", error_code=token_not_evaluated' }
+    });
+    tick();
+
+    expect(authServiceMock.refreshAccessToken).not.toHaveBeenCalled();
+    expect(errors[0].status).toBe(401);
+  }));
+
   // Services that predate the challenge must keep the recovery this interceptor exists for.
   it('should refresh a 401 that names no reason at all', fakeAsync(() => {
     refreshYieldsNewToken();
