@@ -239,8 +239,11 @@ the new bearer. Every authenticated call — including calls to mesh-adapter pip
 therefore survives an access token that expired between two operator actions, without
 any per-call handling in the app.
 
-- **Single-flight refresh:** the in-flight refresh promise is module-level, so parallel
-  requests that all fail with `401` share one refresh. Firing one refresh per request
+- **Single-flight refresh:** the in-flight refresh promise is held in a `WeakMap` keyed by
+  the `AuthorizeService` instance, so parallel requests that all fail with `401` share one
+  refresh. `AuthorizeService` is provided per injector, so an app still gets one refresh
+  page-wide, while two injectors in the same process — and each test — stay independent.
+  Firing one refresh per request
   would spend a grant each. It is tempting to add "and would end the session", but that
   only applies to a client whose `RefreshTokenUsage` is `OneTimeOnly`; ours run on Duende's
   `ReUse` default, so parallel grants are wasteful rather than fatal.
@@ -268,8 +271,9 @@ any per-call handling in the app.
 Not because of recursion — because of a deadlock. The refresh posts to the token endpoint
 through this same interceptor chain, so if that post is allowed into the recovery path it
 waits on the single-flight promise that is waiting on it. The promise never settles, its
-`finally` never runs, and since it is module state, every later `401` anywhere in the page
-awaits a promise that can no longer resolve: hanging spinners, no error, until reload.
+`finally` never runs, and since it is shared by every request of that `AuthorizeService`,
+every later `401` in the page awaits a promise that can no longer resolve: hanging spinners,
+no error, until reload.
 
 The consequence for maintenance: **`refreshAccessToken()` must not issue any other HTTP
 call through `HttpClient`.** Today it does not — `OAuthService.refreshToken()` posts to the

@@ -68,8 +68,8 @@ function isKnownServiceUri(req: HttpRequest<unknown>, serviceUris: string[] | nu
  * The comparison runs on the path alone, because a guard keyed on the raw URL fails
  * silently rather than loudly: a query string, fragment or trailing slash would make the
  * refresh post to that endpoint through this same chain, and the single-flight promise
- * would wait on itself. It never settles, its `finally` never runs, and since it is module
- * state, every later 401 anywhere in the page would await a promise that cannot resolve.
+ * would wait on itself. It never settles, its `finally` never runs, and since every request
+ * of that service shares it, each later 401 would await a promise that cannot resolve.
  */
 function isTokenEndpointUrl(url: string): boolean {
   const path = url.split('#')[0].split('?')[0].replace(/\/+$/, '');
@@ -81,24 +81,33 @@ function isTokenEndpointUrl(url: string): boolean {
 // =============================================================================
 
 /**
- * Module-level so parallel 401s share one refresh instead of spending one grant each.
+ * Parallel 401s share one refresh instead of spending one grant each.
  *
- * Do not restate this as "concurrent grants would end the session": that holds only for a
- * client whose `RefreshTokenUsage` is `OneTimeOnly`, and ours are not — Duende defaults the
- * property to `ReUse` and nothing in octo-identity-services overrides it (the CK attribute
- * carries no default and reaches Duende through AutoMapper's by-name convention, which is
- * why grepping the C# for its name finds nothing).
+ * Keyed by the service rather than held in a module variable: `AuthorizeService` is provided
+ * per injector, so an app still gets exactly one in-flight refresh page-wide, while two
+ * injectors in one process no longer await each other's promise and each test gets a clean
+ * slate — a module variable is unreachable from a `beforeEach` unless it is exported.
+ *
+ * Do not restate the single-flight rationale as "concurrent grants would end the session":
+ * that holds only for a client whose `RefreshTokenUsage` is `OneTimeOnly`, and ours are not —
+ * Duende defaults the property to `ReUse` and nothing in octo-identity-services overrides it
+ * (the CK attribute carries no default and reaches Duende through AutoMapper's by-name
+ * convention, which is why grepping the C# for its name finds nothing).
  */
-let refreshInFlight: Promise<void> | null = null;
+const refreshInFlight = new WeakMap<AuthorizeService, Promise<void>>();
 
 function refreshAccessTokenOnce(authorizeService: AuthorizeService): Promise<void> {
-  refreshInFlight ??= Promise.resolve()
-    .then(() => authorizeService.refreshAccessToken())
-    .finally(() => {
-      refreshInFlight = null;
-    });
+  let pending = refreshInFlight.get(authorizeService);
+  if (!pending) {
+    pending = Promise.resolve()
+      .then(() => authorizeService.refreshAccessToken())
+      .finally(() => {
+        refreshInFlight.delete(authorizeService);
+      });
+    refreshInFlight.set(authorizeService, pending);
+  }
 
-  return refreshInFlight;
+  return pending;
 }
 
 // =============================================================================
@@ -180,6 +189,11 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
 
   const authorizedReq = req;
 
+  // `next()` hands off to the rest of the chain, so a retried request does not re-enter this
+  // interceptor — at most one retry by construction, without any bookkeeping.
+  const retryWith = (bearer: string) =>
+    next(authorizedReq.clone({ setHeaders: { Authorization: `Bearer ${bearer}` } }));
+
   return next(authorizedReq).pipe(
     catchError((error: unknown) => {
       if (!(error instanceof HttpErrorResponse) || error.status !== 401) {
@@ -192,31 +206,33 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
       // refreshing again would spend a second grant to learn the same thing.
       const currentToken = authorizeService.getAccessTokenSync();
       if (currentToken && currentToken !== token) {
-        return next(authorizedReq.clone({
-          setHeaders: {
-            Authorization: `Bearer ${currentToken}`
-          }
-        }));
+        return retryWith(currentToken);
       }
 
-      return from(refreshAccessTokenOnce(authorizeService)).pipe(
-        // Surface the original 401, not the refresh error: consuming apps classify the
-        // status code to pick their message, and AuthorizeService already reacts to
-        // `token_refresh_error` by clearing the session.
-        catchError(() => throwError(() => error)),
+      // Surface the original 401, not the refresh error: consuming apps classify the status
+      // code to pick their message, and AuthorizeService already reacts to
+      // `token_refresh_error` by clearing the session. The mapping is bound to the refresh
+      // promise rather than placed in the pipe, because as an operator it only holds while it
+      // sits above the switchMap below — and a 403 from the retried request must reach the
+      // host as 403, not as the remembered 401.
+      const refresh = refreshAccessTokenOnce(authorizeService).catch((refreshError: unknown) => {
+        console.warn('[AuthInterceptor] Token refresh threw; surfacing the original 401.', refreshError);
+        return Promise.reject(error);
+      });
+
+      return from(refresh).pipe(
         switchMap(() => {
           const refreshedToken = authorizeService.getAccessTokenSync();
           if (!refreshedToken || refreshedToken === token) {
+            // Distinct from the throw above, and from each other: all three end in the same
+            // 401 for the host, so the log is the only place they stay tellable apart.
+            console.warn(refreshedToken
+              ? '[AuthInterceptor] Token refresh returned the same access token; surfacing the original 401.'
+              : '[AuthInterceptor] Token refresh returned no access token; surfacing the original 401.');
             return throwError(() => error);
           }
 
-          // `next()` hands off to the rest of the chain, so the retried request
-          // does not re-enter this interceptor — at most one retry by construction.
-          return next(authorizedReq.clone({
-            setHeaders: {
-              Authorization: `Bearer ${refreshedToken}`
-            }
-          }));
+          return retryWith(refreshedToken);
         })
       );
     })

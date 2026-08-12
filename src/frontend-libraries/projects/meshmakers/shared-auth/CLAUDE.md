@@ -119,8 +119,11 @@ pipeline calls behave exactly like every other authenticated call (AB#4185).
 
 Two non-obvious properties:
 
-- **Single-flight:** the in-flight refresh promise lives at module level (cleared in a
-  `finally`), so ten parallel 401s cause one refresh. Per-request refreshes would spend one
+- **Single-flight:** the in-flight refresh promise lives in a `WeakMap` keyed by the
+  `AuthorizeService` instance (cleared in a `finally`), so ten parallel 401s cause one
+  refresh. Per-instance rather than module-level: the service is provided per injector, so
+  an app is unaffected, while two injectors in one process stop sharing a promise and a
+  `beforeEach` can start from a clean slate. Per-request refreshes would spend one
   grant each. They would **not** end the session — that is true only for a client whose
   `RefreshTokenUsage` is `OneTimeOnly`, and ours inherit Duende's `ReUse` default because
   nothing in octo-identity-services sets the property (the CK attribute has no default and

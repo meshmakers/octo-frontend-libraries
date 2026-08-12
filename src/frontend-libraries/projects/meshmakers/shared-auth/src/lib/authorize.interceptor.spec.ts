@@ -557,6 +557,26 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
     expect(errors).toEqual([]);
   }));
 
+  // The hosts classify purely on status, so a 403 answering the RETRIED request must not be
+  // reported as the 401 that started the recovery: "sign in again" is the wrong instruction
+  // for a missing role, and signing in again cannot fix it.
+  it('should deliver a 403 from the retried request as 403, not as the original 401', fakeAsync(() => {
+    refreshYieldsNewToken();
+
+    const errors: HttpErrorResponse[] = [];
+    http.get('/api/data').subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
+
+    unauthorized(httpMock.expectOne('/api/data'));
+    tick();
+
+    // The refreshed token is valid; the operator simply lacks the required role.
+    httpMock.expectOne('/api/data').flush({ error: 'forbidden' }, { status: 403, statusText: 'Forbidden' });
+    tick();
+
+    expect(errors.length).toBe(1);
+    expect(errors[0].status).toBe(403);
+  }));
+
   it('should NOT refresh a 401 on a request that carried no token', fakeAsync(() => {
     authServiceMock.getAccessTokenSync.and.returnValue(null);
 
