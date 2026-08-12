@@ -577,6 +577,63 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
     expect(errors[0].status).toBe(403);
   }));
 
+  // AB#4782: the server names why it refused, and only an expired token is worth a refresh.
+  // Every other reason describes something the next token shares, so refreshing would spend one
+  // grant per operator action, forever, without ever changing the answer.
+  it('should NOT refresh when the challenge names a reason a refresh cannot repair', fakeAsync(() => {
+    refreshYieldsNewToken();
+
+    const errors: HttpErrorResponse[] = [];
+    http.get('/api/data').subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
+
+    httpMock.expectOne('/api/data').flush({ error: 'invalid_token' }, {
+      status: 401,
+      statusText: 'Unauthorized',
+      headers: {
+        'WWW-Authenticate': 'Bearer error="invalid_token", ' +
+          'error_description="The access token was issued by another authority", error_code="issuer_invalid"'
+      }
+    });
+    tick();
+
+    expect(authServiceMock.refreshAccessToken).not.toHaveBeenCalled();
+    expect(errors[0].status).toBe(401);
+  }));
+
+  it('should refresh when the challenge names an expired token', fakeAsync(() => {
+    refreshYieldsNewToken();
+
+    http.get('/api/data').subscribe({ error: () => undefined });
+
+    httpMock.expectOne('/api/data').flush({ error: 'invalid_token' }, {
+      status: 401,
+      statusText: 'Unauthorized',
+      headers: {
+        'WWW-Authenticate': 'Bearer error="invalid_token", ' +
+          'error_description="The access token has expired", error_code="token_expired"'
+      }
+    });
+    tick();
+
+    expect(authServiceMock.refreshAccessToken).toHaveBeenCalledTimes(1);
+    httpMock.expectOne('/api/data').flush({ ok: true });
+    tick();
+  }));
+
+  // Services that predate the challenge must keep the recovery this interceptor exists for.
+  it('should refresh a 401 that names no reason at all', fakeAsync(() => {
+    refreshYieldsNewToken();
+
+    http.get('/api/data').subscribe({ error: () => undefined });
+
+    unauthorized(httpMock.expectOne('/api/data'));
+    tick();
+
+    expect(authServiceMock.refreshAccessToken).toHaveBeenCalledTimes(1);
+    httpMock.expectOne('/api/data').flush({ ok: true });
+    tick();
+  }));
+
   it('should NOT refresh a 401 on a request that carried no token', fakeAsync(() => {
     authServiceMock.getAccessTokenSync.and.returnValue(null);
 

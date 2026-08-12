@@ -136,6 +136,14 @@ Two non-obvious properties:
   continues down the chain instead of re-entering the interceptor. Do not add retry
   bookkeeping unless re-entry is actually proven.
 
+A server that answers with an RFC 6750 challenge decides this instead of the interceptor. Only
+`error_code="token_expired"` is refreshed; `issuer_invalid`, `audience_invalid` and the rest
+describe something every token of this session shares, so refreshing would spend one grant per
+operator action and land in the same place forever (AB#4782). The code is adapter-owned and
+stable on purpose — the framework's English `error_description` is prose that a dependency bump
+may reword. A `401` carrying no challenge keeps the old behaviour and is refreshed, so services
+that have not adopted it lose nothing.
+
 Never retried: requests without a token, and the token endpoint itself
 (`/connect/token`), matched on the path with query string, fragment and trailing slashes
 stripped. Letting one through does not recurse loudly — it deadlocks silently: the refresh
