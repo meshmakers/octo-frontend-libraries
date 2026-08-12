@@ -229,6 +229,60 @@ Functional HTTP interceptor that automatically adds Bearer tokens to requests.
   - Same-origin requests (relative URLs)
   - Requests to configured `wellKnownServiceUris`
 - Does NOT add tokens to external/unknown URLs (security measure)
+- Refreshes the access token and retries the request once on `401` (see below)
+
+### Refresh and Retry on 401
+
+When a request **to which the interceptor attached a token** fails with `401`, the
+interceptor calls `AuthorizeService.refreshAccessToken()` and retries the request with
+the new bearer. Every authenticated call — including calls to mesh-adapter pipelines —
+therefore survives an access token that expired between two operator actions, without
+any per-call handling in the app.
+
+- **Single-flight refresh:** the in-flight refresh promise is held in a `WeakMap` keyed by
+  the `AuthorizeService` instance, so parallel requests that all fail with `401` share one
+  refresh. `AuthorizeService` is provided per injector, so an app still gets one refresh
+  page-wide, while two injectors in the same process — and each test — stay independent.
+  Firing one refresh per request
+  would spend a grant each. It is tempting to add "and would end the session", but that
+  only applies to a client whose `RefreshTokenUsage` is `OneTimeOnly`; ours run on Duende's
+  `ReUse` default, so parallel grants are wasteful rather than fatal.
+- **No second refresh once the first one finished:** single-flight only spans the refresh
+  itself. A slower request that went out with the same stale token reports its `401`
+  afterwards; it is retried with the token already held by `AuthorizeService` rather than
+  starting another refresh, which would only re-learn what the first one established.
+- **At most one retry:** the retry is issued through `next()`, which hands the request
+  to the rest of the chain and therefore does not re-enter this interceptor. No retry
+  counter is needed.
+- **Not retried:** requests that carried no token (a `401` no refresh can repair) and
+  requests to the token endpoint (`/connect/token`), which the refresh itself performs —
+  see the deadlock below. The endpoint is recognised by path, with any query string,
+  fragment or trailing slash stripped first: a guard keyed on the raw URL would let a
+  suffixed form through, and that miss is silent rather than noisy.
+- **No new token, no retry:** if the token is missing or unchanged after the refresh,
+  the original error is rethrown.
+- **Failed refresh surfaces the original `401`,** not the refresh error, so apps can keep
+  classifying `401`/`403` for their user-facing messages. The library renders no UI:
+  `AuthorizeService` already reacts to `token_refresh_error` by clearing the local session
+  and reloading, which triggers a fresh login.
+
+#### Why the token endpoint must never enter the retry path
+
+Not because of recursion — because of a deadlock. The refresh posts to the token endpoint
+through this same interceptor chain, so if that post is allowed into the recovery path it
+waits on the single-flight promise that is waiting on it. The promise never settles, its
+`finally` never runs, and since it is shared by every request of that `AuthorizeService`,
+every later `401` in the page awaits a promise that can no longer resolve: hanging spinners,
+no error, until reload.
+
+The consequence for maintenance: **`refreshAccessToken()` must not issue any other HTTP
+call through `HttpClient`.** Today it does not — `OAuthService.refreshToken()` posts to the
+token endpoint, and `loadUserAsync()` only reads claims already in storage. Two library
+paths would break that: `loadUserProfile()` (a `GET` on the userinfo endpoint) and
+`loadJwks()`, which the OIDC library reaches through `loadKeys` during id-token validation
+and which stays unreachable only because `provideOAuthClient()` is wired with the default
+`NullValidationHandler`. Either would reproduce the deadlock on its own URL — the endpoint
+is incidental, the cycle is not.
 
 ### Setup
 

@@ -99,6 +99,56 @@ The interceptor only adds tokens to:
 
 External/unknown URLs never receive the token.
 
+Matching is a prefix test, so **blank entries are skipped** — a host that leaves an
+unset URL in its allow-list would otherwise match every URL and hand the operator's token to
+every origin the app calls, telemetry included. The guard lives here rather than in each app,
+because that is where the matching happens; apps do not need their own falsy filter.
+
+For the same reason the prefix must end on a boundary (`/`, `?`, `#`, or end of string).
+A bare `startsWith` also accepts `https://api.example.com.attacker.test`, a host anyone can
+register, and hands it the operator's bearer. Entries that already end in `/` match as they
+are, which is what `meshmakers-app` relies on: it normalises the issuer with `withSlash()`
+and builds `{issuer}{tenantId}/v1/users/getPaged` by concatenation.
+
+### Refresh and Retry on 401
+
+A request the interceptor attached a token to and that comes back `401` triggers
+`AuthorizeService.refreshAccessToken()` and is then retried once with the new bearer.
+This is the only 401 recovery path in the stack — apps must not add their own, so that
+pipeline calls behave exactly like every other authenticated call (AB#4185).
+
+Two non-obvious properties:
+
+- **Single-flight:** the in-flight refresh promise lives in a `WeakMap` keyed by the
+  `AuthorizeService` instance (cleared in a `finally`), so ten parallel 401s cause one
+  refresh. Per-instance rather than module-level: the service is provided per injector, so
+  an app is unaffected, while two injectors in one process stop sharing a promise and a
+  `beforeEach` can start from a clean slate. Per-request refreshes would spend one
+  grant each. They would **not** end the session — that is true only for a client whose
+  `RefreshTokenUsage` is `OneTimeOnly`, and ours inherit Duende's `ReUse` default because
+  nothing in octo-identity-services sets the property (the CK attribute has no default and
+  reaches Duende through AutoMapper's by-name convention, so grep finds no C# writing it).
+  That covers only the window while the refresh runs, so there is a second guard: a 401 that
+  lands **after** the refresh finished is retried with the token already in the service
+  instead of triggering another one. Its failure is explained by the token that has since
+  been replaced, so a fresh grant would only buy the same answer.
+- **At most one retry, without a counter:** the retry goes out via `next()`, which
+  continues down the chain instead of re-entering the interceptor. Do not add retry
+  bookkeeping unless re-entry is actually proven.
+
+Never retried: requests without a token, and the token endpoint itself
+(`/connect/token`), matched on the path with query string, fragment and trailing slashes
+stripped. Letting one through does not recurse loudly — it deadlocks silently: the refresh
+posts to that endpoint through this chain, so the single-flight promise waits on itself,
+never settles, never runs its `finally`, and every later 401 in the page then awaits a
+promise that cannot resolve. **Therefore `refreshAccessToken()` must issue no other
+`HttpClient` call**; `loadUserProfile()` and `loadJwks()` (reachable via `loadKeys` if the
+default `NullValidationHandler` is ever replaced) would reproduce the same cycle on their
+own URLs. A refresh that fails, or that yields no new token, rethrows the **original**
+`HttpErrorResponse`, because hosts classify `401`/`403` to choose their user-facing
+message. The library shows no UI: the `token_refresh_error` handler in `AuthorizeService`
+clears the session and reloads.
+
 ## Styling
 
 The `LoginAppBarSectionComponent` uses CSS custom properties with neutral defaults. Host applications override these to apply their theme:
