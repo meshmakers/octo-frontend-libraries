@@ -150,6 +150,24 @@ another one. A retry is never itself retried. Requests without a token and the t
 endpoint itself are left alone, and if the refresh fails the original `401` reaches the
 caller.
 
+### Error classification
+
+`authorizationRefusal(error)` tells a `401` and a `403` apart on an error typed `unknown`,
+so each host can phrase the outcome in its own words without writing that status check again.
+
+```typescript
+import { authorizationRefusal } from '@meshmakers/shared-auth';
+
+switch (authorizationRefusal(error)) {
+  case 'forbidden': return this.translate.instant('pipeline.forbidden');
+  case 'unauthorized': return this.translate.instant('pipeline.unauthorized');
+  default: return null;   // not an authorization problem — leave it to the caller
+}
+```
+
+The status is read structurally and must be a `number`, so a rethrown error that lost its
+`HttpErrorResponse` prototype still classifies, while a body that merely carries `"403"` does not.
+
 ### UI Components
 
 #### LoginAppBarSectionComponent

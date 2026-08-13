@@ -14,6 +14,10 @@ export { TenantAwareOAuthStorage } from './lib/tenant-aware-oauth-storage';
 // Functional interceptor
 export { authorizeInterceptor } from './lib/authorize.interceptor';
 
+// Error classification for hosts that phrase the refusal themselves
+export { authorizationRefusal } from './lib/authorization-refusal';
+export type { AuthorizationRefusal } from './lib/authorization-refusal';
+
 // Functional guards
 export {
   authorizeGuard,
