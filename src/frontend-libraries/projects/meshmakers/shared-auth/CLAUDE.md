@@ -149,6 +149,21 @@ own URLs. A refresh that fails, or that yields no new token, rethrows the **orig
 message. The library shows no UI: the `token_refresh_error` handler in `AuthorizeService`
 clears the session and reloads.
 
+### Classifying the Refusal, Not Phrasing It
+
+`authorizationRefusal(error)` maps `401` to `'unauthorized'`, `403` to `'forbidden'` and
+everything else to `null`. It deliberately returns neither a message nor an i18n key: the six
+consuming apps disagree on the output — key, translated string, or one merged message for both
+statuses, which the public landing pages want because an anonymous visitor cannot act on the
+difference. Only the status read is shared, and six private copies of it are how the six drift.
+
+It takes `unknown` and reads `status` structurally instead of testing
+`instanceof HttpErrorResponse`, because callers reach it from a `catch` or a rejected promise
+where the prototype may already be gone. The comparison is strict, so `status: "403"` is not a
+refusal — `==` would hand a "sign in again" message to a body that merely carries the digits.
+Status `0` stays `null` on purpose: a transport failure and a CORS refusal both look like that,
+and neither should send the operator to the login screen.
+
 ## Styling
 
 The `LoginAppBarSectionComponent` uses CSS custom properties with neutral defaults. Host applications override these to apply their theme:

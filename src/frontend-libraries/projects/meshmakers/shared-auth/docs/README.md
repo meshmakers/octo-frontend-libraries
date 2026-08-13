@@ -10,6 +10,7 @@ Angular library for OAuth2/OIDC authentication with OpenID Connect support.
   - [AuthorizeService](#authorizeservice)
 - [Guards](#guards)
 - [Interceptor](#interceptor)
+- [Error Classification](#error-classification)
 - [Components](#components)
   - [LoginAppBarSectionComponent](#loginappbarsectioncomponent)
 - [Roles](#roles)
@@ -310,6 +311,45 @@ const authorizeOptions: AuthorizeOptions = {
   ]
 };
 ```
+
+## Error Classification
+
+### authorizationRefusal
+
+```typescript
+type AuthorizationRefusal = 'unauthorized' | 'forbidden';
+
+function authorizationRefusal(error: unknown): AuthorizationRefusal | null;
+```
+
+Classifies an HTTP failure as an authorization refusal: `401` becomes `'unauthorized'`,
+`403` becomes `'forbidden'`, and everything else — including a transport failure, which
+surfaces as status `0` — returns `null` so the caller keeps owning it.
+
+Hosts phrase the outcome themselves: one app maps it to an i18n key, another to an already
+translated string, and the public landing pages deliberately collapse both cases because an
+anonymous visitor cannot act on the difference. What they all share is reading `status`, and
+that read is what this function centralises.
+
+```typescript
+import { authorizationRefusal } from '@meshmakers/shared-auth';
+
+private failureMessage(error: unknown): string | null {
+  switch (authorizationRefusal(error)) {
+    case 'forbidden':
+      return this.translate.instant('pipeline.forbidden');
+    case 'unauthorized':
+      return this.translate.instant('pipeline.unauthorized');
+    default:
+      return null;
+  }
+}
+```
+
+The parameter is `unknown` because that is how the error arrives — through a rejected promise,
+a `catch` block, or a rethrow. The status is therefore read structurally rather than through an
+`instanceof HttpErrorResponse` check, so an error that lost its prototype on the way still
+classifies. It must be a `number`: an object carrying `status: "403"` is not a refusal.
 
 ## Components
 
