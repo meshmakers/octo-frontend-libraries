@@ -76,6 +76,41 @@ function isTokenEndpointUrl(url: string): boolean {
   return path.endsWith('/connect/token');
 }
 
+/**
+ * The one denial code a refresh can repair. Adapter-owned and stable: the server deliberately
+ * does not make a client key on the framework's English `error_description`, which a dependency
+ * bump may reword.
+ */
+const REFRESHABLE_DENIAL_CODE = 'token_expired';
+
+/**
+ * Answers whether refreshing the access token could possibly change this `401`.
+ *
+ * A server that follows RFC 6750 §3 names the reason it refused. Only an expired token gets a
+ * different answer from a newer one — a wrong issuer, a wrong audience or an unknown signing key
+ * describe something every token of this session shares, so refreshing spends one grant per user
+ * action and lands in exactly the same place, indefinitely.
+ *
+ * A response that names no reason keeps the old behaviour and is refreshed, and so does a standard
+ * challenge that carries no `error_code`. That is deliberate rather than a gap: every ASP.NET
+ * service in the platform answers `Bearer error="invalid_token"` with a framework-worded
+ * description and no such parameter, and RFC 6750 defines no code that separates an expired token
+ * from a rejected one — so treating a bare challenge as unrepairable would silently drop the
+ * recovery for every sibling service. The adapter closes the ambiguous case from its own side by
+ * naming `token_not_evaluated` when it holds a token it never evaluated.
+ */
+function mayRefreshRepair(error: HttpErrorResponse): boolean {
+  const challenge = error.headers?.get('WWW-Authenticate');
+  if (!challenge) {
+    return true;
+  }
+
+  // RFC 7235 allows an auth-param value as either a quoted-string or a bare token.
+  const code = /error_code=(?:"([^"]*)"|([^\s,]+))/.exec(challenge);
+  const value = code?.[1] ?? code?.[2];
+  return value === undefined || value === REFRESHABLE_DENIAL_CODE;
+}
+
 // =============================================================================
 // SINGLE-FLIGHT TOKEN REFRESH
 // =============================================================================
@@ -197,6 +232,14 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
   return next(authorizedReq).pipe(
     catchError((error: unknown) => {
       if (!(error instanceof HttpErrorResponse) || error.status !== 401) {
+        return throwError(() => error);
+      }
+
+      // Checked before the retry below as well: a token the server refuses for its issuer or
+      // audience is refused again once refreshed, so neither path is worth an HTTP call.
+      if (!mayRefreshRepair(error)) {
+        console.warn('[AuthInterceptor] The server refused this token for a reason a refresh cannot repair:',
+          error.headers?.get('WWW-Authenticate'));
         return throwError(() => error);
       }
 

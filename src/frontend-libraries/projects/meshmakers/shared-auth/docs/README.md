@@ -240,6 +240,14 @@ the new bearer. Every authenticated call — including calls to mesh-adapter pip
 therefore survives an access token that expired between two operator actions, without
 any per-call handling in the app.
 
+- **The server decides when a refresh is pointless.** A `401` carrying an RFC 6750 challenge is
+  refreshed only when it names `error_code="token_expired"`. Any other code — `issuer_invalid`,
+  `audience_invalid`, `signature_key_not_found` — describes a condition every token of this
+  session shares, so refreshing would spend one grant per operator action and end in the same
+  place indefinitely (AB#4782). The code is server-owned and stable; the framework's English
+  `error_description` is prose and is deliberately not used as the machine-readable half. A
+  `401` without a challenge is refreshed exactly as before, so services that have not adopted it
+  keep the recovery.
 - **Single-flight refresh:** the in-flight refresh promise is held in a `WeakMap` keyed by
   the `AuthorizeService` instance, so parallel requests that all fail with `401` share one
   refresh. `AuthorizeService` is provided per injector, so an app still gets one refresh
