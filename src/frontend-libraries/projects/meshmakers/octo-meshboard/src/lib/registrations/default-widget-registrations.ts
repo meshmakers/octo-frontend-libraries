@@ -134,6 +134,10 @@ function buildDataSourceFromPersisted(data: PersistedWidgetData, config: Record<
     if (config['resolutionAware'] === true) {
       persisted.resolutionAware = true;
     }
+    // Group-aggregation (AB#4714) — only meaningful with resolutionAware.
+    if (config['aggregateSeriesByGroup'] === true) {
+      persisted.aggregateSeriesByGroup = true;
+    }
     const persistedAggregation = config['requiredAggregation'];
     if (persistedAggregation === 'AVG' || persistedAggregation === 'MIN' || persistedAggregation === 'MAX'
         || persistedAggregation === 'SUM' || persistedAggregation === 'COUNT') {
@@ -1279,6 +1283,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       };
     },
     applyConfigResult: (widget, result) => {
+      // The config dialog does not surface aggregateSeriesByGroup; carry it over from the existing
+      // data source so a dialog edit never silently drops the seed-level flag.
+      const existing = widget.dataSource as PersistentQueryDataSource;
       const dataSource: PersistentQueryDataSource = {
         type: 'persistentQuery',
         queryRtId: result.queryRtId,
@@ -1287,7 +1294,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ignoreTimeFilter: result.ignoreTimeFilter,
         entitySelectorId: result.entitySelectorId,
         resolutionAware: result.resolutionAware,
-        requiredAggregation: result.requiredAggregation
+        requiredAggregation: result.requiredAggregation,
+        aggregateSeriesByGroup: existing.aggregateSeriesByGroup
       };
 
       const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
@@ -1358,6 +1366,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         }),
         ...((widget.dataSource as PersistentQueryDataSource).requiredAggregation && {
           requiredAggregation: (widget.dataSource as PersistentQueryDataSource).requiredAggregation
+        }),
+        ...((widget.dataSource as PersistentQueryDataSource).aggregateSeriesByGroup && {
+          aggregateSeriesByGroup: true
         }),
         filters: widget.filters
       }

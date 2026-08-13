@@ -15,6 +15,8 @@ import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 import {CreateGroupDto, GroupDto, UpdateGroupDto} from '../shared/groupDto';
 import {CreateExternalTenantUserMappingDto, ExternalTenantUserMappingDto} from '../shared/externalTenantUserMappingDto';
+import {ProvisioningSourceUserDto} from '../shared/provisioningSourceUserDto';
+import {CreateExternalTenantUserGroupMappingDto, ProvisioningGroupDto} from '../shared/provisioningGroupDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 
 @Injectable({
@@ -893,5 +895,86 @@ export class IdentityService {
         })
       );
     }
+  }
+
+  /**
+   * Searches provisionable users from the target tenant's ancestor (parent) tenants. Powers the
+   * cross-tenant user picker on the Admin Provisioning page. Matches on username or email; an empty
+   * search returns the first users. Cross-tenant shadow users (xt_) are excluded server-side.
+   */
+  async getProvisioningSourceUsers(
+    targetTenantId: string, search?: string, take = 20): Promise<ProvisioningSourceUserDto[] | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      let params = new HttpParams().set('take', take.toString());
+      if (search) {
+        params = params.set('search', search);
+      }
+      const response = await firstValueFrom(
+        this.httpClient.get<ProvisioningSourceUserDto[]>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/sourceUsers`, {
+          params,
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the roles defined in the target tenant, offered as assignable options when creating a
+   * cross-tenant user mapping.
+   */
+  async getProvisioningRoles(targetTenantId: string): Promise<RoleDto[] | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<RoleDto[]>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/roles`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the groups defined in the target tenant, offered as assignable options when creating a
+   * cross-tenant user mapping. Assigning a group makes the mapping a GroupMember (group-based role
+   * inheritance) — the idiomatic grant, consistent with provisionCurrentUser.
+   */
+  async getProvisioningGroups(targetTenantId: string): Promise<ProvisioningGroupDto[] | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<ProvisioningGroupDto[]>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/groups`, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
+  }
+
+  /**
+   * Creates a cross-tenant user mapping and makes it a member of the given target-tenant groups, so
+   * the user inherits the groups' roles.
+   */
+  async createAdminProvisioningWithGroups(
+    targetTenantId: string, dto: CreateExternalTenantUserGroupMappingDto): Promise<ExternalTenantUserMappingDto | null> {
+    const baseUrl = this.getSystemTenantBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post<ExternalTenantUserMappingDto>(
+          baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/withGroups`, dto, {
+          observe: 'response'
+        })
+      );
+      return response.body;
+    }
+    return null;
   }
 }

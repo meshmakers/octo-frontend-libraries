@@ -405,6 +405,15 @@ export class CustomerDataSourceDirective extends OctoGraphQlDataSource<CustomerD
 | `getSearchFilterDefinitions(textSearch)` | `SearchFilterDto \| null` | Creates search filter for text search |
 | `getSortDefinitions(state)` | `SortDto[] \| null` | Converts Kendo sort state to GraphQL sort definitions |
 
+**Page-out-of-range recovery:** `isPageOutOfRangeError(err)` (public override of the
+`DataSourceBase` hook) detects the OctoMesh API's `INCOMPLETE_SLICE` GraphQL error — the
+server's rejection of a page window beyond the result set (e.g. a persisted page offset
+combined with filters that now match fewer rows). `MmListViewDataBindingDirective` uses it
+to recover by resetting to page 1 and refetching once instead of silently keeping the
+previous rows on screen. Data sources whose own bar/quick-view filters changed must refetch
+with `fetchAgain({ resetSkip: true })` so the page resets up front (see the shared-ui
+server-binding invariants).
+
 **Supported Filter Operators:**
 
 | Kendo Operator | GraphQL Operator |

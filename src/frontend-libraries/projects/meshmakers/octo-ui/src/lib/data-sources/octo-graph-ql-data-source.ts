@@ -25,6 +25,27 @@ export abstract class OctoGraphQlDataSource<TDto> extends DataSourceTyped<TDto |
     this._searchFilterAttributePaths = value;
   }
 
+  /**
+   * The OctoMesh API rejects a page window that lies beyond the result set
+   * with an INCOMPLETE_SLICE GraphQL error (e.g. a persisted page offset
+   * combined with filters that now match fewer rows). Reporting it here lets
+   * MmListViewDataBindingDirective recover by resetting to page 1 instead of
+   * silently keeping the previous rows on screen.
+   */
+  public override isPageOutOfRangeError(error: unknown): boolean {
+    const graphQLErrors = (error as {
+      graphQLErrors?: readonly { extensions?: Record<string, unknown> }[]
+    })?.graphQLErrors;
+    if (!graphQLErrors) {
+      return false;
+    }
+    return graphQLErrors.some((e) => {
+      const extensions = e?.extensions;
+      const codes = Array.isArray(extensions?.['codes']) ? extensions['codes'] : [];
+      return codes.includes('INCOMPLETE_SLICE') || extensions?.['code'] === 'INCOMPLETE_SLICE';
+    });
+  }
+
   // noinspection JSUnusedGlobalSymbols
   protected getFieldFilterDefinitions(state: State) {
     let fieldFilters: FieldFilterDto[] | null = null;

@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 import { CommandSettingsService } from '@meshmakers/shared-services';
 import { GridComponent } from '@progress/kendo-angular-grid';
 import { State } from '@progress/kendo-data-query/dist/npm/state';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
 import { MmListViewDataBindingDirective } from './mm-list-view-data-binding.directive';
@@ -34,9 +34,15 @@ interface RecordedCall {
 class RecordingDataSourceDirective extends DataSourceBase {
   public calls: RecordedCall[] = [];
   public responseDelayMs = 0;
+  /** Make the next fetch fail — with a page-out-of-range error or a generic one. */
+  public failNextFetch: 'pageOutOfRange' | 'other' | null = null;
 
   constructor() {
     super(inject(ListViewComponent));
+  }
+
+  public override isPageOutOfRangeError(error: unknown): boolean {
+    return (error as { pageOutOfRange?: boolean })?.pageOutOfRange === true;
   }
 
   public fetchData(options: FetchDataOptions): Observable<FetchResult | null> {
@@ -46,6 +52,11 @@ class RecordingDataSourceDirective extends DataSourceBase {
       textSearch: options.textSearch,
       forceRefresh: options.forceRefresh
     });
+    if (this.failNextFetch) {
+      const kind = this.failNextFetch;
+      this.failNextFetch = null;
+      return throwError(() => (kind === 'pageOutOfRange' ? { pageOutOfRange: true } : new Error('fetch failed')));
+    }
     const sortDescriptor = options.state.sort?.find(s => s.dir);
     const sortTag = sortDescriptor ? `${sortDescriptor.field}:${sortDescriptor.dir}` : 'unsorted';
     const rows = Array.from({ length: options.state.take ?? 10 }, (_, i) => ({
@@ -182,6 +193,80 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     flush();
   }));
 
+  it('resets skip to page 1 on fetchAgain({ resetSkip: true }) (bar-filter change)', fakeAsync(() => {
+    grid.pageChange.emit({ skip: 40, take: 20 });
+    fixture.detectChanges();
+    tick();
+    expect(lastCall().state.skip).toBe(40);
+
+    // bar/quick-view filters live in the data source, outside the Kendo state —
+    // their change path is fetchAgain(), which must mirror notifyFilterChange()
+    host.dataSource.fetchAgain({ resetSkip: true });
+    fixture.detectChanges();
+    tick();
+
+    expect(lastCall().state.skip)
+      .withContext('changed bar filters change the result set — the old page offset would point past it')
+      .toBe(0);
+    expect(lastCall().forceRefresh).toBeTrue();
+    expect(grid.skip).toBe(0);
+    flush();
+  }));
+
+  it('keeps the current page on a plain fetchAgain() (data refresh)', fakeAsync(() => {
+    grid.pageChange.emit({ skip: 40, take: 20 });
+    fixture.detectChanges();
+    tick();
+
+    host.dataSource.fetchAgain();
+    fixture.detectChanges();
+    tick();
+
+    expect(lastCall().state.skip)
+      .withContext('a plain refresh must not yank the user back to page 1')
+      .toBe(40);
+    flush();
+  }));
+
+  it('recovers from a page-out-of-range fetch error by returning to page 1', fakeAsync(() => {
+    grid.pageChange.emit({ skip: 40, take: 20 });
+    fixture.detectChanges();
+    tick();
+
+    // e.g. a restored page offset beyond the current (shrunken) result set
+    host.dataSource.failNextFetch = 'pageOutOfRange';
+    host.dataSource.fetchAgain();
+    fixture.detectChanges();
+    tick();
+
+    expect(lastCall().state.skip)
+      .withContext('the failed out-of-range fetch must be retried from page 1')
+      .toBe(0);
+    expect(gridRowNames()[0])
+      .withContext('the grid must show page-1 data, not silently keep the previous rows')
+      .toBe('unsorted-row-0');
+    expect(grid.skip).toBe(0);
+    flush();
+  }));
+
+  it('does not reset the page on a generic fetch error', fakeAsync(() => {
+    grid.pageChange.emit({ skip: 40, take: 20 });
+    fixture.detectChanges();
+    tick();
+    const callsBefore = host.dataSource.calls.length;
+
+    host.dataSource.failNextFetch = 'other';
+    host.dataSource.fetchAgain();
+    fixture.detectChanges();
+    tick();
+
+    expect(host.dataSource.calls.length)
+      .withContext('a non-page error must not trigger a retry')
+      .toBe(callsBefore + 1);
+    expect(lastCall().state.skip).toBe(40);
+    flush();
+  }));
+
   it('cancels a stale in-flight fetch so its late response cannot overwrite newer data', fakeAsync(() => {
     const ds = host.dataSource;
 
@@ -286,6 +371,27 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
     expect(host.dataSource.calls[0].textSearch)
       .withContext('the initial fetch must already carry the restored search term')
       .toBe('acme');
+    flush();
+  }));
+
+  it('fetchAgain({ resetSkip: true }) persists the page reset', fakeAsync(async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      [LIST_KEY]: { skip: 40 }
+    }));
+    await configure();
+    const fixture = TestBed.createComponent(HostComponent);
+    const host = fixture.componentInstance;
+    fixture.detectChanges();
+    tick();
+
+    host.dataSource.fetchAgain({ resetSkip: true });
+    fixture.detectChanges();
+    tick();
+
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
+    expect(stored[LIST_KEY]?.skip)
+      .withContext('the stale page offset must not be restored on the next visit')
+      .toBe(0);
     flush();
   }));
 

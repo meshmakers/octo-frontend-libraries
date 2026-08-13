@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Directive, OnDestroy, OnInit, inject } from "@angula
 import {DataBindingDirective, DataStateChangeEvent, GridComponent} from "@progress/kendo-angular-grid";
 import {CompositeFilterDescriptor} from "@progress/kendo-data-query";
 import {Observable, of, Subscription} from "rxjs";
-import {DataSourceBase} from "../data-sources/data-source-base";
+import {DataSourceBase, FetchAgainOptions} from "../data-sources/data-source-base";
 import {ListStateService} from "../services/list-state.service";
 
 @Directive({
@@ -47,9 +47,18 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
       return;
     }
 
-    this._fetchAgainSubscription = this.dataSource.fetchAgainEvent.subscribe(() => {
+    this._fetchAgainSubscription = this.dataSource.fetchAgainEvent.subscribe((options?: FetchAgainOptions) => {
       this._forceRefresh = true;
+      // A data source refetching because its own (bar/quick-view) filters
+      // changed must return to page 1 — same invariant as notifyFilterChange()
+      // and the text-search path. A plain refresh keeps the current page.
+      if (options?.resetSkip) {
+        this.skip = 0;
+      }
       this.rebind();
+      if (options?.resetSkip) {
+        this.persistState();
+      }
     });
 
     this._executeFilterSubscription = this.dataSource.listViewComponent.onExecuteFilter.subscribe((value: string | null) => {
@@ -217,6 +226,18 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
         error: (err) => {
           console.error('[MmListViewDataBinding] fetchData error:', err);
           this.dataSource.setLoading(false);
+          // A restored/stale page offset can lie beyond the current result set
+          // (persisted skip + changed filters, or data shrunk since the last
+          // visit) — the server rejects the fetch and the grid would silently
+          // keep showing the PREVIOUS rows under the NEW filters. Recover by
+          // returning to page 1 once; skip === 0 cannot be out of range, so
+          // this cannot loop.
+          if ((this.state.skip ?? 0) > 0 && this.dataSource.isPageOutOfRangeError(err)) {
+            this.skip = 0;
+            this._forceRefresh = true;
+            this.rebind();
+            this.persistState();
+          }
         }
       });
     } catch (e) {
