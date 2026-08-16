@@ -50,4 +50,63 @@ describe('OctoErrorLink', () => {
   //
   // For comprehensive testing, consider integration tests that simulate actual
   // GraphQL operations with errors using Apollo's MockedProvider.
+
+  describe('showError deduplication (AB#4772)', () => {
+    // showError is private; invoked directly with a minimal errors carrier because wiring a
+    // full Apollo operation through onError only exercises Apollo internals, not our rendering.
+    function invokeShowError(errors: unknown[]): void {
+      (octoErrorLink as unknown as { showError(e: { errors: unknown[] }): void })
+        .showError({ errors });
+    }
+
+    const columnsError = () => ({
+      message: "Error trying to resolve field 'columns'.",
+      extensions: { code: 'INVALID_OPERATION' },
+    });
+
+    it('collapses identical errors into one entry with a count suffix', () => {
+      invokeShowError(Array.from({ length: 13 }, columnsError));
+
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledTimes(1);
+      const [title, details] = messageServiceMock.showErrorWithDetails.calls.mostRecent().args;
+      expect(title).toBe("Error trying to resolve field 'columns'. (× 13)");
+      // Only the first (unique) entry exists — no repeated separator blocks in the details.
+      expect(details).not.toContain('======================');
+      expect(details).toContain('Global Result Code: INVALID_OPERATION');
+    });
+
+    it('keeps distinct errors separate without a count suffix', () => {
+      invokeShowError([
+        { message: 'Domain error', extensions: { code: 'INVALID_OPERATION' } },
+        { message: 'Other error', extensions: { code: 'NOT_FOUND' } },
+      ]);
+
+      const [title, details] = messageServiceMock.showErrorWithDetails.calls.mostRecent().args;
+      expect(title).toBe('Domain error');
+      expect(title).not.toContain('×');
+      expect(details).toContain('Other error');
+    });
+
+    it('does not collapse errors that differ only in their result code', () => {
+      invokeShowError([
+        { message: 'Same message', extensions: { code: 'INVALID_OPERATION' } },
+        { message: 'Same message', extensions: { code: 'NOT_FOUND' } },
+      ]);
+
+      const [title, details] = messageServiceMock.showErrorWithDetails.calls.mostRecent().args;
+      expect(title).toBe('Same message');
+      expect(details).toContain('Same message');
+      expect(details).toContain('Global Result Code: NOT_FOUND');
+    });
+
+    it('deduplicates errors without extensions as well', () => {
+      invokeShowError([
+        { message: 'Plain error' },
+        { message: 'Plain error' },
+      ]);
+
+      const [title] = messageServiceMock.showErrorWithDetails.calls.mostRecent().args;
+      expect(title).toBe('Plain error (× 2)');
+    });
+  });
 });

@@ -50,17 +50,38 @@ export class OctoErrorLink extends ApolloLink {
   private showError(combinedGraphQLErrors: CombinedGraphQLErrors): void{
     const messageService = this.injector.get(MessageService);
 
-    let title = 'GraphQL error';
-    let details = '';
+    // Dedupe identical errors before rendering. A list query with one broken field produces one
+    // error PER ROW (observed on AB#4771: 13 rollup rows each yielded the same "Error trying to
+    // resolve field 'columns'" / INVALID_OPERATION), which used to flood the toast with the same
+    // message N times. Identical (message, code, OctoDetails) tuples collapse into one entry with
+    // an "(× N)" suffix; every raw error is still logged to the console individually.
+    const deduped = new Map<string, { error: (typeof combinedGraphQLErrors.errors)[number]; count: number }>();
     for (const error of combinedGraphQLErrors.errors) {
-
       console.error(error);
 
+      const key = JSON.stringify([
+        error.message,
+        error.extensions?.['code'] ?? null,
+        error.extensions?.['OctoDetails'] ?? null,
+      ]);
+      const entry = deduped.get(key);
+      if (entry) {
+        entry.count++;
+      } else {
+        deduped.set(key, { error, count: 1 });
+      }
+    }
+
+    let title = 'GraphQL error';
+    let details = '';
+    for (const { error, count } of deduped.values()) {
+
+      const message = count > 1 ? `${error.message} (× ${count})` : `${error.message}`;
       if (title == 'GraphQL error') {
-        title = `${error.message}`;
+        title = message;
       } else {
         details += `======================`;
-        details += `${error.message}`;
+        details += message;
       }
 
       if (error.extensions) {
