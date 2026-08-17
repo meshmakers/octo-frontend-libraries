@@ -9,7 +9,7 @@ export type GetRuntimeEntityByIdQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetRuntimeEntityByIdQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', definitions?: { __typename?: 'RtAssociationDtoConnection', totalCount?: number | null } | null } | null } | null> | null } | null } | null };
+export type GetRuntimeEntityByIdQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', definitions?: { __typename?: 'RtAssociationDtoConnection', totalCount?: number | null } | null } | null } | null> | null } | null } | null };
 
 export const GetRuntimeEntityByIdDocumentDto = gql`
     query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!) {
@@ -17,6 +17,8 @@ export const GetRuntimeEntityByIdDocumentDto = gql`
     runtimeEntities(ckId: $ckTypeId, rtId: $rtId) {
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
         rtWellKnownName
         rtCreationDateTime

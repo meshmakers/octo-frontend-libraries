@@ -661,6 +661,13 @@ When embedding a MeshBoard in another application, entity selectors can be pre-p
 | `EntitySelectorEditorComponent` | `mm-entity-selector-editor` | Settings editor for managing selectors |
 | `EntitySelectorToolbarComponent` | `mm-entity-selector-toolbar` | Toolbar rendering entity select dropdowns |
 
+> **Display names (AB#4813).** The entity pickers (`RuntimeEntitySelectDataSource` /
+> `RuntimeEntityDialogDataSource` in `@meshmakers/octo-services`) display and search the
+> engine-computed `rtDisplayName` (backend guarantees a value — `"<ckTypeId>@<rtId>"`
+> fallback when the CK type declares no `displayNameRule`). The dialog's "Name" column and
+> the text search bind to `rtDisplayName`; `rtWellKnownName` remains an identifier and is
+> no longer shown as the display name.
+
 ### Persistence
 
 Entity selector configs are persisted in the MeshBoard description field alongside variables and time filter config. Transient fields (`selectedRtId`, `selectedDisplayName`) are stripped before persisting. Variables with `source: 'entitySelector'` are derived at runtime and not persisted.

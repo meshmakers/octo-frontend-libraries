@@ -119,6 +119,8 @@ interface BasicDocumentInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -297,6 +299,8 @@ interface BasicEnergyMeteringPointInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: BasicEnergyState!
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
@@ -433,6 +437,8 @@ interface BasicNamedEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -651,6 +657,8 @@ interface EnergyCommunityMeteringPointInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: EnergyCommunityState!
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
@@ -805,6 +813,8 @@ interface SystemCommunicationDeployableEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   statusMessage: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
@@ -989,6 +999,8 @@ interface SystemCommunicationDeployableWorkloadInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   statusMessage: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
@@ -1125,6 +1137,8 @@ interface SystemConfigurationInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -1278,6 +1292,8 @@ interface SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -1417,6 +1433,8 @@ interface SystemIdentityIdentityProviderInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -1555,6 +1573,8 @@ interface SystemIdentityResourceInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   showInDiscoveryDocument: Boolean!
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
@@ -1693,6 +1713,8 @@ interface SystemPersistentQueryInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -1847,6 +1869,8 @@ interface SystemReportingFileSystemContainerInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -1981,6 +2005,8 @@ interface SystemReportingFileSystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -2123,6 +2149,8 @@ interface SystemStreamDataArchiveInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   status: SystemStreamDataCkArchiveStatus!
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
@@ -2267,6 +2295,8 @@ interface SystemStreamDataQueryInterface {
   rtIds: [String!]
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -2401,6 +2431,8 @@ interface SystemUIUIElementInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Returns the elements in the list that come after the specified cursor."
     after: String,
@@ -3023,6 +3055,8 @@ type BasicAsset {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -3340,6 +3374,8 @@ type BasicCity {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -3617,6 +3653,8 @@ type BasicCountry {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -3877,6 +3915,8 @@ type BasicDistrict {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -4077,6 +4117,8 @@ type BasicDocument implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -4301,6 +4343,8 @@ type BasicEmployee implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   shiftMachines(
     "Only return edges after the specified cursor."
     after: String,
@@ -4632,6 +4676,8 @@ type BasicEnergyConsumer implements BasicEnergyMeteringPointInterface & BasicNam
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: BasicEnergyState!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -4859,6 +4905,8 @@ type BasicEnergyEdaMessage implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sender: String!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -5086,6 +5134,8 @@ type BasicEnergyEdaMeteringPoint implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -5313,6 +5363,8 @@ type BasicEnergyEdaProcess implements BasicNamedEntityInterface & SystemEntityIn
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sender: String!
   startTime: DateTime!
   success: Boolean
@@ -5561,6 +5613,8 @@ type BasicEnergyEnergyMeasurement implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -5829,6 +5883,8 @@ type BasicEnergyMeteringPoint implements BasicNamedEntityInterface & SystemEntit
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: BasicEnergyState!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -6133,6 +6189,8 @@ type BasicEnergyOperatingFacility {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: BasicEnergyState!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -6402,6 +6460,8 @@ type BasicEnergyProducer implements BasicEnergyMeteringPointInterface & BasicNam
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: BasicEnergyState!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -6631,6 +6691,8 @@ type BasicNamedEntity implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -6891,6 +6953,8 @@ type BasicState {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -7118,6 +7182,8 @@ type BasicTree implements BasicNamedEntityInterface & SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -7367,6 +7433,8 @@ type BasicTreeNode {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -8650,6 +8718,8 @@ type EnergyCommunityBillingDocument implements BasicDocumentInterface & SystemEn
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -8896,6 +8966,8 @@ type EnergyCommunityBillingDocumentLineItem implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -9321,6 +9393,8 @@ type EnergyCommunityConsumer implements BasicNamedEntityInterface & EnergyCommun
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: EnergyCommunityState!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -9565,6 +9639,8 @@ type EnergyCommunityCustomer implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: EnergyCommunityState!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -9841,6 +9917,8 @@ type EnergyCommunityEdaMessage implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sender: String!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -10069,6 +10147,8 @@ type EnergyCommunityEdaMeteringPoint implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -10296,6 +10376,8 @@ type EnergyCommunityEdaProcess implements BasicNamedEntityInterface & SystemEnti
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sender: String!
   startTime: DateTime!
   success: Boolean
@@ -10523,6 +10605,8 @@ type EnergyCommunityEnergyPrice implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -10763,6 +10847,8 @@ type EnergyCommunityEnergyQuantity implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -11095,6 +11181,8 @@ type EnergyCommunityMeteringPoint implements BasicNamedEntityInterface & SystemE
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: EnergyCommunityState!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -11443,6 +11531,8 @@ type EnergyCommunityOperatingFacility {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: EnergyCommunityState!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -11710,6 +11800,8 @@ type EnergyCommunityParticipationPeriod implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -12020,6 +12112,8 @@ type EnergyCommunityProducer implements BasicNamedEntityInterface & EnergyCommun
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   state: EnergyCommunityState!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -12246,6 +12340,8 @@ type EnvironmentCarbonBudget implements BasicNamedEntityInterface & SystemEntity
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -12468,6 +12564,8 @@ type EnvironmentCarbonEmission implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -12695,6 +12793,8 @@ type EnvironmentCertificateOfOrigin implements BasicNamedEntityInterface & Syste
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -12920,6 +13020,8 @@ type EnvironmentComplianceRecord implements BasicNamedEntityInterface & SystemEn
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -13142,6 +13244,8 @@ type EnvironmentEnvironmentalGoal implements BasicNamedEntityInterface & SystemE
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -13423,6 +13527,8 @@ type EnvironmentWasteMeter {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -13675,6 +13781,8 @@ type IndustryBasicAlarm implements BasicNamedEntityInterface & SystemEntityInter
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   source: IndustryBasicAlarmSourceType!
   state: IndustryBasicAlarmState!
   tagName: String
@@ -13922,6 +14030,8 @@ type IndustryBasicEvent implements BasicNamedEntityInterface & SystemEntityInter
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   tagName: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -14275,6 +14385,8 @@ type IndustryBasicMachine {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   runtimeVariables(
     "Only return edges after the specified cursor."
     after: String,
@@ -14566,6 +14678,8 @@ type IndustryBasicRuntimeVariable implements BasicNamedEntityInterface & SystemE
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   stringValue: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -14816,6 +14930,8 @@ type IndustryEnergyDemandResponseEvent implements BasicNamedEntityInterface & Sy
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   startTime: DateTime!
   status: IndustryEnergyDemandResponseStatus!
   taggedBy(
@@ -15126,6 +15242,8 @@ type IndustryEnergyEnergyConsumer {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   runtimeVariables(
     "Only return edges after the specified cursor."
     after: String,
@@ -15387,6 +15505,8 @@ type IndustryEnergyEnergyCost implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -15610,6 +15730,8 @@ type IndustryEnergyEnergyForecast implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -15925,6 +16047,8 @@ type IndustryEnergyEnergyMeter {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   runtimeVariables(
     "Only return edges after the specified cursor."
     after: String,
@@ -16190,6 +16314,8 @@ type IndustryEnergyEnergyPerformanceIndicator implements BasicNamedEntityInterfa
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -16501,6 +16627,8 @@ type IndustryEnergyEnergyStorage {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   runtimeVariables(
     "Only return edges after the specified cursor."
     after: String,
@@ -16858,6 +16986,8 @@ type IndustryEnergyInverter {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   runtimeVariables(
     "Only return edges after the specified cursor."
     after: String,
@@ -17189,6 +17319,8 @@ type IndustryEnergyPhotovoltaicSystem {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -17477,6 +17609,8 @@ type IndustryEnergyPhotovoltaicSystemModule {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   runtimeVariables(
     "Only return edges after the specified cursor."
     after: String,
@@ -17807,6 +17941,8 @@ type IndustryEnergyPhotovoltaicSystemString {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -18127,6 +18263,8 @@ type IndustryFluidHeatMeter {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   runtimeVariables(
     "Only return edges after the specified cursor."
     after: String,
@@ -18478,6 +18616,8 @@ type IndustryFluidWaterMeter {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   runtimeVariables(
     "Only return edges after the specified cursor."
     after: String,
@@ -18740,6 +18880,8 @@ type IndustryMaintenanceAccount implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -19064,6 +19206,8 @@ type IndustryMaintenanceCostCenter {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -19388,6 +19532,8 @@ type IndustryMaintenanceEmployee {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   staffNumber: Int!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -19635,6 +19781,8 @@ type IndustryMaintenanceEnergyBalance implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -19900,6 +20048,8 @@ type IndustryMaintenanceJournalEntry implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -20236,6 +20386,8 @@ type IndustryMaintenanceOrder implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   serviceType: IndustryMaintenanceServiceType!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -20432,6 +20584,8 @@ type IndustryMaintenanceOrderCosts implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -20705,6 +20859,8 @@ type IndustryMaintenanceOrderFeedback implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   startDateTime: DateTime!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -21124,6 +21280,8 @@ type IndustryMaintenanceWorkplace {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -21374,6 +21532,8 @@ type IndustryManufacturingPartialFeedback implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   syncState: IndustryManufacturingFeedbackSyncState!
   syncTimestamp: DateTime
   taggedBy(
@@ -21645,6 +21805,8 @@ type IndustryManufacturingProductionOrder implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   startDateTime: DateTime
   state: IndustryManufacturingProductionOrderState!
   taggedBy(
@@ -21872,6 +22034,8 @@ type IndustryManufacturingProductionOrderItem implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   shiftOrderItems(
     "Only return edges after the specified cursor."
     after: String,
@@ -22226,6 +22390,8 @@ type IndustryManufacturingShift implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   startDateTime: DateTime!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -22468,6 +22634,8 @@ type IndustryManufacturingShiftMachine implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -22831,6 +22999,8 @@ type IndustryManufacturingShiftOrderItem implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   startDateTime: DateTime
   taggedBy(
     "Only return edges after the specified cursor."
@@ -23081,6 +23251,8 @@ type IndustryManufacturingShiftTemplate implements BasicNamedEntityInterface & S
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   startDateTime: DateTime!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -23379,6 +23551,8 @@ type OctoSdkDemoCustomer implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -23697,6 +23871,8 @@ type OctoSdkDemoMeteringPoint {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -23977,6 +24153,8 @@ type OctoSdkDemoOperatingFacility {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -24470,6 +24648,8 @@ type RtEntity {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
 }
 
 "Attribute of a runtime entity"
@@ -24736,6 +24916,8 @@ type RtSimpleQueryRow implements RtQueryRow {
   rtId: OctoObjectId
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
 }
 
 type RtTransient {
@@ -29717,6 +29899,8 @@ type SystemAggregationRtQuery implements SystemEntityInterface & SystemPersisten
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -29926,6 +30110,8 @@ type SystemAggregationSdQuery implements SystemEntityInterface & SystemPersisten
   rtIds: [String!]
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -30130,6 +30316,8 @@ type SystemAiAiAgentConfig implements SystemConfigurationInterface & SystemEntit
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   subscriptionScope: SystemAiSubscriptionScope!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -30373,6 +30561,8 @@ type SystemAiAiAgentJob implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   startedAt: DateTime!
   status: SystemAiJobStatus!
   taggedBy(
@@ -30623,6 +30813,8 @@ type SystemAiAiAgentSession implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sourceRepo: String
   startedAt: DateTime!
   status: SystemAiSessionStatus!
@@ -30857,6 +31049,8 @@ type SystemAiAiApprovalRequest implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   status: SystemAiApprovalStatus!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -31061,6 +31255,8 @@ type SystemAiAiAuditEvent implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -31263,6 +31459,8 @@ type SystemAiAiCredentialBinding implements SystemConfigurationInterface & Syste
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   scope: String!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -31485,6 +31683,8 @@ type SystemAiAiCredentialTicket implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   scope: SystemAiTicketScope!
   status: SystemAiTicketStatus!
   taggedBy(
@@ -31688,6 +31888,8 @@ type SystemAiAiKnowledgeSource implements SystemConfigurationInterface & SystemE
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -31910,6 +32112,8 @@ type SystemAiAiPromptTemplate implements SystemConfigurationInterface & SystemEn
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   systemPromptFragment: String!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -32133,6 +32337,8 @@ type SystemAiAiQuotaLimit implements SystemConfigurationInterface & SystemEntity
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -32357,6 +32563,8 @@ type SystemAiAiSessionEvent implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sequence: Int!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -32562,6 +32770,8 @@ type SystemAiAiTokenLease implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   scopes: String!
   status: SystemAiLeaseStatus!
   subscriptionType: String!
@@ -32768,6 +32978,8 @@ type SystemAiAiToolPolicy implements SystemConfigurationInterface & SystemEntity
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -32992,6 +33204,8 @@ type SystemAiAiUsageRecord implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sessionRef: String!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -33201,6 +33415,8 @@ type SystemAutoIncrement implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -33402,6 +33618,8 @@ type SystemBlueprintBackup implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   snapshotJson: String!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -33610,6 +33828,8 @@ type SystemBlueprintHistory implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   seedDataChecksum: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -33815,6 +34035,8 @@ type SystemBlueprintInstallation implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   seedDataChecksum: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -34037,6 +34259,8 @@ type SystemBotAttributeAggregateConfiguration implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -34267,6 +34491,8 @@ type SystemBotFixup implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   script: String!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -34563,6 +34789,8 @@ type SystemCommunicationAdapter implements SystemCommunicationDeployableEntityIn
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   statusMessage: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -34816,6 +35044,8 @@ type SystemCommunicationAiConfiguration implements SystemConfigurationInterface 
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -35085,6 +35315,8 @@ type SystemCommunicationApplication implements SystemCommunicationDeployableEnti
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   statusMessage: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -35308,6 +35540,8 @@ type SystemCommunicationDataFlow implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -35582,6 +35816,8 @@ type SystemCommunicationDataPointMapping implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sourceAttributePath: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -35835,6 +36071,8 @@ type SystemCommunicationDeployableEntity implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   statusMessage: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -36077,6 +36315,8 @@ type SystemCommunicationDeployableWorkload implements SystemCommunicationDeploya
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   statusMessage: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -36321,6 +36561,8 @@ type SystemCommunicationDiscordConfiguration implements SystemConfigurationInter
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -36544,6 +36786,8 @@ type SystemCommunicationEMailReceiverConfiguration implements SystemConfiguratio
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -36767,6 +37011,8 @@ type SystemCommunicationEMailSenderConfiguration implements SystemConfigurationI
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   senderEmail: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -36988,6 +37234,8 @@ type SystemCommunicationEdaConfiguration implements SystemConfigurationInterface
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -37225,6 +37473,8 @@ type SystemCommunicationEnergyCommunityConfiguration implements SystemConfigurat
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -37449,6 +37699,8 @@ type SystemCommunicationFinApiConfiguration implements SystemConfigurationInterf
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -37674,6 +37926,8 @@ type SystemCommunicationGrafanaConfiguration implements SystemConfigurationInter
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -37915,6 +38169,8 @@ type SystemCommunicationHelmRepositoryConfiguration implements SystemConfigurati
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -38164,6 +38420,8 @@ type SystemCommunicationLoxoneConfiguration implements SystemConfigurationInterf
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -38394,6 +38652,8 @@ type SystemCommunicationMicrosoftGraphConfiguration implements SystemConfigurati
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -38720,6 +38980,8 @@ type SystemCommunicationPipeline implements SystemCommunicationDeployableEntityI
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sendsDataTo(
     "Only return edges after the specified cursor."
     after: String,
@@ -39007,6 +39269,8 @@ type SystemCommunicationPipelineExecution implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   startedAt: DateTime!
   status: SystemCommunicationPipelineExecutionStatus!
   taggedBy(
@@ -39297,6 +39561,8 @@ type SystemCommunicationPipelineStatistics implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -39546,6 +39812,8 @@ type SystemCommunicationPipelineTrigger implements SystemCommunicationDeployable
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   statusMessage: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -40023,6 +40291,8 @@ type SystemCommunicationPool implements SystemCommunicationDeployableEntityInter
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   statusMessage: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -40254,6 +40524,8 @@ type SystemCommunicationSapConfiguration implements SystemConfigurationInterface
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   systemId: String
   systemNumber: String!
   taggedBy(
@@ -40479,6 +40751,8 @@ type SystemCommunicationServiceAccountConfiguration implements SystemConfigurati
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -40704,6 +40978,8 @@ type SystemCommunicationSftpConfiguration implements SystemConfigurationInterfac
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -40944,6 +41220,8 @@ type SystemCommunicationTag implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   tag: String!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -41184,6 +41462,8 @@ type SystemConfiguration implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -41429,6 +41709,8 @@ type SystemDownsamplingSdQuery implements SystemEntityInterface & SystemPersiste
   rtIds: [String!]
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -41628,6 +41910,8 @@ type SystemEntity {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -41979,6 +42263,8 @@ type SystemGroupingAggregationRtQuery implements SystemEntityInterface & SystemP
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -42189,6 +42475,8 @@ type SystemGroupingAggregationSdQuery implements SystemEntityInterface & SystemP
   rtIds: [String!]
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -42396,6 +42684,8 @@ type SystemIdentityApiResource implements SystemEntityInterface & SystemIdentity
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   scopes: [String!]!
   showInDiscoveryDocument: Boolean!
   taggedBy(
@@ -42603,6 +42893,8 @@ type SystemIdentityApiScope implements SystemEntityInterface & SystemIdentityRes
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   showInDiscoveryDocument: Boolean!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -42811,6 +43103,8 @@ type SystemIdentityAzureEntraIdIdentityProvider implements SystemEntityInterface
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -43101,6 +43395,8 @@ type SystemIdentityClient implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   slidingRefreshTokenLifetime: Int!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -43297,6 +43593,8 @@ type SystemIdentityClientMirror implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   secretHashVersion: Int!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -43547,6 +43845,8 @@ type SystemIdentityDataProtectionKey implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -43748,6 +44048,8 @@ type SystemIdentityEmailDomainGroupRule implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -43968,6 +44270,8 @@ type SystemIdentityExternalTenantUserMapping implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sourceTenantId: String!
   sourceUserId: String!
   sourceUserName: String!
@@ -44177,6 +44481,8 @@ type SystemIdentityFacebookIdentityProvider implements SystemEntityInterface & S
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -44383,6 +44689,8 @@ type SystemIdentityGoogleIdentityProvider implements SystemEntityInterface & Sys
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -44664,6 +44972,8 @@ type SystemIdentityGroup implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -44940,6 +45250,8 @@ type SystemIdentityIdentityProvider implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -45138,6 +45450,8 @@ type SystemIdentityIdentityResource implements SystemEntityInterface & SystemIde
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   showInDiscoveryDocument: Boolean!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -45345,6 +45659,8 @@ type SystemIdentityMicrosoftAdIdentityProvider implements SystemEntityInterface 
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -45554,6 +45870,8 @@ type SystemIdentityMicrosoftIdentityProvider implements SystemEntityInterface & 
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -45759,6 +46077,8 @@ type SystemIdentityOctoTenantIdentityProvider implements SystemEntityInterface &
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -45965,6 +46285,8 @@ type SystemIdentityOpenLdapIdentityProvider implements SystemEntityInterface & S
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -46168,6 +46490,8 @@ type SystemIdentityPermission implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -46358,6 +46682,8 @@ type SystemIdentityPermissionRole implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   subjectIds: [String!]!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -46576,6 +46902,8 @@ type SystemIdentityPersistedGrant implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sessionId: String
   subjectId: String!
   taggedBy(
@@ -46781,6 +47109,8 @@ type SystemIdentityResource implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   showInDiscoveryDocument: Boolean!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -46997,6 +47327,8 @@ type SystemIdentityRole implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   subjectIds: [String!]!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -47240,6 +47572,8 @@ type SystemIdentityServerSideSession implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   scheme: String!
   sessionId: String!
   sessionKey: String!
@@ -47498,6 +47832,8 @@ type SystemIdentityUser implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   securityStamp: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -47761,6 +48097,8 @@ type SystemMigrationHistory implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   success: Boolean!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -47963,6 +48301,8 @@ type SystemNotificationCssTemplateConfiguration implements SystemConfigurationIn
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -48183,6 +48523,8 @@ type SystemNotificationEvent implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   source: SystemNotificationEventSources!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -48384,6 +48726,8 @@ type SystemNotificationMailNotificationConfiguration implements SystemConfigurat
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -48604,6 +48948,8 @@ type SystemNotificationNotificationTemplate implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   subjectTemplate: String!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -48806,6 +49152,8 @@ type SystemNotificationStatefulEvent implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   source: SystemNotificationEventSources!
   state: SystemNotificationEventStates!
   taggedBy(
@@ -49010,6 +49358,8 @@ type SystemPersistentQuery implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -49203,6 +49553,8 @@ type SystemReportingConnectionInfo implements SystemConfigurationInterface & Sys
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -49442,6 +49794,8 @@ type SystemReportingFileSystemContainer implements SystemEntityInterface & Syste
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -49658,6 +50012,8 @@ type SystemReportingFileSystemEntity implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -49871,6 +50227,8 @@ type SystemReportingFileSystemItem implements SystemEntityInterface & SystemRepo
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -50110,6 +50468,8 @@ type SystemReportingFolder implements SystemEntityInterface & SystemReportingFil
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -50318,6 +50678,8 @@ type SystemReportingFolderRoot implements SystemEntityInterface & SystemReportin
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -50558,6 +50920,8 @@ type SystemSimpleRtQuery implements SystemEntityInterface & SystemPersistentQuer
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sorting: [SystemSortOrderItem!]
   taggedBy(
     "Only return edges after the specified cursor."
@@ -50768,6 +51132,8 @@ type SystemSimpleSdQuery implements SystemEntityInterface & SystemPersistentQuer
   rtIds: [String!]
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sorting: [SystemSortOrderItem!]
   taggedBy(
     "Only return edges after the specified cursor."
@@ -50984,6 +51350,8 @@ type SystemStreamDataArchive implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   status: SystemStreamDataCkArchiveStatus!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -51228,6 +51596,8 @@ type SystemStreamDataQuery implements SystemEntityInterface & SystemPersistentQu
   rtIds: [String!]
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -51429,6 +51799,8 @@ type SystemStreamDataRawArchive implements SystemEntityInterface & SystemStreamD
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   status: SystemStreamDataCkArchiveStatus!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -51637,6 +52009,8 @@ type SystemStreamDataRecomputeJob implements SystemEntityInterface {
   rtIdScope: String
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   stagingTableName: String
   startedAt: DateTime
   state: SystemStreamDataCkRecomputeJobState!
@@ -51855,6 +52229,8 @@ type SystemStreamDataRollupArchive implements SystemEntityInterface & SystemStre
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   sourceArchiveRtId: String!
   status: SystemStreamDataCkArchiveStatus!
   taggedBy(
@@ -52067,6 +52443,8 @@ type SystemStreamDataTimeRangeArchive implements SystemEntityInterface & SystemS
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   status: SystemStreamDataCkArchiveStatus!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -52269,6 +52647,8 @@ type SystemTenant implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -52427,6 +52807,8 @@ type SystemTenantConfiguration implements SystemConfigurationInterface & SystemE
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -52671,6 +53053,8 @@ type SystemTenantModeConfiguration implements SystemConfigurationInterface & Sys
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -52929,6 +53313,8 @@ type SystemUIBranding implements SystemEntityInterface & SystemUIUIElementInterf
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -53152,6 +53538,8 @@ type SystemUIDashboard implements SystemEntityInterface & SystemUIUIElementInter
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -53379,6 +53767,8 @@ type SystemUIDashboardWidget implements SystemEntityInterface & SystemUIUIElemen
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -53637,6 +54027,8 @@ type SystemUIProcessDiagram implements SystemEntityInterface & SystemUIUIElement
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   symbolInstances: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -53871,6 +54263,8 @@ type SystemUISymbolDefinition implements SystemEntityInterface & SystemUIUIEleme
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   symbolInstances: String
   taggedBy(
     "Only return edges after the specified cursor."
@@ -54121,6 +54515,8 @@ type SystemUISymbolLibrary implements SystemEntityInterface & SystemUIUIElementI
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -54367,6 +54763,8 @@ type SystemUITreeNavigationConfiguration implements SystemEntityInterface & Syst
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,
@@ -54591,6 +54989,8 @@ type SystemUIUIElement implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  rtDisplayName: String!
+  rtDisplayDescription: String
   taggedBy(
     "Only return edges after the specified cursor."
     after: String,

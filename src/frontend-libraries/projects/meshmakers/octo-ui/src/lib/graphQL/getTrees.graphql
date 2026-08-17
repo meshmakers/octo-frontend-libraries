@@ -3,13 +3,9 @@ query getTrees($ckTypeId: String!) {
     runtimeEntities(ckId: $ckTypeId) {
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
-        attributes(attributeNames: ["name", "description"]) {
-          items {
-            attributeName
-            value
-          }
-        }
         associations {
           targets(
             roleId: "System/ParentChild"

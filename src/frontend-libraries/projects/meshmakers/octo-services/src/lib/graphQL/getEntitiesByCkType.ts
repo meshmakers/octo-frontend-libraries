@@ -14,7 +14,7 @@ export type GetEntitiesByCkTypeQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetEntitiesByCkTypeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null };
+export type GetEntitiesByCkTypeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, rtDisplayDescription?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetEntitiesByCkTypeDocumentDto = gql`
     query getEntitiesByCkType($ckTypeId: String!, $rtId: OctoObjectId, $after: String, $first: Int, $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort]) {
@@ -33,6 +33,8 @@ export const GetEntitiesByCkTypeDocumentDto = gql`
         rtId
         ckTypeId
         rtWellKnownName
+        rtDisplayName
+        rtDisplayDescription
         rtCreationDateTime
         rtChangedDateTime
         attributes(resolveEnumValuesToNames: true) {

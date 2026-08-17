@@ -15,7 +15,7 @@ export type GetRuntimeEntityAssociationsByIdQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetRuntimeEntityAssociationsByIdQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, associations?: { __typename?: 'RtEntityGenericAssociation', definitions?: { __typename?: 'RtAssociationDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtAssociation', targetRtId: any, targetCkTypeId: any, originRtId: any, originCkTypeId: any, ckAssociationRoleId: any } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetRuntimeEntityAssociationsByIdQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, associations?: { __typename?: 'RtEntityGenericAssociation', definitions?: { __typename?: 'RtAssociationDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtAssociation', targetRtId: any, targetCkTypeId: any, originRtId: any, originCkTypeId: any, ckAssociationRoleId: any } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetRuntimeEntityAssociationsByIdDocumentDto = gql`
     query getRuntimeEntityAssociationsById($rtId: OctoObjectId!, $ckTypeId: String!, $direction: GraphDirection!, $after: String, $first: Int, $roleId: String, $relatedRtCkId: RtCkTypeId, $relatedRtId: OctoObjectId) {
@@ -23,6 +23,8 @@ export const GetRuntimeEntityAssociationsByIdDocumentDto = gql`
     runtimeEntities(ckId: $ckTypeId, rtId: $rtId) {
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
         associations {
           definitions(

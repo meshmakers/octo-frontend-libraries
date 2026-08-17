@@ -29,6 +29,8 @@ import { MappingEditDialogService } from './mapping-edit-dialog.service';
 interface OrphanItemStub {
   rtId: string;
   ckTypeId: string;
+  rtDisplayName: string;
+  rtDisplayDescription: string | null;
   rtWellKnownName: string | null;
   attributes: { items: { attributeName: string; value: unknown }[] };
   associations: {
@@ -41,6 +43,8 @@ function orphanItem(rtId: string, name: string, mappingCount = 0): OrphanItemStu
   return {
     rtId,
     ckTypeId: 'Loxone/Control',
+    rtDisplayName: name,
+    rtDisplayDescription: null,
     rtWellKnownName: null,
     attributes: { items: [{ attributeName: 'name', value: name }] },
     associations: {
@@ -198,8 +202,7 @@ describe('MappingCoverageTreeComponent', () => {
         {
           rtId: 'p1',
           ckTypeId: 'Loxone/Room',
-          rtWellKnownName: null,
-          attributes: { items: [{ attributeName: 'name', value: 'Wohnzimmer' }] },
+          rtDisplayName: 'Wohnzimmer',
           associations: { parent: { items: [] } },
         },
       ] as never[];
@@ -250,8 +253,7 @@ describe('MappingCoverageTreeComponent', () => {
         {
           rtId: parentRtId,
           ckTypeId: parentCkTypeId,
-          rtWellKnownName: null,
-          attributes: { items: [{ attributeName: 'name', value: parentName }] },
+          rtDisplayName: parentName,
           associations: { parent: { items: [] } },
         },
       ] as never[];

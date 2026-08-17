@@ -13,7 +13,7 @@ export type GetRuntimeEntitiesByTypeQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetRuntimeEntitiesByTypeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean }, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null } | null> | null } | null } | null };
+export type GetRuntimeEntitiesByTypeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean }, items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null } | null> | null } | null } | null };
 
 export const GetRuntimeEntitiesByTypeDocumentDto = gql`
     query getRuntimeEntitiesByType($ckTypeId: String!, $after: String, $first: Int, $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort]) {
@@ -33,6 +33,8 @@ export const GetRuntimeEntitiesByTypeDocumentDto = gql`
       }
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
         rtWellKnownName
         rtCreationDateTime

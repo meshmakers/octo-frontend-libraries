@@ -12,6 +12,8 @@ query getRuntimeEntityAssociationsById(
     runtimeEntities(ckId: $ckTypeId, rtId: $rtId) {
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
         associations {
           definitions(direction: $direction, roleId: $roleId, relatedRtCkId: $relatedRtCkId, relatedRtId: $relatedRtId, after: $after, first: $first) {

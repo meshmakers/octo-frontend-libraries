@@ -22,6 +22,8 @@ query getEntitiesByCkType(
         rtId
         ckTypeId
         rtWellKnownName
+        rtDisplayName
+        rtDisplayDescription
         rtCreationDateTime
         rtChangedDateTime
         attributes(resolveEnumValuesToNames: true) {

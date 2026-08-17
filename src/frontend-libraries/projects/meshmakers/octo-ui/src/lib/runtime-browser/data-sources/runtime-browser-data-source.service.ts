@@ -144,13 +144,8 @@ const GET_ROOT_ENTITIES_BY_CK_TYPE = gql`
         items {
           rtId
           ckTypeId
-          rtWellKnownName
-          attributes(attributeNames: ["name", "displayName", "description"]) {
-            items {
-              attributeName
-              value
-            }
-          }
+          rtDisplayName
+          rtDisplayDescription
         }
       }
     }
@@ -860,36 +855,18 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     return `assoc:${parentCkTypeId}@${parentRtId}:${role.roleId}:${role.targetCkTypeId}`;
   }
 
-  /** Resolves the display label of an entity from its name/displayName attributes. */
+  /**
+   * Resolves the display label of an entity: the engine-computed rtDisplayName (AB#4813).
+   * The backend guarantees a value ("<ckTypeId>@<rtId>" fallback when the CK type declares
+   * no displayNameRule).
+   */
   private extractDisplayName(entity: RtEntityDto): string {
-    const nameValue = entity.attributes?.items?.find(
-      (x) => x?.attributeName === 'name',
-    )?.value;
-    const displayNameValue = entity.attributes?.items?.find(
-      (x) => x?.attributeName === 'displayName',
-    )?.value;
-    return (
-      (typeof nameValue === 'string'
-        ? nameValue
-        : typeof nameValue === 'object' && nameValue !== null
-          ? JSON.stringify(nameValue)
-          : null) ||
-      (typeof displayNameValue === 'string' ? displayNameValue : null) ||
-      entity.rtWellKnownName ||
-      entity.ckTypeId ||
-      'Unknown'
-    );
+    return entity.rtDisplayName || 'Unknown';
   }
 
-  /** Resolves the tooltip of an entity from its description attribute. */
+  /** Resolves the tooltip of an entity: the engine-computed rtDisplayDescription. */
   private extractTooltip(entity: RtEntityDto): string {
-    const descValue = entity.attributes?.items?.find(
-      (x) => x?.attributeName === 'description',
-    )?.value;
-    return (
-      (typeof descValue === 'string' ? descValue : null) ||
-      `${entity.ckTypeId} - ${entity.rtId}`
-    );
+    return entity.rtDisplayDescription || `${entity.ckTypeId} - ${entity.rtId}`;
   }
 
   /** Resolves the icon for a CK type, falling back to a generic entity icon. */
@@ -966,33 +943,10 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
             );
           }
 
-          // Extract display information
-          const nameValue = item.attributes?.items?.find(
-            (x) => x?.attributeName === 'name',
-          )?.value;
-          const displayNameValue = item.attributes?.items?.find(
-            (x) => x?.attributeName === 'displayName',
-          )?.value;
-
-          // Debug logging
-          if (typeof nameValue === 'object') {
-            console.warn('Name value is an object:', nameValue);
-          }
-
-          const text =
-            (typeof nameValue === 'string'
-              ? nameValue
-              : typeof nameValue === 'object' && nameValue !== null
-                ? JSON.stringify(nameValue)
-                : null) ||
-            (typeof displayNameValue === 'string' ? displayNameValue : null) ||
-            item.ckTypeId ||
-            'Unknown';
-          const descValue = item.attributes?.items?.find(
-            (x) => x?.attributeName === 'description',
-          )?.value;
+          // Engine-computed display fields (AB#4813); backend guarantees a display name
+          const text = item.rtDisplayName || item.ckTypeId || 'Unknown';
           const tooltip =
-            (typeof descValue === 'string' ? descValue : null) ||
+            item.rtDisplayDescription ||
             `${item.ckTypeId} - ${item.rtId}`;
 
           result.push(

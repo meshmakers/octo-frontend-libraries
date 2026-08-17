@@ -20,6 +20,8 @@ query getSdkCustomers(
       items {
         rtId
         ckTypeId
+        rtDisplayName
+        rtDisplayDescription
         rtCreationDateTime
         rtChangedDateTime
         customerStatus

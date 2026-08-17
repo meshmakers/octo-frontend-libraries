@@ -46,6 +46,8 @@ describe('RuntimeBrowserDataSource', () => {
   const mockTreeEntity: RtEntityDto = {
     rtId: 'tree-1',
     ckTypeId: 'Basic/Tree',
+    rtDisplayName: 'Main Tree',
+    rtDisplayDescription: 'Tree description',
     attributes: {
       items: [
         { attributeName: 'name', value: 'Main Tree' },
@@ -178,6 +180,8 @@ describe('RuntimeBrowserDataSource', () => {
                   items: items.map((i) => ({
                     rtId: i.rtId,
                     ckTypeId: i.ckTypeId,
+                    rtDisplayName: i.name,
+                    rtDisplayDescription: null,
                     rtWellKnownName: null,
                     attributes: {
                       items: [{ attributeName: 'name', value: i.name }],
@@ -547,6 +551,8 @@ describe('RuntimeBrowserDataSource', () => {
               {
                 rtId: 'ds-1',
                 ckTypeId: 'EnergyIQ/DistributionSystem',
+                rtDisplayName: 'Heating circuit',
+                rtDisplayDescription: null,
                 rtWellKnownName: null,
                 attributes: {
                   items: [{ attributeName: 'name', value: 'Heating circuit' }],

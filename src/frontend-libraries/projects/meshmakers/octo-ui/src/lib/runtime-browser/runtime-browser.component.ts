@@ -521,7 +521,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       // Refresh tree if any entity is root node, otherwise do refresh on specified entities.
       if (
         event.refreshItems.some(
-          (refItem: RtEntityDto) => refItem.ckTypeId === 'Basic/Tree',
+          (refItem) => refItem.ckTypeId === 'Basic/Tree',
         ) ||
         event.destinationItem.ckTypeId === 'Basic/Tree'
       ) {

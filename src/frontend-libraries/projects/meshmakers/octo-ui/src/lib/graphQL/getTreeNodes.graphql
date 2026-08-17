@@ -10,13 +10,9 @@ query getTreeNodes(
     runtimeEntities(rtId: $rtId, ckId: $ckTypeId) {
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
-        attributes(attributeNames: ["name", "description"]) {
-          items {
-            attributeName
-            value
-          }
-        }
         associations {
           targets(
             roleId: $directRoleId
@@ -25,13 +21,9 @@ query getTreeNodes(
           ) {
             items {
               rtId
+              rtDisplayName
+              rtDisplayDescription
               ckTypeId
-              attributes(attributeNames: ["name", "description"]) {
-                items {
-                  attributeName
-                  value
-                }
-              }
               associations {
                 targets(
                   roleId: $indirectRoleId

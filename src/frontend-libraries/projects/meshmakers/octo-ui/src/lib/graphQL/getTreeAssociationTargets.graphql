@@ -19,17 +19,9 @@ query getTreeAssociationTargets(
             totalCount
             items {
               rtId
+              rtDisplayName
+              rtDisplayDescription
               ckTypeId
-              rtWellKnownName
-              attributes(
-                attributeNames: ["name", "displayName", "description"]
-                resolveEnumValuesToNames: true
-              ) {
-                items {
-                  attributeName
-                  value
-                }
-              }
             }
           }
         }

@@ -17,7 +17,7 @@ export type GetMappingCoverageNodeQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetMappingCoverageNodeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', ownMappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null, children?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', grandChildren?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null, mappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetMappingCoverageNodeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', ownMappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null, children?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', grandChildren?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null, mappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetMappingCoverageNodeDocumentDto = gql`
     query getMappingCoverageNode($rtId: OctoObjectId!, $ckTypeId: String!, $childRoleId: String!, $childCkTypeId: String!, $childDirection: GraphDirection!, $grandChildRoleId: String!, $grandChildCkTypeId: String!, $grandChildDirection: GraphDirection!, $mappingRoleId: String!, $mappingCkTypeId: String!) {
@@ -25,6 +25,8 @@ export const GetMappingCoverageNodeDocumentDto = gql`
     runtimeEntities(rtId: $rtId, ckId: $ckTypeId) {
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
         rtWellKnownName
         attributes(attributeNames: ["name", "description"]) {
@@ -49,6 +51,8 @@ export const GetMappingCoverageNodeDocumentDto = gql`
             totalCount
             items {
               rtId
+              rtDisplayName
+              rtDisplayDescription
               ckTypeId
               attributes(attributeNames: ["name", "description"]) {
                 items {
