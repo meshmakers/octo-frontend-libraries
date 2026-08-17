@@ -35,6 +35,19 @@ describe('meshboard-datetime', () => {
       expect(toInstant(new Date('invalid'))).toBeNull();
       expect(toInstant({})).toBeNull();
     });
+
+    it('treats a naive ISO date-time (no zone designator) as UTC, not browser-local (AB#4818)', () => {
+      // The wire form of a downsampling bucket timestamp. A bare `new Date(...)`
+      // would parse this as local time and shift the instant by the UTC offset.
+      expect(toInstant('2026-08-16T10:50:00')?.toISOString()).toBe('2026-08-16T10:50:00.000Z');
+      expect(toInstant('2026-08-16T10:50')?.toISOString()).toBe('2026-08-16T10:50:00.000Z');
+      expect(toInstant('2026-08-16T10:50:00.500')?.toISOString()).toBe('2026-08-16T10:50:00.500Z');
+    });
+
+    it('leaves explicitly zoned strings untouched', () => {
+      expect(toInstant('2026-08-16T10:50:00+02:00')?.toISOString()).toBe('2026-08-16T08:50:00.000Z');
+      expect(toInstant('2026-08-16T10:50:00Z')?.toISOString()).toBe('2026-08-16T10:50:00.000Z');
+    });
   });
 
   describe('formatInstant (utc mode is timezone-deterministic)', () => {

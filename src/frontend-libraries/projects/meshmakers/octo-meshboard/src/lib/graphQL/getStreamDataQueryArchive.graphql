@@ -2,6 +2,9 @@
 # Selects the query descriptor WITHOUT the `rows` sub-connection, so the query is
 # not executed — only its stored ArchiveRtId is returned. Used by resolution-aware
 # widgets to derive the base archive of the series' resolution family.
+# The runtime entity is read alongside for the persisted RtIds pin
+# (System/StreamDataQuery.RtIds), which the streamData descriptor does not expose —
+# resolution-aware widgets must apply it to their transient calls themselves (AB#4818).
 query getStreamDataQueryArchive($rtId: OctoObjectId!) {
   streamData {
     streamDataQuery(rtId: $rtId) {
@@ -9,6 +12,14 @@ query getStreamDataQueryArchive($rtId: OctoObjectId!) {
         queryRtId
         associatedCkTypeId
         archiveRtId
+      }
+    }
+  }
+  runtime {
+    systemSimpleSdQuery(rtId: $rtId) {
+      items {
+        rtId
+        rtIds
       }
     }
   }

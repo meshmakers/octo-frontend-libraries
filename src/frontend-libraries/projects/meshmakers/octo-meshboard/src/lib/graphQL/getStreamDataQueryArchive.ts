@@ -8,7 +8,7 @@ export type GetStreamDataQueryArchiveQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetStreamDataQueryArchiveQueryDto = { __typename?: 'OctoQuery', streamData?: { __typename?: 'StreamDataModelQuery', streamDataQuery?: { __typename?: 'StreamDataQueryDtoConnection', items?: Array<{ __typename?: 'StreamDataQuery', queryRtId: any, associatedCkTypeId: any, archiveRtId: any }> | null } | null } | null };
+export type GetStreamDataQueryArchiveQueryDto = { __typename?: 'OctoQuery', streamData?: { __typename?: 'StreamDataModelQuery', streamDataQuery?: { __typename?: 'StreamDataQueryDtoConnection', items?: Array<{ __typename?: 'StreamDataQuery', queryRtId: any, associatedCkTypeId: any, archiveRtId: any }> | null } | null } | null, runtime?: { __typename?: 'RuntimeModelQuery', systemSimpleSdQuery?: { __typename?: 'SystemSimpleSdQueryConnection', items?: Array<{ __typename?: 'SystemSimpleSdQuery', rtId: any, rtIds?: Array<string> | null } | null> | null } | null } | null };
 
 export const GetStreamDataQueryArchiveDocumentDto = gql`
     query getStreamDataQueryArchive($rtId: OctoObjectId!) {
@@ -18,6 +18,14 @@ export const GetStreamDataQueryArchiveDocumentDto = gql`
         queryRtId
         associatedCkTypeId
         archiveRtId
+      }
+    }
+  }
+  runtime {
+    systemSimpleSdQuery(rtId: $rtId) {
+      items {
+        rtId
+        rtIds
       }
     }
   }

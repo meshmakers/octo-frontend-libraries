@@ -10,7 +10,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { CkRollupFunctionDto, FieldFilterDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
-import { formatInstant } from '../../utils/meshboard-datetime';
+import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
 
 /** Series colours so a series' min/max band and its avg line share one hue. */
 const SERIES_PALETTE = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
@@ -674,6 +674,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       throw new Error('Resolution-aware line chart: base archive not found for the selected query.');
     }
 
+    // Source scope (AB#4818): an active entity-selector binding overrides; otherwise the persisted
+    // query's RtIds pin applies — the transient downsampling bypasses the persisted query execution,
+    // so without re-applying the pin a pinned widget would silently aggregate every entity captured
+    // by the archive.
+    const scopeRtIds = sourceRtIds && sourceRtIds.length > 0 ? sourceRtIds : (info.rtIds ?? undefined);
+
     // The Y-axis value field is the column being reduced, so it doubles as the resolver's
     // source path (matched case-insensitively against the rollup's aggregation spec).
     const sourcePath = this.config.valueField;
@@ -686,7 +692,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       targetPoints,
       requiredAggregation: aggregation,
       sourcePath,
-      rtIds: sourceRtIds && sourceRtIds.length > 0 ? sourceRtIds : undefined,
+      rtIds: scopeRtIds,
       // Resolve calendar rollups in the board's zone so civil-day buckets match the
       // window (computed on the same zone by resolveCurrentTimeRange) — AB#4190.
       timeZone: this.stateService.resolveStreamDataTimeZone()
@@ -727,8 +733,8 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       }).then(seriesRows => seriesRows.map(r => this.reshapeResolutionRow(r, label)));
 
     const rows = ds.aggregateSeriesByGroup && info.ckTypeId
-      ? await this.loadGroupAggregatedRows(info.ckTypeId, sourceRtIds, downsample)
-      : await this.loadPerRtIdRows(info.ckTypeId, sourceRtIds, downsample);
+      ? await this.loadGroupAggregatedRows(info.ckTypeId, scopeRtIds, downsample)
+      : await this.loadPerRtIdRows(info.ckTypeId, scopeRtIds, downsample);
 
     return { rows, signal: resolution, requestedPoints: targetPoints };
   }
@@ -874,9 +880,11 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       }
 
       if (categoryValue && seriesGroupValue) {
-        // Parse date for sorting
+        // Parse date for sorting. toInstant treats a naive wire timestamp (no zone designator)
+        // as UTC — a bare `new Date(...)` would reinterpret it as browser-local time and shift
+        // the axis by the UTC offset (AB#4818).
         if (!allCategories.has(categoryValue)) {
-          allCategories.set(categoryValue, new Date(categoryValue));
+          allCategories.set(categoryValue, toInstant(categoryValue) ?? new Date(NaN));
         }
 
         allSeriesGroups.add(seriesGroupValue);

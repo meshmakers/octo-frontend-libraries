@@ -703,6 +703,13 @@ Entity selector configs are persisted in the MeshBoard description field alongsi
 
 Why this matters: a local-year filter selects rows whose UTC timestamps fall in the neighbouring calendar year (CET year 2026 starts at `2025-12-31T23:00:00Z`). Formatting display on the same basis as the filter removes that artifact.
 
+> **Naive wire timestamps are UTC (AB#4818).** The wire serializes instants without a zone
+> designator (e.g. downsampling bucket timestamps `2026-08-16T10:50:00`), but `new Date(...)`
+> parses such strings as browser-LOCAL time — shifting every timestamp by the UTC offset before
+> the board's timezone mode is even applied. `toInstant` therefore pins naive ISO date-time
+> strings to UTC; every widget that parses a wire timestamp must route through it (never a bare
+> `new Date(...)`).
+
 Consumers read the mode reactively via `MeshBoardStateService.timeZoneMode()` (a computed signal). The setting is edited in the Settings dialog's *Time Filter* tab — Local / UTC / **Specific time zone** (a curated IANA dropdown; any IANA id is accepted) — and persisted in the description blob (any non-default value, i.e. `'utc'` or an IANA id, is written; on load any non-`'local'` string is accepted). Changing it recomputes the active range and refreshes widgets (`MeshBoardViewComponent.reapplyTimeFilterRange()`).
 
 ---
@@ -777,6 +784,14 @@ single-cell resolver would collapse.)
 A `resolutionAware` stream-data line chart resolves the best archive/rollup for the visible window
 + target point count (`QueryExecutorService.resolveSeriesQuery`), then downsamples the sources
 against it. Two fan-out shapes (`line-chart-widget.component.ts`):
+
+> **Source scope (AB#4818).** The transient downsampling path bypasses the persisted query
+> execution, so the widget must re-apply the query's `System/StreamDataQuery.RtIds` pin itself:
+> `fetchQueryArchive` reads the pin from the runtime entity (`runtime.systemSimpleSdQuery.rtIds`)
+> alongside the archive metadata, and `loadResolutionAware` scopes with
+> `selector rtIds (if any) ?? persisted pin ?? no scope`. Without this, a pinned single-series
+> widget silently averages every entity captured by the archive. An active entity-selector
+> binding still overrides the pin (the documented `streamDataArgs.rtIds` override semantics).
 
 | `PersistentQueryDataSource` flag | Fan-out | One line per … |
 |---|---|---|

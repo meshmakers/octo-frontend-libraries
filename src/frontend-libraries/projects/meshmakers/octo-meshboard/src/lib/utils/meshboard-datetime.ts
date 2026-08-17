@@ -24,13 +24,27 @@ export function isIsoDateTime(value: unknown): value is string {
   return typeof value === 'string' && ISO_DATE_TIME_RE.test(value);
 }
 
-/** Parses a value into a valid `Date`, or returns `null` when it is not a usable instant. */
+/**
+ * ISO-8601 date-time WITHOUT a zone designator (no `Z`, no offset). The wire
+ * serializes UTC instants in this naive form (e.g. `2026-08-16T10:50:00`), but
+ * `new Date(...)` parses such strings as browser-LOCAL time — shifting every
+ * timestamp by the UTC offset before the board's timezone mode is even applied
+ * (AB#4818). {@link toInstant} pins these to UTC instead.
+ */
+const ISO_NAIVE_DATE_TIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?$/;
+
+/**
+ * Parses a value into a valid `Date`, or returns `null` when it is not a usable
+ * instant. A naive ISO date-time string (no `Z`/offset) is treated as UTC — the
+ * wire's serialization of an instant — never as browser-local time (AB#4818).
+ */
 export function toInstant(value: unknown): Date | null {
   if (value instanceof Date) {
     return isNaN(value.getTime()) ? null : value;
   }
   if (typeof value === 'string' || typeof value === 'number') {
-    const date = new Date(value);
+    const normalized = typeof value === 'string' && ISO_NAIVE_DATE_TIME_RE.test(value) ? `${value}Z` : value;
+    const date = new Date(normalized);
     return isNaN(date.getTime()) ? null : date;
   }
   return null;

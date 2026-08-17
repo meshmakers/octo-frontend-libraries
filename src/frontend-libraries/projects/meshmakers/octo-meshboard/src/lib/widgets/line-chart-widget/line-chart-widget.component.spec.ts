@@ -168,3 +168,84 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
     expect(series[0].band).toEqual([{ from: 1, to: 9 }, { from: 3, to: 8 }]);
   });
 });
+
+// Resolution-aware source scope (AB#4818): the transient downsampling path bypasses the
+// persisted query execution, so the widget must re-apply the query's RtIds pin itself.
+describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () => {
+  function createResolutionAware(
+    selectorRtIds: string[] | undefined,
+    pinnedRtIds: string[] | null
+  ): { cmp: LineChartWidgetComponent; qe: jasmine.SpyObj<QueryExecutorService> } {
+    const qe = jasmine.createSpyObj<QueryExecutorService>('QueryExecutorService',
+      ['execute', 'fetchQueryArchive', 'resolveSeriesQuery', 'downsampleByArchive', 'fetchSeriesLabels']);
+    qe.fetchQueryArchive.and.resolveTo({ archiveRtId: 'base-1', ckTypeId: 'Basic/TemperatureSensor', rtIds: pinnedRtIds });
+    qe.resolveSeriesQuery.and.resolveTo({
+      archiveRtId: 'rollup-5m', effectiveBucketMs: 300_000, points: 10,
+      reducingFunction: 'AVG', signal: null, actualPoints: null, diagnostic: null
+    } as unknown as Awaited<ReturnType<QueryExecutorService['resolveSeriesQuery']>>);
+    qe.downsampleByArchive.and.resolveTo([]);
+    qe.fetchSeriesLabels.and.resolveTo(new Map<string, string>());
+
+    const stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService',
+      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'resolveStreamDataTimeZone', 'getVariables', 'timeZoneMode']);
+    stateService.resolveStreamDataTimeArgs.and.returnValue({
+      from: new Date('2026-08-16T00:00:00Z'), to: new Date('2026-08-17T00:00:00Z')
+    });
+    stateService.resolveStreamDataRtIds.and.returnValue(selectorRtIds);
+    stateService.resolveStreamDataTimeZone.and.returnValue(undefined);
+    stateService.getVariables.and.returnValue([]);
+    stateService.timeZoneMode.and.returnValue('local');
+
+    const variableService = jasmine.createSpyObj<MeshBoardVariableService>('MeshBoardVariableService',
+      ['convertToFieldFilterDto']);
+    variableService.convertToFieldFilterDto.and.returnValue(undefined);
+
+    TestBed.configureTestingModule({
+      imports: [LineChartWidgetComponent],
+      providers: [
+        { provide: QueryExecutorService, useValue: qe },
+        { provide: MeshBoardStateService, useValue: stateService },
+        { provide: MeshBoardVariableService, useValue: variableService }
+      ]
+    });
+
+    const cmp = TestBed.createComponent(LineChartWidgetComponent).componentInstance;
+    cmp.config = {
+      id: 'w1', type: 'lineChart', title: 'Test', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: { type: 'persistentQuery', queryRtId: 'q1', queryFamily: 'streamData', resolutionAware: true },
+      categoryField: 'window_start', seriesGroupField: 'obisCode', valueField: 'CurrentValue'
+    } as LineChartWidgetConfig;
+    return { cmp, qe };
+  }
+
+  it('applies the persisted RtIds pin when no entity-selector scope is active', async () => {
+    const { cmp, qe } = createResolutionAware(undefined, ['sensor-1', 'sensor-2']);
+
+    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+    expect(qe.resolveSeriesQuery.calls.mostRecent().args[0].rtIds).toEqual(['sensor-1', 'sensor-2']);
+    // Default fan-out: one downsampling call per pinned source rtId.
+    const downsampledScopes = qe.downsampleByArchive.calls.allArgs().map(([params]) => params.rtIds);
+    expect(downsampledScopes).toEqual([['sensor-1'], ['sensor-2']]);
+  });
+
+  it('lets an active entity-selector scope override the persisted pin', async () => {
+    const { cmp, qe } = createResolutionAware(['selected-1'], ['sensor-1', 'sensor-2']);
+
+    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+    expect(qe.resolveSeriesQuery.calls.mostRecent().args[0].rtIds).toEqual(['selected-1']);
+    const downsampledScopes = qe.downsampleByArchive.calls.allArgs().map(([params]) => params.rtIds);
+    expect(downsampledScopes).toEqual([['selected-1']]);
+  });
+
+  it('sends no scope when the query has neither a pin nor a selector binding', async () => {
+    const { cmp, qe } = createResolutionAware(undefined, null);
+
+    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+    expect(qe.resolveSeriesQuery.calls.mostRecent().args[0].rtIds).toBeUndefined();
+    const downsampledScopes = qe.downsampleByArchive.calls.allArgs().map(([params]) => params.rtIds);
+    expect(downsampledScopes).toEqual([undefined]);
+  });
+});

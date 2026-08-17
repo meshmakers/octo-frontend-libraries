@@ -293,9 +293,13 @@ export class QueryExecutorService {
    * Resolution-aware routing (AB#4290): reads a persisted stream-data query's base archive rtId
    * and target CK type WITHOUT executing the query (the `rows` sub-connection is not selected), so
    * a widget can feed the archive to {@link resolveSeriesQuery} and use the CK type to resolve
-   * per-series labels. Returns null when the query is missing or has no archive.
+   * per-series labels. Also reads the query's persisted RtIds pin
+   * (`System/StreamDataQuery.RtIds`) from the runtime entity — the transient downsampling path
+   * bypasses the persisted query execution, so widgets must re-apply the pin themselves
+   * (AB#4818). `rtIds` is null when the query has no pin (or is not a SimpleSdQuery).
+   * Returns null when the query is missing or has no archive.
    */
-  async fetchQueryArchive(queryRtId: string): Promise<{ archiveRtId: string; ckTypeId: string | null } | null> {
+  async fetchQueryArchive(queryRtId: string): Promise<{ archiveRtId: string; ckTypeId: string | null; rtIds: string[] | null } | null> {
     const result = await firstValueFrom(
       this.queryArchiveGql.fetch({ variables: { rtId: queryRtId }, fetchPolicy: 'cache-first' })
     );
@@ -303,7 +307,12 @@ export class QueryExecutorService {
     if (item?.archiveRtId == null) {
       return null;
     }
-    return { archiveRtId: String(item.archiveRtId), ckTypeId: item.associatedCkTypeId != null ? String(item.associatedCkTypeId) : null };
+    const pinned = result.data?.runtime?.systemSimpleSdQuery?.items?.[0]?.rtIds;
+    return {
+      archiveRtId: String(item.archiveRtId),
+      ckTypeId: item.associatedCkTypeId != null ? String(item.associatedCkTypeId) : null,
+      rtIds: pinned && pinned.length > 0 ? pinned.map(String) : null
+    };
   }
 
   /**

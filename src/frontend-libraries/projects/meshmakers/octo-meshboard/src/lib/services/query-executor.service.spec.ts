@@ -392,7 +392,29 @@ describe('QueryExecutorService', () => {
 
       const info = await service.fetchQueryArchive('q1');
 
-      expect(info).toEqual({ archiveRtId: 'base-1', ckTypeId: 'Basic.Energy/EnergyMeasurement' });
+      expect(info).toEqual({ archiveRtId: 'base-1', ckTypeId: 'Basic.Energy/EnergyMeasurement', rtIds: null });
+    });
+
+    it('fetchQueryArchive surfaces the persisted RtIds pin from the runtime entity (AB#4818)', async () => {
+      queryArchiveGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+        streamData: { streamDataQuery: { items: [{ queryRtId: 'q1', associatedCkTypeId: 'Basic.Energy/EnergyMeasurement', archiveRtId: 'base-1' }] } },
+        runtime: { systemSimpleSdQuery: { items: [{ rtId: 'q1', rtIds: ['sensor-1', 'sensor-2'] }] } }
+      })) as ReturnType<typeof queryArchiveGqlSpy.fetch>);
+
+      const info = await service.fetchQueryArchive('q1');
+
+      expect(info?.rtIds).toEqual(['sensor-1', 'sensor-2']);
+    });
+
+    it('fetchQueryArchive maps an empty RtIds pin to null (no scope)', async () => {
+      queryArchiveGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+        streamData: { streamDataQuery: { items: [{ queryRtId: 'q1', associatedCkTypeId: null, archiveRtId: 'base-1' }] } },
+        runtime: { systemSimpleSdQuery: { items: [{ rtId: 'q1', rtIds: [] }] } }
+      })) as ReturnType<typeof queryArchiveGqlSpy.fetch>);
+
+      const info = await service.fetchQueryArchive('q1');
+
+      expect(info?.rtIds).toBeNull();
     });
 
     it('fetchQueryArchive returns null when the query has no archive', async () => {

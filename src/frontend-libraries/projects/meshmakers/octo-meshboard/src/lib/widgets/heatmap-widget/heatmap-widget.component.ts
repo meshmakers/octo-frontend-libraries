@@ -10,7 +10,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
-import { getZonedDateParts, zonedDateKey } from '../../utils/meshboard-datetime';
+import { getZonedDateParts, toInstant, zonedDateKey } from '../../utils/meshboard-datetime';
 
 /**
  * A single cell in the heatmap grid
@@ -652,11 +652,10 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     }
   }
 
+  /** Delegates to {@link toInstant} so naive wire timestamps are pinned to UTC (AB#4818). */
   private parseDate(value: unknown): Date | null {
     if (!value) return null;
-    if (value instanceof Date) return value;
-    const date = new Date(String(value));
-    return isNaN(date.getTime()) ? null : date;
+    return toInstant(value);
   }
 
   private convertFiltersToDto(filters?: WidgetFilterConfig[]): FieldFilterDto[] | undefined {
