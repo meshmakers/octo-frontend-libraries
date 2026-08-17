@@ -13,12 +13,6 @@ query getTreeNodes(
         rtDisplayName
         rtDisplayDescription
         ckTypeId
-        attributes(attributeNames: ["name", "description"]) {
-          items {
-            attributeName
-            value
-          }
-        }
         associations {
           targets(
             roleId: $directRoleId
@@ -30,12 +24,6 @@ query getTreeNodes(
               rtDisplayName
               rtDisplayDescription
               ckTypeId
-              attributes(attributeNames: ["name", "description"]) {
-                items {
-                  attributeName
-                  value
-                }
-              }
               associations {
                 targets(
                   roleId: $indirectRoleId

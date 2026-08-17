@@ -22,16 +22,6 @@ query getTreeAssociationTargets(
               rtDisplayName
               rtDisplayDescription
               ckTypeId
-              rtWellKnownName
-              attributes(
-                attributeNames: ["name", "displayName", "description"]
-                resolveEnumValuesToNames: true
-              ) {
-                items {
-                  attributeName
-                  value
-                }
-              }
             }
           }
         }

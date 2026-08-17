@@ -870,7 +870,7 @@ export class KpiConfigDialogComponent implements OnInit {
           rtWellKnownName: entity.rtWellKnownName ?? undefined,
           rtDisplayName: entity.rtDisplayName,
           rtDisplayDescription: entity.rtDisplayDescription ?? undefined,
-          displayName: entity.rtDisplayName || entity.rtWellKnownName || entity.rtId
+          displayName: entity.rtDisplayName
         };
       }
     } catch (error) {

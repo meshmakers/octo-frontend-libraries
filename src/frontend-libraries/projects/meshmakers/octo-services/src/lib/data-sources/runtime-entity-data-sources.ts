@@ -56,7 +56,7 @@ export class RuntimeEntitySelectDataSource implements EntitySelectDataSource<Run
         rtWellKnownName: item.rtWellKnownName ?? undefined,
         rtDisplayName: item.rtDisplayName,
         rtDisplayDescription: item.rtDisplayDescription ?? undefined,
-        displayName: item.rtDisplayName || item.rtWellKnownName || item.rtId
+        displayName: item.rtDisplayName
       }));
 
     return {
@@ -122,7 +122,7 @@ export class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSour
             rtWellKnownName: item.rtWellKnownName ?? undefined,
             rtDisplayName: item.rtDisplayName,
             rtDisplayDescription: item.rtDisplayDescription ?? undefined,
-            displayName: item.rtDisplayName || item.rtWellKnownName || item.rtId
+            displayName: item.rtDisplayName
           }));
 
         return {

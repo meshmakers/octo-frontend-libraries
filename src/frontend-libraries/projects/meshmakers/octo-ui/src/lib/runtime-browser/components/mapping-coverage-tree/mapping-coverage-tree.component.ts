@@ -731,8 +731,8 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
         .map(e => ({
           rtId: e.rtId as string,
           ckTypeId: e.ckTypeId as string,
-          name: readAttr(e.attributes?.items, 'name') ?? e.rtWellKnownName ?? (e.rtId as string),
-          description: readAttr(e.attributes?.items, 'description') ?? undefined,
+          name: e.rtDisplayName ?? (e.rtId as string),
+          description: e.rtDisplayDescription ?? undefined,
           mappingCount: e.associations?.mappings?.totalCount ?? 0,
           parentPath: extractParentPath(e.associations?.parent?.items?.[0]),
         }));
@@ -1233,7 +1233,7 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
         .map(e => ({
           rtId: e.rtId as string,
           ckTypeId: e.ckTypeId as string,
-          name: readAttr(e.attributes?.items, 'name') ?? e.rtWellKnownName ?? (e.rtId as string),
+          name: e.rtDisplayName ?? (e.rtId as string),
           definition: readAttr(e.attributes?.items, 'pipelineDefinition'),
         }));
       candidates.sort((a, b) => a.name.localeCompare(b.name));
@@ -1542,8 +1542,8 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
       const candidates: RootCandidate[] = (result ?? [])
         .filter((e): e is NonNullable<typeof e> => !!e && !!e.rtId && !!e.ckTypeId)
         .map(e => {
-          const name = readAttr(e.attributes?.items, 'name') ?? e.rtWellKnownName ?? e.rtId;
-          const description = readAttr(e.attributes?.items, 'description') ?? '';
+          const name = e.rtDisplayName ?? e.rtId;
+          const description = e.rtDisplayDescription ?? '';
           return {
             rtId: e.rtId as string,
             ckTypeId: e.ckTypeId as string,
@@ -1649,7 +1649,7 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
               })
               .pipe(map(r => r.data?.runtime?.runtimeEntities?.items?.[0])),
           );
-          const name = readAttr(data?.attributes?.items, 'name') ?? data?.rtWellKnownName ?? null;
+          const name = data?.rtDisplayName ?? null;
           return { key: `${ref.ckTypeId}@${ref.rtId}`, name };
         } catch {
           return { key: `${ref.ckTypeId}@${ref.rtId}`, name: null };
@@ -1878,10 +1878,7 @@ function parseImportStatistics(serialised: string | null): ImportStatistics | nu
 interface OrphanParentHop {
   rtId?: unknown;
   ckTypeId?: unknown;
-  rtWellKnownName?: string | null;
-  attributes?: {
-    items?: ({ attributeName?: string | null; value?: unknown } | null)[] | null;
-  } | null;
+  rtDisplayName?: string | null;
   associations?: {
     parent?: { items?: (OrphanParentHop | null)[] | null } | null;
   } | null;
@@ -1902,10 +1899,7 @@ function extractParentPath(first: OrphanParentHop | null | undefined): OrphanCan
     path.push({
       rtId: String(cursor.rtId),
       ckTypeId: String(cursor.ckTypeId),
-      name:
-        readAttr(cursor.attributes?.items, 'name')
-        ?? cursor.rtWellKnownName
-        ?? String(cursor.rtId),
+      name: cursor.rtDisplayName ?? String(cursor.rtId),
     });
     const next = cursor.associations?.parent?.items?.[0];
     cursor = next ?? null;

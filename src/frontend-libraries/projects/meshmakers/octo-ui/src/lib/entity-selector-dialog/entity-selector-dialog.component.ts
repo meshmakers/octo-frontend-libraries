@@ -202,18 +202,11 @@ export class EntitySelectorDialogComponent implements OnInit {
     const item = node.item;
     if (item && typeof item === 'object' && 'rtId' in item && 'ckTypeId' in item) {
       const entity = item as RtEntityDto;
-      const nameAttr = entity.attributes?.items?.filter(Boolean).find(
-        (a) => a?.attributeName === 'name' || a?.attributeName === 'displayName',
-      );
       this.selectedEntity = {
         rtId: entity.rtId,
         ckTypeId: entity.ckTypeId!,
-        // Engine-computed display name first (AB#4813); legacy attribute chain as fallback
-        name:
-          entity.rtDisplayName ??
-          (nameAttr?.value as string) ??
-          entity.rtWellKnownName ??
-          undefined,
+        // Engine-computed display name (AB#4813); the backend guarantees a value
+        name: entity.rtDisplayName,
       };
     } else {
       this.selectedEntity = null;

@@ -658,8 +658,8 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
       const entity: CoverageEntityRef = {
         rtId: data.rtId,
         ckTypeId: data.ckTypeId,
-        name: readAttr(data.attributes?.items, 'name') ?? data.rtWellKnownName ?? data.rtId,
-        description: readAttr(data.attributes?.items, 'description') ?? undefined,
+        name: data.rtDisplayName ?? data.rtId,
+        description: data.rtDisplayDescription ?? undefined,
       };
 
       const ownMappingCount = data.associations?.ownMappings?.totalCount ?? 0;
@@ -669,8 +669,8 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
         .map(c => ({
           rtId: c.rtId as string,
           ckTypeId: c.ckTypeId as string,
-          name: readAttr(c.attributes?.items, 'name') ?? (c.rtId as string),
-          description: readAttr(c.attributes?.items, 'description') ?? undefined,
+          name: c.rtDisplayName ?? (c.rtId as string),
+          description: c.rtDisplayDescription ?? undefined,
           mappingCount: c.associations?.mappings?.totalCount ?? 0,
           hasGrandChildren: (c.associations?.grandChildren?.totalCount ?? 0) > 0,
         }));
@@ -696,17 +696,6 @@ interface QueryNodeResult {
   entity: CoverageEntityRef;
   ownMappingCount: number;
   children: QueryNodeChild[];
-}
-
-function readAttr(items: readonly ({ attributeName?: string | null; value?: unknown } | null)[] | null | undefined, name: string): string | null {
-  if (!items) return null;
-  const target = name.toLowerCase();
-  for (const item of items) {
-    if (item?.attributeName != null && item.attributeName.toLowerCase() === target && item.value != null) {
-      return String(item.value);
-    }
-  }
-  return null;
 }
 
 /** Readable fallback label for a role id without a schema navigation name. */

@@ -6,12 +6,6 @@ query getTrees($ckTypeId: String!) {
         rtDisplayName
         rtDisplayDescription
         ckTypeId
-        attributes(attributeNames: ["name", "description"]) {
-          items {
-            attributeName
-            value
-          }
-        }
         associations {
           targets(
             roleId: "System/ParentChild"
