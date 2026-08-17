@@ -42,3 +42,27 @@ export function buildUrlWithRtId(input: UrlWithRtIdInput): string | null {
   }
   return null;
 }
+
+export interface InitialUrlWithRtIdInput extends Omit<UrlWithRtIdInput, 'rtId'> {
+  /** rtId of the board the initial load resolved to, `null` when none loaded. */
+  loadedRtId: string | null;
+  /** The `:rtId` route param the view was opened with, `null` when absent. */
+  rtIdFromRoute: string | null;
+}
+
+/**
+ * Returns the URL to navigate to after the *initial* board load, or `null`
+ * when the URL must not be rewritten.
+ *
+ * The constructor effect skips URL sync during the initial load (it would race
+ * with the transient board `loadInitialMeshBoard` puts up first), so the view
+ * syncs once after loading settles. Nothing to do when no board loaded or the
+ * URL already carried the rtId; otherwise the `buildUrlWithRtId` rules apply.
+ */
+export function buildInitialUrlWithRtId(input: InitialUrlWithRtIdInput): string | null {
+  const { loadedRtId, rtIdFromRoute, ...rest } = input;
+  if (!loadedRtId || rtIdFromRoute) {
+    return null;
+  }
+  return buildUrlWithRtId({ ...rest, rtId: loadedRtId });
+}

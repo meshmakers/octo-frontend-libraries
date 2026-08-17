@@ -33,7 +33,7 @@ import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.service';
 import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
 import { compactTierForWidth, columnsForTier, placeWidgetsForTier } from '../../utils/compact-layout';
-import { buildUrlWithRtId } from '../../utils/url-sync';
+import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
 import {
   EntitySelectorToolbarComponent,
@@ -351,6 +351,22 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
       // Mark initial load as complete so the effect can handle subsequent board switches
       this.initialLoadComplete = true;
+
+      // The constructor effect skipped the URL sync during the initial load
+      // (and already consumed the rtId via lastNavigatedRtId), so sync once
+      // here, after loading settled — the transient board from
+      // loadInitialMeshBoard never reaches the URL. Stays a no-op without
+      // meshBoardSyncUrl/:rtId (AB#4457) and preserves the query params.
+      const initialUrl = buildInitialUrlWithRtId({
+        currentUrl: this.router.url,
+        loadedRtId: this.stateService.persistedMeshBoardId(),
+        rtIdFromRoute,
+        hasRtIdParam: this.route.snapshot.paramMap.has('rtId'),
+        syncUrlOptIn: this.route.snapshot.data['meshBoardSyncUrl'] === true
+      });
+      if (initialUrl !== null) {
+        this.router.navigateByUrl(initialUrl, { replaceUrl: true });
+      }
 
       // Update breadcrumb with MeshBoard name
       this.updateBreadcrumb();

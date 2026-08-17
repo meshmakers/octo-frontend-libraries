@@ -72,10 +72,10 @@ To set a Well-Known Name for a MeshBoard:
 
 The Well-Known Name should be lowercase with hyphens, similar to URL slugs.
 
-### URL Sync on Board Switch (`meshBoardSyncUrl`)
+### URL Sync (`meshBoardSyncUrl`)
 
-After a post-init board switch (e.g. via the manager dialog), the view syncs the
-loaded board's rtId into the URL:
+After the initial load and after every post-init board switch (e.g. via the
+manager dialog), the view syncs the loaded board's rtId into the URL:
 
 - If the active route has an `:rtId` param, the last URL segment is replaced —
   always enabled, no configuration needed.

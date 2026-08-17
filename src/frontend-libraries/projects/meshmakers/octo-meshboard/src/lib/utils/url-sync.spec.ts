@@ -1,4 +1,4 @@
-import { buildUrlWithRtId } from './url-sync';
+import { buildUrlWithRtId, buildInitialUrlWithRtId } from './url-sync';
 
 describe('buildUrlWithRtId', () => {
   describe('route with :rtId param', () => {
@@ -59,5 +59,47 @@ describe('buildUrlWithRtId', () => {
         syncUrlOptIn: false
       })).toBeNull();
     });
+  });
+});
+
+describe('buildInitialUrlWithRtId', () => {
+  it('appends the loaded rtId on an opt-in route opened without one, preserving the query string', () => {
+    expect(buildInitialUrlWithRtId({
+      currentUrl: '/energyiq/ui/meshboards?tf_type=relative&tf_rv=24&tf_ru=hours',
+      loadedRtId: 'board-1',
+      rtIdFromRoute: null,
+      hasRtIdParam: false,
+      syncUrlOptIn: true
+    })).toBe('/energyiq/ui/meshboards/board-1?tf_type=relative&tf_rv=24&tf_ru=hours');
+  });
+
+  it('returns null when the URL already carried the rtId', () => {
+    expect(buildInitialUrlWithRtId({
+      currentUrl: '/energyiq/ui/meshboards/board-1',
+      loadedRtId: 'board-1',
+      rtIdFromRoute: 'board-1',
+      hasRtIdParam: true,
+      syncUrlOptIn: false
+    })).toBeNull();
+  });
+
+  it('returns null when no board loaded', () => {
+    expect(buildInitialUrlWithRtId({
+      currentUrl: '/energyiq/ui/meshboards',
+      loadedRtId: null,
+      rtIdFromRoute: null,
+      hasRtIdParam: false,
+      syncUrlOptIn: true
+    })).toBeNull();
+  });
+
+  it('returns null on embedded routes without opt-in (AB#4457)', () => {
+    expect(buildInitialUrlWithRtId({
+      currentUrl: '/dashboard?tf_type=year',
+      loadedRtId: 'board-1',
+      rtIdFromRoute: null,
+      hasRtIdParam: false,
+      syncUrlOptIn: false
+    })).toBeNull();
   });
 });

@@ -608,10 +608,13 @@ Entity selector selections are synced to URL query parameters for bookmarkabilit
 
 Example: `?es_mp=rt-123&es_anlage=rt-456`
 
-### URL Sync on Board Switch (`meshBoardSyncUrl`, AB#4457)
+### URL Sync (`meshBoardSyncUrl`, AB#4457)
 
-After a post-init board switch, `MeshBoardViewComponent` syncs the loaded
-board's rtId into the URL (`utils/url-sync.ts`, pure + unit-tested):
+`MeshBoardViewComponent` syncs the loaded board's rtId into the URL
+(`utils/url-sync.ts`, pure + unit-tested) after the initial load
+(`buildInitialUrlWithRtId` at the end of `ngOnInit` — the constructor effect
+must skip the initial load because `loadInitialMeshBoard` transiently puts up
+a different board) and after every post-init board switch:
 
 - Route has an `:rtId` param → last URL segment is replaced (always on).
 - Route has no `:rtId` param → appending the rtId is **opt-in** via the
