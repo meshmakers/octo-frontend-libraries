@@ -624,6 +624,22 @@ a different board) and after every post-init board switch:
   `:rtId` variant falls through to the app's `'**'` wildcard (bounce to home,
   e.g. voest-app) or fails with a `NavigationError` (e.g. energy-community).
 
+> **One navigation per URL write (AB#4819).** Concurrent Router navigations
+> supersede each other: the later one wins and is computed from the
+> pre-navigation state, silently dropping an in-flight rtId path change (the
+> URL then keeps the OLD board's rtId — a copied link opens the wrong board).
+> Rules encoded in the component: the board-switch effect runs
+> `initializeTimeFilterVariables()` first and `updateUrlWithRtId` serializes
+> the active tf_* params into the SAME navigation
+> (`utils/time-filter-url.ts`); `writeTimeFilterToUrl` /
+> `writeEntitySelectorsToUrl` merge onto `router.url` via
+> `applyQueryParams` (never `router.navigate([], {relativeTo})`, which
+> resurrects the stale path) and skip no-op writes (an identical-URL
+> navigation still cancels an in-flight one before being skipped);
+> `isSelectionEqual` compares only the fields the selection type uses, because
+> the picker pre-fills unused fields with current-date defaults and a
+> field-by-field comparison would report equal selections as changed.
+
 ### External Embedding via Route Data
 
 When embedding a MeshBoard in another application, entity selectors can be pre-populated via route data:

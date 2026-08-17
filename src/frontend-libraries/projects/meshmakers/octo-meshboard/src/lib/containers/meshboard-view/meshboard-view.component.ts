@@ -34,6 +34,7 @@ import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.servi
 import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
 import { compactTierForWidth, columnsForTier, placeWidgetsForTier } from '../../utils/compact-layout';
 import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
+import { applyTimeFilterParams, applyQueryParams } from '../../utils/time-filter-url';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
 import {
   EntitySelectorToolbarComponent,
@@ -232,9 +233,14 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       if (currentRtId && currentRtId !== this.lastNavigatedRtId) {
         this.lastNavigatedRtId = currentRtId;
         if (this.initialLoadComplete) {
-          // Only update URL and time filter for post-init board switches (e.g. manager dialog)
-          this.updateUrlWithRtId(currentRtId);
+          // Only update URL and time filter for post-init board switches (e.g.
+          // manager dialog). Time filter first: updateUrlWithRtId serializes
+          // the then-active selection into the SAME navigation as the rtId
+          // path change — a second concurrent navigation (e.g. the picker's
+          // writeTimeFilterToUrl) would supersede the path change and drop the
+          // rtId from the URL.
           this.initializeTimeFilterVariables();
+          this.updateUrlWithRtId(currentRtId);
         }
       }
     });
@@ -290,8 +296,16 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       syncUrlOptIn: this.route.snapshot.data['meshBoardSyncUrl'] === true
     });
     if (targetUrl !== null) {
-      this.router.navigateByUrl(targetUrl, { replaceUrl: true });
+      // One navigation for path + tf_* params: a separate time-filter
+      // navigation would supersede this one and drop the rtId path change.
+      this.router.navigateByUrl(applyTimeFilterParams(targetUrl, this.activeTimeFilterSelection()), { replaceUrl: true });
     }
+  }
+
+  /** The active time-filter selection to mirror into the URL, or null when the filter is off. */
+  private activeTimeFilterSelection(): TimeRangeSelection | null {
+    const config = this.stateService.getTimeFilterConfig();
+    return config?.enabled ? config.selection ?? null : null;
   }
 
   async ngOnInit(): Promise<void> {
@@ -365,7 +379,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
         syncUrlOptIn: this.route.snapshot.data['meshBoardSyncUrl'] === true
       });
       if (initialUrl !== null) {
-        this.router.navigateByUrl(initialUrl, { replaceUrl: true });
+        this.router.navigateByUrl(applyTimeFilterParams(initialUrl, this.activeTimeFilterSelection()), { replaceUrl: true });
       }
 
       // Update breadcrumb with MeshBoard name
@@ -876,57 +890,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Only writes params relevant to the current type, clears all others.
    */
   private writeTimeFilterToUrl(selection: TimeRangeSelection): void {
-    // Start with all params cleared
-    const cleanParams: Record<string, string | null> = {
-      tf_type: selection.type,
-      tf_year: null,
-      tf_quarter: null,
-      tf_month: null,
-      tf_day: null,
-      tf_hf: null,
-      tf_ht: null,
-      tf_rv: null,
-      tf_ru: null,
-      tf_from: null,
-      tf_to: null
-    };
-
-    // Set only the params relevant to the current type
-    switch (selection.type) {
-      case 'year':
-        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
-        break;
-      case 'quarter':
-        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
-        if (selection.quarter != null) cleanParams['tf_quarter'] = selection.quarter.toString();
-        break;
-      case 'month':
-        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
-        if (selection.month != null) cleanParams['tf_month'] = selection.month.toString();
-        break;
-      case 'day':
-        if (selection.year != null) cleanParams['tf_year'] = selection.year.toString();
-        if (selection.month != null) cleanParams['tf_month'] = selection.month.toString();
-        if (selection.day != null) cleanParams['tf_day'] = selection.day.toString();
-        if (selection.hourFrom != null) cleanParams['tf_hf'] = selection.hourFrom.toString();
-        if (selection.hourTo != null) cleanParams['tf_ht'] = selection.hourTo.toString();
-        break;
-      case 'relative':
-        if (selection.relativeValue != null) cleanParams['tf_rv'] = selection.relativeValue.toString();
-        if (selection.relativeUnit) cleanParams['tf_ru'] = selection.relativeUnit;
-        break;
-      case 'custom':
-        if (selection.customFrom) cleanParams['tf_from'] = selection.customFrom;
-        if (selection.customTo) cleanParams['tf_to'] = selection.customTo;
-        break;
+    // Serialize onto the current URL string instead of router.navigate([],
+    // {relativeTo}): the relative form is computed from the pre-navigation
+    // route and, when it supersedes an in-flight rtId navigation, restores the
+    // stale path (old/no board rtId) into the URL.
+    const targetUrl = applyTimeFilterParams(this.router.url, selection);
+    if (targetUrl === this.router.url) {
+      // No-op writes must not navigate: the router would still cancel an
+      // in-flight rtId navigation before skipping the identical URL.
+      return;
     }
-
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: cleanParams,
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
+    this.router.navigateByUrl(targetUrl, { replaceUrl: true });
   }
 
   /**
@@ -957,19 +931,33 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Compares two TimeRangeSelection objects for equality.
    */
   private isSelectionEqual(a: TimeRangeSelection, b: TimeRangeSelection): boolean {
-    return (
-      a.type === b.type &&
-      a.year === b.year &&
-      a.quarter === b.quarter &&
-      a.month === b.month &&
-      a.day === b.day &&
-      a.hourFrom === b.hourFrom &&
-      a.hourTo === b.hourTo &&
-      a.relativeValue === b.relativeValue &&
-      a.relativeUnit === b.relativeUnit &&
-      a.customFrom === b.customFrom &&
-      a.customTo === b.customTo
-    );
+    // Compare only the fields the selection type actually uses: the picker
+    // pre-fills the unused fields with current-date defaults (e.g. year/month
+    // on a relative selection) while stored selections omit them. A
+    // field-by-field comparison then reports equal selections as changed and
+    // triggers a spurious URL write that supersedes (and thereby drops) the
+    // board-switch rtId navigation.
+    if (a.type !== b.type) {
+      return false;
+    }
+    const eq = (x: unknown, y: unknown): boolean => (x ?? null) === (y ?? null);
+    switch (a.type) {
+      case 'year':
+        return eq(a.year, b.year);
+      case 'quarter':
+        return eq(a.year, b.year) && eq(a.quarter, b.quarter);
+      case 'month':
+        return eq(a.year, b.year) && eq(a.month, b.month);
+      case 'day':
+        return eq(a.year, b.year) && eq(a.month, b.month) && eq(a.day, b.day) &&
+          eq(a.hourFrom, b.hourFrom) && eq(a.hourTo, b.hourTo);
+      case 'relative':
+        return eq(a.relativeValue, b.relativeValue) && eq(a.relativeUnit, b.relativeUnit);
+      case 'custom':
+        return eq(a.customFrom, b.customFrom) && eq(a.customTo, b.customTo);
+      default:
+        return false;
+    }
   }
 
   /**
@@ -1483,12 +1471,13 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       params[`es_${selector.id}`] = selector.selectedRtId ?? null;
     }
 
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: params,
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
+    // Same single-URL serialization as writeTimeFilterToUrl: no relative
+    // navigation off a possibly stale route, and no no-op navigation that
+    // would cancel an in-flight rtId navigation.
+    const targetUrl = applyQueryParams(this.router.url, params);
+    if (targetUrl !== this.router.url) {
+      this.router.navigateByUrl(targetUrl, { replaceUrl: true });
+    }
   }
 
   /**
