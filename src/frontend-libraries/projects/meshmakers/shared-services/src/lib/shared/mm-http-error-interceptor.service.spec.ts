@@ -257,6 +257,44 @@ describe('MmHttpErrorInterceptor', () => {
       });
     });
 
+    describe('conflicts (status 409)', () => {
+      it('should show the server message for a 409 conflict', (done) => {
+        // OperationFailedErrorDto hardcodes statusCode 400 into the body even on a 409 response, so
+        // the 400 branch can never match one. Without a dedicated branch the user sees nothing at
+        // all — which is what made a rejected tenant create look like a silent failure (AB#4762).
+        const req = new HttpRequest('POST', '/octosystem/v1/tenants');
+        const error = new HttpErrorResponse({
+          status: 409,
+          error: { statusCode: 400, statusDescription: 'BadRequest', message: "Tenant ID 'abc' is already in use." }
+        });
+        httpHandlerMock.handle.and.returnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: () => {
+            expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
+              '',
+              "Tenant ID 'abc' is already in use."
+            );
+            done();
+          }
+        });
+      });
+
+      it('should not show a message for a 409 without a message body', (done) => {
+        const req = new HttpRequest('POST', '/octosystem/v1/tenants');
+        const error = new HttpErrorResponse({ status: 409, error: null });
+        httpHandlerMock.handle.and.returnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: (err) => {
+            expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
+            expect(err).toBe(error);
+            done();
+          }
+        });
+      });
+    });
+
     describe('other HTTP errors', () => {
       it('should not show message for 400 without statusCode in error body', (done) => {
         const req = new HttpRequest('GET', '/api/data');
