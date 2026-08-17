@@ -17,6 +17,10 @@ export interface RuntimeEntityItem {
   rtId: string;
   ckTypeId: string;
   rtWellKnownName?: string;
+  /** Engine-computed display name (rtDisplayName); the backend guarantees a value ("<ckTypeId>@<rtId>" fallback). */
+  rtDisplayName: string;
+  /** Engine-computed display description (rtDisplayDescription). */
+  rtDisplayDescription?: string;
   displayName: string;
 }
 
@@ -36,7 +40,9 @@ export class RuntimeEntitySelectDataSource implements EntitySelectDataSource<Run
           ckTypeId: this.ckTypeId,
           first: take ?? 10,
           fieldFilters: [
-            { attributePath: 'rtId', operator: FieldFilterOperatorsDto.LikeDto, comparisonValue: filter }
+            // Search by the engine-computed display name (AB#4813); rtId matching required exact
+            // hex ids and never matched what users type into an entity search.
+            { attributePath: 'rtDisplayName', operator: FieldFilterOperatorsDto.LikeDto, comparisonValue: filter }
           ]
         }
       })
@@ -48,7 +54,9 @@ export class RuntimeEntitySelectDataSource implements EntitySelectDataSource<Run
         rtId: item.rtId,
         ckTypeId: item.ckTypeId,
         rtWellKnownName: item.rtWellKnownName ?? undefined,
-        displayName: item.rtWellKnownName || item.rtId
+        rtDisplayName: item.rtDisplayName,
+        rtDisplayDescription: item.rtDisplayDescription ?? undefined,
+        displayName: item.rtDisplayName || item.rtWellKnownName || item.rtId
       }));
 
     return {
@@ -77,8 +85,9 @@ export class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSour
 
   getColumns(): ColumnDefinition[] {
     return [
+      { field: 'rtDisplayName', displayName: 'Name' },
+      { field: 'rtDisplayDescription', displayName: 'Description' },
       { field: 'rtId', displayName: 'RT-ID' },
-      { field: 'rtWellKnownName', displayName: 'Name' },
       { field: 'ckTypeId', displayName: 'CK Type' }
     ];
   }
@@ -86,8 +95,9 @@ export class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSour
   fetchData(options: DialogFetchOptions): Observable<DialogFetchResult<RuntimeEntityItem>> {
     const fieldFilters: { attributePath: string; operator: FieldFilterOperatorsDto; comparisonValue: string }[] = [];
     if (options.textSearch && options.textSearch.trim()) {
+      // Search by the engine-computed display name (AB#4813)
       fieldFilters.push({
-        attributePath: 'rtId',
+        attributePath: 'rtDisplayName',
         operator: FieldFilterOperatorsDto.LikeDto,
         comparisonValue: options.textSearch.trim()
       });
@@ -110,7 +120,9 @@ export class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSour
             rtId: item.rtId,
             ckTypeId: item.ckTypeId,
             rtWellKnownName: item.rtWellKnownName ?? undefined,
-            displayName: item.rtWellKnownName || item.rtId
+            rtDisplayName: item.rtDisplayName,
+            rtDisplayDescription: item.rtDisplayDescription ?? undefined,
+            displayName: item.rtDisplayName || item.rtWellKnownName || item.rtId
           }));
 
         return {

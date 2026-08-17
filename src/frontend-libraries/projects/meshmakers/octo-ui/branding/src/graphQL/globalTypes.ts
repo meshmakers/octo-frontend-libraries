@@ -230,6 +230,8 @@ export type BasicAssetDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -569,6 +571,8 @@ export type BasicCityDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -851,6 +855,8 @@ export type BasicCountryDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -1100,6 +1106,8 @@ export type BasicDistrictDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -1346,6 +1354,8 @@ export type BasicDocumentDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -1492,6 +1502,8 @@ export type BasicDocumentInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -1633,6 +1645,8 @@ export type BasicEmployeeDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -1956,6 +1970,8 @@ export type BasicEnergyConsumerDto = BasicEnergyMeteringPointInterfaceDto & Basi
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -2211,6 +2227,8 @@ export type BasicEnergyEdaMessageDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -2466,6 +2484,8 @@ export type BasicEnergyEdaMeteringPointDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -2677,6 +2697,8 @@ export type BasicEnergyEdaProcessDto = BasicNamedEntityInterfaceDto & SystemEnti
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -2937,6 +2959,8 @@ export type BasicEnergyEnergyMeasurementDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -3206,6 +3230,8 @@ export type BasicEnergyMeteringPointDto = BasicNamedEntityInterfaceDto & SystemE
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -3386,6 +3412,8 @@ export type BasicEnergyMeteringPointInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -3599,6 +3627,8 @@ export type BasicEnergyOperatingFacilityDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -3884,6 +3914,8 @@ export type BasicEnergyProducerDto = BasicEnergyMeteringPointInterfaceDto & Basi
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -4210,6 +4242,8 @@ export type BasicNamedEntityDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -4356,6 +4390,8 @@ export type BasicNamedEntityInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -4505,6 +4541,8 @@ export type BasicStateDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -4765,6 +4803,8 @@ export type BasicTreeDto = BasicNamedEntityInterfaceDto & SystemEntityInterfaceD
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -4971,6 +5011,8 @@ export type BasicTreeNodeDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -6466,6 +6508,8 @@ export type EnergyCommunityBillingDocumentDto = BasicDocumentInterfaceDto & Syst
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -6682,6 +6726,8 @@ export type EnergyCommunityBillingDocumentLineItemDto = SystemEntityInterfaceDto
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -7142,6 +7188,8 @@ export type EnergyCommunityConsumerDto = BasicNamedEntityInterfaceDto & EnergyCo
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -7414,6 +7462,8 @@ export type EnergyCommunityCustomerDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -7729,6 +7779,8 @@ export type EnergyCommunityEdaMessageDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -7985,6 +8037,8 @@ export type EnergyCommunityEdaMeteringPointDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -8197,6 +8251,8 @@ export type EnergyCommunityEdaProcessDto = BasicNamedEntityInterfaceDto & System
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -8455,6 +8511,8 @@ export type EnergyCommunityEnergyPriceDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -8658,6 +8716,8 @@ export type EnergyCommunityEnergyQuantityDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -8972,6 +9032,8 @@ export type EnergyCommunityMeteringPointDto = BasicNamedEntityInterfaceDto & Sys
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -9182,6 +9244,8 @@ export type EnergyCommunityMeteringPointInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -9453,6 +9517,8 @@ export type EnergyCommunityOperatingFacilityDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -9775,6 +9841,8 @@ export type EnergyCommunityParticipationPeriodDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -10029,6 +10097,8 @@ export type EnergyCommunityProducerDto = BasicNamedEntityInterfaceDto & EnergyCo
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -10345,6 +10415,8 @@ export type EnvironmentCarbonBudgetDto = BasicNamedEntityInterfaceDto & SystemEn
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -10570,6 +10642,8 @@ export type EnvironmentCarbonEmissionDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -10803,6 +10877,8 @@ export type EnvironmentCertificateOfOriginDto = BasicNamedEntityInterfaceDto & S
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -11039,6 +11115,8 @@ export type EnvironmentComplianceRecordDto = BasicNamedEntityInterfaceDto & Syst
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -11282,6 +11360,8 @@ export type EnvironmentEnvironmentalGoalDto = BasicNamedEntityInterfaceDto & Sys
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -11511,6 +11591,8 @@ export type EnvironmentWasteMeterDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -11846,6 +11928,8 @@ export type IndustryBasicAlarmDto = BasicNamedEntityInterfaceDto & SystemEntityI
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -12186,6 +12270,8 @@ export type IndustryBasicEventDto = BasicNamedEntityInterfaceDto & SystemEntityI
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -12535,6 +12621,8 @@ export type IndustryBasicMachineDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -12899,6 +12987,8 @@ export type IndustryBasicRuntimeVariableDto = BasicNamedEntityInterfaceDto & Sys
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -13159,6 +13249,8 @@ export type IndustryEnergyDemandResponseEventDto = BasicNamedEntityInterfaceDto 
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -13410,6 +13502,8 @@ export type IndustryEnergyEnergyConsumerDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -13729,6 +13823,8 @@ export type IndustryEnergyEnergyCostDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -13951,6 +14047,8 @@ export type IndustryEnergyEnergyForecastDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -14189,6 +14287,8 @@ export type IndustryEnergyEnergyMeterDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -14519,6 +14619,8 @@ export type IndustryEnergyEnergyPerformanceIndicatorDto = BasicNamedEntityInterf
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -14755,6 +14857,8 @@ export type IndustryEnergyEnergyStorageDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -15100,6 +15204,8 @@ export type IndustryEnergyInverterDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -15445,6 +15551,8 @@ export type IndustryEnergyPhotovoltaicSystemDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -15686,6 +15794,8 @@ export type IndustryEnergyPhotovoltaicSystemModuleDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -16026,6 +16136,8 @@ export type IndustryEnergyPhotovoltaicSystemStringDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -16323,6 +16435,8 @@ export type IndustryFluidHeatMeterDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -16658,6 +16772,8 @@ export type IndustryFluidWaterMeterDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -16980,6 +17096,8 @@ export type IndustryMaintenanceAccountDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -17244,6 +17362,8 @@ export type IndustryMaintenanceCostCenterDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -17554,6 +17674,8 @@ export type IndustryMaintenanceEmployeeDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -17864,6 +17986,8 @@ export type IndustryMaintenanceEnergyBalanceDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -18131,6 +18255,8 @@ export type IndustryMaintenanceJournalEntryDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -18432,6 +18558,8 @@ export type IndustryMaintenanceOrderDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -18631,6 +18759,8 @@ export type IndustryMaintenanceOrderCostsDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -18890,6 +19020,8 @@ export type IndustryMaintenanceOrderFeedbackDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -19356,6 +19488,8 @@ export type IndustryMaintenanceWorkplaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -19643,6 +19777,8 @@ export type IndustryManufacturingPartialFeedbackDto = SystemEntityInterfaceDto &
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -19940,6 +20076,8 @@ export type IndustryManufacturingProductionOrderDto = SystemEntityInterfaceDto &
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -20134,6 +20272,8 @@ export type IndustryManufacturingProductionOrderItemDto = SystemEntityInterfaceD
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -20556,6 +20696,8 @@ export type IndustryManufacturingShiftDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -20744,6 +20886,8 @@ export type IndustryManufacturingShiftMachineDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -21102,6 +21246,8 @@ export type IndustryManufacturingShiftOrderItemDto = SystemEntityInterfaceDto & 
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -21428,6 +21574,8 @@ export type IndustryManufacturingShiftTemplateDto = BasicNamedEntityInterfaceDto
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -21748,6 +21896,8 @@ export type OctoSdkDemoCustomerDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -22033,6 +22183,8 @@ export type OctoSdkDemoMeteringPointDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -22308,6 +22460,8 @@ export type OctoSdkDemoOperatingFacilityDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -24521,6 +24675,8 @@ export type RtEntityDto = {
   ckTypeId: Scalars['RtCkTypeId']['output'];
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -24890,6 +25046,8 @@ export type RtSimpleQueryRowDto = RtQueryRowDto & {
   ckTypeId?: Maybe<Scalars['RtCkTypeId']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId?: Maybe<Scalars['OctoObjectId']['output']>;
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -28583,6 +28741,8 @@ export type SystemAggregationRtQueryDto = SystemEntityInterfaceDto & SystemPersi
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -28798,6 +28958,8 @@ export type SystemAggregationSdQueryDto = SystemEntityInterfaceDto & SystemPersi
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtIds?: Maybe<Array<Scalars['String']['output']>>;
   rtVersion?: Maybe<Scalars['ULong']['output']>;
@@ -29027,6 +29189,8 @@ export type SystemAiAiAgentConfigDto = SystemConfigurationInterfaceDto & SystemE
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -29254,6 +29418,8 @@ export type SystemAiAiAgentJobDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -29508,6 +29674,8 @@ export type SystemAiAiAgentSessionDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -29773,6 +29941,8 @@ export type SystemAiAiApprovalRequestDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -29984,6 +30154,8 @@ export type SystemAiAiAuditEventDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -30190,6 +30362,8 @@ export type SystemAiAiCredentialBindingDto = SystemConfigurationInterfaceDto & S
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -30411,6 +30585,8 @@ export type SystemAiAiCredentialTicketDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -30618,6 +30794,8 @@ export type SystemAiAiKnowledgeSourceDto = SystemConfigurationInterfaceDto & Sys
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -30839,6 +31017,8 @@ export type SystemAiAiPromptTemplateDto = SystemConfigurationInterfaceDto & Syst
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -31061,6 +31241,8 @@ export type SystemAiAiQuotaLimitDto = SystemConfigurationInterfaceDto & SystemEn
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -31286,6 +31468,8 @@ export type SystemAiAiSessionEventDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -31495,6 +31679,8 @@ export type SystemAiAiTokenLeaseDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -31710,6 +31896,8 @@ export type SystemAiAiToolPolicyDto = SystemConfigurationInterfaceDto & SystemEn
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -31934,6 +32122,8 @@ export type SystemAiAiUsageRecordDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -32297,6 +32487,8 @@ export type SystemAutoIncrementDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -32500,6 +32692,8 @@ export type SystemBlueprintBackupDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -32711,6 +32905,8 @@ export type SystemBlueprintHistoryDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -32925,6 +33121,8 @@ export type SystemBlueprintInstallationDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -33134,6 +33332,8 @@ export type SystemBotAttributeAggregateConfigurationDto = SystemEntityInterfaceD
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -33386,6 +33586,8 @@ export type SystemBotFixupDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -33614,6 +33816,8 @@ export type SystemCommunicationAdapterDto = SystemCommunicationDeployableEntityI
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -33956,6 +34160,8 @@ export type SystemCommunicationAiConfigurationDto = SystemConfigurationInterface
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -34187,6 +34393,8 @@ export type SystemCommunicationApplicationDto = SystemCommunicationDeployableEnt
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -34448,6 +34656,8 @@ export type SystemCommunicationDataFlowDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -34713,6 +34923,8 @@ export type SystemCommunicationDataPointMappingDto = SystemEntityInterfaceDto & 
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -35010,6 +35222,8 @@ export type SystemCommunicationDeployableEntityDto = SystemEntityInterfaceDto & 
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -35160,6 +35374,8 @@ export type SystemCommunicationDeployableEntityInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -35292,6 +35508,8 @@ export type SystemCommunicationDeployableWorkloadDto = SystemCommunicationDeploy
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -35479,6 +35697,8 @@ export type SystemCommunicationDeployableWorkloadInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -35698,6 +35918,8 @@ export type SystemCommunicationDiscordConfigurationDto = SystemConfigurationInte
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -35918,6 +36140,8 @@ export type SystemCommunicationEMailReceiverConfigurationDto = SystemConfigurati
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -36142,6 +36366,8 @@ export type SystemCommunicationEMailSenderConfigurationDto = SystemConfiguration
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -36364,6 +36590,8 @@ export type SystemCommunicationEdaConfigurationDto = SystemConfigurationInterfac
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -36597,6 +36825,8 @@ export type SystemCommunicationEnergyCommunityConfigurationDto = SystemConfigura
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -36842,6 +37072,8 @@ export type SystemCommunicationFinApiConfigurationDto = SystemConfigurationInter
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -37068,6 +37300,8 @@ export type SystemCommunicationGrafanaConfigurationDto = SystemConfigurationInte
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -37297,6 +37531,8 @@ export type SystemCommunicationHelmRepositoryConfigurationDto = SystemConfigurat
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -37565,6 +37801,8 @@ export type SystemCommunicationLoxoneConfigurationDto = SystemConfigurationInter
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -37804,6 +38042,8 @@ export type SystemCommunicationMicrosoftGraphConfigurationDto = SystemConfigurat
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -38033,6 +38273,8 @@ export type SystemCommunicationPipelineDto = SystemCommunicationDeployableEntity
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -38304,6 +38546,8 @@ export type SystemCommunicationPipelineExecutionDto = SystemEntityInterfaceDto &
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -38679,6 +38923,8 @@ export type SystemCommunicationPipelineStatisticsDto = SystemEntityInterfaceDto 
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -38942,6 +39188,8 @@ export type SystemCommunicationPipelineTriggerDto = SystemCommunicationDeployabl
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -39473,6 +39721,8 @@ export type SystemCommunicationPoolDto = SystemCommunicationDeployableEntityInte
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -39735,6 +39985,8 @@ export type SystemCommunicationSapConfigurationDto = SystemConfigurationInterfac
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -39967,6 +40219,8 @@ export type SystemCommunicationServiceAccountConfigurationDto = SystemConfigurat
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -40191,6 +40445,8 @@ export type SystemCommunicationSftpConfigurationDto = SystemConfigurationInterfa
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -40414,6 +40670,8 @@ export type SystemCommunicationTagDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -40690,6 +40948,8 @@ export type SystemConfigurationDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -40849,6 +41109,8 @@ export type SystemConfigurationInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -41021,6 +41283,8 @@ export type SystemDownsamplingSdQueryDto = SystemEntityInterfaceDto & SystemPers
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtIds?: Maybe<Array<Scalars['String']['output']>>;
   rtVersion?: Maybe<Scalars['ULong']['output']>;
@@ -41231,6 +41495,8 @@ export type SystemEntityDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -41375,6 +41641,8 @@ export type SystemEntityInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -41733,6 +42001,8 @@ export type SystemGroupingAggregationRtQueryDto = SystemEntityInterfaceDto & Sys
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -41950,6 +42220,8 @@ export type SystemGroupingAggregationSdQueryDto = SystemEntityInterfaceDto & Sys
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtIds?: Maybe<Array<Scalars['String']['output']>>;
   rtVersion?: Maybe<Scalars['ULong']['output']>;
@@ -42169,6 +42441,8 @@ export type SystemIdentityApiResourceDto = SystemEntityInterfaceDto & SystemIden
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -42385,6 +42659,8 @@ export type SystemIdentityApiScopeDto = SystemEntityInterfaceDto & SystemIdentit
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -42600,6 +42876,8 @@ export type SystemIdentityAzureEntraIdIdentityProviderDto = SystemEntityInterfac
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -42861,6 +43139,8 @@ export type SystemIdentityClientDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -43135,6 +43415,8 @@ export type SystemIdentityClientMirrorDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -43413,6 +43695,8 @@ export type SystemIdentityDataProtectionKeyDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -43616,6 +43900,8 @@ export type SystemIdentityEmailDomainGroupRuleDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -43819,6 +44105,8 @@ export type SystemIdentityExternalTenantUserMappingDto = SystemEntityInterfaceDt
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -44046,6 +44334,8 @@ export type SystemIdentityFacebookIdentityProviderDto = SystemEntityInterfaceDto
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -44259,6 +44549,8 @@ export type SystemIdentityGoogleIdentityProviderDto = SystemEntityInterfaceDto &
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -44471,6 +44763,8 @@ export type SystemIdentityGroupDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -44824,6 +45118,8 @@ export type SystemIdentityIdentityProviderDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -44974,6 +45270,8 @@ export type SystemIdentityIdentityProviderInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -45100,6 +45398,8 @@ export type SystemIdentityIdentityResourceDto = SystemEntityInterfaceDto & Syste
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -45314,6 +45614,8 @@ export type SystemIdentityMicrosoftAdIdentityProviderDto = SystemEntityInterface
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -45533,6 +45835,8 @@ export type SystemIdentityMicrosoftIdentityProviderDto = SystemEntityInterfaceDt
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -45745,6 +46049,8 @@ export type SystemIdentityOctoTenantIdentityProviderDto = SystemEntityInterfaceD
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -45957,6 +46263,8 @@ export type SystemIdentityOpenLdapIdentityProviderDto = SystemEntityInterfaceDto
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -46170,6 +46478,8 @@ export type SystemIdentityPermissionDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -46359,6 +46669,8 @@ export type SystemIdentityPermissionRoleDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -46582,6 +46894,8 @@ export type SystemIdentityPersistedGrantDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -46796,6 +47110,8 @@ export type SystemIdentityResourceDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -46946,6 +47262,8 @@ export type SystemIdentityResourceInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -47071,6 +47389,8 @@ export type SystemIdentityRoleDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -47352,6 +47672,8 @@ export type SystemIdentityServerSideSessionDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -47598,6 +47920,8 @@ export type SystemIdentityUserDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -47948,6 +48272,8 @@ export type SystemMigrationHistoryDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -48170,6 +48496,8 @@ export type SystemNotificationCssTemplateConfigurationDto = SystemConfigurationI
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -48386,6 +48714,8 @@ export type SystemNotificationEventDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -48628,6 +48958,8 @@ export type SystemNotificationMailNotificationConfigurationDto = SystemConfigura
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -48845,6 +49177,8 @@ export type SystemNotificationNotificationTemplateDto = SystemEntityInterfaceDto
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -49063,6 +49397,8 @@ export type SystemNotificationStatefulEventDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -49270,6 +49606,8 @@ export type SystemPersistentQueryDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -49418,6 +49756,8 @@ export type SystemPersistentQueryInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -49547,6 +49887,8 @@ export type SystemReportingConnectionInfoDto = SystemConfigurationInterfaceDto &
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -49764,6 +50106,8 @@ export type SystemReportingFileSystemContainerDto = SystemEntityInterfaceDto & S
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -49924,6 +50268,8 @@ export type SystemReportingFileSystemContainerInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -50087,6 +50433,8 @@ export type SystemReportingFileSystemEntityDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -50232,6 +50580,8 @@ export type SystemReportingFileSystemEntityInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -50354,6 +50704,8 @@ export type SystemReportingFileSystemItemDto = SystemEntityInterfaceDto & System
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -50571,6 +50923,8 @@ export type SystemReportingFolderDto = SystemEntityInterfaceDto & SystemReportin
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -50788,6 +51142,8 @@ export type SystemReportingFolderRootDto = SystemEntityInterfaceDto & SystemRepo
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -51050,6 +51406,8 @@ export type SystemSimpleRtQueryDto = SystemEntityInterfaceDto & SystemPersistent
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -51267,6 +51625,8 @@ export type SystemSimpleSdQueryDto = SystemEntityInterfaceDto & SystemPersistent
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtIds?: Maybe<Array<Scalars['String']['output']>>;
   rtVersion?: Maybe<Scalars['ULong']['output']>;
@@ -51511,6 +51871,8 @@ export type SystemStreamDataArchiveDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -51666,6 +52028,8 @@ export type SystemStreamDataArchiveInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -51985,6 +52349,8 @@ export type SystemStreamDataQueryDto = SystemEntityInterfaceDto & SystemPersiste
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtIds?: Maybe<Array<Scalars['String']['output']>>;
   rtVersion?: Maybe<Scalars['ULong']['output']>;
@@ -52139,6 +52505,8 @@ export type SystemStreamDataQueryInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtIds?: Maybe<Array<Scalars['String']['output']>>;
   rtVersion?: Maybe<Scalars['ULong']['output']>;
@@ -52269,6 +52637,8 @@ export type SystemStreamDataRawArchiveDto = SystemEntityInterfaceDto & SystemStr
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -52486,6 +52856,8 @@ export type SystemStreamDataRecomputeJobDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtIdScope?: Maybe<Scalars['String']['output']>;
   rtVersion?: Maybe<Scalars['ULong']['output']>;
@@ -52717,6 +53089,8 @@ export type SystemStreamDataRollupArchiveDto = SystemEntityInterfaceDto & System
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -52947,6 +53321,8 @@ export type SystemStreamDataTimeRangeArchiveDto = SystemEntityInterfaceDto & Sys
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -53160,6 +53536,8 @@ export type SystemTenantDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -53283,6 +53661,8 @@ export type SystemTenantConfigurationDto = SystemConfigurationInterfaceDto & Sys
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -53547,6 +53927,8 @@ export type SystemTenantModeConfigurationDto = SystemConfigurationInterfaceDto &
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -53826,6 +54208,8 @@ export type SystemUiBrandingDto = SystemEntityInterfaceDto & SystemUiuiElementIn
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -54038,6 +54422,8 @@ export type SystemUiDashboardDto = SystemEntityInterfaceDto & SystemUiuiElementI
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -54265,6 +54651,8 @@ export type SystemUiDashboardWidgetDto = SystemEntityInterfaceDto & SystemUiuiEl
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -54557,6 +54945,8 @@ export type SystemUiProcessDiagramDto = SystemEntityInterfaceDto & SystemUiuiEle
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -54786,6 +55176,8 @@ export type SystemUiSymbolDefinitionDto = SystemEntityInterfaceDto & SystemUiuiE
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -55051,6 +55443,8 @@ export type SystemUiSymbolLibraryDto = SystemEntityInterfaceDto & SystemUiuiElem
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -55339,6 +55733,8 @@ export type SystemUiTreeNavigationConfigurationDto = SystemEntityInterfaceDto & 
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -55590,6 +55986,8 @@ export type SystemUiuiElementDto = SystemEntityInterfaceDto & {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
@@ -55734,6 +56132,8 @@ export type SystemUiuiElementInterfaceDto = {
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  rtDisplayName: Scalars['String']['output'];
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;

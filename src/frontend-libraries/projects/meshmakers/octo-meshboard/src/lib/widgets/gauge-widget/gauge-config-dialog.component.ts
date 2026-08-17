@@ -939,7 +939,9 @@ export class GaugeConfigDialogComponent implements OnInit {
           rtId: entity.rtId,
           ckTypeId: entity.ckTypeId,
           rtWellKnownName: entity.rtWellKnownName ?? undefined,
-          displayName: entity.rtWellKnownName || entity.rtId
+          rtDisplayName: entity.rtDisplayName,
+          rtDisplayDescription: entity.rtDisplayDescription ?? undefined,
+          displayName: entity.rtDisplayName || entity.rtWellKnownName || entity.rtId
         };
       }
     } catch (error) {
