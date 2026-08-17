@@ -184,6 +184,11 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   getEntityDisplayName(): string {
     if (!this.entity) return 'Unknown Entity';
 
+    // Engine-computed display name first (AB#4813); legacy attribute chain as fallback
+    if (this.entity.rtDisplayName) {
+      return this.entity.rtDisplayName;
+    }
+
     const nameAttr = this.entity.attributes?.items?.find(
       (attr) =>
         attr?.attributeName === 'name' || attr?.attributeName === 'displayName',

@@ -14,6 +14,8 @@ query getMappingCoverageNode(
     runtimeEntities(rtId: $rtId, ckId: $ckTypeId) {
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
         rtWellKnownName
         attributes(attributeNames: ["name", "description"]) {
@@ -42,6 +44,8 @@ query getMappingCoverageNode(
             totalCount
             items {
               rtId
+              rtDisplayName
+              rtDisplayDescription
               ckTypeId
               attributes(attributeNames: ["name", "description"]) {
                 items {

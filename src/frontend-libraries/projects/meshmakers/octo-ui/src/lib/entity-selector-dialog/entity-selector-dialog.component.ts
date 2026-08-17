@@ -208,7 +208,12 @@ export class EntitySelectorDialogComponent implements OnInit {
       this.selectedEntity = {
         rtId: entity.rtId,
         ckTypeId: entity.ckTypeId!,
-        name: (nameAttr?.value as string) ?? entity.rtWellKnownName ?? undefined,
+        // Engine-computed display name first (AB#4813); legacy attribute chain as fallback
+        name:
+          entity.rtDisplayName ??
+          (nameAttr?.value as string) ??
+          entity.rtWellKnownName ??
+          undefined,
       };
     } else {
       this.selectedEntity = null;

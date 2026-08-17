@@ -145,6 +145,8 @@ const GET_ROOT_ENTITIES_BY_CK_TYPE = gql`
           rtId
           ckTypeId
           rtWellKnownName
+          rtDisplayName
+          rtDisplayDescription
           attributes(attributeNames: ["name", "displayName", "description"]) {
             items {
               attributeName
@@ -860,8 +862,16 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     return `assoc:${parentCkTypeId}@${parentRtId}:${role.roleId}:${role.targetCkTypeId}`;
   }
 
-  /** Resolves the display label of an entity from its name/displayName attributes. */
+  /**
+   * Resolves the display label of an entity: the engine-computed rtDisplayName (AB#4813,
+   * backend guarantees a value) with the legacy name/displayName-attribute chain as
+   * fallback for backends that do not compute display names yet.
+   */
   private extractDisplayName(entity: RtEntityDto): string {
+    if (entity.rtDisplayName) {
+      return entity.rtDisplayName;
+    }
+
     const nameValue = entity.attributes?.items?.find(
       (x) => x?.attributeName === 'name',
     )?.value;
@@ -881,8 +891,12 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     );
   }
 
-  /** Resolves the tooltip of an entity from its description attribute. */
+  /** Resolves the tooltip of an entity: rtDisplayDescription first, description attribute as fallback. */
   private extractTooltip(entity: RtEntityDto): string {
+    if (entity.rtDisplayDescription) {
+      return entity.rtDisplayDescription;
+    }
+
     const descValue = entity.attributes?.items?.find(
       (x) => x?.attributeName === 'description',
     )?.value;
@@ -966,7 +980,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
             );
           }
 
-          // Extract display information
+          // Engine-computed display name first (AB#4813); legacy attribute chain as fallback
           const nameValue = item.attributes?.items?.find(
             (x) => x?.attributeName === 'name',
           )?.value;
@@ -974,12 +988,8 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
             (x) => x?.attributeName === 'displayName',
           )?.value;
 
-          // Debug logging
-          if (typeof nameValue === 'object') {
-            console.warn('Name value is an object:', nameValue);
-          }
-
           const text =
+            item.rtDisplayName ||
             (typeof nameValue === 'string'
               ? nameValue
               : typeof nameValue === 'object' && nameValue !== null
@@ -992,6 +1002,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
             (x) => x?.attributeName === 'description',
           )?.value;
           const tooltip =
+            item.rtDisplayDescription ||
             (typeof descValue === 'string' ? descValue : null) ||
             `${item.ckTypeId} - ${item.rtId}`;
 

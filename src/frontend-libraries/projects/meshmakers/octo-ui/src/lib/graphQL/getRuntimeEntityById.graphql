@@ -3,6 +3,8 @@ query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!) {
     runtimeEntities(ckId: $ckTypeId, rtId: $rtId) {
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
         rtWellKnownName
         rtCreationDateTime

@@ -19,6 +19,8 @@ query getTreeAssociationTargets(
             totalCount
             items {
               rtId
+              rtDisplayName
+              rtDisplayDescription
               ckTypeId
               rtWellKnownName
               attributes(

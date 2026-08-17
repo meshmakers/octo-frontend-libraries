@@ -22,6 +22,8 @@ query getRuntimeEntitiesByType(
       }
       items {
         rtId
+        rtDisplayName
+        rtDisplayDescription
         ckTypeId
         rtWellKnownName
         rtCreationDateTime
