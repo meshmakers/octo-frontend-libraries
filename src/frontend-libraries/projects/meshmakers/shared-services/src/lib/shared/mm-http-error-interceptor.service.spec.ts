@@ -262,7 +262,7 @@ describe('MmHttpErrorInterceptor', () => {
         // OperationFailedErrorDto hardcodes statusCode 400 into the body even on a 409 response, so
         // the 400 branch can never match one. Without a dedicated branch the user sees nothing at
         // all — which is what made a rejected tenant create look like a silent failure (AB#4762).
-        const req = new HttpRequest('POST', '/octosystem/v1/tenants');
+        const req = new HttpRequest('POST', '/octosystem/v1/tenants', null);
         const error = new HttpErrorResponse({
           status: 409,
           error: { statusCode: 400, statusDescription: 'BadRequest', message: "Tenant ID 'abc' is already in use." }
@@ -281,7 +281,7 @@ describe('MmHttpErrorInterceptor', () => {
       });
 
       it('should not show a message for a 409 without a message body', (done) => {
-        const req = new HttpRequest('POST', '/octosystem/v1/tenants');
+        const req = new HttpRequest('POST', '/octosystem/v1/tenants', null);
         const error = new HttpErrorResponse({ status: 409, error: null });
         httpHandlerMock.handle.and.returnValue(throwError(() => error));
 
