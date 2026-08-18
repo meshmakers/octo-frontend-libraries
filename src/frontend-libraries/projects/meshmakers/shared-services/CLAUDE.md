@@ -120,7 +120,21 @@ Routes define context menus via `data.navigationMenu`:
 
 `MmHttpErrorInterceptor` handles:
 - **Status 0**: Network connectivity errors
+- **Status 403**: Access-denied toast
 - **Status 400 with `ApiErrorDto`**: Parses structured error response with details
+- **Status 409 with a message body**: same rendering as 400
+
+The 409 branch matches on the **message**, not on `statusCode`, and that is deliberate:
+`OperationFailedErrorDto` hardcodes `HttpStatusCode.BadRequest` into its serialized body even when the
+response is a 409, so a conflict can never satisfy the `statusCode`-based 400 check. Without the extra
+branch a conflict rendered nothing at all — which is how a rejected tenant creation reached the user
+as a silent failure (AB#4762). Fixing the DTO's hardcoded status would be the tidier root cause but is
+a cross-cutting SDK change touching every error path in the platform.
+
+`showErrorWithDetails(message, details)` takes the toast **headline first**: the first argument
+becomes the visible toast text, the second the expandable details. The interceptor passes
+`(apiError.message, details)` — swapped arguments rendered a blank headline for every body without a
+details list, which is every `OperationFailedErrorDto`.
 
 ### Stale-Chunk Recovery (`provideStaleChunkRecovery()`)
 

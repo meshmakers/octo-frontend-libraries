@@ -120,8 +120,8 @@ describe('MmHttpErrorInterceptor', () => {
         interceptor.intercept(req, httpHandlerMock).subscribe({
           error: () => {
             expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
-              '\n✗ Field is required',
-              'Validation failed'
+              'Validation failed',
+              '\n✗ Field is required'
             );
             done();
           }
@@ -149,8 +149,8 @@ describe('MmHttpErrorInterceptor', () => {
         interceptor.intercept(req, httpHandlerMock).subscribe({
           error: () => {
             expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
-              '\n✗ First error\n✗ Second error\n✗ Third error',
-              'Multiple errors'
+              'Multiple errors',
+              '\n✗ First error\n✗ Second error\n✗ Third error'
             );
             done();
           }
@@ -173,8 +173,8 @@ describe('MmHttpErrorInterceptor', () => {
         interceptor.intercept(req, httpHandlerMock).subscribe({
           error: () => {
             expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
-              '',
-              'Error without details'
+              'Error without details',
+              ''
             );
             done();
           }
@@ -198,8 +198,8 @@ describe('MmHttpErrorInterceptor', () => {
         interceptor.intercept(req, httpHandlerMock).subscribe({
           error: () => {
             expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
-              '',
-              'Empty details'
+              'Empty details',
+              ''
             );
             done();
           }
@@ -227,8 +227,8 @@ describe('MmHttpErrorInterceptor', () => {
         interceptor.intercept(req, httpHandlerMock).subscribe({
           error: () => {
             expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
-              '\n✗ Has description\n✗ Another description',
-              'Mixed details'
+              'Mixed details',
+              '\n✗ Has description\n✗ Another description'
             );
             done();
           }
@@ -250,6 +250,46 @@ describe('MmHttpErrorInterceptor', () => {
 
         interceptor.intercept(req, httpHandlerMock).subscribe({
           error: (err) => {
+            expect(err).toBe(error);
+            done();
+          }
+        });
+      });
+    });
+
+    describe('conflicts (status 409)', () => {
+      it('should show the server message for a 409 conflict', (done) => {
+        // OperationFailedErrorDto hardcodes statusCode 400 into the body even on a 409 response, so
+        // the 400 branch can never match one. Without a dedicated branch the user sees nothing at
+        // all — which is what made a rejected tenant create look like a silent failure (AB#4762).
+        // The server message must land in the FIRST argument (the toast headline) — swapped
+        // arguments rendered a blank headline for every body without a details list.
+        const req = new HttpRequest('POST', '/octosystem/v1/tenants', null);
+        const error = new HttpErrorResponse({
+          status: 409,
+          error: { statusCode: 400, statusDescription: 'BadRequest', message: "Tenant ID 'abc' is already in use." }
+        });
+        httpHandlerMock.handle.and.returnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: () => {
+            expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
+              "Tenant ID 'abc' is already in use.",
+              ''
+            );
+            done();
+          }
+        });
+      });
+
+      it('should not show a message for a 409 without a message body', (done) => {
+        const req = new HttpRequest('POST', '/octosystem/v1/tenants', null);
+        const error = new HttpErrorResponse({ status: 409, error: null });
+        httpHandlerMock.handle.and.returnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: (err) => {
+            expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
             expect(err).toBe(error);
             done();
           }

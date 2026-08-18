@@ -51,7 +51,11 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
           this.messageService.showError('Access denied. You do not have permission to access this tenant or resource.');
         }
 
-        if (error.status === 400 && error.error.statusCode) {
+        // 409 is matched on the message alone: OperationFailedErrorDto hardcodes a BadRequest
+        // statusCode into its body, so a conflict response carries statusCode 400 and would never
+        // satisfy the check below. Without this branch a 409 is shown to the user as nothing at all
+        // (AB#4762).
+        if ((error.status === 400 && error.error?.statusCode) || (error.status === 409 && error.error?.message)) {
           const apiError = error.error as ApiErrorDto;
 
           let details = '';
@@ -63,7 +67,11 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
             }
           }
 
-          this.messageService.showErrorWithDetails(details, apiError.message);
+          // Argument order is (message, details): the first argument becomes the toast headline,
+          // the second the expandable details. Passing them swapped rendered an empty headline
+          // whenever the body carried no details list — which is every OperationFailedErrorDto,
+          // so a rejected tenant create showed a blank error toast (AB#4762).
+          this.messageService.showErrorWithDetails(apiError.message, details);
         }
 
         return throwError(() => error);
