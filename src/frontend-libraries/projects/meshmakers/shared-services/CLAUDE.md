@@ -131,6 +131,11 @@ branch a conflict rendered nothing at all — which is how a rejected tenant cre
 as a silent failure (AB#4762). Fixing the DTO's hardcoded status would be the tidier root cause but is
 a cross-cutting SDK change touching every error path in the platform.
 
+`showErrorWithDetails(message, details)` takes the toast **headline first**: the first argument
+becomes the visible toast text, the second the expandable details. The interceptor passes
+`(apiError.message, details)` — swapped arguments rendered a blank headline for every body without a
+details list, which is every `OperationFailedErrorDto`.
+
 ### Stale-Chunk Recovery (`provideStaleChunkRecovery()`)
 
 `StaleChunkErrorHandler` is an `ErrorHandler` that recognises errors caused by a server-side bundle redeploy while a tab was idle — the typical symptoms are `Loading chunk … failed`, `Failed to fetch dynamically imported module`, and `JIT compiler unavailable` (Angular falls back to JIT when an AOT lazy chunk can't be located). When such an error is detected the handler reloads the page once; a `sessionStorage` guard (`octo_stale_chunk_reload_at`, 30 s window) prevents infinite reload loops if the error keeps recurring on the fresh bundle. All other errors are delegated to Angular's default handler.

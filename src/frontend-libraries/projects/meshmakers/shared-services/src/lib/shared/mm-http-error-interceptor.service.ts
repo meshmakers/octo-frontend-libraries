@@ -67,7 +67,11 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
             }
           }
 
-          this.messageService.showErrorWithDetails(details, apiError.message);
+          // Argument order is (message, details): the first argument becomes the toast headline,
+          // the second the expandable details. Passing them swapped rendered an empty headline
+          // whenever the body carried no details list — which is every OperationFailedErrorDto,
+          // so a rejected tenant create showed a blank error toast (AB#4762).
+          this.messageService.showErrorWithDetails(apiError.message, details);
         }
 
         return throwError(() => error);
