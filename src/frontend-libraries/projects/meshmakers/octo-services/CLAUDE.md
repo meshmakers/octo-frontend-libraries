@@ -282,7 +282,7 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | Method | Description |
 |--------|-------------|
 | `enableCommunication(tenantId)` | Enable Communication feature (AB#4215) — `POST {communicationServices}{tenantId}/v1/communication/enable` |
-| `disableCommunication(tenantId)` | Disable Communication feature (destructive: tears down adapter wiring, AB#4215) — `POST {communicationServices}{tenantId}/v1/communication/disable` |
+| `disableCommunication(tenantId)` | Disable Communication feature (reversible flag flip; refused with 409 while pools or workloads are still deployed, AB#4255) — `POST {communicationServices}{tenantId}/v1/communication/disable` |
 | `deployTrigger(tenantId)` | Deploy all data pipeline triggers |
 | `deployAdapterConfigurationUpdate(tenantId, adapterRtId, adapterCkTypeId)` | Deploy adapter config update |
 | `deployAllAdaptersOfPool(tenantId, poolRtId)` | Deploy all adapters of a pool |
@@ -309,7 +309,7 @@ Tenant feature toggle for the Reporting feature (AB#4215). Backed by
 | Method | Description |
 |--------|-------------|
 | `enableReporting(tenantId)` | Enable Reporting feature — `POST {reportingServices}{tenantId}/v1/reporting/enable` |
-| `disableReporting(tenantId)` | Disable Reporting feature (destructive: drops backing storage) — `POST {reportingServices}{tenantId}/v1/reporting/disable` |
+| `disableReporting(tenantId)` | Disable Reporting feature (reversible flag flip, report data is kept; precondition for tenant delete/detach, AB#4255) — `POST {reportingServices}{tenantId}/v1/reporting/disable` |
 
 Throws when `reportingServices` is not configured; HTTP errors propagate to the caller.
 

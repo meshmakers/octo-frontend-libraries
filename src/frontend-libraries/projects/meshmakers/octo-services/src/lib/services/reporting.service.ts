@@ -41,9 +41,11 @@ export class ReportingService {
   }
 
   /**
-   * Disables the Reporting feature for a tenant. Drops the backing storage and
-   * removes the `System.Reporting` model. Destructive — the UI must confirm
-   * before calling. Errors propagate to the caller.
+   * Disables the Reporting feature for a tenant. Reversible flag flip: report
+   * definitions and stored reports stay in the tenant and are accessible again
+   * after `enableReporting`; until then the reporting API, designer and viewer
+   * answer 403. Precondition for tenant delete/detach (AB#4255). The UI must
+   * confirm before calling. Errors propagate to the caller.
    */
   async disableReporting(tenantId: string): Promise<void> {
     if (!this.reportingServicesUrl) {

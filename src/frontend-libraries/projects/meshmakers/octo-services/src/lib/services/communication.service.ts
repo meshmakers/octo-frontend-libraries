@@ -62,8 +62,10 @@ export class CommunicationService {
   }
 
   /**
-   * Disables the Communication feature for a tenant. Tears down the adapter
-   * wiring and removes the `System.Communication` model. Destructive — the UI
+   * Disables the Communication feature for a tenant. Reversible flag flip that
+   * removes the trigger schedules and unloads the tenant from the controller;
+   * nothing is undeployed. Refused with 409 while pools or workloads of the
+   * tenant are still deployed (AB#4255) — the error body names them. The UI
    * must confirm before calling. Errors propagate to the caller.
    */
   async disableCommunication(tenantId: string): Promise<void> {
