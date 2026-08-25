@@ -356,6 +356,34 @@ describe('AssetRepoService', () => {
     });
   });
 
+  describe('getStreamDataStatus (AB#4255)', () => {
+    it('should GET the tenant-scoped status endpoint and return the body', async () => {
+      const resultPromise = service.getStreamDataStatus('tenant-1');
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/status`);
+      expect(req.request.method).toBe('GET');
+      req.flush({ instanceEnabled: true, tenantEnabled: false });
+
+      expect(await resultPromise).toEqual({ instanceEnabled: true, tenantEnabled: false });
+    });
+
+    it('should propagate errors', async () => {
+      const resultPromise = service.getStreamDataStatus('tenant-1');
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/status`);
+      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
+
+      await expectAsync(resultPromise).toBeRejected();
+    });
+
+    it('should return null without a request when config is not available', async () => {
+      mockConfigService.config = null;
+
+      expect(await service.getStreamDataStatus('tenant-1')).toBeNull();
+      httpMock.expectNone(`${baseUrl}tenant-1/v1/streamdata/status`);
+    });
+  });
+
   describe('importRtModel', () => {
     it('should import RT model with default strategy and return job ID', async () => {
       const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });

@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 import {TenantDto} from '../shared/tenantDto';
+import {StreamDataStatus} from '../shared/streamDataDtos';
 import {firstValueFrom} from 'rxjs';
 import {ImportModelResponseDto} from '../shared/importModelResponseDto';
 import {ExportModelResponseDto} from '../shared/exportModelResponseDto';
@@ -122,9 +123,9 @@ export class AssetRepoService {
   }
 
   /**
-   * Enables the Stream Data feature for a tenant. Installs the
-   * `System.StreamData` CK model and provisions the backing time-series
-   * storage. Errors propagate to the caller.
+   * Enables the Stream Data feature for a tenant: switches the tenant flag on
+   * and imports the `System.StreamData` CK model. No time-series storage is
+   * provisioned until an archive is activated. Errors propagate to the caller.
    *
    * Tenant-scoped REST endpoint: `POST {assetServices}{tenantId}/v1/streamdata/enable`.
    */
@@ -136,10 +137,13 @@ export class AssetRepoService {
   }
 
   /**
-   * Disables the Stream Data feature for a tenant. Drops the backing
-   * time-series storage and removes the `System.StreamData` model.
-   * Destructive — the UI must confirm before calling. Errors propagate to the
-   * caller.
+   * Disables the Stream Data feature for a tenant: a reversible flag flip.
+   * Refused with HTTP 409 while any archive of the tenant is still activated —
+   * the `OperationFailedErrorDto` body names them and the remediation
+   * (`DisableArchive` / `DeleteArchive`). The `System.StreamData` model, the
+   * archive definitions and the stored stream data are kept; re-enabling
+   * restores access. Precondition for tenant delete/detach (AB#4255). Errors
+   * propagate to the caller.
    *
    * Tenant-scoped REST endpoint: `POST {assetServices}{tenantId}/v1/streamdata/disable`.
    */
@@ -148,6 +152,23 @@ export class AssetRepoService {
       const uri = `${this.configurationService.config.assetServices}${tenantId}/v1/streamdata/disable`;
       await firstValueFrom(this.httpClient.post<void>(uri, null, {observe: 'response'}));
     }
+  }
+
+  /**
+   * Reads the tenant-level Stream Data status. `tenantEnabled` reflects the
+   * tenant flag that `enableStreamData` / `disableStreamData` switch — unlike
+   * the presence of the `System.StreamData` CK model, which a disable keeps
+   * (AB#4255). Returns `null` when the asset service is not configured.
+   * Errors propagate to the caller.
+   *
+   * Tenant-scoped REST endpoint: `GET {assetServices}{tenantId}/v1/streamdata/status`.
+   */
+  public async getStreamDataStatus(tenantId: string): Promise<StreamDataStatus | null> {
+    if (!this.configurationService.config?.assetServices) {
+      return null;
+    }
+    const uri = `${this.configurationService.config.assetServices}${tenantId}/v1/streamdata/status`;
+    return await firstValueFrom(this.httpClient.get<StreamDataStatus>(uri));
   }
 
   public async importRtModel(tenantId: string, file: File, importStrategy: ImportStrategyDto = ImportStrategyDto.InsertOnly): Promise<string | null> {

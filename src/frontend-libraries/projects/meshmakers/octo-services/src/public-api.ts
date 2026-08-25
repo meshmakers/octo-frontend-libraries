@@ -44,6 +44,7 @@ export * from './lib/shared/tenantDto';
 export * from './lib/shared/adminPanelConfigurationDto';
 export * from './lib/shared/configurationDto';
 export * from './lib/shared/communicationDtos';
+export * from './lib/shared/streamDataDtos';
 export * from './lib/shared/movePipelineDtos';
 export * from './lib/shared/domainDtos';
 export * from './lib/shared/ck-model-catalog.dto';
