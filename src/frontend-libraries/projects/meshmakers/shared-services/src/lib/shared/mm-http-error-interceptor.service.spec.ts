@@ -439,6 +439,68 @@ describe('MmHttpErrorInterceptor', () => {
     });
   });
 
+  /**
+   * The predicate callers use to avoid a second toast for an error the interceptor already showed
+   * (AB#4255). It must say "true" for exactly the responses the intercept branches act on.
+   */
+  describe('reportsToUser', () => {
+    it('reports a connection loss (status 0) on a regular request', () => {
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 0, url: '/api/data' }))).toBeTrue();
+    });
+
+    it('does not report a connection loss on a health check', () => {
+      const error = new HttpErrorResponse({ status: 0, url: 'https://localhost:5009/health' });
+      expect(MmHttpErrorInterceptor.reportsToUser(error)).toBeFalse();
+    });
+
+    it('reports 403 Forbidden', () => {
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 403 }))).toBeTrue();
+    });
+
+    it('reports a 400 carrying an ApiErrorDto body', () => {
+      const error = new HttpErrorResponse({
+        status: 400,
+        error: { statusCode: 400, statusDescription: 'Bad Request', message: 'Validation failed' }
+      });
+      expect(MmHttpErrorInterceptor.reportsToUser(error)).toBeTrue();
+    });
+
+    it('reports a 409 carrying a message body (the capability disable guards, AB#4255)', () => {
+      const error = new HttpErrorResponse({
+        status: 409,
+        error: { statusCode: 400, message: "Stream data cannot be disabled for tenant 'a' while the following archives are still activated: RawArchive 'x' (Activated)." }
+      });
+      expect(MmHttpErrorInterceptor.reportsToUser(error)).toBeTrue();
+    });
+
+    it('does not report a 400 without statusCode, a 409 without a message body, or other statuses', () => {
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 400, error: { message: 'plain' } }))).toBeFalse();
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 400, error: 'already disabled' }))).toBeFalse();
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 409, error: null }))).toBeFalse();
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 401 }))).toBeFalse();
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 404 }))).toBeFalse();
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 500 }))).toBeFalse();
+    });
+
+    it('never reports anything that is not an HttpErrorResponse', () => {
+      expect(MmHttpErrorInterceptor.reportsToUser(new Error('boom'))).toBeFalse();
+      expect(MmHttpErrorInterceptor.reportsToUser('boom')).toBeFalse();
+      expect(MmHttpErrorInterceptor.reportsToUser(undefined)).toBeFalse();
+      expect(MmHttpErrorInterceptor.reportsToUser(null)).toBeFalse();
+      // A numeric status alone is not enough - only Angular's HttpErrorResponse shape counts.
+      expect(MmHttpErrorInterceptor.reportsToUser({ status: 403 })).toBeFalse();
+    });
+
+    it('recognises an HttpErrorResponse structurally, not by class identity', () => {
+      // The Studio's Karma run compiles this library from source with a second @angular/common
+      // instance; instanceof would be false there while the object is a real HttpErrorResponse.
+      const foreignInstance = Object.assign(Object.create(null), {
+        name: 'HttpErrorResponse', status: 409, error: { message: 'refused' }, url: '/api/data'
+      });
+      expect(MmHttpErrorInterceptor.reportsToUser(foreignInstance)).toBeTrue();
+    });
+  });
+
   describe('with ON_CONNECTION_LOST handler', () => {
     let connectionLostHandler: jasmine.Spy;
 
