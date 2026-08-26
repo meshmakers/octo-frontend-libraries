@@ -4,7 +4,7 @@ import {Router} from '@angular/router';
 
 export abstract class CommandBaseService {
 
-  protected constructor(protected readonly commandSettingsService: CommandSettingsService, private readonly router: Router) {
+  protected constructor(protected readonly commandSettingsService: CommandSettingsService, protected readonly router: Router) {
   }
 
   protected async navigateAsync(commandItem: CommandItem, data?: unknown): Promise<void> {
@@ -63,7 +63,7 @@ export abstract class CommandBaseService {
     return false;
   }
 
-  private static async getLink(commandItem: CommandItem, data?: unknown): Promise<string | null> {
+  protected static async getLink(commandItem: CommandItem, data?: unknown): Promise<string | null> {
     if (commandItem.link !== undefined) {
       if (typeof commandItem.link === 'string') {
         return CommandBaseService.interpolateString(commandItem.link, data);
