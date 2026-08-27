@@ -99,7 +99,10 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
             // the second the expandable details. Passing them swapped rendered an empty headline
             // whenever the body carried no details list — which is every OperationFailedErrorDto,
             // so a rejected tenant create showed a blank error toast (AB#4762).
-            this.messageService.showErrorWithDetails(apiError.message, details);
+            // A 400 body is classified on its statusCode alone, so it may carry no message; fall back
+            // to a generic headline rather than rendering "undefined" (the details still follow).
+            this.messageService.showErrorWithDetails(
+              apiError.message || 'The request was rejected by the server.', details);
             break;
           }
         }

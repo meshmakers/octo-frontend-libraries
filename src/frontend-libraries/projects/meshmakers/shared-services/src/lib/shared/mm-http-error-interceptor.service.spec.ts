@@ -128,6 +128,27 @@ describe('MmHttpErrorInterceptor', () => {
         });
       });
 
+      it('should fall back to a generic headline when the API error carries no message', (done) => {
+        // A 400 body is classified on its statusCode alone; without a message the toast must not
+        // render "undefined" as its headline.
+        const req = new HttpRequest('GET', '/api/data');
+        const error = new HttpErrorResponse({
+          status: 400,
+          error: { statusCode: 400, statusDescription: 'Bad Request', details: [{ code: 'ERR001', description: 'Field is required' }] }
+        });
+        httpHandlerMock.handle.and.returnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: () => {
+            expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
+              'The request was rejected by the server.',
+              '\n✗ Field is required'
+            );
+            done();
+          }
+        });
+      });
+
       it('should handle multiple error details', (done) => {
         const req = new HttpRequest('GET', '/api/data');
         const apiError: ApiErrorDto = {
