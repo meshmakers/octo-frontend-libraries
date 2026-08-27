@@ -348,6 +348,27 @@ Service for managing drawer navigation items and handling navigation commands.
 |----------|------|-------------|
 | `drawerItems` | `Observable<DrawerItem[]>` | Drawer items for Kendo Drawer. Each item carries a `cssClass` of `mm-drawer-level-${depth}` (level 0 for top-level items, 1 for children, 2 for grandchildren, …) so consumers can style the hierarchy in mini/collapsed mode where Kendo strips its own `k-level-*` classes. |
 
+#### Route-driven selection
+
+The `selected` flag of the emitted drawer items follows the router, not just
+drawer clicks: on every `NavigationEnd`/`NavigationCancel`/`NavigationError`
+the service resolves each command item's `link` relative to
+`CommandSettingsService.navigateRelativeToRoute` and re-emits `drawerItems`
+with the entry selected whose resolved path is the **longest prefix** of the
+current URL. This keeps the highlight correct for breadcrumb navigation,
+in-page links, redirects, deep links, page reloads and the browser history
+(AB#4896). Two rules to be aware of:
+
+- Child routes keep their list entry highlighted (`documents/4711` selects
+  the `documents` entry).
+- A link that only points at the navigation base (a home entry like `./`)
+  matches **exactly**, so it never steals the highlight from pages without
+  their own drawer entry.
+
+Consumers only need to bind `[items]="commandService.drawerItems | async"` —
+no app-side router handling is required. Entries whose command item has only
+an `onClick` (no `link`) are never auto-selected.
+
 #### Usage Example
 
 ```typescript
