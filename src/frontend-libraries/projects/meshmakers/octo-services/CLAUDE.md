@@ -143,8 +143,9 @@ Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVI
 
 | Method | Description |
 |--------|-------------|
-| `enableStreamData(tenantId)` | Enable Stream Data feature — `POST {assetServices}{tenantId}/v1/streamdata/enable` |
-| `disableStreamData(tenantId)` | Disable Stream Data feature (destructive: drops backing time-series storage) — `POST {assetServices}{tenantId}/v1/streamdata/disable` |
+| `enableStreamData(tenantId)` | Enable Stream Data feature (flag on + `System.StreamData` model import; no storage until an archive is activated) — `POST {assetServices}{tenantId}/v1/streamdata/enable` |
+| `disableStreamData(tenantId)` | Disable Stream Data feature (reversible flag flip; refused with 409 while archives are still activated, model and data are kept; precondition for tenant delete/detach, AB#4255) — `POST {assetServices}{tenantId}/v1/streamdata/disable` |
+| `getStreamDataStatus(tenantId)` | `StreamDataStatus { instanceEnabled, tenantEnabled }` — the tenant flag the toggle reflects (the CK model stays after a disable); `null` when unconfigured — `GET {assetServices}{tenantId}/v1/streamdata/status` |
 
 ### IdentityService
 
@@ -282,7 +283,7 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | Method | Description |
 |--------|-------------|
 | `enableCommunication(tenantId)` | Enable Communication feature (AB#4215) — `POST {communicationServices}{tenantId}/v1/communication/enable` |
-| `disableCommunication(tenantId)` | Disable Communication feature (destructive: tears down adapter wiring, AB#4215) — `POST {communicationServices}{tenantId}/v1/communication/disable` |
+| `disableCommunication(tenantId)` | Disable Communication feature (reversible flag flip; refused with 409 while pools or workloads are still deployed, AB#4255) — `POST {communicationServices}{tenantId}/v1/communication/disable` |
 | `deployTrigger(tenantId)` | Deploy all data pipeline triggers |
 | `deployAdapterConfigurationUpdate(tenantId, adapterRtId, adapterCkTypeId)` | Deploy adapter config update |
 | `deployAllAdaptersOfPool(tenantId, poolRtId)` | Deploy all adapters of a pool |
@@ -309,7 +310,7 @@ Tenant feature toggle for the Reporting feature (AB#4215). Backed by
 | Method | Description |
 |--------|-------------|
 | `enableReporting(tenantId)` | Enable Reporting feature — `POST {reportingServices}{tenantId}/v1/reporting/enable` |
-| `disableReporting(tenantId)` | Disable Reporting feature (destructive: drops backing storage) — `POST {reportingServices}{tenantId}/v1/reporting/disable` |
+| `disableReporting(tenantId)` | Disable Reporting feature (reversible flag flip, report data is kept; precondition for tenant delete/detach, AB#4255) — `POST {reportingServices}{tenantId}/v1/reporting/disable` |
 
 Throws when `reportingServices` is not configured; HTTP errors propagate to the caller.
 

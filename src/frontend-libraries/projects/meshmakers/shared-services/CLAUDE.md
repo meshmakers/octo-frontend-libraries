@@ -136,6 +136,13 @@ becomes the visible toast text, the second the expandable details. The intercept
 `(apiError.message, details)` — swapped arguments rendered a blank headline for every body without a
 details list, which is every `OperationFailedErrorDto`.
 
+The interceptor runs **before** any `catch` of the caller and cannot know whether the caller will
+handle the error, so it always reports the cases above. A caller that shows its own error toast
+must therefore ask `MmHttpErrorInterceptor.reportsToUser(error)` first and stay silent when it
+returns `true` — otherwise the user gets the same reason twice, in two Kendo position groups that
+overlap instead of stacking (the 409 of the capability disable guards made this visible, AB#4255).
+The predicate and `intercept` share one private classification, so they cannot drift apart.
+
 ### Stale-Chunk Recovery (`provideStaleChunkRecovery()`)
 
 `StaleChunkErrorHandler` is an `ErrorHandler` that recognises errors caused by a server-side bundle redeploy while a tab was idle — the typical symptoms are `Loading chunk … failed`, `Failed to fetch dynamically imported module`, and `JIT compiler unavailable` (Angular falls back to JIT when an AOT lazy chunk can't be located). When such an error is detected the handler reloads the page once; a `sessionStorage` guard (`octo_stale_chunk_reload_at`, 30 s window) prevents infinite reload loops if the error keeps recurring on the fresh bundle. All other errors are delegated to Angular's default handler.
