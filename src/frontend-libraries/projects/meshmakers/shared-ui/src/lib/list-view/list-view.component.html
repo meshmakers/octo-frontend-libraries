@@ -26,24 +26,43 @@
       @if (commandItem) {
         @switch (commandItem.type) {
           @case ('link') {
-            @if (commandItem.children && commandItem.children.length > 0) {
+            @if (commandItem.children && commandItem.children.length > 0 && commandItem.onClick) {
+              <kendo-splitbutton
+                [data]="commandItem.children"
+                [svgIcon]="$any(commandItem.svgIcon)"
+                [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
+                [textField]="'text'"
+                themeColor="primary"
+                [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                [title]="commandItem.tooltip ?? commandItem.text"
+                (buttonClick)="onToolbarCommand(commandItem)"
+                (itemClick)="onToolbarDropdownItemClick($event)">
+                {{ commandItem.text }}
+              </kendo-splitbutton>
+            } @else if (commandItem.children && commandItem.children.length > 0) {
               <kendo-dropdownbutton
                 [data]="commandItem.children"
                 [svgIcon]="$any(commandItem.svgIcon)"
-                [disabled]="getIsDisabled(commandItem) || isLoading()"
+                [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                 [textField]="'text'"
                 themeColor="primary"
+                [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                [title]="commandItem.tooltip ?? commandItem.text"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
               </kendo-dropdownbutton>
             } @else if (commandItem.svgIcon) {
-              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading()"
+              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon"
+                      [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                      [title]="commandItem.tooltip ?? commandItem.text"
+                      [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             } @else {
-              <button kendoTooltip kendoButton themeColor="primary" [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading()"
+              <button kendoTooltip kendoButton themeColor="primary"
+                      [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                      [title]="commandItem.tooltip ?? commandItem.text"
+                      [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             }
@@ -69,24 +88,43 @@
       @if (commandItem) {
         @switch (commandItem.type) {
           @case ('link') {
-            @if (commandItem.children && commandItem.children.length > 0) {
+            @if (commandItem.children && commandItem.children.length > 0 && commandItem.onClick) {
+              <kendo-splitbutton
+                [data]="commandItem.children"
+                [svgIcon]="$any(commandItem.svgIcon)"
+                [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
+                [textField]="'text'"
+                themeColor="primary"
+                [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                [title]="commandItem.tooltip ?? commandItem.text"
+                (buttonClick)="onToolbarCommand(commandItem)"
+                (itemClick)="onToolbarDropdownItemClick($event)">
+                {{ commandItem.text }}
+              </kendo-splitbutton>
+            } @else if (commandItem.children && commandItem.children.length > 0) {
               <kendo-dropdownbutton
                 [data]="commandItem.children"
                 [svgIcon]="$any(commandItem.svgIcon)"
-                [disabled]="getIsDisabled(commandItem) || isLoading()"
+                [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                 [textField]="'text'"
                 themeColor="primary"
+                [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                [title]="commandItem.tooltip ?? commandItem.text"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
               </kendo-dropdownbutton>
             } @else if (commandItem.svgIcon) {
-              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon" [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading()"
+              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon"
+                      [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                      [title]="commandItem.tooltip ?? commandItem.text"
+                      [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             } @else {
-              <button kendoTooltip kendoButton themeColor="primary" [title]="commandItem.text"
-                      [disabled]="getIsDisabled(commandItem) || isLoading()"
+              <button kendoTooltip kendoButton themeColor="primary"
+                      [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                      [title]="commandItem.tooltip ?? commandItem.text"
+                      [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
             }

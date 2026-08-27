@@ -212,6 +212,27 @@ into the initial fetch and mirrors it into the search box via
   opaque `extra` blob merged into the same entry as the grid state (neither
   clobbers the other).
 
+**Toolbar actions (`leftToolbarActions` / `rightToolbarActions`, AB#4897)**
+
+Each `CommandItem` renders depending on its shape:
+
+- `children` **and** `onClick` → **`kendo-splitbutton`**: the main segment fires
+  `onClick`, the arrow opens the children (e.g. a "New ▾" with variants).
+- `children` without `onClick` → `kendo-dropdownbutton` (a pure menu group).
+- otherwise a plain button.
+
+Toolbar-specific `CommandItem` fields: `fillMode` (default `'solid'`; use
+`'flat'` for low-emphasis controls such as an icon-only overflow "…" menu — an
+item with `svgIcon`, empty `text` and `children`) and `tooltip` (title
+attribute, falls back to `text`; set it on icon-only items).
+
+An `isDisabled` **callback on a toolbar item receives the current checkbox
+selection** (always an array of row items, possibly empty) — use
+`isDisabled: (sel) => !Array.isArray(sel) || sel.length === 0` to grey out
+selection-dependent actions instead of answering an empty-selection click with
+a hint message. In the actions column and context menu the callback receives
+the single row item, as before.
+
 **Reset filters button (`resetFilters` output)**
 
 A toolbar "Reset Filters" button (`filterClearIcon`) sits next to the reload

@@ -24,7 +24,7 @@ import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@p
 import {fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
-import {ButtonComponent, DropDownButtonComponent} from '@progress/kendo-angular-buttons';
+import {ButtonComponent, DropDownButtonComponent, SplitButtonComponent} from '@progress/kendo-angular-buttons';
 import {SVGIconModule} from '@progress/kendo-angular-icons';
 import {
   ContextMenuComponent, ContextMenuPopupEvent,
@@ -52,6 +52,7 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     PDFModule,
     ButtonComponent,
     DropDownButtonComponent,
+    SplitButtonComponent,
     CommandColumnComponent,
     CellTemplateDirective,
     ContextMenuComponent,
@@ -517,6 +518,17 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   protected getIsDisabled(commandItem: CommandItem, dataItem?: unknown): boolean {
     return CommandBaseService.getIsDisabled(commandItem, dataItem);
+  }
+
+  /**
+   * Toolbar variant of {@link getIsDisabled}: an `isDisabled` callback receives
+   * the current checkbox selection (always an array of row items, possibly
+   * empty), so selection-dependent toolbar actions can disable themselves
+   * until rows are selected — instead of answering an empty-selection click
+   * with a hint message.
+   */
+  protected getToolbarItemDisabled(commandItem: CommandItem): boolean {
+    return CommandBaseService.getIsDisabled(commandItem, this._selectedRows);
   }
 
   protected getValue(element: Record<string, unknown>, column: TableColumn): unknown {

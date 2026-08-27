@@ -231,4 +231,65 @@ describe('MmTableComponent', () => {
       expect(api().effectivePageSize()).toBe(13);
     });
   });
+
+  describe('toolbar actions (AB#4897)', () => {
+    interface ToolbarApi {
+      getToolbarItemDisabled: (item: unknown) => boolean;
+      onRowSelect: (event: unknown) => void;
+    }
+    const api = () => component as unknown as ToolbarApi;
+    const el = () => fixture.nativeElement as HTMLElement;
+
+    it('renders a split button for an item with children AND onClick', () => {
+      component.leftToolbarActions = [{
+        id: 'new', type: 'link', text: 'New',
+        onClick: () => Promise.resolve(),
+        children: [{ id: 'variant', type: 'link', text: 'Variant' }],
+      }];
+      fixture.detectChanges();
+      expect(el().querySelector('kendo-splitbutton')).toBeTruthy();
+      expect(el().querySelector('kendo-dropdownbutton')).toBeFalsy();
+    });
+
+    it('renders a dropdown button for an item with children but no onClick', () => {
+      component.leftToolbarActions = [{
+        id: 'group', type: 'link', text: 'Group',
+        children: [{ id: 'child', type: 'link', text: 'Child' }],
+      }];
+      fixture.detectChanges();
+      expect(el().querySelector('kendo-dropdownbutton')).toBeTruthy();
+      expect(el().querySelector('kendo-splitbutton')).toBeFalsy();
+    });
+
+    it('applies the fillMode and the tooltip fallback to plain toolbar buttons', () => {
+      component.leftToolbarActions = [{
+        id: 'more', type: 'link', text: '', tooltip: 'More actions',
+        fillMode: 'flat',
+        onClick: () => Promise.resolve(),
+      }];
+      fixture.detectChanges();
+      const button = el().querySelector('kendo-grid-toolbar button[kendoButton]') as HTMLButtonElement;
+      expect(button.classList).toContain('k-button-flat');
+      expect(button.title).toBe('More actions');
+    });
+
+    it('passes the current selection (always an array) to a toolbar isDisabled callback', () => {
+      const seen: unknown[] = [];
+      const item = {
+        id: 'sel', type: 'link', text: 'Selection',
+        isDisabled: (data?: unknown) => {
+          seen.push(data);
+          return !Array.isArray(data) || data.length === 0;
+        },
+      };
+
+      expect(api().getToolbarItemDisabled(item)).toBeTrue();
+      expect(seen[0]).toEqual([]);
+
+      const row = { id: 1 };
+      api().onRowSelect({ selectedRows: [{ dataItem: row }], deselectedRows: [] });
+      expect(api().getToolbarItemDisabled(item)).toBeFalse();
+      expect(seen[1]).toEqual([row]);
+    });
+  });
 });
