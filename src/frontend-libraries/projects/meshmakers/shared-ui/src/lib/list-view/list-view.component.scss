@@ -303,3 +303,98 @@
     font-size: inherit !important;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Card mode (AB#4930): active while the host is narrower than cardModeBelow.
+// Theme-neutral — colors come from Kendo CSS variables only.
+// ---------------------------------------------------------------------------
+
+:host(.mm-list-view-cards) ::ng-deep {
+  // No column headers in card mode — sorting/row filter are table concepts.
+  .k-grid-header {
+    display: none;
+  }
+
+  // The single card column is a plain container: no cell chrome, the card
+  // itself draws the border.
+  .k-grid td,
+  .k-grid .k-table-td {
+    border: none;
+    background: transparent;
+    padding: 4px 6px;
+    white-space: normal;
+  }
+
+  .k-grid .k-table-row:hover,
+  .k-grid tr:hover {
+    background: transparent;
+  }
+
+  // Selection highlight moves onto the card frame.
+  .k-grid tr.k-selected .mm-card,
+  .k-grid .k-table-row.k-selected .mm-card {
+    border-color: var(--kendo-color-primary, #ff6358);
+  }
+
+  .k-grid tr.k-selected > td,
+  .k-grid .k-table-row.k-selected > .k-table-td {
+    background: transparent;
+  }
+}
+
+.mm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--kendo-color-border, #dee2e6);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.mm-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mm-card-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.mm-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.mm-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mm-card-field {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.9em;
+}
+
+.mm-card-label {
+  flex: 0 0 38%;
+  max-width: 160px;
+  color: var(--kendo-color-subtle, #666666);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mm-card-value {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

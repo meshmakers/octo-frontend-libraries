@@ -136,6 +136,25 @@ the search input stretches to a full row. The host element is a vertical flex
 container: grant it height (e.g. `flex: 1` from the page layout) and the grid fills it, scrolling
 its body internally with the pager pinned to the bottom edge.
 
+**Card mode (`cardModeBelow`, AB#4930)**
+
+Below this component width (px) the rows render as **stacked cards** instead of
+a horizontally scrolling table: the FIRST column becomes the card's bold title
+line, every other column a labeled body line (label = `displayName`; empty
+values are skipped so cards stay tight; `hideBelow` is ignored because cards
+have vertical room), and the actions-column buttons plus the ⋮ context-menu
+trigger move into the card header. All `dataType` renderings (statusIcons,
+badge, iso8601, formatter, …) are shared with the table via one cell template,
+so cards and cells always look identical. While cards are active the host
+carries `mm-list-view-cards`, the column headers (sorting) and the row filter
+are unavailable — toolbar search, quick-view bars, paging, selection and the
+context menu keep working. The row checkbox stays visible in card mode even
+below `hideCheckboxesBelow`, so selection-dependent toolbar actions remain
+usable on phones. Default `null` = always render the table (fully backwards
+compatible); pass e.g. `[cardModeBelow]="600"` to match the narrow-toolbar
+breakpoint. Styling is theme-neutral (`--kendo-color-border` /
+`-primary` / `-subtle`); hosts restyle via the `.mm-card*` classes.
+
 **Paging (`pageSize` / `autoPageSize`)**
 
 - `pageSize` defaults to **20** (raised from 10 — ten rows left large screens half empty with a

@@ -18,7 +18,7 @@ import {
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
 import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
-import {DatePipe, DecimalPipe, NgComponentOutlet} from '@angular/common';
+import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
 import {fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
@@ -74,7 +74,8 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     ValueTemplateDirective,
     ItemTemplateDirective,
     NumericTextBoxComponent,
-    NgComponentOutlet
+    NgComponentOutlet,
+    NgTemplateOutlet
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -276,6 +277,48 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   /**
+   * Card mode (AB#4930): below this component width the rows render as
+   * stacked cards instead of a horizontally scrolling table — the first
+   * column becomes the card title, every other column a labeled line
+   * (empty values are skipped, `hideBelow` is ignored because cards have
+   * vertical room), and the actions-column buttons move into the card
+   * header. Sorting headers and the row filter are unavailable while cards
+   * are active; the toolbar search and quick-view bars keep working.
+   * `null` (the default) keeps the table at every width.
+   */
+  @Input() public cardModeBelow: number | null = null;
+
+  @HostBinding('class.mm-list-view-cards')
+  protected get isCardMode(): boolean {
+    const width = this.containerWidth();
+    return this.cardModeBelow !== null && width !== null && width < this.cardModeBelow;
+  }
+
+  /** First column = the card's title/identity line (AB#4930). */
+  protected get cardTitleColumn(): TableColumn | null {
+    return this._columns.length > 0 ? this._columns[0] : null;
+  }
+
+  /** Every column after the title one — the card's labeled body lines. */
+  protected get cardBodyColumns(): TableColumn[] {
+    return this._columns.slice(1);
+  }
+
+  /** Empty values render no body line, so cards stay tight (AB#4930). */
+  protected hasCardValue(element: Record<string, unknown>, column: TableColumn): boolean {
+    if (column.dataType === 'statusIcons') {
+      return this.getStatusFields(column).some(
+        (fieldConfig) => !!this.getStatusIconMapping(element, fieldConfig)
+      );
+    }
+    if (column.formatter) {
+      return !!this.getFormattedValue(element, column);
+    }
+    const value = this.getValue(element, column);
+    return value !== null && value !== undefined && value !== '';
+  }
+
+  /**
    * Callback for applying CSS classes to grid rows based on row data.
    * Passed through to Kendo Grid's [rowClass] input.
    */
@@ -467,6 +510,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   protected showCheckboxColumn(): boolean {
     if (!this.showRowCheckBoxes || !this.selectable.enabled) {
       return false;
+    }
+    if (this.isCardMode) {
+      // Cards keep their checkbox: the compact layout leaves room for it and
+      // the selection-dependent toolbar actions stay usable on phones.
+      return true;
     }
     const width = this.containerWidth();
     return this.hideCheckboxesBelow === null || width === null || width >= this.hideCheckboxesBelow;

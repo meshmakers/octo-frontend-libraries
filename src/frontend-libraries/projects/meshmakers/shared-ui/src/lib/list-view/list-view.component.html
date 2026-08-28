@@ -1,3 +1,96 @@
+<!-- Shared cell renderer (AB#4930): used by the regular grid columns AND the
+     card-mode body lines, so both render every dataType identically. -->
+<ng-template #cellContent let-element="element" let-column="column">
+  @if (column.formatter) {
+    {{ getFormattedValue(element, column) }}
+  } @else {
+    @switch (column.dataType) {
+      @case ('boolean') {
+        <kendo-checkbox type="checkbox" [checkedState]="$any(getValue(element, column))" [disabled]="true" />
+      }
+      @case ('iso8601') {
+        {{ $any(getValue(element, column)) | date:column.format }}
+      }
+      @case ('bytes') {
+        {{ $any(getValue(element, column)) | bytesToSize }}
+      }
+      @case ('statusIcons') {
+        <span class="status-icons-cell">
+          @for (fieldConfig of getStatusFields(column); track fieldConfig.field) {
+            @if (getStatusIconMapping(element, fieldConfig); as mapping) {
+              <span
+                class="status-icon"
+                [title]="mapping.tooltip"
+                [style.color]="mapping.color">
+                <kendo-svg-icon [icon]="mapping.icon"></kendo-svg-icon>
+              </span>
+            }
+          }
+        </span>
+      }
+      @case ('cronExpression') {
+        <span class="cron-expression-cell">
+          <code class="cron-expression">{{ getValue(element, column) }}</code>
+          <span class="cron-description">{{ getCronHumanReadable(getValue(element, column)) }}</span>
+        </span>
+      }
+      @case ('numeric') {
+        {{ $any(getValue(element, column)) | number:column.format }}
+      }
+      @case ('progressBar') {
+        <span class="progress-bar-cell">
+          <span class="progress-bar-track">
+            <span class="progress-bar-fill" [style.width.%]="getValue(element, column)"></span>
+          </span>
+          <span class="progress-bar-label">{{ getValue(element, column) }}%</span>
+        </span>
+      }
+      @case ('badge') {
+        @if (getBadgeMapping(element, column); as badge) {
+          <span
+            class="badge-cell"
+            [title]="badge.tooltip ?? ''"
+            [style.color]="badge.color"
+            [style.background]="badge.backgroundColor"
+            [style.borderColor]="badge.borderColor ?? badge.backgroundColor">
+            {{ badge.label ?? getValue(element, column) }}
+          </span>
+        } @else if (!column.badgeHideUnmapped) {
+          <span class="badge-cell badge-cell-default">{{ getValue(element, column) }}</span>
+        }
+      }
+      @case ('component') {
+        @if (column.cellComponent) {
+          <ng-container *ngComponentOutlet="column.cellComponent; inputs: getCellInputs(element, column)" />
+        }
+      }
+      @default {
+        {{ getValue(element, column) }}
+      }
+    }
+  }
+</ng-template>
+
+<!-- Row actions (AB#4930): shared by the actions column and the card header. -->
+<ng-template #rowActions let-dataItem="dataItem">
+  @if (_actionMenuItems.length > 0) {
+    @for (menuItem of _actionMenuItems; track menuItem.text) {
+      @if (!menuItem.separator && getMenuItemVisible(menuItem, dataItem)) {
+        <button kendoButton themeColor="primary" fillMode="flat"
+          [svgIcon]="menuItem.svgIcon!"
+          [title]="menuItem.text ?? ''"
+          [disabled]="getMenuItemDisabled(menuItem, dataItem) || isLoading()"
+          (click)="onSelectOptionActionItem($event, dataItem, menuItem)">
+        </button>
+      }
+    }
+  }
+
+  @if (_contextMenuItems.length > 0 && contextMenuType == 'actionMenu') {
+    <button kendoButton themeColor="primary" fillMode="flat" [svgIcon]="moreVerticalIcon" [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
+  }
+</ng-template>
+
 <kendo-grid
   mmListViewDataBinding
   [loading]="isLoading()"
@@ -5,7 +98,7 @@
   [skip]="skip" (selectionChange)="onRowSelect($event)" (cellClick)="onCellClick($event)"
   [pageable]="effectivePageable"
   [sortable]="sortable"
-  [filterable]="_showRowFilter"
+  [filterable]="_showRowFilter && !isCardMode"
   [resizable]="resizable"
   [rowClass]="rowClass ?? defaultRowClass"
 >
@@ -151,6 +244,7 @@
                                 [width]="checkboxColumnWidth"></kendo-grid-checkbox-column>
   }
 
+  @if (!isCardMode) {
   @for (column of columns; track column.field) {
     <kendo-grid-column [field]="column.field"
                        [filter]="getFilterType(column)" format="{{column.format}}"
@@ -238,74 +332,10 @@
         <span
           [class.mm-cell-truncate]="column.truncate"
           [attr.title]="column.truncate ? getCellTitle(dataItem, column) : null">
-        @if (column.formatter) {
-          {{ getFormattedValue(dataItem, column) }}
-        } @else {
-        @switch (column.dataType) {
-          @case ('boolean') {
-            <kendo-checkbox type="checkbox" [checkedState]="$any(getValue(dataItem, column))" [disabled]="true" />
-          }
-          @case ('iso8601') {
-            {{ $any(getValue(dataItem, column)) | date:column.format }}
-          }
-          @case ('bytes') {
-            {{ $any(getValue(dataItem, column)) | bytesToSize }}
-          }
-          @case ('statusIcons') {
-            <span class="status-icons-cell">
-              @for (fieldConfig of getStatusFields(column); track fieldConfig.field) {
-                @if (getStatusIconMapping(dataItem, fieldConfig); as mapping) {
-                  <span
-                    class="status-icon"
-                    [title]="mapping.tooltip"
-                    [style.color]="mapping.color">
-                    <kendo-svg-icon [icon]="mapping.icon"></kendo-svg-icon>
-                  </span>
-                }
-              }
-            </span>
-          }
-          @case ('cronExpression') {
-            <span class="cron-expression-cell">
-              <code class="cron-expression">{{ getValue(dataItem, column) }}</code>
-              <span class="cron-description">{{ getCronHumanReadable(getValue(dataItem, column)) }}</span>
-            </span>
-          }
-          @case ('numeric') {
-            {{ $any(getValue(dataItem, column)) | number:column.format }}
-          }
-          @case ('progressBar') {
-            <span class="progress-bar-cell">
-              <span class="progress-bar-track">
-                <span class="progress-bar-fill" [style.width.%]="getValue(dataItem, column)"></span>
-              </span>
-              <span class="progress-bar-label">{{ getValue(dataItem, column) }}%</span>
-            </span>
-          }
-          @case ('badge') {
-            @if (getBadgeMapping(dataItem, column); as badge) {
-              <span
-                class="badge-cell"
-                [title]="badge.tooltip ?? ''"
-                [style.color]="badge.color"
-                [style.background]="badge.backgroundColor"
-                [style.borderColor]="badge.borderColor ?? badge.backgroundColor">
-                {{ badge.label ?? getValue(dataItem, column) }}
-              </span>
-            } @else if (!column.badgeHideUnmapped) {
-              <span class="badge-cell badge-cell-default">{{ getValue(dataItem, column) }}</span>
-            }
-          }
-          @case ('component') {
-            @if (column.cellComponent) {
-              <ng-container *ngComponentOutlet="column.cellComponent; inputs: getCellInputs(dataItem, column)" />
-            }
-          }
-          @default {
-            {{ getValue(dataItem, column) }}
-          }
-        }
-        }
+          <ng-container
+            [ngTemplateOutlet]="cellContent"
+            [ngTemplateOutletContext]="{ element: dataItem, column: column }"
+          ></ng-container>
         </span>
       </ng-template>
     </kendo-grid-column>
@@ -314,24 +344,54 @@
   @if (_actionMenuItems.length > 0 || (_contextMenuItems.length > 0 &&  contextMenuType == 'actionMenu')) {
     <kendo-grid-command-column [title]="_messages.actionsColumnTitle" [width]="actionsColumnWidth">
       <ng-template kendoGridCellTemplate let-dataItem>
-        @if (_actionMenuItems.length > 0) {
-          @for (menuItem of _actionMenuItems; track menuItem.text) {
-            @if (!menuItem.separator && getMenuItemVisible(menuItem, dataItem)) {
-              <button kendoButton themeColor="primary" fillMode="flat"
-                [svgIcon]="menuItem.svgIcon!"
-                [title]="menuItem.text ?? ''"
-                [disabled]="getMenuItemDisabled(menuItem, dataItem) || isLoading()"
-                (click)="onSelectOptionActionItem($event, dataItem, menuItem)">
-              </button>
-            }
-          }
-        }
-
-        @if (_contextMenuItems.length > 0 && contextMenuType == 'actionMenu') {
-          <button kendoButton themeColor="primary" fillMode="flat" [svgIcon]="moreVerticalIcon" [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
-        }
+        <ng-container
+          [ngTemplateOutlet]="rowActions"
+          [ngTemplateOutletContext]="{ dataItem: dataItem }"
+        ></ng-container>
       </ng-template>
     </kendo-grid-command-column>
+  }
+  } @else {
+    <!-- Card mode (AB#4930): one full-width column renders the whole row as a
+         stacked card — title from the first column, labeled lines for the
+         rest (empty values skipped), row actions in the card header. -->
+    <kendo-grid-column [sortable]="false" [filterable]="false" title="">
+      <ng-template kendoGridCellTemplate let-dataItem>
+        <div class="mm-card">
+          <div class="mm-card-header">
+            @if (cardTitleColumn; as titleColumn) {
+              <span class="mm-card-title">
+                <ng-container
+                  [ngTemplateOutlet]="cellContent"
+                  [ngTemplateOutletContext]="{ element: dataItem, column: titleColumn }"
+                ></ng-container>
+              </span>
+            }
+            <span class="mm-card-actions">
+              <ng-container
+                [ngTemplateOutlet]="rowActions"
+                [ngTemplateOutletContext]="{ dataItem: dataItem }"
+              ></ng-container>
+            </span>
+          </div>
+          <div class="mm-card-fields">
+            @for (column of cardBodyColumns; track column.field) {
+              @if (hasCardValue(dataItem, column)) {
+                <div class="mm-card-field">
+                  <span class="mm-card-label">{{ getDisplayName(column) | pascalCase }}</span>
+                  <span class="mm-card-value">
+                    <ng-container
+                      [ngTemplateOutlet]="cellContent"
+                      [ngTemplateOutletContext]="{ element: dataItem, column: column }"
+                    ></ng-container>
+                  </span>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </ng-template>
+    </kendo-grid-column>
   }
 
   <kendo-grid-excel fileName="{{excelExportFileName}}">

@@ -292,4 +292,96 @@ describe('MmTableComponent', () => {
       expect(seen[1]).toEqual([row]);
     });
   });
+
+  describe('card mode (AB#4930)', () => {
+    interface CardApi {
+      containerWidth: { set: (value: number | null) => void };
+      isCardMode: boolean;
+      cardTitleColumn: { field: string } | null;
+      cardBodyColumns: { field: string }[];
+      hasCardValue: (element: unknown, column: unknown) => boolean;
+      showCheckboxColumn: () => boolean;
+    }
+    const api = () => component as unknown as CardApi;
+
+    it('stays off by default at every width', () => {
+      api().containerWidth.set(320);
+      expect(api().isCardMode).toBeFalse();
+    });
+
+    it('activates below cardModeBelow and deactivates above it', () => {
+      component.cardModeBelow = 600;
+      api().containerWidth.set(599);
+      expect(api().isCardMode).toBeTrue();
+      api().containerWidth.set(600);
+      expect(api().isCardMode).toBeFalse();
+    });
+
+    it('sets the mm-list-view-cards host class while active', () => {
+      component.cardModeBelow = 600;
+      api().containerWidth.set(400);
+      fixture.detectChanges();
+      expect((fixture.nativeElement as HTMLElement).classList).toContain('mm-list-view-cards');
+    });
+
+    it('uses the first column as card title and the rest as body lines', () => {
+      component.columns = [
+        { field: 'name', dataType: 'text' },
+        { field: 'date', dataType: 'iso8601' },
+        { field: 'amount', dataType: 'numeric' },
+      ];
+      expect(api().cardTitleColumn?.field).toBe('name');
+      expect(api().cardBodyColumns.map((c) => c.field)).toEqual(['date', 'amount']);
+    });
+
+    it('skips empty values but keeps zero and false in the card body', () => {
+      const column = { field: 'value', dataType: 'text' };
+      expect(api().hasCardValue({ value: '' }, column)).toBeFalse();
+      expect(api().hasCardValue({ value: null }, column)).toBeFalse();
+      expect(api().hasCardValue({}, column)).toBeFalse();
+      expect(api().hasCardValue({ value: 0 }, column)).toBeTrue();
+      expect(api().hasCardValue({ value: false }, column)).toBeTrue();
+      expect(api().hasCardValue({ value: 'x' }, column)).toBeTrue();
+    });
+
+    it('keeps the checkbox column in card mode even below hideCheckboxesBelow', () => {
+      component.selectable = { enabled: true, mode: 'multiple', checkboxOnly: true };
+      component.cardModeBelow = 600;
+      api().containerWidth.set(400); // below the default hideCheckboxesBelow of 600
+      expect(api().showCheckboxColumn()).toBeTrue();
+      component.cardModeBelow = null;
+      expect(api().showCheckboxColumn()).toBeFalse();
+    });
+  });
+
+  describe('toolbar isDisabled selection wiring (AB#4897, retained)', () => {
+    interface ToolbarApi {
+      getToolbarItemDisabled: (item: unknown) => boolean;
+      onRowSelect: (event: unknown) => void;
+    }
+    const api = () => component as unknown as ToolbarApi;
+
+    it('re-evaluates after deselection', () => {
+      const seen: unknown[] = [];
+      const item = {
+        id: 'sel', type: 'link', text: 'Selection',
+        isDisabled: (data?: unknown) => {
+          seen.push(data);
+          return !Array.isArray(data) || data.length === 0;
+        },
+      };
+
+      expect(api().getToolbarItemDisabled(item)).toBeTrue();
+      expect(seen[0]).toEqual([]);
+
+      const row = { id: 1 };
+      api().onRowSelect({ selectedRows: [{ dataItem: row }], deselectedRows: [] });
+      expect(api().getToolbarItemDisabled(item)).toBeFalse();
+      expect(seen[1]).toEqual([row]);
+
+      api().onRowSelect({ selectedRows: [], deselectedRows: [{ dataItem: row }] });
+      expect(api().getToolbarItemDisabled(item)).toBeTrue();
+      expect(seen[2]).toEqual([]);
+    });
+  });
 });
