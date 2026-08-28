@@ -560,6 +560,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   // every checkbox on xlarge density.
   protected readonly checkboxColumnWidth = 48;
 
+  /** Compact checkbox gutter in card mode — the card sits right next to it (AB#4930). */
+  protected get effectiveCheckboxColumnWidth(): number {
+    return this.isCardMode ? 32 : this.checkboxColumnWidth;
+  }
+
   protected getDisplayName(column: TableColumn): string {
     return column.displayName ?? column.field;
   }
@@ -877,10 +882,26 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       this._contextMenuSelectedRow = e.dataItem;
 
       this.gridContextMenu?.show({
-        left: originalEvent.pageX,
+        left: this.clampContextMenuX(originalEvent.pageX),
         top: originalEvent.pageY,
       });
     }
+  }
+
+  /**
+   * On narrow (phone) viewports the context-menu popup opened at the pointer
+   * can overflow the right edge — Kendo's collision fit checks against a
+   * layout viewport the overflowing popup itself just widened, so it never
+   * kicks in. Clamp the anchor so a typically-sized menu stays on screen;
+   * wide viewports keep Kendo's own positioning untouched (AB#4930).
+   */
+  private clampContextMenuX(x: number): number {
+    const viewportWidth = document.documentElement.clientWidth;
+    if (viewportWidth >= 768) {
+      return x;
+    }
+    const estimatedMenuWidth = Math.min(288, viewportWidth - 16);
+    return Math.max(8, Math.min(x, viewportWidth - estimatedMenuWidth));
   }
 
   protected async onSelectOptionActionItem(event: Event, dataItem: unknown, menuItem: MenuItem): Promise<void> {
@@ -921,7 +942,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     // A new array reference is needed so Kendo's kendoMenuHierarchyBinding detects the change.
     this._contextMenuItems = this.buildContextMenuItemsWithDisabledState(this._contextMenuCommandItems, dataItem);
     this.gridContextMenu?.show({
-      left: e.pageX,
+      left: this.clampContextMenuX(e.pageX),
       top: e.pageY,
     });
   }

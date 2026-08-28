@@ -321,8 +321,22 @@
   .k-grid .k-table-td {
     border: none;
     background: transparent;
-    padding: 4px 6px;
+    padding: 4px 2px;
     white-space: normal;
+  }
+
+  // Compact checkbox gutter: the card sits right next to it.
+  .k-grid td:has(> kendo-checkbox),
+  .k-grid .k-table-td:has(> kendo-checkbox) {
+    padding-left: 2px;
+    padding-right: 0;
+  }
+
+  // Kendo does not re-render the colgroup when the checkbox column's width
+  // input changes after init — force the compact gutter here. Guarded by
+  // :not(:only-child): without selection the single col IS the card column.
+  .k-grid colgroup > col:first-child:not(:only-child) {
+    width: 32px !important;
   }
 
   .k-grid .k-table-row:hover,
