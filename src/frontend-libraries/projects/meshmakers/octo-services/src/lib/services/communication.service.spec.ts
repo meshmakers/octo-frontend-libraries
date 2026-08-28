@@ -211,6 +211,32 @@ describe('CommunicationService', () => {
     });
   });
 
+  describe('wakeWorkload', () => {
+    it('POSTs to the wake endpoint of the workload', async () => {
+      const workloadRtId = 'workload-123';
+
+      const promise = service.wakeWorkload(tenantId, workloadRtId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/adapter/${workloadRtId}/wake`
+      );
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await promise;
+    });
+
+    it('rejects when the wake fails so the caller can tell the user', async () => {
+      const promise = service.wakeWorkload(tenantId, 'workload-123');
+
+      httpMock
+        .expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/workload-123/wake`)
+        .flush('Wake timed out', {status: 400, statusText: 'Bad Request'});
+
+      await expectAsync(promise).toBeRejected();
+    });
+  });
+
   describe('deployDataFlow', () => {
     it('should call the correct endpoint', async () => {
       const dataFlowRtId = 'pipeline-123';

@@ -378,6 +378,29 @@ export class CommunicationService {
   }
 
   /**
+   * Wakes an on-demand workload that has scaled to zero (`POST
+   * /adapter/{workloadRtId}/wake`, OctoMesh AB#4918).
+   *
+   * Safe to call in any state: the controller no-ops for a workload that is
+   * AlwaysOn, already running, or on a tenant without scale-to-zero — it only
+   * stamps the activity that keeps the idle watchdog from hibernating it. So the
+   * caller does not have to know the lifecycle state to offer the action.
+   *
+   * **Resolves only once the workload is ready**, which can take the controller's
+   * full wake budget (default 60s) — that wait is the point of the call, so show
+   * progress rather than a spinner that looks stuck. Rejects with 400 when the
+   * wake fails or exceeds the budget; the deployment is then left scaled up for
+   * diagnosis and a retry is reasonable.
+   */
+  async wakeWorkload(tenantId: string, workloadRtId: string): Promise<void> {
+    if (!this.communicationServicesUrl) {
+      return;
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/adapter/${workloadRtId}/wake`;
+    await firstValueFrom(this.httpClient.post<void>(uri, null));
+  }
+
+  /**
    * Enables or disables debug capture for a pipeline via the dedicated debug
    * endpoint (`PATCH /pipeline/{id}/debug`). This is the ONLY way debug capture
    * is toggled (AB#4364): deploying a pipeline pushes the persisted flag as-is

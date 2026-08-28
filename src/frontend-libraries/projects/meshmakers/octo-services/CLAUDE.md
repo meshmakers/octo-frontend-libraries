@@ -293,6 +293,7 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | `executePipeline(tenantId, pipelineRtId)` | Execute pipeline manually |
 | `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, definition)` | Deploy pipeline definition (NB: force-enables debug) |
 | `setPipelineDebugging(tenantId, pipelineRtId, enabled)` | Toggle pipeline debug capture via `PATCH /pipeline/{id}/debug` — persists the flag exactly + re-pushes the adapter without force-enabling (use this, not a redeploy, to enable/disable debug) |
+| `wakeWorkload(tenantId, workloadRtId)` | Wake an on-demand workload that has scaled to zero (`POST /adapter/{id}/wake`). No-ops for AlwaysOn / already-running workloads, so the caller needs no lifecycle state. **Resolves only when the workload is ready** — up to the controller's wake budget (default 60s), so show progress, not a spinner |
 | `deployDataFlow(tenantId, dataFlowRtId)` | Deploy data flow |
 | `undeployDataFlow(tenantId, dataFlowRtId)` | Undeploy data flow |
 | `getPipelineStatus(tenantId, pipelineRtId, pipelineCkTypeId)` | Get deployment status |
