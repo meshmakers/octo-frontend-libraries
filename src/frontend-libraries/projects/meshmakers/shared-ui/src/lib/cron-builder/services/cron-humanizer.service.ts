@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import cronstrue from 'cronstrue';
-import 'cronstrue/locales/de';
-import 'cronstrue/locales/en';
+import 'cronstrue/locales/de.js';
+import 'cronstrue/locales/en.js';
 
 /**
  * Service for converting cron expressions to human-readable text.
