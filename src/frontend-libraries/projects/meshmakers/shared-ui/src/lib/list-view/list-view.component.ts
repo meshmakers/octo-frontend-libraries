@@ -18,7 +18,7 @@ import {
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
 import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
-import {DatePipe, DecimalPipe, NgComponentOutlet} from '@angular/common';
+import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
 import {fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
@@ -74,7 +74,8 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     ValueTemplateDirective,
     ItemTemplateDirective,
     NumericTextBoxComponent,
-    NgComponentOutlet
+    NgComponentOutlet,
+    NgTemplateOutlet
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -276,6 +277,48 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   /**
+   * Card mode (AB#4930): below this component width the rows render as
+   * stacked cards instead of a horizontally scrolling table — the first
+   * column becomes the card title, every other column a labeled line
+   * (empty values are skipped, `hideBelow` is ignored because cards have
+   * vertical room), and the actions-column buttons move into the card
+   * header. Sorting headers and the row filter are unavailable while cards
+   * are active; the toolbar search and quick-view bars keep working.
+   * `null` (the default) keeps the table at every width.
+   */
+  @Input() public cardModeBelow: number | null = null;
+
+  @HostBinding('class.mm-list-view-cards')
+  protected get isCardMode(): boolean {
+    const width = this.containerWidth();
+    return this.cardModeBelow !== null && width !== null && width < this.cardModeBelow;
+  }
+
+  /** First column = the card's title/identity line (AB#4930). */
+  protected get cardTitleColumn(): TableColumn | null {
+    return this._columns.length > 0 ? this._columns[0] : null;
+  }
+
+  /** Every column after the title one — the card's labeled body lines. */
+  protected get cardBodyColumns(): TableColumn[] {
+    return this._columns.slice(1);
+  }
+
+  /** Empty values render no body line, so cards stay tight (AB#4930). */
+  protected hasCardValue(element: Record<string, unknown>, column: TableColumn): boolean {
+    if (column.dataType === 'statusIcons') {
+      return this.getStatusFields(column).some(
+        (fieldConfig) => !!this.getStatusIconMapping(element, fieldConfig)
+      );
+    }
+    if (column.formatter) {
+      return !!this.getFormattedValue(element, column);
+    }
+    const value = this.getValue(element, column);
+    return value !== null && value !== undefined && value !== '';
+  }
+
+  /**
    * Callback for applying CSS classes to grid rows based on row data.
    * Passed through to Kendo Grid's [rowClass] input.
    */
@@ -468,6 +511,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     if (!this.showRowCheckBoxes || !this.selectable.enabled) {
       return false;
     }
+    if (this.isCardMode) {
+      // Cards keep their checkbox: the compact layout leaves room for it and
+      // the selection-dependent toolbar actions stay usable on phones.
+      return true;
+    }
     const width = this.containerWidth();
     return this.hideCheckboxesBelow === null || width === null || width >= this.hideCheckboxesBelow;
   }
@@ -511,6 +559,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   // the cell overflowed and Kendo's ellipsis rendered a stray "…" next to
   // every checkbox on xlarge density.
   protected readonly checkboxColumnWidth = 48;
+
+  /** Compact checkbox gutter in card mode — the card sits right next to it (AB#4930). */
+  protected get effectiveCheckboxColumnWidth(): number {
+    return this.isCardMode ? 32 : this.checkboxColumnWidth;
+  }
 
   protected getDisplayName(column: TableColumn): string {
     return column.displayName ?? column.field;
@@ -829,10 +882,26 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       this._contextMenuSelectedRow = e.dataItem;
 
       this.gridContextMenu?.show({
-        left: originalEvent.pageX,
+        left: this.clampContextMenuX(originalEvent.pageX),
         top: originalEvent.pageY,
       });
     }
+  }
+
+  /**
+   * On narrow (phone) viewports the context-menu popup opened at the pointer
+   * can overflow the right edge — Kendo's collision fit checks against a
+   * layout viewport the overflowing popup itself just widened, so it never
+   * kicks in. Clamp the anchor so a typically-sized menu stays on screen;
+   * wide viewports keep Kendo's own positioning untouched (AB#4930).
+   */
+  private clampContextMenuX(x: number): number {
+    const viewportWidth = document.documentElement.clientWidth;
+    if (viewportWidth >= 768) {
+      return x;
+    }
+    const estimatedMenuWidth = Math.min(288, viewportWidth - 16);
+    return Math.max(8, Math.min(x, viewportWidth - estimatedMenuWidth));
   }
 
   protected async onSelectOptionActionItem(event: Event, dataItem: unknown, menuItem: MenuItem): Promise<void> {
@@ -873,7 +942,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     // A new array reference is needed so Kendo's kendoMenuHierarchyBinding detects the change.
     this._contextMenuItems = this.buildContextMenuItemsWithDisabledState(this._contextMenuCommandItems, dataItem);
     this.gridContextMenu?.show({
-      left: e.pageX,
+      left: this.clampContextMenuX(e.pageX),
       top: e.pageY,
     });
   }

@@ -919,4 +919,121 @@ describe('AuthorizeService', () => {
       expect(mockObj.postLogoutRedirectUri).toBe('https://app.example.com/logout');
     });
   });
+  describe('switchTenantByExchange', () => {
+    const sourceToken = createMockJwt({
+      tenant_id: 'bierok',
+      allowed_tenants: ['bierok', 'tecob', 'bernkopf']
+    });
+    const exchangedToken = createMockJwt({
+      tenant_id: 'tecob',
+      allowed_tenants: ['bierok', 'tecob', 'bernkopf']
+    });
+    const userInfo = {
+      sub: 'shadow-user-1',
+      name: 'xt_bernkopf_kbernkopf',
+      role: ['AccountingManagement']
+    };
+
+    let fetchSpy: jasmine.Spy;
+
+    function stubEndpoints(tokenStatus = 200, userInfoStatus = 200): void {
+      fetchSpy = spyOn(window, 'fetch').and.callFake((input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString();
+        if (url.includes('userinfo')) {
+          return Promise.resolve(new Response(JSON.stringify(userInfo), { status: userInfoStatus }));
+        }
+        return Promise.resolve(new Response(JSON.stringify({
+          access_token: exchangedToken,
+          refresh_token: 'refresh-token-1',
+          expires_in: 3600,
+          scope: 'openid profile octo_api'
+        }), { status: tokenStatus }));
+      });
+    }
+
+    beforeEach(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockObj = oauthServiceMock as any;
+      mockObj.tokenEndpoint = 'https://auth.example.com/connect/token';
+      mockObj.userinfoEndpoint = 'https://auth.example.com/connect/userinfo';
+      oauthServiceMock.getAccessToken.and.returnValue(sourceToken);
+
+      await service.initialize(mockOptions);
+      oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    afterEach(() => {
+      for (const key of ['tecob__access_token', 'tecob__refresh_token', 'tecob__expires_at',
+                         'tecob__access_token_stored_at', 'tecob__granted_scopes',
+                         'tecob__id_token_claims_obj']) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    it('adopts the target tenant without a redirect', async () => {
+      stubEndpoints();
+
+      const switched = await service.switchTenantByExchange('tecob');
+
+      expect(switched).toBeTrue();
+      expect(service.tokenTenantId()).toBe('tecob');
+      expect(service.accessToken()).toBe(exchangedToken);
+      expect(_navigateToSpy).not.toHaveBeenCalled();
+      expect(_reloadPageSpy).not.toHaveBeenCalled();
+    });
+
+    it('requests the token exchange for the target tenant', async () => {
+      stubEndpoints();
+
+      await service.switchTenantByExchange('tecob');
+
+      const [, init] = fetchSpy.calls.first().args as [string, RequestInit];
+      const body = new URLSearchParams(init.body as string);
+      expect(body.get('grant_type')).toBe('urn:ietf:params:oauth:grant-type:token-exchange');
+      expect(body.get('subject_token')).toBe(sourceToken);
+      expect(body.get('acr_values')).toBe('tenant:tecob');
+      expect(body.get('client_id')).toBe(mockOptions.clientId ?? null);
+    });
+
+    it('stores the exchanged session under the target tenant', async () => {
+      stubEndpoints();
+
+      await service.switchTenantByExchange('tecob');
+
+      expect(localStorage.getItem('tecob__access_token')).toBe(exchangedToken);
+      expect(localStorage.getItem('tecob__refresh_token')).toBe('refresh-token-1');
+      // The exchange returns no id_token, so the userinfo profile takes its place.
+      expect(JSON.parse(localStorage.getItem('tecob__id_token_claims_obj') ?? '{}'))
+        .toEqual(jasmine.objectContaining({ name: userInfo.name }));
+    });
+
+    it('refuses a tenant the token does not allow, without calling the endpoint', async () => {
+      stubEndpoints();
+
+      const switched = await service.switchTenantByExchange('someone-elses-tenant');
+
+      expect(switched).toBeFalse();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('reports failure when the exchange is refused, leaving the session untouched', async () => {
+      stubEndpoints(403);
+
+      const switched = await service.switchTenantByExchange('tecob');
+
+      expect(switched).toBeFalse();
+      expect(service.tokenTenantId()).toBe('bierok');
+      expect(localStorage.getItem('tecob__access_token')).toBeNull();
+    });
+
+    it('reports failure when the profile cannot be loaded', async () => {
+      stubEndpoints(200, 500);
+
+      const switched = await service.switchTenantByExchange('tecob');
+
+      expect(switched).toBeFalse();
+      expect(localStorage.getItem('tecob__access_token')).toBeNull();
+    });
+  });
 });
