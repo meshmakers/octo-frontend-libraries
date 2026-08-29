@@ -35900,6 +35900,27 @@ export enum SystemCommunicationDeploymentStateDto {
   UndeployedDto = 'UNDEPLOYED'
 }
 
+// On-demand workload lifecycle (System.Communication 3.29.0, AB#4914/AB#4919). Added
+// surgically - this file is otherwise generated from the library's schema.graphql, which
+// does not carry 3.29.0 yet, and a full regeneration would mix tens of thousands of lines
+// of unrelated drift into the change. Values are the wire values introspected from the
+// asset repository and must stay identical to the CK model's RtLifecycleModeEnum /
+// RtLifecycleStateEnum members; naming follows the generator's convention (see
+// SystemCommunicationDeploymentStateDto above), so a later regeneration from an updated
+// schema produces these identical declarations.
+export enum SystemCommunicationLifecycleModeDto {
+  AlwaysOnDto = 'ALWAYS_ON',
+  OnDemandDto = 'ON_DEMAND',
+  AutoDto = 'AUTO'
+}
+
+export enum SystemCommunicationLifecycleStateDto {
+  RunningDto = 'RUNNING',
+  DrainingDto = 'DRAINING',
+  HibernatedDto = 'HIBERNATED',
+  WakingDto = 'WAKING'
+}
+
 /** Runtime entities of construction kit type 'System.Communication-3.23.0/DiscordConfiguration-1' */
 export type SystemCommunicationDiscordConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationDiscordConfiguration';
