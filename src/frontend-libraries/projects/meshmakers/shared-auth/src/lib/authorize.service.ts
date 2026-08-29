@@ -13,6 +13,14 @@ export interface IUser {
   email: string | null;
 }
 
+/** The subset of an RFC 8693 token response this service consumes. */
+interface ExchangedTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+  scope?: string;
+}
+
 export interface DiscoveryDocumentRetryOptions {
   attempts: number;
   initialDelayMs: number;
@@ -64,6 +72,9 @@ export class AuthorizeService {
   private readonly _discoveryDocumentRetryAttempt: WritableSignal<number> = signal(0);
 
   private static readonly TENANT_REAUTH_KEY = 'octo_tenant_reauth';
+  /** RFC 8693 token exchange, used to switch tenants without a redirect. */
+  private static readonly TOKEN_EXCHANGE_GRANT = 'urn:ietf:params:oauth:grant-type:token-exchange';
+  private static readonly ACCESS_TOKEN_TYPE = 'urn:ietf:params:oauth:token-type:access_token';
   private static readonly TENANT_SWITCH_ATTEMPTED_KEY = 'octo_tenant_switch_attempted';
   private static readonly DEFAULT_DISCOVERY_RETRY: DiscoveryDocumentRetryOptions = {
     attempts: 6,
@@ -453,6 +464,163 @@ export class AuthorizeService {
     // Full page navigation to the target URL — triggers fresh auth flow
     this.navigateTo(targetUrl);
     return true;
+  }
+
+  /**
+   * Switches to another tenant in place, without a redirect, by exchanging the current access
+   * token for one issued in the target tenant (RFC 8693).
+   *
+   * Preferred over {@link switchTenant}, which reloads the page and runs a full authorization
+   * code flow — a visible round trip through the identity server, and a fresh login mask whenever
+   * the tenant's session cookie has expired. The exchange re-resolves the user's roles in the
+   * target tenant server-side, so no privilege from the source tenant leaks across.
+   *
+   * @returns true when the switch completed and the session now belongs to the target tenant;
+   *          false when it was not possible, in which case the caller should fall back to
+   *          {@link switchTenant}. Never throws.
+   */
+  public async switchTenantByExchange(targetTenantId: string): Promise<boolean> {
+    const subjectToken = this.oauthService.getAccessToken();
+    const tokenEndpoint = this.oauthService.tokenEndpoint;
+    const clientId = this.lastAuthConfig?.clientId;
+
+    if (!subjectToken || !tokenEndpoint || !clientId) {
+      console.debug('AuthorizeService::switchTenantByExchange — no token or endpoint yet, falling back');
+      return false;
+    }
+
+    const currentTenantId = this._tokenTenantId();
+    if (currentTenantId && currentTenantId.toLowerCase() === targetTenantId.toLowerCase()) {
+      return true;
+    }
+
+    // The server-side gate would refuse anyway; skip the round trip and let the caller redirect,
+    // which at least gives the user a login mask to act on.
+    const allowedTenants = this._allowedTenants();
+    if (allowedTenants.length > 0 &&
+        !allowedTenants.some(t => t.toLowerCase() === targetTenantId.toLowerCase())) {
+      console.debug(
+        `AuthorizeService::switchTenantByExchange — "${targetTenantId}" not in allowed_tenants, falling back`);
+      return false;
+    }
+
+    try {
+      const body = new URLSearchParams({
+        grant_type: AuthorizeService.TOKEN_EXCHANGE_GRANT,
+        client_id: clientId,
+        subject_token: subjectToken,
+        subject_token_type: AuthorizeService.ACCESS_TOKEN_TYPE,
+        acr_values: `tenant:${targetTenantId}`
+      });
+      const scope = this.lastAuthConfig?.scope;
+      if (scope) {
+        body.set('scope', scope);
+      }
+
+      // Deliberately fetch() rather than HttpClient: authorizeInterceptor rewrites token-endpoint
+      // requests to carry the STORAGE tenant's acr_values, which would override the target here.
+      const response = await fetch(tokenEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      });
+
+      if (!response.ok) {
+        console.warn(
+          `AuthorizeService::switchTenantByExchange — exchange to "${targetTenantId}" failed (HTTP ${response.status}), falling back`);
+        return false;
+      }
+
+      const tokens = await response.json() as ExchangedTokenResponse;
+      if (!tokens.access_token) {
+        console.warn('AuthorizeService::switchTenantByExchange — exchange returned no access token, falling back');
+        return false;
+      }
+
+      // The exchange yields no id_token, so the profile comes from the userinfo endpoint.
+      const claims = await this.fetchUserInfoClaims(tokens.access_token);
+      if (!claims) {
+        console.warn('AuthorizeService::switchTenantByExchange — could not load the profile, falling back');
+        return false;
+      }
+
+      this.storeExchangedTokens(targetTenantId, tokens, claims);
+      this.applyExchangedSession(targetTenantId, tokens.access_token, claims);
+
+      console.debug(`AuthorizeService::switchTenantByExchange — now on "${this._tokenTenantId()}"`);
+      return true;
+    } catch (error) {
+      console.warn('AuthorizeService::switchTenantByExchange — exchange threw, falling back', error);
+      return false;
+    }
+  }
+
+  /** Reads the profile of an exchanged token; it carries no id_token of its own. */
+  private async fetchUserInfoClaims(accessToken: string): Promise<Record<string, unknown> | null> {
+    const userinfoEndpoint = this.oauthService.userinfoEndpoint;
+    if (!userinfoEndpoint) {
+      return null;
+    }
+
+    const response = await fetch(userinfoEndpoint, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    if (!response.ok) {
+      return null;
+    }
+    return await response.json() as Record<string, unknown>;
+  }
+
+  /**
+   * Writes the exchanged tokens into the TARGET tenant's storage slots, so the OAuth library and
+   * a later reload both find a complete session there.
+   */
+  private storeExchangedTokens(
+    targetTenantId: string,
+    tokens: ExchangedTokenResponse,
+    claims: Record<string, unknown>): void {
+    this.tenantStorage.setTenantId(targetTenantId);
+
+    const storedAt = Date.now();
+    this.tenantStorage.setItem('access_token', tokens.access_token);
+    this.tenantStorage.setItem('access_token_stored_at', String(storedAt));
+    if (tokens.expires_in) {
+      this.tenantStorage.setItem('expires_at', String(storedAt + tokens.expires_in * 1000));
+    }
+    if (tokens.refresh_token) {
+      this.tenantStorage.setItem('refresh_token', tokens.refresh_token);
+    }
+    if (tokens.scope) {
+      this.tenantStorage.setItem('granted_scopes', JSON.stringify(tokens.scope.split(' ')));
+    }
+    // Stands in for the id_token claims the library would normally read here.
+    this.tenantStorage.setItem('id_token_claims_obj', JSON.stringify(claims));
+  }
+
+  /** Mirrors what loadUserAsync() publishes, for a session that arrived without an id_token. */
+  private applyExchangedSession(
+    targetTenantId: string,
+    accessToken: string,
+    claims: Record<string, unknown>): void {
+    const user = claims as unknown as IUser;
+
+    if (user.given_name && user.family_name) {
+      this._userInitials.set(
+        user.given_name.charAt(0).toUpperCase() + user.family_name.charAt(0).toUpperCase());
+    } else {
+      const derived = this.deriveDisplayNameFromUsername(user.name ?? targetTenantId);
+      this._userInitials.set(this.deriveInitials(derived));
+    }
+
+    this._user.set(user);
+    this._accessToken.set(accessToken);
+    this._isAuthenticated.set(true);
+    this._sessionLoading.set(false);
+    this._allowedTenants.set(this.parseAllowedTenantsFromToken(accessToken));
+    this._tokenTenantId.set(this.parseTenantIdFromToken(accessToken));
+
+    // No redirect happened, so nothing downstream should still believe a switch is in flight.
+    this.clearPendingTenantSwitch();
   }
 
   /**
