@@ -1,6 +1,7 @@
+import { DataPermissionDto, DataPolicyDto } from '../shared/dataPermissionDto';
 import {inject, Injectable} from '@angular/core';
 import {firstValueFrom} from 'rxjs';
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {DiagnosticsModel} from '../shared/diagnosticsModel';
 import {UserDto} from '../shared/userDto';
@@ -976,5 +977,83 @@ export class IdentityService {
       return response.body;
     }
     return null;
+  }
+
+  // ========================================
+  // Data Permission Management (AB#4972)
+  // ========================================
+
+  async getDataPermissions(): Promise<DataPermissionDto[] | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<DataPermissionDto[] | null>(baseUrl + 'dataPermissions', {observe: 'response'}));
+      return response.body;
+    }
+    return null;
+  }
+
+  async createDataPermission(dataPermission: DataPermissionDto): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.post<void>(baseUrl + 'dataPermissions', dataPermission, {observe: 'response'}));
+    }
+  }
+
+  async deleteDataPermission(permissionId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `dataPermissions/${permissionId}`, {observe: 'response'}));
+    }
+  }
+
+  async createDataPolicy(permissionId: string, dataPolicy: DataPolicyDto): Promise<string | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.post(baseUrl + `dataPermissions/${permissionId}/policies`, dataPolicy,
+          {observe: 'response', responseType: 'text'}));
+      return response.body;
+    }
+    return null;
+  }
+
+  async deleteDataPolicy(policyRtId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `dataPermissions/policies/${policyRtId}`, {observe: 'response'}));
+    }
+  }
+
+  async setDataPolicyEnforcementMode(policyRtId: string, enforcementMode: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      // The endpoint takes a raw JSON string body - Angular would default a plain string to text/plain.
+      const headers = new HttpHeaders().set('Content-Type', 'application/json');
+      await firstValueFrom(
+        this.httpClient.put<void>(baseUrl + `dataPermissions/policies/${policyRtId}/enforcementMode`,
+          JSON.stringify(enforcementMode), {headers, observe: 'response'}));
+    }
+  }
+
+  async grantDataPermissionToRole(permissionId: string, roleName: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.post<void>(baseUrl + `dataPermissions/${permissionId}/roles/${roleName}`, null,
+          {observe: 'response'}));
+    }
+  }
+
+  async revokeDataPermissionFromRole(permissionId: string, roleName: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.delete<void>(baseUrl + `dataPermissions/${permissionId}/roles/${roleName}`,
+          {observe: 'response'}));
+    }
   }
 }

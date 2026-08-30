@@ -7,6 +7,7 @@ import { TENANT_ID_PROVIDER } from './tenant-provider';
 import { AddInConfiguration } from '../shared/addInConfiguration';
 import { UserDto } from '../shared/userDto';
 import { RoleDto } from '../shared/roleDto';
+import { DataPermissionDto } from '../shared/dataPermissionDto';
 import { ClientDto } from '../shared/clientDto';
 import { DiagnosticsModel } from '../shared/diagnosticsModel';
 import { GeneratedPasswordDto } from '../shared/generatedPasswordDto';
@@ -752,4 +753,114 @@ describe('IdentityService', () => {
       httpMock.verify();
     });
   });
+
+  describe('Data Permission Management', () => {
+    const mockPermission: DataPermissionDto = {
+      id: 'aa0000000000000000000320',
+      permissionId: 'accounting.documents',
+      description: 'Docs access',
+      grantedRoleNames: ['AccountingManagement'],
+      policies: [{
+        id: 'aa0000000000000000000322',
+        targetCkTypeIds: ['Meshmakers.Accounting/UploadedDocument'],
+        actions: ['Read', 'Write'],
+        scope: 'OwnedOnly',
+        enforcementMode: 'AuditOnly'
+      }]
+    };
+
+    it('should return all data permissions', async () => {
+      const resultPromise = service.getDataPermissions();
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}dataPermissions`);
+      expect(req.request.method).toBe('GET');
+      req.flush([mockPermission]);
+
+      const result = await resultPromise;
+      expect(result).toEqual([mockPermission]);
+    });
+
+    it('should create a data permission', async () => {
+      const resultPromise = service.createDataPermission(mockPermission);
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}dataPermissions`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(mockPermission);
+      req.flush(null);
+
+      await resultPromise;
+    });
+
+    it('should delete a data permission', async () => {
+      const resultPromise = service.deleteDataPermission('accounting.documents');
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}dataPermissions/accounting.documents`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null);
+
+      await resultPromise;
+    });
+
+    it('should create a data policy and return its rtId', async () => {
+      const resultPromise = service.createDataPolicy('accounting.documents', mockPermission.policies[0]);
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}dataPermissions/accounting.documents/policies`);
+      expect(req.request.method).toBe('POST');
+      req.flush('aa0000000000000000000322');
+
+      const result = await resultPromise;
+      expect(result).toBe('aa0000000000000000000322');
+    });
+
+    it('should delete a data policy', async () => {
+      const resultPromise = service.deleteDataPolicy('aa0000000000000000000322');
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}dataPermissions/policies/aa0000000000000000000322`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null);
+
+      await resultPromise;
+    });
+
+    it('should set the enforcement mode as a JSON string body', async () => {
+      const resultPromise = service.setDataPolicyEnforcementMode('aa0000000000000000000322', 'Enforce');
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}dataPermissions/policies/aa0000000000000000000322/enforcementMode`);
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.headers.get('Content-Type')).toBe('application/json');
+      expect(req.request.body).toBe('"Enforce"');
+      req.flush(null);
+
+      await resultPromise;
+    });
+
+    it('should grant a data permission to a role', async () => {
+      const resultPromise = service.grantDataPermissionToRole('accounting.documents', 'AccountingManagement');
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}dataPermissions/accounting.documents/roles/AccountingManagement`);
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await resultPromise;
+    });
+
+    it('should revoke a data permission from a role', async () => {
+      const resultPromise = service.revokeDataPermissionFromRole('accounting.documents', 'AccountingManagement');
+      await tick();
+
+      const req = httpMock.expectOne(`${apiPrefix}dataPermissions/accounting.documents/roles/AccountingManagement`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null);
+
+      await resultPromise;
+    });
+  });
+
 });

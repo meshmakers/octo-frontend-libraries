@@ -253,6 +253,19 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `getProvisioningGroups(targetTenantId)` | List the target tenant's groups (assignable options for a mapping) |
 | `createAdminProvisioningWithGroups(targetTenantId, dto)` | Create a mapping and make it a member of the given target-tenant groups (group-based grant used by the Studio Add User dialog) |
 
+**Data Permission Management** (AB#4977, epic AB#4969 — DTOs in `shared/dataPermissionDto.ts`, REST base `{issuer}{tenantId}/v1/dataPermissions`):
+
+| Method | Description |
+|--------|-------------|
+| `getDataPermissions()` | List all data permissions incl. their policies and granted role names — `GET .../dataPermissions` |
+| `createDataPermission(dto)` | Create a data permission (`DataPermissionDto`; policies/grants in the DTO are ignored by the backend — add them via the dedicated calls) — `POST .../dataPermissions` |
+| `deleteDataPermission(permissionId)` | Delete a data permission incl. its policies and grants — `DELETE .../dataPermissions/{permissionId}` |
+| `createDataPolicy(permissionId, policyDto)` | Add a policy (`DataPolicyDto`: targetCkTypeIds, actions, scope `All`/`OwnedOnly`, enforcementMode `Enforce`/`AuditOnly`) — `POST .../dataPermissions/{permissionId}/policies` |
+| `deleteDataPolicy(permissionId, policyRtId)` | Remove a policy — `DELETE .../dataPermissions/{permissionId}/policies/{policyRtId}` |
+| `setDataPolicyEnforcementMode(permissionId, policyRtId, mode)` | Flip a policy between `Enforce` and `AuditOnly`. Sends the bare mode string as a JSON body (`JSON.stringify(mode)` with explicit `Content-Type: application/json`) — `PUT .../policies/{policyRtId}/enforcementMode` |
+| `grantDataPermissionToRole(permissionId, roleName)` | Grant the permission to a role (server-side effect is immediate) — `PUT .../dataPermissions/{permissionId}/roles/{roleName}` |
+| `revokeDataPermissionFromRole(permissionId, roleName)` | Revoke the permission from a role — `DELETE .../dataPermissions/{permissionId}/roles/{roleName}` |
+
 ### BotService
 
 Manages background jobs and repository operations.

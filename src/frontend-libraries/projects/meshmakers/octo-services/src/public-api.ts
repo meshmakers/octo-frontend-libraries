@@ -35,6 +35,7 @@ export * from './lib/shared/clientMirrorDto';
 export * from './lib/shared/clientOverlayDto';
 export * from './lib/shared/clientScope';
 export * from './lib/shared/groupDto';
+export * from './lib/shared/dataPermissionDto';
 export * from './lib/shared/identityProviderDto';
 export * from './lib/shared/emailDomainGroupRuleDto';
 export * from './lib/shared/externalTenantUserMappingDto';
