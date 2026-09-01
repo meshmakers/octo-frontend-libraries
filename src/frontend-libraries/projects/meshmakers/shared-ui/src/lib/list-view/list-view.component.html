@@ -171,6 +171,12 @@
          table, so they sit in the table's own band instead of a second strip
          stacked above the grid. -->
     @if (filtersTemplate) {
+      <!-- A rule between the host's actions and its filters: both sit on the
+           left of the same band, but one acts on records and the other changes
+           what the list shows. Only drawn when actions precede them. -->
+      @if (leftToolbarActions.length > 0) {
+        <kendo-separator class="mm-toolbar-filters-separator"></kendo-separator>
+      }
       <div class="mm-toolbar-filters">
         <ng-container [ngTemplateOutlet]="filtersTemplate.templateRef"></ng-container>
       </div>

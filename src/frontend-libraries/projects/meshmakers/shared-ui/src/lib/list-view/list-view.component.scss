@@ -429,3 +429,15 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+
+// Vertical rule between the host's toolbar actions and its filter controls.
+// Kendo's separator is horizontal by default; inside a row it has to be turned
+// and given a height, or it collapses to nothing.
+::ng-deep .k-grid-toolbar .mm-toolbar-filters-separator {
+  align-self: center;
+  height: 22px;
+  margin: 0 4px;
+  border-left: 1px solid var(--theme-border-subtle, rgba(0, 0, 0, 0.16));
+  border-top: none;
+  width: 0;
+}

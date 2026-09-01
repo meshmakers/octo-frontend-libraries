@@ -266,7 +266,11 @@ they steer the same table. Project them with the `ListViewFiltersDirective`:
 </mm-list-view>
 ```
 
-They render between the host's toolbar actions and the search box. A directive
+They render between the host's toolbar actions and the search box, with a
+vertical rule separating them from those actions (drawn only when there are
+actions to separate from). Both groups sit on the left of the same band but do
+different things — the actions act on records, the filters change what the list
+shows. A directive
 rather than plain `<ng-content>`: the toolbar itself is a
 `kendoGridToolbarTemplate`, and projected content cannot be placed inside an
 `<ng-template>` — the TemplateRef is captured and rendered with
