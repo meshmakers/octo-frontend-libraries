@@ -6,6 +6,6 @@
 
 @forward "variables" show variables;
 @forward "styles" show styles;
-@forward "theme" show theme, theme-overrides, dark-theme-tokens, light-theme-tokens,
+@forward "theme" show theme, theme-overrides, ink-overlays, dark-theme-tokens, light-theme-tokens,
   light-theme-button-primary, light-theme-button-base,
   light-theme-button-overrides;

@@ -240,10 +240,36 @@
 // Public entry point: emits the :root token blocks for both themes.
 // Include this ONCE per app, before `styles()`.
 // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// Ink overlays — "one step raised off the page".
+//
+// The idiom a dark-only stylesheet writes as `rgba(255,255,255,.03)` cannot be
+// expressed with a surface colour that works in both themes: alpha-blending a
+// light surface over a light page yields no contrast. Tinting with the TEXT
+// colour does work — white-ish over dark lightens, near-black over light
+// darkens — so these derive from --theme-text-primary and flip with the theme.
+//
+// Ready-made steps rather than a color-mix() at every call site: the same few
+// values recur across dozens of declarations and the long form pushes
+// component stylesheets against their style budget.
+// ----------------------------------------------------------------------------
+@mixin ink-overlays {
+  --theme-ink-02: color-mix(in srgb, var(--theme-text-primary) 2%, transparent);
+  --theme-ink-03: color-mix(in srgb, var(--theme-text-primary) 3%, transparent);
+  --theme-ink-04: color-mix(in srgb, var(--theme-text-primary) 4%, transparent);
+  --theme-ink-06: color-mix(in srgb, var(--theme-text-primary) 6%, transparent);
+  --theme-ink-08: color-mix(in srgb, var(--theme-text-primary) 8%, transparent);
+  --theme-ink-09: color-mix(in srgb, var(--theme-text-primary) 9%, transparent);
+  --theme-ink-12: color-mix(in srgb, var(--theme-text-primary) 12%, transparent);
+  --theme-ink-15: color-mix(in srgb, var(--theme-text-primary) 15%, transparent);
+  --theme-ink-70: color-mix(in srgb, var(--theme-text-primary) 70%, transparent);
+}
+
 @mixin theme {
   :root {
     @include vars.variables;
     @include dark-theme-tokens;
+    @include ink-overlays;
   }
 
   // ----- LIGHT THEME via OS preference (when no force-dark override) -----

@@ -59,6 +59,14 @@ include; none of them keeps its own palette any more:
   `--surface-elevated`) are redirected at `--theme-*`, so existing
   `var(--iron-navy)` usages follow the active theme automatically.
 
+**Ink overlays (`--theme-ink-02` … `--theme-ink-70`).** The dark-only idiom
+`rgba(255,255,255,.03)` — "one step raised off the page" — has no surface-colour
+equivalent that works in both themes: alpha-blending a light surface over a light
+page yields no contrast. Tinting with the *text* colour does, because it flips
+with the theme (white-ish over dark lightens, near-black over light darkens).
+Use these ready-made steps rather than spelling out a `color-mix()` per call
+site; the long form pushes component stylesheets against their style budget.
+
 `ThemeModeService` + `<mm-theme-mode-toggle>` (primary entry point,
 `lib/theme-mode/`) drive the `data-theme` attribute the blocks key off:
 three states (`system` → `light` → `dark`), persisted in `localStorage` under
