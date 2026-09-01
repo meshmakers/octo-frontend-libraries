@@ -396,7 +396,7 @@ stages:
             displayName: 'Test demo-app'
             inputs:
               script: |
-                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+                NODE_OPTIONS="--max-old-space-size=6144" npm run test:demo-app -- --reporters=junit,progress
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
 
@@ -404,7 +404,7 @@ stages:
             displayName: 'Test legacy-demo-app'
             inputs:
               script: |
-                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=legacy-demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+                NODE_OPTIONS="--max-old-space-size=6144" npm run test:legacy-demo-app -- --reporters=junit,progress
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
 
