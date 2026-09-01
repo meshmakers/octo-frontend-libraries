@@ -227,7 +227,9 @@ stages:
                 run_test octo-meshboard & pid6=$!
                 wait_all $pid4 $pid5 $pid6
                 echo "=== Test Round 3 ==="
-                run_test octo-ai-console
+                run_test octo-ui & pid7=$!
+                run_test octo-ai-console & pid8=$!
+                wait_all $pid7 $pid8
                 echo "=== All library tests passed ==="
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
