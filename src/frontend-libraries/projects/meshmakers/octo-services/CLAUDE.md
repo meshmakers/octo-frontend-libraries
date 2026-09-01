@@ -139,13 +139,13 @@ Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `exportRtModelByQuery(tenantId, queryId)` | Export RT model by query |
 | `exportRtModelDeepGraph(tenantId, rtIds, ckTypeId)` | Export deep graph |
 
-**Tenant Feature Toggle — Stream Data (AB#4215):**
+**Tenant Feature Toggle — Stream Data (AB#4215) + aggregate status (AB#4884):**
 
 | Method | Description |
 |--------|-------------|
 | `enableStreamData(tenantId)` | Enable Stream Data feature (flag on + `System.StreamData` model import; no storage until an archive is activated) — `POST {assetServices}{tenantId}/v1/streamdata/enable` |
 | `disableStreamData(tenantId)` | Disable Stream Data feature (reversible flag flip; refused with 409 while archives are still activated, model and data are kept; precondition for tenant delete/detach, AB#4255) — `POST {assetServices}{tenantId}/v1/streamdata/disable` |
-| `getStreamDataStatus(tenantId)` | `StreamDataStatus { instanceEnabled, tenantEnabled }` — the tenant flag the toggle reflects (the CK model stays after a disable); `null` when unconfigured — `GET {assetServices}{tenantId}/v1/streamdata/status` |
+| `getTenantFeaturesStatus(tenantId)` | `TenantFeaturesStatus { streamData { instanceEnabled, tenantEnabled }, communication, reporting, aiServices }` — the enabled flags the tenant delete/detach guard evaluates (AB#4884; CK model presence would lie after a disable). Whether a service is installed at all comes from `_configuration` (empty URL = not installed). `null` when unconfigured — `GET {assetServices}{tenantId}/v1/features/status`. Replaces the former `streamdata/status`. |
 
 ### IdentityService
 
@@ -314,6 +314,18 @@ Tenant feature toggle for the Reporting feature (AB#4215). Backed by
 | `disableReporting(tenantId)` | Disable Reporting feature (reversible flag flip, report data is kept; precondition for tenant delete/detach, AB#4255) — `POST {reportingServices}{tenantId}/v1/reporting/disable` |
 
 Throws when `reportingServices` is not configured; HTTP errors propagate to the caller.
+An empty `reportingServices` URL means reporting is not part of the installation (AB#4884).
+
+### AiService
+
+Tenant feature toggle for the AI Services feature (AB#4884). Backed by
+`config.aiServices`; an empty URL means the AI service is not part of this
+installation — both methods throw before any HTTP call.
+
+| Method | Description |
+|--------|-------------|
+| `enableAi(tenantId)` | Enable AI Services feature — `POST {aiServices}{tenantId}/v1/aiservice/enable` (refused with 409 while Communication is disabled for the tenant) |
+| `disableAi(tenantId)` | Disable AI Services feature (reversible flag flip, AI configuration and session data are kept; precondition for tenant delete/detach, AB#4255) — `POST {aiServices}{tenantId}/v1/aiservice/disable` |
 
 ### TusUploadService
 
