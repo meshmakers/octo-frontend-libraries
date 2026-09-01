@@ -293,6 +293,73 @@ describe('MmTableComponent', () => {
     });
   });
 
+  describe('toolbar commands (AB#3444)', () => {
+    interface CommandApi {
+      containerWidth: { set: (value: number | null) => void };
+      commandsCollapsed: boolean;
+      toolbarCommands: { id: string; text: string }[];
+      onCommand: (id: string) => void;
+      onShowRowFilter: () => void;
+      onReset: () => void;
+      onRefresh: () => void;
+    }
+    const api = () => component as unknown as CommandApi;
+    const ids = () => api().toolbarCommands.map(c => c.id);
+
+    it('lays the commands out while the list is wide and collapses them when narrow', () => {
+      api().containerWidth.set(900);
+      expect(api().commandsCollapsed).toBeFalse();
+      api().containerWidth.set(899);
+      expect(api().commandsCollapsed).toBeTrue();
+    });
+
+    it('does not collapse before the width has been measured', () => {
+      api().containerWidth.set(null);
+      expect(api().commandsCollapsed).toBeFalse();
+    });
+
+    it('honours a host-supplied collapse threshold', () => {
+      component.collapseCommandsBelow = 500;
+      api().containerWidth.set(600);
+      expect(api().commandsCollapsed).toBeFalse();
+      api().containerWidth.set(499);
+      expect(api().commandsCollapsed).toBeTrue();
+    });
+
+    it('offers the row filter only when the host enabled it', () => {
+      component.rowFilterEnabled = false;
+      expect(ids()).not.toContain('rowFilter');
+      component.rowFilterEnabled = true;
+      expect(ids()).toContain('rowFilter');
+    });
+
+    it('drops the row filter in card mode but keeps reset available', () => {
+      component.rowFilterEnabled = true;
+      component.cardModeBelow = 600;
+      api().containerWidth.set(400);
+
+      // Cards have no column headers for a filter row to live in, so toggling
+      // it would do nothing — but a filter set before the switch must still be
+      // clearable.
+      expect(ids()).not.toContain('rowFilter');
+      expect(ids()).toContain('reset');
+    });
+
+    it('routes each command to its handler', () => {
+      const showRowFilter = spyOn(api(), 'onShowRowFilter');
+      const reset = spyOn(api(), 'onReset');
+      const refresh = spyOn(api(), 'onRefresh');
+
+      api().onCommand('rowFilter');
+      api().onCommand('reset');
+      api().onCommand('refresh');
+
+      expect(showRowFilter).toHaveBeenCalled();
+      expect(reset).toHaveBeenCalled();
+      expect(refresh).toHaveBeenCalled();
+    });
+  });
+
   describe('card mode (AB#4930)', () => {
     interface CardApi {
       containerWidth: { set: (value: number | null) => void };

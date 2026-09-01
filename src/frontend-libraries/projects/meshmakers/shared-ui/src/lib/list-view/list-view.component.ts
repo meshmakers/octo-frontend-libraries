@@ -17,7 +17,7 @@ import {
 } from '@progress/kendo-angular-grid';
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
-import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
+import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewCommand, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
@@ -287,6 +287,61 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    * `null` (the default) keeps the table at every width.
    */
   @Input() public cardModeBelow: number | null = null;
+
+  /**
+   * Below this component width the toolbar's command buttons (row filter,
+   * exports, reset, refresh) collapse into a single overflow menu. Above it
+   * they stay laid out, because reaching a command in one click beats hiding
+   * it behind a menu whenever there is room.
+   *
+   * Measured against the component's OWN width, not the viewport: expanding or
+   * collapsing the app drawer changes the space a list has by ~240px without
+   * the window ever resizing.
+   */
+  @Input() public collapseCommandsBelow = 900;
+
+  /** True while the command buttons are collapsed into the overflow menu. */
+  protected get commandsCollapsed(): boolean {
+    const width = this.containerWidth();
+    return width !== null && width < this.collapseCommandsBelow;
+  }
+
+  /**
+   * The commands available right now, in toolbar order. The row filter is
+   * omitted in card mode: cards have no column headers for a filter row to
+   * appear in, and the grid already drops `filterable` there — leaving the
+   * button visible offered to toggle something that cannot exist. Reset stays
+   * available, or a filter set before the switch could never be cleared.
+   */
+  protected get toolbarCommands(): ListViewCommand[] {
+    const commands: ListViewCommand[] = [];
+    if (this.rowFilterEnabled && !this.isCardMode) {
+      commands.push({ id: 'rowFilter', text: this._messages.showRowFilter, svgIcon: this.filterIcon });
+    }
+    commands.push(
+      { id: 'excel', text: this._messages.exportToExcel, svgIcon: this.excelSVG },
+      { id: 'pdf', text: this._messages.exportToPdf, svgIcon: this.pdfSVG },
+      { id: 'reset', text: this._messages.resetFilters, svgIcon: this.resetFilterIcon },
+      { id: 'refresh', text: this._messages.refreshData, svgIcon: this.refreshIcon },
+    );
+    return commands;
+  }
+
+  /**
+   * Runs a command by id. Excel and PDF are driven by Kendo's own
+   * `kendoGridExcelCommand` / `kendoGridPDFCommand` directives when the buttons
+   * are laid out; from the overflow menu there is no directive to attach to, so
+   * the grid API is called directly.
+   */
+  protected onCommand(id: string): void {
+    switch (id) {
+      case 'rowFilter': this.onShowRowFilter(); break;
+      case 'excel': this.gridComponent?.saveAsExcel(); break;
+      case 'pdf': this.gridComponent?.saveAsPDF(); break;
+      case 'reset': this.onReset(); break;
+      case 'refresh': this.onRefresh(); break;
+    }
+  }
 
   @HostBinding('class.mm-list-view-cards')
   protected get isCardMode(): boolean {

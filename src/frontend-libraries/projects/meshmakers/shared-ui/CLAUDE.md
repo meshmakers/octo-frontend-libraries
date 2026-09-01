@@ -252,6 +252,29 @@ selection-dependent actions instead of answering an empty-selection click with
 a hint message. In the actions column and context menu the callback receives
 the single row item, as before.
 
+**Built-in commands (`collapseCommandsBelow`, AB#3444)**
+
+The toolbar's own command group — row filter, Excel, PDF, reset filters,
+refresh — lays each command out as an icon button while there is room, and
+collapses all of them into a single overflow `kendo-dropdownbutton` once the
+list gets narrow. Reaching a command in one click beats hiding it behind a menu
+whenever the space exists, so this is width-driven rather than a host opt-in:
+every app behaves the same at the same size.
+
+The threshold is `collapseCommandsBelow` (default `900`), measured against the
+component's **own** width via its existing `ResizeObserver`, not the viewport —
+expanding or collapsing the app drawer changes a list's available width by
+~240px without the window ever resizing.
+
+In card mode the **row filter command is omitted**: cards have no column
+headers for a filter row to appear in, and the grid already drops `filterable`
+there, so the button offered to toggle something that cannot exist. Reset
+filters deliberately stays, or a filter set before the switch to cards could
+never be cleared.
+
+Hosts must not render their own "clear filters" control next to the list — the
+reset command is part of this group and belongs to the table, not to the page.
+
 **Reset filters button (`resetFilters` output)**
 
 A toolbar "Reset Filters" button (`filterClearIcon`) sits next to the reload

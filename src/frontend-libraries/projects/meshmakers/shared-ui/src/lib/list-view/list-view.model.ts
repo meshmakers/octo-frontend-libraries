@@ -197,6 +197,8 @@ export interface ListViewMessages {
   refreshData: string;
   /** Tooltip for the "Reset Filters" button. Default: "Reset Filters" */
   resetFilters: string;
+  /** Tooltip for the collapsed command menu. Default: "Commands" */
+  commands: string;
   /** Title for the actions command column. Default: "Actions" */
   actionsColumnTitle: string;
   /** PDF footer page template. Default: "Page {pageNum} of {totalPages}" */
@@ -224,6 +226,17 @@ export interface ListViewMessages {
 }
 
 /**
+ * One entry of the list toolbar's command group (row filter, exports, reset,
+ * refresh). Rendered as a laid-out icon button when the list is wide enough,
+ * and as a menu item once the commands collapse.
+ */
+export interface ListViewCommand {
+  id: 'rowFilter' | 'excel' | 'pdf' | 'reset' | 'refresh';
+  text: string;
+  svgIcon: SVGIcon;
+}
+
+/**
  * Default English messages for the ListViewComponent.
  */
 export const DEFAULT_LIST_VIEW_MESSAGES: ListViewMessages = {
@@ -233,6 +246,7 @@ export const DEFAULT_LIST_VIEW_MESSAGES: ListViewMessages = {
   exportToPdf: 'Export to PDF',
   refreshData: 'Refresh Data',
   resetFilters: 'Reset Filters',
+  commands: 'Commands',
   actionsColumnTitle: 'Actions',
   pdfPageTemplate: 'Page {pageNum} of {totalPages}',
   pagerItemsPerPage: 'items per page',
