@@ -240,6 +240,16 @@
     box-shadow: 0 1px 3px rgba(7, 23, 43, 0.07);
   }
 
+  // A grid inside a content panel must not become a second card: the panel
+  // already supplies the border, the radius and the surface. Two nested cards
+  // is what left the toolbar's rounded top corners floating inside a white
+  // sheet, with a transparent filter strip wedged between them.
+  .lcars-content-panel .k-grid {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
   // Table chrome. In dark the header/toolbar/pager band is LIGHTER than the
   // data; on a light ground it has to be darker, or the table loses its frame
   // and reads as a borderless white slab.
