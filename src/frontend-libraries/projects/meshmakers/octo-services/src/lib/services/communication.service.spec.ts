@@ -237,6 +237,89 @@ describe('CommunicationService', () => {
     });
   });
 
+  describe('rotateAdapterServiceAccountSecret', () => {
+    const adapterRtId = '65d5c447b420da3fb12381bc';
+    const rotateUri =
+      `${mockConfig.communicationServices}${tenantId}/v1/adapter/${adapterRtId}/serviceAccount/rotateSecret`;
+
+    it('POSTs the plain runtime id route and returns the controller result', async () => {
+      const promise = service.rotateAdapterServiceAccountSecret(tenantId, adapterRtId);
+
+      const req = httpMock.expectOne(rotateUri);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      req.flush({
+        clientId: 'pipeline-svc-adapter-1',
+        configurationWellKnownName: 'PipelineServiceAccount.adapter-1',
+        wasCreated: false,
+        requiresPipelineRedeploy: true,
+        message: 'The client secret ... was rotated. Redeploy the pipelines / data flows.'
+      });
+
+      const result = await promise;
+      expect(result.clientId).toBe('pipeline-svc-adapter-1');
+      expect(result.configurationWellKnownName).toBe('PipelineServiceAccount.adapter-1');
+      expect(result.wasCreated).toBeFalse();
+      expect(result.requiresPipelineRedeploy).toBeTrue();
+    });
+
+    it('carries no secret — the contract has exactly the five documented fields', async () => {
+      const promise = service.rotateAdapterServiceAccountSecret(tenantId, adapterRtId);
+
+      httpMock.expectOne(rotateUri).flush({
+        clientId: 'pipeline-svc-adapter-1',
+        configurationWellKnownName: 'PipelineServiceAccount.adapter-1',
+        wasCreated: true,
+        requiresPipelineRedeploy: false,
+        message: 'Adapter had no pipeline service account; one was provisioned instead.'
+      });
+
+      const result = await promise;
+      // Mirrors the server-side and SDK contract tests: the plaintext lives in the
+      // ServiceAccountConfiguration entity and the identity client's hash only.
+      expect(Object.keys(result).sort()).toEqual([
+        'clientId', 'configurationWellKnownName', 'message', 'requiresPipelineRedeploy', 'wasCreated'
+      ]);
+      expect(JSON.stringify(result)).not.toContain('secret');
+    });
+
+    it('rejects when the controller refuses the rotation', async () => {
+      const promise = service.rotateAdapterServiceAccountSecret(tenantId, adapterRtId);
+
+      httpMock
+        .expectOne(rotateUri)
+        .flush({errorMessage: 'Adapter not found'}, {status: 404, statusText: 'Not Found'});
+
+      await expectAsync(promise).toBeRejected();
+    });
+
+    it('throws instead of silently doing nothing when the service URL is unconfigured', async () => {
+      // A silent no-op would read as "rotated" to the caller — for a mutating
+      // call the absent configuration has to surface. Same TestBed-rebuild
+      // pattern the getWorkloadVariables spec uses.
+      const emptyConfigService = jasmine.createSpyObj<IConfigurationService>(
+        'ConfigurationService', [], {
+          config: {...mockConfig, communicationServices: ''}
+        });
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          CommunicationService,
+          provideHttpClient(withXhr()),
+          provideHttpClientTesting(),
+          {provide: CONFIGURATION_SERVICE, useValue: emptyConfigService}
+        ]
+      });
+      const localService = TestBed.inject(CommunicationService);
+      const localHttp = TestBed.inject(HttpTestingController);
+
+      await expectAsync(localService.rotateAdapterServiceAccountSecret(tenantId, adapterRtId))
+        .toBeRejected();
+      localHttp.expectNone(() => true);
+      localHttp.verify();
+    });
+  });
+
   describe('deployDataFlow', () => {
     it('should call the correct endpoint', async () => {
       const dataFlowRtId = 'pipeline-123';
