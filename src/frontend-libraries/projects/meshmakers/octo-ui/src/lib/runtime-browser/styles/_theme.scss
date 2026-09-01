@@ -1,0 +1,282 @@
+// ============================================================================
+// RUNTIME BROWSER - Theme tokens (dark default + light)
+//
+// `_variables.scss` defines the LCARS brand palette and *consumes* the
+// semantic `--theme-*` tokens with dark fallbacks. This file is where those
+// semantic tokens are actually defined, for both themes, so that every host
+// app resolves them identically instead of maintaining its own copy.
+//
+// Usage in a host app's global stylesheet:
+//
+//   @use "styles/_with-kendo.scss" as octo;   // or _index.scss when the host
+//                                             // imports Kendo itself
+//   @include octo.theme();                    // :root tokens, both themes
+//   @include octo.styles();                   // component styles
+//
+// Dark is the default. Light is applied either by OS preference (when the
+// host has not forced dark) or by an explicit `data-theme="light"` on the
+// root element — see ThemeService in @meshmakers/octo-ui/branding.
+// ============================================================================
+
+@use "variables" as vars;
+
+// ----------------------------------------------------------------------------
+// DARK THEME (default)
+// ----------------------------------------------------------------------------
+@mixin dark-theme-tokens {
+  // Surfaces & backgrounds
+  --theme-bg-app: #07172b;
+  --theme-bg-app-end: #07172b;
+  --theme-bg-surface: #394555;
+  --theme-bg-elevated: #1f2e40;
+  --theme-bg-overlay: rgba(31, 46, 64, 0.4);
+  --theme-bg-input: #1f2e40;
+
+  // Text
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: #9292a6;
+  --theme-text-muted: #6b7689;
+  --theme-text-on-accent: #07172b;
+  --theme-text-accent: #64ceb9;
+
+  // Borders
+  --theme-border-subtle: rgba(100, 206, 185, 0.2);
+  --theme-border-strong: rgba(100, 206, 185, 0.45);
+  --theme-border-divider: rgba(255, 255, 255, 0.08);
+
+  // Effects
+  --theme-glow-primary: 0 0 10px rgba(100, 206, 185, 0.4);
+  --theme-glow-accent: 0 0 15px rgba(100, 206, 185, 0.5);
+  --theme-shadow-panel: 0 4px 30px rgba(0, 0, 0, 0.3);
+  --theme-shadow-popup: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  // Gradients
+  --theme-gradient-page: linear-gradient(180deg, rgba(7, 23, 43, 0.95), rgba(7, 23, 43, 1));
+  --theme-gradient-header: linear-gradient(180deg, #394555, #1f2e40);
+  --theme-accent-bar: linear-gradient(180deg, var(--octo-mint), var(--neo-cyan));
+  --theme-accent-line: linear-gradient(90deg, var(--octo-mint), var(--neo-cyan), transparent);
+  --theme-panel-rule: linear-gradient(90deg, var(--octo-mint), var(--neo-cyan), var(--royal-violet));
+
+  // Status (semantic)
+  --theme-status-success: #37b400;
+  --theme-status-warning: #da9162;
+  --theme-status-error: #ec658f;
+  --theme-status-info: #00a8dc;
+
+  // Chart palette (8 series)
+  --theme-chart-1: #64ceb9;
+  --theme-chart-2: #00a8dc;
+  --theme-chart-3: #6c4da8;
+  --theme-chart-4: #da9162;
+  --theme-chart-5: #ec658f;
+  --theme-chart-6: #c861d6;
+  --theme-chart-7: #546fbd;
+  --theme-chart-8: #9292a6;
+
+  // Kendo bridge
+  --kendo-color-on-base: #c8cdd3;
+  --kendo-color-on-primary: #07172b;
+  --kendo-color-base-on-surface: #c8cdd3;
+
+  // Kendo's Material default --kendo-color-base is the Ash-Blue #9292a6,
+  // which lands as a washed-out medium-grey on the LCARS dark surfaces and
+  // is the source of the low-contrast "Copy ID" / kendo-dropdownbutton look
+  // (white-ish text on light-ish grey, hard to read against the deep-sea bg).
+  // Repoint --kendo-color-base and its subtle/emphasis siblings at the LCARS
+  // surface palette so every solid-base button (kendo-dropdownbutton, menu
+  // buttons, .k-button-solid-base) blends with the surrounding panels while
+  // keeping enough contrast against the page background.
+  --kendo-color-base: #394555; // = iron-navy / theme-bg-surface
+  --kendo-color-base-subtle: #1f2e40; // = surface-elevated / theme-bg-elevated
+  --kendo-color-base-emphasis: #4a5970; // one notch brighter for hover/active
+  --kendo-color-base-hover: #475569; // explicit hover override (Material derives it from --base otherwise, which Kendo computes as still-too-light)
+  --kendo-color-base-active: #4a5970;
+}
+
+// ----------------------------------------------------------------------------
+// LIGHT THEME (single source of truth — used by both the OS-preference media
+// query and the explicit [data-theme="light"] override).
+// ----------------------------------------------------------------------------
+@mixin light-theme-tokens {
+  --theme-bg-app: #f3f6fa;
+  --theme-bg-app-end: #ffffff;
+  --theme-bg-surface: #ffffff;
+  --theme-bg-elevated: #eef2f7;
+  --theme-bg-overlay: rgba(255, 255, 255, 0.92);
+  --theme-bg-input: #ffffff;
+
+  --theme-text-primary: #07172b;
+  --theme-text-secondary: #4b576b;
+  --theme-text-muted: #6b7689;
+  --theme-text-on-accent: #ffffff;
+  --theme-text-accent: #2e8473;
+
+  --theme-border-subtle: rgba(46, 132, 115, 0.3);
+  --theme-border-strong: rgba(46, 132, 115, 0.55);
+  --theme-border-divider: rgba(7, 23, 43, 0.1);
+
+  --theme-glow-primary: 0 1px 3px rgba(7, 23, 43, 0.1);
+  --theme-glow-accent: 0 2px 6px rgba(46, 132, 115, 0.2);
+  --theme-shadow-panel: 0 2px 8px rgba(7, 23, 43, 0.08);
+  --theme-shadow-popup: 0 8px 24px rgba(7, 23, 43, 0.15);
+
+  --theme-gradient-page: linear-gradient(180deg, #f3f6fa, #ffffff);
+  --theme-gradient-header: linear-gradient(180deg, #ffffff, #eef2f7);
+  --theme-accent-line: linear-gradient(90deg, #2e8473, #0288b8, transparent);
+  // accent-bar and panel-rule keep the brand gradient (defined in the dark
+  // block, which always runs first, and deliberately not redefined here).
+
+  --theme-status-success: #2e8b00;
+  --theme-status-warning: #b56b3c;
+  --theme-status-error: #c63d6a;
+  --theme-status-info: #0277a6;
+
+  --theme-chart-1: #2e8473;
+  --theme-chart-2: #0277a6;
+  --theme-chart-3: #553a85;
+  --theme-chart-4: #b56b3c;
+  --theme-chart-5: #c63d6a;
+  --theme-chart-6: #9c4ba8;
+  --theme-chart-7: #3f5394;
+  --theme-chart-8: #6b7689;
+
+  --kendo-color-on-base: #07172b;
+  --kendo-color-on-primary: #ffffff;
+  --kendo-color-base-on-surface: #07172b;
+
+  // Light-theme counterparts to the LCARS dark-theme overrides above.
+  // Light buttons should sit on a pale neutral that reads against the
+  // off-white app background without disappearing into it.
+  --kendo-color-base: #eef2f7; // = theme-bg-elevated (light)
+  --kendo-color-base-subtle: #f3f6fa; // = theme-bg-app (lightest)
+  --kendo-color-base-emphasis: #d8e0ea; // one notch darker for hover/active
+  --kendo-color-base-hover: #d8e0ea;
+  --kendo-color-base-active: #c8d2dd;
+}
+
+// ----------------------------------------------------------------------------
+// Light-theme button contrast — the library's primary/base button gradients
+// (mint at 15–30% alpha) read fine on dark surfaces but wash out on white,
+// leaving confirmation-dialog buttons hard to tell apart and the secondary
+// button looking disabled. Apply solid theme-token fills in light mode.
+//
+// Dialog/window action buttons are styled by the lcars-button mixin scoped to
+// `.k-dialog .k-dialog-actions` (and friends), which has specificity (0,4,0).
+// These selectors have to match or beat that — they land at (0,5,1).
+// ----------------------------------------------------------------------------
+@mixin light-theme-button-primary {
+  background: var(--theme-text-accent);
+  border-color: var(--theme-text-accent);
+  color: #ffffff;
+
+  .k-svg-icon,
+  .k-icon,
+  svg {
+    fill: #ffffff;
+    color: #ffffff;
+  }
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--theme-text-accent) 88%, black);
+    border-color: color-mix(in srgb, var(--theme-text-accent) 88%, black);
+    box-shadow: var(--theme-glow-accent);
+  }
+
+  &:active:not(:disabled) {
+    background: color-mix(in srgb, var(--theme-text-accent) 75%, black);
+  }
+}
+
+@mixin light-theme-button-base {
+  background: var(--theme-bg-elevated);
+  border-color: var(--theme-border-strong);
+  color: var(--theme-text-primary);
+
+  .k-svg-icon,
+  .k-icon,
+  svg {
+    fill: var(--theme-text-primary);
+    color: var(--theme-text-primary);
+  }
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--theme-text-accent) 12%, var(--theme-bg-elevated));
+    border-color: var(--theme-text-accent);
+  }
+
+  &:active:not(:disabled) {
+    background: color-mix(in srgb, var(--theme-text-accent) 20%, var(--theme-bg-elevated));
+  }
+}
+
+@mixin light-theme-button-overrides {
+  // Dialog action buttons (kendo-dialog-actions used by ConfirmationService etc.)
+  .k-dialog .k-dialog-actions,
+  .k-window > .k-actions {
+    .k-button.k-button-solid-primary,
+    .k-button.k-button-primary,
+    .k-button[themecolor="primary"] {
+      @include light-theme-button-primary;
+    }
+
+    // Base/default button (the "No"/"Cancel"/secondary action)
+    .k-button:not(.k-button-primary):not(.k-button-solid-primary):not([themecolor="primary"]):not(.k-button-flat):not(.k-button-outline):not([themecolor="error"]) {
+      @include light-theme-button-base;
+    }
+  }
+
+  // General-purpose primary/base buttons outside dialogs (top-level scope so
+  // host-app pages get the same emphasis without each page having to opt in)
+  .k-button.k-button-solid-primary {
+    @include light-theme-button-primary;
+  }
+
+  .k-button.k-button-solid-base {
+    @include light-theme-button-base;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Public entry point: emits the :root token blocks for both themes.
+// Include this ONCE per app, before `styles()`.
+// ----------------------------------------------------------------------------
+@mixin theme {
+  :root {
+    @include vars.variables;
+    @include dark-theme-tokens;
+  }
+
+  // ----- LIGHT THEME via OS preference (when no force-dark override) -----
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      @include light-theme-tokens;
+    }
+  }
+
+  // ----- LIGHT THEME via explicit override -----
+  :root[data-theme="light"] {
+    @include light-theme-tokens;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Public entry point: emits the light-theme button overrides.
+//
+// Include this in a host's GLOBAL stylesheet, AFTER `styles()` — the lcars
+// button mixin styles dialog action buttons at specificity (0,4,0), so these
+// rules must both outrank it and come later in source order. Deliberately not
+// part of `styles()`: that mixin is also included from component stylesheets,
+// where :root-scoped rules do not belong and would inflate every component's
+// style budget.
+// ----------------------------------------------------------------------------
+@mixin theme-overrides {
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      @include light-theme-button-overrides;
+    }
+  }
+
+  :root[data-theme="light"] {
+    @include light-theme-button-overrides;
+  }
+}

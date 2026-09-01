@@ -36,21 +36,67 @@ src/lib/
     └── services/                 # Property converter service
 ```
 
+## Theme tokens (light + dark)
+
+`lib/runtime-browser/styles/_theme.scss` defines the semantic `--theme-*`
+tokens that `_variables.scss` consumes. Host apps get both themes from one
+include; none of them keeps its own palette any more:
+
+```scss
+@use "styles/_index.scss" as octo;   // _with-kendo.scss when the host has no Kendo
+@include octo.theme();               // :root tokens, dark default + light
+@include octo.styles();              // component styling
+@include octo.theme-overrides();     // light-theme button contrast — AFTER styles()
+```
+
+- `theme()` emits `:root` (brand variables + dark tokens), the
+  `prefers-color-scheme: light` block guarded by `:root:not([data-theme="dark"])`
+  and the explicit `:root[data-theme="light"]` override.
+- `theme-overrides()` is deliberately **not** part of `styles()`: `styles()` is
+  also included from component stylesheets, where `:root`-scoped rules do not
+  belong and would inflate every component's style budget.
+- The brand "neutrals" (`--iron-navy`, `--deep-sea`, `--ash-blue`,
+  `--surface-elevated`) are redirected at `--theme-*`, so existing
+  `var(--iron-navy)` usages follow the active theme automatically.
+
+`ThemeModeService` + `<mm-theme-mode-toggle>` (primary entry point,
+`lib/theme-mode/`) drive the `data-theme` attribute the blocks key off:
+three states (`system` → `light` → `dark`), persisted in `localStorage` under
+`octo-theme-preference`. It is distinct from `ThemeService` in
+`@meshmakers/octo-ui/branding`, which applies a tenant's custom brand palette
+on top of the active mode.
+
 ## Drawer Hierarchy
 
-`@include octo.styles()` styles the Kendo Drawer with three levels of visual hierarchy:
-- **Level 0** (top-level groups): white, uppercase, full-size icons.
-- **Level 1** (children): indented 36 px, dimmer text, icons at 0.85 scale, vertical guide line.
-- **Level 2** (grandchildren): indented 60 px, even dimmer, icons at 0.75 scale, guide line at 46 px.
+`@include octo.styles()` styles the Kendo Drawer with three levels of visual
+hierarchy, keyed off the `mm-drawer-level-N` `cssClass` that
+`@meshmakers/shared-services` `CommandService` adds to every `DrawerItem` based
+on its nesting depth:
+
+- **Level 0** (sections): full-size icons, normal casing.
+- **Level 1** (children): indented 40 px, 20 px icons, dimmed text, vertical
+  guide line at 24 px.
+- **Level 2** (grandchildren): indented 60 px, 18 px icons, dimmer still, guide
+  line at 44 px.
 - **Level 3+**: intentionally unstyled — deeply nested sidebars are a UX smell.
 
-Mini (collapsed) mode relies on the `mm-drawer-level-N` `cssClass` that
-`@meshmakers/shared-services` `CommandService` adds to every `DrawerItem`
-based on its nesting depth. Apps consuming `CommandService` get this for free.
+Kendo's own `k-level-N` classes are **not** used for indentation: the drawer only
+emits them while it is expanded, so they vanish in the mini rail.
 
-All colours come from existing `--octo-*` tokens declared by `octo.variables()`
-(`--octo-text-color`, `--octo-mint`, `--octo-mint-10`); no per-drawer token
-namespace is exposed.
+Two optional hooks are styled for hosts that supply a
+`kendoDrawerItemTemplate`:
+
+- `.drawer-group-chevron` — the expand/collapse indicator on a section header.
+- `.drawer-badge` — a count badge, which becomes a corner bubble in mini mode.
+
+Mini (collapsed) mode is selected via
+`.k-drawer-container.k-drawer-mini:not(.k-drawer-expanded)`. Kendo puts
+`k-drawer-mini` on the **container**, not on `.k-drawer` — an earlier
+`.k-drawer.k-drawer-mini` rule never matched and left the collapsed rail
+unstyled.
+
+All colours come from `--theme-*` / `--octo-*` tokens, so the drawer follows the
+active light/dark theme; no per-drawer token namespace is exposed.
 
 ## Runtime Browser Localization
 

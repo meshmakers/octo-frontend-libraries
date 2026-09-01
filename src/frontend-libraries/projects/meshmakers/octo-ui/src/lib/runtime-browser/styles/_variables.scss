@@ -44,10 +44,15 @@ $kendo-success: #37b400;
   --bubblegum: #{$bubblegum};
   --lilac-glow: #{$lilac-glow};
   --royal-violet: #{$royal-violet};
-  --ash-blue: #{$ash-blue};
-  --iron-navy: #{$iron-navy};
-  --deep-sea: #{$deep-sea};
-  --surface-elevated: #{$surface-elevated};
+  // Brand "neutral" colors. These are redirected at the semantic --theme-*
+  // tokens (see _theme.scss) so that every hardcoded `var(--iron-navy)` usage
+  // in library and host styles follows the active theme automatically. The
+  // SCSS hex only serves as the LCARS-dark fallback for hosts that include
+  // `variables()` without `theme()`.
+  --ash-blue: var(--theme-text-secondary, #{$ash-blue});
+  --iron-navy: var(--theme-bg-surface, #{$iron-navy});
+  --deep-sea: var(--theme-bg-app, #{$deep-sea});
+  --surface-elevated: var(--theme-bg-elevated, #{$surface-elevated});
   // Theme-aware text/surface tokens — fall back to LCARS-dark when host has no theme tokens
   --octo-text-color: var(--theme-text-primary, #{$octo-text-color});
   --kendo-success: #{$kendo-success};
