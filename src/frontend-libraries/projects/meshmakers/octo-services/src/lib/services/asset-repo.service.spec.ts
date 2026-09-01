@@ -8,6 +8,7 @@ import { TenantDto } from '../shared/tenantDto';
 import { AddInConfiguration } from '../shared/addInConfiguration';
 import { PagedResultDto } from '@meshmakers/shared-services';
 import { ImportStrategyDto } from '../shared/importStrategyDto';
+import { DeepGraphDirectionDto } from '../shared/deepGraphFollowSpecDto';
 
 describe('AssetRepoService', () => {
   let service: AssetRepoService;
@@ -526,6 +527,39 @@ describe('AssetRepoService', () => {
 
       const result = await service.exportRtModelDeepGraph('tenant-1', ['rt-1'], 'ck-type-1');
       expect(result).toBeNull();
+    });
+
+    it('should send directed follow specs in the body when provided', async () => {
+      const originRtIds = ['rt-1'];
+      const originCkTypeId = 'System.Identity/DataPermission';
+      const followSpecs = [
+        { roleId: 'System.Identity/PolicyPermission', direction: DeepGraphDirectionDto.Inbound },
+        { roleId: 'System.Identity/GrantsPermission', direction: DeepGraphDirectionDto.Inbound }
+      ];
+
+      const resultPromise = service.exportRtModelDeepGraph('tenant-1', originRtIds, originCkTypeId, followSpecs);
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
+      expect(req.request.body).toEqual({ originRtIds, originCkTypeId, followSpecs });
+      // Direction travels as the backend GraphDirections integer (Inbound = 1).
+      expect(req.request.body.followSpecs[0].direction).toBe(1);
+      req.flush({ jobId: 'spec-job' });
+
+      const result = await resultPromise;
+      expect(result).toBe('spec-job');
+    });
+
+    it('should omit follow specs from the body when the array is empty', async () => {
+      const originRtIds = ['rt-1'];
+      const originCkTypeId = 'ck-type-1';
+
+      const resultPromise = service.exportRtModelDeepGraph('tenant-1', originRtIds, originCkTypeId, []);
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
+      expect(req.request.body).toEqual({ originRtIds, originCkTypeId });
+      req.flush({ jobId: 'spec-job' });
+
+      await resultPromise;
     });
   });
 });

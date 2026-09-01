@@ -23,6 +23,7 @@ export * from './lib/shared/jobResponseDto';
 export * from './lib/shared/health';
 export * from './lib/shared/importModelResponseDto';
 export * from './lib/shared/importStrategyDto';
+export * from './lib/shared/deepGraphFollowSpecDto';
 export * from './lib/shared/timeWindowDto';
 export * from './lib/shared/progress-value';
 export * from './lib/shared/progress-window.service';

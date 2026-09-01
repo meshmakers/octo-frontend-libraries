@@ -137,7 +137,7 @@ Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `importRtModel(tenantId, file)` | Import runtime model from file |
 | `importCkModel(tenantId, file)` | Import construction kit model |
 | `exportRtModelByQuery(tenantId, queryId)` | Export RT model by query |
-| `exportRtModelDeepGraph(tenantId, rtIds, ckTypeId)` | Export deep graph |
+| `exportRtModelDeepGraph(tenantId, rtIds, ckTypeId, followSpecs?)` | Export deep graph. Optional `followSpecs: DeepGraphFollowSpecDto[]` (`{roleId, direction}`, direction `DeepGraphDirectionDto.Inbound=1`/`Outbound=2`) switches from the default ParentChild descent to directed role-set traversal (AB#5003) — how identity exchange drags a permission's policies/grants, a role's permissions, a group's roles/child-groups. Omitted/empty ⇒ historical body/behaviour. Direction travels as the backend GraphDirections integer. |
 
 **Tenant Feature Toggle — Stream Data (AB#4215):**
 

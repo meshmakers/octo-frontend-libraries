@@ -9,6 +9,7 @@ import {ImportModelResponseDto} from '../shared/importModelResponseDto';
 import {ExportModelResponseDto} from '../shared/exportModelResponseDto';
 import {PagedResultDto} from '@meshmakers/shared-services';
 import {ImportStrategyDto} from '../shared/importStrategyDto';
+import {DeepGraphFollowSpecDto} from '../shared/deepGraphFollowSpecDto';
 
 @Injectable({
   providedIn: 'root'
@@ -219,12 +220,26 @@ export class AssetRepoService {
     return null;
   }
 
-  public async exportRtModelDeepGraph(tenantId: string, originRtIds: string[], originCkTypeId: string): Promise<string | null> {
+  /**
+   * Exports a runtime model as a deep graph starting from the given origin entities.
+   *
+   * When `followSpecs` is supplied, the traversal follows those directed association-role
+   * rules instead of the default ParentChild descent (AB#5003) — the mechanism identity
+   * exchange uses to drag a permission's policies/grants, a role's permissions, or a group's
+   * roles and child groups. Omitting it keeps the historical body and behaviour.
+   */
+  public async exportRtModelDeepGraph(tenantId: string, originRtIds: string[], originCkTypeId: string,
+                                       followSpecs?: DeepGraphFollowSpecDto[]): Promise<string | null> {
     if (this.configurationService.config?.assetServices) {
+      const body: { originRtIds: string[]; originCkTypeId: string; followSpecs?: DeepGraphFollowSpecDto[] } =
+        {originRtIds, originCkTypeId};
+      if (followSpecs && followSpecs.length > 0) {
+        body.followSpecs = followSpecs;
+      }
       const r = await firstValueFrom(this.httpClient
         .post<ExportModelResponseDto>(
           this.configurationService.config.assetServices + tenantId + '/v1/Models/ExportRtByDeepGraph',
-          {originRtIds, originCkTypeId},
+          body,
           {
             observe: 'response'
           }
