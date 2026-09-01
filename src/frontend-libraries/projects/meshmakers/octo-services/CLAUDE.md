@@ -320,7 +320,7 @@ An empty `reportingServices` URL means reporting is not part of the installation
 
 Tenant feature toggle for the AI Services feature (AB#4884). Backed by
 `config.aiServices`; an empty URL means the AI service is not part of this
-installation — both methods throw before any HTTP call then.
+installation — both methods throw before any HTTP call.
 
 | Method | Description |
 |--------|-------------|
