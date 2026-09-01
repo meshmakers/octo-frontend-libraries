@@ -65,6 +65,14 @@
   kendo-grid-spacer {
     display: none;
   }
+
+  // With the spacer gone the command menu would sit immediately next to a
+  // host's own overflow group — two "more" menus touching, with page actions in
+  // one and table commands in the other. Keep it pinned to the right edge of
+  // its row so position alone says which is which.
+  .mm-toolbar-commands {
+    margin-left: auto;
+  }
 }
 
 // Single-line, ellipsised cell text. Pairs with the cell's native `title` tooltip so the

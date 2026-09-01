@@ -275,11 +275,17 @@ never be cleared.
 Hosts must not render their own "clear filters" control next to the list — the
 reset command is part of this group and belongs to the table, not to the page.
 
-The collapsed menu uses the **horizontal** ellipsis (`moreHorizontalIcon`) on
-purpose, because `leftToolbarActions` overflow groups conventionally use the
-vertical one. Both are "more" menus and the toolbar can wrap them next to each
-other; with identical glyphs there is nothing to tell page actions from table
-commands. Keep them distinct when adding further overflow groups.
+The collapsed menu is told apart from a host's own overflow group two ways, and
+both matter because the toolbar can wrap them onto the same row:
+
+- **Icon:** `slidersIcon`, not an ellipsis. Host overflow groups conventionally
+  use the vertical ellipsis, and two "more" menus side by side say nothing about
+  which holds what. These commands are the table's *options*, so the icon says
+  so.
+- **Position:** the menu carries `.mm-toolbar-commands`, which pins it to the
+  right of its row in the narrow layout. The narrow layout hides
+  `kendo-grid-spacer`, and without the pin the menu would slide up against the
+  host's overflow button.
 
 **Reset filters button (`resetFilters` output)**
 
