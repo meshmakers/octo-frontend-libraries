@@ -241,6 +241,35 @@
 // Include this ONCE per app, before `styles()`.
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+// Kendo colour bridge.
+//
+// `_kendo-theme.scss` (the library's SLIM Kendo build) already binds Kendo's
+// $kendo-colors to our tokens, so hosts using `_with-kendo.scss` are covered.
+// A host that imports the FULL @progress/kendo-theme-material itself is not:
+// it gets Material's light defaults, which is why the Meshmakers App's grid
+// and toolbars rendered white on the dark theme. Declaring the same bridge as
+// :root custom properties covers both entry points and, unlike a compiled
+// $kendo-colors merge, follows the active theme at runtime.
+//
+// Values deliberately resolve to what the slim theme already produced, so this
+// changes nothing for hosts that were already on it.
+// ----------------------------------------------------------------------------
+@mixin kendo-bridge {
+  --kendo-color-surface: var(--theme-bg-surface);
+  --kendo-color-surface-alt: var(--theme-bg-elevated);
+  --kendo-color-on-surface: var(--kendo-color-base-on-surface);
+  --kendo-color-subtle: var(--theme-text-secondary);
+  --kendo-color-border: var(--theme-border-divider);
+
+  --kendo-color-secondary: var(--neo-cyan);
+  --kendo-color-tertiary: var(--toffee);
+  --kendo-color-info: var(--indigogo);
+  --kendo-color-success: var(--theme-status-success);
+  --kendo-color-warning: var(--theme-status-warning);
+  --kendo-color-error: var(--theme-status-error);
+}
+
+// ----------------------------------------------------------------------------
 // Ink overlays — "one step raised off the page".
 //
 // The idiom a dark-only stylesheet writes as `rgba(255,255,255,.03)` cannot be
@@ -269,6 +298,7 @@
   :root {
     @include vars.variables;
     @include dark-theme-tokens;
+    @include kendo-bridge;
     @include ink-overlays;
   }
 

@@ -59,6 +59,17 @@ include; none of them keeps its own palette any more:
   `--surface-elevated`) are redirected at `--theme-*`, so existing
   `var(--iron-navy)` usages follow the active theme automatically.
 
+**Kendo colour bridge.** `theme()` also declares the `--kendo-color-*` tokens
+(surface, surface-alt, subtle, border, secondary/tertiary/info/success/warning/
+error) against our theme tokens. The slim Kendo build in `_kendo-theme.scss`
+already binds these for hosts using `_with-kendo.scss`; a host that imports the
+FULL `@progress/kendo-theme-material` itself does not get them and falls back to
+Material's light defaults — which is what made the Meshmakers App's grids,
+toolbars and pagers render white on the dark theme. The `:root` declarations
+cover both entry points and, unlike a compiled `$kendo-colors` merge, follow the
+active theme at runtime. Values resolve to exactly what the slim theme produced,
+so this is a no-op for hosts that were already on it.
+
 **Ink overlays (`--theme-ink-02` … `--theme-ink-70`).** The dark-only idiom
 `rgba(255,255,255,.03)` — "one step raised off the page" — has no surface-colour
 equivalent that works in both themes: alpha-blending a light surface over a light
