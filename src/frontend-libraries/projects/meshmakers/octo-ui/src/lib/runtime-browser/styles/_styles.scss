@@ -2486,6 +2486,10 @@
       }
 
       // Separator: a fading rule that groups entries without eating a row.
+      // CommandService stamps mm-drawer-level-N on separators as well, so every
+      // level rule below carries :not(.k-drawer-separator) — without that guard
+      // the level's min-height/padding win on source order and the hairline
+      // renders as a filled 38 px bar.
       &.k-drawer-separator {
         height: 1px;
         min-height: 1px;
@@ -2499,8 +2503,8 @@
       // is a real colour, not `opacity` on the text — stacking opacity on top
       // of an inherited colour is what made these entries unreadable once the
       // inherited colour itself was dark.
-      &.mm-drawer-level-1,
-      &.mm-drawer-level-2 {
+      &.mm-drawer-level-1:not(.k-drawer-separator),
+      &.mm-drawer-level-2:not(.k-drawer-separator) {
         position: relative;
 
         &::before {
@@ -2514,7 +2518,7 @@
         }
       }
 
-      &.mm-drawer-level-1 {
+      &.mm-drawer-level-1:not(.k-drawer-separator) {
         --mm-drawer-guide-x: 24px;
         padding-left: 40px;
         min-height: 38px;
@@ -2536,7 +2540,7 @@
         }
       }
 
-      &.mm-drawer-level-2 {
+      &.mm-drawer-level-2:not(.k-drawer-separator) {
         --mm-drawer-guide-x: 44px;
         padding-left: 60px;
         min-height: 34px;
@@ -2612,8 +2616,8 @@
 
       // No room for indentation on the strip — nested entries shrink to
       // smaller, dimmer icons instead; guide line and chevron disappear.
-      &.mm-drawer-level-1,
-      &.mm-drawer-level-2 {
+      &.mm-drawer-level-1:not(.k-drawer-separator),
+      &.mm-drawer-level-2:not(.k-drawer-separator) {
         padding-left: 0;
 
         &::before {
@@ -2621,7 +2625,7 @@
         }
       }
 
-      &.mm-drawer-level-1 {
+      &.mm-drawer-level-1:not(.k-drawer-separator) {
         min-height: 34px;
 
         .k-icon,
@@ -2634,7 +2638,7 @@
         }
       }
 
-      &.mm-drawer-level-2 {
+      &.mm-drawer-level-2:not(.k-drawer-separator) {
         min-height: 30px;
 
         .k-icon,
