@@ -167,6 +167,15 @@
       }
     }
 
+    <!-- Host scope/filter controls (view switches and the like). They steer the
+         table, so they sit in the table's own band instead of a second strip
+         stacked above the grid. -->
+    @if (filtersTemplate) {
+      <div class="mm-toolbar-filters">
+        <ng-container [ngTemplateOutlet]="filtersTemplate.templateRef"></ng-container>
+      </div>
+    }
+
     <kendo-grid-spacer></kendo-grid-spacer>
     @if (searchTextBoxEnabled) {
       <input

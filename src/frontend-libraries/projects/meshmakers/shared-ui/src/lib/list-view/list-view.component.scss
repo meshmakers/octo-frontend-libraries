@@ -420,3 +420,12 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+// Host filter controls projected into the toolbar (ListViewFiltersDirective).
+// Layout only — the controls themselves stay the host's business.
+::ng-deep .k-grid-toolbar .mm-toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}

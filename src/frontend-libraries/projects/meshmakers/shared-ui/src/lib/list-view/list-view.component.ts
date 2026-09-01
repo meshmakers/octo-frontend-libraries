@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ContentChild, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
 import {
   BooleanFilterCellComponent,
   CellClickEvent,
@@ -17,6 +17,7 @@ import {
 } from '@progress/kendo-angular-grid';
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
+import {ListViewFiltersDirective} from './list-view-filters.directive';
 import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewCommand, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
@@ -135,6 +136,12 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   /** Last measured row height — reused while a page renders no rows (e.g. empty filter result). */
   private lastMeasuredRowHeight: number | null = null;
   private readonly autoPageSizeRecompute$ = new Subject<void>();
+
+  /**
+   * Host-supplied scope/filter controls, rendered in the toolbar rather than in
+   * a strip of their own above the grid — see ListViewFiltersDirective.
+   */
+  @ContentChild(ListViewFiltersDirective) protected filtersTemplate?: ListViewFiltersDirective;
 
   @ViewChild(GridComponent) private gridComponent?: GridComponent;
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;

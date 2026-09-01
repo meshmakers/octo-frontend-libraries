@@ -252,6 +252,31 @@ selection-dependent actions instead of answering an empty-selection click with
 a hint message. In the actions column and context menu the callback receives
 the single row item, as before.
 
+**Host filter controls in the toolbar (`mmListViewFilters`, AB#3444)**
+
+A page's scope/filter controls — view switches, "only in clarification"
+toggles — belong in the same band as the table's search and options, because
+they steer the same table. Project them with the `ListViewFiltersDirective`:
+
+```html
+<mm-list-view …>
+  <ng-template mmListViewFilters>
+    <kendo-buttongroup selection="single" [attr.aria-label]="'View' | translate">…</kendo-buttongroup>
+  </ng-template>
+</mm-list-view>
+```
+
+They render between the host's toolbar actions and the search box. A directive
+rather than plain `<ng-content>`: the toolbar itself is a
+`kendoGridToolbarTemplate`, and projected content cannot be placed inside an
+`<ng-template>` — the TemplateRef is captured and rendered with
+`ngTemplateOutlet` instead.
+
+Worth knowing when a page has MANY filters (the Meshmakers App's transactions
+list carries six: view, category, period, from/to dates, clarification): that
+is more than the band can hold, and such a page is better off keeping a filter
+strip of its own. The slot suits the two-or-three-control case.
+
 **Built-in commands (`collapseCommandsBelow`, AB#3444)**
 
 The toolbar's own command group — row filter, Excel, PDF, reset filters,

@@ -13,6 +13,7 @@ import {MessageListenerService} from './lib/services/message-listener.service';
 import { provideMmSharedServices } from "@meshmakers/shared-services";
 
 export * from './lib/list-view/list-view.component';
+export * from './lib/list-view/list-view-filters.directive';
 export * from './lib/upload-file-dialog/upload-file-dialog.component';
 export * from './lib/input-dialog/input-dialog.component';
 export * from './lib/input-dialog/input-dialog.messages';
