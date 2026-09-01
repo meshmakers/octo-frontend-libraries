@@ -2932,6 +2932,9 @@
   }
 
   kendo-drawer-content {
+    // Kendo pads this by 6px, on top of .octo-body's padding and the page
+    // container's own — three nested paddings indenting the same content.
+    padding: 0;
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 0% !important;
@@ -3305,17 +3308,25 @@
 
   // LCARS Page Layout Pattern
   // Use for all page-level list components
+  // 80px tall for 29px of text: the height came from a 56px accent bar plus
+  // 12px of padding, not from the content. Compacted to ~37px, which is worth
+  // about one and a half table rows on every list page.
   .lcars-page-header {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 12px 0;
+    gap: 12px;
+    padding: 4px 0;
     flex-shrink: 0;
+
+    .page-title {
+      align-items: center;
+    }
   }
 
   .lcars-header-accent {
     width: 8px;
-    height: 56px;
+    height: 26px;
+    align-self: center;
     background: linear-gradient(180deg, var(--octo-mint), var(--neo-cyan));
     border-radius: 4px 0 0 4px;
     box-shadow: 0 0 15px var(--octo-mint-50);

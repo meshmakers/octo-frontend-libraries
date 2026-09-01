@@ -98,10 +98,13 @@
 // query and the explicit [data-theme="light"] override).
 // ----------------------------------------------------------------------------
 @mixin light-theme-tokens {
-  --theme-bg-app: #f3f6fa;
-  --theme-bg-app-end: #ffffff;
+  // The page needs to sit BELOW the cards, or there is no depth at all:
+  // #ffffff on #f3f6fa measured 1.08:1 — card and page were the same surface.
+  // #e9edf3 puts it at 1.35:1, which is what the dark theme has (1.85:1).
+  --theme-bg-app: #e9edf3;
+  --theme-bg-app-end: #e9edf3;
   --theme-bg-surface: #ffffff;
-  --theme-bg-elevated: #eef2f7;
+  --theme-bg-elevated: #f4f7fa;
   --theme-bg-overlay: rgba(255, 255, 255, 0.92);
   --theme-bg-input: #ffffff;
 
@@ -111,12 +114,15 @@
   --theme-text-on-accent: #ffffff;
   --theme-text-accent: #2e8473;
 
-  --theme-border-subtle: rgba(46, 132, 115, 0.3);
-  --theme-border-strong: rgba(46, 132, 115, 0.55);
+  // Neutral, not mint. A mint hairline measures 1.12:1 on a light ground —
+  // it is not a subtle border, it is an invisible one.
+  --theme-border-subtle: rgba(7, 23, 43, 0.12);
+  --theme-border-strong: rgba(7, 23, 43, 0.22);
   --theme-border-divider: rgba(7, 23, 43, 0.1);
 
-  --theme-glow-primary: 0 1px 3px rgba(7, 23, 43, 0.1);
-  --theme-glow-accent: 0 2px 6px rgba(46, 132, 115, 0.2);
+  // A glow needs a dark room. On a light ground it only muddies the edge.
+  --theme-glow-primary: none;
+  --theme-glow-accent: none;
   --theme-shadow-panel: 0 2px 8px rgba(7, 23, 43, 0.08);
   --theme-shadow-popup: 0 8px 24px rgba(7, 23, 43, 0.15);
 
@@ -206,6 +212,126 @@
 
   &:active:not(:disabled) {
     background: color-mix(in srgb, var(--theme-text-accent) 20%, var(--theme-bg-elevated));
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Light-theme structure.
+//
+// The LCARS palette is built to glow, and glowing means light. Ported to a
+// light ground by inverting lightness alone, every role it plays collapses:
+// octo-mint carries 9.49:1 as text on #07172b and 1.75:1 on #f3f6fa, and the
+// mint tints that draw every panel edge fall from 1.53:1 to 1.12:1.
+//
+// So the ROLE changes with the theme, not just the value: in dark, colour is
+// the figure — thin bright lines and glowing text. In light, colour becomes
+// the ground — solid brand blocks carrying dark text, structure carried by
+// surface elevation and neutral rules. That is also closer to real LCARS,
+// which is built from coloured blocks rather than hairlines. The proof is in
+// the same number: #07172b on #64ceb9 is again 9.49:1 — one pair, two roles.
+// ----------------------------------------------------------------------------
+@mixin light-theme-surface-overrides {
+  // Cards lift off the ground again.
+  .k-grid,
+  .lcars-content-panel,
+  .lcars-panel {
+    background: #ffffff;
+    border: 1px solid rgba(7, 23, 43, 0.1);
+    box-shadow: 0 1px 3px rgba(7, 23, 43, 0.07);
+  }
+
+  // Table chrome. In dark the header/toolbar/pager band is LIGHTER than the
+  // data; on a light ground it has to be darker, or the table loses its frame
+  // and reads as a borderless white slab.
+  .k-grid .k-grid-header,
+  .k-grid-toolbar,
+  .k-toolbar,
+  .k-pager,
+  .k-grid-pager {
+    background: #d7ebe5;
+    border-color: rgba(46, 132, 115, 0.3);
+  }
+
+  .k-grid .k-grid-header {
+    border-bottom: 2px solid rgba(46, 132, 115, 0.45);
+  }
+
+  .k-pager,
+  .k-grid-pager {
+    border-top: 1px solid rgba(46, 132, 115, 0.3);
+  }
+
+  .k-grid .k-grid-content {
+    background: #ffffff;
+  }
+
+  // Uppercase plus letter-spacing costs width and legibility in a dense table,
+  // and mint column headers are unreadable on a light band anyway.
+  .k-grid .k-grid-header th {
+    color: var(--theme-text-primary);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 600;
+  }
+
+  .k-label,
+  kendo-label,
+  .section-title {
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  // Brand as block, never as ink.
+  .lcars-header-accent {
+    background: var(--octo-mint);
+    border-radius: 4px;
+    box-shadow: none;
+  }
+
+  .page-title .title-prefix {
+    background: var(--octo-mint);
+    color: #07172b;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+
+  .page-title .title-main {
+    color: var(--theme-text-primary);
+  }
+
+  .lcars-header-line {
+    background: rgba(7, 23, 43, 0.1);
+    height: 1px;
+  }
+
+  .k-drawer .k-drawer-item.k-selected {
+    background: var(--octo-mint);
+    color: #07172b;
+    border-left: none;
+    font-weight: 600;
+
+    // The count badge is mint-on-mint once the row itself is a mint block.
+    .drawer-badge {
+      color: #07172b;
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(7, 23, 43, 0.18);
+    }
+  }
+
+  // The app bar carried four treatments on one edge: a 1px mint border
+  // (1.18:1 — invisible), the 2px gradient ::after the host draws, a
+  // dark-theme drop shadow, and the host's breadcrumb wash. Keep the gradient
+  // as the single statement.
+  .k-appbar {
+    border-bottom: none;
+    box-shadow: 0 1px 2px rgba(7, 23, 43, 0.08);
+  }
+
+  // Decoration that carries the theme in dark and carries nothing in light.
+  .lcars-status-bar,
+  .lcars-footer .footer-bar {
+    display: none;
   }
 }
 
@@ -328,11 +454,13 @@
 @mixin theme-overrides {
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]) {
+      @include light-theme-surface-overrides;
       @include light-theme-button-overrides;
     }
   }
 
   :root[data-theme="light"] {
+    @include light-theme-surface-overrides;
     @include light-theme-button-overrides;
   }
 }
