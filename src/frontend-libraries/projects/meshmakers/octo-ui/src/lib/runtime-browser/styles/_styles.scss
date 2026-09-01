@@ -2429,6 +2429,11 @@
   .k-drawer {
     background: linear-gradient(180deg, var(--theme-bg-surface), var(--theme-bg-app));
     border-right: 1px solid var(--theme-border-subtle);
+    // Kendo's own theme sets `.k-drawer { color: var(--kendo-color-subtle) }`.
+    // That token is not part of our theme contract and resolves to an almost
+    // unreadable dark violet under the Material defaults, so the drawer states
+    // its text colour explicitly from the theme tokens instead of inheriting.
+    color: var(--theme-text-primary);
 
     .k-drawer-wrapper {
       overflow-x: hidden;
@@ -2440,6 +2445,7 @@
     }
 
     .k-drawer-item {
+      color: var(--theme-text-primary);
       border-radius: 0 var(--lcars-radius-md) var(--lcars-radius-md) 0;
       margin: 2px 4px 2px 0;
       padding: 10px 12px;
@@ -2470,6 +2476,7 @@
 
       &:hover {
         background: var(--octo-mint-10);
+        color: var(--theme-text-primary);
       }
 
       &.k-selected {
@@ -2488,7 +2495,10 @@
       }
 
       // Nested entries: indented under their group header with a vertical
-      // guide line, slightly dimmed until hovered or selected.
+      // guide line, and one step quieter than their section header. The step
+      // is a real colour, not `opacity` on the text — stacking opacity on top
+      // of an inherited colour is what made these entries unreadable once the
+      // inherited colour itself was dark.
       &.mm-drawer-level-1,
       &.mm-drawer-level-2 {
         position: relative;
@@ -2502,22 +2512,20 @@
           width: 1px;
           background: var(--theme-border-subtle);
         }
-
-        .k-item-text {
-          font-size: 0.95em;
-          opacity: 0.85;
-        }
-
-        &:hover .k-item-text,
-        &.k-selected .k-item-text {
-          opacity: 1;
-        }
       }
 
       &.mm-drawer-level-1 {
         --mm-drawer-guide-x: 24px;
         padding-left: 40px;
         min-height: 38px;
+
+        &:not(.k-selected) {
+          color: color-mix(in srgb, var(--theme-text-primary) 80%, transparent);
+        }
+
+        .k-item-text {
+          font-size: 0.95em;
+        }
 
         .k-icon,
         .k-svg-icon,
@@ -2533,6 +2541,10 @@
         padding-left: 60px;
         min-height: 34px;
 
+        &:not(.k-selected) {
+          color: color-mix(in srgb, var(--theme-text-primary) 65%, transparent);
+        }
+
         .k-icon,
         .k-svg-icon,
         kendo-svgicon {
@@ -2543,7 +2555,6 @@
 
         .k-item-text {
           font-size: 0.9em;
-          opacity: 0.75;
         }
       }
 
