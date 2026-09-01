@@ -356,21 +356,28 @@ describe('AssetRepoService', () => {
     });
   });
 
-  describe('getStreamDataStatus (AB#4255)', () => {
-    it('should GET the tenant-scoped status endpoint and return the body', async () => {
-      const resultPromise = service.getStreamDataStatus('tenant-1');
+  describe('getTenantFeaturesStatus (AB#4884)', () => {
+    const statusBody = {
+      streamData: { instanceEnabled: true, tenantEnabled: false },
+      communication: { tenantEnabled: true },
+      reporting: { tenantEnabled: false },
+      aiServices: { tenantEnabled: false }
+    };
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/status`);
+    it('should GET the tenant-scoped features status endpoint and return the body', async () => {
+      const resultPromise = service.getTenantFeaturesStatus('tenant-1');
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/features/status`);
       expect(req.request.method).toBe('GET');
-      req.flush({ instanceEnabled: true, tenantEnabled: false });
+      req.flush(statusBody);
 
-      expect(await resultPromise).toEqual({ instanceEnabled: true, tenantEnabled: false });
+      expect(await resultPromise).toEqual(statusBody);
     });
 
     it('should propagate errors', async () => {
-      const resultPromise = service.getStreamDataStatus('tenant-1');
+      const resultPromise = service.getTenantFeaturesStatus('tenant-1');
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/status`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/features/status`);
       req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
 
       await expectAsync(resultPromise).toBeRejected();
@@ -379,8 +386,8 @@ describe('AssetRepoService', () => {
     it('should return null without a request when config is not available', async () => {
       mockConfigService.config = null;
 
-      expect(await service.getStreamDataStatus('tenant-1')).toBeNull();
-      httpMock.expectNone(`${baseUrl}tenant-1/v1/streamdata/status`);
+      expect(await service.getTenantFeaturesStatus('tenant-1')).toBeNull();
+      httpMock.expectNone(`${baseUrl}tenant-1/v1/features/status`);
     });
   });
 

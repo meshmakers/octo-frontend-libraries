@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 import {TenantDto} from '../shared/tenantDto';
-import {StreamDataStatus} from '../shared/streamDataDtos';
+import {TenantFeaturesStatus} from '../shared/tenantFeaturesDtos';
 import {firstValueFrom} from 'rxjs';
 import {ImportModelResponseDto} from '../shared/importModelResponseDto';
 import {ExportModelResponseDto} from '../shared/exportModelResponseDto';
@@ -155,20 +155,24 @@ export class AssetRepoService {
   }
 
   /**
-   * Reads the tenant-level Stream Data status. `tenantEnabled` reflects the
-   * tenant flag that `enableStreamData` / `disableStreamData` switch — unlike
-   * the presence of the `System.StreamData` CK model, which a disable keeps
-   * (AB#4255). Returns `null` when the asset service is not configured.
-   * Errors propagate to the caller.
+   * Reads the aggregate tenant feature status: the enabled flags of Stream
+   * Data, Communication, Reporting and AI Services — the same flags the tenant
+   * delete/detach guard evaluates (AB#4255), so the Tenant Features panel and
+   * the guard never disagree (AB#4884). CK model presence is deliberately not
+   * the source (a disable keeps the model). Whether a service is installed at
+   * all comes from the `_configuration` document (empty URL = not installed),
+   * except Stream Data's `instanceEnabled` flag, which is part of the status.
+   * Returns `null` when the asset service is not configured. Errors propagate
+   * to the caller.
    *
-   * Tenant-scoped REST endpoint: `GET {assetServices}{tenantId}/v1/streamdata/status`.
+   * Tenant-scoped REST endpoint: `GET {assetServices}{tenantId}/v1/features/status`.
    */
-  public async getStreamDataStatus(tenantId: string): Promise<StreamDataStatus | null> {
+  public async getTenantFeaturesStatus(tenantId: string): Promise<TenantFeaturesStatus | null> {
     if (!this.configurationService.config?.assetServices) {
       return null;
     }
-    const uri = `${this.configurationService.config.assetServices}${tenantId}/v1/streamdata/status`;
-    return await firstValueFrom(this.httpClient.get<StreamDataStatus>(uri));
+    const uri = `${this.configurationService.config.assetServices}${tenantId}/v1/features/status`;
+    return await firstValueFrom(this.httpClient.get<TenantFeaturesStatus>(uri));
   }
 
   public async importRtModel(tenantId: string, file: File, importStrategy: ImportStrategyDto = ImportStrategyDto.InsertOnly): Promise<string | null> {
