@@ -16,7 +16,7 @@ Part of the [@meshmakers](https://www.npmjs.com/org/meshmakers) package ecosyste
 - **Dockview Layout** — Flexible, rearrangeable panel system
 - **Animations** — SVG animations with data binding support
 - **Exposed Properties** — Bind symbol properties to runtime data (number, string, boolean)
-- **Expression Evaluation** — `expr-eval` based expressions for data bindings
+- **Expression Evaluation** — `expr-eval(-fork)` based expressions for data bindings
 - **Grouping** — Figma/Illustrator-style temporary grouping of primitives and symbols
 - **Undo/Redo** — Full history with keyboard shortcuts
 
@@ -225,7 +225,7 @@ An optional LCARS theme mixin is available:
 - **Kendo UI Angular 21** (Buttons, Inputs, Dropdowns, Dialogs, ListView)
 - **Apollo Angular** for GraphQL
 - **dockview-angular** for flexible panel layout
-- **expr-eval** for expression evaluation
+- **expr-eval(-fork)** for expression evaluation
 
 ## Detailed Documentation
 
