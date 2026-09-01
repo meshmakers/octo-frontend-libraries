@@ -204,7 +204,7 @@ stages:
                 export NODE_OPTIONS="--max-old-space-size=6144"
                 run_test() {
                   echo "Testing $1..."
-                  npm run "test:$1" -- --reporters=junit,progress
+                  JUNIT_OUTPUT_DIR="test-results/$1" npm run "test:$1" -- --reporters=junit,progress
                 }
                 wait_all() {
                   local fail=0
@@ -398,7 +398,7 @@ stages:
             displayName: 'Test demo-app'
             inputs:
               script: |
-                NODE_OPTIONS="--max-old-space-size=6144" npm run test:demo-app -- --reporters=junit,progress
+                NODE_OPTIONS="--max-old-space-size=6144" JUNIT_OUTPUT_DIR="test-results/demo-app" npm run test:demo-app -- --reporters=junit,progress
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
 
@@ -406,7 +406,7 @@ stages:
             displayName: 'Test legacy-demo-app'
             inputs:
               script: |
-                NODE_OPTIONS="--max-old-space-size=6144" npm run test:legacy-demo-app -- --reporters=junit,progress
+                NODE_OPTIONS="--max-old-space-size=6144" JUNIT_OUTPUT_DIR="test-results/legacy-demo-app" npm run test:legacy-demo-app -- --reporters=junit,progress
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
 

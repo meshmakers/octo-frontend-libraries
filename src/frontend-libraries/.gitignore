@@ -50,3 +50,4 @@ telerik-license.txt
 
 # Auto-generated version file
 projects/demo-app/src/environments/currentVersion.ts
+test-results/

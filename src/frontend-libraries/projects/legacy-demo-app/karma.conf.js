@@ -43,7 +43,7 @@ module.exports = function (config) {
       ]
     },
     junitReporter: {
-      outputDir: './',
+      outputDir: process.env.JUNIT_OUTPUT_DIR || './',
       outputFile: 'TESTS-junit.xml',
       useBrowserName: false
     },
