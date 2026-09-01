@@ -233,7 +233,7 @@
          the list gets narrow. Same behaviour in every host app — a list this
          wide has space for five buttons, and a list this narrow does not. -->
     @if (commandsCollapsed) {
-      <kendo-dropdownbutton [data]="toolbarCommands" textField="text" [svgIcon]="moreVerticalIcon"
+      <kendo-dropdownbutton [data]="toolbarCommands" textField="text" [svgIcon]="commandsIcon"
                             fillMode="flat" themeColor="primary" [disabled]="isLoading()"
                             [title]="_messages.commands"
                             (itemClick)="onCommand($any($event).id)"></kendo-dropdownbutton>

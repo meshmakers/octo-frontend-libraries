@@ -21,7 +21,7 @@ import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSA
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
-import {fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
+import {fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreHorizontalIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
 import {ButtonComponent, DropDownButtonComponent, SplitButtonComponent} from '@progress/kendo-angular-buttons';
@@ -1080,6 +1080,13 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   protected readonly moreVerticalIcon = moreVerticalIcon;
+  /**
+   * The collapsed command menu deliberately uses the HORIZONTAL ellipsis while
+   * host-supplied toolbar overflow groups use the vertical one. Both are "more"
+   * menus and they can end up side by side once the toolbar wraps; identical
+   * glyphs there would leave no way to tell page actions from table commands.
+   */
+  protected readonly commandsIcon = moreHorizontalIcon;
 
 
 }

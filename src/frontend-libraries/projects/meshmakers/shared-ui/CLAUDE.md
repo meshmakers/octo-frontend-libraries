@@ -275,6 +275,12 @@ never be cleared.
 Hosts must not render their own "clear filters" control next to the list — the
 reset command is part of this group and belongs to the table, not to the page.
 
+The collapsed menu uses the **horizontal** ellipsis (`moreHorizontalIcon`) on
+purpose, because `leftToolbarActions` overflow groups conventionally use the
+vertical one. Both are "more" menus and the toolbar can wrap them next to each
+other; with identical glyphs there is nothing to tell page actions from table
+commands. Keep them distinct when adding further overflow groups.
+
 **Reset filters button (`resetFilters` output)**
 
 A toolbar "Reset Filters" button (`filterClearIcon`) sits next to the reload
