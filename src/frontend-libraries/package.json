@@ -43,7 +43,7 @@
     "test:legacy-demo-app": "ng test legacy-demo-app --watch=false",
     "codegen": "cross-env NODE_OPTIONS=\"--max-old-space-size=16384\" graphql-codegen --config codegen.yml",
     "link-dist": "cd dist/meshmakers/shared-auth && npm link && cd ../shared-services && npm link && cd ../shared-ui && npm link && cd ../octo-services && npm link && cd ../octo-ui && npm link",
-    "lint": "npm run lint:shared-services && npm run lint:shared-auth && npm run lint:shared-ui && npm run lint:shared-ui-legacy && npm run lint:octo-services && npm run lint:octo-process-diagrams && npm run lint:octo-meshboard && npm run lint:octo-ai-console && npm run lint:octo-ui && npm run lint:octo-ui-legacy && npm run lint:demo-app",
+    "lint": "npm run lint:shared-services && npm run lint:shared-auth && npm run lint:shared-ui && npm run lint:shared-ui-legacy && npm run lint:octo-services && npm run lint:octo-process-diagrams && npm run lint:octo-meshboard && npm run lint:octo-ai-console && npm run lint:octo-ui && npm run lint:octo-ui-legacy && npm run lint:demo-app && npm run lint:legacy-demo-app",
     "lint:shared-auth": "ng lint @meshmakers/shared-auth",
     "lint:shared-ui": "ng lint @meshmakers/shared-ui",
     "lint:shared-ui-legacy": "ng lint @meshmakers/shared-ui-legacy",
@@ -54,6 +54,7 @@
     "lint:octo-ai-console": "ng lint @meshmakers/octo-ai-console",
     "lint:shared-services": "ng lint @meshmakers/shared-services",
     "lint:demo-app": "ng lint demo-app",
+    "lint:legacy-demo-app": "ng lint legacy-demo-app",
     "postinstall": "node -e \"var s=require('path').join(__dirname,'projects/demo-app/src/environments/version.ts');require('fs').existsSync(s)?require('child_process').execSync('node \\\"'+s+'\\\"',{stdio:'inherit'}):console.log('Version generation skipped')\""
   },
   "private": true,
