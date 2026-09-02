@@ -49,3 +49,11 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
   }
   (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = ResizeObserverStub;
 }
+
+// ---- Jasmine parity ----
+
+// Jasmine restored every spy after each spec; Vitest keeps vi.spyOn spies (and their call history)
+// alive across tests unless restored. Restore them after every test for Jasmine parity.
+afterEach(() => {
+  vi.restoreAllMocks();
+});
