@@ -166,15 +166,20 @@ unaffected — this is a test-runner-only defect. Symptom: a spec passes alone a
 as a second spec importing the same module joins the run, and `--isolate` does not help.
 Fields initialised from **node_modules** imports (Kendo SVG icons) are fine.
 
-Known **latent** sites (green today only because their modules are not in a lazy shared chunk):
+The twelve sites that were latent (green only because their modules were not in a lazy shared
+chunk) were converted in AB#5075. The rule stays: **never write a new class field whose
+initialiser is a bare imported identifier** — a reviewer should reject it on sight.
 
-| file | field |
-|---|---|
-| `shared-ui/src/lib/cron-builder/cron-builder.component.ts` | 6 fields from `./cron-builder.models` |
-| `shared-ui/src/lib/import-strategy-dialog/import-strategy-dialog.component.ts` | `ImportStrategyDto` |
-| `shared-ui/src/lib/upload-file-dialog/upload-file-dialog.component.ts` | `upload`, `deleteIcon` from `../svg-icons` |
-| `octo-meshboard/src/lib/dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component.ts` | `timeZoneMode` |
-| `octo-ui-legacy/src/lib/table/mm-octo-table.component.ts` | `getDisplayName`, `getDataKey` (project has no specs) |
+| file | field | form used |
+|---|---|---|
+| `shared-ui/src/lib/cron-builder/cron-builder.component.ts` | `secondIntervalOptions`, `minuteIntervalOptions`, `hourIntervalOptions`, `weekdayOptions`, `weekdayAbbreviations`, `relativeWeekOptions` (from `./cron-builder.models`) | getter |
+| `shared-ui/src/lib/import-strategy-dialog/import-strategy-dialog.component.ts` | `ImportStrategyDto` | getter |
+| `shared-ui/src/lib/upload-file-dialog/upload-file-dialog.component.ts` | `upload`, `deleteIcon` (from `../svg-icons`) | getter |
+| `octo-meshboard/src/lib/dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component.ts` | `timeZoneMode` | constructor assignment (the field is written at runtime, so a getter is not an option) |
+| `octo-ui-legacy/src/lib/table/mm-octo-table.component.ts` | `getDisplayName`, `getDataKey` | getter (project has no specs; verified with `npm run build:octo-ui-legacy`) |
+
+A getter that returns a function keeps template call syntax working: the template's
+`getDisplayName(c)` reads the getter and calls the returned function.
 
 ### Matcher and mock semantics the schematic does not translate
 

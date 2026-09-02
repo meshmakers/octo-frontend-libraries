@@ -123,6 +123,6 @@ export class UploadFileDialogComponent extends DialogContentBase {
     this.dialogRef.close(null);
   }
 
-  protected readonly upload = upload;
-  protected readonly deleteIcon = deleteIcon;
+  protected get upload(): typeof upload { return upload; }
+  protected get deleteIcon(): typeof deleteIcon { return deleteIcon; }
 }

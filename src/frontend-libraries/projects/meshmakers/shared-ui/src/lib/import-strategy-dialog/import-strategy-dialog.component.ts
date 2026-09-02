@@ -25,7 +25,7 @@ export class ImportStrategyDialogComponent extends DialogContentBase {
   @Input() message = '';
 
   protected selectedStrategy = ImportStrategyDto.Upsert;
-  protected readonly ImportStrategyDto = ImportStrategyDto;
+  protected get ImportStrategyDto(): typeof ImportStrategyDto { return ImportStrategyDto; }
 
   constructor() {
     const dialogRef = inject(DialogRef);

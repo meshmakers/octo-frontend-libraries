@@ -342,8 +342,8 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   hasActionColumns = () => {
     return this.actionColumns.length > 0 || this.optionActions.length > 0;
   };
-  protected readonly getDisplayName = getDisplayName;
-  protected readonly getDataKey = getDataKey;
+  protected get getDisplayName(): typeof getDisplayName { return getDisplayName; }
+  protected get getDataKey(): typeof getDataKey { return getDataKey; }
 
   isSortable(column: TableColumn): boolean {
     if (column.sortingDisabled !== undefined) {

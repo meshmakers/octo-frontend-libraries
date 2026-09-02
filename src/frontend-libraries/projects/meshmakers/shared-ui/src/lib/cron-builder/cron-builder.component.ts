@@ -169,12 +169,12 @@ export class CronBuilderComponent implements OnInit, ControlValueAccessor {
   });
 
   // --- Dropdown options ---
-  protected readonly secondIntervalOptions = SECOND_INTERVALS;
-  protected readonly minuteIntervalOptions = MINUTE_INTERVALS;
-  protected readonly hourIntervalOptions = HOUR_INTERVALS;
-  protected readonly weekdayOptions = WEEKDAYS;
-  protected readonly weekdayAbbreviations = WEEKDAY_ABBREVIATIONS;
-  protected readonly relativeWeekOptions = RELATIVE_WEEKS;
+  protected get secondIntervalOptions(): typeof SECOND_INTERVALS { return SECOND_INTERVALS; }
+  protected get minuteIntervalOptions(): typeof MINUTE_INTERVALS { return MINUTE_INTERVALS; }
+  protected get hourIntervalOptions(): typeof HOUR_INTERVALS { return HOUR_INTERVALS; }
+  protected get weekdayOptions(): typeof WEEKDAYS { return WEEKDAYS; }
+  protected get weekdayAbbreviations(): typeof WEEKDAY_ABBREVIATIONS { return WEEKDAY_ABBREVIATIONS; }
+  protected get relativeWeekOptions(): typeof RELATIVE_WEEKS { return RELATIVE_WEEKS; }
   protected readonly hourOptions = generateHourOptions();
   protected readonly minuteOptions = generateMinuteOptions();
   protected readonly dayOfMonthOptions = generateDayOfMonthOptions();
