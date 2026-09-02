@@ -86,7 +86,7 @@ describe('CkTypeAttributeService', () => {
   });
 
   describe('getCkTypeAttributes', () => {
-    it('should return attributes for a valid ckTypeId', (done) => {
+    it('should return attributes for a valid ckTypeId', () => new Promise<void>((done) => {
       getCkTypeAttributesGQLMock.fetch.and.returnValue(of(mockTypeAttributesResponse));
 
       service.getCkTypeAttributes('TestModel-1.0.0/Customer-1').subscribe(result => {
@@ -102,9 +102,9 @@ describe('CkTypeAttributeService', () => {
         variables: { ckTypeId: 'TestModel-1.0.0/Customer-1', first: 1000 },
         fetchPolicy: 'network-only'
       });
-    });
+    }));
 
-    it('should return empty array when type is not found', (done) => {
+    it('should return empty array when type is not found', () => new Promise<void>((done) => {
       const emptyResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -127,9 +127,9 @@ describe('CkTypeAttributeService', () => {
         expect(console.warn).toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should return empty array when attributes is null', (done) => {
+    it('should return empty array when attributes is null', () => new Promise<void>((done) => {
       const noAttrsResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -156,9 +156,9 @@ describe('CkTypeAttributeService', () => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should handle GraphQL errors gracefully', (done) => {
+    it('should handle GraphQL errors gracefully', () => new Promise<void>((done) => {
       getCkTypeAttributesGQLMock.fetch.and.returnValue(throwError(() => new Error('GraphQL Error')));
       spyOn(console, 'error');
 
@@ -167,9 +167,9 @@ describe('CkTypeAttributeService', () => {
         expect(console.error).toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should filter out null attributes', (done) => {
+    it('should filter out null attributes', () => new Promise<void>((done) => {
       const responseWithNulls = {
         data: {
           __typename: 'OctoQuery',
@@ -202,11 +202,11 @@ describe('CkTypeAttributeService', () => {
         expect(result[0].attributeName).toBe('name');
         done();
       });
-    });
+    }));
   });
 
   describe('getCkRecordAttributes', () => {
-    it('should return attributes for a valid ckRecordId', (done) => {
+    it('should return attributes for a valid ckRecordId', () => new Promise<void>((done) => {
       getCkRecordAttributesGQLMock.fetch.and.returnValue(of(mockRecordAttributesResponse));
 
       service.getCkRecordAttributes('TestModel-1.0.0/StatusRecord-1').subscribe(result => {
@@ -222,9 +222,9 @@ describe('CkTypeAttributeService', () => {
         variables: { ckRecordId: 'TestModel-1.0.0/StatusRecord-1', first: 1000 },
         fetchPolicy: 'network-only'
       });
-    });
+    }));
 
-    it('should return empty array when record is not found', (done) => {
+    it('should return empty array when record is not found', () => new Promise<void>((done) => {
       const emptyResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -247,9 +247,9 @@ describe('CkTypeAttributeService', () => {
         expect(console.warn).toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should handle GraphQL errors gracefully', (done) => {
+    it('should handle GraphQL errors gracefully', () => new Promise<void>((done) => {
       getCkRecordAttributesGQLMock.fetch.and.returnValue(throwError(() => new Error('GraphQL Error')));
       spyOn(console, 'error');
 
@@ -258,9 +258,9 @@ describe('CkTypeAttributeService', () => {
         expect(console.error).toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should filter out null attributes', (done) => {
+    it('should filter out null attributes', () => new Promise<void>((done) => {
       const responseWithNulls = {
         data: {
           __typename: 'OctoQuery',
@@ -293,6 +293,6 @@ describe('CkTypeAttributeService', () => {
         expect(result[0].attributeName).toBe('status');
         done();
       });
-    });
+    }));
   });
 });

@@ -88,7 +88,7 @@ describe('CkTypeSelectorService', () => {
   });
 
   describe('getCkTypeByRtCkTypeId', () => {
-    it('should return CkTypeSelectorItem when type is found', (done) => {
+    it('should return CkTypeSelectorItem when type is found', () => new Promise<void>((done) => {
       getCkTypeByRtCkTypeIdGQLMock.fetch.and.returnValue(of(mockCkTypeByIdResponse));
 
       service.getCkTypeByRtCkTypeId('TestModel/Customer').subscribe(result => {
@@ -104,9 +104,9 @@ describe('CkTypeSelectorService', () => {
         variables: { rtCkTypeId: 'TestModel/Customer' },
         fetchPolicy: 'network-only'
       });
-    });
+    }));
 
-    it('should return null when type is not found', (done) => {
+    it('should return null when type is not found', () => new Promise<void>((done) => {
       const emptyResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -127,9 +127,9 @@ describe('CkTypeSelectorService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should return null when items array is null', (done) => {
+    it('should return null when items array is null', () => new Promise<void>((done) => {
       const nullItemsResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -150,9 +150,9 @@ describe('CkTypeSelectorService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should return null when constructionKit is null', (done) => {
+    it('should return null when constructionKit is null', () => new Promise<void>((done) => {
       const nullCkResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -167,11 +167,11 @@ describe('CkTypeSelectorService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
   });
 
   describe('getCkTypes', () => {
-    it('should return CkTypeSelectorResult with items', (done) => {
+    it('should return CkTypeSelectorResult with items', () => new Promise<void>((done) => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes().subscribe(result => {
@@ -187,9 +187,9 @@ describe('CkTypeSelectorService', () => {
         expect(item.baseTypeRtCkTypeId).toBe('TestModel/Entity');
         done();
       });
-    });
+    }));
 
-    it('should use default pagination parameters', (done) => {
+    it('should use default pagination parameters', () => new Promise<void>((done) => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes().subscribe(() => {
@@ -200,9 +200,9 @@ describe('CkTypeSelectorService', () => {
         expect(callArgs.fetchPolicy).toBe('network-only');
         done();
       });
-    });
+    }));
 
-    it('should apply custom pagination parameters', (done) => {
+    it('should apply custom pagination parameters', () => new Promise<void>((done) => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ first: 20, skip: 10 }).subscribe(() => {
@@ -217,9 +217,9 @@ describe('CkTypeSelectorService', () => {
         });
         done();
       });
-    });
+    }));
 
-    it('should filter by model IDs', (done) => {
+    it('should filter by model IDs', () => new Promise<void>((done) => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ ckModelIds: ['model-1', 'model-2'] }).subscribe(() => {
@@ -230,9 +230,9 @@ describe('CkTypeSelectorService', () => {
         expect(callArgs.fetchPolicy).toBe('network-only');
         done();
       });
-    });
+    }));
 
-    it('should apply search filter', (done) => {
+    it('should apply search filter', () => new Promise<void>((done) => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ searchText: 'Customer' }).subscribe(() => {
@@ -244,9 +244,9 @@ describe('CkTypeSelectorService', () => {
         }));
         done();
       });
-    });
+    }));
 
-    it('should return empty result when types is null', (done) => {
+    it('should return empty result when types is null', () => new Promise<void>((done) => {
       const nullTypesResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -265,9 +265,9 @@ describe('CkTypeSelectorService', () => {
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should return empty result when constructionKit is null', (done) => {
+    it('should return empty result when constructionKit is null', () => new Promise<void>((done) => {
       const nullCkResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -283,9 +283,9 @@ describe('CkTypeSelectorService', () => {
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should handle null items in the array', (done) => {
+    it('should handle null items in the array', () => new Promise<void>((done) => {
       const responseWithNulls = {
         data: {
           __typename: 'OctoQuery',
@@ -308,9 +308,9 @@ describe('CkTypeSelectorService', () => {
         expect(result.totalCount).toBe(2);
         done();
       });
-    });
+    }));
 
-    it('should handle empty ckModelIds array as null', (done) => {
+    it('should handle empty ckModelIds array as null', () => new Promise<void>((done) => {
       getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ ckModelIds: [] }).subscribe(() => {
@@ -318,9 +318,9 @@ describe('CkTypeSelectorService', () => {
         expect(callArgs.variables!.ckModelIds).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should map item without base type correctly', (done) => {
+    it('should map item without base type correctly', () => new Promise<void>((done) => {
       const itemWithoutBaseType = {
         ...mockCkTypeItem,
         baseType: null
@@ -348,9 +348,9 @@ describe('CkTypeSelectorService', () => {
         expect(item.baseTypeRtCkTypeId).toBeUndefined();
         done();
       });
-    });
+    }));
 
-    it('should handle null description', (done) => {
+    it('should handle null description', () => new Promise<void>((done) => {
       const itemWithNullDescription = {
         ...mockCkTypeItem,
         description: null
@@ -377,6 +377,6 @@ describe('CkTypeSelectorService', () => {
         expect(item.description).toBeUndefined();
         done();
       });
-    });
+    }));
   });
 });

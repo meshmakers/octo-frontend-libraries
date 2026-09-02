@@ -64,7 +64,7 @@ describe('AttributeSelectorService', () => {
   });
 
   describe('getAvailableAttributes', () => {
-    it('should return attributes for a valid ckTypeId', (done) => {
+    it('should return attributes for a valid ckTypeId', () => new Promise<void>((done) => {
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(result => {
@@ -92,9 +92,9 @@ describe('AttributeSelectorService', () => {
         },
         fetchPolicy: 'network-only'
       });
-    });
+    }));
 
-    it('should use default first parameter', (done) => {
+    it('should use default first parameter', () => new Promise<void>((done) => {
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(() => {
@@ -102,9 +102,9 @@ describe('AttributeSelectorService', () => {
         expect(callArgs.variables.first).toBe(1000);
         done();
       });
-    });
+    }));
 
-    it('should apply filter parameter', (done) => {
+    it('should apply filter parameter', () => new Promise<void>((done) => {
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer', 'name').subscribe(() => {
@@ -112,9 +112,9 @@ describe('AttributeSelectorService', () => {
         expect(callArgs.variables.filter).toBe('name');
         done();
       });
-    });
+    }));
 
-    it('should apply pagination parameters', (done) => {
+    it('should apply pagination parameters', () => new Promise<void>((done) => {
       getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer', undefined, 50, 'cursor1').subscribe(() => {
@@ -123,9 +123,9 @@ describe('AttributeSelectorService', () => {
         expect(callArgs.variables.after).toBe('cursor1');
         done();
       });
-    });
+    }));
 
-    it('should return empty result when type is not found', (done) => {
+    it('should return empty result when type is not found', () => new Promise<void>((done) => {
       const emptyResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -147,9 +147,9 @@ describe('AttributeSelectorService', () => {
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should return empty result when constructionKit is null', (done) => {
+    it('should return empty result when constructionKit is null', () => new Promise<void>((done) => {
       const nullCkResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -165,9 +165,9 @@ describe('AttributeSelectorService', () => {
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should filter out null items in the response', (done) => {
+    it('should filter out null items in the response', () => new Promise<void>((done) => {
       const responseWithNulls = {
         data: {
           __typename: 'OctoQuery',
@@ -208,9 +208,9 @@ describe('AttributeSelectorService', () => {
         expect(result.items[0].attributePath).toBe('name');
         done();
       });
-    });
+    }));
 
-    it('should handle null availableQueryColumns', (done) => {
+    it('should handle null availableQueryColumns', () => new Promise<void>((done) => {
       const noColumnsResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -237,6 +237,6 @@ describe('AttributeSelectorService', () => {
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
   });
 });
