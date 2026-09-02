@@ -51,21 +51,21 @@ describe('PropertyConverterService', () => {
   // =========================================================================
 
   describe('convertRtEntityAttributes', () => {
-    it('should return empty array for null attributes', (done) => {
+    it('should return empty array for null attributes', () => new Promise<void>((done) => {
       service.convertRtEntityAttributes(null, 'TestType').subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should return empty array for empty attributes array', (done) => {
+    it('should return empty array for empty attributes array', () => new Promise<void>((done) => {
       service.convertRtEntityAttributes([], 'TestType').subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should convert attributes with CK type mapping', (done) => {
+    it('should convert attributes with CK type mapping', () => new Promise<void>((done) => {
       const attributes = [
         { attributeName: 'name', value: 'Test Entity' },
         { attributeName: 'age', value: 25 }
@@ -82,27 +82,27 @@ describe('PropertyConverterService', () => {
         expect(result[1].type).toBe(AttributeValueTypeDto.IntDto);
         done();
       });
-    });
+    }));
 
-    it('should call CkTypeAttributeService with correct ckTypeId', (done) => {
+    it('should call CkTypeAttributeService with correct ckTypeId', () => new Promise<void>((done) => {
       const attributes = [{ attributeName: 'name', value: 'Test' }];
 
       service.convertRtEntityAttributes(attributes, 'OctoSdkDemo/Customer').subscribe(() => {
         expect(ckTypeAttributeServiceMock.getCkTypeAttributes).toHaveBeenCalledWith('OctoSdkDemo/Customer');
         done();
       });
-    });
+    }));
 
-    it('should fallback to StringDto for unknown attributes', (done) => {
+    it('should fallback to StringDto for unknown attributes', () => new Promise<void>((done) => {
       const attributes = [{ attributeName: 'unknownField', value: 'some value' }];
 
       service.convertRtEntityAttributes(attributes, 'TestType').subscribe(result => {
         expect(result[0].type).toBe(AttributeValueTypeDto.StringDto);
         done();
       });
-    });
+    }));
 
-    it('should handle null attribute name', (done) => {
+    it('should handle null attribute name', () => new Promise<void>((done) => {
       const attributes = [{ attributeName: null, value: 'Test' }];
 
       service.convertRtEntityAttributes(attributes, 'TestType').subscribe(result => {
@@ -110,18 +110,18 @@ describe('PropertyConverterService', () => {
         expect(result[0].displayName).toBe('attribute_0');
         done();
       });
-    });
+    }));
 
-    it('should handle null values', (done) => {
+    it('should handle null values', () => new Promise<void>((done) => {
       const attributes = [{ attributeName: 'name', value: null }];
 
       service.convertRtEntityAttributes(attributes, 'TestType').subscribe(result => {
         expect(result[0].value).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should handle array values', (done) => {
+    it('should handle array values', () => new Promise<void>((done) => {
       const attributes = [{ attributeName: 'tags', value: ['tag1', 'tag2', 'tag3'] }];
 
       service.convertRtEntityAttributes(attributes, 'TestType').subscribe(result => {
@@ -129,7 +129,7 @@ describe('PropertyConverterService', () => {
         expect(result[0].type).toBe(AttributeValueTypeDto.StringArrayDto);
         done();
       });
-    });
+    }));
   });
 
   // =========================================================================
@@ -259,42 +259,42 @@ describe('PropertyConverterService', () => {
   // =========================================================================
 
   describe('convertRtRecordToProperties', () => {
-    it('should return empty array for null record', (done) => {
+    it('should return empty array for null record', () => new Promise<void>((done) => {
       service.convertRtRecordToProperties(null).subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should return empty array for undefined record', (done) => {
+    it('should return empty array for undefined record', () => new Promise<void>((done) => {
       service.convertRtRecordToProperties(undefined).subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should return empty array for non-object record', (done) => {
+    it('should return empty array for non-object record', () => new Promise<void>((done) => {
       service.convertRtRecordToProperties('string' as never).subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should return empty array for record without attributes', (done) => {
+    it('should return empty array for record without attributes', () => new Promise<void>((done) => {
       service.convertRtRecordToProperties({ ckRecordId: 'Test/Record' }).subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should return empty array for record without ckRecordId', (done) => {
+    it('should return empty array for record without ckRecordId', () => new Promise<void>((done) => {
       service.convertRtRecordToProperties({ attributes: [] }).subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should include ckRecordId as system property', (done) => {
+    it('should include ckRecordId as system property', () => new Promise<void>((done) => {
       const record = { ckRecordId: 'OctoSdkDemo/TestRecord', attributes: [] };
 
       service.convertRtRecordToProperties(record).subscribe(result => {
@@ -308,9 +308,9 @@ describe('PropertyConverterService', () => {
         expect(recordIdProp?.displayName).toBe('Record ID');
         done();
       });
-    });
+    }));
 
-    it('should convert record attributes with CK type mapping', (done) => {
+    it('should convert record attributes with CK type mapping', () => new Promise<void>((done) => {
       const record = {
         ckRecordId: 'OctoSdkDemo/TestRecord',
         attributes: [
@@ -333,7 +333,7 @@ describe('PropertyConverterService', () => {
 
         done();
       });
-    });
+    }));
   });
 
   // =========================================================================
@@ -341,7 +341,7 @@ describe('PropertyConverterService', () => {
   // =========================================================================
 
   describe('convertRtEntityToProperties', () => {
-    it('should convert rtId as system property', (done) => {
+    it('should convert rtId as system property', () => new Promise<void>((done) => {
       const entity = { rtId: 'entity-123' };
 
       service.convertRtEntityToProperties(entity).subscribe(result => {
@@ -355,9 +355,9 @@ describe('PropertyConverterService', () => {
         expect(rtIdProp?.displayName).toBe('Runtime ID');
         done();
       });
-    });
+    }));
 
-    it('should convert ckTypeId as system property', (done) => {
+    it('should convert ckTypeId as system property', () => new Promise<void>((done) => {
       const entity = { ckTypeId: 'OctoSdkDemo/Customer' };
 
       service.convertRtEntityToProperties(entity).subscribe(result => {
@@ -371,9 +371,9 @@ describe('PropertyConverterService', () => {
         expect(ckTypeIdProp?.displayName).toBe('Type ID');
         done();
       });
-    });
+    }));
 
-    it('should convert rtCreationDateTime as system property', (done) => {
+    it('should convert rtCreationDateTime as system property', () => new Promise<void>((done) => {
       const entity = { rtCreationDateTime: '2024-01-15T10:30:00Z' };
 
       service.convertRtEntityToProperties(entity).subscribe(result => {
@@ -387,9 +387,9 @@ describe('PropertyConverterService', () => {
         expect(createdProp?.displayName).toBe('Created');
         done();
       });
-    });
+    }));
 
-    it('should convert rtChangedDateTime as system property', (done) => {
+    it('should convert rtChangedDateTime as system property', () => new Promise<void>((done) => {
       const entity = { rtChangedDateTime: '2024-01-16T14:00:00Z' };
 
       service.convertRtEntityToProperties(entity).subscribe(result => {
@@ -403,9 +403,9 @@ describe('PropertyConverterService', () => {
         expect(modifiedProp?.displayName).toBe('Modified');
         done();
       });
-    });
+    }));
 
-    it('should convert rtWellKnownName as general property', (done) => {
+    it('should convert rtWellKnownName as general property', () => new Promise<void>((done) => {
       const entity = { rtWellKnownName: 'my-entity' };
 
       service.convertRtEntityToProperties(entity).subscribe(result => {
@@ -419,9 +419,9 @@ describe('PropertyConverterService', () => {
         expect(wknProp?.displayName).toBe('Well Known Name');
         done();
       });
-    });
+    }));
 
-    it('should return only system properties if no ckTypeId', (done) => {
+    it('should return only system properties if no ckTypeId', () => new Promise<void>((done) => {
       const entity = {
         rtId: 'entity-123',
         attributes: { items: [{ attributeName: 'name', value: 'Test' }] }
@@ -433,9 +433,9 @@ describe('PropertyConverterService', () => {
         expect(ckTypeAttributeServiceMock.getCkTypeAttributes).not.toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should return only system properties if no attributes', (done) => {
+    it('should return only system properties if no attributes', () => new Promise<void>((done) => {
       const entity = { rtId: 'entity-123', ckTypeId: 'OctoSdkDemo/Customer' };
 
       service.convertRtEntityToProperties(entity).subscribe(result => {
@@ -445,9 +445,9 @@ describe('PropertyConverterService', () => {
         expect(ckTypeAttributeServiceMock.getCkTypeAttributes).not.toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should convert full entity with all properties and attributes', (done) => {
+    it('should convert full entity with all properties and attributes', () => new Promise<void>((done) => {
       const entity = {
         rtId: 'entity-123',
         ckTypeId: 'OctoSdkDemo/Customer',
@@ -486,9 +486,9 @@ describe('PropertyConverterService', () => {
 
         done();
       });
-    });
+    }));
 
-    it('should handle entity with only some system properties', (done) => {
+    it('should handle entity with only some system properties', () => new Promise<void>((done) => {
       const entity = { rtId: 'entity-123' };
 
       service.convertRtEntityToProperties(entity).subscribe(result => {
@@ -496,7 +496,7 @@ describe('PropertyConverterService', () => {
         expect(result[0].name).toBe('rtId');
         done();
       });
-    });
+    }));
   });
 
   // =========================================================================
@@ -527,7 +527,7 @@ describe('PropertyConverterService', () => {
     ];
 
     testCases.forEach(({ ckType, expectedDto }) => {
-      it(`should map CK type ${ckType} to ${expectedDto}`, (done) => {
+      it(`should map CK type ${ckType} to ${expectedDto}`, () => new Promise<void>((done) => {
         ckTypeAttributeServiceMock.getCkTypeAttributes.and.returnValue(
           of([{ attributeName: 'testAttr', attributeValueType: ckType }])
         );
@@ -538,10 +538,10 @@ describe('PropertyConverterService', () => {
           expect(result[0].type).toBe(expectedDto);
           done();
         });
-      });
+      }));
     });
 
-    it('should fallback to StringDto for unknown CK type', (done) => {
+    it('should fallback to StringDto for unknown CK type', () => new Promise<void>((done) => {
       ckTypeAttributeServiceMock.getCkTypeAttributes.and.returnValue(
         of([{ attributeName: 'testAttr', attributeValueType: 'UNKNOWN_TYPE' }])
       );
@@ -552,7 +552,7 @@ describe('PropertyConverterService', () => {
         expect(result[0].type).toBe(AttributeValueTypeDto.StringDto);
         done();
       });
-    });
+    }));
   });
 
   // =========================================================================
@@ -560,7 +560,7 @@ describe('PropertyConverterService', () => {
   // =========================================================================
 
   describe('Nested Record Handling', () => {
-    it('should convert nested record with async CK type lookup', (done) => {
+    it('should convert nested record with async CK type lookup', () => new Promise<void>((done) => {
       const attributes = [
         { attributeName: 'name', value: 'Parent' },
         {
@@ -583,9 +583,9 @@ describe('PropertyConverterService', () => {
 
         done();
       });
-    });
+    }));
 
-    it('should handle deeply nested arrays', (done) => {
+    it('should handle deeply nested arrays', () => new Promise<void>((done) => {
       const attributes = [
         {
           attributeName: 'items',
@@ -597,7 +597,7 @@ describe('PropertyConverterService', () => {
         expect(result[0].value).toEqual([{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }]);
         done();
       });
-    });
+    }));
   });
 
   // =========================================================================
@@ -605,32 +605,32 @@ describe('PropertyConverterService', () => {
   // =========================================================================
 
   describe('Edge Cases', () => {
-    it('should handle empty entity', (done) => {
+    it('should handle empty entity', () => new Promise<void>((done) => {
       service.convertRtEntityToProperties({}).subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should handle attributes with undefined name', (done) => {
+    it('should handle attributes with undefined name', () => new Promise<void>((done) => {
       const attributes = [{ attributeName: undefined, value: 'test' }];
 
       service.convertRtEntityAttributes(attributes, 'TestType').subscribe(result => {
         expect(result[0].name).toBe('attribute_0');
         done();
       });
-    });
+    }));
 
-    it('should handle attributes with undefined value', (done) => {
+    it('should handle attributes with undefined value', () => new Promise<void>((done) => {
       const attributes = [{ attributeName: 'field', value: undefined }];
 
       service.convertRtEntityAttributes(attributes, 'TestType').subscribe(result => {
         expect(result[0].value).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should handle completely empty attribute object', (done) => {
+    it('should handle completely empty attribute object', () => new Promise<void>((done) => {
       const attributes = [{}];
 
       service.convertRtEntityAttributes(attributes, 'TestType').subscribe(result => {
@@ -638,9 +638,9 @@ describe('PropertyConverterService', () => {
         expect(result[0].value).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should preserve array order', (done) => {
+    it('should preserve array order', () => new Promise<void>((done) => {
       const attributes = [
         { attributeName: 'first', value: 1 },
         { attributeName: 'second', value: 2 },
@@ -653,9 +653,9 @@ describe('PropertyConverterService', () => {
         expect(result[2].name).toBe('third');
         done();
       });
-    });
+    }));
 
-    it('should generate unique ids with index', (done) => {
+    it('should generate unique ids with index', () => new Promise<void>((done) => {
       const attributes = [
         { attributeName: 'field', value: 'a' },
         { attributeName: 'field', value: 'b' }
@@ -666,7 +666,7 @@ describe('PropertyConverterService', () => {
         expect(result[1].id).toBe('attr_1_field');
         done();
       });
-    });
+    }));
   });
 
   // =========================================================================

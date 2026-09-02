@@ -74,7 +74,7 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
   });
 
   describe('fetchData without ckTypeId', () => {
-    it('should return empty result when ckTypeId is not set', (done) => {
+    it('should return empty result when ckTypeId is not set', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -86,7 +86,7 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(mockGetRuntimeEntitiesGQL.fetch).not.toHaveBeenCalled();
         done();
       });
-    });
+    }));
   });
 
   describe('fetchData with ckTypeId', () => {
@@ -95,7 +95,7 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
       mockGetRuntimeEntitiesGQL.fetch.calls.reset();
     });
 
-    it('should fetch entities and return typed result', (done) => {
+    it('should fetch entities and return typed result', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -112,9 +112,9 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(second.rtId).toBe('entity-2');
         done();
       });
-    });
+    }));
 
-    it('should call GraphQL with correct ckTypeId', (done) => {
+    it('should call GraphQL with correct ckTypeId', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 10, skip: 0 },
         textSearch: null,
@@ -128,9 +128,9 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(callArgs.variables.first).toBe(10);
         done();
       });
-    });
+    }));
 
-    it('should use cache-first policy by default', (done) => {
+    it('should use cache-first policy by default', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -142,9 +142,9 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(callArgs.fetchPolicy).toBe('cache-first');
         done();
       });
-    });
+    }));
 
-    it('should use network-only policy when forceRefresh is true', (done) => {
+    it('should use network-only policy when forceRefresh is true', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -157,9 +157,9 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(callArgs.fetchPolicy).toBe('network-only');
         done();
       });
-    });
+    }));
 
-    it('should include sort definitions when sorting is applied', (done) => {
+    it('should include sort definitions when sorting is applied', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: {
           take: 20,
@@ -176,9 +176,9 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(callArgs.variables.sort.length).toBe(1);
         done();
       });
-    });
+    }));
 
-    it('should handle empty result', (done) => {
+    it('should handle empty result', () => new Promise<void>((done) => {
       mockGetRuntimeEntitiesGQL.fetch.and.returnValue(
         of({
           data: {
@@ -202,9 +202,9 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(result?.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should handle null items in response', (done) => {
+    it('should handle null items in response', () => new Promise<void>((done) => {
       mockGetRuntimeEntitiesGQL.fetch.and.returnValue(
         of({
           data: {
@@ -227,11 +227,11 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(result?.data.length).toBe(2);
         done();
       });
-    });
+    }));
   });
 
   describe('setRtCkTypeId', () => {
-    it('should update ckTypeId and allow fetching', (done) => {
+    it('should update ckTypeId and allow fetching', () => new Promise<void>((done) => {
       directive.setRtCkTypeId('NewType');
       mockGetRuntimeEntitiesGQL.fetch.calls.reset();
 
@@ -246,6 +246,6 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         expect(callArgs.variables.ckTypeId).toBe('NewType');
         done();
       });
-    });
+    }));
   });
 });

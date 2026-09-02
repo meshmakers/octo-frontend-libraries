@@ -82,7 +82,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
   });
 
   describe('fetchData without entity set', () => {
-    it('should return empty result when entity is not set', (done) => {
+    it('should return empty result when entity is not set', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -94,7 +94,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(mockGetAssociationsGQL.fetch).not.toHaveBeenCalled();
         done();
       });
-    });
+    }));
   });
 
   describe('fetchData with entity set', () => {
@@ -103,7 +103,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
       mockGetAssociationsGQL.fetch.calls.reset();
     });
 
-    it('should fetch associations and return typed result', (done) => {
+    it('should fetch associations and return typed result', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -115,9 +115,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(result?.totalCount).toBe(2);
         done();
       });
-    });
+    }));
 
-    it('should determine outbound direction correctly', (done) => {
+    it('should determine outbound direction correctly', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -131,9 +131,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(items[0].relatedCkTypeId).toBe('TargetType');
         done();
       });
-    });
+    }));
 
-    it('should determine inbound direction correctly', (done) => {
+    it('should determine inbound direction correctly', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -147,9 +147,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(items[1].relatedCkTypeId).toBe('OtherType');
         done();
       });
-    });
+    }));
 
-    it('should call GraphQL with correct variables', (done) => {
+    it('should call GraphQL with correct variables', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 10, skip: 0 },
         textSearch: null,
@@ -165,9 +165,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(callArgs.variables.first).toBe(10);
         done();
       });
-    });
+    }));
 
-    it('should use cache-first policy by default', (done) => {
+    it('should use cache-first policy by default', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -179,9 +179,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(callArgs.fetchPolicy).toBe('cache-first');
         done();
       });
-    });
+    }));
 
-    it('should use network-only policy when forceRefresh is true', (done) => {
+    it('should use network-only policy when forceRefresh is true', () => new Promise<void>((done) => {
       const options: FetchDataOptions = {
         state: { take: 20, skip: 0 },
         textSearch: null,
@@ -194,9 +194,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(callArgs.fetchPolicy).toBe('network-only');
         done();
       });
-    });
+    }));
 
-    it('should handle empty result', (done) => {
+    it('should handle empty result', () => new Promise<void>((done) => {
       mockGetAssociationsGQL.fetch.and.returnValue(
         of({
           data: {
@@ -229,9 +229,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(result?.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should handle null items in response', (done) => {
+    it('should handle null items in response', () => new Promise<void>((done) => {
       mockGetAssociationsGQL.fetch.and.returnValue(
         of({
           data: {
@@ -263,7 +263,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(result?.data.length).toBe(2);
         done();
       });
-    });
+    }));
   });
 
   describe('filter setters', () => {
@@ -272,7 +272,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
       mockGetAssociationsGQL.fetch.calls.reset();
     });
 
-    it('should set direction filter', (done) => {
+    it('should set direction filter', () => new Promise<void>((done) => {
       directive.setDirection(GraphDirectionDto.OutboundDto);
 
       const options: FetchDataOptions = {
@@ -288,9 +288,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         );
         done();
       });
-    });
+    }));
 
-    it('should set role filter', (done) => {
+    it('should set role filter', () => new Promise<void>((done) => {
       directive.setRoleId('specific-role');
 
       const options: FetchDataOptions = {
@@ -304,9 +304,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(callArgs.variables.roleId).toBe('specific-role');
         done();
       });
-    });
+    }));
 
-    it('should set relatedRtCkId filter', (done) => {
+    it('should set relatedRtCkId filter', () => new Promise<void>((done) => {
       directive.setRelatedRtCkId('RelatedType');
 
       const options: FetchDataOptions = {
@@ -320,9 +320,9 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(callArgs.variables.relatedRtCkId).toBe('RelatedType');
         done();
       });
-    });
+    }));
 
-    it('should set relatedRtId filter', (done) => {
+    it('should set relatedRtId filter', () => new Promise<void>((done) => {
       directive.setRelatedRtId('specific-entity');
 
       const options: FetchDataOptions = {
@@ -336,6 +336,6 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(callArgs.variables.relatedRtId).toBe('specific-entity');
         done();
       });
-    });
+    }));
   });
 });
