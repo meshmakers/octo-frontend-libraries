@@ -98,7 +98,8 @@ per-project flags to `npm test`. Use `npm run test:<lib> -- <flag>` or `ng test 
 
 Karma and Jasmine were replaced by Vitest in AB#5071. Runner: **`@angular/build:unit-test`
 with `runner: "vitest"` on jsdom** — no browser, no `CHROME_BIN`, no `karma.conf.js`.
-10 `test` targets (the two legacy libraries have no specs), 177 spec files, 4106 tests.
+10 `test` targets (the two legacy libraries have no specs), covering every spec file in the
+workspace.
 
 ### How a test target is wired
 

@@ -66,8 +66,9 @@ if (!('innerText' in HTMLElement.prototype)) {
 
 // ---- Jasmine parity ----
 
-// Jasmine restored every spy after each spec; Vitest keeps vi.spyOn spies (and their call history)
-// alive across tests unless restored. Restore them after every test for Jasmine parity.
+// Jasmine restored every spy after each spec. Vitest does not by itself: vi.spyOn spies (and
+// their call history) stay alive across tests unless restored. This hook restores them after
+// every test, so specs keep Jasmine's fresh-spy-per-test behaviour without restoring by hand.
 afterEach(() => {
   vi.restoreAllMocks();
 });

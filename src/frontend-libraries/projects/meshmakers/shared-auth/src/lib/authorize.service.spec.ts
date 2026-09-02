@@ -968,10 +968,10 @@ describe('AuthorizeService', () => {
     });
 
     afterEach(() => {
-      // The previous runner restored every spy after each spec; Vitest does not,
-      // and vi.spyOn on an already-spied member returns the SAME mock, so
-      // window.fetch would keep its call history across the tests below.
-      // Restore it to get a fresh spy per test.
+      // Jasmine restored every spy after each spec; Vitest does not by itself, and vi.spyOn on
+      // an already-spied member returns the SAME mock, so window.fetch would keep its call
+      // history across the tests below. The global afterEach in testing/vitest-setup.ts already
+      // restores it — this call is a belt-and-braces duplicate kept next to the spy it belongs to.
       fetchSpy.mockRestore();
 
       for (const key of ['tecob__access_token', 'tecob__refresh_token', 'tecob__expires_at',

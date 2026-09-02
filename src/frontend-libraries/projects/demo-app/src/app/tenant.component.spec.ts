@@ -53,6 +53,7 @@ describe('TenantComponent', () => {
       setTitle: vi.fn().mockName('AppTitleService.setTitle')
     };
 
+    // Real ApolloLink instance for the same reason as mockHttpLink.create above.
     const mockOctoErrorLink = ApolloLink.empty();
 
     await TestBed.configureTestingModule({
