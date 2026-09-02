@@ -66,12 +66,12 @@ describe('CommandService', () => {
       expect(typeof service.drawerItems.subscribe).toBe('function');
     });
 
-    it('should emit empty array initially', (done) => {
+    it('should emit empty array initially', () => new Promise<void>((done) => {
       service.drawerItems.subscribe(items => {
         expect(items).toEqual([]);
         done();
       });
-    });
+    }));
   });
 
   describe('initialize', () => {

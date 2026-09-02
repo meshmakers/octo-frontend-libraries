@@ -56,11 +56,11 @@ describe('ComponentMenuService', () => {
       expect(typeof service.menuItems.subscribe).toBe('function');
     });
 
-    it('should emit empty array when no navigation menu data', (done) => {
+    it('should emit empty array when no navigation menu data', () => new Promise<void>((done) => {
       service.menuItems.subscribe(items => {
         expect(items).toEqual([]);
         done();
       });
-    });
+    }));
   });
 });

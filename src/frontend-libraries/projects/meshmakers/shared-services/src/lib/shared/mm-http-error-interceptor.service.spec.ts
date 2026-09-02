@@ -36,7 +36,7 @@ describe('MmHttpErrorInterceptor', () => {
     });
 
     describe('successful requests', () => {
-      it('should pass through successful responses', (done) => {
+      it('should pass through successful responses', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const response = new HttpResponse({ status: 200, body: { data: 'test' } });
         httpHandlerMock.handle.and.returnValue(of(response));
@@ -47,11 +47,11 @@ describe('MmHttpErrorInterceptor', () => {
           expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
           done();
         });
-      });
+      }));
     });
 
     describe('network errors (status 0)', () => {
-      it('should show error message for network connection failure', (done) => {
+      it('should show error message for network connection failure', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const error = new HttpErrorResponse({
           status: 0,
@@ -69,9 +69,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should rethrow the error after showing message', (done) => {
+      it('should rethrow the error after showing message', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const error = new HttpErrorResponse({ status: 0 });
         httpHandlerMock.handle.and.returnValue(throwError(() => error));
@@ -83,9 +83,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should not show error message for health check requests', (done) => {
+      it('should not show error message for health check requests', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://localhost:5009/health');
         const error = new HttpErrorResponse({ status: 0, url: 'https://localhost:5009/health' });
         httpHandlerMock.handle.and.returnValue(throwError(() => error));
@@ -97,11 +97,11 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
     });
 
     describe('API errors (status 400 with statusCode)', () => {
-      it('should show error with details for API error', (done) => {
+      it('should show error with details for API error', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const apiError: ApiErrorDto = {
           statusCode: 400,
@@ -126,9 +126,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should fall back to a generic headline when the API error carries no message', (done) => {
+      it('should fall back to a generic headline when the API error carries no message', () => new Promise<void>((done) => {
         // A 400 body is classified on its statusCode alone; without a message the toast must not
         // render "undefined" as its headline.
         const req = new HttpRequest('GET', '/api/data');
@@ -147,9 +147,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should handle multiple error details', (done) => {
+      it('should handle multiple error details', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const apiError: ApiErrorDto = {
           statusCode: 400,
@@ -176,9 +176,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should handle API error without details', (done) => {
+      it('should handle API error without details', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const apiError: ApiErrorDto = {
           statusCode: 400,
@@ -200,9 +200,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should handle empty details array', (done) => {
+      it('should handle empty details array', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const apiError: ApiErrorDto = {
           statusCode: 400,
@@ -225,9 +225,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should skip details without description', (done) => {
+      it('should skip details without description', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const apiError: ApiErrorDto = {
           statusCode: 400,
@@ -254,9 +254,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should rethrow error after showing API error message', (done) => {
+      it('should rethrow error after showing API error message', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const apiError: ApiErrorDto = {
           statusCode: 400,
@@ -275,11 +275,11 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
     });
 
     describe('conflicts (status 409)', () => {
-      it('should show the server message for a 409 conflict', (done) => {
+      it('should show the server message for a 409 conflict', () => new Promise<void>((done) => {
         // OperationFailedErrorDto hardcodes statusCode 400 into the body even on a 409 response, so
         // the 400 branch can never match one. Without a dedicated branch the user sees nothing at
         // all — which is what made a rejected tenant create look like a silent failure (AB#4762).
@@ -301,9 +301,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should not show a message for a 409 without a message body', (done) => {
+      it('should not show a message for a 409 without a message body', () => new Promise<void>((done) => {
         const req = new HttpRequest('POST', '/octosystem/v1/tenants', null);
         const error = new HttpErrorResponse({ status: 409, error: null });
         httpHandlerMock.handle.and.returnValue(throwError(() => error));
@@ -315,11 +315,11 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
     });
 
     describe('other HTTP errors', () => {
-      it('should not show message for 400 without statusCode in error body', (done) => {
+      it('should not show message for 400 without statusCode in error body', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const error = new HttpErrorResponse({
           status: 400,
@@ -334,9 +334,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should not show message for 401 Unauthorized', (done) => {
+      it('should not show message for 401 Unauthorized', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const error = new HttpErrorResponse({
           status: 401,
@@ -351,9 +351,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should show access denied message for 403 Forbidden', (done) => {
+      it('should show access denied message for 403 Forbidden', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const error = new HttpErrorResponse({
           status: 403,
@@ -369,9 +369,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should not show message for 404 Not Found', (done) => {
+      it('should not show message for 404 Not Found', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const error = new HttpErrorResponse({
           status: 404,
@@ -386,9 +386,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should not show message for 500 Internal Server Error', (done) => {
+      it('should not show message for 500 Internal Server Error', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const error = new HttpErrorResponse({
           status: 500,
@@ -403,9 +403,9 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
 
-      it('should rethrow all errors regardless of status', (done) => {
+      it('should rethrow all errors regardless of status', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const error = new HttpErrorResponse({
           status: 503,
@@ -419,11 +419,11 @@ describe('MmHttpErrorInterceptor', () => {
             done();
           }
         });
-      });
+      }));
     });
 
     describe('request handling', () => {
-      it('should pass the request to the handler unchanged', (done) => {
+      it('should pass the request to the handler unchanged', () => new Promise<void>((done) => {
         const req = new HttpRequest('POST', '/api/data', { body: 'test' });
         const response = new HttpResponse({ status: 200 });
         httpHandlerMock.handle.and.returnValue(of(response));
@@ -432,9 +432,9 @@ describe('MmHttpErrorInterceptor', () => {
           expect(httpHandlerMock.handle).toHaveBeenCalledWith(req);
           done();
         });
-      });
+      }));
 
-      it('should handle requests with different HTTP methods', (done) => {
+      it('should handle requests with different HTTP methods', () => new Promise<void>((done) => {
         const requests = [
           new HttpRequest('GET', '/api/data'),
           new HttpRequest('POST', '/api/data', null),
@@ -456,7 +456,7 @@ describe('MmHttpErrorInterceptor', () => {
             }
           });
         });
-      });
+      }));
     });
   });
 
@@ -530,7 +530,7 @@ describe('MmHttpErrorInterceptor', () => {
       createInterceptor(connectionLostHandler);
     });
 
-    it('should call ON_CONNECTION_LOST handler instead of showing toast on status 0', (done) => {
+    it('should call ON_CONNECTION_LOST handler instead of showing toast on status 0', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', '/api/data');
       const error = new HttpErrorResponse({ status: 0, statusText: 'Unknown Error' });
       httpHandlerMock.handle.and.returnValue(throwError(() => error));
@@ -543,9 +543,9 @@ describe('MmHttpErrorInterceptor', () => {
           done();
         }
       });
-    });
+    }));
 
-    it('should not call ON_CONNECTION_LOST handler for health check requests', (done) => {
+    it('should not call ON_CONNECTION_LOST handler for health check requests', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', 'https://localhost:5009/health');
       const error = new HttpErrorResponse({ status: 0, url: 'https://localhost:5009/health' });
       httpHandlerMock.handle.and.returnValue(throwError(() => error));
@@ -558,9 +558,9 @@ describe('MmHttpErrorInterceptor', () => {
           done();
         }
       });
-    });
+    }));
 
-    it('should still show toast for non-network errors', (done) => {
+    it('should still show toast for non-network errors', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', '/api/data');
       const error = new HttpErrorResponse({ status: 403, statusText: 'Forbidden' });
       httpHandlerMock.handle.and.returnValue(throwError(() => error));
@@ -572,6 +572,6 @@ describe('MmHttpErrorInterceptor', () => {
           done();
         }
       });
-    });
+    }));
   });
 });

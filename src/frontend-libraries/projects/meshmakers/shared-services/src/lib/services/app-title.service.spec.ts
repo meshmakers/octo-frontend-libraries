@@ -20,12 +20,12 @@ describe('AppTitleService', () => {
       expect(service.getTitle()).toBeNull();
     });
 
-    it('should emit null from appTitle observable initially', (done) => {
+    it('should emit null from appTitle observable initially', () => new Promise<void>((done) => {
       service.appTitle.subscribe(title => {
         expect(title).toBeNull();
         done();
       });
-    });
+    }));
   });
 
   describe('setTitle', () => {
@@ -35,7 +35,7 @@ describe('AppTitleService', () => {
       expect(service.getTitle()).toBe('Test Title');
     });
 
-    it('should update appTitle observable', (done) => {
+    it('should update appTitle observable', () => new Promise<void>((done) => {
       const titles: (string | null)[] = [];
 
       service.appTitle.subscribe(title => {
@@ -48,7 +48,7 @@ describe('AppTitleService', () => {
       });
 
       service.setTitle('New Title');
-    });
+    }));
 
     it('should allow changing the title multiple times', () => {
       service.setTitle('First');
