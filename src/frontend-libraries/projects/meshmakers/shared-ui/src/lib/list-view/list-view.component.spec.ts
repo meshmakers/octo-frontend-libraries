@@ -293,6 +293,32 @@ describe('MmTableComponent', () => {
     });
   });
 
+  describe('actions column width (AB#3444)', () => {
+    interface WidthApi { effectiveActionsColumnWidth: number }
+    const api = () => component as unknown as WidthApi;
+
+    it('keeps a host width that can show the header', () => {
+      component.actionsColumnWidth = 150;
+      expect(api().effectiveActionsColumnWidth).toBe(150);
+    });
+
+    it('raises a width too narrow for the header to its floor', () => {
+      // The archives, child-tenants and provisioning lists all passed 70,
+      // which clipped the title to "ACTIO…" — the buttons fit, the word did not.
+      component.actionsColumnWidth = 70;
+      expect(api().effectiveActionsColumnWidth).toBe(90);
+    });
+
+    it('uses the floor for a nonsensical width rather than collapsing', () => {
+      component.actionsColumnWidth = 0;
+      expect(api().effectiveActionsColumnWidth).toBe(90);
+    });
+
+    it('leaves the default alone', () => {
+      expect(api().effectiveActionsColumnWidth).toBe(220);
+    });
+  });
+
   describe('toolbar commands (AB#3444)', () => {
     interface CommandApi {
       containerWidth: { set: (value: number | null) => void };

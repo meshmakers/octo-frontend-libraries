@@ -266,6 +266,24 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public actionsColumnWidth = 220;
 
   /**
+   * Floor for the actions column. A column has to be able to show its own
+   * header, and the header is a translated word: "Actions" needs 73px at this
+   * font once the cell padding is counted, German "Aktionen" 83px, Spanish
+   * "Acciones" 82px. Hosts that sized the column by its BUTTONS alone — the
+   * archives, child-tenants and provisioning lists all passed 70 — ended up
+   * with a title clipped to "ACTIO…".
+   */
+  private static readonly MIN_ACTIONS_COLUMN_WIDTH = 90;
+
+  /**
+   * The actions column width actually used: never below the floor above, so a
+   * host cannot accidentally size the header out of existence.
+   */
+  protected get effectiveActionsColumnWidth(): number {
+    return Math.max(this.actionsColumnWidth, ListViewComponent.MIN_ACTIONS_COLUMN_WIDTH);
+  }
+
+  /**
    * Hides the row-checkbox column while the list view is narrower than this many
    * pixels — on phone-sized layouts multi-select via checkboxes is impractical and
    * the 40px are better spent on the data columns. Pass `null` to always show them.
@@ -608,7 +626,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       fixedWidth += this.checkboxColumnWidth;
     }
     if (this._actionMenuItems.length > 0 || (this._contextMenuItems.length > 0 && this.contextMenuType == 'actionMenu')) {
-      fixedWidth += this.actionsColumnWidth;
+      fixedWidth += this.effectiveActionsColumnWidth;
     }
 
     const autoColumns = visibleColumns.filter(c => c.width === undefined);

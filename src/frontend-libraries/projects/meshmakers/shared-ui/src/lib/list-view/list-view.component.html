@@ -376,7 +376,7 @@
   }
 
   @if (_actionMenuItems.length > 0 || (_contextMenuItems.length > 0 &&  contextMenuType == 'actionMenu')) {
-    <kendo-grid-command-column [title]="_messages.actionsColumnTitle" [width]="actionsColumnWidth">
+    <kendo-grid-command-column [title]="_messages.actionsColumnTitle" [width]="effectiveActionsColumnWidth">
       <ng-template kendoGridCellTemplate let-dataItem>
         <ng-container
           [ngTemplateOutlet]="rowActions"

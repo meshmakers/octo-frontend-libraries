@@ -252,6 +252,17 @@ selection-dependent actions instead of answering an empty-selection click with
 a hint message. In the actions column and context menu the callback receives
 the single row item, as before.
 
+**Actions column width (`actionsColumnWidth`, AB#3444)**
+
+Default 220, floored at **90**. The floor exists because a column has to be able
+to show its own header, and that header is a translated word: at the grid's
+header font "Actions" needs 73px once cell padding is counted, German
+"Aktionen" 83px, Spanish "Acciones" 82px. Sizing the column by its BUTTONS alone
+clips the title — three Studio lists passed 70 and rendered "ACTIO…".
+
+Pass a larger value when the buttons need it; passing a smaller one has no
+effect.
+
 **Host filter controls in the toolbar (`mmListViewFilters`, AB#3444)**
 
 A page's scope/filter controls — view switches, "only in clarification"
