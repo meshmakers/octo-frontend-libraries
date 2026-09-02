@@ -875,7 +875,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   protected onCellClick(e: CellClickEvent): void {
-    if (e.type === 'contextmenu' && this.contextMenuType == 'contextMenu') {
+    if (e.type === 'contextmenu' && this.contextMenuType === 'contextMenu') {
       const originalEvent = e.originalEvent;
       originalEvent.preventDefault();
 

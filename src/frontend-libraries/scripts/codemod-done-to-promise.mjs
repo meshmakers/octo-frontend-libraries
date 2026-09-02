@@ -40,9 +40,13 @@ function transform(source) {
 
 let total = 0;
 for (const dir of process.argv.slice(2)) {
+  if (dir.includes('"')) {
+    console.error(`Skipping directory with unsupported double quote: ${dir}`);
+    continue;
+  }
   let listing = '';
   try {
-    listing = execSync(`grep -rl --include='*.spec.ts' '(done' ${dir}`, { encoding: 'utf8' });
+    listing = execSync(`grep -rl --include='*.spec.ts' -- '(done' "${dir}"`, { encoding: 'utf8' });
   } catch (e) {
     if (e.status !== 1) throw e; // grep exit 1 = no matches (fine); 2 = real error (bad path)
   }
