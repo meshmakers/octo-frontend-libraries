@@ -496,4 +496,29 @@ describe('ExpressionEvaluatorService', () => {
       expect(result.value).toBe(50);
     });
   });
+
+  describe('security regressions (CVE-2025-12735, CVE-2025-13204)', () => {
+    it('does not execute functions smuggled in via the evaluation context', () => {
+      let executed = false;
+      const validation = service.validate('f(1)');
+      expect(validation.valid).toBe(true);
+      expect(validation.expression).toBeDefined();
+      expect(() => validation.expression!.evaluate({ f: () => { executed = true; return 1; } } as never))
+        .toThrow();
+      expect(executed).toBe(false);
+    });
+
+    it('blocks prototype/constructor access', () => {
+      const result = service.evaluate('toString.constructor("return 1")()', {});
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects assignment expressions (assignment operator disabled)', () => {
+      const validation = service.validate('value = 5');
+      expect(validation.valid).toBe(false);
+
+      const result = service.evaluate('value = 5', { value: 1 });
+      expect(result.success).toBe(false);
+    });
+  });
 });

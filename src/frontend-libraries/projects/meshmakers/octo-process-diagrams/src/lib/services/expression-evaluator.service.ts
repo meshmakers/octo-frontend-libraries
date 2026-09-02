@@ -1,13 +1,13 @@
 /**
  * Expression Evaluator Service
  *
- * Provides safe expression evaluation using the expr-eval library.
+ * Provides safe expression evaluation using the expr-eval-fork library.
  * Supports math operations, conditionals, and custom helper functions
  * for transform property bindings.
  */
 
 import { Injectable } from '@angular/core';
-import { Parser, Expression } from 'expr-eval';
+import { Parser, Expression } from 'expr-eval-fork';
 
 // ============================================================================
 // Types
@@ -114,7 +114,8 @@ export class ExpressionEvaluatorService {
   private expressionCache = new Map<string, Expression>();
 
   constructor() {
-    this.parser = new Parser();
+    // Prevents assignment e.g. value = 5
+    this.parser = new Parser({ operators: { assignment: false } });
     this.registerCustomFunctions();
   }
 
