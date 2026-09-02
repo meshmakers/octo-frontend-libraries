@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { WindowService, WindowCloseResult, WindowRef } from '@progress/kendo-angular-dialog';
 import { Subject, of } from 'rxjs';
 
-import { WindowStateService } from '../services/window-state.service';
+import { WindowStateService, WindowDimensions } from '../services/window-state.service';
 import { EntitySelectDialogService } from './entity-select-dialog.service';
 import { EntitySelectDialogDataSource, EntitySelectDialogResult } from './entity-select-dialog-data-source';
 
@@ -37,7 +37,7 @@ describe('EntitySelectDialogService', () => {
 
         windowServiceMock = {
             open: vi.fn().mockName("WindowService.open")
-        };
+        } as unknown as MockedObject<WindowService>;
         windowServiceMock.open.mockReturnValue(mockWindowRef as WindowRef);
 
         mockDataSource = {
@@ -58,7 +58,7 @@ describe('EntitySelectDialogService', () => {
         // karma browser window is small and would otherwise shrink the widths
         // these specs assert verbatim.
         const windowState = TestBed.inject(WindowStateService);
-        vi.spyOn<never>(windowState as never, 'viewportSize' as never).mockReturnValue({ width: 1920, height: 1080 } as never);
+        vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });
     });
 
     it('should be created', () => {
@@ -76,7 +76,7 @@ describe('EntitySelectDialogService', () => {
             await resultPromise;
 
             expect(windowServiceMock.open).toHaveBeenCalled();
-            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall[0];
+            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall![0];
             expect(openCall.title).toBe('Select Entity');
         });
 
@@ -160,7 +160,7 @@ describe('EntitySelectDialogService', () => {
                 title: 'Select'
             });
 
-            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall[0];
+            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall![0];
             expect(openCall.width).toBe(900);
             expect(openCall.height).toBe(640);
 
@@ -176,7 +176,7 @@ describe('EntitySelectDialogService', () => {
                 height: 700
             });
 
-            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall[0];
+            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall![0];
             expect(openCall.width).toBe(1000);
             expect(openCall.height).toBe(700);
 

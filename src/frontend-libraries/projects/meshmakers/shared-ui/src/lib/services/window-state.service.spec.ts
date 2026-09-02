@@ -6,7 +6,7 @@ import { WindowStateService, WindowDimensions } from './window-state.service';
 
 describe('WindowStateService', () => {
     let service: WindowStateService;
-    let viewportSpy: Mock;
+    let viewportSpy: Mock<() => WindowDimensions>;
 
     beforeEach(() => {
         sessionStorage.clear();
@@ -17,7 +17,7 @@ describe('WindowStateService', () => {
         // Pin the viewport seam to a large screen so the viewport clamp in
         // resolveWindowSize is inert for the classic persistence specs (the karma
         // browser window is small); the clamp itself has dedicated specs below.
-        viewportSpy = vi.spyOn<never>(service as never, 'viewportSize' as never).mockReturnValue({ width: 1920, height: 1080 } as never);
+        viewportSpy = vi.spyOn(service as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });
     });
 
     afterEach(() => {
@@ -82,7 +82,7 @@ describe('WindowStateService', () => {
 
     describe('viewport clamp', () => {
         it('clamps defaults that exceed the viewport (24px margin per side)', () => {
-            viewportSpy.mockReturnValue({ width: 700, height: 600 } as never);
+            viewportSpy.mockReturnValue({ width: 700, height: 600 });
             const defaults: WindowDimensions = { width: 760, height: 760 };
             expect(service.resolveWindowSize('small-screen', defaults)).toEqual({
                 width: 700 - 48,
@@ -92,7 +92,7 @@ describe('WindowStateService', () => {
 
         it('clamps stored sizes captured on a larger screen', () => {
             service.saveDimensions('roamer', { width: 1400, height: 900 });
-            viewportSpy.mockReturnValue({ width: 1024, height: 700 } as never);
+            viewportSpy.mockReturnValue({ width: 1024, height: 700 });
             expect(service.resolveWindowSize('roamer', { width: 700, height: 500 })).toEqual({
                 width: 1024 - 48,
                 height: 700 - 48
@@ -102,7 +102,7 @@ describe('WindowStateService', () => {
         });
 
         it('wins over the dialog minimum on very small viewports', () => {
-            viewportSpy.mockReturnValue({ width: 500, height: 480 } as never);
+            viewportSpy.mockReturnValue({ width: 500, height: 480 });
             const defaults: WindowDimensions = { width: 760, height: 760 };
             const min: WindowDimensions = { width: 540, height: 480 };
             expect(service.resolveWindowSize('tiny', defaults, min)).toEqual({
@@ -112,7 +112,7 @@ describe('WindowStateService', () => {
         });
 
         it('never clamps below the hard floor', () => {
-            viewportSpy.mockReturnValue({ width: 200, height: 180 } as never);
+            viewportSpy.mockReturnValue({ width: 200, height: 180 });
             expect(service.resolveWindowSize('nano', { width: 760, height: 760 })).toEqual({
                 width: 280,
                 height: 240
@@ -120,7 +120,7 @@ describe('WindowStateService', () => {
         });
 
         it('leaves sizes that already fit untouched', () => {
-            viewportSpy.mockReturnValue({ width: 1920, height: 1080 } as never);
+            viewportSpy.mockReturnValue({ width: 1920, height: 1080 });
             const defaults: WindowDimensions = { width: 760, height: 760 };
             expect(service.resolveWindowSize('fits', defaults)).toEqual(defaults);
         });

@@ -205,14 +205,26 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular/build:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/shared-ui/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/shared-ui:test-build",
+            "tsConfig": "projects/meshmakers/shared-ui/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
             ]
           }
         },

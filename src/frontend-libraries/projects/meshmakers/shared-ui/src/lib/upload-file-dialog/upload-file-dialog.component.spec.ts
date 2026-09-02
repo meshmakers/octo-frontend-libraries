@@ -15,10 +15,10 @@ describe('UploadFileDialogComponent', () => {
     beforeEach(async () => {
         mockDialogRef = {
             close: vi.fn().mockName("DialogRef.close")
-        };
+        } as unknown as MockedObject<DialogRef>;
         mockNotificationService = {
             show: vi.fn().mockName("NotificationService.show")
-        };
+        } as unknown as MockedObject<NotificationService>;
 
         await TestBed.configureTestingModule({
             imports: [UploadFileDialogComponent],

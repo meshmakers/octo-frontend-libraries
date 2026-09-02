@@ -13,7 +13,7 @@ describe('ConfirmationWindowComponent', () => {
     beforeEach(async () => {
         mockDialogRef = {
             close: vi.fn().mockName("DialogRef.close")
-        };
+        } as unknown as MockedObject<DialogRef>;
 
         await TestBed.configureTestingModule({
             imports: [ConfirmationWindowComponent],

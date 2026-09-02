@@ -169,7 +169,9 @@ export class WindowStateService {
     if (!el) {
       el = document.createElement('div');
       el.className = 'mm-window-backdrop';
-      el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:11499;display:none;';
+      // background-color, not the `background` shorthand: jsdom's CSSOM (cssstyle) drops the
+      // entire declaration block when the shorthand carries an rgba() value. Same rendering.
+      el.style.cssText = 'position:fixed;inset:0;background-color:rgba(0,0,0,0.4);z-index:11499;display:none;';
       document.body.appendChild(el);
     }
     return el;

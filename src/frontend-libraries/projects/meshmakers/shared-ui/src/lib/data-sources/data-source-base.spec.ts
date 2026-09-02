@@ -22,7 +22,7 @@ describe('DataSourceBase', () => {
     beforeEach(() => {
         mockListViewComponent = {
             refresh: vi.fn().mockName("ListViewComponent.refresh")
-        };
+        } as unknown as MockedObject<ListViewComponent>;
         dataSource = new TestDataSource(mockListViewComponent);
     });
 

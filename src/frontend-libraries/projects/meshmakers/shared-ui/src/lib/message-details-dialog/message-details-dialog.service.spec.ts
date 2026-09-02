@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { WindowService, WindowRef } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
 
-import { WindowStateService } from '../services/window-state.service';
+import { WindowStateService, WindowDimensions } from '../services/window-state.service';
 import { MessageDetailsDialogService } from './message-details-dialog.service';
 import { MessageDetailsDialogData } from './message-details-dialog.component';
 
@@ -27,11 +27,11 @@ describe('MessageDetailsDialogService', () => {
                 }
             },
             window: { location: { nativeElement: mockNativeElement } }
-        };
+        } as unknown as MockedObject<WindowRef>;
 
         windowServiceMock = {
             open: vi.fn().mockName("WindowService.open")
-        };
+        } as unknown as MockedObject<WindowService>;
         windowServiceMock.open.mockReturnValue(windowRefMock);
 
         TestBed.configureTestingModule({
@@ -45,7 +45,7 @@ describe('MessageDetailsDialogService', () => {
         // karma browser window is small and would otherwise shrink the dimensions
         // this spec asserts verbatim.
         const windowState = TestBed.inject(WindowStateService);
-        vi.spyOn<never>(windowState as never, 'viewportSize' as never).mockReturnValue({ width: 1920, height: 1080 } as never);
+        vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });
     });
 
     it('should be created', () => {
@@ -99,7 +99,7 @@ describe('MessageDetailsDialogService', () => {
 
             service.showDetailsDialog(data);
 
-            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall[0];
+            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall![0];
             expect(openCall.minWidth).toBe(500);
             expect(openCall.width).toBe(900);
             expect(openCall.resizable).toBe(true);
@@ -114,7 +114,7 @@ describe('MessageDetailsDialogService', () => {
 
             service.showDetailsDialog(data);
 
-            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall[0];
+            const openCall = vi.mocked(windowServiceMock.open).mock.lastCall![0];
             expect(openCall.title).toBe('Test Title');
         });
     });

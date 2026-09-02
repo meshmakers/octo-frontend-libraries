@@ -24,14 +24,14 @@ describe('MessageListenerService', () => {
 
         messageServiceMock = {
             messages$: messagesSubject.asObservable()
-        };
+        } as unknown as MockedObject<MessageService>;
 
         notificationDisplayMock = {
             showError: vi.fn().mockName("NotificationDisplayService.showError"),
             showWarning: vi.fn().mockName("NotificationDisplayService.showWarning"),
             showInfo: vi.fn().mockName("NotificationDisplayService.showInfo"),
             showSuccess: vi.fn().mockName("NotificationDisplayService.showSuccess")
-        };
+        } as unknown as MockedObject<NotificationDisplayService>;
 
         TestBed.configureTestingModule({
             providers: [

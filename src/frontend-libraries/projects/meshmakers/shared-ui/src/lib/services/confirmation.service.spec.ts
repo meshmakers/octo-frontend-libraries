@@ -23,11 +23,11 @@ describe('ConfirmationService', () => {
                     data: null
                 }
             }
-        };
+        } as unknown as MockedObject<DialogRef>;
 
         dialogServiceMock = {
             open: vi.fn().mockName("DialogService.open")
-        };
+        } as unknown as MockedObject<DialogService>;
         dialogServiceMock.open.mockReturnValue(dialogRefMock);
 
         TestBed.configureTestingModule({

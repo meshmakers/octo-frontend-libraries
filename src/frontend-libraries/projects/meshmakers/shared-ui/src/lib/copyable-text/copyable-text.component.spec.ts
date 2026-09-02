@@ -13,7 +13,7 @@ describe('CopyableTextComponent', () => {
         notificationServiceSpy = {
             showSuccess: vi.fn().mockName("NotificationDisplayService.showSuccess"),
             showError: vi.fn().mockName("NotificationDisplayService.showError")
-        };
+        } as unknown as MockedObject<NotificationDisplayService>;
 
         await TestBed.configureTestingModule({
             imports: [CopyableTextComponent],

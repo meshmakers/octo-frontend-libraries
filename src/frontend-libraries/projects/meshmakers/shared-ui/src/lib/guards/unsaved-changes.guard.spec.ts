@@ -13,7 +13,7 @@ describe('UnsavedChangesGuard', () => {
         confirmationServiceMock = {
             showYesNoConfirmationDialog: vi.fn().mockName("ConfirmationService.showYesNoConfirmationDialog"),
             showYesNoCancelConfirmationDialog: vi.fn().mockName("ConfirmationService.showYesNoCancelConfirmationDialog")
-        };
+        } as unknown as MockedObject<ConfirmationService>;
 
         TestBed.configureTestingModule({
             providers: [

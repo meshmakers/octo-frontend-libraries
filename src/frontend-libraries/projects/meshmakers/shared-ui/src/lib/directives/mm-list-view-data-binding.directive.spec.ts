@@ -284,7 +284,13 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
     const STORAGE_KEY = 'mm-list-view-state';
     const LIST_KEY = '/documents';
 
-    const configure = async () => {
+    beforeEach(() => localStorage.clear());
+    afterEach(() => localStorage.clear());
+
+    // The TestBed setup lives in a hook rather than in the test bodies: awaiting
+    // compileComponents() inside fakeAsync() resumes outside the fakeAsync zone, so a
+    // later tick() would not find it.
+    beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [HostComponent],
             providers: [
@@ -294,13 +300,9 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
                 { provide: CommandSettingsService, useValue: { navigateRelativeToRoute: {}, commandItems: [] } }
             ]
         }).compileComponents();
-    };
+    });
 
-    beforeEach(() => localStorage.clear());
-    afterEach(() => localStorage.clear());
-
-    it('persists the sort under the route-derived key after a sort change', fakeAsync(async () => {
-        await configure();
+    it('persists the sort under the route-derived key after a sort change', fakeAsync(() => {
         const fixture = TestBed.createComponent(HostComponent);
         fixture.detectChanges();
         const grid = fixture.debugElement.query(By.directive(GridComponent)).componentInstance as GridComponent;
@@ -314,11 +316,10 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
         flush();
     }));
 
-    it('restores a persisted sort + skip into the very first fetch', fakeAsync(async () => {
+    it('restores a persisted sort + skip into the very first fetch', fakeAsync(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
             [LIST_KEY]: { sort: [{ field: 'name', dir: 'desc' }], skip: 40 }
         }));
-        await configure();
         const fixture = TestBed.createComponent(HostComponent);
         const host = fixture.componentInstance;
         fixture.detectChanges();
@@ -330,8 +331,7 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
         flush();
     }));
 
-    it('persists the free-text search value', fakeAsync(async () => {
-        await configure();
+    it('persists the free-text search value', fakeAsync(() => {
         const fixture = TestBed.createComponent(HostComponent);
         const host = fixture.componentInstance;
         fixture.detectChanges();
@@ -345,11 +345,10 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
         flush();
     }));
 
-    it('restores the free-text search into the very first fetch', fakeAsync(async () => {
+    it('restores the free-text search into the very first fetch', fakeAsync(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
             [LIST_KEY]: { textSearch: 'acme' }
         }));
-        await configure();
         const fixture = TestBed.createComponent(HostComponent);
         const host = fixture.componentInstance;
         fixture.detectChanges();
@@ -359,11 +358,10 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
         flush();
     }));
 
-    it('fetchAgain({ resetSkip: true }) persists the page reset', fakeAsync(async () => {
+    it('fetchAgain({ resetSkip: true }) persists the page reset', fakeAsync(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
             [LIST_KEY]: { skip: 40 }
         }));
-        await configure();
         const fixture = TestBed.createComponent(HostComponent);
         const host = fixture.componentInstance;
         fixture.detectChanges();
@@ -378,11 +376,10 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
         flush();
     }));
 
-    it('resetState() clears sort/filter/search + drops the persisted entry', fakeAsync(async () => {
+    it('resetState() clears sort/filter/search + drops the persisted entry', fakeAsync(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
             [LIST_KEY]: { sort: [{ field: 'name', dir: 'desc' }], textSearch: 'acme', extra: { view: 'done' } }
         }));
-        await configure();
         const fixture = TestBed.createComponent(HostComponent);
         const host = fixture.componentInstance;
         fixture.detectChanges();

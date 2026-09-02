@@ -26,11 +26,11 @@ describe('ProgressWindowService', () => {
                     cancelOperation: null
                 }
             }
-        };
+        } as unknown as MockedObject<DialogRef>;
 
         dialogServiceMock = {
             open: vi.fn().mockName("DialogService.open")
-        };
+        } as unknown as MockedObject<DialogService>;
         dialogServiceMock.open.mockReturnValue(dialogRefMock);
 
         TestBed.configureTestingModule({
@@ -55,7 +55,7 @@ describe('ProgressWindowService', () => {
             });
 
             expect(dialogServiceMock.open).toHaveBeenCalled();
-            const openCall = vi.mocked(dialogServiceMock.open).mock.lastCall[0];
+            const openCall = vi.mocked(dialogServiceMock.open).mock.lastCall![0];
             expect(openCall.title).toBe('Test Title');
         });
 
