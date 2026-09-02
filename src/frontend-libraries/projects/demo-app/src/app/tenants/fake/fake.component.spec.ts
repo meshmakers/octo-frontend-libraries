@@ -18,8 +18,8 @@ describe('FakeComponent', () => {
     beforeEach(async () => {
         mockBreadCrumbService = {
             updateBreadcrumbLabels: vi.fn().mockName("BreadCrumbService.updateBreadcrumbLabels")
-        };
-        mockBreadCrumbService.updateBreadcrumbLabels.mockResolvedValue();
+        } as unknown as MockedObject<BreadCrumbService>;
+        mockBreadCrumbService.updateBreadcrumbLabels.mockResolvedValue(undefined);
 
         mockRouter = {
             events: new Subject<RouterEvent>(),

@@ -66,6 +66,16 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "testing": {
+              "aot": false,
+              "optimization": false,
+              "extractLicenses": false,
+              "polyfills": [
+                "zone.js",
+                "zone.js/testing",
+                "@angular/localize/init"
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -92,26 +102,14 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "karmaConfig": "karma.conf.js",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing",
-              "@angular/localize/init"
-            ],
+            "buildTarget": "demo-app:build:testing",
             "tsConfig": "projects/demo-app/tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "projects/demo-app/public"
-              }
-            ],
-            "styles": [
-              "projects/demo-app/src/styles.scss"
-            ],
-            "scripts": []
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
+            ]
           }
         },
         "lint": {

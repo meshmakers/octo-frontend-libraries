@@ -39,7 +39,7 @@
     "test:octo-meshboard": "ng test @meshmakers/octo-meshboard --watch=false",
     "test:octo-ui": "ng test @meshmakers/octo-ui --watch=false",
     "test:octo-ai-console": "ng test @meshmakers/octo-ai-console --watch=false",
-    "test:demo-app": "ng test demo-app --watch=false --browsers=ChromeHeadlessCI",
+    "test:demo-app": "ng test demo-app --watch=false",
     "test:legacy-demo-app": "ng test legacy-demo-app --watch=false --browsers=ChromeHeadlessCI",
     "codegen": "cross-env NODE_OPTIONS=\"--max-old-space-size=16384\" graphql-codegen --config codegen.yml",
     "link-dist": "cd dist/meshmakers/shared-auth && npm link && cd ../shared-services && npm link && cd ../shared-ui && npm link && cd ../octo-services && npm link && cd ../octo-ui && npm link",

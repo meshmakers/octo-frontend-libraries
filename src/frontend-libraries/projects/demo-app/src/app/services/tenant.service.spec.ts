@@ -12,7 +12,7 @@ describe('TenantService', () => {
     beforeEach(() => {
         mockGetCkModelByIdGQL = {
             fetch: vi.fn().mockName("GetCkModelByIdDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkModelByIdDtoGQL>;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
         mockGetCkModelByIdGQL.fetch.mockReturnValue(of({ data: { constructionKit: { models: { items: [] } } } } as any));
 

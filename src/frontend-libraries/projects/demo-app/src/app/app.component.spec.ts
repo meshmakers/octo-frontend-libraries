@@ -20,23 +20,23 @@ describe('AppComponent', () => {
         mockAppTitleService = {
             setTitle: vi.fn().mockName("AppTitleService.setTitle"),
             appTitle: of('Test App')
-        };
+        } as unknown as MockedObject<AppTitleService>;
         mockBreadCrumbService = {
             updateBreadcrumbLabels: vi.fn().mockName("BreadCrumbService.updateBreadcrumbLabels"),
             breadCrumbItems: of([])
-        };
+        } as unknown as MockedObject<BreadCrumbService>;
         mockCommandService = {
             setSelectedDrawerItem: vi.fn().mockName("CommandService.setSelectedDrawerItem"),
             drawerItems: of([])
-        };
+        } as unknown as MockedObject<CommandService>;
         mockComponentMenuService = {
             setSelectedMenuItem: vi.fn().mockName("ComponentMenuService.setSelectedMenuItem"),
             menuItems: of([])
-        };
+        } as unknown as MockedObject<ComponentMenuService>;
         mockRouter = {
             navigate: vi.fn().mockName("Router.navigate"),
             events: of()
-        };
+        } as unknown as MockedObject<Router>;
         mockAuthorizeService = {
             initialize: vi.fn().mockName("AuthorizeService.initialize"),
             isAuthenticated: vi.fn().mockName("AuthorizeService.isAuthenticated"),
@@ -45,7 +45,7 @@ describe('AppComponent', () => {
             logout: vi.fn().mockName("AuthorizeService.logout"),
             getUsername: vi.fn().mockName("AuthorizeService.getUsername"),
             isAuthenticated$: of(false)
-        };
+        } as unknown as MockedObject<AuthorizeService>;
 
         const mockActivatedRoute = {
             firstChild: null,

@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { Apollo } from 'apollo-angular';
+import { ApolloLink } from '@apollo/client';
 import { HttpLink } from 'apollo-angular/http';
 
 import { TenantComponent } from './tenant.component';
@@ -30,12 +31,14 @@ describe('TenantComponent', () => {
         const mockAuthorizeService = {
             initialize: vi.fn().mockName("AuthorizeService.initialize")
         };
-        mockAuthorizeService.initialize.mockResolvedValue();
+        mockAuthorizeService.initialize.mockResolvedValue(undefined);
 
         const mockHttpLink = {
             create: vi.fn().mockName("HttpLink.create")
         };
-        mockHttpLink.create.mockReturnValue({});
+        // Real ApolloLink instances: the component feeds both this and OctoErrorLink to
+        // `ApolloLink.from`, which concatenates them and throws on a plain object.
+        mockHttpLink.create.mockReturnValue(ApolloLink.empty());
 
         const mockApollo = {
             removeClient: vi.fn().mockName("Apollo.removeClient"),
@@ -50,7 +53,7 @@ describe('TenantComponent', () => {
             setTitle: vi.fn().mockName("AppTitleService.setTitle")
         };
 
-        const mockOctoErrorLink = {};
+        const mockOctoErrorLink = ApolloLink.empty();
 
         await TestBed.configureTestingModule({
             imports: [TenantComponent],
