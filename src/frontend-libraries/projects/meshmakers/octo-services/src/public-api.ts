@@ -44,7 +44,7 @@ export * from './lib/shared/tenantDto';
 export * from './lib/shared/adminPanelConfigurationDto';
 export * from './lib/shared/configurationDto';
 export * from './lib/shared/communicationDtos';
-export * from './lib/shared/streamDataDtos';
+export * from './lib/shared/tenantFeaturesDtos';
 export * from './lib/shared/movePipelineDtos';
 export * from './lib/shared/domainDtos';
 export * from './lib/shared/ck-model-catalog.dto';
@@ -79,6 +79,7 @@ export * from './lib/services/identity-service';
 export * from './lib/services/job-management.service';
 export * from './lib/services/communication.service';
 export * from './lib/services/reporting.service';
+export * from './lib/services/ai.service';
 export * from './lib/services/tus-upload.service';
 export * from './lib/services/ck-model-catalog.service';
 

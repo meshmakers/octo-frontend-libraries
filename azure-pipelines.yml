@@ -204,7 +204,7 @@ stages:
                 export NODE_OPTIONS="--max-old-space-size=6144"
                 run_test() {
                   echo "Testing $1..."
-                  npm run "test:$1" -- --reporters=junit,progress
+                  JUNIT_OUTPUT_DIR="test-results/$1" npm run "test:$1" -- --reporters=junit,progress
                 }
                 wait_all() {
                   local fail=0
@@ -227,7 +227,9 @@ stages:
                 run_test octo-meshboard & pid6=$!
                 wait_all $pid4 $pid5 $pid6
                 echo "=== Test Round 3 ==="
-                run_test octo-ai-console
+                run_test octo-ui & pid7=$!
+                run_test octo-ai-console & pid8=$!
+                wait_all $pid7 $pid8
                 echo "=== All library tests passed ==="
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
@@ -396,7 +398,7 @@ stages:
             displayName: 'Test demo-app'
             inputs:
               script: |
-                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+                NODE_OPTIONS="--max-old-space-size=6144" JUNIT_OUTPUT_DIR="test-results/demo-app" npm run test:demo-app -- --reporters=junit,progress
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
 
@@ -404,7 +406,7 @@ stages:
             displayName: 'Test legacy-demo-app'
             inputs:
               script: |
-                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=legacy-demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+                NODE_OPTIONS="--max-old-space-size=6144" JUNIT_OUTPUT_DIR="test-results/legacy-demo-app" npm run test:legacy-demo-app -- --reporters=junit,progress
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
 
