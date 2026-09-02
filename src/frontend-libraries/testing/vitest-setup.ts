@@ -50,6 +50,20 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
   (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = ResizeObserverStub;
 }
 
+// HTMLElement.innerText: jsdom implements none. Kendo's SplitButton reads it in ngDoCheck
+// (`this.wrapper?.innerText.split('\n')`) and would throw on undefined, so map it to textContent.
+if (!('innerText' in HTMLElement.prototype)) {
+  Object.defineProperty(HTMLElement.prototype, 'innerText', {
+    get(this: HTMLElement): string {
+      return this.textContent ?? '';
+    },
+    set(this: HTMLElement, value: string) {
+      this.textContent = value;
+    },
+    configurable: true,
+  });
+}
+
 // ---- Jasmine parity ----
 
 // Jasmine restored every spy after each spec; Vitest keeps vi.spyOn spies (and their call history)

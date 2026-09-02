@@ -7,21 +7,6 @@ import { CommandSettingsService } from '@meshmakers/shared-services';
 
 import { ListViewComponent } from './list-view.component';
 
-// jsdom implements no HTMLElement.innerText. Kendo's SplitButton reads it in ngDoCheck
-// (`this.wrapper?.innerText.split('\n')`) and would throw on undefined, so map it to
-// textContent for the duration of this spec.
-if (!('innerText' in HTMLElement.prototype)) {
-    Object.defineProperty(HTMLElement.prototype, 'innerText', {
-        get(this: HTMLElement): string {
-            return this.textContent ?? '';
-        },
-        set(this: HTMLElement, value: string) {
-            this.textContent = value;
-        },
-        configurable: true,
-    });
-}
-
 describe('MmTableComponent', () => {
     let component: ListViewComponent;
     let fixture: ComponentFixture<ListViewComponent>;
