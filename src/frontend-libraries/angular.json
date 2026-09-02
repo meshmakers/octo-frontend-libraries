@@ -249,17 +249,6 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "karmaConfig": "karma.conf.js",
-            "tsConfig": "projects/meshmakers/shared-ui-legacy/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
-          }
-        },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
@@ -469,17 +458,6 @@
             }
           },
           "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "karmaConfig": "karma.conf.js",
-            "tsConfig": "projects/meshmakers/octo-ui-legacy/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
-          }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",

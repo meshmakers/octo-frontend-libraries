@@ -18,10 +18,9 @@ npm run build:octo-ui-legacy
 
 # Lint
 npm run lint:octo-ui-legacy
-
-# Run tests
-npm test -- --project=@meshmakers/octo-ui-legacy --watch=false
 ```
+
+This project has no unit tests.
 
 ## Architecture
 
