@@ -85,7 +85,7 @@ describe('AiNewAppDialogComponent', () => {
     );
   });
 
-  it('emits the rendered Goal + the picked template on Submit', (done) => {
+  it('emits the rendered Goal + the picked template on Submit', () => new Promise<void>((done) => {
     pickFirstTemplate();
     setInputValue('#mm-ai-new-app-project-name', 'customer-list');
     setInputValue('#mm-ai-new-app-primary-entity', 'Customer');
@@ -104,12 +104,12 @@ describe('AiNewAppDialogComponent', () => {
     fixture.nativeElement
       .querySelector('.mm-ai-new-app__btn--submit')
       .click();
-  });
+  }));
 
-  it('emits cancel on the X button', (done) => {
+  it('emits cancel on the X button', () => new Promise<void>((done) => {
     fixture.componentInstance.cancelled.subscribe(() => done());
     fixture.nativeElement.querySelector('.mm-ai-new-app__close').click();
-  });
+  }));
 
   function pickFirstTemplate(): void {
     const radio: HTMLInputElement = fixture.nativeElement.querySelectorAll(
