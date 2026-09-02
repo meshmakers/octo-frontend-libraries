@@ -32,7 +32,7 @@ describe('ReportingService', () => {
     beforeEach(() => {
         mockConfigService = {
             config: mockConfig
-        };
+        } as unknown as MockedObject<IConfigurationService>;
 
         TestBed.configureTestingModule({
             providers: [

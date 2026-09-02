@@ -70,13 +70,13 @@ describe('CkTypeSelectorService', () => {
     beforeEach(() => {
         getCkTypesGQLMock = {
             fetch: vi.fn().mockName("GetCkTypesDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkTypesDtoGQL>;
         getCkTypeByRtCkTypeIdGQLMock = {
             fetch: vi.fn().mockName("GetCkTypeByRtCkTypeIdDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkTypeByRtCkTypeIdDtoGQL>;
         getDerivedCkTypesGQLMock = {
             fetch: vi.fn().mockName("GetDerivedCkTypesDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetDerivedCkTypesDtoGQL>;
 
         TestBed.configureTestingModule({
             providers: [
@@ -200,7 +200,7 @@ describe('CkTypeSelectorService', () => {
             getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
             service.getCkTypes().subscribe(() => {
-                const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall[0]!;
+                const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall![0]!;
                 expect(callArgs.variables!.ckModelIds).toBeNull();
                 expect(callArgs.variables!.first).toBe(50);
                 expect(callArgs.variables!.searchFilter).toBeNull();
@@ -230,7 +230,7 @@ describe('CkTypeSelectorService', () => {
             getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
             service.getCkTypes({ ckModelIds: ['model-1', 'model-2'] }).subscribe(() => {
-                const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall[0]!;
+                const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall![0]!;
                 expect(callArgs.variables!.ckModelIds).toEqual(['model-1', 'model-2']);
                 expect(callArgs.variables!.first).toBe(50);
                 expect(callArgs.variables!.searchFilter).toBeNull();
@@ -243,7 +243,7 @@ describe('CkTypeSelectorService', () => {
             getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
             service.getCkTypes({ searchText: 'Customer' }).subscribe(() => {
-                const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall[0]!;
+                const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall![0]!;
                 expect(callArgs.variables!.searchFilter).toEqual(expect.objectContaining({
                     type: 'ATTRIBUTE_FILTER',
                     attributePaths: ['ckTypeId'],
@@ -321,7 +321,7 @@ describe('CkTypeSelectorService', () => {
             getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
             service.getCkTypes({ ckModelIds: [] }).subscribe(() => {
-                const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall[0]!;
+                const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall![0]!;
                 expect(callArgs.variables!.ckModelIds).toBeNull();
                 done();
             });

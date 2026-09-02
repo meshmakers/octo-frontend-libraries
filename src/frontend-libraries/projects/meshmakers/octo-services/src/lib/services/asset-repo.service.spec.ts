@@ -60,7 +60,7 @@ describe('AssetRepoService', () => {
     beforeEach(() => {
         mockConfigService = {
             config: mockConfig,
-            loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue()
+            loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
         };
 
         TestBed.configureTestingModule({

@@ -70,10 +70,10 @@ describe('CkTypeAttributeService', () => {
     beforeEach(() => {
         getCkTypeAttributesGQLMock = {
             fetch: vi.fn().mockName("GetCkTypeAttributesDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkTypeAttributesDtoGQL>;
         getCkRecordAttributesGQLMock = {
             fetch: vi.fn().mockName("GetCkRecordAttributesDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkRecordAttributesDtoGQL>;
 
         TestBed.configureTestingModule({
             providers: [

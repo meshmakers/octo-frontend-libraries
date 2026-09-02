@@ -37,12 +37,12 @@ describe('TusUploadService', () => {
     beforeEach(() => {
         mockConfigService = {
             config: mockConfig,
-            loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue()
+            loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
         };
 
         authorizeServiceMock = {
             getAccessTokenSync: vi.fn().mockName("AuthorizeService.getAccessTokenSync")
-        };
+        } as unknown as MockedObject<AuthorizeService>;
         authorizeServiceMock.getAccessTokenSync.mockReturnValue('test-token');
 
         TestBed.configureTestingModule({
@@ -77,7 +77,7 @@ describe('TusUploadService', () => {
                 databaseName: 'db-1'
             };
 
-            await expect(service.startUpload(options)).rejects.toThrowError('Bot services URL not configured');
+            await expect(service.startUpload(options)).rejects.toThrowError(/^Bot services URL not configured$/);
         });
 
         it('should throw error when botServices URL is empty', async () => {
@@ -89,7 +89,7 @@ describe('TusUploadService', () => {
                 databaseName: 'db-1'
             };
 
-            await expect(service.startUpload(options)).rejects.toThrowError('Bot services URL not configured');
+            await expect(service.startUpload(options)).rejects.toThrowError(/^Bot services URL not configured$/);
         });
     });
 });

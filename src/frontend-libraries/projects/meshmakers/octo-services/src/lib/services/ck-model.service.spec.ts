@@ -61,7 +61,7 @@ describe('CkModelService', () => {
     beforeEach(() => {
         getCkModelByIdGQLMock = {
             fetch: vi.fn().mockName("GetCkModelByIdDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkModelByIdDtoGQL>;
 
         TestBed.configureTestingModule({
             providers: [

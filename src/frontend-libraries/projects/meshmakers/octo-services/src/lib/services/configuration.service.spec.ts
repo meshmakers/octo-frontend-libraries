@@ -26,7 +26,7 @@ describe('CONFIGURATION_SERVICE', () => {
 
         const mockConfigService: IConfigurationService = {
             config: mockConfig,
-            loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue()
+            loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
         };
 
         TestBed.configureTestingModule({

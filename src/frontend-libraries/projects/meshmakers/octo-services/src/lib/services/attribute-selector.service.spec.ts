@@ -50,7 +50,7 @@ describe('AttributeSelectorService', () => {
     beforeEach(() => {
         getCkTypeAvailableQueryColumnsGQLMock = {
             fetch: vi.fn().mockName("GetCkTypeAvailableQueryColumnsDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkTypeAvailableQueryColumnsDtoGQL>;
 
         TestBed.configureTestingModule({
             providers: [
@@ -101,7 +101,7 @@ describe('AttributeSelectorService', () => {
             getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(mockResponse));
 
             service.getAvailableAttributes('TestModel/Customer').subscribe(() => {
-                const callArgs = vi.mocked(getCkTypeAvailableQueryColumnsGQLMock.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(getCkTypeAvailableQueryColumnsGQLMock.fetch).mock.lastCall![0];
                 expect(callArgs.variables.first).toBe(1000);
                 done();
             });
@@ -111,7 +111,7 @@ describe('AttributeSelectorService', () => {
             getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(mockResponse));
 
             service.getAvailableAttributes('TestModel/Customer', 'name').subscribe(() => {
-                const callArgs = vi.mocked(getCkTypeAvailableQueryColumnsGQLMock.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(getCkTypeAvailableQueryColumnsGQLMock.fetch).mock.lastCall![0];
                 expect(callArgs.variables.filter).toBe('name');
                 done();
             });
@@ -121,7 +121,7 @@ describe('AttributeSelectorService', () => {
             getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(mockResponse));
 
             service.getAvailableAttributes('TestModel/Customer', undefined, 50, 'cursor1').subscribe(() => {
-                const callArgs = vi.mocked(getCkTypeAvailableQueryColumnsGQLMock.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(getCkTypeAvailableQueryColumnsGQLMock.fetch).mock.lastCall![0];
                 expect(callArgs.variables.first).toBe(50);
                 expect(callArgs.variables.after).toBe('cursor1');
                 done();

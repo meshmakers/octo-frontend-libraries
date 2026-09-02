@@ -12,7 +12,7 @@ describe('OctoErrorLink', () => {
         messageServiceMock = {
             showError: vi.fn().mockName("MessageService.showError"),
             showErrorWithDetails: vi.fn().mockName("MessageService.showErrorWithDetails")
-        };
+        } as unknown as MockedObject<MessageService>;
 
         TestBed.configureTestingModule({
             providers: [
@@ -76,7 +76,7 @@ describe('OctoErrorLink', () => {
             invokeShowError(Array.from({ length: 13 }, columnsError));
 
             expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledTimes(1);
-            const [title, details] = vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall;
+            const [title, details] = vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall!;
             expect(title).toBe("Error trying to resolve field 'columns'. (× 13)");
             // Only the first (unique) entry exists — no repeated separator blocks in the details.
             expect(details).not.toContain('======================');
@@ -89,7 +89,7 @@ describe('OctoErrorLink', () => {
                 { message: 'Other error', extensions: { code: 'NOT_FOUND' } },
             ]);
 
-            const [title, details] = vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall;
+            const [title, details] = vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall!;
             expect(title).toBe('Domain error');
             expect(title).not.toContain('×');
             expect(details).toContain('Other error');
@@ -101,7 +101,7 @@ describe('OctoErrorLink', () => {
                 { message: 'Same message', extensions: { code: 'NOT_FOUND' } },
             ]);
 
-            const [title, details] = vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall;
+            const [title, details] = vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall!;
             expect(title).toBe('Same message');
             expect(details).toContain('Same message');
             expect(details).toContain('Global Result Code: NOT_FOUND');
@@ -113,7 +113,7 @@ describe('OctoErrorLink', () => {
                 { message: 'Plain error' },
             ]);
 
-            const [title] = vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall;
+            const [title] = vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall!;
             expect(title).toBe('Plain error (× 2)');
         });
     });

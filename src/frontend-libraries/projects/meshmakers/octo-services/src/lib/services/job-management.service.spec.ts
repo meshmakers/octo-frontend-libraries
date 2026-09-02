@@ -45,16 +45,16 @@ describe('JobManagementService', () => {
         botServiceMock = {
             downloadJobResultBinary: vi.fn().mockName("BotService.downloadJobResultBinary"),
             getJobStatus: vi.fn().mockName("BotService.getJobStatus")
-        };
+        } as unknown as MockedObject<BotService>;
         messageServiceMock = {
             showInformation: vi.fn().mockName("MessageService.showInformation"),
             showError: vi.fn().mockName("MessageService.showError"),
             showErrorWithDetails: vi.fn().mockName("MessageService.showErrorWithDetails")
-        };
+        } as unknown as MockedObject<MessageService>;
         mockProgressDialog = { close: vi.fn().mockName('close') };
         progressWindowServiceMock = {
             showIndeterminateProgress: vi.fn().mockName("ProgressWindowService.showIndeterminateProgress")
-        };
+        } as unknown as MockedObject<ProgressWindowService>;
         progressWindowServiceMock.showIndeterminateProgress.mockReturnValue(mockProgressDialog);
 
         TestBed.configureTestingModule({
@@ -100,7 +100,7 @@ describe('JobManagementService', () => {
         it('should not create download link when blob is null', async () => {
             botServiceMock.downloadJobResultBinary.mockResolvedValue(null);
 
-            vi.spyOn(document, 'createElement').mockReturnValue(undefined);
+            vi.spyOn(document, 'createElement').mockReturnValue(undefined as unknown as HTMLElement);
 
             await service.downloadJobResult('tenant-1', 'job-123', 'export.zip');
 
@@ -185,7 +185,7 @@ describe('JobManagementService', () => {
 
             await service.waitForJob('job-123', 'Test Title', 'Export');
 
-            const progressCallArgs = vi.mocked(progressWindowServiceMock.showIndeterminateProgress).mock.lastCall;
+            const progressCallArgs = vi.mocked(progressWindowServiceMock.showIndeterminateProgress).mock.lastCall!;
             expect(progressCallArgs[0]).toBe('Test Title');
             const options = progressCallArgs[2] as Partial<ProgressWindowOptions>;
             expect(options.isCancelOperationAvailable).toBe(true);
