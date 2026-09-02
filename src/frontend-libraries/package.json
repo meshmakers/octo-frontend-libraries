@@ -32,7 +32,7 @@
     "watch:octo-ui-legacy": "ng build @meshmakers/octo-ui-legacy --watch --configuration development",
     "test": "npm run test:shared-services && npm run test:shared-auth && npm run test:shared-ui && npm run test:octo-services && npm run test:octo-process-diagrams && npm run test:octo-meshboard && npm run test:octo-ai-console && npm run test:demo-app && npm run test:legacy-demo-app && npm run test:octo-ui",
     "test:shared-services": "ng test @meshmakers/shared-services --watch=false",
-    "test:shared-auth": "ng test @meshmakers/shared-auth --watch=false --browsers=ChromeHeadlessCI",
+    "test:shared-auth": "ng test @meshmakers/shared-auth --watch=false",
     "test:shared-ui": "ng test @meshmakers/shared-ui --watch=false --browsers=ChromeHeadlessCI",
     "test:octo-services": "ng test @meshmakers/octo-services --watch=false --browsers=ChromeHeadlessCI",
     "test:octo-process-diagrams": "ng test @meshmakers/octo-process-diagrams --watch=false --browsers=ChromeHeadlessCI",

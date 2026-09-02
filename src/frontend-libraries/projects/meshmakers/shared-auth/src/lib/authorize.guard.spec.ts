@@ -33,14 +33,14 @@ describe('Functional Guards', () => {
             isAuthenticated: vi.fn().mockName('isAuthenticated').mockImplementation(() => isAuthenticatedValue),
             roles: vi.fn().mockName('roles').mockImplementation(() => rolesValue),
             tokenTenantId: vi.fn().mockName('tokenTenantId').mockImplementation(() => tokenTenantIdValue)
-        };
+        } as unknown as MockedObject<AuthorizeService>;
         authServiceMock.consumePendingTenantSwitch.mockReturnValue(null);
         authServiceMock.consumeSwitchAttempted.mockReturnValue(null);
         authServiceMock.switchTenant.mockReturnValue(true);
 
         routerMock = {
             navigate: vi.fn().mockName("Router.navigate")
-        };
+        } as unknown as MockedObject<Router>;
         routerMock.navigate.mockResolvedValue(true);
 
         TestBed.configureTestingModule({

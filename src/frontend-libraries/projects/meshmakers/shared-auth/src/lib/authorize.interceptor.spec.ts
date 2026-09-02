@@ -12,13 +12,13 @@ import { AuthorizeService } from './authorize.service';
 
 describe('authorizeInterceptor (functional)', () => {
     let authServiceMock: MockedObject<AuthorizeService>;
-    let nextFn: Mock;
+    let nextFn: Mock<HttpHandlerFn>;
 
     beforeEach(() => {
         authServiceMock = {
             getAccessTokenSync: vi.fn().mockName("AuthorizeService.getAccessTokenSync"),
             getServiceUris: vi.fn().mockName("AuthorizeService.getServiceUris")
-        };
+        } as unknown as MockedObject<AuthorizeService>;
         authServiceMock.getAccessTokenSync.mockReturnValue(null);
         authServiceMock.getServiceUris.mockReturnValue(null);
 
@@ -43,7 +43,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                     expect(handledReq.headers.has('Authorization')).toBe(false);
                     done();
                 });
@@ -55,7 +55,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                     expect(handledReq.headers.has('Authorization')).toBe(false);
                     done();
                 });
@@ -74,7 +74,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
                     });
@@ -86,7 +86,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
                     });
@@ -98,7 +98,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
                     });
@@ -110,7 +110,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
                     });
@@ -124,7 +124,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.has('Authorization')).toBe(false);
                         done();
                     });
@@ -136,7 +136,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.has('Authorization')).toBe(false);
                         done();
                     });
@@ -157,7 +157,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
                     });
@@ -169,7 +169,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
                     });
@@ -181,7 +181,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.has('Authorization')).toBe(false);
                         done();
                     });
@@ -194,7 +194,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.has('Authorization')).toBe(false);
                         done();
                     });
@@ -207,7 +207,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.has('Authorization')).toBe(false);
                         done();
                     });
@@ -221,7 +221,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.has('Authorization')).toBe(false);
                         done();
                     });
@@ -234,7 +234,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
                     });
@@ -246,7 +246,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
                     });
@@ -259,7 +259,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(req, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
                     });
@@ -286,7 +286,7 @@ describe('authorizeInterceptor (functional)', () => {
 
                 TestBed.runInInjectionContext(() => {
                     authorizeInterceptor(originalReq, nextFn).subscribe(() => {
-                        const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                        const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                         expect(handledReq).not.toBe(originalReq);
                         expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
                         done();
@@ -302,7 +302,7 @@ describe('authorizeInterceptor (functional)', () => {
                 getAccessTokenSync: vi.fn().mockName("AuthorizeService.getAccessTokenSync"),
                 getServiceUris: vi.fn().mockName("AuthorizeService.getServiceUris"),
                 getStorageTenantId: vi.fn().mockName("AuthorizeService.getStorageTenantId")
-            };
+            } as unknown as MockedObject<AuthorizeService>;
             authServiceMock.getAccessTokenSync.mockReturnValue('test-token');
             authServiceMock.getServiceUris.mockReturnValue(null);
 
@@ -317,7 +317,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<HttpParams>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
                     expect(handledReq.body).toBeInstanceOf(HttpParams);
                     expect((handledReq.body as HttpParams).get('acr_values')).toBe('tenant:meshtest');
                     done();
@@ -341,7 +341,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<HttpParams>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
                     expect((handledReq.body as HttpParams).has('acr_values')).toBe(false);
                     done();
                 });
@@ -356,7 +356,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<HttpParams>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
                     expect((handledReq.body as HttpParams).has('acr_values')).toBe(false);
                     done();
                 });
@@ -371,7 +371,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<HttpParams>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
                     expect((handledReq.body as HttpParams).has('acr_values')).toBe(false);
                     done();
                 });
@@ -385,7 +385,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                     // GET requests don't have body manipulation
                     expect(handledReq.url).toContain('/connect/token');
                     done();
@@ -401,7 +401,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<HttpParams>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
                     expect((handledReq.body as HttpParams).get('acr_values')).toBe('tenant:meshtest');
                     done();
                 });
@@ -419,7 +419,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<HttpParams>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
                     const params = handledReq.body as HttpParams;
                     expect(params.get('grant_type')).toBe('refresh_token');
                     expect(params.get('refresh_token')).toBe('abc123');
@@ -441,7 +441,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                     expect(handledReq.headers.has('Authorization')).toBe(false);
                     done();
                 });
@@ -453,7 +453,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                     expect(handledReq.headers.get('Authorization')).toBe('Bearer test-token');
                     done();
                 });
@@ -465,7 +465,7 @@ describe('authorizeInterceptor (functional)', () => {
 
             TestBed.runInInjectionContext(() => {
                 authorizeInterceptor(req, nextFn).subscribe(() => {
-                    const handledReq = vi.mocked(nextFn).mock.lastCall[0] as HttpRequest<unknown>;
+                    const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
                     expect(handledReq.headers.get('Authorization')).toBe('Bearer test-token');
                     done();
                 });
@@ -502,7 +502,7 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
             getServiceUris: vi.fn().mockName("AuthorizeService.getServiceUris"),
             getStorageTenantId: vi.fn().mockName("AuthorizeService.getStorageTenantId"),
             refreshAccessToken: vi.fn().mockName("AuthorizeService.refreshAccessToken")
-        };
+        } as unknown as MockedObject<AuthorizeService>;
         authServiceMock.getAccessTokenSync.mockReturnValue(OLD_TOKEN);
         authServiceMock.getServiceUris.mockReturnValue(['https://auth.example.com']);
         authServiceMock.getStorageTenantId.mockReturnValue('meshtest');

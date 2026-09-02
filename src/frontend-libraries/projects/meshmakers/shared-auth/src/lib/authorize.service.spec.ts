@@ -60,7 +60,7 @@ describe('AuthorizeService', () => {
             logOut: vi.fn().mockName("OAuthService.logOut"),
             events: oauthEvents$.asObservable(),
             discoveryDocumentLoaded$: discoveryDocumentLoaded$.asObservable()
-        };
+        } as unknown as MockedObject<OAuthService>;
 
         oauthServiceMock.loadDiscoveryDocumentAndTryLogin.mockResolvedValue(true);
         oauthServiceMock.hasValidIdToken.mockReturnValue(false);
@@ -711,7 +711,7 @@ describe('AuthorizeService', () => {
                 service.setStorageTenantId('maco');
                 await service.initialize(mockOptions);
 
-                const storageArg = vi.mocked(oauthServiceMock.setStorage).mock.lastCall[0] as TenantAwareOAuthStorage;
+                const storageArg = vi.mocked(oauthServiceMock.setStorage).mock.lastCall![0] as TenantAwareOAuthStorage;
                 expect(storageArg).toBeInstanceOf(TenantAwareOAuthStorage);
                 expect(storageArg.getTenantId()).toBe('maco');
             });
@@ -968,6 +968,11 @@ describe('AuthorizeService', () => {
         });
 
         afterEach(() => {
+            // Jasmine restored every spy after each spec; Vitest does not, and vi.spyOn on an
+            // already-spied member returns the SAME mock, so window.fetch would keep its call
+            // history across the tests below. Restore it to get a fresh spy per test.
+            fetchSpy.mockRestore();
+
             for (const key of ['tecob__access_token', 'tecob__refresh_token', 'tecob__expires_at',
                 'tecob__access_token_stored_at', 'tecob__granted_scopes',
                 'tecob__id_token_claims_obj']) {
@@ -992,7 +997,7 @@ describe('AuthorizeService', () => {
 
             await service.switchTenantByExchange('tecob');
 
-            const [, init] = vi.mocked(fetchSpy).mock.calls[0].args as [
+            const [, init] = vi.mocked(fetchSpy).mock.calls[0] as [
                 string,
                 RequestInit
             ];

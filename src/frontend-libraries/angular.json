@@ -282,15 +282,31 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular/build:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/shared-auth/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing",
               "@angular/localize/init"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/shared-auth:test-build",
+            "tsConfig": "projects/meshmakers/shared-auth/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
+            ],
+            "include": [
+              "**/*.spec.ts",
+              "../login-ui/**/*.spec.ts"
             ]
           }
         },

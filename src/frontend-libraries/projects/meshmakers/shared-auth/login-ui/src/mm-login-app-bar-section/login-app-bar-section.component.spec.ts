@@ -95,7 +95,7 @@ describe('LoginAppBarSectionComponent', () => {
             isAuthenticated: isAuthenticatedSignal,
             userInitials: userInitialsSignal,
             sessionLoading: sessionLoadingSignal
-        };
+        } as unknown as MockedObject<AuthorizeService>;
 
         await TestBed.configureTestingModule({
             imports: [LoginAppBarSectionComponent],
