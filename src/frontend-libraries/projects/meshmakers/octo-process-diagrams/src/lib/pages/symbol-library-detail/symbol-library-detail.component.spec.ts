@@ -56,22 +56,22 @@ describe('SymbolLibraryDetailComponent', () => {
             loadLibrary: vi.fn().mockName("SymbolLibraryService.loadLibrary"),
             createSymbol: vi.fn().mockName("SymbolLibraryService.createSymbol"),
             deleteSymbol: vi.fn().mockName("SymbolLibraryService.deleteSymbol")
-        };
+        } as unknown as MockedObject<SymbolLibraryService>;
         mockBreadCrumbService = {
             updateBreadcrumbLabels: vi.fn().mockName("BreadCrumbService.updateBreadcrumbLabels")
-        };
+        } as unknown as MockedObject<BreadCrumbService>;
         mockConfirmationService = {
             showYesNoConfirmationDialog: vi.fn().mockName("ConfirmationService.showYesNoConfirmationDialog")
-        };
+        } as unknown as MockedObject<ConfirmationService>;
         mockNotificationService = {
             show: vi.fn().mockName("NotificationService.show")
-        };
+        } as unknown as MockedObject<NotificationService>;
         mockInputService = {
             showInputDialog: vi.fn().mockName("InputService.showInputDialog")
-        };
+        } as unknown as MockedObject<InputService>;
         mockRouter = {
             navigate: vi.fn().mockName("Router.navigate")
-        };
+        } as unknown as MockedObject<Router>;
 
         mockBreadCrumbService.updateBreadcrumbLabels.mockResolvedValue();
 

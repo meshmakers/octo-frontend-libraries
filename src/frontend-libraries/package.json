@@ -35,7 +35,7 @@
     "test:shared-auth": "ng test @meshmakers/shared-auth --watch=false",
     "test:shared-ui": "ng test @meshmakers/shared-ui --watch=false",
     "test:octo-services": "ng test @meshmakers/octo-services --watch=false",
-    "test:octo-process-diagrams": "ng test @meshmakers/octo-process-diagrams --watch=false --browsers=ChromeHeadlessCI",
+    "test:octo-process-diagrams": "ng test @meshmakers/octo-process-diagrams --watch=false",
     "test:octo-meshboard": "ng test @meshmakers/octo-meshboard --watch=false",
     "test:octo-ui": "ng test @meshmakers/octo-ui --watch=false --browsers=ChromeHeadlessCI",
     "test:octo-ai-console": "ng test @meshmakers/octo-ai-console --watch=false",

@@ -47,7 +47,7 @@ describe('SymbolRenderer', () => {
         primitiveRegistry = {
             render: vi.fn().mockName("PrimitiveRendererRegistry.render"),
             findPrimitiveAtPoint: vi.fn().mockName("PrimitiveRendererRegistry.findPrimitiveAtPoint")
-        };
+        } as unknown as MockedObject<PrimitiveRendererRegistry>;
 
         // Default mock implementation
         primitiveRegistry.render.mockImplementation((primitive, _context) => ({
@@ -236,7 +236,7 @@ describe('SymbolRenderer', () => {
 
             // Verify the primitive was called with modified transform
             expect(primitiveRegistry.render).toHaveBeenCalled();
-            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall[0];
+            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
             expect(callArgs.transform?.rotation).toBe(180); // 50 * 3.6 = 180
         });
 
@@ -262,7 +262,7 @@ describe('SymbolRenderer', () => {
 
             renderer.render(instance, definition);
 
-            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall[0];
+            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
             expect(callArgs.style?.fill?.color).toBeDefined();
         });
 
@@ -288,7 +288,7 @@ describe('SymbolRenderer', () => {
 
             renderer.render(instance, definition);
 
-            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall[0];
+            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
             expect(callArgs.fillLevel).toBe(0.75);
         });
 
@@ -314,7 +314,7 @@ describe('SymbolRenderer', () => {
 
             renderer.render(instance, definition);
 
-            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall[0];
+            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
             expect(callArgs.visible).toBe(false);
         });
 
@@ -340,7 +340,7 @@ describe('SymbolRenderer', () => {
 
             renderer.render(instance, definition);
 
-            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall[0];
+            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
             expect(callArgs.transform?.rotation).toBe(45);
         });
 
@@ -373,7 +373,7 @@ describe('SymbolRenderer', () => {
 
             renderer.render(instance, definition);
 
-            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall[0];
+            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
             expect(callArgs.transform?.offsetX).toBe(25);
             expect(callArgs.transform?.offsetY).toBe(15);
         });
@@ -400,7 +400,7 @@ describe('SymbolRenderer', () => {
 
             renderer.render(instance, definition);
 
-            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall[0];
+            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
             expect(callArgs.transform?.scale).toBe(1.5);
         });
 
@@ -426,7 +426,7 @@ describe('SymbolRenderer', () => {
 
             renderer.render(instance, definition);
 
-            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall[0];
+            const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
             expect(callArgs.style?.opacity).toBe(0.5);
         });
     });

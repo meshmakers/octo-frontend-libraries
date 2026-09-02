@@ -24,14 +24,27 @@ describe('DesignerCoordinateService', () => {
             matrixTransform: vi.fn().mockName('matrixTransform')
         };
 
-        // Create mock CTM (identity matrix for simple tests)
-        mockCtm = new DOMMatrix([1, 0, 0, 1, 0, 0]);
+        // Create mock CTM (identity matrix for simple tests).
+        // jsdom does not implement DOMMatrix, so the identity matrix is supplied as a
+        // structural stub. The service only calls inverse() on the CTM and passes it to
+        // matrixTransform, which is mocked below, so this behaves exactly like the real
+        // `new DOMMatrix([1, 0, 0, 1, 0, 0])` did under Karma (the identity matrix is its
+        // own inverse).
+        mockCtm = {
+            a: 1,
+            b: 0,
+            c: 0,
+            d: 1,
+            e: 0,
+            f: 0,
+            inverse: (): DOMMatrix => mockCtm
+        } as unknown as DOMMatrix;
 
         // Create mock SVG element
         mockSvgElement = {
             createSVGPoint: vi.fn().mockName("SVGSVGElement.createSVGPoint"),
             getScreenCTM: vi.fn().mockName("SVGSVGElement.getScreenCTM")
-        };
+        } as unknown as MockedObject<SVGSVGElement>;
         mockSvgElement.createSVGPoint.mockReturnValue(mockSvgPoint as unknown as SVGPoint);
         mockSvgElement.getScreenCTM.mockReturnValue(mockCtm);
 

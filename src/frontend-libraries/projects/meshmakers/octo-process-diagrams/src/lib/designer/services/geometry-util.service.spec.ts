@@ -333,9 +333,13 @@ describe('GeometryUtilService', () => {
   });
 
   describe('perpendicular', () => {
+    // perpendicular() computes x as -vector.y, so a zero input yields -0.
+    // Jasmine's toBe compared with ===, which accepts either sign of zero; Vitest's
+    // toBe compares with Object.is, which does not. toSatisfy restores the original
+    // comparison exactly instead of pinning the sign.
     it('should rotate horizontal vector 90 degrees', () => {
       const result = service.perpendicular({ x: 100, y: 0 });
-      expect(result.x).toBe(0);
+      expect(result.x).toSatisfy((x) => x === 0);
       expect(result.y).toBe(100);
     });
 
@@ -347,7 +351,7 @@ describe('GeometryUtilService', () => {
 
     it('should return zero vector for zero input', () => {
       const result = service.perpendicular({ x: 0, y: 0 });
-      expect(result.x).toBe(0);
+      expect(result.x).toSatisfy((x) => x === 0);
       expect(result.y).toBe(0);
     });
   });

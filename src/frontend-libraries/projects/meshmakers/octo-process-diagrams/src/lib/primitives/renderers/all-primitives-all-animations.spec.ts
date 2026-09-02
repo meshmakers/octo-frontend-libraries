@@ -185,7 +185,7 @@ describe('All Primitives with All Animations', () => {
       ];
 
       for (const preset of expectedPresets) {
-        expect(ANIMATION_PRESETS[preset]).toBeDefined(`Preset '${preset}' should exist`);
+        expect(ANIMATION_PRESETS[preset], `Preset '${preset}' should exist`).toBeDefined();
       }
     });
 
@@ -224,7 +224,7 @@ describe('All Primitives with All Animations', () => {
       for (const [type, factory] of Object.entries(primitiveFactories)) {
         const primitive = factory(`test-${type}`);
 
-        expect(primitive).toBeDefined(`Primitive factory for '${type}' should return object`);
+        expect(primitive, `Primitive factory for '${type}' should return object`).toBeDefined();
         expect(primitive.id).toBe(`test-${type}`);
         expect(primitive.type).toBe(type);
         expect(primitive.position).toBeDefined();

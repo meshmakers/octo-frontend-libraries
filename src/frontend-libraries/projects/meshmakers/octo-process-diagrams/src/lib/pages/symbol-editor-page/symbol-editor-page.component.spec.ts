@@ -100,16 +100,16 @@ describe('SymbolEditorPageComponent', () => {
             loadLibrary: vi.fn().mockName("SymbolLibraryService.loadLibrary"),
             loadSymbol: vi.fn().mockName("SymbolLibraryService.loadSymbol"),
             updateSymbol: vi.fn().mockName("SymbolLibraryService.updateSymbol")
-        };
+        } as unknown as MockedObject<SymbolLibraryService>;
         mockBreadCrumbService = {
             updateBreadcrumbLabels: vi.fn().mockName("BreadCrumbService.updateBreadcrumbLabels")
-        };
+        } as unknown as MockedObject<BreadCrumbService>;
         mockNotificationService = {
             show: vi.fn().mockName("NotificationService.show")
-        };
+        } as unknown as MockedObject<NotificationService>;
         mockRouter = {
             navigate: vi.fn().mockName("Router.navigate")
-        };
+        } as unknown as MockedObject<Router>;
 
         // Setup default return values
         mockSymbolLibraryService.loadLibrary.mockResolvedValue(mockLibrary);
