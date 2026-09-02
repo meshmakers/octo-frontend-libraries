@@ -1,4 +1,5 @@
 import type { MockedObject } from "vitest";
+import '@angular/localize/init';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Signal, WritableSignal } from '@angular/core';
@@ -36,7 +37,7 @@ describe('DataPointPickerComponent — contains filter', () => {
             extractInfosFromEntity: vi.fn().mockName("DataPointResolverService.extractInfosFromEntity"),
             load: vi.fn().mockName("DataPointResolverService.load"),
             loadInfos: vi.fn().mockName("DataPointResolverService.loadInfos")
-        };
+        } as unknown as MockedObject<DataPointResolverService>;
         resolverMock.extractFromEntity.mockReturnValue([]);
         resolverMock.extractInfosFromEntity.mockReturnValue([]);
         resolverMock.load.mockResolvedValue([]);

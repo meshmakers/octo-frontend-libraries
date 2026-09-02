@@ -95,30 +95,30 @@ describe('MappingCoverageTreeComponent', () => {
     beforeEach(async () => {
         getOrphanCandidatesGQL = {
             fetch: vi.fn().mockName("GetOrphanCandidatesDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetOrphanCandidatesDtoGQL>;
         getEntitiesByCkTypeGQL = {
             fetch: vi.fn().mockName("GetEntitiesByCkTypeDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetEntitiesByCkTypeDtoGQL>;
         getEntitiesByCkTypeGQL.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } }) as unknown as ReturnType<GetEntitiesByCkTypeDtoGQL['fetch']>);
         treeNavConfig = {
             perspectives: vi.fn().mockName("TreeNavigationConfigService.perspectives"),
             resolve: vi.fn().mockName("TreeNavigationConfigService.resolve")
-        };
+        } as unknown as MockedObject<TreeNavigationConfigService>;
         treeNavConfig.perspectives.mockResolvedValue([]);
         treeNavConfig.resolve.mockResolvedValue(undefined);
         bulkDialog = {
             open: vi.fn().mockName("BulkMappingDialogService.open")
-        };
+        } as unknown as MockedObject<BulkMappingDialogService>;
         createEntitiesGQL = {
             mutate: vi.fn().mockName("CreateEntitiesDtoGQL.mutate")
-        };
+        } as unknown as MockedObject<CreateEntitiesDtoGQL>;
         getLatestValidationGQL = {
             fetch: vi.fn().mockName("GetLatestValidationExecutionDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetLatestValidationExecutionDtoGQL>;
         communicationService = {
             executePipeline: vi.fn().mockName("CommunicationService.executePipeline"),
             getLatestPipelineExecution: vi.fn().mockName("CommunicationService.getLatestPipelineExecution")
-        };
+        } as unknown as MockedObject<CommunicationService>;
 
         await TestBed.configureTestingModule({
             imports: [MappingCoverageTreeComponent],
@@ -398,7 +398,7 @@ describe('MappingCoverageTreeComponent', () => {
                 childRoleId: 'EnergyIQ/SystemMembers',
                 childDirection: GraphDirectionDto.OutboundDto,
             });
-            const rootQueryVariables = vi.mocked(getEntitiesByCkTypeGQL.fetch).mock.lastCall[0]?.variables;
+            const rootQueryVariables = vi.mocked(getEntitiesByCkTypeGQL.fetch).mock.lastCall![0]?.variables;
             expect(rootQueryVariables?.ckTypeId).toBe('EnergyIQ/DistributionSystem');
             expect(component['selectedRoot']()).toBeNull();
             expect(component['selectedNode']()).toBeNull();
@@ -413,7 +413,7 @@ describe('MappingCoverageTreeComponent', () => {
 
             expect(component['dataSource'].getRootPerspectiveNav()).toBeNull();
             expect(component['activeRootCkTypeId']()).toBe(component.config.rootCkTypeId);
-            const rootQueryVariables = vi.mocked(getEntitiesByCkTypeGQL.fetch).mock.lastCall[0]?.variables;
+            const rootQueryVariables = vi.mocked(getEntitiesByCkTypeGQL.fetch).mock.lastCall![0]?.variables;
             expect(rootQueryVariables?.ckTypeId).toBe(component.config.rootCkTypeId);
         });
     });
@@ -459,7 +459,7 @@ describe('MappingCoverageTreeComponent', () => {
             await component['bulkMapSelected']();
 
             expect(createEntitiesGQL.mutate).toHaveBeenCalledTimes(1);
-            const variables = vi.mocked(createEntitiesGQL.mutate).mock.lastCall[0]
+            const variables = vi.mocked(createEntitiesGQL.mutate).mock.lastCall![0]
                 ?.variables as {
                 entities: Record<string, unknown>[];
             };

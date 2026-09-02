@@ -36,29 +36,29 @@ describe('TreeNavigationSettingsComponent', () => {
             loadConfig: vi.fn().mockName("TreeNavigationConfigService.loadConfig"),
             saveConfig: vi.fn().mockName("TreeNavigationConfigService.saveConfig"),
             getRoleSuggestions: vi.fn().mockName("TreeNavigationConfigService.getRoleSuggestions")
-        };
+        } as unknown as MockedObject<TreeNavigationConfigService>;
         configSpy.getRoleSuggestions.mockResolvedValue([]);
         messageSpy = {
             showInformation: vi.fn().mockName("MessageService.showInformation"),
             showError: vi.fn().mockName("MessageService.showError")
-        };
+        } as unknown as MockedObject<MessageService>;
         ckTypeSpy = {
             getCkTypes: vi.fn().mockName("CkTypeSelectorService.getCkTypes")
-        };
+        } as unknown as MockedObject<CkTypeSelectorService>;
         ckTypeSpy.getCkTypes.mockReturnValue(of({ items: [], totalCount: 0 }));
         assetRepoSpy = {
             exportRtModelDeepGraph: vi.fn().mockName("AssetRepoService.exportRtModelDeepGraph"),
             importRtModel: vi.fn().mockName("AssetRepoService.importRtModel")
-        };
+        } as unknown as MockedObject<AssetRepoService>;
         jobsSpy = {
             waitForJob: vi.fn().mockName("JobManagementService.waitForJob"),
             downloadJobResult: vi.fn().mockName("JobManagementService.downloadJobResult")
-        };
+        } as unknown as MockedObject<JobManagementService>;
         jobsSpy.waitForJob.mockResolvedValue(true);
         jobsSpy.downloadJobResult.mockResolvedValue();
         importStrategySpy = {
             showImportStrategyDialog: vi.fn().mockName("ImportStrategyDialogService.showImportStrategyDialog")
-        };
+        } as unknown as MockedObject<ImportStrategyDialogService>;
 
         configSpy.loadConfig.mockResolvedValue({
             typePresent: true,
@@ -136,7 +136,7 @@ describe('TreeNavigationSettingsComponent', () => {
         await api.onSave();
 
         expect(configSpy.saveConfig).toHaveBeenCalled();
-        const [rtId, roles] = vi.mocked(configSpy.saveConfig).mock.lastCall;
+        const [rtId, roles] = vi.mocked(configSpy.saveConfig).mock.lastCall!;
         expect(rtId).toBe('cfg-1');
         expect(roles.length).toBe(2);
         const mapsTo = roles.find((r) => r.roleId === 'System.Communication/MapsTo');

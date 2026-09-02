@@ -18,13 +18,13 @@ describe('BrandingDataSource', () => {
     function setupTestBed(getReturnValue: unknown): void {
         getStub = {
             fetch: vi.fn().mockName("GetBrandingDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetBrandingDtoGQL>;
         createStub = {
             mutate: vi.fn().mockName("CreateBrandingDtoGQL.mutate")
-        };
+        } as unknown as MockedObject<CreateBrandingDtoGQL>;
         updateStub = {
             mutate: vi.fn().mockName("UpdateBrandingDtoGQL.mutate")
-        };
+        } as unknown as MockedObject<UpdateBrandingDtoGQL>;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getStub.fetch.mockReturnValue(of(getReturnValue as any));

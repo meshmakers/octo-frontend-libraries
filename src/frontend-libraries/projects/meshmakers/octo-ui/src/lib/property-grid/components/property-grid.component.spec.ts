@@ -496,7 +496,7 @@ describe('PropertyGridComponent', () => {
             component.saveChanges();
 
             expect(component.saveRequested.emit).toHaveBeenCalled();
-            const emittedData = vi.mocked((component.saveRequested.emit as Mock)).mock.lastCall[0];
+            const emittedData = vi.mocked((component.saveRequested.emit as Mock)).mock.lastCall![0];
             expect(emittedData.find((p: PropertyGridItem) => p.id === '1')?.value).toBe('Updated Entity');
         });
 
@@ -526,7 +526,7 @@ describe('PropertyGridComponent', () => {
             component.onPropertyChange(mockProperties[0], 'old', 'new');
             component.saveChanges();
 
-            const emittedData = vi.mocked((component.saveRequested.emit as Mock)).mock.lastCall[0];
+            const emittedData = vi.mocked((component.saveRequested.emit as Mock)).mock.lastCall![0];
             expect(emittedData.length).toBe(mockProperties.length);
         });
     });

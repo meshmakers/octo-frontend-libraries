@@ -122,7 +122,7 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
 
             directive.fetchData(options).subscribe(() => {
                 expect(mockGetRuntimeEntitiesGQL.fetch).toHaveBeenCalled();
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
                 expect(callArgs.variables.ckTypeId).toBe('TestType');
                 expect(callArgs.variables.first).toBe(10);
                 done();
@@ -136,7 +136,7 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
                 expect(callArgs.fetchPolicy).toBe('cache-first');
                 done();
             });
@@ -150,7 +150,7 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
                 expect(callArgs.fetchPolicy).toBe('network-only');
                 done();
             });
@@ -167,7 +167,7 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
                 expect(callArgs.variables.sort).toBeTruthy();
                 expect(callArgs.variables.sort.length).toBe(1);
                 done();
@@ -233,7 +233,7 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
                 expect(callArgs.variables.ckTypeId).toBe('NewType');
                 done();
             });

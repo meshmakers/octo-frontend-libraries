@@ -13,10 +13,10 @@ describe("AttributeMetadataResolverService", () => {
     beforeEach(() => {
         typesGqlSpy = {
             fetch: vi.fn().mockName("GetCkAttributesDetailedDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkAttributesDetailedDtoGQL>;
         recordGqlSpy = {
             fetch: vi.fn().mockName("GetCkRecordDetailedDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkRecordDetailedDtoGQL>;
 
         TestBed.configureTestingModule({
             providers: [

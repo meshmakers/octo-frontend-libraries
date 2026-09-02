@@ -29,17 +29,19 @@ describe('MappingCoverageConfigService', () => {
         },
     });
 
-    // Waits up to a few microtasks for the named operation to be issued, then flushes it.
+    // Waits up to a few macrotask turns for the named operation to be issued, then flushes it.
+    // A microtask yield is not enough: Apollo's testing backend delivers the previous
+    // flush across a timer, so the follow-up query is only issued after the task queue drains.
     async function flushOp(operationName: string, response: {
         data: Record<string, unknown>;
     }): Promise<void> {
         for (let i = 0; i < 10; i++) {
             const matches = controller.match((op) => op.operationName === operationName);
             if (matches.length > 0) {
-                matches[0].flush(response);
+                    matches[0].flush(response);
                 return;
             }
-            await Promise.resolve();
+            await new Promise((resolve) => setTimeout(resolve, 0));
         }
         throw new Error(`operation not issued: ${operationName}`);
     }
@@ -134,7 +136,7 @@ describe('MappingCoverageConfigService', () => {
                 });
                 break;
             }
-            await Promise.resolve();
+            await new Promise((resolve) => setTimeout(resolve, 0));
         }
         const rtId = await promise;
 

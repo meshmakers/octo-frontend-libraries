@@ -55,14 +55,14 @@ describe('SettingsPageComponent', () => {
         const branding = signal(NEUTRAL_BRANDING_DEFAULTS);
         const dataSource = {
             branding,
-            load: vi.fn().mockName('load').mockResolvedValue(),
+            load: vi.fn().mockName('load').mockResolvedValue(undefined),
             save: vi.fn().mockName('save').mockImplementation((_u: unknown) => Promise.resolve(NEUTRAL_BRANDING_DEFAULTS)),
-            resetToDefaults: vi.fn().mockName('resetToDefaults').mockResolvedValue(),
+            resetToDefaults: vi.fn().mockName('resetToDefaults').mockResolvedValue(undefined),
         };
         const msg = {
             showError: vi.fn().mockName("MessageService.showError"),
             showInformation: vi.fn().mockName("MessageService.showInformation")
-        };
+        } as unknown as MockedObject<MessageService>;
         TestBed.configureTestingModule({
             imports: [SettingsPageComponent],
             providers: [

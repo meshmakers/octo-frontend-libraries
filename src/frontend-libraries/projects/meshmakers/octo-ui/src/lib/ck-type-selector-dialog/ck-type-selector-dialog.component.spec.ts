@@ -77,7 +77,7 @@ describe('CkTypeSelectorDialogComponent', () => {
     beforeEach(async () => {
         ckTypeSelectorServiceMock = {
             getCkTypes: vi.fn().mockName("CkTypeSelectorService.getCkTypes")
-        };
+        } as unknown as MockedObject<CkTypeSelectorService>;
         ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
             items: [...mockCkTypes],
             totalCount: mockCkTypes.length
@@ -85,7 +85,7 @@ describe('CkTypeSelectorDialogComponent', () => {
 
         windowRefMock = {
             close: vi.fn().mockName("WindowRef.close")
-        };
+        } as unknown as MockedObject<WindowRef>;
         windowContent = {
             instance: {
                 data: { ...mockDialogData }
@@ -424,7 +424,7 @@ describe('CkTypeSelectorDialogComponent', () => {
             component.onConfirm();
 
             expect(windowRefMock.close).toHaveBeenCalled();
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall[0] as CkTypeSelectorDialogResult;
+            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
             expect(result.selectedCkType).toBe(mockCkTypes[0]);
         });
 
@@ -438,7 +438,7 @@ describe('CkTypeSelectorDialogComponent', () => {
             component.selectedType = mockCkTypes[0];
             component.onConfirm();
 
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall[0] as CkTypeSelectorDialogResult;
+            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
             expect(result.selectedCkType.fullName).toBe('OctoSdkDemo-1.0.0/Customer-1');
             expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
             expect(result.selectedCkType.description).toBe('Customer entity');
@@ -576,7 +576,7 @@ describe('CkTypeSelectorDialogComponent', () => {
             // Confirm
             component.onConfirm();
 
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall[0] as CkTypeSelectorDialogResult;
+            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
             expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
         });
 

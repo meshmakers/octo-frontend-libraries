@@ -473,8 +473,8 @@ describe('PropertyValueDisplayComponent', () => {
             const obj = { name: 'Test', value: 123 };
             const result = component.getObjectProperties(obj);
             expect(result.length).toBe(2);
-            expect(result).toContain(expect.objectContaining({ key: 'name', value: 'Test' }));
-            expect(result).toContain(expect.objectContaining({ key: 'value', value: 123 }));
+            expect(result).toContainEqual(expect.objectContaining({ key: 'name', value: 'Test' }));
+            expect(result).toContainEqual(expect.objectContaining({ key: 'value', value: 123 }));
         });
 
         it('should handle nested objects', () => {
@@ -611,7 +611,7 @@ describe('PropertyValueDisplayComponent', () => {
         let windowOpenSpy: Mock;
 
         beforeEach(() => {
-            windowOpenSpy = vi.spyOn(window, 'open').mockReturnValue(undefined);
+            windowOpenSpy = vi.spyOn(window, 'open').mockReturnValue(null);
         });
 
         it('should do nothing for null value', () => {

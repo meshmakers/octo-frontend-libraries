@@ -31,12 +31,12 @@ describe('AttributeSortSelectorDialogComponent', () => {
     beforeEach(async () => {
         attributeServiceMock = {
             getAvailableAttributes: vi.fn().mockName("AttributeSelectorService.getAvailableAttributes")
-        };
+        } as unknown as MockedObject<AttributeSelectorService>;
         attributeServiceMock.getAvailableAttributes.mockReturnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
 
         windowRefMock = {
             close: vi.fn().mockName("WindowRef.close")
-        };
+        } as unknown as MockedObject<WindowRef>;
 
         await TestBed.configureTestingModule({
             imports: [
@@ -554,7 +554,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
             component.onOk();
 
             expect(windowRefMock.close).toHaveBeenCalled();
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall[0] as AttributeSortSelectorDialogResult;
+            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSortSelectorDialogResult;
             expect(result.selectedAttributes).toEqual([]);
         });
 
@@ -570,7 +570,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
             component.onOk();
 
             expect(windowRefMock.close).toHaveBeenCalled();
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall[0] as AttributeSortSelectorDialogResult;
+            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSortSelectorDialogResult;
             expect(result.selectedAttributes.length).toBe(2);
             expect(result.selectedAttributes[0]).toEqual({
                 attributePath: 'name',
@@ -694,7 +694,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
             // Confirm
             component.onOk();
 
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall[0] as AttributeSortSelectorDialogResult;
+            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSortSelectorDialogResult;
             expect(result.selectedAttributes.length).toBe(2);
             expect(result.selectedAttributes[0]).toEqual({
                 attributePath: 'age',

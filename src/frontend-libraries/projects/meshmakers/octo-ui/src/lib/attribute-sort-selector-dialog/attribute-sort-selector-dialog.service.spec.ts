@@ -1,6 +1,6 @@
 import type { MockedObject } from "vitest";
 import { TestBed } from '@angular/core/testing';
-import { WindowStateService } from '@meshmakers/shared-ui';
+import { WindowStateService, WindowDimensions } from '@meshmakers/shared-ui';
 import { Subject } from 'rxjs';
 import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { AttributeItem } from '@meshmakers/octo-services';
@@ -57,7 +57,7 @@ describe('AttributeSortSelectorDialogService', () => {
 
         windowServiceMock = {
             open: vi.fn().mockName("WindowService.open")
-        };
+        } as unknown as MockedObject<WindowService>;
         windowServiceMock.open.mockReturnValue(mockWindowRef as WindowRef);
 
         TestBed.configureTestingModule({
@@ -72,7 +72,7 @@ describe('AttributeSortSelectorDialogService', () => {
         // screen — the karma browser window is small and would otherwise shrink
         // the dimensions these specs assert verbatim.
         const windowState = TestBed.inject(WindowStateService);
-        vi.spyOn<never>(windowState as never, 'viewportSize' as never).mockReturnValue({ width: 1920, height: 1080 } as never);
+        vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });
     });
 
     it('should be created', () => {

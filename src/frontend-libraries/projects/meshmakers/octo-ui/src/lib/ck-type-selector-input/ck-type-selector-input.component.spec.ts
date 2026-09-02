@@ -1,4 +1,5 @@
 import type { MockedObject } from "vitest";
+import '@angular/localize/init';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
@@ -44,7 +45,7 @@ describe('CkTypeSelectorInputComponent', () => {
     beforeEach(async () => {
         ckTypeSelectorServiceMock = {
             getCkTypes: vi.fn().mockName("CkTypeSelectorService.getCkTypes")
-        };
+        } as unknown as MockedObject<CkTypeSelectorService>;
         ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
             items: [...mockCkTypes],
             totalCount: mockCkTypes.length
@@ -52,7 +53,7 @@ describe('CkTypeSelectorInputComponent', () => {
 
         dialogServiceMock = {
             openCkTypeSelector: vi.fn().mockName("CkTypeSelectorDialogService.openCkTypeSelector")
-        };
+        } as unknown as MockedObject<CkTypeSelectorDialogService>;
         dialogServiceMock.openCkTypeSelector.mockResolvedValue({
             confirmed: false,
             selectedCkType: null
@@ -367,18 +368,16 @@ describe('CkTypeSelectorInputComponent', () => {
             component.ckModelIds = ['TestModel'];
             component.onFilterChange('test');
             tick(300);
-            // TODO: vitest-migration: Direct usage of mostRecent() is not supported. Please refactor to access .args directly or use vi.mocked(spy).mock.lastCall. See: https://vitest.dev/api/mocked.html#mock-lastcall
-            const call = ckTypeSelectorServiceMock.getCkTypes.calls.mostRecent();
-            expect(call?.args[0]?.ckModelIds).toEqual(['TestModel']);
+            const call = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.lastCall;
+            expect(call?.[0]?.ckModelIds).toEqual(['TestModel']);
         }));
 
         it('should pass maxResults to service', fakeAsync(() => {
             component.maxResults = 25;
             component.onFilterChange('test');
             tick(300);
-            // TODO: vitest-migration: Direct usage of mostRecent() is not supported. Please refactor to access .args directly or use vi.mocked(spy).mock.lastCall. See: https://vitest.dev/api/mocked.html#mock-lastcall
-            const call = ckTypeSelectorServiceMock.getCkTypes.calls.mostRecent();
-            expect(call?.args[0]?.first).toBe(25);
+            const call = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.lastCall;
+            expect(call?.[0]?.first).toBe(25);
         }));
 
         it('should handle search errors gracefully', fakeAsync(() => {

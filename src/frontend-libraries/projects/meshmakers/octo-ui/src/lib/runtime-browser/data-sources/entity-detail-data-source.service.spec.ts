@@ -80,7 +80,7 @@ describe('EntityDetailDataSource', () => {
             await service.fetchEntityDetails('entity-123', 'Custom/Type');
 
             expect(mockGetRuntimeEntityByIdGQL.fetch).toHaveBeenCalled();
-            const callArgs = vi.mocked(mockGetRuntimeEntityByIdGQL.fetch).mock.lastCall[0];
+            const callArgs = vi.mocked(mockGetRuntimeEntityByIdGQL.fetch).mock.lastCall![0];
             expect(callArgs.variables.rtId).toBe('entity-123');
             expect(callArgs.variables.ckTypeId).toBe('Custom/Type');
         });
@@ -121,7 +121,7 @@ describe('EntityDetailDataSource', () => {
             const error = new Error('Network error');
             mockGetRuntimeEntityByIdGQL.fetch.mockReturnValue(throwError(() => error));
 
-            await expect(service.fetchEntityDetails('entity-1', 'Test/Entity')).rejects.toThrowError('Network error');
+            await expect(service.fetchEntityDetails('entity-1', 'Test/Entity')).rejects.toThrowError(/^Network error$/);
 
             expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to fetch entity details:', error);
         });
@@ -136,7 +136,7 @@ describe('EntityDetailDataSource', () => {
         });
 
         it('should call fetchEntityDetails internally', async () => {
-            vi.spyOn(service, 'fetchEntityDetails');
+            vi.spyOn(service, 'fetchEntityDetails').mockResolvedValue(null);
 
             await service.fetchEntityWithAssociations('entity-1', 'Test/Entity');
 
@@ -163,7 +163,7 @@ describe('EntityDetailDataSource', () => {
             const error = new Error('Connection failed');
             mockGetRuntimeEntityByIdGQL.fetch.mockReturnValue(throwError(() => error));
 
-            await expect(service.fetchEntityWithAssociations('entity-1', 'Test/Entity')).rejects.toThrowError('Connection failed');
+            await expect(service.fetchEntityWithAssociations('entity-1', 'Test/Entity')).rejects.toThrowError(/^Connection failed$/);
 
             expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to fetch entity details:', error);
         });

@@ -85,7 +85,7 @@ describe('AssociationValidationService', () => {
     beforeEach(() => {
         mockGetCkTypeAssociationRolesGQL = {
             fetch: vi.fn().mockName('fetch'),
-        };
+        } as unknown as MockedObject<{ fetch: Mock }>;
 
         TestBed.configureTestingModule({
             providers: [

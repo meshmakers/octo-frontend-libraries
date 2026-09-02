@@ -44,7 +44,7 @@ describe("AttributeMapperService", () => {
     beforeEach(() => {
         resolverSpy = {
             getRawAttributes$: vi.fn().mockName("AttributeMetadataResolverService.getRawAttributes$")
-        };
+        } as unknown as MockedObject<AttributeMetadataResolverService>;
 
         TestBed.configureTestingModule({
             providers: [
@@ -165,7 +165,7 @@ describe("AttributeMapperService", () => {
 
         it("applies type conversion to nested attributes inside a RECORD", async () => {
             // address has a nested phone (RECORD) and a binary attachment (BINARY).
-            resolverSpy.getRawAttributes$.mockImplementation((recordCkId: string, isRecord: boolean) => {
+            resolverSpy.getRawAttributes$.mockImplementation((recordCkId: string, isRecord?: boolean) => {
                 expect(isRecord).toBe(true);
                 if (recordCkId === "Basic/Address-1") {
                     return of([

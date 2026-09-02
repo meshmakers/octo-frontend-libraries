@@ -128,16 +128,16 @@ describe('MappingCoverageTreeDataSource (association auto-discovery)', () => {
     beforeEach(() => {
         coverageNodeGQL = {
             fetch: vi.fn().mockName("GetMappingCoverageNodeDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetMappingCoverageNodeDtoGQL>;
         associationsGQL = {
             fetch: vi.fn().mockName("GetRuntimeEntityAssociationsByIdDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetRuntimeEntityAssociationsByIdDtoGQL>;
         rolesGQL = {
             fetch: vi.fn().mockName("GetCkTypeAssociationRolesDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkTypeAssociationRolesDtoGQL>;
         treeNavConfig = {
             resolve: vi.fn().mockName("TreeNavigationConfigService.resolve")
-        };
+        } as unknown as MockedObject<TreeNavigationConfigService>;
         treeNavConfig.resolve.mockResolvedValue(undefined);
 
         TestBed.configureTestingModule({
@@ -230,7 +230,7 @@ describe('MappingCoverageTreeDataSource (association auto-discovery)', () => {
         expect(targets[0].item.mappingCount).toBe(2);
         expect(targets[0].text).toContain('[2]');
         // The group expansion must navigate the group's role, not the hierarchy.
-        const lastVariables = vi.mocked(coverageNodeGQL.fetch).mock.lastCall[0]?.variables;
+        const lastVariables = vi.mocked(coverageNodeGQL.fetch).mock.lastCall![0]?.variables;
         expect(lastVariables?.childRoleId).toBe('EnergyIQ/SpaceSensors');
         expect(lastVariables?.childCkTypeId).toBe('EnergyIQ/Sensor');
     });

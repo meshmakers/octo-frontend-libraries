@@ -154,7 +154,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
 
             directive.fetchData(options).subscribe(() => {
                 expect(mockGetAssociationsGQL.fetch).toHaveBeenCalled();
-                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall![0];
                 expect(callArgs.variables.rtId).toBe('entity-1');
                 expect(callArgs.variables.ckTypeId).toBe('OriginType');
                 expect(callArgs.variables.direction).toBe(GraphDirectionDto.AnyDto);
@@ -170,7 +170,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall![0];
                 expect(callArgs.fetchPolicy).toBe('cache-first');
                 done();
             });
@@ -184,7 +184,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall![0];
                 expect(callArgs.fetchPolicy).toBe('network-only');
                 done();
             });
@@ -271,7 +271,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall![0];
                 expect(callArgs.variables.direction).toBe(GraphDirectionDto.OutboundDto);
                 done();
             });
@@ -286,7 +286,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall![0];
                 expect(callArgs.variables.roleId).toBe('specific-role');
                 done();
             });
@@ -301,7 +301,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall![0];
                 expect(callArgs.variables.relatedRtCkId).toBe('RelatedType');
                 done();
             });
@@ -316,7 +316,7 @@ describe('EntityAssociationsDataSourceDirective', () => {
             };
 
             directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall[0];
+                const callArgs = vi.mocked(mockGetAssociationsGQL.fetch).mock.lastCall![0];
                 expect(callArgs.variables.relatedRtId).toBe('specific-entity');
                 done();
             });

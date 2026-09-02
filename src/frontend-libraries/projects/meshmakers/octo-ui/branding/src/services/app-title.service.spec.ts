@@ -45,7 +45,7 @@ describe('AppTitleService', () => {
         });
         const titleStub = {
             setTitle: vi.fn().mockName("Title.setTitle")
-        };
+        } as unknown as MockedObject<Title>;
         TestBed.configureTestingModule({
             providers: [
                 { provide: BrandingDataSource, useValue: { branding } },

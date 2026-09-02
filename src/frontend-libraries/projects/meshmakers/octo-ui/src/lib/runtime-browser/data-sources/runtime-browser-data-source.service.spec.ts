@@ -738,7 +738,7 @@ describe('RuntimeBrowserDataSource', () => {
             expect(children.map((c) => c.text)).toContain('Heat pump');
 
             // Discovery was issued OUTBOUND, and the flattened target fetch too.
-            const discoveryDirections = vi.mocked(mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch).mock.calls.map((c) => c.args[0] as {
+            const discoveryDirections = vi.mocked(mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch).mock.calls.map((c) => c[0] as {
                 variables: {
                     roleId?: string;
                     direction?: string;
@@ -747,7 +747,7 @@ describe('RuntimeBrowserDataSource', () => {
                 .filter((a) => !a.variables.roleId)
                 .map((a) => a.variables.direction);
             expect(discoveryDirections).toContain(GraphDirectionDto.OutboundDto);
-            expect((vi.mocked(mockGetTreeAssociationTargetsGQL.fetch).mock.lastCall[0] as {
+            expect((vi.mocked(mockGetTreeAssociationTargetsGQL.fetch).mock.lastCall![0] as {
                 variables: {
                     direction: string;
                 };
@@ -790,7 +790,7 @@ describe('RuntimeBrowserDataSource', () => {
 
             // The deep node was discovered INBOUND (default), not OUTBOUND — proving the
             // perspective's outbound navigation is not re-applied, so no cycle.
-            const discoveryDirections = vi.mocked(mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch).mock.calls.map((c) => c.args[0] as {
+            const discoveryDirections = vi.mocked(mockGetRuntimeEntityAssociationsByIdDtoGQL.fetch).mock.calls.map((c) => c[0] as {
                 variables: {
                     roleId?: string;
                     direction?: string;
@@ -1004,7 +1004,7 @@ describe('RuntimeBrowserDataSource', () => {
             const children = await service.fetchChildren(modelNode);
 
             expect(mockGetCkTypesGQL.fetch).toHaveBeenCalled();
-            const callArgs = vi.mocked(mockGetCkTypesGQL.fetch).mock.lastCall[0];
+            const callArgs = vi.mocked(mockGetCkTypesGQL.fetch).mock.lastCall![0];
             expect(callArgs.variables.ckModelIds).toContain('Basic');
             expect(children.length).toBe(2);
         });

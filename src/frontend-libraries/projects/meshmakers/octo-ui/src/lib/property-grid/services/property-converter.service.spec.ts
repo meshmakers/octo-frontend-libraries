@@ -28,7 +28,7 @@ describe('PropertyConverterService', () => {
         ckTypeAttributeServiceMock = {
             getCkTypeAttributes: vi.fn().mockName("CkTypeAttributeService.getCkTypeAttributes"),
             getCkRecordAttributes: vi.fn().mockName("CkTypeAttributeService.getCkRecordAttributes")
-        };
+        } as unknown as MockedObject<CkTypeAttributeService>;
 
         ckTypeAttributeServiceMock.getCkTypeAttributes.mockReturnValue(of(mockCkTypeAttributes));
         ckTypeAttributeServiceMock.getCkRecordAttributes.mockReturnValue(of(mockCkRecordAttributes));

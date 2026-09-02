@@ -26,12 +26,12 @@ describe('AttributeSelectorDialogComponent', () => {
     beforeEach(async () => {
         attributeServiceMock = {
             getAvailableAttributes: vi.fn().mockName("AttributeSelectorService.getAvailableAttributes")
-        };
+        } as unknown as MockedObject<AttributeSelectorService>;
         attributeServiceMock.getAvailableAttributes.mockReturnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
 
         windowRefMock = {
             close: vi.fn().mockName("WindowRef.close")
-        };
+        } as unknown as MockedObject<WindowRef>;
 
         await TestBed.configureTestingModule({
             imports: [
@@ -298,14 +298,14 @@ describe('AttributeSelectorDialogComponent', () => {
             component.onConfirm();
 
             expect(windowRefMock.close).toHaveBeenCalled();
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall[0] as AttributeSelectorDialogResult;
+            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSelectorDialogResult;
             expect(result.selectedAttributes.length).toBe(2);
         });
 
         it('should return empty array on confirm with no selection', () => {
             component.onConfirm();
 
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall[0] as AttributeSelectorDialogResult;
+            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSelectorDialogResult;
             expect(result.selectedAttributes).toEqual([]);
         });
     });
@@ -550,8 +550,8 @@ describe('AttributeSelectorDialogComponent', () => {
             // Second click (double-click)
             component.onAvailableCellClick(cellClickEvent);
 
-            expect(component.selectedAttributes).toContain(attribute);
-            expect(component.availableAttributes).not.toContain(attribute);
+            expect(component.selectedAttributes).toContainEqual(attribute);
+            expect(component.availableAttributes).not.toContainEqual(attribute);
         }));
 
         it('should move item on double-click in selected list', fakeAsync(() => {
@@ -566,8 +566,8 @@ describe('AttributeSelectorDialogComponent', () => {
             // Second click (double-click)
             component.onSelectedCellClick(cellClickEvent);
 
-            expect(component.availableAttributes).toContain(attribute);
-            expect(component.selectedAttributes).not.toContain(attribute);
+            expect(component.availableAttributes).toContainEqual(attribute);
+            expect(component.selectedAttributes).not.toContainEqual(attribute);
         }));
 
         it('should not move item on single click', fakeAsync(() => {
