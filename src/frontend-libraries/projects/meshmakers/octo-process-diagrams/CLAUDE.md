@@ -51,7 +51,7 @@ The library provides a visual SVG-based process diagram editor with these main s
 - **SvgImportService** — SVG file import (toolbar, drag & drop, clipboard paste)
 - **SymbolLibraryService** — Symbol library CRUD via GraphQL
 - **ProcessDiagramDataService** — Diagram persistence via GraphQL
-- **ExpressionEvaluatorService** — `expr-eval` based expression evaluation for data bindings
+- **ExpressionEvaluatorService** — `expr-eval-fork` based expression evaluation for data bindings
 
 ## Key Development Patterns
 
