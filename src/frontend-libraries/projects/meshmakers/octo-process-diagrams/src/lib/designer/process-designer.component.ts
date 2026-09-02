@@ -1904,133 +1904,133 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
 
       // Handle dragging - using DragService
       if (isDragging) {
-      const coords = this.getCanvasCoordinates(event);
-      if (!coords) return;
+        const coords = this.getCanvasCoordinates(event);
+        if (!coords) return;
 
-      // Use DragService to calculate new position (with grid snap)
-      const result = this.dragService.calculateDragPosition(coords, true);
-      if (!result) return;
+        // Use DragService to calculate new position (with grid snap)
+        const result = this.dragService.calculateDragPosition(coords, true);
+        if (!result) return;
 
-      const dragState = this.dragService.state();
-      const itemId = dragState.itemId!;
-      const itemType = dragState.itemType;
-      const delta = result.delta;
-      const newPosition = { ...result.newPosition };
+        const dragState = this.dragService.state();
+        const itemId = dragState.itemId!;
+        const itemType = dragState.itemType;
+        const delta = result.delta;
+        const newPosition = { ...result.newPosition };
 
-      // Calculate alignment guides and apply snap
-      const diagram = this._diagram();
-      const selectedIds = this.selectionService.selection().elements;
-      const draggedBounds = this.getBoundsAtPosition(itemId, itemType!, newPosition, diagram);
+        // Calculate alignment guides and apply snap
+        const diagram = this._diagram();
+        const selectedIds = this.selectionService.selection().elements;
+        const draggedBounds = this.getBoundsAtPosition(itemId, itemType!, newPosition, diagram);
 
-      if (draggedBounds) {
-        const otherBounds = this.boundsService.getNonSelectedBounds(
-          selectedIds,
-          diagram,
-          (symbol) => this.getSymbolDefinition(symbol) ?? null
-        );
-        const canvas = diagram.canvas;
-        const guideState = this.alignmentGuideService.calculateGuides(
-          draggedBounds,
-          otherBounds,
-          { width: canvas.width, height: canvas.height }
-        );
+        if (draggedBounds) {
+          const otherBounds = this.boundsService.getNonSelectedBounds(
+            selectedIds,
+            diagram,
+            (symbol) => this.getSymbolDefinition(symbol) ?? null
+          );
+          const canvas = diagram.canvas;
+          const guideState = this.alignmentGuideService.calculateGuides(
+            draggedBounds,
+            otherBounds,
+            { width: canvas.width, height: canvas.height }
+          );
 
-        // Apply alignment snap
-        // When grid snap is enabled, only apply alignment if it's on a grid position
-        const gridSize = this.stateService.gridSize();
-        const isOnGrid = (val: number) => Math.abs(val - Math.round(val / gridSize) * gridSize) < 0.1;
+          // Apply alignment snap
+          // When grid snap is enabled, only apply alignment if it's on a grid position
+          const gridSize = this.stateService.gridSize();
+          const isOnGrid = (val: number) => Math.abs(val - Math.round(val / gridSize) * gridSize) < 0.1;
 
-        if (guideState.snapX !== null) {
-          if (!this.stateService.snapToGrid() || isOnGrid(guideState.snapX)) {
-            newPosition.x = guideState.snapX;
+          if (guideState.snapX !== null) {
+            if (!this.stateService.snapToGrid() || isOnGrid(guideState.snapX)) {
+              newPosition.x = guideState.snapX;
+            }
+          }
+          if (guideState.snapY !== null) {
+            if (!this.stateService.snapToGrid() || isOnGrid(guideState.snapY)) {
+              newPosition.y = guideState.snapY;
+            }
           }
         }
-        if (guideState.snapY !== null) {
-          if (!this.stateService.snapToGrid() || isOnGrid(guideState.snapY)) {
-            newPosition.y = guideState.snapY;
-          }
-        }
-      }
 
-      // Handle different item types
-      // Check if we should move all selected items or just the dragged one
-      const selectedPrimitiveIds = new Set([...selectedIds].filter(id =>
-        (diagram.primitives ?? []).some(p => p.id === id)
-      ));
-      const selectedSymbolIds = new Set([...selectedIds].filter(id =>
-        (diagram.symbolInstances ?? []).some(s => s.id === id)
-      ));
-      const selectedElementIds = new Set([...selectedIds].filter(id =>
-        diagram.elements.some(e => e.id === id)
-      ));
+        // Handle different item types
+        // Check if we should move all selected items or just the dragged one
+        const selectedPrimitiveIds = new Set([...selectedIds].filter(id =>
+          (diagram.primitives ?? []).some(p => p.id === id)
+        ));
+        const selectedSymbolIds = new Set([...selectedIds].filter(id =>
+          (diagram.symbolInstances ?? []).some(s => s.id === id)
+        ));
+        const selectedElementIds = new Set([...selectedIds].filter(id =>
+          diagram.elements.some(e => e.id === id)
+        ));
 
-      if (itemType === 'group') {
-        this.moveGroup(itemId, newPosition, delta.x, delta.y);
-      } else if (itemType === 'primitive') {
+        if (itemType === 'group') {
+          this.moveGroup(itemId, newPosition, delta.x, delta.y);
+        } else if (itemType === 'primitive') {
         // Calculate the delta from the dragged item's movement
-        const draggedPrimitive = (diagram.primitives ?? []).find(p => p.id === itemId);
-        if (!draggedPrimitive) return;
+          const draggedPrimitive = (diagram.primitives ?? []).find(p => p.id === itemId);
+          if (!draggedPrimitive) return;
 
-        const currentBounds = this.primitiveService.getBounds(draggedPrimitive);
-        const moveDelta = {
-          x: newPosition.x - currentBounds.x,
-          y: newPosition.y - currentBounds.y
-        };
+          const currentBounds = this.primitiveService.getBounds(draggedPrimitive);
+          const moveDelta = {
+            x: newPosition.x - currentBounds.x,
+            y: newPosition.y - currentBounds.y
+          };
 
-        // Move all selected primitives by the same delta
-        this.diagramService.updateDiagram(d => ({
-          ...d,
-          primitives: (d.primitives ?? []).map(p => {
-            if (!selectedPrimitiveIds.has(p.id)) return p;
-            return this.primitiveService.move(p, moveDelta);
-          }),
-          // Also move selected symbols by the same delta
-          symbolInstances: (d.symbolInstances ?? []).map(s => {
-            if (!selectedSymbolIds.has(s.id)) return s;
-            return { ...s, position: { x: s.position.x + moveDelta.x, y: s.position.y + moveDelta.y } };
-          })
-        }));
-      } else if (itemType === 'symbol') {
+          // Move all selected primitives by the same delta
+          this.diagramService.updateDiagram(d => ({
+            ...d,
+            primitives: (d.primitives ?? []).map(p => {
+              if (!selectedPrimitiveIds.has(p.id)) return p;
+              return this.primitiveService.move(p, moveDelta);
+            }),
+            // Also move selected symbols by the same delta
+            symbolInstances: (d.symbolInstances ?? []).map(s => {
+              if (!selectedSymbolIds.has(s.id)) return s;
+              return { ...s, position: { x: s.position.x + moveDelta.x, y: s.position.y + moveDelta.y } };
+            })
+          }));
+        } else if (itemType === 'symbol') {
         // Calculate the delta from the dragged symbol's movement
-        const draggedSymbol = (diagram.symbolInstances ?? []).find(s => s.id === itemId);
-        if (!draggedSymbol) return;
+          const draggedSymbol = (diagram.symbolInstances ?? []).find(s => s.id === itemId);
+          if (!draggedSymbol) return;
 
-        const moveDelta = {
-          x: newPosition.x - draggedSymbol.position.x,
-          y: newPosition.y - draggedSymbol.position.y
-        };
+          const moveDelta = {
+            x: newPosition.x - draggedSymbol.position.x,
+            y: newPosition.y - draggedSymbol.position.y
+          };
 
-        // Move all selected symbols and primitives by the same delta
-        this.diagramService.updateDiagram(d => ({
-          ...d,
-          symbolInstances: (d.symbolInstances ?? []).map(s => {
-            if (!selectedSymbolIds.has(s.id)) return s;
-            return { ...s, position: { x: s.position.x + moveDelta.x, y: s.position.y + moveDelta.y } };
-          }),
-          primitives: (d.primitives ?? []).map(p => {
-            if (!selectedPrimitiveIds.has(p.id)) return p;
-            return this.primitiveService.move(p, moveDelta);
-          })
-        }));
-      } else {
+          // Move all selected symbols and primitives by the same delta
+          this.diagramService.updateDiagram(d => ({
+            ...d,
+            symbolInstances: (d.symbolInstances ?? []).map(s => {
+              if (!selectedSymbolIds.has(s.id)) return s;
+              return { ...s, position: { x: s.position.x + moveDelta.x, y: s.position.y + moveDelta.y } };
+            }),
+            primitives: (d.primitives ?? []).map(p => {
+              if (!selectedPrimitiveIds.has(p.id)) return p;
+              return this.primitiveService.move(p, moveDelta);
+            })
+          }));
+        } else {
         // element type - move all selected elements
-        const draggedElement = diagram.elements.find(e => e.id === itemId);
-        if (!draggedElement) return;
+          const draggedElement = diagram.elements.find(e => e.id === itemId);
+          if (!draggedElement) return;
 
-        const moveDelta = {
-          x: newPosition.x - draggedElement.position.x,
-          y: newPosition.y - draggedElement.position.y
-        };
+          const moveDelta = {
+            x: newPosition.x - draggedElement.position.x,
+            y: newPosition.y - draggedElement.position.y
+          };
 
-        this.diagramService.updateDiagram(d => ({
-          ...d,
-          elements: d.elements.map(e => {
-            if (!selectedElementIds.has(e.id)) return e;
-            return { ...e, position: { x: e.position.x + moveDelta.x, y: e.position.y + moveDelta.y } };
-          })
-        }));
-      }
-      this.stateService.markChanged();
+          this.diagramService.updateDiagram(d => ({
+            ...d,
+            elements: d.elements.map(e => {
+              if (!selectedElementIds.has(e.id)) return e;
+              return { ...e, position: { x: e.position.x + moveDelta.x, y: e.position.y + moveDelta.y } };
+            })
+          }));
+        }
+        this.stateService.markChanged();
       }
     });
   }

@@ -1,4 +1,4 @@
-import { FailedDetailsDto } from "./failedDetailsDto";
+import { FailedDetailsDto } from './failedDetailsDto';
 
 export interface ApiErrorDto {
   statusCode: number;

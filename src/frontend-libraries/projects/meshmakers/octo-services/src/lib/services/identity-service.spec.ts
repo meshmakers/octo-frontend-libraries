@@ -17,9 +17,9 @@ describe('IdentityService', () => {
   let service: IdentityService;
   let httpMock: HttpTestingController;
   let mockConfigService: {
-        config: AddInConfiguration | null;
-        loadConfigAsync: Mock;
-    };
+    config: AddInConfiguration | null;
+    loadConfigAsync: Mock;
+  };
 
   const baseUrl = 'https://identity.example.com/';
   const apiPrefix = `${baseUrl}octosystem/v1/`;

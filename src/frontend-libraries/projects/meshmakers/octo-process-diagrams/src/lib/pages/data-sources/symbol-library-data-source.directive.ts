@@ -1,4 +1,4 @@
-import { Directive, forwardRef, inject } from "@angular/core";
+import { Directive, forwardRef, inject } from '@angular/core';
 import { Observable, from, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { DataSourceBase, FetchDataOptions, FetchResult, FetchResultBase, ListViewComponent } from '@meshmakers/shared-ui';
@@ -9,7 +9,7 @@ import { SymbolLibraryService } from '../../services/symbol-library.service';
  * Can be used in any application that needs to display symbol libraries.
  */
 @Directive({
-  selector: "[mmSymbolLibraryDataSource]",
+  selector: '[mmSymbolLibraryDataSource]',
   exportAs: 'mmSymbolLibraryDataSource',
   standalone: true,
   providers: [{ provide: DataSourceBase, useExisting: forwardRef(() => SymbolLibraryDataSourceDirective) }]

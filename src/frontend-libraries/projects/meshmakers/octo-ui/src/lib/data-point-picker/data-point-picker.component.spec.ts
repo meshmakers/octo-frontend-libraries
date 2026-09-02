@@ -14,10 +14,10 @@ import { DataPointInfo } from './data-point-picker.utils';
  * drive them to verify the contains-filter and current-value logic.
  */
 interface PickerTestAccess {
-    dataPointInfos: WritableSignal<DataPointInfo[]>;
-    filter: WritableSignal<string>;
-    filteredOptions: Signal<string[]>;
-    onFilterChange(filter: string): void;
+  dataPointInfos: WritableSignal<DataPointInfo[]>;
+  filter: WritableSignal<string>;
+  filteredOptions: Signal<string[]>;
+  onFilterChange(filter: string): void;
 }
 
 function infos(...names: string[]): DataPointInfo[] {

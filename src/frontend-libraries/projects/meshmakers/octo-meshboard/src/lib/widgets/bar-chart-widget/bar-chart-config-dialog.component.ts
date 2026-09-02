@@ -741,23 +741,23 @@ export class BarChartConfigDialogComponent implements OnInit {
     // Build series array from selected fields (only for static mode)
     const series: BarChartSeries[] = this.seriesMode === 'static'
       ? this.selectedSeriesFields.map(field => {
-          // Check if we have initial series with custom names/colors
-          const existingSeries = this.initialSeries?.find(s => s.field === field);
-          return {
-            field,
-            name: existingSeries?.name,
-            color: existingSeries?.color
-          };
-        })
+        // Check if we have initial series with custom names/colors
+        const existingSeries = this.initialSeries?.find(s => s.field === field);
+        return {
+          field,
+          name: existingSeries?.name,
+          color: existingSeries?.color
+        };
+      })
       : [];
 
     // Convert filters to DTO format
     const filtersDto: FieldFilterDto[] | undefined = this.filters.length > 0
       ? this.filters.map(f => ({
-          attributePath: f.attributePath,
-          operator: f.operator,
-          comparisonValue: f.comparisonValue
-        }))
+        attributePath: f.attributePath,
+        operator: f.operator,
+        comparisonValue: f.comparisonValue
+      }))
       : undefined;
 
     const family = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;

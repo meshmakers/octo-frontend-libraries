@@ -8,17 +8,17 @@ import { AttributeSelectorDialogComponent, AttributeSelectorDialogResult } from 
 import { AttributeItem } from '@meshmakers/octo-services';
 
 interface MockComponentInstance {
-    data?: {
-        rtCkTypeId: string;
-        selectedAttributes?: string[];
-        dialogTitle?: string;
-        singleSelect?: boolean;
-        additionalAttributes?: AttributeItem[];
-        includeNavigationProperties?: boolean;
-        maxDepth?: number;
-        hideNavigationControls?: boolean;
-        attributePaths?: string[];
-    };
+  data?: {
+    rtCkTypeId: string;
+    selectedAttributes?: string[];
+    dialogTitle?: string;
+    singleSelect?: boolean;
+    additionalAttributes?: AttributeItem[];
+    includeNavigationProperties?: boolean;
+    maxDepth?: number;
+    hideNavigationControls?: boolean;
+    attributePaths?: string[];
+  };
 }
 
 describe('AttributeSelectorDialogService', () => {

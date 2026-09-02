@@ -11,11 +11,11 @@ import { MappingCoverageTreeDataSource } from './mapping-coverage-tree-data-sour
 import { CoverageNodePayload, DEFAULT_MAPPING_COVERAGE_TREE_CONFIG, } from './mapping-coverage-tree.models';
 
 interface CoverageChildStub {
-    rtId: string;
-    ckTypeId: string;
-    name: string;
-    mappingCount?: number;
-    grandChildren?: number;
+  rtId: string;
+  ckTypeId: string;
+  name: string;
+  mappingCount?: number;
+  grandChildren?: number;
 }
 
 /** Builds a getMappingCoverageNode response for one entity + its children. */
@@ -54,9 +54,9 @@ function coverageNodeResponse(rtId: string, ckTypeId: string, name: string, ownM
 }
 
 interface EdgeStub {
-    roleId: string;
-    originCkTypeId: string;
-    originRtId: string;
+  roleId: string;
+  originCkTypeId: string;
+  originRtId: string;
 }
 
 function associationsResponse(edges: EdgeStub[]) {
@@ -87,9 +87,9 @@ function associationsResponse(edges: EdgeStub[]) {
 }
 
 interface SchemaRoleStub {
-    rtRoleId: string;
-    navigationPropertyName: string;
-    rtOriginCkTypeId: string;
+  rtRoleId: string;
+  navigationPropertyName: string;
+  rtOriginCkTypeId: string;
 }
 
 function schemaRolesResponse(roles: SchemaRoleStub[]) {
@@ -103,8 +103,8 @@ function schemaRolesResponse(roles: SchemaRoleStub[]) {
 }
 
 function entityItem(payload: Partial<CoverageNodePayload> & {
-    rtId: string;
-    ckTypeId: string;
+  rtId: string;
+  ckTypeId: string;
 }) {
   const full: CoverageNodePayload = {
     name: payload.rtId,
@@ -156,10 +156,10 @@ describe('MappingCoverageTreeDataSource (association auto-discovery)', () => {
   /** Space with one spatial child; edges: 2 sensors + excluded roles. */
   function arrangeSpaceWithSensors(): void {
     coverageNodeGQL.fetch.mockImplementation(((options: {
-            variables?: {
-                childRoleId?: string;
-            };
-        }) => {
+      variables?: {
+        childRoleId?: string;
+      };
+    }) => {
       if (options.variables?.childRoleId === 'EnergyIQ/SpaceSensors') {
         return of(coverageNodeResponse('space1', 'EnergyIQ/Space', 'Space 1', 0, [
           { rtId: 'sensor1', ckTypeId: 'EnergyIQ/TemperatureSensor', name: 'Temp', mappingCount: 2 },
@@ -179,10 +179,10 @@ describe('MappingCoverageTreeDataSource (association auto-discovery)', () => {
       { roleId: 'System.Communication/MapsTo', originCkTypeId: 'System.Communication/DataPointMapping', originRtId: 'map1' },
     ])) as never);
     rolesGQL.fetch.mockImplementation(((options: {
-            variables?: {
-                ckTypeId?: string;
-            };
-        }) => {
+      variables?: {
+        ckTypeId?: string;
+      };
+    }) => {
       if (options.variables?.ckTypeId === 'EnergyIQ/Space') {
         return of(schemaRolesResponse([
           {
@@ -263,10 +263,10 @@ describe('MappingCoverageTreeDataSource (association auto-discovery)', () => {
   it('marks children without spatial grandchildren expandable when their type has navigable inbound roles', async () => {
     arrangeSpaceWithSensors();
     rolesGQL.fetch.mockImplementation(((options: {
-            variables?: {
-                ckTypeId?: string;
-            };
-        }) => {
+      variables?: {
+        ckTypeId?: string;
+      };
+    }) => {
       if (options.variables?.ckTypeId === 'EnergyIQ/TemperatureSensor') {
         // Only a mapping role → NOT navigable → not expandable.
         return of(schemaRolesResponse([

@@ -1,18 +1,18 @@
-import { inject, Injectable } from "@angular/core";
-import { defer, firstValueFrom, from, Observable } from "rxjs";
-import { Attribute } from "../models/attribute";
+import { inject, Injectable } from '@angular/core';
+import { defer, firstValueFrom, from, Observable } from 'rxjs';
+import { Attribute } from '../models/attribute';
 import {
   AttributeEnumOption,
   CkAttributeMetadata,
-} from "../models/attribute-metadata";
-import { AttributeMetadataResolverService } from "./attribute-metadata-resolver.service";
-import { AttributeRecognitionService } from "./attribute-recognition.service";
+} from '../models/attribute-metadata';
+import { AttributeMetadataResolverService } from './attribute-metadata-resolver.service';
+import { AttributeRecognitionService } from './attribute-recognition.service';
 import {
   base64ToByteArray,
   convertGeospatialPointToGeoJSON,
   fileToByteArray,
   getFileFromValue,
-} from "./attribute-mapper-utils";
+} from './attribute-mapper-utils';
 
 export interface RtEntityAttributeInput {
   attributeName: string;
@@ -20,28 +20,28 @@ export interface RtEntityAttributeInput {
 }
 
 /** Property set on synthetic BINARY_LINKED File objects (reference/mockup without content). Used by UI to show a preview indicator. */
-export const BINARY_LINKED_REFERENCE_FLAG = "__isBinaryLinkedReference";
+export const BINARY_LINKED_REFERENCE_FLAG = '__isBinaryLinkedReference';
 
 /** Property set on BINARY File objects restored from base64 (content is real; filename is a placeholder). Used by UI to show a reference hint. */
-export const BINARY_REFERENCE_FLAG = "__isBinaryFromBase64";
+export const BINARY_REFERENCE_FLAG = '__isBinaryFromBase64';
 
 /**
  * Maps between form model and GraphQL API: builds form attribute definitions from CK metadata and initial/default
  * values, and maps form values to create/update mutation payloads (including RECORD, BINARY, GEOSPATIAL_POINT, etc.).
  */
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class AttributeMapperService {
   private recognition = inject(AttributeRecognitionService);
   private metadataResolver = inject(AttributeMetadataResolverService);
   private isRecordValue(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
   private isCkAttributeMetadata(
     attr: CkAttributeMetadata | Attribute,
   ): attr is CkAttributeMetadata {
-    return "attribute" in attr || "ckAttributeId" in attr;
+    return 'attribute' in attr || 'ckAttributeId' in attr;
   }
 
   // ─── Form ← API: attribute definition + initial/default value ─────────────────────
@@ -54,8 +54,8 @@ export class AttributeMapperService {
     attr: CkAttributeMetadata,
     rawInitialValue?: unknown,
   ): Attribute {
-    const attributeName = attr?.attributeName ?? "";
-    const type = attr?.attributeValueType ?? "";
+    const attributeName = attr?.attributeName ?? '';
+    const type = attr?.attributeValueType ?? '';
 
     let parsedValue: unknown;
     const hasInitial = rawInitialValue !== undefined && rawInitialValue !== null;
@@ -162,7 +162,7 @@ export class AttributeMapperService {
     const type = metadata?.attributeValueType;
 
     // type is set only when metadata exists, so the non-null assertion is safe inside these branches.
-    if (type === "BINARY_LINKED") {
+    if (type === 'BINARY_LINKED') {
       return this.mapBinaryLinkedAttribute(key, value, metadata!);
     }
 
@@ -170,15 +170,15 @@ export class AttributeMapperService {
       return metadata?.isOptional ? { attributeName: key, value: null } : null;
     }
 
-    if (type === "BINARY" && this.isOptionalEmptyBinary(metadata!, value)) {
+    if (type === 'BINARY' && this.isOptionalEmptyBinary(metadata!, value)) {
       return { attributeName: key, value: null };
     }
 
     // Empty RECORD (empty object) and RECORD_ARRAY (empty array): send null when optional, skip otherwise.
-    if (type === "RECORD" && this.isValueEmpty(value)) {
+    if (type === 'RECORD' && this.isValueEmpty(value)) {
       return metadata?.isOptional ? { attributeName: key, value: null } : null;
     }
-    if (type === "RECORD_ARRAY" && Array.isArray(value) && value.length === 0) {
+    if (type === 'RECORD_ARRAY' && Array.isArray(value) && value.length === 0) {
       return metadata?.isOptional ? { attributeName: key, value: null } : null;
     }
 
@@ -340,34 +340,34 @@ export class AttributeMapperService {
   ): Promise<unknown> {
     const attributeType = metadata?.attributeValueType;
     switch (attributeType) {
-      case "RECORD":
+      case 'RECORD':
         return await this.mapRecordValueToGraphQL(value, metadata?.id?.ckId);
 
-      case "RECORD_ARRAY":
+      case 'RECORD_ARRAY':
         return await this.mapRecordArrayValueToGraphQL(
           value,
           metadata?.id?.ckId,
         );
 
-      case "GEOSPATIAL_POINT":
+      case 'GEOSPATIAL_POINT':
         return convertGeospatialPointToGeoJSON(value);
 
-      case "TIME_SPAN":
+      case 'TIME_SPAN':
         return this.convertTimeSpanToSeconds(value);
 
-      case "BINARY":
+      case 'BINARY':
         // MeshMakers expects byte[] (array of numbers). Accept File, ArrayBuffer, base64 string, or byte[].
         return await this.convertBinaryToByteArray(value);
 
-      case "BINARY_LINKED":
+      case 'BINARY_LINKED':
         // MeshMakers: prefer File for multipart upload; also accept base64 string, ArrayBuffer or byte[].
         return this.convertBinaryLinkedValue(value);
-      case "INTEGER_ARRAY":
-        return this.normalizePrimitiveArray(value, "number");
-      case "STRING_ARRAY":
-        return this.normalizePrimitiveArray(value, "string");
-      case "DATE_TIME":
-      case "DATE_TIME_OFFSET":
+      case 'INTEGER_ARRAY':
+        return this.normalizePrimitiveArray(value, 'number');
+      case 'STRING_ARRAY':
+        return this.normalizePrimitiveArray(value, 'string');
+      case 'DATE_TIME':
+      case 'DATE_TIME_OFFSET':
         if (value instanceof Date) {
           if (isNaN(value.getTime())) {
             return null;
@@ -386,20 +386,20 @@ export class AttributeMapperService {
   /** Normalizes form value for INTEGER_ARRAY/STRING_ARRAY: primitives[] or { key }[] → primitive[] for GraphQL. */
   private normalizePrimitiveArray(
     value: unknown,
-    mode: "number" | "string",
+    mode: 'number' | 'string',
   ): number[] | string[] | null {
     if (!Array.isArray(value) || value.length === 0) return null;
-    if (mode === "number") {
+    if (mode === 'number') {
       return value.map((v) => {
-        if (this.isRecordValue(v) && "key" in v) {
-          return Number(v["key"]);
+        if (this.isRecordValue(v) && 'key' in v) {
+          return Number(v['key']);
         }
         return Number(v);
       });
     }
     return value.map((v) => {
-      if (this.isRecordValue(v) && "key" in v) {
-        return String(v["key"]);
+      if (this.isRecordValue(v) && 'key' in v) {
+        return String(v['key']);
       }
       return String(v);
     });
@@ -417,7 +417,7 @@ export class AttributeMapperService {
     latitude: number | null;
   } {
     if (value == null) return { longitude: null, latitude: null };
-    if (typeof value === "string") {
+    if (typeof value === 'string') {
       try {
         value = JSON.parse(value) as unknown;
       } catch {
@@ -427,21 +427,21 @@ export class AttributeMapperService {
     if (!this.isRecordValue(value)) {
       return { longitude: null, latitude: null };
     }
-    if ("longitude" in value && "latitude" in value) {
+    if ('longitude' in value && 'latitude' in value) {
       return {
         longitude:
-          value["longitude"] != null ? Number(value["longitude"]) : null,
+          value['longitude'] != null ? Number(value['longitude']) : null,
         latitude:
-          value["latitude"] != null ? Number(value["latitude"]) : null,
+          value['latitude'] != null ? Number(value['latitude']) : null,
       };
     }
     if (
-      Array.isArray(value["coordinates"]) &&
-      value["coordinates"].length >= 2
+      Array.isArray(value['coordinates']) &&
+      value['coordinates'].length >= 2
     ) {
       return {
-        longitude: Number(value["coordinates"][0]),
-        latitude: Number(value["coordinates"][1]),
+        longitude: Number(value['coordinates'][0]),
+        latitude: Number(value['coordinates'][1]),
       };
     }
     return { longitude: null, latitude: null };
@@ -457,7 +457,7 @@ export class AttributeMapperService {
       const seconds = value.getSeconds();
       return hours * 3600 + minutes * 60 + seconds;
     }
-    if (typeof value === "number") {
+    if (typeof value === 'number') {
       return value;
     }
     return 0;
@@ -473,8 +473,8 @@ export class AttributeMapperService {
    */
   private base64ToFile(
     base64: string,
-    filename = "file.bin",
-    contentType = "application/octet-stream",
+    filename = 'file.bin',
+    contentType = 'application/octet-stream',
   ): File | null {
     try {
       const bytes = base64ToByteArray(base64);
@@ -495,7 +495,7 @@ export class AttributeMapperService {
   ): Promise<number[] | unknown> {
     if (
       Array.isArray(value) &&
-      (value.length === 0 || typeof value[0] === "number")
+      (value.length === 0 || typeof value[0] === 'number')
     ) {
       return value as number[];
     }
@@ -505,16 +505,16 @@ export class AttributeMapperService {
       try {
         return await fileToByteArray(fileValue);
       } catch (e) {
-        console.error("Error converting File to byte array:", e);
+        console.error('Error converting File to byte array:', e);
         return value;
       }
     }
 
-    if (typeof value === "string") {
+    if (typeof value === 'string') {
       try {
         return base64ToByteArray(value);
       } catch (e) {
-        console.error("Error converting Base64 to byte array:", e);
+        console.error('Error converting Base64 to byte array:', e);
         return value;
       }
     }
@@ -530,16 +530,16 @@ export class AttributeMapperService {
   private convertBinaryLinkedValue(value: unknown): unknown {
     if (value instanceof File) return value;
     if (Array.isArray(value) && value[0] instanceof File) return value[0];
-    if (typeof value === "string") {
+    if (typeof value === 'string') {
       try {
         return base64ToByteArray(value);
       } catch (e) {
         // Re-throw instead of returning null: a malformed base64 must not silently degrade
         // to null, which the backend may interpret as "clear/detach" the linked binary.
         // Surfacing the error lets the caller present a validation message to the user.
-        console.error("Error converting BINARY_LINKED base64 to byte array:", e);
+        console.error('Error converting BINARY_LINKED base64 to byte array:', e);
         throw new Error(
-          "Invalid base64 value for BINARY_LINKED attribute",
+          'Invalid base64 value for BINARY_LINKED attribute',
           { cause: e },
         );
       }
@@ -547,7 +547,7 @@ export class AttributeMapperService {
     if (value instanceof ArrayBuffer) {
       return this.arrayBufferToByteArray(value);
     }
-    if (Array.isArray(value) && typeof value[0] === "number") {
+    if (Array.isArray(value) && typeof value[0] === 'number') {
       return value;
     }
     return null;
@@ -555,33 +555,33 @@ export class AttributeMapperService {
 
   // ─── Type recognition (single responsibility: attribute type checks) ─────────────
 
-  private isEnum(attr: Pick<Attribute, "attributeValueType"> | CkAttributeMetadata): boolean {
-    return attr.attributeValueType === "ENUM";
+  private isEnum(attr: Pick<Attribute, 'attributeValueType'> | CkAttributeMetadata): boolean {
+    return attr.attributeValueType === 'ENUM';
   }
 
   /**
    * Checks whether the attribute is a record type.
    */
-  private isRecord(attr: Pick<Attribute, "attributeValueType"> | CkAttributeMetadata): boolean {
-    return attr.attributeValueType === "RECORD";
+  private isRecord(attr: Pick<Attribute, 'attributeValueType'> | CkAttributeMetadata): boolean {
+    return attr.attributeValueType === 'RECORD';
   }
 
   /**
    * Checks whether the attribute is a record array type.
    */
   private isRecordArray(
-    attr: Pick<Attribute, "attributeValueType"> | CkAttributeMetadata,
+    attr: Pick<Attribute, 'attributeValueType'> | CkAttributeMetadata,
   ): boolean {
-    return attr.attributeValueType === "RECORD_ARRAY";
+    return attr.attributeValueType === 'RECORD_ARRAY';
   }
 
   /**
    * Checks whether the attribute is a geospatial point type.
    */
   private isGeospatialPoint(
-    attr: Pick<Attribute, "attributeValueType"> | CkAttributeMetadata,
+    attr: Pick<Attribute, 'attributeValueType'> | CkAttributeMetadata,
   ): boolean {
-    return attr.attributeValueType === "GEOSPATIAL_POINT";
+    return attr.attributeValueType === 'GEOSPATIAL_POINT';
   }
 
   /** True when optional scalar/array is "cleared" (send null to remove value). */
@@ -589,7 +589,7 @@ export class AttributeMapperService {
     value: unknown,
     metadata: Attribute,
   ): boolean {
-    if (value === "" || value == null) return true;
+    if (value === '' || value == null) return true;
     const t = metadata?.attributeValueType;
     if (this.recognition.isArray(t) && Array.isArray(value) && value.length === 0)
       return true;
@@ -624,7 +624,7 @@ export class AttributeMapperService {
       return (
         val === null ||
         val === undefined ||
-        val === "" ||
+        val === '' ||
         (this.isRecordValue(val) && Object.keys(val).length === 0) ||
         (Array.isArray(val) && val.length === 0)
       );
@@ -651,7 +651,7 @@ export class AttributeMapperService {
       // If value is already an array, return it. If object with attributes field, extract it.
       if (Array.isArray(value)) return value;
       if (this.isRecordValue(value)) {
-        const attrs = value["attributes"];
+        const attrs = value['attributes'];
         return Array.isArray(attrs) ? attrs : [];
       }
       return [];
@@ -664,7 +664,7 @@ export class AttributeMapperService {
         return value.map((item) => {
           if (Array.isArray(item)) return item; // Already parsed
           if (this.isRecordValue(item)) {
-            const attrs = item["attributes"];
+            const attrs = item['attributes'];
             return Array.isArray(attrs) ? attrs : [];
           }
           return [];
@@ -691,8 +691,8 @@ export class AttributeMapperService {
     }
     if (this.recognition.isDate(type)) {
       if (
-        typeof value === "string" ||
-        typeof value === "number" ||
+        typeof value === 'string' ||
+        typeof value === 'number' ||
         value instanceof Date
       ) {
         const date = new Date(value);
@@ -705,10 +705,10 @@ export class AttributeMapperService {
       return this.normalizeGeospatialPointForForm(value);
     }
 
-    if (type === "BINARY") {
+    if (type === 'BINARY') {
       return this.parseBinaryForForm(value);
     }
-    if (type === "BINARY_LINKED") {
+    if (type === 'BINARY_LINKED') {
       return this.parseBinaryLinkedForForm(value);
     }
 
@@ -722,7 +722,7 @@ export class AttributeMapperService {
   private parseTimeSpanForForm(value: unknown): Date | null {
     if (value == null) return null;
     if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
-    if (typeof value === "number") {
+    if (typeof value === 'number') {
       const d = new Date(0);
       d.setUTCHours(0, 0, 0, 0);
       d.setUTCSeconds(value % 86400);
@@ -743,15 +743,15 @@ export class AttributeMapperService {
    * When a dot is present, the segment before the dot is always days (e.g. "44682.00:00:00" = 44682 days).
    */
   private parseTimeSpanStringToSeconds(s: string): number | null {
-    const parts = s.split(".");
-    let timePart = parts[0] ?? "";
+    const parts = s.split('.');
+    let timePart = parts[0] ?? '';
     let days = 0;
     if (parts.length >= 2) {
       const firstNum = parseInt(parts[0], 10);
       if (!Number.isNaN(firstNum)) {
         days = firstNum;
       }
-      timePart = parts[1] ?? "00:00:00";
+      timePart = parts[1] ?? '00:00:00';
     }
     const timeMatch = timePart.match(
       /^(\d+):(\d+):(\d+)(?:\.(\d+))?$/,
@@ -776,11 +776,11 @@ export class AttributeMapperService {
     if (value == null) return [];
     if (value instanceof File) return [value];
     if (Array.isArray(value) && value[0] instanceof File) return value;
-    if (typeof value === "string") {
+    if (typeof value === 'string') {
       const file = this.base64ToFile(
         value,
-        "file.bin",
-        "application/octet-stream",
+        'file.bin',
+        'application/octet-stream',
       );
       if (file) {
         (file as unknown as Record<string, unknown>)[BINARY_REFERENCE_FLAG] =
@@ -802,29 +802,29 @@ export class AttributeMapperService {
     if (!this.isRecordValue(value)) return [];
     if (value instanceof File) return [value];
     const filename =
-      (typeof value["filename"] === "string"
-        ? value["filename"]
-        : typeof value["fileName"] === "string"
-          ? value["fileName"]
-          : null) ?? "document.bin";
+      (typeof value['filename'] === 'string'
+        ? value['filename']
+        : typeof value['fileName'] === 'string'
+          ? value['fileName']
+          : null) ?? 'document.bin';
     const contentType =
-      (typeof value["contentType"] === "string"
-        ? value["contentType"]
-        : null) ?? "application/octet-stream";
+      (typeof value['contentType'] === 'string'
+        ? value['contentType']
+        : null) ?? 'application/octet-stream';
     const base64 =
-      typeof value["contentBase64"] === "string"
-        ? value["contentBase64"]
-        : typeof value["data"] === "string"
-          ? value["data"]
-          : typeof value["base64"] === "string"
-            ? value["base64"]
+      typeof value['contentBase64'] === 'string'
+        ? value['contentBase64']
+        : typeof value['data'] === 'string'
+          ? value['data']
+          : typeof value['base64'] === 'string'
+            ? value['base64']
             : null;
     if (base64) {
       const file = this.base64ToFile(base64, filename, contentType);
       if (file) return [file];
     }
     const size =
-      typeof value["size"] === "number" ? Math.max(0, value["size"]) : 0;
+      typeof value['size'] === 'number' ? Math.max(0, value['size']) : 0;
     const blob =
       size > 0
         ? new Blob([new ArrayBuffer(size)], { type: contentType })
@@ -842,7 +842,7 @@ export class AttributeMapperService {
     if (this.recognition.isArray(type)) return [];
     if (this.recognition.isGeoSpatialPoint(type))
       return { longitude: null, latitude: null };
-    if (type === "BINARY" || type === "BINARY_LINKED") return []; // FileSelect expects File[]
+    if (type === 'BINARY' || type === 'BINARY_LINKED') return []; // FileSelect expects File[]
     return null;
   }
 
@@ -860,23 +860,23 @@ export class AttributeMapperService {
     if (this.recognition.isEnum(type)) {
       const options = this.getEnumOptions(attrMetadata);
       const key =
-        typeof rawDefault === "number" ? rawDefault : Number(rawDefault);
+        typeof rawDefault === 'number' ? rawDefault : Number(rawDefault);
       const found = options.find((opt) => opt.key === key);
       return found ? found.key : key;
     }
     if (this.recognition.isNumber(type)) {
-      return typeof rawDefault === "number" ? rawDefault : Number(rawDefault);
+      return typeof rawDefault === 'number' ? rawDefault : Number(rawDefault);
     }
     if (this.recognition.isString(type)) {
       return String(rawDefault);
     }
     if (this.recognition.isBoolean(type)) {
-      return rawDefault === true || rawDefault === "true" || rawDefault === 1;
+      return rawDefault === true || rawDefault === 'true' || rawDefault === 1;
     }
     if (this.recognition.isDate(type)) {
       if (
-        typeof rawDefault === "string" ||
-        typeof rawDefault === "number" ||
+        typeof rawDefault === 'string' ||
+        typeof rawDefault === 'number' ||
         rawDefault instanceof Date
       ) {
         const date = new Date(rawDefault);
@@ -885,15 +885,15 @@ export class AttributeMapperService {
       return null;
     }
     if (this.recognition.isTime(type)) {
-      if (typeof rawDefault === "number") {
+      if (typeof rawDefault === 'number') {
         const d = new Date(0);
         d.setUTCHours(0, 0, 0, 0);
         d.setSeconds(rawDefault);
         return d;
       }
       if (
-        typeof rawDefault === "string" ||
-        typeof rawDefault === "number" ||
+        typeof rawDefault === 'string' ||
+        typeof rawDefault === 'number' ||
         rawDefault instanceof Date
       ) {
         const date = new Date(rawDefault);
@@ -921,42 +921,42 @@ export class AttributeMapperService {
   private parseArrayType(type: string, value: unknown): string[] | number[] {
     if (this.recognition.isStringArray(type)) {
       const source =
-        this.isRecordValue(value) && "_v" in value ? value["_v"] : value;
+        this.isRecordValue(value) && '_v' in value ? value['_v'] : value;
       if (!Array.isArray(source)) return [];
       return source.map((v) =>
-        this.isRecordValue(v) && "key" in v ? String(v["key"]) : String(v),
+        this.isRecordValue(v) && 'key' in v ? String(v['key']) : String(v),
       );
     }
     if (this.recognition.isIntArray(type)) {
       const source =
-        this.isRecordValue(value) && "_v" in value ? value["_v"] : value; // Handle _v wrapper format from upstream
+        this.isRecordValue(value) && '_v' in value ? value['_v'] : value; // Handle _v wrapper format from upstream
       if (!Array.isArray(source)) return [];
       return source.map((v) =>
-        this.isRecordValue(v) && "key" in v ? Number(v["key"]) : Number(v),
+        this.isRecordValue(v) && 'key' in v ? Number(v['key']) : Number(v),
       );
     }
     return [];
   }
 
-  private getId(attr: CkAttributeMetadata | Attribute): Attribute["id"] {
+  private getId(attr: CkAttributeMetadata | Attribute): Attribute['id'] {
     if (!this.isCkAttributeMetadata(attr)) {
       return attr.id;
     }
     if (this.isEnum(attr)) {
       return {
-        ckId: attr.attribute?.ckEnum?.ckEnumId?.fullName ?? "",
+        ckId: attr.attribute?.ckEnum?.ckEnumId?.fullName ?? '',
 
         rtId: null,
       };
     } else if (this.isRecord(attr) || this.isRecordArray(attr)) {
       return {
-        ckId: attr.attribute?.ckRecord?.ckRecordId?.fullName ?? "",
+        ckId: attr.attribute?.ckRecord?.ckRecordId?.fullName ?? '',
 
         rtId: null,
       };
     } else {
       return {
-        ckId: attr.ckAttributeId?.fullName ?? "",
+        ckId: attr.ckAttributeId?.fullName ?? '',
 
         rtId: null,
       };

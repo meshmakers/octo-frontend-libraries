@@ -1251,9 +1251,9 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     rtId: string,
   ): Promise<
     | {
-        ckTypeId: string;
-        rtId: string;
-      }
+      ckTypeId: string;
+      rtId: string;
+    }
     | undefined
   > {
     const isParentAssoc = true;

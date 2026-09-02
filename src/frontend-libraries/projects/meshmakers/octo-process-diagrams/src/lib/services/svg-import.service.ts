@@ -789,8 +789,8 @@ export class SvgImportService {
     if (fontSize) textStyle.fontSize = this.parseLength(fontSize);
     if (fontWeight) {
       textStyle.fontWeight = fontWeight === 'bold' ? 'bold' :
-                             fontWeight === 'normal' ? 'normal' :
-                             parseInt(fontWeight) || 'normal';
+        fontWeight === 'normal' ? 'normal' :
+          parseInt(fontWeight) || 'normal';
     }
     if (fontStyle && ['normal', 'italic', 'oblique'].includes(fontStyle)) {
       textStyle.fontStyle = fontStyle as 'normal' | 'italic' | 'oblique';

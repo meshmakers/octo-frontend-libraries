@@ -660,8 +660,8 @@ export class AttributeSelectorDialogComponent implements OnInit {
         // Apply client-side attribute path restriction if set (additionalAttributes bypass this filter intentionally)
         const filteredItems = this.attributePathsSet
           ? result.items.filter((item) =>
-              this.attributePathsSet!.has(item.attributePath),
-            )
+            this.attributePathsSet!.has(item.attributePath),
+          )
           : result.items;
 
         // Include additional virtual attributes (e.g., Timestamp for stream data), filtered by search/type
@@ -738,8 +738,8 @@ export class AttributeSelectorDialogComponent implements OnInit {
         );
         const filteredItems = this.attributePathsSet
           ? result.items.filter((item) =>
-              this.attributePathsSet!.has(item.attributePath),
-            )
+            this.attributePathsSet!.has(item.attributePath),
+          )
           : result.items;
         this.availableAttributes = [
           ...this.additionalAttributes.filter(

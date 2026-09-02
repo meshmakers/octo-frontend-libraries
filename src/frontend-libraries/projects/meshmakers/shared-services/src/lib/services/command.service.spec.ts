@@ -8,9 +8,9 @@ import { CommandSettingsService } from './command-settings.service';
 import { CommandOptions } from '../options/commandOptions';
 
 interface MutableMockRouter {
-    navigate: Mock;
-    events: Subject<unknown>;
-    url: string;
+  navigate: Mock;
+  events: Subject<unknown>;
+  url: string;
 }
 
 describe('CommandService', () => {
@@ -84,8 +84,8 @@ describe('CommandService', () => {
   describe('createDrawerItems hierarchy markers', () => {
     it('should emit cssClass mm-drawer-level-N matching the nesting depth', async () => {
       (mockCommandSettingsService as {
-                commandItems: unknown[];
-            }).commandItems = [
+        commandItems: unknown[];
+      }).commandItems = [
         {
           id: 'a',
           type: 'link',
@@ -106,16 +106,16 @@ describe('CommandService', () => {
       await service.initialize();
 
       const items = await new Promise<{
-                id: unknown;
-                cssClass: unknown;
-            }[]>(resolve => {
-              service.drawerItems.subscribe(emitted => {
-                resolve(emitted as {
-                        id: unknown;
-                        cssClass: unknown;
-                    }[]);
-              });
-            });
+        id: unknown;
+        cssClass: unknown;
+      }[]>(resolve => {
+        service.drawerItems.subscribe(emitted => {
+          resolve(emitted as {
+            id: unknown;
+            cssClass: unknown;
+          }[]);
+        });
+      });
 
       expect(items.length).toBe(3);
       expect(items.find(i => i.id === 'a')?.cssClass).toBe('mm-drawer-level-0');
@@ -129,9 +129,9 @@ describe('CommandService', () => {
       // Mirrors a typical app setup: a home entry pointing at the route root
       // plus flat list entries, navigating relative to a ':lang' child route.
       (mockCommandSettingsService as {
-                commandItems: unknown[];
-                navigateRelativeToRoute: unknown;
-            }).commandItems = [
+        commandItems: unknown[];
+        navigateRelativeToRoute: unknown;
+      }).commandItems = [
         { id: 'home', type: 'link', text: 'Home', link: './' },
         { id: 'documents', type: 'link', text: 'Documents', link: 'documents' },
         { id: 'separator-1', type: 'separator', text: '' },
@@ -139,8 +139,8 @@ describe('CommandService', () => {
         { id: 'action', type: 'link', text: 'Action', onClick: async () => undefined }
       ];
       (mockCommandSettingsService as {
-                navigateRelativeToRoute: unknown;
-            }).navigateRelativeToRoute = {
+        navigateRelativeToRoute: unknown;
+      }).navigateRelativeToRoute = {
         snapshot: {
           pathFromRoot: [
             { url: [] },

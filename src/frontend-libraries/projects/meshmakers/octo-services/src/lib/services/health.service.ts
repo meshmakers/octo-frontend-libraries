@@ -29,7 +29,7 @@ export class HealthService {
           return error.error;
         }
       }
-      console.error("error", error);
+      console.error('error', error);
     }
     return null;
 

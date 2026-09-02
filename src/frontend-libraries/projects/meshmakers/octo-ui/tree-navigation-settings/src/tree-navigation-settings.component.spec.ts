@@ -11,12 +11,12 @@ import { TreeNavigationSettingsComponent } from './tree-navigation-settings.comp
 
 /** Protected-member view used by the spec. */
 interface Testable {
-    rules: FormArray<FormGroup>;
-    typePresent: () => boolean;
-    onSave(): Promise<void>;
-    addRule(): void;
-    export(): Promise<void>;
-    onFileSelected(event: Event): Promise<void>;
+  rules: FormArray<FormGroup>;
+  typePresent: () => boolean;
+  onSave(): Promise<void>;
+  addRule(): void;
+  export(): Promise<void>;
+  onFileSelected(event: Event): Promise<void>;
 }
 
 describe('TreeNavigationSettingsComponent', () => {

@@ -161,9 +161,9 @@ export function toSvgPreserveAspectRatio(
   }
 
   const alignX = alignment?.horizontal === 'left' ? 'xMin' :
-                 alignment?.horizontal === 'right' ? 'xMax' : 'xMid';
+    alignment?.horizontal === 'right' ? 'xMax' : 'xMid';
   const alignY = alignment?.vertical === 'top' ? 'YMin' :
-                 alignment?.vertical === 'bottom' ? 'YMax' : 'YMid';
+    alignment?.vertical === 'bottom' ? 'YMax' : 'YMid';
   const meetOrSlice = fit === 'cover' ? 'slice' : 'meet';
 
   return `${alignX}${alignY} ${meetOrSlice}`;

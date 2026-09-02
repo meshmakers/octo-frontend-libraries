@@ -15,9 +15,9 @@ import { DataSourceBase, FetchDataOptions } from '../data-sources/data-source-ba
 import { FetchResult, FetchResultBase } from '../models/fetchResult';
 
 interface RecordedCall {
-    state: State;
-    textSearch: string | null;
-    forceRefresh?: boolean;
+  state: State;
+  textSearch: string | null;
+  forceRefresh?: boolean;
 }
 
 /**
@@ -42,8 +42,8 @@ class RecordingDataSourceDirective extends DataSourceBase {
 
   public override isPageOutOfRangeError(error: unknown): boolean {
     return (error as {
-            pageOutOfRange?: boolean;
-        })?.pageOutOfRange === true;
+      pageOutOfRange?: boolean;
+    })?.pageOutOfRange === true;
   }
 
   public fetchData(options: FetchDataOptions): Observable<FetchResult | null> {
@@ -78,11 +78,11 @@ class RecordingDataSourceDirective extends DataSourceBase {
   `
 })
 class HostComponent {
-    @ViewChild(RecordingDataSourceDirective)
-      dataSource!: RecordingDataSourceDirective;
-    columns = [
-      { field: 'name', displayName: 'Name', dataType: 'text' as const }
-    ];
+  @ViewChild(RecordingDataSourceDirective)
+  dataSource!: RecordingDataSourceDirective;
+  columns = [
+    { field: 'name', displayName: 'Name', dataType: 'text' as const }
+  ];
 }
 
 describe('MmListViewDataBindingDirective (server binding)', () => {
@@ -93,10 +93,10 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
 
   const lastCall = () => host.dataSource.calls[host.dataSource.calls.length - 1];
   const gridRowNames = () => (grid.data as {
-        data: {
-            name: string;
-        }[];
-    }).data.map(r => r.name);
+    data: {
+      name: string;
+    }[];
+  }).data.map(r => r.name);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

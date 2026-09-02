@@ -16,7 +16,7 @@ import { filter, debounceTime } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.Eager,
   template: ''
 })
- 
+
 export class MmNotificationBarComponent implements OnInit, OnDestroy {
   private readonly snackBar = inject(MatSnackBar);
   private readonly messageService = inject(MessageService);

@@ -7,35 +7,35 @@ import {
   output,
   signal,
   ChangeDetectionStrategy
-} from "@angular/core";
-import { toObservable, toSignal } from "@angular/core/rxjs-interop";
-import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
+} from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import {
   AssociationModOptionsDto,
   RtEntityInputDto,
-} from "@meshmakers/octo-services";
-import { KENDO_BUTTONS } from "@progress/kendo-angular-buttons";
-import { KENDO_DATEINPUTS } from "@progress/kendo-angular-dateinputs";
-import { KENDO_INPUTS } from "@progress/kendo-angular-inputs";
-import { KENDO_LABEL } from "@progress/kendo-angular-label";
-import { CardModule } from "@progress/kendo-angular-layout";
-import { CkTypeSelectorItem } from "@meshmakers/octo-services";
-import { firstValueFrom, of, startWith, switchMap } from "rxjs";
-import { CreateEntitiesDtoGQL } from "../../../graphQL/createEntities";
-import { CkTypeSelectorInputComponent } from "../../../ck-type-selector-input/ck-type-selector-input.component";
-import { Attribute } from "../../models/attribute";
+} from '@meshmakers/octo-services';
+import { KENDO_BUTTONS } from '@progress/kendo-angular-buttons';
+import { KENDO_DATEINPUTS } from '@progress/kendo-angular-dateinputs';
+import { KENDO_INPUTS } from '@progress/kendo-angular-inputs';
+import { KENDO_LABEL } from '@progress/kendo-angular-label';
+import { CardModule } from '@progress/kendo-angular-layout';
+import { CkTypeSelectorItem } from '@meshmakers/octo-services';
+import { firstValueFrom, of, startWith, switchMap } from 'rxjs';
+import { CreateEntitiesDtoGQL } from '../../../graphQL/createEntities';
+import { CkTypeSelectorInputComponent } from '../../../ck-type-selector-input/ck-type-selector-input.component';
+import { Attribute } from '../../models/attribute';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
   RuntimeBrowserMessages,
-} from "../../runtime-browser.model";
-import { AttributeCoordinatorService } from "../../services/attribute-coordinator.service";
-import { AttributeDataService } from "../../services/attribute-data.service";
-import { AttributeMapperService } from "../../services/attribute-mapper.service";
-import { AttributesGroupComponent } from "../attributes-group/attributes-group.component";
-import { SharedEditor } from "../shared-editor/shared-editor";
+} from '../../runtime-browser.model';
+import { AttributeCoordinatorService } from '../../services/attribute-coordinator.service';
+import { AttributeDataService } from '../../services/attribute-data.service';
+import { AttributeMapperService } from '../../services/attribute-mapper.service';
+import { AttributesGroupComponent } from '../attributes-group/attributes-group.component';
+import { SharedEditor } from '../shared-editor/shared-editor';
 
 @Component({
-  selector: "mm-create-editor-component",
+  selector: 'mm-create-editor-component',
   imports: [
     ReactiveFormsModule,
     CardModule,
@@ -115,7 +115,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ["../shared-editor/shared-editor.scss"],
+  styleUrls: ['../shared-editor/shared-editor.scss'],
 })
 /**
  * Editor for creating a new runtime entity under a parent: type selection via dropdown, attribute form
@@ -159,7 +159,7 @@ export class CreateEditorComponent {
     return (
       !this.isCreating() &&
       !this.isCanceling() &&
-      status === "VALID" &&
+      status === 'VALID' &&
       isLoaded &&
       isDirty
     );
@@ -181,7 +181,7 @@ export class CreateEditorComponent {
   formStatusSignal = toSignal(
     toObservable(this.form).pipe(
       switchMap((f) => {
-        if (!f) return of("INVALID");
+        if (!f) return of('INVALID');
         return f.statusChanges.pipe(startWith(f.status));
       }),
     ),
@@ -258,7 +258,7 @@ export class CreateEditorComponent {
         );
       }
     } catch (error) {
-      console.error("Error saving entity:", error);
+      console.error('Error saving entity:', error);
       this.sharedEditor.showErrorNotification(
         this.resolvedMessages().failedToCreateEntity,
       );
@@ -311,7 +311,7 @@ export class CreateEditorComponent {
     if (parent?.ckTypeId && parent?.rtId) {
       entity.associations = [
         {
-          roleName: input?.parentRoleName ?? "parent",
+          roleName: input?.parentRoleName ?? 'parent',
           targets: [
             {
               modOption: AssociationModOptionsDto.CreateDto,

@@ -1,4 +1,4 @@
-import { Directive, forwardRef, inject } from "@angular/core";
+import { Directive, forwardRef, inject } from '@angular/core';
 import {
   GetSdkCustomersDtoGQL,
   GetSdkCustomersQueryVariablesDto,
@@ -12,7 +12,7 @@ import {map} from 'rxjs/operators';
 
 
 @Directive({
-  selector: "[appCustomersDataSource]",
+  selector: '[appCustomersDataSource]',
   exportAs: 'appCustomersDataSource', // To be used in the template
   providers: [
     {

@@ -398,8 +398,8 @@ describe('WidgetRegistryService', () => {
     it('should throw error for unknown widget type', () => {
       const widget = createMockKpiWidget();
       (widget as {
-                type: string;
-            }).type = 'unknownType';
+        type: string;
+      }).type = 'unknownType';
 
       expect(() => service.serializeWidget(widget)).toThrowError('Unknown widget type: unknownType');
     });

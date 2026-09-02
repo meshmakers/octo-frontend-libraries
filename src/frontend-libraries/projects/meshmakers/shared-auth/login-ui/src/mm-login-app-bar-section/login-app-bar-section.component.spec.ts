@@ -10,50 +10,50 @@ import { Component, Input } from '@angular/core';
 @Component({ selector: 'kendo-avatar', template: '', changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true })
 class MockAvatarComponent {
-    @Input()
-      initials: string | undefined;
-    @Input()
-      shape: string | undefined;
-    @Input()
-      width: string | undefined;
-    @Input()
-      height: string | undefined;
+  @Input()
+  initials: string | undefined;
+  @Input()
+  shape: string | undefined;
+  @Input()
+  width: string | undefined;
+  @Input()
+  height: string | undefined;
 }
 
 // eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'kendo-popup', template: '<ng-content></ng-content>', changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true })
 class MockPopupComponent {
-    @Input()
-      anchor: unknown;
-    @Input()
-      popupClass: string | undefined;
+  @Input()
+  anchor: unknown;
+  @Input()
+  popupClass: string | undefined;
 }
 
 // eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'kendo-loader', template: '', changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true })
 class MockLoaderComponent {
-    @Input()
-      themeColor: string | undefined;
-    @Input()
-      type: string | undefined;
-    @Input()
-      size: string | undefined;
+  @Input()
+  themeColor: string | undefined;
+  @Input()
+  type: string | undefined;
+  @Input()
+  size: string | undefined;
 }
 
 // eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'button[kendoButton]', template: '<ng-content></ng-content>', changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true })
 class MockButtonComponent {
-    @Input()
-      fillMode: string | undefined;
-    @Input()
-      themeColor: string | undefined;
-    @Input()
-      svgIcon: unknown;
-    @Input()
-      size: string | undefined;
+  @Input()
+  fillMode: string | undefined;
+  @Input()
+  themeColor: string | undefined;
+  @Input()
+  svgIcon: unknown;
+  @Input()
+  size: string | undefined;
 }
 
 describe('LoginAppBarSectionComponent', () => {
@@ -276,8 +276,8 @@ describe('LoginAppBarSectionComponent', () => {
       fixture.detectChanges();
 
       (component as unknown as {
-                onLogin(): void;
-            }).onLogin();
+        onLogin(): void;
+      }).onLogin();
 
       expect(authServiceMock.login).toHaveBeenCalled();
     });
@@ -288,8 +288,8 @@ describe('LoginAppBarSectionComponent', () => {
       fixture.detectChanges();
 
       (component as unknown as {
-                onLogout(): void;
-            }).onLogout();
+        onLogout(): void;
+      }).onLogout();
 
       expect(authServiceMock.logout).toHaveBeenCalled();
     });
@@ -303,8 +303,8 @@ describe('LoginAppBarSectionComponent', () => {
       component.register.subscribe(registerSpy);
 
       (component as unknown as {
-                onRegister(): void;
-            }).onRegister();
+        onRegister(): void;
+      }).onRegister();
 
       expect(registerSpy).toHaveBeenCalled();
     });

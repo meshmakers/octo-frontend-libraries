@@ -10,10 +10,10 @@ describe('DesignerCoordinateService', () => {
   // Mock SVG element for testing
   let mockSvgElement: MockedObject<SVGSVGElement>;
   let mockSvgPoint: {
-        x: number;
-        y: number;
-        matrixTransform: Mock;
-    };
+    x: number;
+    y: number;
+    matrixTransform: Mock;
+  };
   let mockCtm: DOMMatrix;
 
   beforeEach(() => {

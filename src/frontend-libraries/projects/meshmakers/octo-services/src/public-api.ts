@@ -5,7 +5,7 @@
 import {EnvironmentProviders, makeEnvironmentProviders} from '@angular/core';
 import {OctoServiceOptions} from './lib/options/octo-service-options';
 import {OctoErrorLink} from './lib/shared/octo-error-link';
-import { provideMmSharedServices } from "@meshmakers/shared-services";
+import { provideMmSharedServices } from '@meshmakers/shared-services';
 
 export * from './lib/options/octo-service-options';
 export * from './lib/shared/graphQL';

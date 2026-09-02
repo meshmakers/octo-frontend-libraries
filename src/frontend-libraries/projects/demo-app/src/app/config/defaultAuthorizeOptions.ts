@@ -5,8 +5,8 @@ export const defaultAuthorizeOptions: AuthorizeOptions = {
   issuer: '', // defined by backend using endpoint _configuration/{clientId}
 
   // URL of the SPA to redirect the user to after login
-  redirectUri: window.location.origin + "/",
-  postLogoutRedirectUri: window.location.origin + "/",
+  redirectUri: window.location.origin + '/',
+  postLogoutRedirectUri: window.location.origin + '/',
 
   // The SPA's id. The SPA is registered with this id at the auth-server
   clientId: 'octo-demo-app', // defined by config.json during startup

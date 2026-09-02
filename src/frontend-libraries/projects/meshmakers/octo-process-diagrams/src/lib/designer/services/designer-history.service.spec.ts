@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { DesignerHistoryService } from './designer-history.service';
 
 interface TestState {
-    id: string;
-    value: number;
+  id: string;
+  value: number;
 }
 
 describe('DesignerHistoryService', () => {

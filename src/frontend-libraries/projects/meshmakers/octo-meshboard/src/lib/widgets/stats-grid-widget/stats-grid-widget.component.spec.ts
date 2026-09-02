@@ -72,8 +72,8 @@ describe('StatsGridWidgetComponent — stream-data persistent-query stats', () =
 
   async function load(cmp: StatsGridWidgetComponent): Promise<void> {
     await (cmp as unknown as {
-            loadData(): Promise<void>;
-        }).loadData();
+      loadData(): Promise<void>;
+    }).loadData();
   }
 
   it('renders totalCount for a simpleCount SD query', async () => {

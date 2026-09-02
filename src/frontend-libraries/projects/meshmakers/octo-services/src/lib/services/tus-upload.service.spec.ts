@@ -11,9 +11,9 @@ describe('TusUploadService', () => {
   let service: TusUploadService;
   let httpMock: HttpTestingController;
   let mockConfigService: {
-        config: AddInConfiguration | null;
-        loadConfigAsync: Mock;
-    };
+    config: AddInConfiguration | null;
+    loadConfigAsync: Mock;
+  };
   let authorizeServiceMock: MockedObject<AuthorizeService>;
 
   const baseUrl = 'https://bot.example.com/';

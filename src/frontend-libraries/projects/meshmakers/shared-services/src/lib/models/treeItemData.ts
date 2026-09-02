@@ -24,8 +24,8 @@ export class TreeItemDataTyped<TDto> implements TreeItemData {
   private _isExpanded: boolean;
 
   constructor(private readonly _id: string, private readonly _text: string, private readonly _tooltip: string,
-              private readonly _item: TDto, private readonly _svgIcon: SVGIcon,
-              expandable = false, isExpanded = false) {
+    private readonly _item: TDto, private readonly _svgIcon: SVGIcon,
+    expandable = false, isExpanded = false) {
     this._isExpandable = expandable;
     this._isExpanded = expandable && isExpanded;
   }
