@@ -300,11 +300,17 @@ The rules live in the **root** config only; every `projects/*/eslint.config.js` 
 `...rootConfig`, so adding them per project would duplicate them.
 
 Generated code is excluded by a **global** ignore entry (an `ignores`-only config object) in the
-root config: `**/graphQL/**` and `**/environments/version.ts`. It has to be global rather than an
-`ignores` key on the rule block — a per-block `ignores` only removes that block's rules while
-another block still matches the file, and ESLint then parses it with the default
-(non-TypeScript) parser and reports `Parsing error: Unexpected token`. Never auto-fix generated
-files: `npm run codegen` reintroduces the violations on the next run.
+root config: `**/graphQL/**/*`, `**/environments/version.ts` and that script's output
+`**/environments/currentVersion.ts`. The last one is git-ignored and written by the `postinstall`
+hook with `JSON.stringify(…, null, 4)`, i.e. 4-space indent and double quotes, so without the
+ignore it fails `@stylistic/indent` and `@stylistic/quotes` on every machine that ran
+`npm install` — including CI, while a working copy whose file was auto-fixed once looks green.
+
+The entry has to be global rather than an `ignores` key on the rule block: a per-block `ignores`
+only removes that block's rules while another block still matches the file, and ESLint then
+parses it with the default (non-TypeScript) parser and reports `Parsing error: Unexpected token`.
+Never auto-fix generated files — `npm run codegen` and the `postinstall` hook reintroduce the
+violations on the next run.
 
 Common lint issues:
 - **Unused imports**: Auto-fix with `npm run lint:octo-ui -- --fix`

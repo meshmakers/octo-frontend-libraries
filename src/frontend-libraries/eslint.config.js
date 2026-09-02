@@ -26,7 +26,8 @@ module.exports = tseslint.config(
       "!**/octo-process-diagrams/src/lib/graphQL/globalTypes.ts",
       "!**/octo-ui/src/lib/graphQL/globalTypes.ts",
       "!**/legacy-demo-app/src/app/graphQL/get-sdk-customers.ts",
-      "**/environments/version.ts"
+      "**/environments/version.ts",
+      "**/environments/currentVersion.ts"
     ],
   },
   {
