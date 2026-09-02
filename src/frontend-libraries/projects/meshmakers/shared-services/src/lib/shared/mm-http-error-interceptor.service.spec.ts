@@ -28,10 +28,10 @@ describe('MmHttpErrorInterceptor', () => {
         messageServiceMock = {
             showError: vi.fn().mockName("MessageService.showError"),
             showErrorWithDetails: vi.fn().mockName("MessageService.showErrorWithDetails")
-        };
+        } as unknown as MockedObject<MessageService>;
         httpHandlerMock = {
             handle: vi.fn().mockName("HttpHandler.handle")
-        };
+        } as unknown as MockedObject<HttpHandler>;
     });
 
     describe('without ON_CONNECTION_LOST', () => {
@@ -81,7 +81,7 @@ describe('MmHttpErrorInterceptor', () => {
                 httpHandlerMock.handle.mockReturnValue(throwError(() => error));
 
                 interceptor.intercept(req, httpHandlerMock).subscribe({
-                    next: () => fail('should not emit next'),
+                    next: () => { throw new Error('should not emit next'); },
                     error: (err) => {
                         expect(err).toBe(error);
                         done();

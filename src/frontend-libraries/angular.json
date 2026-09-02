@@ -147,15 +147,27 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular/build:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/shared-services/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing",
               "@angular/localize/init"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/shared-services:test-build",
+            "tsConfig": "projects/meshmakers/shared-services/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
             ]
           }
         },
@@ -164,7 +176,8 @@
           "options": {
             "lintFilePatterns": [
               "projects/meshmakers/shared-services/**/*.ts",
-              "projects/meshmakers/shared-services/**/*.html"
+              "projects/meshmakers/shared-services/**/*.html",
+              "testing/**/*.ts"
             ],
             "eslintConfig": "projects/meshmakers/shared-services/eslint.config.js"
           }
