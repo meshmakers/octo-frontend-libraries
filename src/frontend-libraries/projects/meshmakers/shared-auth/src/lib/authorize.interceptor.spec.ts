@@ -43,7 +43,7 @@ describe('authorizeInterceptor (functional)', () => {
       authServiceMock.getAccessTokenSync.and.returnValue(null);
     });
 
-    it('should not add Authorization header to same-origin request', (done) => {
+    it('should not add Authorization header to same-origin request', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', '/api/data');
 
       TestBed.runInInjectionContext(() => {
@@ -53,9 +53,9 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
 
-    it('should not add Authorization header to external request', (done) => {
+    it('should not add Authorization header to external request', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', 'https://external.com/api/data');
 
       TestBed.runInInjectionContext(() => {
@@ -65,7 +65,7 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
   });
 
   describe('with token', () => {
@@ -74,7 +74,7 @@ describe('authorizeInterceptor (functional)', () => {
     });
 
     describe('same-origin requests', () => {
-      it('should add Authorization header to relative URL', (done) => {
+      it('should add Authorization header to relative URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
 
         TestBed.runInInjectionContext(() => {
@@ -84,9 +84,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should add Authorization header to absolute same-origin URL', (done) => {
+      it('should add Authorization header to absolute same-origin URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', `${window.location.origin}/api/data`);
 
         TestBed.runInInjectionContext(() => {
@@ -96,9 +96,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should add Authorization header to protocol-relative same-origin URL', (done) => {
+      it('should add Authorization header to protocol-relative same-origin URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', `//${window.location.host}/api/data`);
 
         TestBed.runInInjectionContext(() => {
@@ -108,9 +108,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should add Authorization header to nested relative URL', (done) => {
+      it('should add Authorization header to nested relative URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/v1/users/123');
 
         TestBed.runInInjectionContext(() => {
@@ -120,11 +120,11 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
     });
 
     describe('external requests', () => {
-      it('should not add Authorization header to external URL', (done) => {
+      it('should not add Authorization header to external URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://external-api.com/data');
 
         TestBed.runInInjectionContext(() => {
@@ -134,9 +134,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should not add Authorization header to protocol-relative external URL', (done) => {
+      it('should not add Authorization header to protocol-relative external URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '//external-api.com/data');
 
         TestBed.runInInjectionContext(() => {
@@ -146,7 +146,7 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
     });
 
     describe('known service URIs', () => {
@@ -157,7 +157,7 @@ describe('authorizeInterceptor (functional)', () => {
         ]);
       });
 
-      it('should add Authorization header to known service URI', (done) => {
+      it('should add Authorization header to known service URI', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://api.example.com/users');
 
         TestBed.runInInjectionContext(() => {
@@ -167,9 +167,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should add Authorization header to another known service URI', (done) => {
+      it('should add Authorization header to another known service URI', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://graphql.example.com/v1/query');
 
         TestBed.runInInjectionContext(() => {
@@ -179,9 +179,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should not add Authorization header to unknown external URL', (done) => {
+      it('should not add Authorization header to unknown external URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://unknown-api.com/data');
 
         TestBed.runInInjectionContext(() => {
@@ -191,9 +191,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should ignore a blank entry instead of matching every URL', (done) => {
+      it('should ignore a blank entry instead of matching every URL', () => new Promise<void>((done) => {
         authServiceMock.getServiceUris.and.returnValue(['https://api.example.com', '']);
         const req = new HttpRequest('GET', 'https://telemetry.third-party.com/ingest');
 
@@ -204,9 +204,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should ignore a bare slash, which is what the platform returns for an unconfigured service', (done) => {
+      it('should ignore a bare slash, which is what the platform returns for an unconfigured service', () => new Promise<void>((done) => {
         authServiceMock.getServiceUris.and.returnValue(['https://api.example.com', '/']);
         const req = new HttpRequest('GET', '//telemetry.third-party.com/ingest');
 
@@ -217,9 +217,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should not match a host that merely starts with a configured URI', (done) => {
+      it('should not match a host that merely starts with a configured URI', () => new Promise<void>((done) => {
         // Plain prefix matching hands the operator's bearer to any origin whose name
         // begins with a configured one, which an attacker can register at will.
         const req = new HttpRequest('GET', 'https://api.example.com.attacker.test/steal');
@@ -231,9 +231,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should match a configured URI that already ends in a slash', (done) => {
+      it('should match a configured URI that already ends in a slash', () => new Promise<void>((done) => {
         authServiceMock.getServiceUris.and.returnValue(['https://api.example.com/']);
         const req = new HttpRequest('GET', 'https://api.example.com/users');
 
@@ -244,9 +244,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should match the configured URI itself, with nothing after it', (done) => {
+      it('should match the configured URI itself, with nothing after it', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://api.example.com');
 
         TestBed.runInInjectionContext(() => {
@@ -256,9 +256,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should still match the configured hosts when a blank entry is present', (done) => {
+      it('should still match the configured hosts when a blank entry is present', () => new Promise<void>((done) => {
         authServiceMock.getServiceUris.and.returnValue(['', 'https://api.example.com']);
         const req = new HttpRequest('POST', 'https://api.example.com/meshtest/sendMessage', {});
 
@@ -269,11 +269,11 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
     });
 
     describe('request immutability', () => {
-      it('should not modify the original request', (done) => {
+      it('should not modify the original request', () => new Promise<void>((done) => {
         const originalReq = new HttpRequest('GET', '/api/data');
         const originalHeaders = originalReq.headers;
 
@@ -284,9 +284,9 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
 
-      it('should create a cloned request with Authorization header', (done) => {
+      it('should create a cloned request with Authorization header', () => new Promise<void>((done) => {
         const originalReq = new HttpRequest('GET', '/api/data');
 
         TestBed.runInInjectionContext(() => {
@@ -297,7 +297,7 @@ describe('authorizeInterceptor (functional)', () => {
             done();
           });
         });
-      });
+      }));
     });
   });
 
@@ -311,7 +311,7 @@ describe('authorizeInterceptor (functional)', () => {
       TestBed.overrideProvider(AuthorizeService, { useValue: authServiceMock });
     });
 
-    it('should inject acr_values into /connect/token POST for refresh_token grant', (done) => {
+    it('should inject acr_values into /connect/token POST for refresh_token grant', () => new Promise<void>((done) => {
       authServiceMock.getStorageTenantId.and.returnValue('meshtest');
 
       const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
@@ -325,9 +325,9 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
 
-    it('should NOT inject acr_values into /connect/token POST for authorization_code grant', (done) => {
+    it('should NOT inject acr_values into /connect/token POST for authorization_code grant', () => new Promise<void>((done) => {
       // Authorization-code exchanges already carry the tenant via the code itself.
       // Injecting a stale storage tenant here caused an infinite reload loop:
       // the code-exchange succeeded (server ignored acr_values), but the immediate
@@ -348,9 +348,9 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
 
-    it('should not inject acr_values when no tenantId in storage', (done) => {
+    it('should not inject acr_values when no tenantId in storage', () => new Promise<void>((done) => {
       authServiceMock.getStorageTenantId.and.returnValue(null);
 
       const body = new HttpParams().set('grant_type', 'refresh_token');
@@ -363,9 +363,9 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
 
-    it('should not inject acr_values for non-token endpoint POST', (done) => {
+    it('should not inject acr_values for non-token endpoint POST', () => new Promise<void>((done) => {
       authServiceMock.getStorageTenantId.and.returnValue('meshtest');
 
       const body = new HttpParams().set('data', 'value');
@@ -378,9 +378,9 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
 
-    it('should not inject acr_values for GET request to token endpoint', (done) => {
+    it('should not inject acr_values for GET request to token endpoint', () => new Promise<void>((done) => {
       authServiceMock.getStorageTenantId.and.returnValue('meshtest');
 
       const req = new HttpRequest('GET', 'https://auth.example.com/connect/token');
@@ -393,9 +393,9 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
 
-    it('should inject acr_values into a token endpoint URL carrying a query string', (done) => {
+    it('should inject acr_values into a token endpoint URL carrying a query string', () => new Promise<void>((done) => {
       authServiceMock.getStorageTenantId.and.returnValue('meshtest');
 
       const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
@@ -408,9 +408,9 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
 
-    it('should preserve existing form body params when injecting acr_values for refresh_token', (done) => {
+    it('should preserve existing form body params when injecting acr_values for refresh_token', () => new Promise<void>((done) => {
       authServiceMock.getStorageTenantId.and.returnValue('meshtest');
 
       const body = new HttpParams()
@@ -430,7 +430,7 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
   });
 
   describe('URL pattern matching edge cases', () => {
@@ -438,7 +438,7 @@ describe('authorizeInterceptor (functional)', () => {
       authServiceMock.getAccessTokenSync.and.returnValue('test-token');
     });
 
-    it('should not match root-relative URL without leading slash', (done) => {
+    it('should not match root-relative URL without leading slash', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', 'api/data');
 
       TestBed.runInInjectionContext(() => {
@@ -448,9 +448,9 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
 
-    it('should match URL with query parameters', (done) => {
+    it('should match URL with query parameters', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', '/api/data?param=value');
 
       TestBed.runInInjectionContext(() => {
@@ -460,9 +460,9 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
 
-    it('should match URL with hash fragment', (done) => {
+    it('should match URL with hash fragment', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', '/api/data#section');
 
       TestBed.runInInjectionContext(() => {
@@ -472,7 +472,7 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
   });
 });
 
