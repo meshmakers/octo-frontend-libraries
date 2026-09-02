@@ -109,7 +109,7 @@ describe('SummaryCardWidgetComponent — stream-data persistent-query tiles', ()
         state.resolveStreamDataRtIds.mockReturnValue(['rt-1']);
         await load(cmp);
         const qe = TestBed.inject(QueryExecutorService) as MockedObject<QueryExecutorService>;
-        const opts = vi.mocked(qe.execute).mock.lastCall[2];
+        const opts = vi.mocked(qe.execute).mock.lastCall![2];
         expect(opts?.streamDataArgs?.rtIds).toEqual(['rt-1']);
     });
 });

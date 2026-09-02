@@ -90,13 +90,13 @@ describe('WidgetGroupComponent', () => {
     beforeEach(async () => {
         dataServiceSpy = {
             fetchRepeaterData: vi.fn().mockName("MeshBoardDataService.fetchRepeaterData")
-        };
+        } as unknown as MockedObject<MeshBoardDataService>;
         variableServiceSpy = {
             resolveVariables: vi.fn().mockName("MeshBoardVariableService.resolveVariables")
-        };
+        } as unknown as MockedObject<MeshBoardVariableService>;
         stateServiceSpy = {
             getVariables: vi.fn().mockName("MeshBoardStateService.getVariables")
-        };
+        } as unknown as MockedObject<MeshBoardStateService>;
 
         stateServiceSpy.getVariables.mockReturnValue([]);
 

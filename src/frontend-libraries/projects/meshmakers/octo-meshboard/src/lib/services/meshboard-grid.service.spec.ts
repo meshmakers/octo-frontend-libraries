@@ -45,28 +45,28 @@ describe('MeshBoardGridService', () => {
             const cells = service.getCells(1, 1, 2, 2);
 
             expect(cells.length).toBe(4);
-            expect(cells).toContain(expect.objectContaining({ col: 1, row: 1 }));
-            expect(cells).toContain(expect.objectContaining({ col: 2, row: 1 }));
-            expect(cells).toContain(expect.objectContaining({ col: 1, row: 2 }));
-            expect(cells).toContain(expect.objectContaining({ col: 2, row: 2 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 1, row: 1 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 2, row: 1 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 1, row: 2 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 2, row: 2 }));
         });
 
         it('should return correct cells for 3x1 widget (horizontal)', () => {
             const cells = service.getCells(2, 3, 3, 1);
 
             expect(cells.length).toBe(3);
-            expect(cells).toContain(expect.objectContaining({ col: 2, row: 3 }));
-            expect(cells).toContain(expect.objectContaining({ col: 3, row: 3 }));
-            expect(cells).toContain(expect.objectContaining({ col: 4, row: 3 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 2, row: 3 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 3, row: 3 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 4, row: 3 }));
         });
 
         it('should return correct cells for 1x3 widget (vertical)', () => {
             const cells = service.getCells(5, 1, 1, 3);
 
             expect(cells.length).toBe(3);
-            expect(cells).toContain(expect.objectContaining({ col: 5, row: 1 }));
-            expect(cells).toContain(expect.objectContaining({ col: 5, row: 2 }));
-            expect(cells).toContain(expect.objectContaining({ col: 5, row: 3 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 1 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 2 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 3 }));
         });
 
         it('should handle large widget (4x3)', () => {
@@ -79,10 +79,10 @@ describe('MeshBoardGridService', () => {
             const cells = service.getCells(5, 10, 2, 2);
 
             expect(cells.length).toBe(4);
-            expect(cells).toContain(expect.objectContaining({ col: 5, row: 10 }));
-            expect(cells).toContain(expect.objectContaining({ col: 6, row: 10 }));
-            expect(cells).toContain(expect.objectContaining({ col: 5, row: 11 }));
-            expect(cells).toContain(expect.objectContaining({ col: 6, row: 11 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 10 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 6, row: 10 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 11 }));
+            expect(cells).toContainEqual(expect.objectContaining({ col: 6, row: 11 }));
         });
     });
 

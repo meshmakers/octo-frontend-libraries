@@ -56,28 +56,28 @@ describe('MeshBoardDataService', () => {
     beforeEach(() => {
         getDashboardEntityGQLSpy = {
             fetch: vi.fn().mockName("GetDashboardEntityDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetDashboardEntityDtoGQL>;
         getCkModelsWithStateGQLSpy = {
             fetch: vi.fn().mockName("GetCkModelsWithStateDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetCkModelsWithStateDtoGQL>;
         getEntitiesByCkTypeGQLSpy = {
             fetch: vi.fn().mockName("GetEntitiesByCkTypeDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetEntitiesByCkTypeDtoGQL>;
         queryExecutorSpy = {
             execute: vi.fn().mockName("QueryExecutorService.execute"),
             executeRuntime: vi.fn().mockName("QueryExecutorService.executeRuntime"),
             executeStreamData: vi.fn().mockName("QueryExecutorService.executeStreamData")
-        };
+        } as unknown as MockedObject<QueryExecutorService>;
         apolloSpy = {
             query: vi.fn().mockName("Apollo.query")
-        };
+        } as unknown as MockedObject<Apollo>;
         stateServiceSpy = {
             getVariables: vi.fn().mockName("MeshBoardStateService.getVariables"),
             resolveCurrentTimeRange: vi.fn().mockName("MeshBoardStateService.resolveCurrentTimeRange")
-        };
+        } as unknown as MockedObject<MeshBoardStateService>;
         variableServiceSpy = {
             convertToFieldFilterDto: vi.fn().mockName("MeshBoardVariableService.convertToFieldFilterDto")
-        };
+        } as unknown as MockedObject<MeshBoardVariableService>;
 
         TestBed.configureTestingModule({
             providers: [

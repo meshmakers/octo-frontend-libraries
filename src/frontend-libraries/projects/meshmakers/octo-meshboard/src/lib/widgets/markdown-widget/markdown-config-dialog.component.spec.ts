@@ -16,7 +16,7 @@ describe('MarkdownConfigDialogComponent', () => {
     beforeEach(() => {
         mockWindowRef = {
             close: vi.fn().mockName("WindowRef.close")
-        };
+        } as unknown as MockedObject<WindowRef>;
         closeSpy = mockWindowRef.close as Mock;
 
         TestBed.configureTestingModule({
@@ -145,7 +145,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
             component.onSave();
 
-            const result = vi.mocked(closeSpy).mock.lastCall[0] as MarkdownConfigResult;
+            const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
             expect(result.padding).toBeUndefined();
         });
 
@@ -155,7 +155,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
             component.onSave();
 
-            const result = vi.mocked(closeSpy).mock.lastCall[0] as MarkdownConfigResult;
+            const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
             expect(result.textAlign).toBe('left');
         });
 
@@ -165,7 +165,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
             component.onSave();
 
-            const result = vi.mocked(closeSpy).mock.lastCall[0] as MarkdownConfigResult;
+            const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
             expect(result.textAlign).toBe('center');
         });
 
@@ -175,7 +175,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
             component.onSave();
 
-            const result = vi.mocked(closeSpy).mock.lastCall[0] as MarkdownConfigResult;
+            const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
             expect(result.textAlign).toBe('right');
         });
 
@@ -185,7 +185,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
             component.onSave();
 
-            const result = vi.mocked(closeSpy).mock.lastCall[0] as MarkdownConfigResult;
+            const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
             expect(result.resolveVariables).toBe(false);
         });
 
@@ -194,7 +194,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
             component.onSave();
 
-            const result = vi.mocked(closeSpy).mock.lastCall[0] as MarkdownConfigResult;
+            const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
             expect(result.content).toBe('');
         });
     });
@@ -212,7 +212,7 @@ describe('MarkdownConfigDialogComponent', () => {
         it('should not pass any result on cancel', () => {
             component.onCancel();
             expect(mockWindowRef.close).toHaveBeenCalledTimes(1);
-            expect(vi.mocked(closeSpy).mock.lastCall.length).toBe(0);
+            expect(vi.mocked(closeSpy).mock.lastCall!.length).toBe(0);
         });
     });
 

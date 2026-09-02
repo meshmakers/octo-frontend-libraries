@@ -38,7 +38,7 @@ describe('HeatmapWidgetComponent — threshold coloring', () => {
             resolveStreamDataRtIds: vi.fn().mockName("MeshBoardStateService.resolveStreamDataRtIds"),
             resolveStreamDataTimeArgs: vi.fn().mockName("MeshBoardStateService.resolveStreamDataTimeArgs"),
             timeZoneMode: vi.fn().mockName("MeshBoardStateService.timeZoneMode")
-        };
+        } as unknown as MockedObject<MeshBoardStateService>;
 
         TestBed.configureTestingModule({
             imports: [HeatmapWidgetComponent],

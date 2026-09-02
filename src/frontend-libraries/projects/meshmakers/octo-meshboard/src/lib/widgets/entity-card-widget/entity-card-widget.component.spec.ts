@@ -38,7 +38,7 @@ describe('EntityCardWidgetComponent', () => {
         selectors = [];
         dataServiceSpy = {
             fetchEntityWithAssociations: vi.fn().mockName("DashboardDataService.fetchEntityWithAssociations")
-        };
+        } as unknown as MockedObject<MeshBoardDataService>;
         dataServiceSpy.fetchEntityWithAssociations.mockReturnValue(of(entity));
 
         const stateStub: Partial<MeshBoardStateService> = {

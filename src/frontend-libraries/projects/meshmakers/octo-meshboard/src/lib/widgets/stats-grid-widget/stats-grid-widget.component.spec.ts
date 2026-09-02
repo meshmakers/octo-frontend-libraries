@@ -107,7 +107,7 @@ describe('StatsGridWidgetComponent — stream-data persistent-query stats', () =
         state.resolveStreamDataRtIds.mockReturnValue(['rt-1', 'rt-2']);
         await load(cmp);
         const qe = TestBed.inject(QueryExecutorService) as MockedObject<QueryExecutorService>;
-        const opts = vi.mocked(qe.execute).mock.lastCall[2];
+        const opts = vi.mocked(qe.execute).mock.lastCall![2];
         expect(opts?.streamDataArgs?.rtIds).toEqual(['rt-1', 'rt-2']);
         expect(opts?.streamDataArgs?.from).toBeTruthy();
     });

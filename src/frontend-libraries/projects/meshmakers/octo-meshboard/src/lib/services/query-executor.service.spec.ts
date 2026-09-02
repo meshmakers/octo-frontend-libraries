@@ -40,25 +40,25 @@ describe('QueryExecutorService', () => {
     beforeEach(() => {
         runtimeGqlSpy = {
             fetch: vi.fn().mockName("ExecuteRuntimeQueryDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<ExecuteRuntimeQueryDtoGQL>;
         streamDataGqlSpy = {
             fetch: vi.fn().mockName("ExecuteStreamDataQueryDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<ExecuteStreamDataQueryDtoGQL>;
         persistentQueriesGqlSpy = {
             fetch: vi.fn().mockName("GetSystemPersistentQueriesDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetSystemPersistentQueriesDtoGQL>;
         resolveSeriesGqlSpy = {
             fetch: vi.fn().mockName("ResolveSeriesQueryDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<ResolveSeriesQueryDtoGQL>;
         queryArchiveGqlSpy = {
             fetch: vi.fn().mockName("GetStreamDataQueryArchiveDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetStreamDataQueryArchiveDtoGQL>;
         downsampleGqlSpy = {
             fetch: vi.fn().mockName("TransientDownsamplingDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<TransientDownsamplingDtoGQL>;
         entitiesGqlSpy = {
             fetch: vi.fn().mockName("GetEntitiesByCkTypeDtoGQL.fetch")
-        };
+        } as unknown as MockedObject<GetEntitiesByCkTypeDtoGQL>;
 
         TestBed.configureTestingModule({
             providers: [
@@ -139,11 +139,11 @@ describe('QueryExecutorService', () => {
             runtimeGqlSpy.fetch.mockReturnValue(of(makeApolloResult({ runtime: { runtimeQuery: { items: [] } } })) as never);
 
             await firstValueFrom(service.executeRuntime('q1'));
-            const firstOpts = vi.mocked(runtimeGqlSpy.fetch).mock.lastCall[0] as Record<string, unknown>;
+            const firstOpts = vi.mocked(runtimeGqlSpy.fetch).mock.lastCall![0] as Record<string, unknown>;
             expect(firstOpts['fetchPolicy']).toBe('cache-first');
 
             await firstValueFrom(service.executeRuntime('q1', { forceRefresh: true }));
-            const secondOpts = vi.mocked(runtimeGqlSpy.fetch).mock.lastCall[0] as Record<string, unknown>;
+            const secondOpts = vi.mocked(runtimeGqlSpy.fetch).mock.lastCall![0] as Record<string, unknown>;
             expect(secondOpts['fetchPolicy']).toBe('network-only');
         });
     });
@@ -223,7 +223,7 @@ describe('QueryExecutorService', () => {
 
             await firstValueFrom(service.executeStreamData('q'));
 
-            const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall[0] as {
+            const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as {
                 variables: Record<string, unknown>;
             };
             expect(opts.variables['arg']).toBeUndefined();
@@ -240,7 +240,7 @@ describe('QueryExecutorService', () => {
                 streamDataArgs: { from, to, limit: 100 }
             }));
 
-            const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall[0] as {
+            const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as {
                 variables: Record<string, unknown>;
             };
             const arg = opts.variables['arg'] as Record<string, unknown>;
@@ -262,7 +262,7 @@ describe('QueryExecutorService', () => {
                 streamDataArgs: { limit: 50, queryMode: QueryModeDto.DownsamplingDto }
             }));
 
-            const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall[0] as {
+            const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as {
                 variables: Record<string, unknown>;
             };
             const arg = opts.variables['arg'] as Record<string, unknown>;
@@ -462,7 +462,7 @@ describe('QueryExecutorService', () => {
                 limit: 600, sourcePath: 'Amount.Value', aggregation: 'SUM', rtIds: ['em-1']
             });
 
-            const options = vi.mocked(downsampleGqlSpy.fetch).mock.lastCall[0] as {
+            const options = vi.mocked(downsampleGqlSpy.fetch).mock.lastCall![0] as {
                 variables: Record<string, unknown>;
             };
             expect(options.variables['columnPaths']).toEqual([{ attributePath: 'Amount.Value', aggregationType: 'SUM' }]);

@@ -168,7 +168,7 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
             loadData(): Promise<void>;
         }).loadData();
 
-        const opts = vi.mocked(qe.execute).mock.lastCall[2];
+        const opts = vi.mocked(qe.execute).mock.lastCall![2];
         expect(opts?.streamDataArgs?.queryMode).toBe(QueryModeDto.DownsamplingDto);
         expect(opts?.streamDataArgs?.limit).toBeGreaterThanOrEqual(50);
         expect(opts?.streamDataArgs?.limit).toBeLessThanOrEqual(4000);
@@ -205,7 +205,7 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
             resolveSeriesQuery: vi.fn().mockName("QueryExecutorService.resolveSeriesQuery"),
             downsampleByArchive: vi.fn().mockName("QueryExecutorService.downsampleByArchive"),
             fetchSeriesLabels: vi.fn().mockName("QueryExecutorService.fetchSeriesLabels")
-        };
+        } as unknown as MockedObject<QueryExecutorService>;
         qe.fetchQueryArchive.mockResolvedValue({ archiveRtId: 'base-1', ckTypeId: 'Basic/TemperatureSensor', rtIds: pinnedRtIds });
         qe.resolveSeriesQuery.mockResolvedValue({
             archiveRtId: 'rollup-5m', effectiveBucketMs: 300000, points: 10,
@@ -259,7 +259,7 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
             loadData(): Promise<void>;
         }).loadData();
 
-        expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall[0].rtIds).toEqual(['sensor-1', 'sensor-2']);
+        expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toEqual(['sensor-1', 'sensor-2']);
         // Default fan-out: one downsampling call per pinned source rtId.
         const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);
         expect(downsampledScopes).toEqual([['sensor-1'], ['sensor-2']]);
@@ -272,7 +272,7 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
             loadData(): Promise<void>;
         }).loadData();
 
-        expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall[0].rtIds).toEqual(['selected-1']);
+        expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toEqual(['selected-1']);
         const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);
         expect(downsampledScopes).toEqual([['selected-1']]);
     });
@@ -284,7 +284,7 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
             loadData(): Promise<void>;
         }).loadData();
 
-        expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall[0].rtIds).toBeUndefined();
+        expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toBeUndefined();
         const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);
         expect(downsampledScopes).toEqual([undefined]);
     });

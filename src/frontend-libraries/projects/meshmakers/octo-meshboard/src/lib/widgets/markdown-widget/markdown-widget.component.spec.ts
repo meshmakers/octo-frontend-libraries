@@ -53,10 +53,10 @@ describe('MarkdownWidgetComponent', () => {
     beforeEach(async () => {
         stateServiceSpy = {
             getVariables: vi.fn().mockName("MeshBoardStateService.getVariables")
-        };
+        } as unknown as MockedObject<MeshBoardStateService>;
         variableServiceSpy = {
             resolveVariables: vi.fn().mockName("MeshBoardVariableService.resolveVariables")
-        };
+        } as unknown as MockedObject<MeshBoardVariableService>;
 
         stateServiceSpy.getVariables.mockReturnValue([]);
         variableServiceSpy.resolveVariables.mockImplementation((text: string) => text);

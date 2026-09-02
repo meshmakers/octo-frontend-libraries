@@ -67,21 +67,21 @@ describe('ProcessDataService — stream-data query binding', () => {
     beforeEach(() => {
         queryExecutor = {
             execute: vi.fn().mockName("QueryExecutorService.execute")
-        };
+        } as unknown as MockedObject<QueryExecutorService>;
         queryExecutor.execute.mockReturnValue(of(sdResult()) as ReturnType<QueryExecutorService['execute']>);
 
         stateService = {
             resolveStreamDataTimeArgs: vi.fn().mockName("MeshBoardStateService.resolveStreamDataTimeArgs"),
             resolveStreamDataRtIds: vi.fn().mockName("MeshBoardStateService.resolveStreamDataRtIds"),
             getVariables: vi.fn().mockName("MeshBoardStateService.getVariables")
-        };
+        } as unknown as MockedObject<MeshBoardStateService>;
         stateService.resolveStreamDataTimeArgs.mockReturnValue(undefined);
         stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
         stateService.getVariables.mockReturnValue([]);
 
         variableService = {
             convertToFieldFilterDto: vi.fn().mockName("MeshBoardVariableService.convertToFieldFilterDto")
-        };
+        } as unknown as MockedObject<MeshBoardVariableService>;
         variableService.convertToFieldFilterDto.mockReturnValue(undefined);
 
         const gqlStub = {} as unknown;
@@ -107,7 +107,7 @@ describe('ProcessDataService — stream-data query binding', () => {
         const result = await service.loadBoundData(baseConfig());
 
         expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
-        const args = vi.mocked(queryExecutor.execute).mock.lastCall;
+        const args = vi.mocked(queryExecutor.execute).mock.lastCall!;
         expect(args[0]).toBe('streamData');
         expect(args[1]).toBe('q1');
 
@@ -131,7 +131,7 @@ describe('ProcessDataService — stream-data query binding', () => {
         await service.loadBoundData(config);
 
         expect(stateService.resolveStreamDataRtIds).toHaveBeenCalledWith('mp');
-        const opts = vi.mocked(queryExecutor.execute).mock.lastCall[2];
+        const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
         expect(opts?.streamDataArgs).toEqual({ from, to, rtIds: ['rt-1', 'rt-2'] });
     });
 
@@ -143,7 +143,7 @@ describe('ProcessDataService — stream-data query binding', () => {
 
         expect(stateService.resolveStreamDataTimeArgs).toHaveBeenCalledWith(true);
         // No time args and no rtIds → no streamDataArgs override.
-        const opts = vi.mocked(queryExecutor.execute).mock.lastCall[2];
+        const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
         expect(opts?.streamDataArgs).toBeUndefined();
     });
 
@@ -166,7 +166,7 @@ describe('ProcessDataService — stream-data query binding', () => {
 
         const result = await service.loadBoundData(config);
 
-        const opts = vi.mocked(queryExecutor.execute).mock.lastCall[2];
+        const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
         expect(opts?.streamDataArgs).toBeUndefined();
         expect(result?.queryResult?.rows[0].cells.get('amount.value')).toBe(7);
         expect(result?.queryResult?.rows[0].rtId).toBe('e-9');

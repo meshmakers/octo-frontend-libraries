@@ -214,8 +214,8 @@ describe('WidgetRegistryService', () => {
             service.registerWidget(createGaugeRegistration());
 
             const widgets = service.getRegisteredWidgets();
-            expect(widgets).toContain({ type: 'kpi', label: 'KPI Widget' });
-            expect(widgets).toContain({ type: 'gauge', label: 'Gauge Widget' });
+            expect(widgets).toContainEqual({ type: 'kpi', label: 'KPI Widget' });
+            expect(widgets).toContainEqual({ type: 'gauge', label: 'Gauge Widget' });
         });
     });
 

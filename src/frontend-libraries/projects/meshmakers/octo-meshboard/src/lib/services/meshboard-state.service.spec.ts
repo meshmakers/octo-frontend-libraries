@@ -87,16 +87,16 @@ describe('MeshBoardStateService', () => {
             deleteMeshBoard: vi.fn().mockName("MeshBoardPersistenceService.deleteMeshBoard"),
             renameMeshBoard: vi.fn().mockName("MeshBoardPersistenceService.renameMeshBoard"),
             toMeshBoardConfig: vi.fn().mockName("MeshBoardPersistenceService.toMeshBoardConfig")
-        };
+        } as unknown as MockedObject<MeshBoardPersistenceService>;
 
         mockGridService = {
             resolveOverlaps: vi.fn().mockName("MeshBoardGridService.resolveOverlaps")
-        };
+        } as unknown as MockedObject<MeshBoardGridService>;
         mockGridService.resolveOverlaps.mockReturnValue([]);
 
         mockCkModelService = {
             isModelAvailableWithMinVersion: vi.fn().mockName("CkModelService.isModelAvailableWithMinVersion")
-        };
+        } as unknown as MockedObject<CkModelService>;
 
         TestBed.configureTestingModule({
             providers: [
