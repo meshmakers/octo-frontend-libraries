@@ -1,11 +1,7 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import {
-  GetProcessDiagramDtoGQL,
-  GetProcessDiagramsDtoGQL,
-  CreateProcessDiagramDtoGQL,
-  UpdateProcessDiagramDtoGQL
-} from '@meshmakers/octo-process-diagrams';
+import { GetProcessDiagramDtoGQL, GetProcessDiagramsDtoGQL, CreateProcessDiagramDtoGQL, UpdateProcessDiagramDtoGQL } from '@meshmakers/octo-process-diagrams';
 import { ProcessDataService } from './process-data.service';
 import { QueryExecutorService, QueryExecutionResult } from '../../../services/query-executor.service';
 import { MeshBoardStateService } from '../../../services/meshboard-state.service';
@@ -21,9 +17,9 @@ import { ProcessWidgetConfig } from '../process-widget-config.model';
  */
 describe('ProcessDataService — stream-data query binding', () => {
   let service: ProcessDataService;
-  let queryExecutor: jasmine.SpyObj<QueryExecutorService>;
-  let stateService: jasmine.SpyObj<MeshBoardStateService>;
-  let variableService: jasmine.SpyObj<MeshBoardVariableService>;
+  let queryExecutor: MockedObject<QueryExecutorService>;
+  let stateService: MockedObject<MeshBoardStateService>;
+  let variableService: MockedObject<MeshBoardVariableService>;
 
   function sdResult(): QueryExecutionResult {
     return {
@@ -69,22 +65,24 @@ describe('ProcessDataService — stream-data query binding', () => {
   }
 
   beforeEach(() => {
-    queryExecutor = jasmine.createSpyObj<QueryExecutorService>('QueryExecutorService', ['execute']);
-    queryExecutor.execute.and.returnValue(of(sdResult()) as ReturnType<QueryExecutorService['execute']>);
+    queryExecutor = {
+      execute: vi.fn().mockName('QueryExecutorService.execute')
+    } as unknown as MockedObject<QueryExecutorService>;
+    queryExecutor.execute.mockReturnValue(of(sdResult()) as ReturnType<QueryExecutorService['execute']>);
 
-    stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService', [
-      'resolveStreamDataTimeArgs',
-      'resolveStreamDataRtIds',
-      'getVariables'
-    ]);
-    stateService.resolveStreamDataTimeArgs.and.returnValue(undefined);
-    stateService.resolveStreamDataRtIds.and.returnValue(undefined);
-    stateService.getVariables.and.returnValue([]);
+    stateService = {
+      resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
+      resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables')
+    } as unknown as MockedObject<MeshBoardStateService>;
+    stateService.resolveStreamDataTimeArgs.mockReturnValue(undefined);
+    stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
+    stateService.getVariables.mockReturnValue([]);
 
-    variableService = jasmine.createSpyObj<MeshBoardVariableService>('MeshBoardVariableService', [
-      'convertToFieldFilterDto'
-    ]);
-    variableService.convertToFieldFilterDto.and.returnValue(undefined);
+    variableService = {
+      convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
+    } as unknown as MockedObject<MeshBoardVariableService>;
+    variableService.convertToFieldFilterDto.mockReturnValue(undefined);
 
     const gqlStub = {} as unknown;
 
@@ -109,7 +107,7 @@ describe('ProcessDataService — stream-data query binding', () => {
     const result = await service.loadBoundData(baseConfig());
 
     expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
-    const args = queryExecutor.execute.calls.mostRecent().args;
+    const args = vi.mocked(queryExecutor.execute).mock.lastCall!;
     expect(args[0]).toBe('streamData');
     expect(args[1]).toBe('q1');
 
@@ -124,8 +122,8 @@ describe('ProcessDataService — stream-data query binding', () => {
   it('binds the active time filter and asset scope into streamDataArgs', async () => {
     const from = new Date('2026-01-01T00:00:00Z');
     const to = new Date('2026-02-01T00:00:00Z');
-    stateService.resolveStreamDataTimeArgs.and.returnValue({ from, to });
-    stateService.resolveStreamDataRtIds.and.returnValue(['rt-1', 'rt-2']);
+    stateService.resolveStreamDataTimeArgs.mockReturnValue({ from, to });
+    stateService.resolveStreamDataRtIds.mockReturnValue(['rt-1', 'rt-2']);
 
     const config = baseConfig();
     config.bindingEntitySelectorId = 'mp';
@@ -133,7 +131,7 @@ describe('ProcessDataService — stream-data query binding', () => {
     await service.loadBoundData(config);
 
     expect(stateService.resolveStreamDataRtIds).toHaveBeenCalledWith('mp');
-    const opts = queryExecutor.execute.calls.mostRecent().args[2];
+    const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
     expect(opts?.streamDataArgs).toEqual({ from, to, rtIds: ['rt-1', 'rt-2'] });
   });
 
@@ -145,12 +143,12 @@ describe('ProcessDataService — stream-data query binding', () => {
 
     expect(stateService.resolveStreamDataTimeArgs).toHaveBeenCalledWith(true);
     // No time args and no rtIds → no streamDataArgs override.
-    const opts = queryExecutor.execute.calls.mostRecent().args[2];
+    const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
     expect(opts?.streamDataArgs).toBeUndefined();
   });
 
   it('still maps a runtime query result (no streamDataArgs)', async () => {
-    queryExecutor.execute.and.returnValue(of({
+    queryExecutor.execute.mockReturnValue(of({
       ...sdResult(),
       family: 'runtime',
       rows: [
@@ -168,7 +166,7 @@ describe('ProcessDataService — stream-data query binding', () => {
 
     const result = await service.loadBoundData(config);
 
-    const opts = queryExecutor.execute.calls.mostRecent().args[2];
+    const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
     expect(opts?.streamDataArgs).toBeUndefined();
     expect(result?.queryResult?.rows[0].cells.get('amount.value')).toBe(7);
     expect(result?.queryResult?.rows[0].rtId).toBe('e-9');

@@ -11,7 +11,7 @@ The `@meshmakers/octo-services` library provides Angular services for interactin
 npm run build:octo-services
 
 # Run tests
-npm test -- --project=@meshmakers/octo-services --watch=false
+npm run test:octo-services
 
 # Run lint
 npx ng lint @meshmakers/octo-services
@@ -139,13 +139,13 @@ Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `exportRtModelByQuery(tenantId, queryId)` | Export RT model by query |
 | `exportRtModelDeepGraph(tenantId, rtIds, ckTypeId, followSpecs?)` | Export deep graph. Optional `followSpecs: DeepGraphFollowSpecDto[]` (`{roleId, direction}`, direction `DeepGraphDirectionDto.Inbound=1`/`Outbound=2`) switches from the default ParentChild descent to directed role-set traversal (AB#5003) — how identity exchange drags a permission's policies/grants, a role's permissions, a group's roles/child-groups. Omitted/empty ⇒ historical body/behaviour. Direction travels as the backend GraphDirections integer. |
 
-**Tenant Feature Toggle — Stream Data (AB#4215):**
+**Tenant Feature Toggle — Stream Data (AB#4215) + aggregate status (AB#4884):**
 
 | Method | Description |
 |--------|-------------|
 | `enableStreamData(tenantId)` | Enable Stream Data feature (flag on + `System.StreamData` model import; no storage until an archive is activated) — `POST {assetServices}{tenantId}/v1/streamdata/enable` |
 | `disableStreamData(tenantId)` | Disable Stream Data feature (reversible flag flip; refused with 409 while archives are still activated, model and data are kept; precondition for tenant delete/detach, AB#4255) — `POST {assetServices}{tenantId}/v1/streamdata/disable` |
-| `getStreamDataStatus(tenantId)` | `StreamDataStatus { instanceEnabled, tenantEnabled }` — the tenant flag the toggle reflects (the CK model stays after a disable); `null` when unconfigured — `GET {assetServices}{tenantId}/v1/streamdata/status` |
+| `getTenantFeaturesStatus(tenantId)` | `TenantFeaturesStatus { streamData { instanceEnabled, tenantEnabled }, communication, reporting, aiServices }` — the enabled flags the tenant delete/detach guard evaluates (AB#4884; CK model presence would lie after a disable). Whether a service is installed at all comes from `_configuration` (empty URL = not installed). `null` when unconfigured — `GET {assetServices}{tenantId}/v1/features/status`. Replaces the former `streamdata/status`. |
 
 ### IdentityService
 
@@ -352,6 +352,18 @@ Tenant feature toggle for the Reporting feature (AB#4215). Backed by
 | `disableReporting(tenantId)` | Disable Reporting feature (reversible flag flip, report data is kept; precondition for tenant delete/detach, AB#4255) — `POST {reportingServices}{tenantId}/v1/reporting/disable` |
 
 Throws when `reportingServices` is not configured; HTTP errors propagate to the caller.
+An empty `reportingServices` URL means reporting is not part of the installation (AB#4884).
+
+### AiService
+
+Tenant feature toggle for the AI Services feature (AB#4884). Backed by
+`config.aiServices`; an empty URL means the AI service is not part of this
+installation — both methods throw before any HTTP call.
+
+| Method | Description |
+|--------|-------------|
+| `enableAi(tenantId)` | Enable AI Services feature — `POST {aiServices}{tenantId}/v1/aiservice/enable` (refused with 409 while Communication is disabled for the tenant) |
+| `disableAi(tenantId)` | Disable AI Services feature (reversible flag flip, AI configuration and session data are kept; precondition for tenant delete/detach, AB#4255) — `POST {aiServices}{tenantId}/v1/aiservice/disable` |
 
 ### TusUploadService
 
@@ -727,14 +739,16 @@ The error link:
 
 ### Test Structure
 
-Tests use Jasmine with Angular TestBed:
+Tests run on Vitest with Angular TestBed (`vi.fn()` / `vi.spyOn`, `MockedObject<T>` for typed mocks):
 
 ```typescript
 // HTTP Service Test Pattern
+import type { Mock } from 'vitest';
+
 describe('AssetRepoService', () => {
   let service: AssetRepoService;
   let httpMock: HttpTestingController;
-  let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: jasmine.Spy };
+  let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: Mock };
 
   beforeEach(() => {
     mockConfigService = {
@@ -742,7 +756,7 @@ describe('AssetRepoService', () => {
         assetServices: 'https://api.example.com/',
         // ... other URLs
       } as AddInConfiguration,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync')
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync')
     };
 
     TestBed.configureTestingModule({
@@ -766,12 +780,20 @@ describe('AssetRepoService', () => {
 
 ```typescript
 // GraphQL Service Test Pattern
+import type { MockedObject } from 'vitest';
+
+type MockCkTypesResult = Apollo.QueryResult<GetCkTypesQueryDto>;
+
 describe('CkTypeSelectorService', () => {
   let service: CkTypeSelectorService;
-  let getCkTypesGQLMock: jasmine.SpyObj<GetCkTypesDtoGQL>;
+  let getCkTypesGQLMock: MockedObject<GetCkTypesDtoGQL>;
 
   beforeEach(() => {
-    getCkTypesGQLMock = jasmine.createSpyObj('GetCkTypesDtoGQL', ['fetch']);
+    // A bare object literal is a subset of the class, so cast it — never try to
+    // satisfy MockedObject<T> member by member (classes have private fields).
+    getCkTypesGQLMock = {
+      fetch: vi.fn().mockName('GetCkTypesDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkTypesDtoGQL>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -783,26 +805,29 @@ describe('CkTypeSelectorService', () => {
     service = TestBed.inject(CkTypeSelectorService);
   });
 
-  it('should fetch types', (done) => {
-    getCkTypesGQLMock.fetch.and.returnValue(of(mockResponse as any));
+  // Done-callback tests are written as explicit Promises so Vitest waits for done().
+  it('should fetch types', () => new Promise<void>((done) => {
+    getCkTypesGQLMock.fetch.mockReturnValue(of(mockResponse as unknown as MockCkTypesResult));
 
     service.getCkTypes().subscribe(result => {
       expect(result.items.length).toBe(1);
       done();
     });
-  });
+  }));
 });
 ```
 
 ### Running Tests
 
 ```bash
-# Run all octo-services tests
-CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  npm test -- --project=@meshmakers/octo-services --watch=false --browsers=ChromeHeadless
+# Run all octo-services tests (Vitest on jsdom, no browser needed)
+npm run test:octo-services
+
+# Run a single spec (path relative to the workspace root)
+ng test @meshmakers/octo-services --watch=false --include=projects/meshmakers/octo-services/src/lib/services/ck-type-selector.service.spec.ts
 
 # Run with coverage
-npm test -- --project=@meshmakers/octo-services --watch=false --code-coverage
+ng test @meshmakers/octo-services --watch=false --coverage
 ```
 
 ---

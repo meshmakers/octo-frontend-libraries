@@ -65,12 +65,12 @@ describe('DesignerDeletionService', () => {
         createTestPrimitive('prim-1'),
         createTestPrimitive('prim-2'),
         createTestPrimitive('prim-3'),
-        {
-          id: 'group-1',
-          type: 'group',
-          position: { x: 0, y: 200 },
-          config: { childIds: ['prim-1', 'prim-2'], originalBounds: { x: 0, y: 100, width: 200, height: 80 } }
-        } as GroupPrimitive
+                {
+                  id: 'group-1',
+                  type: 'group',
+                  position: { x: 0, y: 200 },
+                  config: { childIds: ['prim-1', 'prim-2'], originalBounds: { x: 0, y: 100, width: 200, height: 80 } }
+                } as GroupPrimitive
       ],
       symbolInstances: [
         createTestSymbol('sym-1'),
@@ -104,7 +104,7 @@ describe('DesignerDeletionService', () => {
       const result = service.deleteItems(diagram, new Set(['elem-1']), new Set());
 
       expect(result.elements.map(e => e.id)).toEqual(['elem-2']);
-      expect(result.deletedIds.has('elem-1')).toBeTrue();
+      expect(result.deletedIds.has('elem-1')).toBe(true);
     });
 
     it('should delete primitive', () => {
@@ -133,9 +133,9 @@ describe('DesignerDeletionService', () => {
       const result = service.deleteItems(diagram, new Set(['group-1']), new Set());
 
       // Group and its children (prim-1, prim-2) should be deleted
-      expect(result.deletedIds.has('group-1')).toBeTrue();
-      expect(result.deletedIds.has('prim-1')).toBeTrue();
-      expect(result.deletedIds.has('prim-2')).toBeTrue();
+      expect(result.deletedIds.has('group-1')).toBe(true);
+      expect(result.deletedIds.has('prim-1')).toBe(true);
+      expect(result.deletedIds.has('prim-2')).toBe(true);
 
       expect(result.primitives.find(p => p.id === 'group-1')).toBeUndefined();
       expect(result.primitives.find(p => p.id === 'prim-1')).toBeUndefined();
@@ -284,9 +284,9 @@ describe('DesignerDeletionService', () => {
       const diagram = createTestDiagram();
       const result = service.expandWithGroupChildren(diagram, new Set(['group-1']));
 
-      expect(result.has('group-1')).toBeTrue();
-      expect(result.has('prim-1')).toBeTrue();
-      expect(result.has('prim-2')).toBeTrue();
+      expect(result.has('group-1')).toBe(true);
+      expect(result.has('prim-1')).toBe(true);
+      expect(result.has('prim-2')).toBe(true);
       expect(result.size).toBe(3);
     });
 
@@ -295,7 +295,7 @@ describe('DesignerDeletionService', () => {
       const result = service.expandWithGroupChildren(diagram, new Set(['prim-3']));
 
       expect(result.size).toBe(1);
-      expect(result.has('prim-3')).toBeTrue();
+      expect(result.has('prim-3')).toBe(true);
     });
 
     it('should handle mixed selection', () => {
@@ -312,8 +312,8 @@ describe('DesignerDeletionService', () => {
       const result = service.getOrphanedConnections(diagram, new Set(['elem-1']));
 
       // Both connections reference elem-1
-      expect(result.has('conn-1')).toBeTrue();
-      expect(result.has('conn-2')).toBeTrue();
+      expect(result.has('conn-1')).toBe(true);
+      expect(result.has('conn-2')).toBe(true);
     });
 
     it('should return empty set if no connections are orphaned', () => {
@@ -327,12 +327,12 @@ describe('DesignerDeletionService', () => {
   describe('wouldOrphanConnections', () => {
     it('should return true for element with connections', () => {
       const diagram = createTestDiagram();
-      expect(service.wouldOrphanConnections(diagram, 'elem-1')).toBeTrue();
+      expect(service.wouldOrphanConnections(diagram, 'elem-1')).toBe(true);
     });
 
     it('should return false for item without connections', () => {
       const diagram = createTestDiagram();
-      expect(service.wouldOrphanConnections(diagram, 'prim-3')).toBeFalse();
+      expect(service.wouldOrphanConnections(diagram, 'prim-3')).toBe(false);
     });
   });
 
@@ -382,7 +382,7 @@ describe('DesignerDeletionService', () => {
 
       // Nothing should be deleted
       expect(result.elements.length).toBe(2);
-      expect(result.deletedIds.has('non-existent')).toBeTrue();
+      expect(result.deletedIds.has('non-existent')).toBe(true);
     });
 
     it('should handle empty diagram', () => {

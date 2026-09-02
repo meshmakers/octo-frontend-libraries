@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
@@ -13,7 +14,10 @@ import { DeepGraphDirectionDto } from '../shared/deepGraphFollowSpecDto';
 describe('AssetRepoService', () => {
   let service: AssetRepoService;
   let httpMock: HttpTestingController;
-  let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: jasmine.Spy };
+  let mockConfigService: {
+        config: AddInConfiguration | null;
+        loadConfigAsync: Mock;
+    };
 
   const baseUrl = 'https://asset.example.com/';
   const tenantId = 'meshtest';
@@ -57,7 +61,7 @@ describe('AssetRepoService', () => {
   beforeEach(() => {
     mockConfigService = {
       config: mockConfig,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync').and.returnValue(Promise.resolve())
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
     };
 
     TestBed.configureTestingModule({
@@ -172,7 +176,7 @@ describe('AssetRepoService', () => {
       const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/non-existent`);
       req.flush('Not Found', { status: 404, statusText: 'Not Found' });
 
-      await expectAsync(resultPromise).toBeRejected();
+      await expect(resultPromise).rejects.toThrow();
     });
   });
 
@@ -181,9 +185,7 @@ describe('AssetRepoService', () => {
       const resultPromise = service.createTenant(mockTenant);
       await flushTenantProvider();
 
-      const req = httpMock.expectOne(
-        `${baseUrl}${tenantId}/v1/tenants?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`
-      );
+      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(null);
@@ -204,9 +206,7 @@ describe('AssetRepoService', () => {
       const resultPromise = service.attachTenant(mockTenant);
       await flushTenantProvider();
 
-      const req = httpMock.expectOne(
-        `${baseUrl}${tenantId}/v1/tenants/attach?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`
-      );
+      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/attach?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(null);
@@ -317,7 +317,7 @@ describe('AssetRepoService', () => {
       const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/enable`);
       req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
 
-      await expectAsync(resultPromise).toBeRejected();
+      await expect(resultPromise).rejects.toThrow();
     });
 
     it('should not make request when config is not available', async () => {
@@ -346,7 +346,7 @@ describe('AssetRepoService', () => {
       const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/disable`);
       req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
 
-      await expectAsync(resultPromise).toBeRejected();
+      await expect(resultPromise).rejects.toThrow();
     });
 
     it('should not make request when config is not available', async () => {
@@ -357,31 +357,38 @@ describe('AssetRepoService', () => {
     });
   });
 
-  describe('getStreamDataStatus (AB#4255)', () => {
-    it('should GET the tenant-scoped status endpoint and return the body', async () => {
-      const resultPromise = service.getStreamDataStatus('tenant-1');
+  describe('getTenantFeaturesStatus (AB#4884)', () => {
+    const statusBody = {
+      streamData: { instanceEnabled: true, tenantEnabled: false },
+      communication: { tenantEnabled: true },
+      reporting: { tenantEnabled: false },
+      aiServices: { tenantEnabled: false }
+    };
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/status`);
+    it('should GET the tenant-scoped features status endpoint and return the body', async () => {
+      const resultPromise = service.getTenantFeaturesStatus('tenant-1');
+
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/features/status`);
       expect(req.request.method).toBe('GET');
-      req.flush({ instanceEnabled: true, tenantEnabled: false });
+      req.flush(statusBody);
 
-      expect(await resultPromise).toEqual({ instanceEnabled: true, tenantEnabled: false });
+      expect(await resultPromise).toEqual(statusBody);
     });
 
     it('should propagate errors', async () => {
-      const resultPromise = service.getStreamDataStatus('tenant-1');
+      const resultPromise = service.getTenantFeaturesStatus('tenant-1');
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/status`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/features/status`);
       req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
 
-      await expectAsync(resultPromise).toBeRejected();
+      await expect(resultPromise).rejects.toThrow();
     });
 
     it('should return null without a request when config is not available', async () => {
       mockConfigService.config = null;
 
-      expect(await service.getStreamDataStatus('tenant-1')).toBeNull();
-      httpMock.expectNone(`${baseUrl}tenant-1/v1/streamdata/status`);
+      expect(await service.getTenantFeaturesStatus('tenant-1')).toBeNull();
+      httpMock.expectNone(`${baseUrl}tenant-1/v1/features/status`);
     });
   });
 
@@ -394,7 +401,7 @@ describe('AssetRepoService', () => {
 
       const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=0`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBeTrue();
+      expect(req.request.body instanceof FormData).toBe(true);
       req.flush(mockResponse);
 
       const result = await resultPromise;
@@ -409,7 +416,7 @@ describe('AssetRepoService', () => {
 
       const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=1`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBeTrue();
+      expect(req.request.body instanceof FormData).toBe(true);
       req.flush(mockResponse);
 
       const result = await resultPromise;
@@ -446,7 +453,7 @@ describe('AssetRepoService', () => {
 
       const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportCk?importStrategy=0`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBeTrue();
+      expect(req.request.body instanceof FormData).toBe(true);
       req.flush(mockResponse);
 
       const result = await resultPromise;

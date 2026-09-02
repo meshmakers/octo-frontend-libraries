@@ -1,3 +1,4 @@
+import type { Mock, MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, ActivatedRoute, Event as RouterEvent } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -8,16 +9,21 @@ import { BreadCrumbService } from '@meshmakers/shared-services';
 describe('FakeComponent', () => {
   let component: FakeComponent;
   let fixture: ComponentFixture<FakeComponent>;
-  let mockBreadCrumbService: jasmine.SpyObj<BreadCrumbService>;
-  let mockRouter: { events: Subject<RouterEvent>; navigate: jasmine.Spy };
+  let mockBreadCrumbService: MockedObject<BreadCrumbService>;
+  let mockRouter: {
+        events: Subject<RouterEvent>;
+        navigate: Mock;
+    };
 
   beforeEach(async () => {
-    mockBreadCrumbService = jasmine.createSpyObj('BreadCrumbService', ['updateBreadcrumbLabels']);
-    mockBreadCrumbService.updateBreadcrumbLabels.and.returnValue(Promise.resolve());
+    mockBreadCrumbService = {
+      updateBreadcrumbLabels: vi.fn().mockName('BreadCrumbService.updateBreadcrumbLabels')
+    } as unknown as MockedObject<BreadCrumbService>;
+    mockBreadCrumbService.updateBreadcrumbLabels.mockResolvedValue(undefined);
 
     mockRouter = {
       events: new Subject<RouterEvent>(),
-      navigate: jasmine.createSpy('navigate')
+      navigate: vi.fn().mockName('navigate')
     };
 
     const mockActivatedRoute = {
@@ -35,7 +41,7 @@ describe('FakeComponent', () => {
         { provide: ActivatedRoute, useValue: mockActivatedRoute }
       ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(FakeComponent);
     component = fixture.componentInstance;

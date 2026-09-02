@@ -6,18 +6,22 @@ import { BreadCrumbRouteItem } from '../models/breadCrumbRouteItem';
 import { BreadCrumbData } from '../models/breadCrumbData';
 
 interface MockRoute {
-  snapshot: {
-    data: Record<string, unknown>;
-    params: Record<string, string>;
-    url: { path: string }[];
-  };
-  children: MockRoute[];
+    snapshot: {
+        data: Record<string, unknown>;
+        params: Record<string, string>;
+        url: {
+            path: string;
+        }[];
+    };
+    children: MockRoute[];
 }
 
 describe('BreadCrumbService', () => {
   let service: BreadCrumbService;
   let routerEvents$: Subject<RouterEvent>;
-  let mockActivatedRoute: { root: MockRoute };
+  let mockActivatedRoute: {
+        root: MockRoute;
+    };
   let mockRouter: unknown;
 
   function createMockRoute(breadcrumb: BreadCrumbRouteItem[] | undefined, params: Record<string, string> = {}, children: MockRoute[] = []): MockRoute {
@@ -57,7 +61,7 @@ describe('BreadCrumbService', () => {
       expect(service).toBeTruthy();
     });
 
-    it('should emit empty breadcrumbs when no route has breadcrumb data', (done) => {
+    it('should emit empty breadcrumbs when no route has breadcrumb data', () => new Promise<void>((done) => {
       mockActivatedRoute.root = createMockRoute(undefined, {}, []);
 
       service = TestBed.inject(BreadCrumbService);
@@ -66,9 +70,9 @@ describe('BreadCrumbService', () => {
         expect(items).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should create breadcrumbs from initial route on construction', (done) => {
+    it('should create breadcrumbs from initial route on construction', () => new Promise<void>((done) => {
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'Home', url: '/home' }
       ];
@@ -84,7 +88,7 @@ describe('BreadCrumbService', () => {
         expect(items[0].url).toBe('/home');
         done();
       });
-    });
+    }));
   });
 
   describe('navigation events', () => {
@@ -137,7 +141,7 @@ describe('BreadCrumbService', () => {
   });
 
   describe('breadcrumb creation', () => {
-    it('should handle multiple breadcrumb items per route', (done) => {
+    it('should handle multiple breadcrumb items per route', () => new Promise<void>((done) => {
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'Home', url: '/home' },
         { label: 'Settings', url: '/settings' }
@@ -154,9 +158,9 @@ describe('BreadCrumbService', () => {
         expect(items[1].text).toBe('Settings');
         done();
       });
-    });
+    }));
 
-    it('should traverse nested routes', (done) => {
+    it('should traverse nested routes', () => new Promise<void>((done) => {
       mockActivatedRoute.root = createMockRoute(undefined, {}, [
         createMockRoute([{ label: 'Parent', url: '/parent' }], {}, [
           createMockRoute([{ label: 'Child', url: '/parent/child' }], {}, [])
@@ -171,9 +175,9 @@ describe('BreadCrumbService', () => {
         expect(items[1].text).toBe('Child');
         done();
       });
-    });
+    }));
 
-    it('should skip routes without breadcrumb data', (done) => {
+    it('should skip routes without breadcrumb data', () => new Promise<void>((done) => {
       mockActivatedRoute.root = createMockRoute(undefined, {}, [
         createMockRoute(undefined, {}, [
           createMockRoute([{ label: 'Nested', url: '/nested' }], {}, [])
@@ -187,9 +191,9 @@ describe('BreadCrumbService', () => {
         expect(items[0].text).toBe('Nested');
         done();
       });
-    });
+    }));
 
-    it('should include svgIcon in breadcrumb data', (done) => {
+    it('should include svgIcon in breadcrumb data', () => new Promise<void>((done) => {
       const mockIcon = { name: 'home', content: '<svg></svg>', viewBox: '0 0 24 24' };
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'Home', url: '/home', svgIcon: mockIcon }
@@ -204,11 +208,11 @@ describe('BreadCrumbService', () => {
         expect(items[0].svgIcon).toEqual(mockIcon);
         done();
       });
-    });
+    }));
   });
 
   describe('route parameter replacement in URL', () => {
-    it('should replace :param in URL with actual route param value', (done) => {
+    it('should replace :param in URL with actual route param value', () => new Promise<void>((done) => {
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'User', url: ':userId' }
       ];
@@ -222,9 +226,9 @@ describe('BreadCrumbService', () => {
         expect(items[0].url).toBe('123');
         done();
       });
-    });
+    }));
 
-    it('should replace multiple params in URL path', (done) => {
+    it('should replace multiple params in URL path', () => new Promise<void>((done) => {
       // Note: The current implementation only handles one param replacement per URL
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'Item', url: ':itemId' }
@@ -239,9 +243,9 @@ describe('BreadCrumbService', () => {
         expect(items[0].url).toBe('456');
         done();
       });
-    });
+    }));
 
-    it('should handle URL without params', (done) => {
+    it('should handle URL without params', () => new Promise<void>((done) => {
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'Static', url: '/static/path' }
       ];
@@ -255,11 +259,11 @@ describe('BreadCrumbService', () => {
         expect(items[0].url).toBe('/static/path');
         done();
       });
-    });
+    }));
   });
 
   describe('label parameter replacement', () => {
-    it('should replace {{param}} in label with route param value', (done) => {
+    it('should replace {{param}} in label with route param value', () => new Promise<void>((done) => {
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'User {{userId}}', url: '/users' }
       ];
@@ -274,9 +278,9 @@ describe('BreadCrumbService', () => {
         expect(items[0].title).toBe('User john');
         done();
       });
-    });
+    }));
 
-    it('should keep label template in labelTemplate property', (done) => {
+    it('should keep label template in labelTemplate property', () => new Promise<void>((done) => {
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'User {{userId}}', url: '/users' }
       ];
@@ -290,9 +294,9 @@ describe('BreadCrumbService', () => {
         expect(items[0].labelTemplate).toBe('User {{userId}}');
         done();
       });
-    });
+    }));
 
-    it('should handle label without params', (done) => {
+    it('should handle label without params', () => new Promise<void>((done) => {
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'Static Label', url: '/static' }
       ];
@@ -306,9 +310,9 @@ describe('BreadCrumbService', () => {
         expect(items[0].text).toBe('Static Label');
         done();
       });
-    });
+    }));
 
-    it('should handle missing route param in label', (done) => {
+    it('should handle missing route param in label', () => new Promise<void>((done) => {
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: 'User {{missingParam}}', url: '/users' }
       ];
@@ -323,7 +327,7 @@ describe('BreadCrumbService', () => {
         expect(items[0].text).toBe('User \u2026');
         done();
       });
-    });
+    }));
   });
 
   describe('updateBreadcrumbLabels', () => {
@@ -390,7 +394,7 @@ describe('BreadCrumbService', () => {
       tick();
 
       // Should not throw
-      await expectAsync(service.updateBreadcrumbLabels({ anyField: 'value' })).toBeResolved();
+      await expect(service.updateBreadcrumbLabels({ anyField: 'value' })).resolves.not.toThrow();
     }));
   });
 
@@ -441,7 +445,7 @@ describe('BreadCrumbService', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle deeply nested routes', (done) => {
+    it('should handle deeply nested routes', () => new Promise<void>((done) => {
       mockActivatedRoute.root = createMockRoute(undefined, {}, [
         createMockRoute([{ label: 'Level 1', url: '/l1' }], {}, [
           createMockRoute([{ label: 'Level 2', url: '/l2' }], {}, [
@@ -459,9 +463,9 @@ describe('BreadCrumbService', () => {
         expect(items.map(i => i.text)).toEqual(['Level 1', 'Level 2', 'Level 3', 'Level 4']);
         done();
       });
-    });
+    }));
 
-    it('should handle route with empty breadcrumb array', (done) => {
+    it('should handle route with empty breadcrumb array', () => new Promise<void>((done) => {
       mockActivatedRoute.root = createMockRoute(undefined, {}, [
         createMockRoute([], {}, [])
       ]);
@@ -472,9 +476,9 @@ describe('BreadCrumbService', () => {
         expect(items).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should handle route with empty label and url', (done) => {
+    it('should handle route with empty label and url', () => new Promise<void>((done) => {
       const breadcrumbData: BreadCrumbRouteItem[] = [
         { label: '', url: '' }
       ];
@@ -490,6 +494,6 @@ describe('BreadCrumbService', () => {
         expect(items[0].url).toBe('');
         done();
       });
-    });
+    }));
   });
 });

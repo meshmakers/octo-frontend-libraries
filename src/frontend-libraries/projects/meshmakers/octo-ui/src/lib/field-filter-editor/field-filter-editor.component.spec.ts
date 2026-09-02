@@ -1,4 +1,4 @@
-import '@angular/localize/init';
+import type { MockedObject } from 'vitest';
 import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
@@ -34,7 +34,9 @@ describe('FieldFilterEditorComponent', () => {
       ],
       providers: [
         provideNoopAnimations(),
-        { provide: AttributeSelectorService, useValue: jasmine.createSpyObj('AttributeSelectorService', ['getAvailableAttributes']) }
+        { provide: AttributeSelectorService, useValue: {
+          getAvailableAttributes: vi.fn().mockName('AttributeSelectorService.getAvailableAttributes')
+        } }
       ]
     }).compileComponents();
 
@@ -77,7 +79,7 @@ describe('FieldFilterEditorComponent', () => {
     });
 
     it('should emit filtersChange when adding filter', () => {
-      spyOn(component.filtersChange, 'emit');
+      vi.spyOn(component.filtersChange, 'emit').mockReturnValue(undefined);
 
       component.addFilter();
 
@@ -97,7 +99,7 @@ describe('FieldFilterEditorComponent', () => {
 
     it('should emit filtersChange when removing filter', () => {
       component.addFilter();
-      spyOn(component.filtersChange, 'emit');
+      vi.spyOn(component.filtersChange, 'emit').mockReturnValue(undefined);
 
       component.removeFilter(component.filters[0]);
 
@@ -131,7 +133,7 @@ describe('FieldFilterEditorComponent', () => {
 
     it('should emit filtersChange when clearing', () => {
       component.addFilter();
-      spyOn(component.filtersChange, 'emit');
+      vi.spyOn(component.filtersChange, 'emit').mockReturnValue(undefined);
 
       component.clear();
 
@@ -602,7 +604,7 @@ describe('FieldFilterEditorComponent', () => {
     it('should update boolean value', () => {
       component.addFilter();
       const filter = component.filters[0];
-      spyOn(component.filtersChange, 'emit');
+      vi.spyOn(component.filtersChange, 'emit').mockReturnValue(undefined);
 
       component.onBooleanValueChange(filter, 'true');
 
@@ -613,7 +615,7 @@ describe('FieldFilterEditorComponent', () => {
     it('should update numeric value', () => {
       component.addFilter();
       const filter = component.filters[0];
-      spyOn(component.filtersChange, 'emit');
+      vi.spyOn(component.filtersChange, 'emit').mockReturnValue(undefined);
 
       component.onNumericValueChange(filter, 42);
 
@@ -682,7 +684,7 @@ describe('FieldFilterEditorComponent', () => {
       const filter = component.filters[0];
       filter.comparisonValue = '';
       filter.operator = FieldFilterOperatorsDto.InDto;
-      spyOn(component.filtersChange, 'emit');
+      vi.spyOn(component.filtersChange, 'emit').mockReturnValue(undefined);
 
       component.onOperatorChange(filter);
 
@@ -744,7 +746,7 @@ describe('FieldFilterEditorComponent', () => {
       component.addFilter();
       const filter = component.filters[0];
       filter.comparisonValue = 'old value';
-      spyOn(component.filtersChange, 'emit');
+      vi.spyOn(component.filtersChange, 'emit').mockReturnValue(undefined);
 
       component.onAttributeChange(filter, 'newAttribute');
 
@@ -831,7 +833,7 @@ describe('FieldFilterEditorComponent', () => {
         { attributePath: 'name', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: 'John' },
         { attributePath: 'age', operator: FieldFilterOperatorsDto.GreaterThanDto, comparisonValue: '18' }
       ];
-      spyOn(component.filtersChange, 'emit');
+      vi.spyOn(component.filtersChange, 'emit').mockReturnValue(undefined);
 
       component.setFieldFilters(dtos);
 
@@ -971,7 +973,7 @@ describe('FieldFilterEditorComponent', () => {
         component.addFilter();
         const filter = component.filters[0];
         const variable = mockVariables[0];
-        spyOn(component.filtersChange, 'emit');
+        vi.spyOn(component.filtersChange, 'emit').mockReturnValue(undefined);
 
         component.onVariableSelected(filter, variable);
 
@@ -1069,7 +1071,7 @@ describe('FieldFilterEditorComponent', () => {
     });
 
     it('should trigger reload when attributePaths changes with ckTypeId set', () => {
-      const attributeServiceMock = TestBed.inject(AttributeSelectorService) as jasmine.SpyObj<AttributeSelectorService>;
+      const attributeServiceMock = TestBed.inject(AttributeSelectorService) as MockedObject<AttributeSelectorService>;
 
       component.ckTypeId = 'TestType';
       component.attributePaths = ['rtId'];
@@ -1079,8 +1081,8 @@ describe('FieldFilterEditorComponent', () => {
     });
 
     it('should not trigger reload when attributePaths changes without ckTypeId', () => {
-      const attributeServiceMock = TestBed.inject(AttributeSelectorService) as jasmine.SpyObj<AttributeSelectorService>;
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      const attributeServiceMock = TestBed.inject(AttributeSelectorService) as MockedObject<AttributeSelectorService>;
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.ckTypeId = undefined;
       component.attributePaths = ['rtId'];

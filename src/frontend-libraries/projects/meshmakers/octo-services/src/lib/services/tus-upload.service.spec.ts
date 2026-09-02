@@ -1,16 +1,20 @@
-import {TestBed} from '@angular/core/testing';
-import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {provideHttpClient, withXhr} from '@angular/common/http';
-import {TusUploadService, TusUploadOptions} from './tus-upload.service';
-import {CONFIGURATION_SERVICE} from './configuration.service';
-import {AddInConfiguration} from '../shared/addInConfiguration';
-import {AuthorizeService} from '@meshmakers/shared-auth';
+import type { Mock, MockedObject } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withXhr } from '@angular/common/http';
+import { TusUploadService, TusUploadOptions } from './tus-upload.service';
+import { CONFIGURATION_SERVICE } from './configuration.service';
+import { AddInConfiguration } from '../shared/addInConfiguration';
+import { AuthorizeService } from '@meshmakers/shared-auth';
 
 describe('TusUploadService', () => {
   let service: TusUploadService;
   let httpMock: HttpTestingController;
-  let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: jasmine.Spy };
-  let authorizeServiceMock: jasmine.SpyObj<AuthorizeService>;
+  let mockConfigService: {
+        config: AddInConfiguration | null;
+        loadConfigAsync: Mock;
+    };
+  let authorizeServiceMock: MockedObject<AuthorizeService>;
 
   const baseUrl = 'https://bot.example.com/';
 
@@ -33,19 +37,21 @@ describe('TusUploadService', () => {
   beforeEach(() => {
     mockConfigService = {
       config: mockConfig,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync').and.returnValue(Promise.resolve())
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
     };
 
-    authorizeServiceMock = jasmine.createSpyObj('AuthorizeService', ['getAccessTokenSync']);
-    authorizeServiceMock.getAccessTokenSync.and.returnValue('test-token');
+    authorizeServiceMock = {
+      getAccessTokenSync: vi.fn().mockName('AuthorizeService.getAccessTokenSync')
+    } as unknown as MockedObject<AuthorizeService>;
+    authorizeServiceMock.getAccessTokenSync.mockReturnValue('test-token');
 
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         TusUploadService,
-        {provide: CONFIGURATION_SERVICE, useValue: mockConfigService},
-        {provide: AuthorizeService, useValue: authorizeServiceMock}
+        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
+        { provide: AuthorizeService, useValue: authorizeServiceMock }
       ]
     });
 
@@ -64,28 +70,26 @@ describe('TusUploadService', () => {
   describe('startUpload', () => {
     it('should throw error when config is null', async () => {
       mockConfigService.config = null;
-      const mockFile = new File(['backup data'], 'backup.tar.gz', {type: 'application/gzip'});
+      const mockFile = new File(['backup data'], 'backup.tar.gz', { type: 'application/gzip' });
       const options: TusUploadOptions = {
         file: mockFile,
         tenantId: 'tenant-1',
         databaseName: 'db-1'
       };
 
-      await expectAsync(service.startUpload(options))
-        .toBeRejectedWithError('Bot services URL not configured');
+      await expect(service.startUpload(options)).rejects.toThrowError(/^Bot services URL not configured$/);
     });
 
     it('should throw error when botServices URL is empty', async () => {
-      mockConfigService.config = {...mockConfig, botServices: ''};
-      const mockFile = new File(['backup data'], 'backup.tar.gz', {type: 'application/gzip'});
+      mockConfigService.config = { ...mockConfig, botServices: '' };
+      const mockFile = new File(['backup data'], 'backup.tar.gz', { type: 'application/gzip' });
       const options: TusUploadOptions = {
         file: mockFile,
         tenantId: 'tenant-1',
         databaseName: 'db-1'
       };
 
-      await expectAsync(service.startUpload(options))
-        .toBeRejectedWithError('Bot services URL not configured');
+      await expect(service.startUpload(options)).rejects.toThrowError(/^Bot services URL not configured$/);
     });
 
     // AB#5060: the restore job must be started on the tenant route. As `?tenantId=` it bypassed the
@@ -110,7 +114,7 @@ describe('TusUploadService', () => {
         (request) => request.url === `${baseUrl}tenant-1/v1/jobs/restore-from-upload`
       );
       expect(req.request.method).toBe('POST');
-      expect(req.request.params.has('tenantId')).toBeFalse();
+      expect(req.request.params.has('tenantId')).toBe(false);
       expect(req.request.params.get('tusFileId')).toBe('tus-file-1');
       expect(req.request.params.get('databaseName')).toBe('db-1');
       expect(req.request.params.get('oldDatabaseName')).toBe('db-0');
@@ -154,7 +158,7 @@ describe('TusUploadService', () => {
     const internals = service as unknown as {
       performTusUpload: (botServicesUrl: string, options: TusUploadOptions) => Promise<string>;
     };
-    spyOn(internals, 'performTusUpload').and.returnValue(Promise.resolve(tusFileId));
+    vi.spyOn(internals, 'performTusUpload').mockReturnValue(Promise.resolve(tusFileId));
   }
 
   /**

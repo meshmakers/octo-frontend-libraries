@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { CopyableTextComponent } from './copyable-text.component';
 import { NotificationDisplayService } from '../services/notification-display.service';
@@ -6,10 +7,13 @@ import { By } from '@angular/platform-browser';
 describe('CopyableTextComponent', () => {
   let component: CopyableTextComponent;
   let fixture: ComponentFixture<CopyableTextComponent>;
-  let notificationServiceSpy: jasmine.SpyObj<NotificationDisplayService>;
+  let notificationServiceSpy: MockedObject<NotificationDisplayService>;
 
   beforeEach(async () => {
-    notificationServiceSpy = jasmine.createSpyObj('NotificationDisplayService', ['showSuccess', 'showError']);
+    notificationServiceSpy = {
+      showSuccess: vi.fn().mockName('NotificationDisplayService.showSuccess'),
+      showError: vi.fn().mockName('NotificationDisplayService.showError')
+    } as unknown as MockedObject<NotificationDisplayService>;
 
     await TestBed.configureTestingModule({
       imports: [CopyableTextComponent],
@@ -108,7 +112,7 @@ describe('CopyableTextComponent', () => {
     fixture.detectChanges();
 
     // Mock clipboard API
-    const clipboardSpy = spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+    const clipboardSpy = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
 
     const copyButton = fixture.debugElement.query(By.css('.copy-button'));
     copyButton.nativeElement.click();
@@ -123,7 +127,7 @@ describe('CopyableTextComponent', () => {
     component.label = 'My Label';
     fixture.detectChanges();
 
-    spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+    vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
 
     const copyButton = fixture.debugElement.query(By.css('.copy-button'));
     copyButton.nativeElement.click();
@@ -136,7 +140,7 @@ describe('CopyableTextComponent', () => {
     component.value = 'test-value';
     fixture.detectChanges();
 
-    spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+    vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
 
     const copyButton = fixture.debugElement.query(By.css('.copy-button'));
     copyButton.nativeElement.click();
@@ -149,8 +153,8 @@ describe('CopyableTextComponent', () => {
     component.value = 'test-value';
     fixture.detectChanges();
 
-    spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
-    const copiedSpy = spyOn(component.copied, 'emit');
+    vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
+    const copiedSpy = vi.spyOn(component.copied, 'emit').mockReturnValue(undefined);
 
     const copyButton = fixture.debugElement.query(By.css('.copy-button'));
     copyButton.nativeElement.click();
@@ -163,8 +167,8 @@ describe('CopyableTextComponent', () => {
     component.value = 'test-value';
     fixture.detectChanges();
 
-    spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.reject(new Error('Clipboard error')));
-    spyOn(console, 'error');
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Clipboard error'));
+    vi.spyOn(console, 'error').mockReturnValue(undefined);
 
     const copyButton = fixture.debugElement.query(By.css('.copy-button'));
     copyButton.nativeElement.click();
@@ -177,9 +181,9 @@ describe('CopyableTextComponent', () => {
     component.value = 'test-value';
     fixture.detectChanges();
 
-    spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.reject(new Error('Clipboard error')));
-    spyOn(console, 'error');
-    const copiedSpy = spyOn(component.copied, 'emit');
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Clipboard error'));
+    vi.spyOn(console, 'error').mockReturnValue(undefined);
+    const copiedSpy = vi.spyOn(component.copied, 'emit').mockReturnValue(undefined);
 
     const copyButton = fixture.debugElement.query(By.css('.copy-button'));
     copyButton.nativeElement.click();

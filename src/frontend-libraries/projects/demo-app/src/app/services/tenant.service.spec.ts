@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
@@ -6,12 +7,14 @@ import { GetCkModelByIdDtoGQL } from '../graphQL/getCkModelById';
 
 describe('TenantService', () => {
   let service: TenantService;
-  let mockGetCkModelByIdGQL: jasmine.SpyObj<GetCkModelByIdDtoGQL>;
+  let mockGetCkModelByIdGQL: MockedObject<GetCkModelByIdDtoGQL>;
 
   beforeEach(() => {
-    mockGetCkModelByIdGQL = jasmine.createSpyObj('GetCkModelByIdDtoGQL', ['fetch']);
+    mockGetCkModelByIdGQL = {
+      fetch: vi.fn().mockName('GetCkModelByIdDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkModelByIdDtoGQL>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test mock
-    mockGetCkModelByIdGQL.fetch.and.returnValue(of({ data: { constructionKit: { models: { items: [] } } } } as any));
+    mockGetCkModelByIdGQL.fetch.mockReturnValue(of({ data: { constructionKit: { models: { items: [] } } } } as any));
 
     TestBed.configureTestingModule({
       providers: [

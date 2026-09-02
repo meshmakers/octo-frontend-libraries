@@ -1,9 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  RuntimeBrowserStateService,
-  BrowserState,
-  BrowserItem,
-} from './runtime-browser-state.service';
+import { RuntimeBrowserStateService, BrowserState, BrowserItem, } from './runtime-browser-state.service';
 import { TreeItemDataTyped } from '@meshmakers/shared-services';
 import { CkModelDto, CkTypeDto, RtEntityDto } from '../../graphQL/globalTypes';
 import { fileIcon } from '@progress/kendo-svg-icons';
@@ -11,11 +7,7 @@ import { fileIcon } from '@progress/kendo-svg-icons';
 describe('RuntimeBrowserStateService', () => {
   let service: RuntimeBrowserStateService;
 
-  const createTreeItem = (
-    id: string,
-    text: string,
-    item: BrowserItem,
-  ): TreeItemDataTyped<BrowserItem> => {
+  const createTreeItem = (id: string, text: string, item: BrowserItem): TreeItemDataTyped<BrowserItem> => {
     return new TreeItemDataTyped<BrowserItem>(id, text, '', item, fileIcon, false);
   };
 
@@ -41,11 +33,7 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
 
       service.saveState(item);
       const state = service.getState();
@@ -66,11 +54,7 @@ describe('RuntimeBrowserStateService', () => {
       } as RtEntityDto;
 
       const childItem = createTreeItem('Test/Child@child-1', 'Child', rtEntity);
-      const parentItem = createTreeItem(
-        'Test/Parent@parent-1',
-        'Parent',
-        parentEntity,
-      );
+      const parentItem = createTreeItem('Test/Parent@parent-1', 'Parent', parentEntity);
 
       service.saveState(childItem, [parentItem]);
       const state = service.getState();
@@ -84,11 +68,7 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
 
       service.saveState(item);
       expect(service.getState()).toBeTruthy();
@@ -104,11 +84,7 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
       const expandedKeys = ['root-1', 'parent-1', 'child-1'];
 
       service.saveStateWithKeys(item, expandedKeys);
@@ -124,11 +100,7 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
 
       service.saveStateWithKeys(item, ['key-1']);
       expect(service.getState()).toBeTruthy();
@@ -148,11 +120,7 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
 
       service.saveState(item);
 
@@ -165,16 +133,14 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
 
       service.saveState(item);
 
       // Modify timestamp to be older than 5 minutes
-      const state = (service as unknown as { currentState: BrowserState }).currentState;
+      const state = (service as unknown as {
+                currentState: BrowserState;
+            }).currentState;
       state.timestamp = Date.now() - 300001; // 5 minutes + 1 ms
 
       expect(service.getState()).toBeNull();
@@ -185,20 +151,18 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
 
       service.saveState(item);
-      const state = (service as unknown as { currentState: BrowserState }).currentState;
+      const state = (service as unknown as {
+                currentState: BrowserState;
+            }).currentState;
       state.timestamp = Date.now() - 400000; // Expired
 
       service.getState(); // Should clear state
-      expect(
-        (service as unknown as { currentState: BrowserState | null }).currentState,
-      ).toBeNull();
+      expect((service as unknown as {
+                currentState: BrowserState | null;
+            }).currentState).toBeNull();
     });
   });
 
@@ -208,11 +172,7 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
 
       service.saveState(item);
       expect(service.getState()).toBeTruthy();
@@ -228,20 +188,12 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
 
       service.saveState(item);
 
-      const sameItem = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
-      expect(service.isItemMatching(sameItem)).toBeTrue();
+      const sameItem = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
+      expect(service.isItemMatching(sameItem)).toBe(true);
     });
 
     it('should return false when item does not match', () => {
@@ -254,19 +206,11 @@ describe('RuntimeBrowserStateService', () => {
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
 
-      const item1 = createTreeItem(
-        'Test/Entity@entity-1',
-        'Entity 1',
-        rtEntity1,
-      );
-      const item2 = createTreeItem(
-        'Test/Entity@entity-2',
-        'Entity 2',
-        rtEntity2,
-      );
+      const item1 = createTreeItem('Test/Entity@entity-1', 'Entity 1', rtEntity1);
+      const item2 = createTreeItem('Test/Entity@entity-2', 'Entity 2', rtEntity2);
 
       service.saveState(item1);
-      expect(service.isItemMatching(item2)).toBeFalse();
+      expect(service.isItemMatching(item2)).toBe(false);
     });
 
     it('should return false when no state is saved', () => {
@@ -274,13 +218,9 @@ describe('RuntimeBrowserStateService', () => {
         rtId: 'entity-1',
         ckTypeId: 'Test/Entity',
       } as RtEntityDto;
-      const item = createTreeItem(
-        'Test/Entity@entity-1',
-        'Test Entity',
-        rtEntity,
-      );
+      const item = createTreeItem('Test/Entity@entity-1', 'Test Entity', rtEntity);
 
-      expect(service.isItemMatching(item)).toBeFalse();
+      expect(service.isItemMatching(item)).toBe(false);
     });
   });
 

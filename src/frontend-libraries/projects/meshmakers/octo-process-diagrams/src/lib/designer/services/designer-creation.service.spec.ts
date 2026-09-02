@@ -32,13 +32,13 @@ describe('DesignerCreationService', () => {
     it('should use default prefix "elem"', () => {
       const id = service.generateId();
 
-      expect(id.startsWith('elem-')).toBeTrue();
+      expect(id.startsWith('elem-')).toBe(true);
     });
 
     it('should use custom prefix', () => {
       const id = service.generateId('custom');
 
-      expect(id.startsWith('custom-')).toBeTrue();
+      expect(id.startsWith('custom-')).toBe(true);
     });
 
     it('should include timestamp', () => {
@@ -131,7 +131,7 @@ describe('DesignerCreationService', () => {
       const element = service.createDefaultElement('tank', position);
 
       expect(element.id).toBeDefined();
-      expect(element.id.startsWith('elem-')).toBeTrue();
+      expect(element.id.startsWith('elem-')).toBe(true);
     });
 
     it('should create element with provided ID', () => {
@@ -161,7 +161,7 @@ describe('DesignerCreationService', () => {
     it('should set visible to true', () => {
       const element = service.createDefaultElement('tank', position);
 
-      expect(element.visible).toBeTrue();
+      expect(element.visible).toBe(true);
     });
 
     it('should generate name with ID suffix', () => {
@@ -249,7 +249,7 @@ describe('DesignerCreationService', () => {
       const primitive = service.createDefaultPrimitive(PrimitiveType.Rectangle, position);
 
       expect(primitive.id).toBeDefined();
-      expect(primitive.id.startsWith('prim-')).toBeTrue();
+      expect(primitive.id.startsWith('prim-')).toBe(true);
     });
 
     it('should create primitive with provided ID', () => {
@@ -368,7 +368,7 @@ describe('DesignerCreationService', () => {
       const symbol = service.createSymbolInstance(libraryRtId, symbolRtId, position);
 
       expect(symbol.id).toBeDefined();
-      expect(symbol.id.startsWith('sym-')).toBeTrue();
+      expect(symbol.id.startsWith('sym-')).toBe(true);
     });
 
     it('should set library and symbol IDs', () => {
@@ -406,13 +406,13 @@ describe('DesignerCreationService', () => {
     it('should set visible to true', () => {
       const symbol = service.createSymbolInstance(libraryRtId, symbolRtId, position);
 
-      expect(symbol.visible).toBeTrue();
+      expect(symbol.visible).toBe(true);
     });
 
     it('should set locked to false', () => {
       const symbol = service.createSymbolInstance(libraryRtId, symbolRtId, position);
 
-      expect(symbol.locked).toBeFalse();
+      expect(symbol.locked).toBe(false);
     });
 
     it('should apply custom scale', () => {
@@ -461,7 +461,7 @@ describe('DesignerCreationService', () => {
       const diagram = service.createEmptyDiagram();
 
       expect(diagram.id).toBeDefined();
-      expect(diagram.id.startsWith('diag-')).toBeTrue();
+      expect(diagram.id.startsWith('diag-')).toBe(true);
     });
 
     it('should use default name', () => {
@@ -510,7 +510,7 @@ describe('DesignerCreationService', () => {
       const copy = service.copyDiagram(original);
 
       expect(copy.id).not.toBe(original.id);
-      expect(copy.id.startsWith('diag-')).toBeTrue();
+      expect(copy.id.startsWith('diag-')).toBe(true);
     });
 
     it('should use default copy name', () => {
@@ -583,7 +583,7 @@ describe('DesignerCreationService', () => {
     it('should return array of element types', () => {
       const types = service.getAvailableElementTypes();
 
-      expect(Array.isArray(types)).toBeTrue();
+      expect(Array.isArray(types)).toBe(true);
       expect(types.length).toBe(14);
     });
 
@@ -601,7 +601,7 @@ describe('DesignerCreationService', () => {
     it('should return array of primitive types', () => {
       const types = service.getAvailablePrimitiveTypes();
 
-      expect(Array.isArray(types)).toBeTrue();
+      expect(Array.isArray(types)).toBe(true);
       expect(types.length).toBe(8);
     });
 

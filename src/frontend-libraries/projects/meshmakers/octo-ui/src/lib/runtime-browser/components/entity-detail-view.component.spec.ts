@@ -1,51 +1,45 @@
-import '@angular/localize/init';
-import { SimpleChange } from "@angular/core";
-import { ComponentFixture, TestBed, fakeAsync } from "@angular/core/testing";
-import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
-import { PropertyConverterService } from "../../property-grid";
-import { CkTypeAttributeService } from "@meshmakers/octo-services";
-import { SelectEvent } from "@progress/kendo-angular-layout";
-import { NotificationService } from "@progress/kendo-angular-notification";
-import { of } from "rxjs";
-import { GetBinaryInfoDtoGQL } from "../../graphQL/getBinaryInfo";
-import { RtEntityDto } from "../../graphQL/globalTypes";
-import { AttributeValueTypeDto, PropertyGridItem } from "../../property-grid";
-import { EntityDetailViewComponent } from "./entity-detail-view.component";
+import { SimpleChange } from '@angular/core';
+import { ComponentFixture, TestBed, fakeAsync } from '@angular/core/testing';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { PropertyConverterService } from '../../property-grid';
+import { CkTypeAttributeService } from '@meshmakers/octo-services';
+import { SelectEvent } from '@progress/kendo-angular-layout';
+import { NotificationService } from '@progress/kendo-angular-notification';
+import { of } from 'rxjs';
+import { GetBinaryInfoDtoGQL } from '../../graphQL/getBinaryInfo';
+import { RtEntityDto } from '../../graphQL/globalTypes';
+import { AttributeValueTypeDto, PropertyGridItem } from '../../property-grid';
+import { EntityDetailViewComponent } from './entity-detail-view.component';
 
-describe("EntityDetailViewComponent", () => {
+describe('EntityDetailViewComponent', () => {
   let component: EntityDetailViewComponent;
   let fixture: ComponentFixture<EntityDetailViewComponent>;
 
   const mockNotificationService = {
-    show: jasmine.createSpy("show"),
+    show: vi.fn().mockName('show'),
   };
 
   const mockPropertyConverterService = {
-    convertRtEntityToProperties: jasmine
-      .createSpy("convertRtEntityToProperties")
-      .and.returnValue(of([])),
+    convertRtEntityToProperties: vi.fn().mockName('convertRtEntityToProperties').mockReturnValue(of([])),
   };
 
   const mockGetBinaryInfoGQL = {
-    fetch: jasmine.createSpy("fetch").and.returnValue(of({ data: null })),
+    fetch: vi.fn().mockName('fetch').mockReturnValue(of({ data: null })),
   };
 
   const mockCkTypeAttributeService = {
-    getAttributeInfos: jasmine
-      .createSpy("getAttributeInfos")
-      .and.returnValue(of([])),
+    getAttributeInfos: vi.fn().mockName('getAttributeInfos').mockReturnValue(of([])),
   };
 
-  const createMockEntity = (overrides?: Partial<RtEntityDto>): RtEntityDto =>
-    ({
-      rtId: "test-entity-123",
-      ckTypeId: "TestNamespace/TestType",
-      rtWellKnownName: "TestEntity",
-      rtCreationDateTime: "2024-01-01T00:00:00Z",
-      rtChangedDateTime: "2024-01-02T00:00:00Z",
-      attributes: { items: [] },
-      ...overrides,
-    }) as RtEntityDto;
+  const createMockEntity = (overrides?: Partial<RtEntityDto>): RtEntityDto => ({
+    rtId: 'test-entity-123',
+    ckTypeId: 'TestNamespace/TestType',
+    rtWellKnownName: 'TestEntity',
+    rtCreationDateTime: '2024-01-01T00:00:00Z',
+    rtChangedDateTime: '2024-01-02T00:00:00Z',
+    attributes: { items: [] },
+    ...overrides,
+  }) as RtEntityDto;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -70,53 +64,51 @@ describe("EntityDetailViewComponent", () => {
   });
 
   afterEach(() => {
-    mockNotificationService.show.calls.reset();
-    mockPropertyConverterService.convertRtEntityToProperties.calls.reset();
-    mockGetBinaryInfoGQL.fetch.calls.reset();
+    mockNotificationService.show.mockClear();
+    mockPropertyConverterService.convertRtEntityToProperties.mockClear();
+    mockGetBinaryInfoGQL.fetch.mockClear();
   });
 
-  it("should create", () => {
+  it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  describe("getEntityIdentifier", () => {
-    it("should return formatted identifier when entity is set", () => {
+  describe('getEntityIdentifier', () => {
+    it('should return formatted identifier when entity is set', () => {
       component.entity = createMockEntity();
-      expect(component.getEntityIdentifier()).toBe(
-        "TestNamespace/TestType@test-entity-123",
-      );
+      expect(component.getEntityIdentifier()).toBe('TestNamespace/TestType@test-entity-123');
     });
 
     it('should return "Unknown" when entity is null', () => {
       component.entity = null;
-      expect(component.getEntityIdentifier()).toBe("Unknown");
+      expect(component.getEntityIdentifier()).toBe('Unknown');
     });
 
     it('should return "Unknown" when entity has no ckTypeId', () => {
       component.entity = createMockEntity({
         ckTypeId: undefined as unknown as string,
       });
-      expect(component.getEntityIdentifier()).toBe("Unknown");
+      expect(component.getEntityIdentifier()).toBe('Unknown');
     });
   });
 
-  describe("getPropertyCount", () => {
-    it("should return 0 when no properties", () => {
+  describe('getPropertyCount', () => {
+    it('should return 0 when no properties', () => {
       expect(component.getPropertyCount()).toBe(0);
     });
 
-    it("should return correct count when properties exist", () => {
+    it('should return correct count when properties exist', () => {
       component.propertyGridItems = [
         {
-          id: "prop1",
-          name: "prop1",
-          value: "val1",
+          id: 'prop1',
+          name: 'prop1',
+          value: 'val1',
           type: AttributeValueTypeDto.StringDto,
         },
         {
-          id: "prop2",
-          name: "prop2",
-          value: "val2",
+          id: 'prop2',
+          name: 'prop2',
+          value: 'val2',
           type: AttributeValueTypeDto.StringDto,
         },
       ] as PropertyGridItem[];
@@ -124,122 +116,119 @@ describe("EntityDetailViewComponent", () => {
     });
   });
 
-  describe("getAssociationCount", () => {
-    it("should return 0 when entity is null", () => {
+  describe('getAssociationCount', () => {
+    it('should return 0 when entity is null', () => {
       component.entity = null;
       expect(component.getAssociationCount()).toBe(0);
     });
 
-    it("should return 0 when entity has no associations", () => {
+    it('should return 0 when entity has no associations', () => {
       component.entity = createMockEntity();
       expect(component.getAssociationCount()).toBe(0);
     });
 
-    it("should return 0 when associations.definitions is undefined", () => {
+    it('should return 0 when associations.definitions is undefined', () => {
       component.entity = createMockEntity({
-        associations: {} as RtEntityDto["associations"],
+        associations: {} as RtEntityDto['associations'],
       });
       expect(component.getAssociationCount()).toBe(0);
     });
 
-    it("should return correct count when entity has associations", () => {
+    it('should return correct count when entity has associations', () => {
       component.entity = createMockEntity({
         associations: {
           definitions: {
             totalCount: 5,
           },
-        } as RtEntityDto["associations"],
+        } as RtEntityDto['associations'],
       });
       expect(component.getAssociationCount()).toBe(5);
     });
 
-    it("should return correct count for large number of associations", () => {
+    it('should return correct count for large number of associations', () => {
       component.entity = createMockEntity({
         associations: {
           definitions: {
             totalCount: 1234,
           },
-        } as RtEntityDto["associations"],
+        } as RtEntityDto['associations'],
       });
       expect(component.getAssociationCount()).toBe(1234);
     });
   });
 
-  describe("onTabSelect - Associations tab loading", () => {
+  describe('onTabSelect - Associations tab loading', () => {
     beforeEach(() => {
       component.entity = createMockEntity();
       fixture.detectChanges();
     });
 
-    it("should load associations when Associations tab is selected", fakeAsync(() => {
-      const loadAssociationsSpy = spyOn(
-        component as unknown as { loadAssociations: () => void },
-        "loadAssociations",
-      ).and.callThrough();
+    it('should load associations when Associations tab is selected', fakeAsync(() => {
+      const loadAssociationsSpy = vi.spyOn(component as unknown as {
+                loadAssociations: () => void;
+            }, 'loadAssociations');
 
       // Select Associations tab (index 1)
-      component["onTabSelect"]({ index: 1 } as SelectEvent);
+      component['onTabSelect']({ index: 1 } as SelectEvent);
 
       expect(loadAssociationsSpy).toHaveBeenCalledTimes(1);
     }));
 
-    it("should load associations every time Associations tab is selected (regression test for disappearing data)", fakeAsync(() => {
-      const loadAssociationsSpy = spyOn(
-        component as unknown as { loadAssociations: () => void },
-        "loadAssociations",
-      ).and.callThrough();
+    it('should load associations every time Associations tab is selected (regression test for disappearing data)', fakeAsync(() => {
+      const loadAssociationsSpy = vi.spyOn(component as unknown as {
+                loadAssociations: () => void;
+            }, 'loadAssociations');
 
       // First selection of Associations tab
-      component["onTabSelect"]({ index: 1 } as SelectEvent);
+      component['onTabSelect']({ index: 1 } as SelectEvent);
       expect(loadAssociationsSpy).toHaveBeenCalledTimes(1);
 
       // Switch to Attributes tab
-      component["onTabSelect"]({ index: 0 } as SelectEvent);
+      component['onTabSelect']({ index: 0 } as SelectEvent);
       expect(loadAssociationsSpy).toHaveBeenCalledTimes(1); // Should not increase
 
       // Second selection of Associations tab - THIS MUST LOAD AGAIN
-      component["onTabSelect"]({ index: 1 } as SelectEvent);
+      component['onTabSelect']({ index: 1 } as SelectEvent);
       expect(loadAssociationsSpy).toHaveBeenCalledTimes(2);
 
       // Third selection
-      component["onTabSelect"]({ index: 1 } as SelectEvent);
+      component['onTabSelect']({ index: 1 } as SelectEvent);
       expect(loadAssociationsSpy).toHaveBeenCalledTimes(3);
     }));
 
-    it("should not load associations when Attributes tab is selected", fakeAsync(() => {
-      const loadAssociationsSpy = spyOn(
-        component as unknown as { loadAssociations: () => void },
-        "loadAssociations",
-      ).and.callThrough();
+    it('should not load associations when Attributes tab is selected', fakeAsync(() => {
+      const loadAssociationsSpy = vi.spyOn(component as unknown as {
+                loadAssociations: () => void;
+            }, 'loadAssociations');
 
       // Select Attributes tab (index 0)
-      component["onTabSelect"]({ index: 0 } as SelectEvent);
+      component['onTabSelect']({ index: 0 } as SelectEvent);
 
       expect(loadAssociationsSpy).not.toHaveBeenCalled();
     }));
   });
 
-  describe("hasProperties", () => {
-    it("should return false when no properties", () => {
+  describe('hasProperties', () => {
+    it('should return false when no properties', () => {
       component.propertyGridItems = [];
-      expect(component.hasProperties()).toBeFalse();
+      expect(component.hasProperties()).toBe(false);
     });
 
-    it("should return true when properties exist", () => {
+    it('should return true when properties exist', () => {
       component.propertyGridItems = [
         {
-          id: "test",
-          name: "test",
-          value: "val",
+          id: 'test',
+          name: 'test',
+          value: 'val',
           type: AttributeValueTypeDto.StringDto,
         },
       ] as PropertyGridItem[];
-      expect(component.hasProperties()).toBeTrue();
+      expect(component.hasProperties()).toBe(true);
     });
   });
 
-  describe("ngOnChanges", () => {
-    it("should update property grid when entity changes", () => {
+  describe('ngOnChanges', () => {
+    it('should update property grid when entity changes', () => {
       const entity = createMockEntity();
       component.entity = entity;
 
@@ -247,17 +236,13 @@ describe("EntityDetailViewComponent", () => {
         entity: new SimpleChange(null, entity, true),
       });
 
-      expect(
-        mockPropertyConverterService.convertRtEntityToProperties,
-      ).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          rtId: entity.rtId,
-          ckTypeId: entity.ckTypeId,
-        }),
-      );
+      expect(mockPropertyConverterService.convertRtEntityToProperties).toHaveBeenCalledWith(expect.objectContaining({
+        rtId: entity.rtId,
+        ckTypeId: entity.ckTypeId,
+      }));
     });
 
-    it("should not update property grid when entity is null", () => {
+    it('should not update property grid when entity is null', () => {
       component.entity = null;
 
       component.ngOnChanges({
@@ -265,9 +250,7 @@ describe("EntityDetailViewComponent", () => {
       });
 
       // Should not be called because entity is null
-      expect(
-        mockPropertyConverterService.convertRtEntityToProperties,
-      ).not.toHaveBeenCalled();
+      expect(mockPropertyConverterService.convertRtEntityToProperties).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { signal, WritableSignal, ChangeDetectionStrategy } from '@angular/core';
 import { LoginAppBarSectionComponent } from './login-app-bar-section.component';
@@ -7,45 +8,58 @@ import { Component, Input } from '@angular/core';
 // Mock Kendo components to avoid complex setup
 // eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'kendo-avatar', template: '', changeDetection: ChangeDetectionStrategy.Eager,
- standalone: true })
+  standalone: true })
 class MockAvatarComponent {
-  @Input() initials: string | undefined;
-  @Input() shape: string | undefined;
-  @Input() width: string | undefined;
-  @Input() height: string | undefined;
+    @Input()
+      initials: string | undefined;
+    @Input()
+      shape: string | undefined;
+    @Input()
+      width: string | undefined;
+    @Input()
+      height: string | undefined;
 }
 
 // eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'kendo-popup', template: '<ng-content></ng-content>', changeDetection: ChangeDetectionStrategy.Eager,
- standalone: true })
+  standalone: true })
 class MockPopupComponent {
-  @Input() anchor: unknown;
-  @Input() popupClass: string | undefined;
+    @Input()
+      anchor: unknown;
+    @Input()
+      popupClass: string | undefined;
 }
 
 // eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'kendo-loader', template: '', changeDetection: ChangeDetectionStrategy.Eager,
- standalone: true })
+  standalone: true })
 class MockLoaderComponent {
-  @Input() themeColor: string | undefined;
-  @Input() type: string | undefined;
-  @Input() size: string | undefined;
+    @Input()
+      themeColor: string | undefined;
+    @Input()
+      type: string | undefined;
+    @Input()
+      size: string | undefined;
 }
 
 // eslint-disable-next-line @angular-eslint/component-selector
 @Component({ selector: 'button[kendoButton]', template: '<ng-content></ng-content>', changeDetection: ChangeDetectionStrategy.Eager,
- standalone: true })
+  standalone: true })
 class MockButtonComponent {
-  @Input() fillMode: string | undefined;
-  @Input() themeColor: string | undefined;
-  @Input() svgIcon: unknown;
-  @Input() size: string | undefined;
+    @Input()
+      fillMode: string | undefined;
+    @Input()
+      themeColor: string | undefined;
+    @Input()
+      svgIcon: unknown;
+    @Input()
+      size: string | undefined;
 }
 
 describe('LoginAppBarSectionComponent', () => {
   let component: LoginAppBarSectionComponent;
   let fixture: ComponentFixture<LoginAppBarSectionComponent>;
-  let authServiceMock: jasmine.SpyObj<AuthorizeService>;
+  let authServiceMock: MockedObject<AuthorizeService>;
 
   // Signal mocks
   let userSignal: WritableSignal<IUser | null>;
@@ -72,14 +86,16 @@ describe('LoginAppBarSectionComponent', () => {
     userInitialsSignal = signal<string | null>(null);
     sessionLoadingSignal = signal<boolean>(false);
 
-    authServiceMock = jasmine.createSpyObj('AuthorizeService', ['login', 'logout'], {
+    authServiceMock = {
+      login: vi.fn().mockName('AuthorizeService.login'),
+      logout: vi.fn().mockName('AuthorizeService.logout'),
       // Signal API (new)
       user: userSignal,
       issuer: issuerSignal,
       isAuthenticated: isAuthenticatedSignal,
       userInitials: userInitialsSignal,
       sessionLoading: sessionLoadingSignal
-    });
+    } as unknown as MockedObject<AuthorizeService>;
 
     await TestBed.configureTestingModule({
       imports: [LoginAppBarSectionComponent],
@@ -87,12 +103,12 @@ describe('LoginAppBarSectionComponent', () => {
         { provide: AuthorizeService, useValue: authServiceMock }
       ]
     })
-    .overrideComponent(LoginAppBarSectionComponent, {
-      set: {
-        imports: [MockAvatarComponent, MockPopupComponent, MockLoaderComponent, MockButtonComponent]
-      }
-    })
-    .compileComponents();
+      .overrideComponent(LoginAppBarSectionComponent, {
+        set: {
+          imports: [MockAvatarComponent, MockPopupComponent, MockLoaderComponent, MockButtonComponent]
+        }
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(LoginAppBarSectionComponent);
     component = fixture.componentInstance;
@@ -191,13 +207,13 @@ describe('LoginAppBarSectionComponent', () => {
   describe('showRegister input', () => {
     it('should default to false', () => {
       fixture.detectChanges();
-      expect(component.showRegister).toBeFalse();
+      expect(component.showRegister).toBe(false);
     });
 
     it('should accept true value', () => {
       component.showRegister = true;
       fixture.detectChanges();
-      expect(component.showRegister).toBeTrue();
+      expect(component.showRegister).toBe(true);
     });
   });
 
@@ -207,26 +223,26 @@ describe('LoginAppBarSectionComponent', () => {
     });
 
     it('should initially have popup closed', () => {
-      expect(component.showPopup).toBeFalse();
+      expect(component.showPopup).toBe(false);
     });
 
     it('should toggle popup state', () => {
       component.onToggle();
-      expect(component.showPopup).toBeTrue();
+      expect(component.showPopup).toBe(true);
 
       component.onToggle();
-      expect(component.showPopup).toBeFalse();
+      expect(component.showPopup).toBe(false);
     });
 
     it('should set popup to specific state', () => {
       component.onToggle(true);
-      expect(component.showPopup).toBeTrue();
+      expect(component.showPopup).toBe(true);
 
       component.onToggle(true);
-      expect(component.showPopup).toBeTrue();
+      expect(component.showPopup).toBe(true);
 
       component.onToggle(false);
-      expect(component.showPopup).toBeFalse();
+      expect(component.showPopup).toBe(false);
     });
   });
 
@@ -237,21 +253,21 @@ describe('LoginAppBarSectionComponent', () => {
     });
 
     it('should close popup on Escape key', () => {
-      expect(component.showPopup).toBeTrue();
+      expect(component.showPopup).toBe(true);
 
       const event = new KeyboardEvent('keydown', { code: 'Escape' });
       component.keydown(event);
 
-      expect(component.showPopup).toBeFalse();
+      expect(component.showPopup).toBe(false);
     });
 
     it('should not close popup on other keys', () => {
-      expect(component.showPopup).toBeTrue();
+      expect(component.showPopup).toBe(true);
 
       const event = new KeyboardEvent('keydown', { code: 'Enter' });
       component.keydown(event);
 
-      expect(component.showPopup).toBeTrue();
+      expect(component.showPopup).toBe(true);
     });
   });
 
@@ -259,7 +275,9 @@ describe('LoginAppBarSectionComponent', () => {
     it('should call authorizeService.login', () => {
       fixture.detectChanges();
 
-      (component as unknown as { onLogin(): void }).onLogin();
+      (component as unknown as {
+                onLogin(): void;
+            }).onLogin();
 
       expect(authServiceMock.login).toHaveBeenCalled();
     });
@@ -269,7 +287,9 @@ describe('LoginAppBarSectionComponent', () => {
     it('should call authorizeService.logout', () => {
       fixture.detectChanges();
 
-      (component as unknown as { onLogout(): void }).onLogout();
+      (component as unknown as {
+                onLogout(): void;
+            }).onLogout();
 
       expect(authServiceMock.logout).toHaveBeenCalled();
     });
@@ -279,10 +299,12 @@ describe('LoginAppBarSectionComponent', () => {
     it('should emit register event', () => {
       fixture.detectChanges();
 
-      const registerSpy = jasmine.createSpy('register');
+      const registerSpy = vi.fn().mockName('register');
       component.register.subscribe(registerSpy);
 
-      (component as unknown as { onRegister(): void }).onRegister();
+      (component as unknown as {
+                onRegister(): void;
+            }).onRegister();
 
       expect(registerSpy).toHaveBeenCalled();
     });
@@ -295,7 +317,7 @@ describe('LoginAppBarSectionComponent', () => {
     });
 
     it('should close popup when clicking outside', () => {
-      expect(component.showPopup).toBeTrue();
+      expect(component.showPopup).toBe(true);
 
       const outsideElement = document.createElement('div');
       document.body.appendChild(outsideElement);
@@ -304,7 +326,7 @@ describe('LoginAppBarSectionComponent', () => {
       Object.defineProperty(event, 'target', { value: outsideElement });
       component.documentClick(event);
 
-      expect(component.showPopup).toBeFalse();
+      expect(component.showPopup).toBe(false);
 
       document.body.removeChild(outsideElement);
     });
@@ -315,7 +337,7 @@ describe('LoginAppBarSectionComponent', () => {
       sessionLoadingSignal.set(true);
       fixture.detectChanges();
 
-      expect(sessionLoadingSignal()).toBeTrue();
+      expect(sessionLoadingSignal()).toBe(true);
     });
 
     it('should show login button when not authenticated', () => {
@@ -323,7 +345,7 @@ describe('LoginAppBarSectionComponent', () => {
       isAuthenticatedSignal.set(false);
       fixture.detectChanges();
 
-      expect(isAuthenticatedSignal()).toBeFalse();
+      expect(isAuthenticatedSignal()).toBe(false);
     });
 
     it('should show user avatar when authenticated', () => {
@@ -332,7 +354,7 @@ describe('LoginAppBarSectionComponent', () => {
       userInitialsSignal.set('MM');
       fixture.detectChanges();
 
-      expect(isAuthenticatedSignal()).toBeTrue();
+      expect(isAuthenticatedSignal()).toBe(true);
       expect(userInitialsSignal()).toBe('MM');
     });
   });

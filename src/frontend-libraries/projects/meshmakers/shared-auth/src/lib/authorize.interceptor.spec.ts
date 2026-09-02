@@ -1,14 +1,6 @@
+import type { Mock, MockedObject } from 'vitest';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
-import {
-  HttpClient,
-  HttpErrorResponse,
-  HttpHandlerFn,
-  HttpParams,
-  HttpRequest,
-  HttpResponse,
-  provideHttpClient,
-  withInterceptors
-} from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHandlerFn, HttpParams, HttpRequest, HttpResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting, TestRequest } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 import { authorizeInterceptor } from './authorize.interceptor';
@@ -19,15 +11,18 @@ import { AuthorizeService } from './authorize.service';
 // =============================================================================
 
 describe('authorizeInterceptor (functional)', () => {
-  let authServiceMock: jasmine.SpyObj<AuthorizeService>;
-  let nextFn: jasmine.Spy<HttpHandlerFn>;
+  let authServiceMock: MockedObject<AuthorizeService>;
+  let nextFn: Mock<HttpHandlerFn>;
 
   beforeEach(() => {
-    authServiceMock = jasmine.createSpyObj('AuthorizeService', ['getAccessTokenSync', 'getServiceUris']);
-    authServiceMock.getAccessTokenSync.and.returnValue(null);
-    authServiceMock.getServiceUris.and.returnValue(null);
+    authServiceMock = {
+      getAccessTokenSync: vi.fn().mockName('AuthorizeService.getAccessTokenSync'),
+      getServiceUris: vi.fn().mockName('AuthorizeService.getServiceUris')
+    } as unknown as MockedObject<AuthorizeService>;
+    authServiceMock.getAccessTokenSync.mockReturnValue(null);
+    authServiceMock.getServiceUris.mockReturnValue(null);
 
-    nextFn = jasmine.createSpy('nextFn').and.callFake((req: HttpRequest<unknown>) => {
+    nextFn = vi.fn().mockName('nextFn').mockImplementation((req: HttpRequest<unknown>) => {
       return of(new HttpResponse({ status: 200, body: {}, url: req.url }));
     });
 
@@ -40,300 +35,303 @@ describe('authorizeInterceptor (functional)', () => {
 
   describe('without token', () => {
     beforeEach(() => {
-      authServiceMock.getAccessTokenSync.and.returnValue(null);
+      authServiceMock.getAccessTokenSync.mockReturnValue(null);
     });
 
-    it('should not add Authorization header to same-origin request', (done) => {
+    it('should not add Authorization header to same-origin request', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', '/api/data');
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
-          expect(handledReq.headers.has('Authorization')).toBeFalse();
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
+          expect(handledReq.headers.has('Authorization')).toBe(false);
           done();
         });
       });
-    });
+    }));
 
-    it('should not add Authorization header to external request', (done) => {
+    it('should not add Authorization header to external request', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', 'https://external.com/api/data');
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
-          expect(handledReq.headers.has('Authorization')).toBeFalse();
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
+          expect(handledReq.headers.has('Authorization')).toBe(false);
           done();
         });
       });
-    });
+    }));
   });
 
   describe('with token', () => {
     beforeEach(() => {
-      authServiceMock.getAccessTokenSync.and.returnValue('test-access-token');
+      authServiceMock.getAccessTokenSync.mockReturnValue('test-access-token');
     });
 
     describe('same-origin requests', () => {
-      it('should add Authorization header to relative URL', (done) => {
+      it('should add Authorization header to relative URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
 
-      it('should add Authorization header to absolute same-origin URL', (done) => {
+      it('should add Authorization header to absolute same-origin URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', `${window.location.origin}/api/data`);
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
 
-      it('should add Authorization header to protocol-relative same-origin URL', (done) => {
+      it('should add Authorization header to protocol-relative same-origin URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', `//${window.location.host}/api/data`);
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
 
-      it('should add Authorization header to nested relative URL', (done) => {
+      it('should add Authorization header to nested relative URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/v1/users/123');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
     });
 
     describe('external requests', () => {
-      it('should not add Authorization header to external URL', (done) => {
+      it('should not add Authorization header to external URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://external-api.com/data');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
-            expect(handledReq.headers.has('Authorization')).toBeFalse();
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
+            expect(handledReq.headers.has('Authorization')).toBe(false);
             done();
           });
         });
-      });
+      }));
 
-      it('should not add Authorization header to protocol-relative external URL', (done) => {
+      it('should not add Authorization header to protocol-relative external URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '//external-api.com/data');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
-            expect(handledReq.headers.has('Authorization')).toBeFalse();
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
+            expect(handledReq.headers.has('Authorization')).toBe(false);
             done();
           });
         });
-      });
+      }));
     });
 
     describe('known service URIs', () => {
       beforeEach(() => {
-        authServiceMock.getServiceUris.and.returnValue([
+        authServiceMock.getServiceUris.mockReturnValue([
           'https://api.example.com',
           'https://graphql.example.com/v1'
         ]);
       });
 
-      it('should add Authorization header to known service URI', (done) => {
+      it('should add Authorization header to known service URI', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://api.example.com/users');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
 
-      it('should add Authorization header to another known service URI', (done) => {
+      it('should add Authorization header to another known service URI', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://graphql.example.com/v1/query');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
 
-      it('should not add Authorization header to unknown external URL', (done) => {
+      it('should not add Authorization header to unknown external URL', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://unknown-api.com/data');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
-            expect(handledReq.headers.has('Authorization')).toBeFalse();
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
+            expect(handledReq.headers.has('Authorization')).toBe(false);
             done();
           });
         });
-      });
+      }));
 
-      it('should ignore a blank entry instead of matching every URL', (done) => {
-        authServiceMock.getServiceUris.and.returnValue(['https://api.example.com', '']);
+      it('should ignore a blank entry instead of matching every URL', () => new Promise<void>((done) => {
+        authServiceMock.getServiceUris.mockReturnValue(['https://api.example.com', '']);
         const req = new HttpRequest('GET', 'https://telemetry.third-party.com/ingest');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
-            expect(handledReq.headers.has('Authorization')).toBeFalse();
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
+            expect(handledReq.headers.has('Authorization')).toBe(false);
             done();
           });
         });
-      });
+      }));
 
-      it('should ignore a bare slash, which is what the platform returns for an unconfigured service', (done) => {
-        authServiceMock.getServiceUris.and.returnValue(['https://api.example.com', '/']);
+      it('should ignore a bare slash, which is what the platform returns for an unconfigured service', () => new Promise<void>((done) => {
+        authServiceMock.getServiceUris.mockReturnValue(['https://api.example.com', '/']);
         const req = new HttpRequest('GET', '//telemetry.third-party.com/ingest');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
-            expect(handledReq.headers.has('Authorization')).toBeFalse();
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
+            expect(handledReq.headers.has('Authorization')).toBe(false);
             done();
           });
         });
-      });
+      }));
 
-      it('should not match a host that merely starts with a configured URI', (done) => {
+      it('should not match a host that merely starts with a configured URI', () => new Promise<void>((done) => {
         // Plain prefix matching hands the operator's bearer to any origin whose name
         // begins with a configured one, which an attacker can register at will.
         const req = new HttpRequest('GET', 'https://api.example.com.attacker.test/steal');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
-            expect(handledReq.headers.has('Authorization')).toBeFalse();
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
+            expect(handledReq.headers.has('Authorization')).toBe(false);
             done();
           });
         });
-      });
+      }));
 
-      it('should match a configured URI that already ends in a slash', (done) => {
-        authServiceMock.getServiceUris.and.returnValue(['https://api.example.com/']);
+      it('should match a configured URI that already ends in a slash', () => new Promise<void>((done) => {
+        authServiceMock.getServiceUris.mockReturnValue(['https://api.example.com/']);
         const req = new HttpRequest('GET', 'https://api.example.com/users');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
 
-      it('should match the configured URI itself, with nothing after it', (done) => {
+      it('should match the configured URI itself, with nothing after it', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', 'https://api.example.com');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
 
-      it('should still match the configured hosts when a blank entry is present', (done) => {
-        authServiceMock.getServiceUris.and.returnValue(['', 'https://api.example.com']);
+      it('should still match the configured hosts when a blank entry is present', () => new Promise<void>((done) => {
+        authServiceMock.getServiceUris.mockReturnValue(['', 'https://api.example.com']);
         const req = new HttpRequest('POST', 'https://api.example.com/meshtest/sendMessage', {});
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(req, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
     });
 
     describe('request immutability', () => {
-      it('should not modify the original request', (done) => {
+      it('should not modify the original request', () => new Promise<void>((done) => {
         const originalReq = new HttpRequest('GET', '/api/data');
         const originalHeaders = originalReq.headers;
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(originalReq, nextFn).subscribe(() => {
             expect(originalReq.headers).toBe(originalHeaders);
-            expect(originalReq.headers.has('Authorization')).toBeFalse();
+            expect(originalReq.headers.has('Authorization')).toBe(false);
             done();
           });
         });
-      });
+      }));
 
-      it('should create a cloned request with Authorization header', (done) => {
+      it('should create a cloned request with Authorization header', () => new Promise<void>((done) => {
         const originalReq = new HttpRequest('GET', '/api/data');
 
         TestBed.runInInjectionContext(() => {
           authorizeInterceptor(originalReq, nextFn).subscribe(() => {
-            const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+            const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
             expect(handledReq).not.toBe(originalReq);
             expect(handledReq.headers.get('Authorization')).toBe('Bearer test-access-token');
             done();
           });
         });
-      });
+      }));
     });
   });
 
   describe('acr_values injection for token endpoint', () => {
     beforeEach(() => {
-      authServiceMock = jasmine.createSpyObj('AuthorizeService',
-        ['getAccessTokenSync', 'getServiceUris', 'getStorageTenantId']);
-      authServiceMock.getAccessTokenSync.and.returnValue('test-token');
-      authServiceMock.getServiceUris.and.returnValue(null);
+      authServiceMock = {
+        getAccessTokenSync: vi.fn().mockName('AuthorizeService.getAccessTokenSync'),
+        getServiceUris: vi.fn().mockName('AuthorizeService.getServiceUris'),
+        getStorageTenantId: vi.fn().mockName('AuthorizeService.getStorageTenantId')
+      } as unknown as MockedObject<AuthorizeService>;
+      authServiceMock.getAccessTokenSync.mockReturnValue('test-token');
+      authServiceMock.getServiceUris.mockReturnValue(null);
 
       TestBed.overrideProvider(AuthorizeService, { useValue: authServiceMock });
     });
 
-    it('should inject acr_values into /connect/token POST for refresh_token grant', (done) => {
-      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+    it('should inject acr_values into /connect/token POST for refresh_token grant', () => new Promise<void>((done) => {
+      authServiceMock.getStorageTenantId.mockReturnValue('meshtest');
 
       const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
       const req = new HttpRequest('POST', 'https://auth.example.com/connect/token', body);
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
           expect(handledReq.body).toBeInstanceOf(HttpParams);
           expect((handledReq.body as HttpParams).get('acr_values')).toBe('tenant:meshtest');
           done();
         });
       });
-    });
+    }));
 
-    it('should NOT inject acr_values into /connect/token POST for authorization_code grant', (done) => {
+    it('should NOT inject acr_values into /connect/token POST for authorization_code grant', () => new Promise<void>((done) => {
       // Authorization-code exchanges already carry the tenant via the code itself.
       // Injecting a stale storage tenant here caused an infinite reload loop:
       // the code-exchange succeeded (server ignored acr_values), but the immediate
       // refresh used the storage tenant which no longer matched the freshly issued
       // token's tenant -> 400 invalid_grant -> token_refresh_error -> reload -> loop.
-      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+      authServiceMock.getStorageTenantId.mockReturnValue('meshtest');
 
       const body = new HttpParams()
         .set('grant_type', 'authorization_code')
@@ -343,75 +341,75 @@ describe('authorizeInterceptor (functional)', () => {
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
-          expect((handledReq.body as HttpParams).has('acr_values')).toBeFalse();
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
+          expect((handledReq.body as HttpParams).has('acr_values')).toBe(false);
           done();
         });
       });
-    });
+    }));
 
-    it('should not inject acr_values when no tenantId in storage', (done) => {
-      authServiceMock.getStorageTenantId.and.returnValue(null);
+    it('should not inject acr_values when no tenantId in storage', () => new Promise<void>((done) => {
+      authServiceMock.getStorageTenantId.mockReturnValue(null);
 
       const body = new HttpParams().set('grant_type', 'refresh_token');
       const req = new HttpRequest('POST', 'https://auth.example.com/connect/token', body);
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
-          expect((handledReq.body as HttpParams).has('acr_values')).toBeFalse();
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
+          expect((handledReq.body as HttpParams).has('acr_values')).toBe(false);
           done();
         });
       });
-    });
+    }));
 
-    it('should not inject acr_values for non-token endpoint POST', (done) => {
-      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+    it('should not inject acr_values for non-token endpoint POST', () => new Promise<void>((done) => {
+      authServiceMock.getStorageTenantId.mockReturnValue('meshtest');
 
       const body = new HttpParams().set('data', 'value');
       const req = new HttpRequest('POST', '/api/data', body);
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
-          expect((handledReq.body as HttpParams).has('acr_values')).toBeFalse();
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
+          expect((handledReq.body as HttpParams).has('acr_values')).toBe(false);
           done();
         });
       });
-    });
+    }));
 
-    it('should not inject acr_values for GET request to token endpoint', (done) => {
-      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+    it('should not inject acr_values for GET request to token endpoint', () => new Promise<void>((done) => {
+      authServiceMock.getStorageTenantId.mockReturnValue('meshtest');
 
       const req = new HttpRequest('GET', 'https://auth.example.com/connect/token');
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
           // GET requests don't have body manipulation
           expect(handledReq.url).toContain('/connect/token');
           done();
         });
       });
-    });
+    }));
 
-    it('should inject acr_values into a token endpoint URL carrying a query string', (done) => {
-      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+    it('should inject acr_values into a token endpoint URL carrying a query string', () => new Promise<void>((done) => {
+      authServiceMock.getStorageTenantId.mockReturnValue('meshtest');
 
       const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
       const req = new HttpRequest('POST', 'https://auth.example.com/connect/token?x=1', body);
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
           expect((handledReq.body as HttpParams).get('acr_values')).toBe('tenant:meshtest');
           done();
         });
       });
-    });
+    }));
 
-    it('should preserve existing form body params when injecting acr_values for refresh_token', (done) => {
-      authServiceMock.getStorageTenantId.and.returnValue('meshtest');
+    it('should preserve existing form body params when injecting acr_values for refresh_token', () => new Promise<void>((done) => {
+      authServiceMock.getStorageTenantId.mockReturnValue('meshtest');
 
       const body = new HttpParams()
         .set('grant_type', 'refresh_token')
@@ -421,7 +419,7 @@ describe('authorizeInterceptor (functional)', () => {
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<HttpParams>;
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
           const params = handledReq.body as HttpParams;
           expect(params.get('grant_type')).toBe('refresh_token');
           expect(params.get('refresh_token')).toBe('abc123');
@@ -430,49 +428,49 @@ describe('authorizeInterceptor (functional)', () => {
           done();
         });
       });
-    });
+    }));
   });
 
   describe('URL pattern matching edge cases', () => {
     beforeEach(() => {
-      authServiceMock.getAccessTokenSync.and.returnValue('test-token');
+      authServiceMock.getAccessTokenSync.mockReturnValue('test-token');
     });
 
-    it('should not match root-relative URL without leading slash', (done) => {
+    it('should not match root-relative URL without leading slash', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', 'api/data');
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
-          expect(handledReq.headers.has('Authorization')).toBeFalse();
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
+          expect(handledReq.headers.has('Authorization')).toBe(false);
           done();
         });
       });
-    });
+    }));
 
-    it('should match URL with query parameters', (done) => {
+    it('should match URL with query parameters', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', '/api/data?param=value');
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
           expect(handledReq.headers.get('Authorization')).toBe('Bearer test-token');
           done();
         });
       });
-    });
+    }));
 
-    it('should match URL with hash fragment', (done) => {
+    it('should match URL with hash fragment', () => new Promise<void>((done) => {
       const req = new HttpRequest('GET', '/api/data#section');
 
       TestBed.runInInjectionContext(() => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
-          const handledReq = nextFn.calls.mostRecent().args[0] as HttpRequest<unknown>;
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<unknown>;
           expect(handledReq.headers.get('Authorization')).toBe('Bearer test-token');
           done();
         });
       });
-    });
+    }));
   });
 });
 
@@ -484,13 +482,13 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
   const OLD_TOKEN = 'old-access-token';
   const NEW_TOKEN = 'new-access-token';
 
-  let authServiceMock: jasmine.SpyObj<AuthorizeService>;
+  let authServiceMock: MockedObject<AuthorizeService>;
   let http: HttpClient;
   let httpMock: HttpTestingController;
 
   function refreshYieldsNewToken(): void {
-    authServiceMock.refreshAccessToken.and.callFake(async () => {
-      authServiceMock.getAccessTokenSync.and.returnValue(NEW_TOKEN);
+    authServiceMock.refreshAccessToken.mockImplementation(async () => {
+      authServiceMock.getAccessTokenSync.mockReturnValue(NEW_TOKEN);
     });
   }
 
@@ -499,12 +497,16 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
   }
 
   beforeEach(() => {
-    authServiceMock = jasmine.createSpyObj('AuthorizeService',
-      ['getAccessTokenSync', 'getServiceUris', 'getStorageTenantId', 'refreshAccessToken']);
-    authServiceMock.getAccessTokenSync.and.returnValue(OLD_TOKEN);
-    authServiceMock.getServiceUris.and.returnValue(['https://auth.example.com']);
-    authServiceMock.getStorageTenantId.and.returnValue('meshtest');
-    authServiceMock.refreshAccessToken.and.resolveTo();
+    authServiceMock = {
+      getAccessTokenSync: vi.fn().mockName('AuthorizeService.getAccessTokenSync'),
+      getServiceUris: vi.fn().mockName('AuthorizeService.getServiceUris'),
+      getStorageTenantId: vi.fn().mockName('AuthorizeService.getStorageTenantId'),
+      refreshAccessToken: vi.fn().mockName('AuthorizeService.refreshAccessToken')
+    } as unknown as MockedObject<AuthorizeService>;
+    authServiceMock.getAccessTokenSync.mockReturnValue(OLD_TOKEN);
+    authServiceMock.getServiceUris.mockReturnValue(['https://auth.example.com']);
+    authServiceMock.getStorageTenantId.mockReturnValue('meshtest');
+    authServiceMock.refreshAccessToken.mockResolvedValue();
 
     TestBed.configureTestingModule({
       providers: [
@@ -591,7 +593,7 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
       statusText: 'Unauthorized',
       headers: {
         'WWW-Authenticate': 'Bearer error="invalid_token", ' +
-          'error_description="The access token was issued by another authority", error_code="issuer_invalid"'
+                    'error_description="The access token was issued by another authority", error_code="issuer_invalid"'
       }
     });
     tick();
@@ -610,7 +612,7 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
       statusText: 'Unauthorized',
       headers: {
         'WWW-Authenticate': 'Bearer error="invalid_token", ' +
-          'error_description="The access token has expired", error_code="token_expired"'
+                    'error_description="The access token has expired", error_code="token_expired"'
       }
     });
     tick();
@@ -676,13 +678,13 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
   }));
 
   it('should NOT refresh a 401 on a request that carried no token', fakeAsync(() => {
-    authServiceMock.getAccessTokenSync.and.returnValue(null);
+    authServiceMock.getAccessTokenSync.mockReturnValue(null);
 
     const errors: HttpErrorResponse[] = [];
     http.get('/api/data').subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
 
     const first = httpMock.expectOne('/api/data');
-    expect(first.request.headers.has('Authorization')).toBeFalse();
+    expect(first.request.headers.has('Authorization')).toBe(false);
     unauthorized(first);
     tick();
 
@@ -695,7 +697,7 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
     http.get('https://unknown-api.com/data').subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
 
     const first = httpMock.expectOne('https://unknown-api.com/data');
-    expect(first.request.headers.has('Authorization')).toBeFalse();
+    expect(first.request.headers.has('Authorization')).toBe(false);
     unauthorized(first);
     tick();
 
@@ -845,7 +847,7 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
   it('should clear the single-flight state when the refresh rejects', fakeAsync(() => {
     // The `finally` is load-bearing: a refresh that never clears the module-level promise
     // would leave every later 401 in the page awaiting a promise nobody will settle.
-    authServiceMock.refreshAccessToken.and.rejectWith(new Error('refresh failed'));
+    authServiceMock.refreshAccessToken.mockRejectedValue(new Error('refresh failed'));
 
     http.get('/api/first').subscribe({ error: () => undefined });
     unauthorized(httpMock.expectOne('/api/first'));
@@ -859,7 +861,7 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
   }));
 
   it('should surface the ORIGINAL 401 when the refresh itself fails', fakeAsync(() => {
-    authServiceMock.refreshAccessToken.and.rejectWith(new Error('refresh failed'));
+    authServiceMock.refreshAccessToken.mockRejectedValue(new Error('refresh failed'));
 
     const errors: HttpErrorResponse[] = [];
     http.get('/api/data').subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
@@ -873,7 +875,7 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
   }));
 
   it('should not retry when the token is unchanged after the refresh', fakeAsync(() => {
-    authServiceMock.refreshAccessToken.and.resolveTo();
+    authServiceMock.refreshAccessToken.mockResolvedValue();
 
     const errors: HttpErrorResponse[] = [];
     http.get('/api/data').subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
@@ -887,8 +889,8 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
   }));
 
   it('should not retry when no token is available after the refresh', fakeAsync(() => {
-    authServiceMock.refreshAccessToken.and.callFake(async () => {
-      authServiceMock.getAccessTokenSync.and.returnValue(null);
+    authServiceMock.refreshAccessToken.mockImplementation(async () => {
+      authServiceMock.getAccessTokenSync.mockReturnValue(null);
     });
 
     const errors: HttpErrorResponse[] = [];

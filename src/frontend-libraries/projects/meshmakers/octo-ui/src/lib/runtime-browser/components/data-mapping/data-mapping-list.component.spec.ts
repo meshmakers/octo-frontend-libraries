@@ -1,9 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import {
-  DataMappingListComponent,
-  DataPointMappingItem,
-  ExpressionValidatorFn,
-} from './data-mapping-list.component';
+import { DataMappingListComponent, DataPointMappingItem, ExpressionValidatorFn, } from './data-mapping-list.component';
 
 describe('DataMappingListComponent', () => {
   let component: DataMappingListComponent;
@@ -69,7 +65,7 @@ describe('DataMappingListComponent', () => {
 
       component.onExpressionChange(mapping, 'value / 100');
 
-      expect(mapping._expressionValid).toBeTrue();
+      expect(mapping._expressionValid).toBe(true);
       expect(mapping._expressionError).toBeUndefined();
       expect(mapping._expressionPreview).toBe('0.42');
     });
@@ -83,7 +79,7 @@ describe('DataMappingListComponent', () => {
 
       component.onExpressionChange(mapping, 'value ///');
 
-      expect(mapping._expressionValid).toBeFalse();
+      expect(mapping._expressionValid).toBe(false);
       expect(mapping._expressionError).toBe('Unexpected token at position 5');
       expect(mapping._expressionPreview).toBeUndefined();
     });
@@ -92,7 +88,7 @@ describe('DataMappingListComponent', () => {
       const validator: ExpressionValidatorFn = () => ({ valid: true, preview: '42' });
       component.expressionValidator = validator;
 
-      spyOn(component.mappingChanged, 'emit');
+      vi.spyOn(component.mappingChanged, 'emit').mockReturnValue(undefined);
       component.onExpressionChange(mapping, 'value * 2');
 
       expect(component.mappingChanged.emit).toHaveBeenCalledWith(mapping);

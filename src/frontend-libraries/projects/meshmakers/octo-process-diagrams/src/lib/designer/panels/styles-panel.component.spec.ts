@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 /**
  * Styles Panel Component - Unit Tests
  */
@@ -78,10 +79,10 @@ describe('StylesPanelComponent', () => {
   // ============================================================================
 
   describe('Add Style', () => {
-    let onStyleClassesChangeSpy: jasmine.Spy;
+    let onStyleClassesChangeSpy: Mock;
 
     beforeEach(() => {
-      onStyleClassesChangeSpy = jasmine.createSpy('onStyleClassesChange');
+      onStyleClassesChangeSpy = vi.fn().mockName('onStyleClassesChange');
       component.params = {
         styleClasses: [],
         onStyleClassesChange: onStyleClassesChangeSpy
@@ -92,7 +93,7 @@ describe('StylesPanelComponent', () => {
       component.addStyle();
 
       expect(onStyleClassesChangeSpy).toHaveBeenCalledTimes(1);
-      const addedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const addedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(addedStyles.length).toBe(1);
       expect(addedStyles[0].name).toBe('style-1');
     });
@@ -110,7 +111,7 @@ describe('StylesPanelComponent', () => {
 
       component.addStyle();
 
-      const addedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const addedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(addedStyles.length).toBe(3);
       expect(addedStyles[2].name).toBe('style-3');
     });
@@ -118,7 +119,7 @@ describe('StylesPanelComponent', () => {
     it('should select the newly added style', () => {
       component.addStyle();
 
-      const addedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const addedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(component.selectedStyleId).toBe(addedStyles[0].id);
     });
   });
@@ -128,7 +129,7 @@ describe('StylesPanelComponent', () => {
   // ============================================================================
 
   describe('Delete Style', () => {
-    let onStyleClassesChangeSpy: jasmine.Spy;
+    let onStyleClassesChangeSpy: Mock;
     const testStyles: StyleClass[] = [
       { id: 'style-1', name: 'first', style: { fill: { color: '#ff0000' } } },
       { id: 'style-2', name: 'second', style: { fill: { color: '#00ff00' } } },
@@ -136,7 +137,7 @@ describe('StylesPanelComponent', () => {
     ];
 
     beforeEach(() => {
-      onStyleClassesChangeSpy = jasmine.createSpy('onStyleClassesChange');
+      onStyleClassesChangeSpy = vi.fn().mockName('onStyleClassesChange');
       component.params = {
         styleClasses: testStyles,
         onStyleClassesChange: onStyleClassesChangeSpy
@@ -147,7 +148,7 @@ describe('StylesPanelComponent', () => {
       component.deleteStyle(testStyles[1]);
 
       expect(onStyleClassesChangeSpy).toHaveBeenCalledTimes(1);
-      const remainingStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const remainingStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(remainingStyles.length).toBe(2);
       expect(remainingStyles.find(s => s.id === 'style-2')).toBeUndefined();
     });
@@ -216,7 +217,7 @@ describe('StylesPanelComponent', () => {
   // ============================================================================
 
   describe('Update Style Property', () => {
-    let onStyleClassesChangeSpy: jasmine.Spy;
+    let onStyleClassesChangeSpy: Mock;
     const testStyle: StyleClass = {
       id: 'style-1',
       name: 'test-style',
@@ -227,7 +228,7 @@ describe('StylesPanelComponent', () => {
     };
 
     beforeEach(() => {
-      onStyleClassesChangeSpy = jasmine.createSpy('onStyleClassesChange');
+      onStyleClassesChangeSpy = vi.fn().mockName('onStyleClassesChange');
       component.params = {
         styleClasses: [testStyle],
         onStyleClassesChange: onStyleClassesChangeSpy
@@ -238,49 +239,49 @@ describe('StylesPanelComponent', () => {
     it('should update style name', () => {
       component.updateStyleProperty('name', 'new-name');
 
-      const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(updatedStyles[0].name).toBe('new-name');
     });
 
     it('should update fill color', () => {
       component.updateStyleProperty('fill.color', '#00ff00');
 
-      const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(updatedStyles[0].style.fill?.color).toBe('#00ff00');
     });
 
     it('should update fill opacity', () => {
       component.updateStyleProperty('fill.opacity', 0.5);
 
-      const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(updatedStyles[0].style.fill?.opacity).toBe(0.5);
     });
 
     it('should update stroke color', () => {
       component.updateStyleProperty('stroke.color', '#0000ff');
 
-      const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(updatedStyles[0].style.stroke?.color).toBe('#0000ff');
     });
 
     it('should update stroke width', () => {
       component.updateStyleProperty('stroke.width', 3);
 
-      const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(updatedStyles[0].style.stroke?.width).toBe(3);
     });
 
     it('should update stroke dashArray', () => {
       component.updateStyleProperty('stroke.dashArray', [8, 4]);
 
-      const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+      const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
       expect(updatedStyles[0].style.stroke?.dashArray).toEqual([8, 4]);
     });
 
     it('should not update if no style is selected', () => {
       component.selectStyle(testStyle); // Deselect by clicking again
       component.selectStyle(testStyle);
-      onStyleClassesChangeSpy.calls.reset();
+      onStyleClassesChangeSpy.mockClear();
 
       component.selectStyle(testStyle); // Deselect
       component.updateStyleProperty('fill.color', '#ffffff');
@@ -348,7 +349,7 @@ describe('StylesPanelComponent', () => {
     });
 
     describe('onLineTypeChange', () => {
-      let onStyleClassesChangeSpy: jasmine.Spy;
+      let onStyleClassesChangeSpy: Mock;
       const testStyle: StyleClass = {
         id: 'style-1',
         name: 'test',
@@ -356,7 +357,7 @@ describe('StylesPanelComponent', () => {
       };
 
       beforeEach(() => {
-        onStyleClassesChangeSpy = jasmine.createSpy('onStyleClassesChange');
+        onStyleClassesChangeSpy = vi.fn().mockName('onStyleClassesChange');
         component.params = {
           styleClasses: [testStyle],
           onStyleClassesChange: onStyleClassesChangeSpy
@@ -367,28 +368,28 @@ describe('StylesPanelComponent', () => {
       it('should set dashArray for "dashed" line type', () => {
         component.onLineTypeChange('dashed');
 
-        const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+        const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
         expect(updatedStyles[0].style.stroke?.dashArray).toEqual([8, 4]);
       });
 
       it('should set dashArray for "dotted" line type', () => {
         component.onLineTypeChange('dotted');
 
-        const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+        const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
         expect(updatedStyles[0].style.stroke?.dashArray).toEqual([2, 2]);
       });
 
       it('should set dashArray for "dash-dot" line type', () => {
         component.onLineTypeChange('dash-dot');
 
-        const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+        const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
         expect(updatedStyles[0].style.stroke?.dashArray).toEqual([8, 4, 2, 4]);
       });
 
       it('should set dashArray for "long-dash" line type', () => {
         component.onLineTypeChange('long-dash');
 
-        const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+        const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
         expect(updatedStyles[0].style.stroke?.dashArray).toEqual([12, 6]);
       });
 
@@ -410,7 +411,7 @@ describe('StylesPanelComponent', () => {
         component.onLineTypeChange('solid');
 
         expect(onStyleClassesChangeSpy).toHaveBeenCalled();
-        const updatedStyles = onStyleClassesChangeSpy.calls.mostRecent().args[0] as StyleClass[];
+        const updatedStyles = vi.mocked(onStyleClassesChangeSpy).mock.lastCall![0] as StyleClass[];
         expect(updatedStyles[0].style.stroke?.dashArray).toEqual([]);
       });
     });
@@ -429,8 +430,8 @@ describe('StylesPanelComponent', () => {
       };
 
       const mockDataTransfer = {
-        setData: jasmine.createSpy('setData'),
-        setDragImage: jasmine.createSpy('setDragImage'),
+        setData: vi.fn().mockName('setData'),
+        setDragImage: vi.fn().mockName('setDragImage'),
         effectAllowed: ''
       };
 
@@ -440,10 +441,7 @@ describe('StylesPanelComponent', () => {
 
       component.onDragStart(mockEvent, testStyle);
 
-      expect(mockDataTransfer.setData).toHaveBeenCalledWith(
-        'application/x-style-class',
-        'drag-style-1'
-      );
+      expect(mockDataTransfer.setData).toHaveBeenCalledWith('application/x-style-class', 'drag-style-1');
       expect(mockDataTransfer.effectAllowed).toBe('copy');
     });
 

@@ -18,7 +18,7 @@ describe('TypeHelperService', () => {
   describe('isRuntimeEntity', () => {
     it('should return true if both rtId and ckTypeId are present', () => {
       const validEntity = { rtId: 'a1eb19f061208b98373fc381', ckTypeId: 'Basic/TreeNode' } as RtEntityDto;
-      expect(service.isRuntimeEntity(validEntity)).toBeTrue();
+      expect(service.isRuntimeEntity(validEntity)).toBe(true);
     });
 
     it('should return false if rtId is missing', () => {

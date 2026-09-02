@@ -1,20 +1,13 @@
 import { OctoGraphQlDataSource } from './octo-graph-ql-data-source';
-import {
-  FieldFilterDto,
-  FieldFilterOperatorsDto,
-  SearchFilterDto,
-  SearchFilterTypesDto,
-  SortDto,
-  SortOrdersDto
-} from '@meshmakers/octo-services';
+import { FieldFilterDto, FieldFilterOperatorsDto, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from '@meshmakers/octo-services';
 import { ListViewComponent, FetchDataOptions, FetchResultTyped } from '@meshmakers/shared-ui';
 import { FilterOperator } from '@progress/kendo-data-query';
 import { State } from '@progress/kendo-data-query/dist/npm/state';
 import { Observable, of } from 'rxjs';
 
 interface TestDto {
-  id: string;
-  name: string;
+    id: string;
+    name: string;
 }
 
 /**
@@ -92,9 +85,9 @@ describe('OctoGraphQlDataSource', () => {
 
     it('should return null when filter has no filters array', () => {
       const state: State = { filter: { logic: 'and', filters: [] } };
-      state.filter!.filters = undefined as never;
-      const result = dataSource.testGetFieldFilterDefinitions(state);
-      expect(result).toBeNull();
+            state.filter!.filters = undefined as never;
+            const result = dataSource.testGetFieldFilterDefinitions(state);
+            expect(result).toBeNull();
     });
 
     it('should return empty array when filters array is empty', () => {
@@ -525,29 +518,29 @@ describe('OctoGraphQlDataSource', () => {
           { extensions: { code: 'ASSET1002', codes: ['ASSET1002', 'INCOMPLETE_SLICE'] } }
         ]
       };
-      expect(dataSource.isPageOutOfRangeError(apolloError)).toBeTrue();
+      expect(dataSource.isPageOutOfRangeError(apolloError)).toBe(true);
     });
 
     it('should detect INCOMPLETE_SLICE as the single extensions code', () => {
       const apolloError = {
         graphQLErrors: [{ extensions: { code: 'INCOMPLETE_SLICE' } }]
       };
-      expect(dataSource.isPageOutOfRangeError(apolloError)).toBeTrue();
+      expect(dataSource.isPageOutOfRangeError(apolloError)).toBe(true);
     });
 
     it('should return false for other GraphQL errors', () => {
       const apolloError = {
         graphQLErrors: [{ extensions: { code: 'ASSET1001', codes: ['ASSET1001'] } }]
       };
-      expect(dataSource.isPageOutOfRangeError(apolloError)).toBeFalse();
+      expect(dataSource.isPageOutOfRangeError(apolloError)).toBe(false);
     });
 
     it('should return false for non-GraphQL errors', () => {
-      expect(dataSource.isPageOutOfRangeError(new Error('network down'))).toBeFalse();
-      expect(dataSource.isPageOutOfRangeError(null)).toBeFalse();
-      expect(dataSource.isPageOutOfRangeError(undefined)).toBeFalse();
-      expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [] })).toBeFalse();
-      expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [{}] })).toBeFalse();
+      expect(dataSource.isPageOutOfRangeError(new Error('network down'))).toBe(false);
+      expect(dataSource.isPageOutOfRangeError(null)).toBe(false);
+      expect(dataSource.isPageOutOfRangeError(undefined)).toBe(false);
+      expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [] })).toBe(false);
+      expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [{}] })).toBe(false);
     });
   });
 

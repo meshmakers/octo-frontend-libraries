@@ -1,11 +1,7 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Route, Router, RouterStateSnapshot, UrlSegment } from '@angular/router';
-import {
-  authorizeGuard,
-  authorizeChildGuard,
-  authorizeMatchGuard,
-  authorizeDeactivateGuard
-} from './authorize.guard';
+import { authorizeGuard, authorizeChildGuard, authorizeMatchGuard, authorizeDeactivateGuard } from './authorize.guard';
 import { AuthorizeService } from './authorize.service';
 import { Roles } from './roles';
 
@@ -14,8 +10,8 @@ import { Roles } from './roles';
 // =============================================================================
 
 describe('Functional Guards', () => {
-  let authServiceMock: jasmine.SpyObj<AuthorizeService>;
-  let routerMock: jasmine.SpyObj<Router>;
+  let authServiceMock: MockedObject<AuthorizeService>;
+  let routerMock: MockedObject<Router>;
 
   // Signal mock values
   let isAuthenticatedValue = false;
@@ -28,18 +24,24 @@ describe('Functional Guards', () => {
     tokenTenantIdValue = null;
 
     // Create mock with signals (callable functions)
-    authServiceMock = jasmine.createSpyObj('AuthorizeService', ['login', 'switchTenant', 'consumePendingTenantSwitch', 'consumeSwitchAttempted'], {
+    authServiceMock = {
+      login: vi.fn().mockName('AuthorizeService.login'),
+      switchTenant: vi.fn().mockName('AuthorizeService.switchTenant'),
+      consumePendingTenantSwitch: vi.fn().mockName('AuthorizeService.consumePendingTenantSwitch'),
+      consumeSwitchAttempted: vi.fn().mockName('AuthorizeService.consumeSwitchAttempted'),
       // Signal mocks - these return a function that returns the value
-      isAuthenticated: jasmine.createSpy('isAuthenticated').and.callFake(() => isAuthenticatedValue),
-      roles: jasmine.createSpy('roles').and.callFake(() => rolesValue),
-      tokenTenantId: jasmine.createSpy('tokenTenantId').and.callFake(() => tokenTenantIdValue)
-    });
-    authServiceMock.consumePendingTenantSwitch.and.returnValue(null);
-    authServiceMock.consumeSwitchAttempted.and.returnValue(null);
-    authServiceMock.switchTenant.and.returnValue(true);
+      isAuthenticated: vi.fn().mockName('isAuthenticated').mockImplementation(() => isAuthenticatedValue),
+      roles: vi.fn().mockName('roles').mockImplementation(() => rolesValue),
+      tokenTenantId: vi.fn().mockName('tokenTenantId').mockImplementation(() => tokenTenantIdValue)
+    } as unknown as MockedObject<AuthorizeService>;
+    authServiceMock.consumePendingTenantSwitch.mockReturnValue(null);
+    authServiceMock.consumeSwitchAttempted.mockReturnValue(null);
+    authServiceMock.switchTenant.mockReturnValue(true);
 
-    routerMock = jasmine.createSpyObj('Router', ['navigate']);
-    routerMock.navigate.and.returnValue(Promise.resolve(true));
+    routerMock = {
+      navigate: vi.fn().mockName('Router.navigate')
+    } as unknown as MockedObject<Router>;
+    routerMock.navigate.mockResolvedValue(true);
 
     TestBed.configureTestingModule({
       providers: [
@@ -77,7 +79,7 @@ describe('Functional Guards', () => {
       it('should return false', async () => {
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeFalse();
+        expect(result).toBe(false);
       });
     });
 
@@ -92,7 +94,7 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeTrue();
+        expect(result).toBe(true);
       });
 
       it('should return true when user has required role', async () => {
@@ -101,7 +103,7 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeTrue();
+        expect(result).toBe(true);
       });
 
       it('should return true when user has one of multiple required roles', async () => {
@@ -110,7 +112,7 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeTrue();
+        expect(result).toBe(true);
       });
 
       it('should return false when user does not have required role', async () => {
@@ -119,7 +121,7 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeFalse();
+        expect(result).toBe(false);
       });
 
       it('should navigate to home when user does not have required role', async () => {
@@ -146,7 +148,7 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeFalse();
+        expect(result).toBe(false);
       });
     });
 
@@ -169,7 +171,7 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeTrue();
+        expect(result).toBe(true);
         expect(authServiceMock.login).not.toHaveBeenCalled();
       });
 
@@ -186,7 +188,7 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeTrue();
+        expect(result).toBe(true);
         expect(authServiceMock.login).not.toHaveBeenCalled();
       });
 
@@ -204,9 +206,9 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeFalse();
+        expect(result).toBe(false);
         // Must use state.url (target URL), not window.location.href (current URL)
-        expect(authServiceMock.switchTenant).toHaveBeenCalledWith('meshtest', jasmine.stringContaining('/meshtest/dashboard'));
+        expect(authServiceMock.switchTenant).toHaveBeenCalledWith('meshtest', expect.stringContaining('/meshtest/dashboard'));
         expect(authServiceMock.login).not.toHaveBeenCalled();
       });
 
@@ -223,7 +225,7 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeTrue();
+        expect(result).toBe(true);
         expect(authServiceMock.login).not.toHaveBeenCalled();
       });
 
@@ -237,13 +239,13 @@ describe('Functional Guards', () => {
 
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
-        expect(result).toBeTrue();
+        expect(result).toBe(true);
         expect(authServiceMock.login).not.toHaveBeenCalled();
       });
 
       it('should fall through to role check when switchTenant returns false (loop prevention)', async () => {
         tokenTenantIdValue = 'octosystem';
-        authServiceMock.switchTenant.and.returnValue(false);
+        authServiceMock.switchTenant.mockReturnValue(false);
         mockState = { url: '/meshtest' } as RouterStateSnapshot;
         mockRoute = {
           data: { roles: [] },
@@ -257,9 +259,9 @@ describe('Functional Guards', () => {
         const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
 
         // switchTenant was called but returned false (loop prevention)
-        expect(authServiceMock.switchTenant).toHaveBeenCalledWith('meshtest', jasmine.stringContaining('/meshtest'));
+        expect(authServiceMock.switchTenant).toHaveBeenCalledWith('meshtest', expect.stringContaining('/meshtest'));
         // Guard falls through to role check — empty roles means access granted
-        expect(result).toBeTrue();
+        expect(result).toBe(true);
       });
     });
   });
@@ -274,7 +276,7 @@ describe('Functional Guards', () => {
 
       const result = await TestBed.runInInjectionContext(() => authorizeChildGuard(mockRoute, mockState));
 
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should use child route data for role check', async () => {
@@ -286,7 +288,7 @@ describe('Functional Guards', () => {
 
       const result = await TestBed.runInInjectionContext(() => authorizeChildGuard(mockRoute, mockState));
 
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
   });
 
@@ -294,29 +296,23 @@ describe('Functional Guards', () => {
     it('should return true when authenticated', async () => {
       isAuthenticatedValue = true;
 
-      const result = await TestBed.runInInjectionContext(() =>
-        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[], {} as unknown as ActivatedRouteSnapshot)
-      );
+      const result = await TestBed.runInInjectionContext(() => authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[], {} as unknown as ActivatedRouteSnapshot));
 
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should return false when not authenticated', async () => {
       isAuthenticatedValue = false;
 
-      const result = await TestBed.runInInjectionContext(() =>
-        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[], {} as unknown as ActivatedRouteSnapshot)
-      );
+      const result = await TestBed.runInInjectionContext(() => authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[], {} as unknown as ActivatedRouteSnapshot));
 
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
 
     it('should call login when not authenticated', async () => {
       isAuthenticatedValue = false;
 
-      await TestBed.runInInjectionContext(() =>
-        authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[], {} as unknown as ActivatedRouteSnapshot)
-      );
+      await TestBed.runInInjectionContext(() => authorizeMatchGuard({} as unknown as Route, [] as UrlSegment[], {} as unknown as ActivatedRouteSnapshot));
 
       expect(authServiceMock.login).toHaveBeenCalled();
     });
@@ -326,7 +322,7 @@ describe('Functional Guards', () => {
     it('should always return true', () => {
       const result = authorizeDeactivateGuard();
 
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
   });
 });

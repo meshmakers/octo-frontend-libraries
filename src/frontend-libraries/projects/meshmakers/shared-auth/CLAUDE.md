@@ -11,7 +11,7 @@ The `@meshmakers/shared-auth` library provides OAuth2/OIDC authentication for An
 npm run build:shared-auth
 
 # Run tests
-npm test -- --project=@meshmakers/shared-auth --watch=false
+npm run test:shared-auth
 
 # Run lint
 npm run lint:shared-auth

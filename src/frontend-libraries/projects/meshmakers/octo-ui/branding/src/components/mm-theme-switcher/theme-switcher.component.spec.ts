@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { ThemeSwitcherComponent } from './theme-switcher.component';
@@ -6,14 +7,15 @@ import { ThemeService } from '../../services/theme.service';
 import { NEUTRAL_BRANDING_DEFAULTS } from '../../branding.tokens';
 
 describe('ThemeSwitcherComponent', () => {
-  function configure(opts: { isDark: boolean; darkAvailable: boolean }): {
-    el: HTMLElement;
-    setDark: jasmine.Spy;
-  } {
+  function configure(opts: {
+        isDark: boolean;
+        darkAvailable: boolean;
+    }): {
+        el: HTMLElement;
+        setDark: Mock;
+    } {
     const isDarkSignal = signal(opts.isDark);
-    const setDarkSpy = jasmine
-      .createSpy('setDark')
-      .and.callFake((v: boolean) => isDarkSignal.set(v));
+    const setDarkSpy = vi.fn().mockName('setDark').mockImplementation((v: boolean) => isDarkSignal.set(v));
     const themeStub = {
       isDark: isDarkSignal,
       setDark: setDarkSpy,
@@ -47,7 +49,7 @@ describe('ThemeSwitcherComponent', () => {
   it('disables the button when tenant has dark theme = null', () => {
     const { el } = configure({ isDark: false, darkAvailable: false });
     const btn = el.querySelector('button');
-    expect(btn?.hasAttribute('disabled')).toBeTrue();
+    expect(btn?.hasAttribute('disabled')).toBe(true);
   });
 
   it('toggles via setDark when clicked and dark is available', () => {

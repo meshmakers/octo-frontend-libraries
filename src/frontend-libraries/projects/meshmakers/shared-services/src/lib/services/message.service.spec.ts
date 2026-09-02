@@ -21,12 +21,12 @@ describe('MessageService', () => {
       expect(service.getErrorMessageCount()).toBe(0);
     });
 
-    it('should have null as latest error message initially', (done) => {
+    it('should have null as latest error message initially', () => new Promise<void>((done) => {
       service.getLatestErrorMessage().subscribe(msg => {
         expect(msg).toBeNull();
         done();
       });
-    });
+    }));
   });
 
   describe('showError', () => {
@@ -60,16 +60,16 @@ describe('MessageService', () => {
       expect(msg.timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
     });
 
-    it('should update latestErrorMessage', (done) => {
+    it('should update latestErrorMessage', () => new Promise<void>((done) => {
       service.showError('Latest error');
 
       service.getLatestErrorMessage().subscribe(msg => {
         expect(msg?.message).toBe('Latest error');
         done();
       });
-    });
+    }));
 
-    it('should emit to messages$ stream', (done) => {
+    it('should emit to messages$ stream', () => new Promise<void>((done) => {
       service.messages$.subscribe(msg => {
         expect(msg.level).toBe('error');
         expect(msg.message).toBe('Stream error');
@@ -77,7 +77,7 @@ describe('MessageService', () => {
       });
 
       service.showError('Stream error');
-    });
+    }));
   });
 
   describe('showErrorWithDetails', () => {
@@ -96,16 +96,16 @@ describe('MessageService', () => {
       expect(msg.level).toBe('error');
     });
 
-    it('should update latestErrorMessage', (done) => {
+    it('should update latestErrorMessage', () => new Promise<void>((done) => {
       service.showErrorWithDetails('Error', 'Details');
 
       service.getLatestErrorMessage().subscribe(msg => {
         expect(msg?.details).toBe('Details');
         done();
       });
-    });
+    }));
 
-    it('should emit to messages$ stream with details', (done) => {
+    it('should emit to messages$ stream with details', () => new Promise<void>((done) => {
       service.messages$.subscribe(msg => {
         expect(msg.level).toBe('error');
         expect(msg.details).toBe('Stream details');
@@ -113,11 +113,11 @@ describe('MessageService', () => {
       });
 
       service.showErrorWithDetails('Error', 'Stream details');
-    });
+    }));
   });
 
   describe('showInformation', () => {
-    it('should emit info message to messages$ stream', (done) => {
+    it('should emit info message to messages$ stream', () => new Promise<void>((done) => {
       service.messages$.subscribe(msg => {
         expect(msg.level).toBe('info');
         expect(msg.message).toBe('Info message');
@@ -125,7 +125,7 @@ describe('MessageService', () => {
       });
 
       service.showInformation('Info message');
-    });
+    }));
 
     it('should not add to errorMessages array', () => {
       service.showInformation('Info message');
@@ -133,7 +133,7 @@ describe('MessageService', () => {
       expect(service.getErrorMessageCount()).toBe(0);
     });
 
-    it('should set timestamp', (done) => {
+    it('should set timestamp', () => new Promise<void>((done) => {
       const before = new Date();
 
       service.messages$.subscribe(msg => {
@@ -144,11 +144,11 @@ describe('MessageService', () => {
       });
 
       service.showInformation('Info');
-    });
+    }));
   });
 
   describe('showSuccess', () => {
-    it('should emit success message to messages$ stream', (done) => {
+    it('should emit success message to messages$ stream', () => new Promise<void>((done) => {
       service.messages$.subscribe(msg => {
         expect(msg.level).toBe('success');
         expect(msg.message).toBe('Success message');
@@ -156,7 +156,7 @@ describe('MessageService', () => {
       });
 
       service.showSuccess('Success message');
-    });
+    }));
 
     it('should not add to errorMessages array', () => {
       service.showSuccess('Success');
@@ -166,7 +166,7 @@ describe('MessageService', () => {
   });
 
   describe('showWarning', () => {
-    it('should emit warning message to messages$ stream', (done) => {
+    it('should emit warning message to messages$ stream', () => new Promise<void>((done) => {
       service.messages$.subscribe(msg => {
         expect(msg.level).toBe('warning');
         expect(msg.message).toBe('Warning message');
@@ -174,7 +174,7 @@ describe('MessageService', () => {
       });
 
       service.showWarning('Warning message');
-    });
+    }));
 
     it('should not add to errorMessages array', () => {
       service.showWarning('Warning');
@@ -184,7 +184,7 @@ describe('MessageService', () => {
   });
 
   describe('showWarningWithDetails', () => {
-    it('should emit warning message with details to messages$ stream', (done) => {
+    it('should emit warning message with details to messages$ stream', () => new Promise<void>((done) => {
       service.messages$.subscribe(msg => {
         expect(msg.level).toBe('warning');
         expect(msg.message).toBe('Warning message');
@@ -193,7 +193,7 @@ describe('MessageService', () => {
       });
 
       service.showWarningWithDetails('Warning message', 'Warning details');
-    });
+    }));
 
     it('should not add to errorMessages array', () => {
       service.showWarningWithDetails('Warning', 'Details');

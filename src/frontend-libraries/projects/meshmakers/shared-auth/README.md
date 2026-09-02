@@ -275,7 +275,7 @@ npm run build:shared-auth
 npm run lint:shared-auth
 
 # Run tests
-npm test -- --project=@meshmakers/shared-auth --watch=false
+npm run test:shared-auth
 ```
 
 ## Documentation and Testing Standards

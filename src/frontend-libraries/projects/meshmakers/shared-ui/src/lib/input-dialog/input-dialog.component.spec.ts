@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { DialogRef } from '@progress/kendo-angular-dialog';
@@ -7,10 +8,12 @@ import { InputDialogComponent } from './input-dialog.component';
 describe('InputComponent', () => {
   let component: InputDialogComponent;
   let fixture: ComponentFixture<InputDialogComponent>;
-  let mockDialogRef: jasmine.SpyObj<DialogRef>;
+  let mockDialogRef: MockedObject<DialogRef>;
 
   beforeEach(async () => {
-    mockDialogRef = jasmine.createSpyObj('DialogRef', ['close']);
+    mockDialogRef = {
+      close: vi.fn().mockName('DialogRef.close')
+    } as unknown as MockedObject<DialogRef>;
 
     await TestBed.configureTestingModule({
       imports: [InputDialogComponent],
@@ -19,7 +22,7 @@ describe('InputComponent', () => {
         { provide: DialogRef, useValue: mockDialogRef }
       ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(InputDialogComponent);
     component = fixture.componentInstance;

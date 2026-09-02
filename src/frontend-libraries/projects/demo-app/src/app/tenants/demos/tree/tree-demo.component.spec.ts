@@ -13,15 +13,22 @@ describe('TreeDemoComponent', () => {
   let fixture: ComponentFixture<TreeDemoComponent>;
 
   beforeEach(async () => {
-    const mockGetTreesGQL = jasmine.createSpyObj('GetTreesDtoGQL', ['fetch']);
-    mockGetTreesGQL.fetch.and.returnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreesQueryDto>));
+    const mockGetTreesGQL = {
+      fetch: vi.fn().mockName('GetTreesDtoGQL.fetch')
+    };
+    mockGetTreesGQL.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreesQueryDto>));
 
-    const mockGetTreeNodesGQL = jasmine.createSpyObj('GetTreeNodesDtoGQL', ['fetch']);
-    mockGetTreeNodesGQL.fetch.and.returnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreeNodesQueryDto>));
+    const mockGetTreeNodesGQL = {
+      fetch: vi.fn().mockName('GetTreeNodesDtoGQL.fetch')
+    };
+    mockGetTreeNodesGQL.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreeNodesQueryDto>));
 
-    const mockTreeDemoDataSource = jasmine.createSpyObj('TreeDemoDataSource', ['fetchRootNodes', 'fetchChildren']);
-    mockTreeDemoDataSource.fetchRootNodes.and.returnValue(Promise.resolve([]));
-    mockTreeDemoDataSource.fetchChildren.and.returnValue(Promise.resolve([]));
+    const mockTreeDemoDataSource = {
+      fetchRootNodes: vi.fn().mockName('TreeDemoDataSource.fetchRootNodes'),
+      fetchChildren: vi.fn().mockName('TreeDemoDataSource.fetchChildren')
+    };
+    mockTreeDemoDataSource.fetchRootNodes.mockResolvedValue([]);
+    mockTreeDemoDataSource.fetchChildren.mockResolvedValue([]);
 
     await TestBed.configureTestingModule({
       imports: [TreeDemoComponent],
@@ -32,7 +39,7 @@ describe('TreeDemoComponent', () => {
         { provide: TreeDemoDataSource, useValue: mockTreeDemoDataSource }
       ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(TreeDemoComponent);
     component = fixture.componentInstance;

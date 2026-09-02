@@ -17,7 +17,8 @@
     "@progress/kendo-angular-layout": "^24.1.0",
     "apollo-angular": "^14.0.0",
     "dockview-angular": "^5.0.0",
-    "dockview-core": "^5.0.0"
+    "dockview-core": "^5.0.0",
+    "expr-eval-fork": "^3.0.3"
   },
   "dependencies": {
     "tslib": "^2.8.1"

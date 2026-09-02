@@ -1,15 +1,16 @@
-import {TestBed} from '@angular/core/testing';
-import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {provideHttpClient, withXhr} from '@angular/common/http';
-import {CommunicationService} from './communication.service';
-import {CONFIGURATION_SERVICE, IConfigurationService} from './configuration.service';
-import {AddInConfiguration} from '../shared/addInConfiguration';
-import {DeploymentState} from '../shared/communicationDtos';
+import type { MockedObject } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withXhr } from '@angular/common/http';
+import { CommunicationService } from './communication.service';
+import { CONFIGURATION_SERVICE, IConfigurationService } from './configuration.service';
+import { AddInConfiguration } from '../shared/addInConfiguration';
+import { DeploymentState } from '../shared/communicationDtos';
 
 describe('CommunicationService', () => {
   let service: CommunicationService;
   let httpMock: HttpTestingController;
-  let mockConfigService: jasmine.SpyObj<IConfigurationService>;
+  let mockConfigService: MockedObject<IConfigurationService>;
 
   const mockConfig: AddInConfiguration = {
     communicationServices: 'https://api.example.com/communication/',
@@ -30,16 +31,16 @@ describe('CommunicationService', () => {
   const tenantId = 'test-tenant';
 
   beforeEach(() => {
-    mockConfigService = jasmine.createSpyObj<IConfigurationService>('ConfigurationService', [], {
+    mockConfigService = {
       config: mockConfig
-    });
+    } as unknown as MockedObject<IConfigurationService>;
 
     TestBed.configureTestingModule({
       providers: [
         CommunicationService,
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        {provide: CONFIGURATION_SERVICE, useValue: mockConfigService}
+        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
       ]
     });
 
@@ -55,9 +56,7 @@ describe('CommunicationService', () => {
     it('should POST the tenant-scoped enable endpoint', async () => {
       const promise = service.enableCommunication(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/communication/enable`
-      );
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/communication/enable`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(null);
@@ -68,12 +67,10 @@ describe('CommunicationService', () => {
     it('should propagate errors', async () => {
       const promise = service.enableCommunication(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/communication/enable`
-      );
-      req.flush({errorMessage: 'boom'}, {status: 500, statusText: 'Server Error'});
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/communication/enable`);
+      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
 
-      await expectAsync(promise).toBeRejected();
+      await expect(promise).rejects.toThrow();
     });
   });
 
@@ -81,9 +78,7 @@ describe('CommunicationService', () => {
     it('should POST the tenant-scoped disable endpoint', async () => {
       const promise = service.disableCommunication(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/communication/disable`
-      );
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/communication/disable`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(null);
@@ -94,12 +89,10 @@ describe('CommunicationService', () => {
     it('should propagate errors', async () => {
       const promise = service.disableCommunication(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/communication/disable`
-      );
-      req.flush({errorMessage: 'boom'}, {status: 500, statusText: 'Server Error'});
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/communication/disable`);
+      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
 
-      await expectAsync(promise).toBeRejected();
+      await expect(promise).rejects.toThrow();
     });
   });
 
@@ -107,9 +100,7 @@ describe('CommunicationService', () => {
     it('should call the correct endpoint', async () => {
       const promise = service.deployTrigger(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/pipelineTrigger/deploy`
-      );
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/pipelineTrigger/deploy`);
       expect(req.request.method).toBe('POST');
       req.flush(null);
 
@@ -122,16 +113,10 @@ describe('CommunicationService', () => {
       const adapterRtId = 'adapter-123';
       const adapterCkTypeId = 'System.Communication/Adapter';
 
-      const promise = service.deployAdapterConfigurationUpdate(
-        tenantId,
-        adapterRtId,
-        adapterCkTypeId
-      );
+      const promise = service.deployAdapterConfigurationUpdate(tenantId, adapterRtId, adapterCkTypeId);
 
-      const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/adapter/deployUpdate` &&
-        request.params.get('adapterRtEntityId') === `${adapterCkTypeId}@${adapterRtId}`
-      );
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/adapter/deployUpdate` &&
+                request.params.get('adapterRtEntityId') === `${adapterCkTypeId}@${adapterRtId}`);
       expect(req.request.method).toBe('POST');
       req.flush(null);
 
@@ -145,10 +130,8 @@ describe('CommunicationService', () => {
 
       const promise = service.deployPool(tenantId, poolRtId);
 
-      const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/deploy` &&
-        request.params.get('poolRtId') === poolRtId
-      );
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/deploy` &&
+                request.params.get('poolRtId') === poolRtId);
       expect(req.request.method).toBe('POST');
       req.flush(null);
 
@@ -162,10 +145,8 @@ describe('CommunicationService', () => {
 
       const promise = service.undeployPool(tenantId, poolRtId);
 
-      const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/undeploy` &&
-        request.params.get('poolRtId') === poolRtId
-      );
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/undeploy` &&
+                request.params.get('poolRtId') === poolRtId);
       expect(req.request.method).toBe('POST');
       req.flush(null);
 
@@ -176,14 +157,12 @@ describe('CommunicationService', () => {
   describe('executePipeline', () => {
     it('should return pipeline execution data', async () => {
       const pipelineRtId = 'pipeline-123';
-      const expectedResult = {id: 'exec-1', dateTime: new Date()};
+      const expectedResult = { id: 'exec-1', dateTime: new Date() };
 
       const promise = service.executePipeline(tenantId, pipelineRtId);
 
-      const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/pipeline/execute` &&
-        request.params.get('pipelineRtId') === pipelineRtId
-      );
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/pipeline/execute` &&
+                request.params.get('pipelineRtId') === pipelineRtId);
       expect(req.request.method).toBe('POST');
       req.flush(expectedResult);
 
@@ -198,12 +177,10 @@ describe('CommunicationService', () => {
 
       const promise = service.setPipelineDebugging(tenantId, pipelineRtId, false);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/pipeline/${pipelineRtId}/debug`
-      );
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/pipeline/${pipelineRtId}/debug`);
       expect(req.request.method).toBe('PATCH');
-      expect(req.request.body).toEqual({enabled: false});
-      req.flush({enabled: false, appliedToRunningAdapter: true});
+      expect(req.request.body).toEqual({ enabled: false });
+      req.flush({ enabled: false, appliedToRunningAdapter: true });
 
       const result = await promise;
       expect(result?.enabled).toBe(false);
@@ -217,9 +194,7 @@ describe('CommunicationService', () => {
 
       const promise = service.wakeWorkload(tenantId, workloadRtId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/adapter/${workloadRtId}/wake`
-      );
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/${workloadRtId}/wake`);
       expect(req.request.method).toBe('POST');
       req.flush(null);
 
@@ -231,9 +206,9 @@ describe('CommunicationService', () => {
 
       httpMock
         .expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/workload-123/wake`)
-        .flush('Wake timed out', {status: 400, statusText: 'Bad Request'});
+        .flush('Wake timed out', { status: 400, statusText: 'Bad Request' });
 
-      await expectAsync(promise).toBeRejected();
+      await expect(promise).rejects.toThrow();
     });
   });
 
@@ -259,8 +234,8 @@ describe('CommunicationService', () => {
       const result = await promise;
       expect(result.clientId).toBe('pipeline-svc-adapter-1');
       expect(result.configurationWellKnownName).toBe('PipelineServiceAccount.adapter-1');
-      expect(result.wasCreated).toBeFalse();
-      expect(result.requiresPipelineRedeploy).toBeTrue();
+      expect(result.wasCreated).toBe(false);
+      expect(result.requiresPipelineRedeploy).toBe(true);
     });
 
     it('carries no secret — the contract has exactly the five documented fields', async () => {
@@ -290,17 +265,16 @@ describe('CommunicationService', () => {
         .expectOne(rotateUri)
         .flush({errorMessage: 'Adapter not found'}, {status: 404, statusText: 'Not Found'});
 
-      await expectAsync(promise).toBeRejected();
+      await expect(promise).rejects.toThrow();
     });
 
     it('throws instead of silently doing nothing when the service URL is unconfigured', async () => {
       // A silent no-op would read as "rotated" to the caller — for a mutating
       // call the absent configuration has to surface. Same TestBed-rebuild
       // pattern the getWorkloadVariables spec uses.
-      const emptyConfigService = jasmine.createSpyObj<IConfigurationService>(
-        'ConfigurationService', [], {
-          config: {...mockConfig, communicationServices: ''}
-        });
+      const emptyConfigService = {
+        config: {...mockConfig, communicationServices: ''}
+      } as unknown as MockedObject<IConfigurationService>;
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
         providers: [
@@ -313,8 +287,8 @@ describe('CommunicationService', () => {
       const localService = TestBed.inject(CommunicationService);
       const localHttp = TestBed.inject(HttpTestingController);
 
-      await expectAsync(localService.rotateAdapterServiceAccountSecret(tenantId, adapterRtId))
-        .toBeRejected();
+      await expect(localService.rotateAdapterServiceAccountSecret(tenantId, adapterRtId))
+        .rejects.toThrow();
       localHttp.expectNone(() => true);
       localHttp.verify();
     });
@@ -326,10 +300,8 @@ describe('CommunicationService', () => {
 
       const promise = service.deployDataFlow(tenantId, dataFlowRtId);
 
-      const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/dataFlow/deploy` &&
-        request.params.get('dataFlowRtId') === dataFlowRtId
-      );
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/dataFlow/deploy` &&
+                request.params.get('dataFlowRtId') === dataFlowRtId);
       expect(req.request.method).toBe('POST');
       req.flush(null);
 
@@ -343,10 +315,8 @@ describe('CommunicationService', () => {
 
       const promise = service.undeployDataFlow(tenantId, dataFlowRtId);
 
-      const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/dataFlow/undeploy` &&
-        request.params.get('dataFlowRtId') === dataFlowRtId
-      );
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/dataFlow/undeploy` &&
+                request.params.get('dataFlowRtId') === dataFlowRtId);
       expect(req.request.method).toBe('POST');
       req.flush(null);
 
@@ -366,10 +336,8 @@ describe('CommunicationService', () => {
 
       const promise = service.getPipelineStatus(tenantId, pipelineRtId, pipelineCkTypeId);
 
-      const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/pipeline/status` &&
-        request.params.get('pipelineRtEntityId') === `${pipelineCkTypeId}@${pipelineRtId}`
-      );
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/pipeline/status` &&
+                request.params.get('pipelineRtEntityId') === `${pipelineCkTypeId}@${pipelineRtId}`);
       expect(req.request.method).toBe('GET');
       req.flush(expectedResult);
 
@@ -383,18 +351,16 @@ describe('CommunicationService', () => {
       const pipelineRtId = 'pipeline-123';
       const pipelineCkTypeId = 'System.Communication/DataFlow';
       const expectedResult = [
-        {id: 'exec-1', dateTime: new Date()},
-        {id: 'exec-2', dateTime: new Date()}
+        { id: 'exec-1', dateTime: new Date() },
+        { id: 'exec-2', dateTime: new Date() }
       ];
 
       const promise = service.getPipelineExecutions(tenantId, pipelineRtId, pipelineCkTypeId, 0, 10);
 
       const encodedEntityId = encodeURIComponent(`${pipelineCkTypeId}@${pipelineRtId}`);
-      const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/pipelineDebug/${encodedEntityId}` &&
-        request.params.get('skip') === '0' &&
-        request.params.get('take') === '10'
-      );
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/pipelineDebug/${encodedEntityId}` &&
+                request.params.get('skip') === '0' &&
+                request.params.get('take') === '10');
       expect(req.request.method).toBe('GET');
       req.flush(expectedResult);
 
@@ -407,14 +373,12 @@ describe('CommunicationService', () => {
     it('should return the latest execution', async () => {
       const pipelineRtId = 'pipeline-123';
       const pipelineCkTypeId = 'System.Communication/DataFlow';
-      const expectedResult = {id: 'exec-latest', dateTime: new Date()};
+      const expectedResult = { id: 'exec-latest', dateTime: new Date() };
 
       const promise = service.getLatestPipelineExecution(tenantId, pipelineRtId, pipelineCkTypeId);
 
       const encodedEntityId = encodeURIComponent(`${pipelineCkTypeId}@${pipelineRtId}`);
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/pipelineDebug/${encodedEntityId}/latest`
-      );
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/pipelineDebug/${encodedEntityId}/latest`);
       expect(req.request.method).toBe('GET');
       req.flush(expectedResult);
 
@@ -426,7 +390,7 @@ describe('CommunicationService', () => {
   describe('when communicationServices is not configured', () => {
     beforeEach(() => {
       Object.defineProperty(mockConfigService, 'config', {
-        get: () => ({...mockConfig, communicationServices: ''})
+        get: () => ({ ...mockConfig, communicationServices: '' })
       });
     });
 
@@ -456,9 +420,7 @@ describe('CommunicationService', () => {
         redeploy: true
       });
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/pipeline/move-to-adapter`
-      );
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/pipeline/move-to-adapter`);
       expect(req.request.method).toBe('PATCH');
       expect(req.request.body).toEqual({
         pipelineRtIds: ['p1', 'p2'],
@@ -487,9 +449,9 @@ describe('CommunicationService', () => {
 
       const result = await promise;
       expect(result.results.length).toBe(2);
-      expect(result.results[0].success).toBeTrue();
+      expect(result.results[0].success).toBe(true);
       expect(result.results[0].newAdapterRtId).toBe('adapter-new');
-      expect(result.results[1].success).toBeFalse();
+      expect(result.results[1].success).toBe(false);
       expect(result.results[1].errorMessage).toBe('pipeline not found');
     });
   });
@@ -498,14 +460,12 @@ describe('CommunicationService', () => {
     it('should call the correct endpoint and return the response', async () => {
       const promise = service.getWorkloadVariables(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/communication/workload-variables`
-      );
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/communication/workload-variables`);
       expect(req.request.method).toBe('GET');
       req.flush([
-        {placeholder: '{{context.tenantId}}', description: 'tenant id', sampleValue: null},
-        {placeholder: '{{domain.default}}', description: 'default domain', sampleValue: 'staging.octo-mesh.com'},
-        {placeholder: '{{service.authority}}', description: 'identity authority', sampleValue: 'https://identity.staging.octo-mesh.com'}
+        { placeholder: '{{context.tenantId}}', description: 'tenant id', sampleValue: null },
+        { placeholder: '{{domain.default}}', description: 'default domain', sampleValue: 'staging.octo-mesh.com' },
+        { placeholder: '{{service.authority}}', description: 'identity authority', sampleValue: 'https://identity.staging.octo-mesh.com' }
       ]);
 
       const result = await promise;
@@ -520,17 +480,16 @@ describe('CommunicationService', () => {
       // Re-create service against a config without communicationServices to
       // exercise the early-return branch — same pattern as getDomains and
       // the deploy* methods.
-      const emptyConfigService = jasmine.createSpyObj<IConfigurationService>(
-        'ConfigurationService', [], {
-          config: {...mockConfig, communicationServices: ''}
-        });
+      const emptyConfigService = {
+        config: { ...mockConfig, communicationServices: '' }
+      };
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
         providers: [
           CommunicationService,
           provideHttpClient(withXhr()),
           provideHttpClientTesting(),
-          {provide: CONFIGURATION_SERVICE, useValue: emptyConfigService}
+          { provide: CONFIGURATION_SERVICE, useValue: emptyConfigService }
         ]
       });
       const localService = TestBed.inject(CommunicationService);
@@ -551,14 +510,12 @@ describe('CommunicationService', () => {
     it('GETs the controller endpoint and returns parsed samples', async () => {
       const promise = service.getAdapterMetrics(tenantId, adapterRtId, adapterCkTypeId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`
-      );
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`);
       expect(req.request.method).toBe('GET');
       expect(req.request.params.has('since')).toBe(false);
       req.flush([
-        {adapterRtEntityId: `${adapterCkTypeId}@${adapterRtId}`, timestamp: '2026-06-05T17:00:00Z',
-         cpuPercent: 12.5, workingSetBytes: 100, gcHeapBytes: 50, threadCount: 4}
+        { adapterRtEntityId: `${adapterCkTypeId}@${adapterRtId}`, timestamp: '2026-06-05T17:00:00Z',
+          cpuPercent: 12.5, workingSetBytes: 100, gcHeapBytes: 50, threadCount: 4 }
       ]);
 
       const result = await promise;
@@ -570,10 +527,8 @@ describe('CommunicationService', () => {
       const since = new Date('2026-06-05T17:00:00Z');
       const promise = service.getAdapterMetrics(tenantId, adapterRtId, adapterCkTypeId, since);
 
-      const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics` &&
-        request.params.get('since') === since.toISOString()
-      );
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics` &&
+                request.params.get('since') === since.toISOString());
       req.flush([]);
       await promise;
     });
@@ -583,20 +538,18 @@ describe('CommunicationService', () => {
       // The UI must render an empty sparkline, not an error toast.
       const promise = service.getAdapterMetrics(tenantId, adapterRtId, adapterCkTypeId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`
-      );
-      req.flush({errorMessage: 'Adapter not loaded'}, {status: 404, statusText: 'Not Found'});
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`);
+      req.flush({ errorMessage: 'Adapter not loaded' }, { status: 404, statusText: 'Not Found' });
 
       const result = await promise;
       expect(result).toEqual([]);
     });
 
     it('returns empty array when the communication services URL is not configured', async () => {
-      const emptyConfig = {...mockConfig, communicationServices: ''};
-      const emptyConfigService = jasmine.createSpyObj<IConfigurationService>('ConfigurationService', [], {
+      const emptyConfig = { ...mockConfig, communicationServices: '' };
+      const emptyConfigService = {
         config: emptyConfig
-      });
+      };
 
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
@@ -604,7 +557,7 @@ describe('CommunicationService', () => {
           CommunicationService,
           provideHttpClient(withXhr()),
           provideHttpClientTesting(),
-          {provide: CONFIGURATION_SERVICE, useValue: emptyConfigService}
+          { provide: CONFIGURATION_SERVICE, useValue: emptyConfigService }
         ]
       });
       const localService = TestBed.inject(CommunicationService);

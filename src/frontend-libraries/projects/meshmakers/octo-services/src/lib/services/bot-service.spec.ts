@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
@@ -12,7 +13,10 @@ import { AuthorizeService } from '@meshmakers/shared-auth';
 describe('BotService', () => {
   let service: BotService;
   let httpMock: HttpTestingController;
-  let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: jasmine.Spy };
+  let mockConfigService: {
+        config: AddInConfiguration | null;
+        loadConfigAsync: Mock;
+    };
 
   const baseUrl = 'https://bot.example.com/';
 
@@ -48,11 +52,11 @@ describe('BotService', () => {
   beforeEach(() => {
     mockConfigService = {
       config: mockConfig,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync').and.returnValue(Promise.resolve())
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
     };
 
     const mockAuthorizeService = {
-      getAccessTokenSync: jasmine.createSpy('getAccessTokenSync').and.returnValue('test-token')
+      getAccessTokenSync: vi.fn().mockName('getAccessTokenSync').mockReturnValue('test-token')
     };
 
     TestBed.configureTestingModule({
@@ -143,7 +147,7 @@ describe('BotService', () => {
       const resultPromise = service.dumpRepository('tenant-1');
 
       const req = httpMock.expectOne((request) => request.url.startsWith(`${baseUrl}tenant-1/v1/jobs/`));
-      expect(req.request.params.has('tenantId')).toBeFalse();
+      expect(req.request.params.has('tenantId')).toBe(false);
       req.flush(mockJobResponse);
 
       await resultPromise;
@@ -179,7 +183,7 @@ describe('BotService', () => {
 
       const req = httpMock.expectOne(`${baseUrl}system/v1/jobs/restore-repository?tenantId=tenant-1&databaseName=test_db`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBeTrue();
+      expect(req.request.body instanceof FormData).toBe(true);
       req.flush(mockJobResponse);
 
       const result = await resultPromise;
@@ -207,7 +211,7 @@ describe('BotService', () => {
 
       const result = await resultPromise;
       expect(result).toBeTruthy();
-      expect(result instanceof Blob).toBeTrue();
+      expect(result instanceof Blob).toBe(true);
     });
 
     it('should return null when config is not available', async () => {
@@ -265,8 +269,8 @@ describe('BotService', () => {
       );
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
-      expect(req.request.params.has('fromUtc')).toBeFalse();
-      expect(req.request.params.has('toUtc')).toBeFalse();
+      expect(req.request.params.has('fromUtc')).toBe(false);
+      expect(req.request.params.has('toUtc')).toBe(false);
       req.flush(mockJobResponse);
 
       const result = await resultPromise;
@@ -306,9 +310,7 @@ describe('BotService', () => {
       mockConfigService.config = null;
       const mockFile = new File(['zip data'], 'export.zip', { type: 'application/zip' });
 
-      const result = await service.startImportArchiveDataWithUpload(
-        'tenant-1', 'archive-1', mockFile, ImportStrategyDto.Upsert
-      );
+      const result = await service.startImportArchiveDataWithUpload('tenant-1', 'archive-1', mockFile, ImportStrategyDto.Upsert);
       expect(result).toBeNull();
     });
   });

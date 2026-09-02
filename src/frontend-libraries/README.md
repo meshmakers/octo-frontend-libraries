@@ -79,16 +79,29 @@ npm run build:prod
 
 ### Running Unit Tests
 
+Tests run on **Vitest** via the `@angular/build:unit-test` builder in a **jsdom**
+environment — no browser and no `CHROME_BIN` needed.
+
 ```bash
-# Run all tests
+# Run all tests (chains the per-project scripts)
 npm test
 
-# Run tests for specific library
-npm test -- --project=@meshmakers/shared-auth
-npm test -- --project=@meshmakers/shared-services
-npm test -- --project=@meshmakers/octo-services
-npm test -- --project=@meshmakers/octo-process-diagrams
+# Run tests for a specific library
+npm run test:shared-auth
+npm run test:shared-services
+npm run test:octo-services
+npm run test:octo-process-diagrams
+
+# Run a single spec (path relative to the workspace root)
+ng test @meshmakers/shared-auth --watch=false --include=projects/meshmakers/shared-auth/src/lib/authorize.service.spec.ts
 ```
+
+`npm test -- <flag>` only appends the flag to the **last** chained script, so pass
+per-project flags through the project script instead:
+`npm run test:shared-auth -- --reporters=verbose`.
+
+See [CLAUDE.md](CLAUDE.md) for the full Vitest setup, the shared jsdom shims and the
+migration caveats.
 
 ### Linting
 
@@ -336,14 +349,20 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-### Karma Configuration
+### Vitest Configuration
 
-Tests use Chrome Headless with JUnit reporter for CI:
+Karma and Jasmine were replaced by Vitest in AB#5071. Tests run headless on jsdom;
+the shared setup file `testing/vitest-setup.ts` is wired into every `test` target via
+`setupFiles`. CI adds the JUnit reporter with repeated `--reporters` flags (the builder
+does not split comma-separated reporter lists):
 
 ```bash
 # CI command
-npm test -- --project=@meshmakers/shared-auth --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+npm run test:shared-auth -- --reporters=default --reporters=junit --output-file="test-results/shared-auth/TESTS-junit.xml"
 ```
+
+`VITEST_MAX_WORKERS` is the only worker cap the builder honours; the pipeline sets it to
+`2` per `ng test` while running up to three projects concurrently.
 
 ## Additional Resources
 

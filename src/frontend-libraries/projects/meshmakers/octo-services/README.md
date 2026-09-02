@@ -22,7 +22,7 @@ npm run build:octo-services
 npm run lint:octo-services
 
 # Run tests
-npm test -- --project=@meshmakers/octo-services --watch=false
+npm run test:octo-services
 ```
 
 ## Architecture

@@ -36,7 +36,7 @@ type HttpErrorLike = Pick<HttpErrorResponse, 'status' | 'error' | 'url'>;
 
 /**
  * Structural check instead of `instanceof HttpErrorResponse` on purpose: a host that compiles this
- * library from source next to its own `@angular/common` copy (the Studio's Karma run does) sees
+ * library from source next to its own `@angular/common` copy (the Studio's Vitest run does) sees
  * two class identities, and `instanceof` would silently answer `false` there.
  */
 function isHttpErrorResponse(error: unknown): error is HttpErrorLike {

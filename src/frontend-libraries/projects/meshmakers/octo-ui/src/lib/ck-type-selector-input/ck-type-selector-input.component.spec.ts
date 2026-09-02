@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
@@ -13,8 +14,8 @@ import { CkTypeSelectorInputComponent } from './ck-type-selector-input.component
 describe('CkTypeSelectorInputComponent', () => {
   let component: CkTypeSelectorInputComponent;
   let fixture: ComponentFixture<CkTypeSelectorInputComponent>;
-  let ckTypeSelectorServiceMock: jasmine.SpyObj<CkTypeSelectorService>;
-  let dialogServiceMock: jasmine.SpyObj<CkTypeSelectorDialogService>;
+  let ckTypeSelectorServiceMock: MockedObject<CkTypeSelectorService>;
+  let dialogServiceMock: MockedObject<CkTypeSelectorDialogService>;
 
   const mockCkTypes: CkTypeSelectorItem[] = [
     {
@@ -41,17 +42,21 @@ describe('CkTypeSelectorInputComponent', () => {
   ];
 
   beforeEach(async () => {
-    ckTypeSelectorServiceMock = jasmine.createSpyObj('CkTypeSelectorService', ['getCkTypes']);
-    ckTypeSelectorServiceMock.getCkTypes.and.returnValue(of({
+    ckTypeSelectorServiceMock = {
+      getCkTypes: vi.fn().mockName('CkTypeSelectorService.getCkTypes')
+    } as unknown as MockedObject<CkTypeSelectorService>;
+    ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
       items: [...mockCkTypes],
       totalCount: mockCkTypes.length
     }));
 
-    dialogServiceMock = jasmine.createSpyObj('CkTypeSelectorDialogService', ['openCkTypeSelector']);
-    dialogServiceMock.openCkTypeSelector.and.returnValue(Promise.resolve({
+    dialogServiceMock = {
+      openCkTypeSelector: vi.fn().mockName('CkTypeSelectorDialogService.openCkTypeSelector')
+    } as unknown as MockedObject<CkTypeSelectorDialogService>;
+    dialogServiceMock.openCkTypeSelector.mockResolvedValue({
       confirmed: false,
       selectedCkType: null
-    }));
+    });
 
     await TestBed.configureTestingModule({
       imports: [
@@ -85,7 +90,7 @@ describe('CkTypeSelectorInputComponent', () => {
       expect(component.minSearchLength).toBe(2);
       expect(component.maxResults).toBe(50);
       expect(component.debounceMs).toBe(300);
-      expect(component.allowAbstract).toBeTrue();
+      expect(component.allowAbstract).toBe(true);
       expect(component.dialogTitle).toBe('Select Construction Kit Type');
       expect(component.advancedSearchLabel).toBe('Advanced Search...');
     });
@@ -94,15 +99,15 @@ describe('CkTypeSelectorInputComponent', () => {
       fixture.detectChanges();
       expect(component.filteredTypes).toEqual([]);
       expect(component.selectedCkType).toBeNull();
-      expect(component.isLoading).toBeFalse();
+      expect(component.isLoading).toBe(false);
     });
 
     it('should have disabled default to false', () => {
-      expect(component.disabled).toBeFalse();
+      expect(component.disabled).toBe(false);
     });
 
     it('should have required default to false', () => {
-      expect(component.required).toBeFalse();
+      expect(component.required).toBe(false);
     });
   });
 
@@ -138,7 +143,7 @@ describe('CkTypeSelectorInputComponent', () => {
 
     it('should accept allowAbstract', () => {
       component.allowAbstract = true;
-      expect(component.allowAbstract).toBeTrue();
+      expect(component.allowAbstract).toBe(true);
     });
 
     it('should accept dialogTitle', () => {
@@ -159,36 +164,36 @@ describe('CkTypeSelectorInputComponent', () => {
 
     it('should disable searchFormControl when disabled is set', () => {
       component.disabled = true;
-      expect(component.searchFormControl.disabled).toBeTrue();
+      expect(component.searchFormControl.disabled).toBe(true);
     });
 
     it('should enable searchFormControl when disabled is unset', () => {
       component.disabled = true;
       component.disabled = false;
-      expect(component.searchFormControl.enabled).toBeTrue();
+      expect(component.searchFormControl.enabled).toBe(true);
     });
 
     it('should coerce truthy values to true', () => {
       (component as unknown as Record<string, unknown>)['disabled'] = 'yes';
-      expect(component.disabled).toBeTrue();
+      expect(component.disabled).toBe(true);
     });
 
     it('should coerce falsy values to false', () => {
       component.disabled = true;
       (component as unknown as Record<string, unknown>)['disabled'] = '';
-      expect(component.disabled).toBeFalse();
+      expect(component.disabled).toBe(false);
     });
   });
 
   describe('Required state', () => {
     it('should set required property', () => {
       component.required = true;
-      expect(component.required).toBeTrue();
+      expect(component.required).toBe(true);
     });
 
     it('should coerce truthy values to true', () => {
       (component as unknown as Record<string, unknown>)['required'] = 'yes';
-      expect(component.required).toBeTrue();
+      expect(component.required).toBe(true);
     });
   });
 
@@ -224,7 +229,7 @@ describe('CkTypeSelectorInputComponent', () => {
       });
 
       it('should not emit event when setting value', () => {
-        const spy = jasmine.createSpy('valueChangeSpy');
+        const spy = vi.fn().mockName('valueChangeSpy');
         component.searchFormControl.valueChanges.subscribe(spy);
         component.writeValue(mockCkTypes[0]);
         expect(spy).not.toHaveBeenCalled();
@@ -233,7 +238,7 @@ describe('CkTypeSelectorInputComponent', () => {
 
     describe('registerOnChange', () => {
       it('should register onChange callback', () => {
-        const callback = jasmine.createSpy('onChange');
+        const callback = vi.fn().mockName('onChange');
         component.registerOnChange(callback);
 
         // Trigger internal onChange
@@ -244,7 +249,7 @@ describe('CkTypeSelectorInputComponent', () => {
 
     describe('registerOnTouched', () => {
       it('should register onTouched callback', () => {
-        const callback = jasmine.createSpy('onTouched');
+        const callback = vi.fn().mockName('onTouched');
         component.registerOnTouched(callback);
 
         // Trigger internal onTouched
@@ -256,13 +261,13 @@ describe('CkTypeSelectorInputComponent', () => {
     describe('setDisabledState', () => {
       it('should disable component when called with true', () => {
         component.setDisabledState(true);
-        expect(component.disabled).toBeTrue();
+        expect(component.disabled).toBe(true);
       });
 
       it('should enable component when called with false', () => {
         component.disabled = true;
         component.setDisabledState(false);
-        expect(component.disabled).toBeFalse();
+        expect(component.disabled).toBe(false);
       });
     });
   });
@@ -313,14 +318,14 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should trigger search when filter meets minSearchLength', fakeAsync(() => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       component.onFilterChange('cus');
       tick(300);
       expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
     }));
 
     it('should debounce search requests', fakeAsync(() => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       component.onFilterChange('cus');
       tick(100);
       component.onFilterChange('cust');
@@ -334,7 +339,7 @@ describe('CkTypeSelectorInputComponent', () => {
       component.onFilterChange('customer');
       tick(300);
       // After completion isLoading should be false
-      expect(component.isLoading).toBeFalse();
+      expect(component.isLoading).toBe(false);
     }));
 
     it('should populate filteredTypes with rtCkTypeIds', fakeAsync(() => {
@@ -362,23 +367,23 @@ describe('CkTypeSelectorInputComponent', () => {
       component.ckModelIds = ['TestModel'];
       component.onFilterChange('test');
       tick(300);
-      const call = ckTypeSelectorServiceMock.getCkTypes.calls.mostRecent();
-      expect(call?.args[0]?.ckModelIds).toEqual(['TestModel']);
+      const call = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.lastCall;
+      expect(call?.[0]?.ckModelIds).toEqual(['TestModel']);
     }));
 
     it('should pass maxResults to service', fakeAsync(() => {
       component.maxResults = 25;
       component.onFilterChange('test');
       tick(300);
-      const call = ckTypeSelectorServiceMock.getCkTypes.calls.mostRecent();
-      expect(call?.args[0]?.first).toBe(25);
+      const call = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.lastCall;
+      expect(call?.[0]?.first).toBe(25);
     }));
 
     it('should handle search errors gracefully', fakeAsync(() => {
-      ckTypeSelectorServiceMock.getCkTypes.and.returnValue(throwError(() => new Error('Test error')));
+      ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(throwError(() => new Error('Test error')));
       component.onFilterChange('test');
       tick(300);
-      expect(component.isLoading).toBeFalse();
+      expect(component.isLoading).toBe(false);
       expect(component.filteredTypes).toEqual([]);
     }));
   });
@@ -398,7 +403,7 @@ describe('CkTypeSelectorInputComponent', () => {
     }));
 
     it('should emit ckTypeSelected event on selection', fakeAsync(() => {
-      const spy = jasmine.createSpy('ckTypeSelected');
+      const spy = vi.fn().mockName('ckTypeSelected');
       component.ckTypeSelected.subscribe(spy);
 
       component.onFilterChange('customer');
@@ -426,7 +431,7 @@ describe('CkTypeSelectorInputComponent', () => {
     }));
 
     it('should call onChange callback on selection', fakeAsync(() => {
-      const callback = jasmine.createSpy('onChange');
+      const callback = vi.fn().mockName('onChange');
       component.registerOnChange(callback);
 
       component.onFilterChange('customer');
@@ -444,7 +449,7 @@ describe('CkTypeSelectorInputComponent', () => {
 
     it('should trigger search on focus if value meets minSearchLength', fakeAsync(() => {
       component.searchFormControl.setValue('customer');
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
 
       component.onFocus();
       tick(300);
@@ -453,7 +458,7 @@ describe('CkTypeSelectorInputComponent', () => {
 
     it('should not trigger search on focus if value is too short', fakeAsync(() => {
       component.searchFormControl.setValue('c');
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
 
       component.onFocus();
       tick(300);
@@ -465,14 +470,14 @@ describe('CkTypeSelectorInputComponent', () => {
       component.onFilterChange('customer');
       tick(300);
 
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       component.onFocus();
       tick(300);
       expect(ckTypeSelectorServiceMock.getCkTypes).not.toHaveBeenCalled();
     }));
 
     it('should call onTouched on blur', () => {
-      const callback = jasmine.createSpy('onTouched');
+      const callback = vi.fn().mockName('onTouched');
       component.registerOnTouched(callback);
 
       component.onBlur();
@@ -480,7 +485,7 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should auto-select on blur if only one result and no selection', fakeAsync(() => {
-      ckTypeSelectorServiceMock.getCkTypes.and.returnValue(of({
+      ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
         items: [mockCkTypes[0]],
         totalCount: 1
       }));
@@ -497,7 +502,7 @@ describe('CkTypeSelectorInputComponent', () => {
 
     it('should not auto-select on blur if already selected', fakeAsync(() => {
       component.selectedCkType = mockCkTypes[1];
-      ckTypeSelectorServiceMock.getCkTypes.and.returnValue(of({
+      ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
         items: [mockCkTypes[0]],
         totalCount: 1
       }));
@@ -537,7 +542,7 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should call onChange with null', () => {
-      const callback = jasmine.createSpy('onChange');
+      const callback = vi.fn().mockName('onChange');
       component.registerOnChange(callback);
 
       component.clear();
@@ -545,7 +550,7 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should emit ckTypeCleared event', () => {
-      const spy = jasmine.createSpy('ckTypeCleared');
+      const spy = vi.fn().mockName('ckTypeCleared');
       component.ckTypeCleared.subscribe(spy);
 
       component.clear();
@@ -553,7 +558,7 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should call clear on reset', () => {
-      spyOn(component, 'clear');
+      vi.spyOn(component, 'clear').mockReturnValue(undefined);
       component.reset();
       expect(component.clear).toHaveBeenCalled();
     });
@@ -582,10 +587,10 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should select type when dialog confirms with selection', async () => {
-      dialogServiceMock.openCkTypeSelector.and.returnValue(Promise.resolve({
+      dialogServiceMock.openCkTypeSelector.mockResolvedValue({
         confirmed: true,
         selectedCkType: mockCkTypes[0]
-      }));
+      });
 
       await component.openDialog();
 
@@ -593,10 +598,10 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should not select type when dialog is cancelled', async () => {
-      dialogServiceMock.openCkTypeSelector.and.returnValue(Promise.resolve({
+      dialogServiceMock.openCkTypeSelector.mockResolvedValue({
         confirmed: false,
         selectedCkType: null
-      }));
+      });
 
       component.selectedCkType = null;
       await component.openDialog();
@@ -605,13 +610,13 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should emit ckTypeSelected when dialog confirms', async () => {
-      const spy = jasmine.createSpy('ckTypeSelected');
+      const spy = vi.fn().mockName('ckTypeSelected');
       component.ckTypeSelected.subscribe(spy);
 
-      dialogServiceMock.openCkTypeSelector.and.returnValue(Promise.resolve({
+      dialogServiceMock.openCkTypeSelector.mockResolvedValue({
         confirmed: true,
         selectedCkType: mockCkTypes[0]
-      }));
+      });
 
       await component.openDialog();
 
@@ -620,8 +625,8 @@ describe('CkTypeSelectorInputComponent', () => {
 
     it('should prevent default and stop propagation when event is provided', async () => {
       const mockEvent = {
-        preventDefault: jasmine.createSpy('preventDefault'),
-        stopPropagation: jasmine.createSpy('stopPropagation')
+        preventDefault: vi.fn().mockName('preventDefault'),
+        stopPropagation: vi.fn().mockName('stopPropagation')
       };
 
       await component.openDialog(mockEvent as unknown as Event);
@@ -654,7 +659,7 @@ describe('CkTypeSelectorInputComponent', () => {
       newFixture.detectChanges();
 
       // Should not throw
-      await expectAsync(newComponent.openDialog()).toBeResolved();
+      await expect(newComponent.openDialog()).resolves.not.toThrow();
     });
   });
 
@@ -664,7 +669,7 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should call autocomplete focus', () => {
-      spyOn(component.autocomplete, 'focus');
+      vi.spyOn(component.autocomplete, 'focus').mockReturnValue(undefined);
       component.focus();
       expect(component.autocomplete.focus).toHaveBeenCalled();
     });
@@ -680,7 +685,7 @@ describe('CkTypeSelectorInputComponent', () => {
     });
 
     it('should complete searchSubject', fakeAsync(() => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       component.ngOnDestroy();
 
       // After destroy, search should not trigger
@@ -716,7 +721,7 @@ describe('CkTypeSelectorInputComponent', () => {
         (c) => component.validate(c)
       ]);
 
-      expect(control.valid).toBeFalse();
+      expect(control.valid).toBe(false);
       expect(control.errors).toEqual({ required: true });
     });
 
@@ -729,7 +734,7 @@ describe('CkTypeSelectorInputComponent', () => {
         (c) => component.validate(c)
       ]);
 
-      expect(control.valid).toBeTrue();
+      expect(control.valid).toBe(true);
     });
   });
 });

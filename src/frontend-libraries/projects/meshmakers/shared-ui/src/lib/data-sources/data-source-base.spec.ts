@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { Observable, of } from 'rxjs';
 import { DataSourceBase, FetchDataOptions } from './data-source-base';
 import { FetchResult } from '../models/fetchResult';
@@ -16,10 +17,12 @@ class TestDataSource extends DataSourceBase {
 
 describe('DataSourceBase', () => {
   let dataSource: TestDataSource;
-  let mockListViewComponent: jasmine.SpyObj<ListViewComponent>;
+  let mockListViewComponent: MockedObject<ListViewComponent>;
 
   beforeEach(() => {
-    mockListViewComponent = jasmine.createSpyObj('ListViewComponent', ['refresh']);
+    mockListViewComponent = {
+      refresh: vi.fn().mockName('ListViewComponent.refresh')
+    } as unknown as MockedObject<ListViewComponent>;
     dataSource = new TestDataSource(mockListViewComponent);
   });
 
@@ -28,12 +31,12 @@ describe('DataSourceBase', () => {
   });
 
   describe('isLoading$', () => {
-    it('should initially be false', (done) => {
+    it('should initially be false', () => new Promise<void>((done) => {
       dataSource.isLoading$.subscribe(loading => {
-        expect(loading).toBeFalse();
+        expect(loading).toBe(false);
         done();
       });
-    });
+    }));
 
     it('should be an observable', () => {
       expect(dataSource.isLoading$).toBeInstanceOf(Observable);
@@ -42,36 +45,36 @@ describe('DataSourceBase', () => {
 
   describe('isLoading', () => {
     it('should return current loading state', () => {
-      expect(dataSource.isLoading).toBeFalse();
+      expect(dataSource.isLoading).toBe(false);
     });
   });
 
   describe('setLoading', () => {
-    it('should set loading to true', (done) => {
+    it('should set loading to true', () => new Promise<void>((done) => {
       dataSource.setLoading(true);
 
       dataSource.isLoading$.subscribe(loading => {
-        expect(loading).toBeTrue();
+        expect(loading).toBe(true);
         done();
       });
-    });
+    }));
 
-    it('should set loading to false', (done) => {
+    it('should set loading to false', () => new Promise<void>((done) => {
       dataSource.setLoading(true);
       dataSource.setLoading(false);
 
       dataSource.isLoading$.subscribe(loading => {
-        expect(loading).toBeFalse();
+        expect(loading).toBe(false);
         done();
       });
-    });
+    }));
 
     it('should update isLoading getter', () => {
       dataSource.setLoading(true);
-      expect(dataSource.isLoading).toBeTrue();
+      expect(dataSource.isLoading).toBe(true);
 
       dataSource.setLoading(false);
-      expect(dataSource.isLoading).toBeFalse();
+      expect(dataSource.isLoading).toBe(false);
     });
   });
 
@@ -93,28 +96,28 @@ describe('DataSourceBase', () => {
   });
 
   describe('fetchAgain', () => {
-    it('should emit fetchAgainEvent', (done) => {
+    it('should emit fetchAgainEvent', () => new Promise<void>((done) => {
       dataSource.fetchAgainEvent.subscribe(() => {
-        expect(true).toBeTrue();
+        expect(true).toBe(true);
         done();
       });
 
       dataSource.fetchAgain();
-    });
+    }));
 
-    it('should pass the options through to the event', (done) => {
+    it('should pass the options through to the event', () => new Promise<void>((done) => {
       dataSource.fetchAgainEvent.subscribe((options) => {
         expect(options).toEqual({ resetSkip: true });
         done();
       });
 
       dataSource.fetchAgain({ resetSkip: true });
-    });
+    }));
   });
 
   describe('isPageOutOfRangeError', () => {
     it('should default to false (base class cannot tell)', () => {
-      expect(dataSource.isPageOutOfRangeError(new Error('anything'))).toBeFalse();
+      expect(dataSource.isPageOutOfRangeError(new Error('anything'))).toBe(false);
     });
   });
 

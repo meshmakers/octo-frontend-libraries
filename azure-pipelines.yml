@@ -23,7 +23,7 @@
 #                     docker_build   Dockerfile.prebuilt (no Angular
 #                                    rebuild, just COPY) → push to
 #                                    docker.mm.cloud + docker.io
-#                     verify_apps    karma tests for demo-app +
+#                     verify_apps    Vitest tests for demo-app +
 #                                    legacy-demo-app against the
 #                                    pre-built libraries
 #
@@ -202,9 +202,10 @@ stages:
               script: |
                 set -e
                 export NODE_OPTIONS="--max-old-space-size=6144"
+                export VITEST_MAX_WORKERS=2   # per ng test; 3 run concurrently per round — raise once a green run shows headroom
                 run_test() {
                   echo "Testing $1..."
-                  npm run "test:$1" -- --reporters=junit,progress
+                  npm run "test:$1" -- --reporters=default --reporters=junit --output-file="test-results/$1/TESTS-junit.xml"
                 }
                 wait_all() {
                   local fail=0
@@ -227,7 +228,9 @@ stages:
                 run_test octo-meshboard & pid6=$!
                 wait_all $pid4 $pid5 $pid6
                 echo "=== Test Round 3 ==="
-                run_test octo-ai-console
+                run_test octo-ui & pid7=$!
+                run_test octo-ai-console & pid8=$!
+                wait_all $pid7 $pid8
                 echo "=== All library tests passed ==="
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
@@ -396,7 +399,7 @@ stages:
             displayName: 'Test demo-app'
             inputs:
               script: |
-                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+                NODE_OPTIONS="--max-old-space-size=6144" npm run test:demo-app -- --reporters=default --reporters=junit --output-file="test-results/demo-app/TESTS-junit.xml"
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
 
@@ -404,7 +407,7 @@ stages:
             displayName: 'Test legacy-demo-app'
             inputs:
               script: |
-                NODE_OPTIONS="--max-old-space-size=6144" npm test -- --project=legacy-demo-app --watch=false --browsers=ChromeHeadlessCI --reporters=junit,progress
+                NODE_OPTIONS="--max-old-space-size=6144" npm run test:legacy-demo-app -- --reporters=default --reporters=junit --output-file="test-results/legacy-demo-app/TESTS-junit.xml"
               workingDirectory: $(System.DefaultWorkingDirectory)/$(librariesDir)
             continueOnError: false
 

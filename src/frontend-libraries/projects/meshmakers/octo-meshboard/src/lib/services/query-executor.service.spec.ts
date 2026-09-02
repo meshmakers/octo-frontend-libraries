@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of, throwError } from 'rxjs';
 import { CkRollupFunctionDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
@@ -20,26 +21,44 @@ import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
  */
 describe('QueryExecutorService', () => {
   let service: QueryExecutorService;
-  let runtimeGqlSpy: jasmine.SpyObj<ExecuteRuntimeQueryDtoGQL>;
-  let streamDataGqlSpy: jasmine.SpyObj<ExecuteStreamDataQueryDtoGQL>;
-  let persistentQueriesGqlSpy: jasmine.SpyObj<GetSystemPersistentQueriesDtoGQL>;
-  let resolveSeriesGqlSpy: jasmine.SpyObj<ResolveSeriesQueryDtoGQL>;
-  let queryArchiveGqlSpy: jasmine.SpyObj<GetStreamDataQueryArchiveDtoGQL>;
-  let downsampleGqlSpy: jasmine.SpyObj<TransientDownsamplingDtoGQL>;
-  let entitiesGqlSpy: jasmine.SpyObj<GetEntitiesByCkTypeDtoGQL>;
+  let runtimeGqlSpy: MockedObject<ExecuteRuntimeQueryDtoGQL>;
+  let streamDataGqlSpy: MockedObject<ExecuteStreamDataQueryDtoGQL>;
+  let persistentQueriesGqlSpy: MockedObject<GetSystemPersistentQueriesDtoGQL>;
+  let resolveSeriesGqlSpy: MockedObject<ResolveSeriesQueryDtoGQL>;
+  let queryArchiveGqlSpy: MockedObject<GetStreamDataQueryArchiveDtoGQL>;
+  let downsampleGqlSpy: MockedObject<TransientDownsamplingDtoGQL>;
+  let entitiesGqlSpy: MockedObject<GetEntitiesByCkTypeDtoGQL>;
 
-  function makeApolloResult(data: unknown): { data: unknown; loading: false; networkStatus: 7 } {
+  function makeApolloResult(data: unknown): {
+        data: unknown;
+        loading: false;
+        networkStatus: 7;
+    } {
     return { data, loading: false, networkStatus: 7 };
   }
 
   beforeEach(() => {
-    runtimeGqlSpy = jasmine.createSpyObj('ExecuteRuntimeQueryDtoGQL', ['fetch']);
-    streamDataGqlSpy = jasmine.createSpyObj('ExecuteStreamDataQueryDtoGQL', ['fetch']);
-    persistentQueriesGqlSpy = jasmine.createSpyObj('GetSystemPersistentQueriesDtoGQL', ['fetch']);
-    resolveSeriesGqlSpy = jasmine.createSpyObj('ResolveSeriesQueryDtoGQL', ['fetch']);
-    queryArchiveGqlSpy = jasmine.createSpyObj('GetStreamDataQueryArchiveDtoGQL', ['fetch']);
-    downsampleGqlSpy = jasmine.createSpyObj('TransientDownsamplingDtoGQL', ['fetch']);
-    entitiesGqlSpy = jasmine.createSpyObj('GetEntitiesByCkTypeDtoGQL', ['fetch']);
+    runtimeGqlSpy = {
+      fetch: vi.fn().mockName('ExecuteRuntimeQueryDtoGQL.fetch')
+    } as unknown as MockedObject<ExecuteRuntimeQueryDtoGQL>;
+    streamDataGqlSpy = {
+      fetch: vi.fn().mockName('ExecuteStreamDataQueryDtoGQL.fetch')
+    } as unknown as MockedObject<ExecuteStreamDataQueryDtoGQL>;
+    persistentQueriesGqlSpy = {
+      fetch: vi.fn().mockName('GetSystemPersistentQueriesDtoGQL.fetch')
+    } as unknown as MockedObject<GetSystemPersistentQueriesDtoGQL>;
+    resolveSeriesGqlSpy = {
+      fetch: vi.fn().mockName('ResolveSeriesQueryDtoGQL.fetch')
+    } as unknown as MockedObject<ResolveSeriesQueryDtoGQL>;
+    queryArchiveGqlSpy = {
+      fetch: vi.fn().mockName('GetStreamDataQueryArchiveDtoGQL.fetch')
+    } as unknown as MockedObject<GetStreamDataQueryArchiveDtoGQL>;
+    downsampleGqlSpy = {
+      fetch: vi.fn().mockName('TransientDownsamplingDtoGQL.fetch')
+    } as unknown as MockedObject<TransientDownsamplingDtoGQL>;
+    entitiesGqlSpy = {
+      fetch: vi.fn().mockName('GetEntitiesByCkTypeDtoGQL.fetch')
+    } as unknown as MockedObject<GetEntitiesByCkTypeDtoGQL>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -63,7 +82,7 @@ describe('QueryExecutorService', () => {
 
   describe('executeRuntime', () => {
     it('flattens cells.items into a flat QueryCell[] on the row', async () => {
-      runtimeGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      runtimeGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: {
           runtimeQuery: {
             items: [{
@@ -91,7 +110,7 @@ describe('QueryExecutorService', () => {
 
       expect(result.family).toBe('runtime');
       expect(result.totalCount).toBe(1);
-      expect(result.hasNextPage).toBeFalse();
+      expect(result.hasNextPage).toBe(false);
       expect(result.endCursor).toBe('cursor-end');
       expect(result.columns).toEqual([
         { attributePath: 'name', attributeValueType: 'String', aggregationType: null }
@@ -104,7 +123,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('returns an empty result when the query item is missing', async () => {
-      runtimeGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      runtimeGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: { runtimeQuery: { items: [] } }
       })) as never);
 
@@ -113,18 +132,18 @@ describe('QueryExecutorService', () => {
       expect(result.family).toBe('runtime');
       expect(result.rows).toEqual([]);
       expect(result.totalCount).toBe(0);
-      expect(result.hasNextPage).toBeFalse();
+      expect(result.hasNextPage).toBe(false);
     });
 
     it('uses cache-first by default and network-only on forceRefresh', async () => {
-      runtimeGqlSpy.fetch.and.returnValue(of(makeApolloResult({ runtime: { runtimeQuery: { items: [] } } })) as never);
+      runtimeGqlSpy.fetch.mockReturnValue(of(makeApolloResult({ runtime: { runtimeQuery: { items: [] } } })) as never);
 
       await firstValueFrom(service.executeRuntime('q1'));
-      const firstOpts = runtimeGqlSpy.fetch.calls.mostRecent().args[0] as Record<string, unknown>;
+      const firstOpts = vi.mocked(runtimeGqlSpy.fetch).mock.lastCall![0] as Record<string, unknown>;
       expect(firstOpts['fetchPolicy']).toBe('cache-first');
 
       await firstValueFrom(service.executeRuntime('q1', { forceRefresh: true }));
-      const secondOpts = runtimeGqlSpy.fetch.calls.mostRecent().args[0] as Record<string, unknown>;
+      const secondOpts = vi.mocked(runtimeGqlSpy.fetch).mock.lastCall![0] as Record<string, unknown>;
       expect(secondOpts['fetchPolicy']).toBe('network-only');
     });
   });
@@ -136,7 +155,7 @@ describe('QueryExecutorService', () => {
   describe('executeStreamData', () => {
     it('lifts timestamp / rtWellKnownName / change dates onto the row', async () => {
       const ts = new Date('2026-06-24T12:00:00Z');
-      streamDataGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: {
           streamDataQuery: {
             items: [{
@@ -179,7 +198,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('defaults __typename to StreamDataQueryRow when the backend omits it', async () => {
-      streamDataGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: {
           streamDataQuery: {
             items: [{
@@ -198,18 +217,20 @@ describe('QueryExecutorService', () => {
     });
 
     it('omits the `arg` GraphQL variable when no streamDataArgs are supplied', async () => {
-      streamDataGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [] } }
       })) as never);
 
       await firstValueFrom(service.executeStreamData('q'));
 
-      const opts = streamDataGqlSpy.fetch.calls.mostRecent().args[0] as { variables: Record<string, unknown> };
+      const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as {
+                variables: Record<string, unknown>;
+            };
       expect(opts.variables['arg']).toBeUndefined();
     });
 
     it('sends the `arg` with caller-provided from/to/limit + default queryMode', async () => {
-      streamDataGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [] } }
       })) as never);
 
@@ -219,7 +240,9 @@ describe('QueryExecutorService', () => {
         streamDataArgs: { from, to, limit: 100 }
       }));
 
-      const opts = streamDataGqlSpy.fetch.calls.mostRecent().args[0] as { variables: Record<string, unknown> };
+      const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as {
+                variables: Record<string, unknown>;
+            };
       const arg = opts.variables['arg'] as Record<string, unknown>;
       expect(arg).toBeDefined();
       expect(arg['from']).toBe(from);
@@ -231,7 +254,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('preserves a caller-provided queryMode override on the arg', async () => {
-      streamDataGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [] } }
       })) as never);
 
@@ -239,7 +262,9 @@ describe('QueryExecutorService', () => {
         streamDataArgs: { limit: 50, queryMode: QueryModeDto.DownsamplingDto }
       }));
 
-      const opts = streamDataGqlSpy.fetch.calls.mostRecent().args[0] as { variables: Record<string, unknown> };
+      const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as {
+                variables: Record<string, unknown>;
+            };
       const arg = opts.variables['arg'] as Record<string, unknown>;
       expect(arg['queryMode']).toBe(QueryModeDto.DownsamplingDto);
     });
@@ -251,7 +276,7 @@ describe('QueryExecutorService', () => {
 
   describe('execute', () => {
     it('dispatches to the runtime path when family is "runtime"', async () => {
-      runtimeGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      runtimeGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: { runtimeQuery: { items: [] } }
       })) as never);
 
@@ -262,7 +287,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('dispatches to the streamData path when family is "streamData"', async () => {
-      streamDataGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [] } }
       })) as never);
 
@@ -273,14 +298,14 @@ describe('QueryExecutorService', () => {
     });
 
     it('looks up the family from systemPersistentQuery when family is undefined', async () => {
-      persistentQueriesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      persistentQueriesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: {
           systemPersistentQuery: {
             items: [{ ckTypeId: 'System.Query/SimpleSdQuery' }]
           }
         }
       })) as never);
-      streamDataGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [] } }
       })) as never);
 
@@ -292,10 +317,10 @@ describe('QueryExecutorService', () => {
     });
 
     it('caches the resolved family per queryRtId — second call skips the lookup', async () => {
-      persistentQueriesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      persistentQueriesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: { systemPersistentQuery: { items: [{ ckTypeId: 'System.Query/SimpleSdQuery' }] } }
       })) as never);
-      streamDataGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [] } }
       })) as never);
 
@@ -307,8 +332,8 @@ describe('QueryExecutorService', () => {
     });
 
     it('falls back to "runtime" when the family lookup throws', async () => {
-      persistentQueriesGqlSpy.fetch.and.returnValue(throwError(() => new Error('network')) as never);
-      runtimeGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      persistentQueriesGqlSpy.fetch.mockReturnValue(throwError(() => new Error('network')) as never);
+      runtimeGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: { runtimeQuery: { items: [] } }
       })) as never);
 
@@ -319,10 +344,10 @@ describe('QueryExecutorService', () => {
     });
 
     it('falls back to "runtime" when the lookup returns an unclassifiable type', async () => {
-      persistentQueriesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      persistentQueriesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: { systemPersistentQuery: { items: [{ ckTypeId: 'System.Query/Legacy' }] } }
       })) as never);
-      runtimeGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      runtimeGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: { runtimeQuery: { items: [] } }
       })) as never);
 
@@ -347,11 +372,11 @@ describe('QueryExecutorService', () => {
     };
 
     it('maps the backend routing decision to a flat result', async () => {
-      resolveSeriesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      resolveSeriesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: {
           resolveSeriesQuery: {
             archiveRtId: 'rollup-1h',
-            effectiveBucketMs: 52_560_000,
+            effectiveBucketMs: 52560000,
             points: 600,
             reducingFunction: CkRollupFunctionDto.SumDto,
             signal: SeriesResolutionSignalDto.OkDto,
@@ -371,7 +396,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('returns null when StreamData is not enabled (no decision)', async () => {
-      resolveSeriesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      resolveSeriesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { resolveSeriesQuery: null }
       })) as ReturnType<typeof resolveSeriesGqlSpy.fetch>);
 
@@ -386,7 +411,7 @@ describe('QueryExecutorService', () => {
   // ==========================================================================
   describe('resolution-aware routing (AB#4290)', () => {
     it('fetchQueryArchive returns the base archive rtId and ck type without executing the query', async () => {
-      queryArchiveGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      queryArchiveGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [{ queryRtId: 'q1', associatedCkTypeId: 'Basic.Energy/EnergyMeasurement', archiveRtId: 'base-1' }] } }
       })) as ReturnType<typeof queryArchiveGqlSpy.fetch>);
 
@@ -396,7 +421,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('fetchQueryArchive surfaces the persisted RtIds pin from the runtime entity (AB#4818)', async () => {
-      queryArchiveGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      queryArchiveGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [{ queryRtId: 'q1', associatedCkTypeId: 'Basic.Energy/EnergyMeasurement', archiveRtId: 'base-1' }] } },
         runtime: { systemSimpleSdQuery: { items: [{ rtId: 'q1', rtIds: ['sensor-1', 'sensor-2'] }] } }
       })) as ReturnType<typeof queryArchiveGqlSpy.fetch>);
@@ -407,7 +432,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('fetchQueryArchive maps an empty RtIds pin to null (no scope)', async () => {
-      queryArchiveGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      queryArchiveGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [{ queryRtId: 'q1', associatedCkTypeId: null, archiveRtId: 'base-1' }] } },
         runtime: { systemSimpleSdQuery: { items: [{ rtId: 'q1', rtIds: [] }] } }
       })) as ReturnType<typeof queryArchiveGqlSpy.fetch>);
@@ -418,7 +443,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('fetchQueryArchive returns null when the query has no archive', async () => {
-      queryArchiveGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      queryArchiveGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { streamDataQuery: { items: [] } }
       })) as ReturnType<typeof queryArchiveGqlSpy.fetch>);
 
@@ -426,7 +451,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('downsampleByArchive sends one column path with the reducer + scope and flattens the rows', async () => {
-      downsampleGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      downsampleGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { transientStreamDataQuery: { downsampling: { items: [{ rows: { totalCount: 1, items: [
           { rtId: '0', timestamp: '2026-01-01T00:00:00Z', cells: { items: [{ attributePath: 'amountvalue_sum', value: 42 }] } }
         ] } }] } } }
@@ -437,7 +462,9 @@ describe('QueryExecutorService', () => {
         limit: 600, sourcePath: 'Amount.Value', aggregation: 'SUM', rtIds: ['em-1']
       });
 
-      const options = downsampleGqlSpy.fetch.calls.mostRecent().args[0] as { variables: Record<string, unknown> };
+      const options = vi.mocked(downsampleGqlSpy.fetch).mock.lastCall![0] as {
+                variables: Record<string, unknown>;
+            };
       expect(options.variables['columnPaths']).toEqual([{ attributePath: 'Amount.Value', aggregationType: 'SUM' }]);
       expect(options.variables['rtIds']).toEqual(['em-1']);
       expect(rows.length).toBe(1);
@@ -445,7 +472,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('fetchSeriesLabels maps the archive-column series field to the CK attribute (obis_code → obisCode)', async () => {
-      entitiesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      entitiesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: { runtimeEntities: { items: [{ attributes: { items: [
           { attributeName: 'obisCode', value: '1-1:1.9.0 P.01' },
           { attributeName: 'amount', value: 5 }
@@ -460,7 +487,10 @@ describe('QueryExecutorService', () => {
 
   describe('fetchEntityGroups (AB#4714)', () => {
     // Domain-neutral fixtures: the mechanism buckets by whatever `groupField` is configured.
-    const entities = (rows: { rtId: string; group: string | null }[]) => makeApolloResult({
+    const entities = (rows: {
+            rtId: string;
+            group: string | null;
+        }[]) => makeApolloResult({
       runtime: { runtimeEntities: { totalCount: rows.length, items: rows.map(r => ({
         rtId: r.rtId,
         attributes: { items: r.group == null ? [] : [{ attributeName: 'category', value: r.group }] }
@@ -468,7 +498,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('buckets source rtIds by the group attribute (many sources → few groups)', async () => {
-      entitiesGqlSpy.fetch.and.returnValue(of(entities([
+      entitiesGqlSpy.fetch.mockReturnValue(of(entities([
         { rtId: 's1', group: 'A' },
         { rtId: 's2', group: 'A' },
         { rtId: 's3', group: 'B' }
@@ -482,7 +512,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('matches the group field canonically (case / non-alphanumerics ignored)', async () => {
-      entitiesGqlSpy.fetch.and.returnValue(of(entities([{ rtId: 's1', group: 'A' }])) as ReturnType<typeof entitiesGqlSpy.fetch>);
+      entitiesGqlSpy.fetch.mockReturnValue(of(entities([{ rtId: 's1', group: 'A' }])) as ReturnType<typeof entitiesGqlSpy.fetch>);
 
       // Configured field 'cate_gory' resolves to the CK attribute 'category'.
       const groups = await service.fetchEntityGroups('Test/Type', 'Cate_Gory');
@@ -491,7 +521,7 @@ describe('QueryExecutorService', () => {
     });
 
     it('restricts to a caller scope and drops entities with no group value', async () => {
-      entitiesGqlSpy.fetch.and.returnValue(of(entities([
+      entitiesGqlSpy.fetch.mockReturnValue(of(entities([
         { rtId: 's1', group: 'A' },
         { rtId: 's2', group: 'A' },
         { rtId: 's3', group: null }
@@ -504,8 +534,8 @@ describe('QueryExecutorService', () => {
     });
 
     it('warns when the population exceeds the fetched page', async () => {
-      const warn = spyOn(console, 'warn');
-      entitiesGqlSpy.fetch.and.returnValue(of(makeApolloResult({
+      const warn = vi.spyOn(console, 'warn').mockReturnValue(undefined);
+      entitiesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         runtime: { runtimeEntities: { totalCount: 9000, items: [{ rtId: 's1', attributes: { items: [
           { attributeName: 'category', value: 'A' }
         ] } }] } }

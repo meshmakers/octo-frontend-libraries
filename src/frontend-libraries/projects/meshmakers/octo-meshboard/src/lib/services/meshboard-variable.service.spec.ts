@@ -5,12 +5,7 @@ import { MeshBoardVariable, WidgetFilterConfig } from '../models/meshboard.model
 /**
  * Creates a mock variable for testing.
  */
-function createMockVariable(
-  name: string,
-  value: string,
-  type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' = 'string',
-  defaultValue?: string
-): MeshBoardVariable {
+function createMockVariable(name: string, value: string, type: 'string' | 'number' | 'boolean' | 'date' | 'datetime' = 'string', defaultValue?: string): MeshBoardVariable {
   return {
     name,
     type,
@@ -324,7 +319,7 @@ describe('MeshBoardVariableService', () => {
     describe('date type', () => {
       it('should parse ISO date string', () => {
         const result = service.parseValue('2024-06-15', 'date') as Date;
-        expect(result instanceof Date).toBeTrue();
+        expect(result instanceof Date).toBe(true);
         expect(result.getFullYear()).toBe(2024);
         expect(result.getMonth()).toBe(5); // 0-indexed
         expect(result.getDate()).toBe(15);
@@ -332,14 +327,14 @@ describe('MeshBoardVariableService', () => {
 
       it('should parse full ISO string', () => {
         const result = service.parseValue('2024-06-15T10:30:00Z', 'date') as Date;
-        expect(result instanceof Date).toBeTrue();
+        expect(result instanceof Date).toBe(true);
       });
     });
 
     describe('datetime type', () => {
       it('should parse ISO datetime string', () => {
         const result = service.parseValue('2024-06-15T10:30:00Z', 'datetime') as Date;
-        expect(result instanceof Date).toBeTrue();
+        expect(result instanceof Date).toBe(true);
         expect(result.getUTCHours()).toBe(10);
         expect(result.getUTCMinutes()).toBe(30);
       });
@@ -349,52 +344,52 @@ describe('MeshBoardVariableService', () => {
   describe('isValidVariableName', () => {
     describe('valid names', () => {
       it('should accept name starting with letter', () => {
-        expect(service.isValidVariableName('name')).toBeTrue();
-        expect(service.isValidVariableName('Name')).toBeTrue();
-        expect(service.isValidVariableName('NAME')).toBeTrue();
+        expect(service.isValidVariableName('name')).toBe(true);
+        expect(service.isValidVariableName('Name')).toBe(true);
+        expect(service.isValidVariableName('NAME')).toBe(true);
       });
 
       it('should accept name starting with underscore', () => {
-        expect(service.isValidVariableName('_name')).toBeTrue();
-        expect(service.isValidVariableName('_')).toBeTrue();
+        expect(service.isValidVariableName('_name')).toBe(true);
+        expect(service.isValidVariableName('_')).toBe(true);
       });
 
       it('should accept name with numbers', () => {
-        expect(service.isValidVariableName('name1')).toBeTrue();
-        expect(service.isValidVariableName('name123')).toBeTrue();
+        expect(service.isValidVariableName('name1')).toBe(true);
+        expect(service.isValidVariableName('name123')).toBe(true);
       });
 
       it('should accept name with underscores', () => {
-        expect(service.isValidVariableName('first_name')).toBeTrue();
-        expect(service.isValidVariableName('_first_name_')).toBeTrue();
+        expect(service.isValidVariableName('first_name')).toBe(true);
+        expect(service.isValidVariableName('_first_name_')).toBe(true);
       });
 
       it('should accept mixed case with numbers and underscores', () => {
-        expect(service.isValidVariableName('myVar_123')).toBeTrue();
-        expect(service.isValidVariableName('_myVar123')).toBeTrue();
+        expect(service.isValidVariableName('myVar_123')).toBe(true);
+        expect(service.isValidVariableName('_myVar123')).toBe(true);
       });
     });
 
     describe('invalid names', () => {
       it('should reject name starting with number', () => {
-        expect(service.isValidVariableName('1name')).toBeFalse();
-        expect(service.isValidVariableName('123')).toBeFalse();
+        expect(service.isValidVariableName('1name')).toBe(false);
+        expect(service.isValidVariableName('123')).toBe(false);
       });
 
       it('should reject name with spaces', () => {
-        expect(service.isValidVariableName('my name')).toBeFalse();
-        expect(service.isValidVariableName(' name')).toBeFalse();
+        expect(service.isValidVariableName('my name')).toBe(false);
+        expect(service.isValidVariableName(' name')).toBe(false);
       });
 
       it('should reject name with special characters', () => {
-        expect(service.isValidVariableName('my-name')).toBeFalse();
-        expect(service.isValidVariableName('my.name')).toBeFalse();
-        expect(service.isValidVariableName('my@name')).toBeFalse();
-        expect(service.isValidVariableName('my$name')).toBeFalse();
+        expect(service.isValidVariableName('my-name')).toBe(false);
+        expect(service.isValidVariableName('my.name')).toBe(false);
+        expect(service.isValidVariableName('my@name')).toBe(false);
+        expect(service.isValidVariableName('my$name')).toBe(false);
       });
 
       it('should reject empty string', () => {
-        expect(service.isValidVariableName('')).toBeFalse();
+        expect(service.isValidVariableName('')).toBe(false);
       });
     });
   });
@@ -430,16 +425,14 @@ describe('MeshBoardVariableService', () => {
       const existing = [
         createMockVariable('myVar', 'value'),
         createMockVariable('myVar1', 'value'),
-        createMockVariable('myVar3', 'value')  // myVar2 is missing
+        createMockVariable('myVar3', 'value') // myVar2 is missing
       ];
       const result = service.generateUniqueName('myVar', existing);
       expect(result).toBe('myVar2');
     });
 
     it('should handle many existing variables', () => {
-      const existing = Array.from({ length: 10 }, (_, i) =>
-        createMockVariable(i === 0 ? 'var' : `var${i}`, 'value')
-      );
+      const existing = Array.from({ length: 10 }, (_, i) => createMockVariable(i === 0 ? 'var' : `var${i}`, 'value'));
       const result = service.generateUniqueName('var', existing);
       expect(result).toBe('var10');
     });
@@ -488,8 +481,8 @@ describe('MeshBoardVariableService', () => {
 
       expect(result.type).toBe('datetime');
       // Value should be between before and after
-      expect(result.value >= before).toBeTrue();
-      expect(result.value <= after).toBeTrue();
+      expect(result.value >= before).toBe(true);
+      expect(result.value <= after).toBe(true);
     });
 
     it('should default to string type when not specified', () => {
@@ -626,8 +619,8 @@ describe('MeshBoardVariableService', () => {
       expect(var2.name).toBe('filter1');
 
       // Validate both names
-      expect(service.isValidVariableName(var1.name)).toBeTrue();
-      expect(service.isValidVariableName(var2.name)).toBeTrue();
+      expect(service.isValidVariableName(var1.name)).toBe(true);
+      expect(service.isValidVariableName(var2.name)).toBe(true);
     });
 
     it('should resolve embedded variables in filter values', () => {
@@ -644,32 +637,32 @@ describe('MeshBoardVariableService', () => {
 
   describe('hasUnresolvedVariables', () => {
     it('should return false for empty string', () => {
-      expect(service.hasUnresolvedVariables('')).toBeFalse();
+      expect(service.hasUnresolvedVariables('')).toBe(false);
     });
 
     it('should return false for null/undefined', () => {
-      expect(service.hasUnresolvedVariables(null as unknown as string)).toBeFalse();
-      expect(service.hasUnresolvedVariables(undefined as unknown as string)).toBeFalse();
+      expect(service.hasUnresolvedVariables(null as unknown as string)).toBe(false);
+      expect(service.hasUnresolvedVariables(undefined as unknown as string)).toBe(false);
     });
 
     it('should return false for plain text', () => {
-      expect(service.hasUnresolvedVariables('Hello World')).toBeFalse();
-      expect(service.hasUnresolvedVariables('42')).toBeFalse();
+      expect(service.hasUnresolvedVariables('Hello World')).toBe(false);
+      expect(service.hasUnresolvedVariables('42')).toBe(false);
     });
 
     it('should detect ${variableName} syntax', () => {
-      expect(service.hasUnresolvedVariables('${meteringPointNumber}')).toBeTrue();
-      expect(service.hasUnresolvedVariables('Value: ${count}')).toBeTrue();
+      expect(service.hasUnresolvedVariables('${meteringPointNumber}')).toBe(true);
+      expect(service.hasUnresolvedVariables('Value: ${count}')).toBe(true);
     });
 
     it('should detect $variableName syntax', () => {
-      expect(service.hasUnresolvedVariables('$meteringPointNumber')).toBeTrue();
-      expect(service.hasUnresolvedVariables('Value: $count')).toBeTrue();
+      expect(service.hasUnresolvedVariables('$meteringPointNumber')).toBe(true);
+      expect(service.hasUnresolvedVariables('Value: $count')).toBe(true);
     });
 
     it('should return false for dollar amounts', () => {
-      expect(service.hasUnresolvedVariables('$100')).toBeFalse();
-      expect(service.hasUnresolvedVariables('Price: $50.00')).toBeFalse();
+      expect(service.hasUnresolvedVariables('$100')).toBe(false);
+      expect(service.hasUnresolvedVariables('Price: $50.00')).toBe(false);
     });
   });
 });

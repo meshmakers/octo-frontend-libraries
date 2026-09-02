@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { StatsGridWidgetComponent } from './stats-grid-widget.component';
@@ -24,26 +25,30 @@ function execResult(rows: unknown[], total: number) {
 }
 
 describe('StatsGridWidgetComponent — stream-data persistent-query stats', () => {
-  function create(
-    source: PersistentQueryCellSource,
-    rows: unknown[],
-    total: number,
-    aggregations = new Map<string, number>()
-  ): StatsGridWidgetComponent {
-    const queryExecutor = jasmine.createSpyObj<QueryExecutorService>('QueryExecutorService', ['execute']);
-    queryExecutor.execute.and.returnValue(of(execResult(rows, total)) as ReturnType<QueryExecutorService['execute']>);
+  function create(source: PersistentQueryCellSource, rows: unknown[], total: number, aggregations = new Map<string, number>()): StatsGridWidgetComponent {
+    const queryExecutor = {
+      execute: vi.fn().mockName('QueryExecutorService.execute')
+    };
+    queryExecutor.execute.mockReturnValue(of(execResult(rows, total)) as ReturnType<QueryExecutorService['execute']>);
 
-    const dataService = jasmine.createSpyObj<MeshBoardDataService>('MeshBoardDataService', ['fetchAggregations']);
-    dataService.fetchAggregations.and.resolveTo(aggregations);
+    const dataService = {
+      fetchAggregations: vi.fn().mockName('MeshBoardDataService.fetchAggregations')
+    };
+    dataService.fetchAggregations.mockResolvedValue(aggregations);
 
-    const stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService',
-      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'getVariables']);
-    stateService.resolveStreamDataTimeArgs.and.returnValue(undefined);
-    stateService.resolveStreamDataRtIds.and.returnValue(undefined);
-    stateService.getVariables.and.returnValue([]);
+    const stateService = {
+      resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
+      resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables')
+    };
+    stateService.resolveStreamDataTimeArgs.mockReturnValue(undefined);
+    stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
+    stateService.getVariables.mockReturnValue([]);
 
-    const variableService = jasmine.createSpyObj<MeshBoardVariableService>('MeshBoardVariableService', ['convertToFieldFilterDto']);
-    variableService.convertToFieldFilterDto.and.returnValue(undefined);
+    const variableService = {
+      convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
+    };
+    variableService.convertToFieldFilterDto.mockReturnValue(undefined);
 
     TestBed.configureTestingModule({
       imports: [StatsGridWidgetComponent],
@@ -66,64 +71,49 @@ describe('StatsGridWidgetComponent — stream-data persistent-query stats', () =
   }
 
   async function load(cmp: StatsGridWidgetComponent): Promise<void> {
-    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+    await (cmp as unknown as {
+            loadData(): Promise<void>;
+        }).loadData();
   }
 
   it('renders totalCount for a simpleCount SD query', async () => {
-    const cmp = create(
-      { queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'simpleCount' },
-      [sdRow({ 'amount.value': 1 })], 42
-    );
+    const cmp = create({ queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'simpleCount' }, [sdRow({ 'amount.value': 1 })], 42);
     await load(cmp);
     expect(cmp.statValues()[0].value).toBe(42);
   });
 
   it('renders the value field for an aggregation SD query', async () => {
-    const cmp = create(
-      { queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'aggregation', queryValueField: 'amountvalue_sum' },
-      [sdRow({ amountvalue_sum: 123 })], 1
-    );
+    const cmp = create({ queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'aggregation', queryValueField: 'amountvalue_sum' }, [sdRow({ amountvalue_sum: 123 })], 1);
     await load(cmp);
     expect(cmp.statValues()[0].value).toBe(123);
   });
 
   it('renders the matching category value for a groupedAggregation SD query', async () => {
-    const cmp = create(
-      {
-        queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'groupedAggregation',
-        queryCategoryField: 'operatingstatus', queryCategoryValue: 'RUNNING', queryValueField: 'amountvalue_sum'
-      },
-      [
-        sdRow({ operatingstatus: 'STOPPED', amountvalue_sum: 5 }),
-        sdRow({ operatingstatus: 'RUNNING', amountvalue_sum: 9 })
-      ],
-      2
-    );
+    const cmp = create({
+      queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'groupedAggregation',
+      queryCategoryField: 'operatingstatus', queryCategoryValue: 'RUNNING', queryValueField: 'amountvalue_sum'
+    }, [
+      sdRow({ operatingstatus: 'STOPPED', amountvalue_sum: 5 }),
+      sdRow({ operatingstatus: 'RUNNING', amountvalue_sum: 9 })
+    ], 2);
     await load(cmp);
     expect(cmp.statValues()[0].value).toBe(9);
   });
 
   it('passes the resolved time range + asset-scope rtIds as streamDataArgs', async () => {
-    const cmp = create(
-      { queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'simpleCount', entitySelectorId: 'mp' },
-      [], 3
-    );
-    const state = TestBed.inject(MeshBoardStateService) as jasmine.SpyObj<MeshBoardStateService>;
-    state.resolveStreamDataTimeArgs.and.returnValue({ from: new Date('2026-01-01T00:00:00Z'), to: new Date('2026-02-01T00:00:00Z') });
-    state.resolveStreamDataRtIds.and.returnValue(['rt-1', 'rt-2']);
+    const cmp = create({ queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'simpleCount', entitySelectorId: 'mp' }, [], 3);
+    const state = TestBed.inject(MeshBoardStateService) as MockedObject<MeshBoardStateService>;
+    state.resolveStreamDataTimeArgs.mockReturnValue({ from: new Date('2026-01-01T00:00:00Z'), to: new Date('2026-02-01T00:00:00Z') });
+    state.resolveStreamDataRtIds.mockReturnValue(['rt-1', 'rt-2']);
     await load(cmp);
-    const qe = TestBed.inject(QueryExecutorService) as jasmine.SpyObj<QueryExecutorService>;
-    const opts = qe.execute.calls.mostRecent().args[2];
+    const qe = TestBed.inject(QueryExecutorService) as MockedObject<QueryExecutorService>;
+    const opts = vi.mocked(qe.execute).mock.lastCall![2];
     expect(opts?.streamDataArgs?.rtIds).toEqual(['rt-1', 'rt-2']);
     expect(opts?.streamDataArgs?.from).toBeTruthy();
   });
 
   it('still resolves the runtime aggregation path for non-persistent stats', async () => {
-    const cmp = create(
-      { queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'simpleCount' },
-      [], 1,
-      new Map<string, number>([['query-agg', 77]])
-    );
+    const cmp = create({ queryRtId: 'q1', queryFamily: 'streamData', queryMode: 'simpleCount' }, [], 1, new Map<string, number>([['query-agg', 77]]));
     // Replace config with a pure aggregation stat.
     cmp.config = {
       id: 'w1', type: 'statsGrid', title: 'Test', col: 1, row: 1, colSpan: 3, rowSpan: 1,

@@ -15,11 +15,13 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser-esbuild",
+          "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/demo-app",
+            "outputPath": {
+              "base": "dist/demo-app",
+              "browser": ""
+            },
             "index": "projects/demo-app/src/index.html",
-            "main": "projects/demo-app/src/main.ts",
             "polyfills": [
               "zone.js",
               "@angular/localize/init"
@@ -36,7 +38,8 @@
             "styles": [
               "projects/demo-app/src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "browser": "projects/demo-app/src/main.ts"
           },
           "configurations": {
             "production": {
@@ -59,17 +62,26 @@
               "outputHashing": "all"
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "testing": {
+              "aot": false,
+              "optimization": false,
+              "extractLicenses": false,
+              "polyfills": [
+                "zone.js",
+                "zone.js/testing",
+                "@angular/localize/init"
+              ]
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "options": {
             "host": "0.0.0.0",
             "ssl": true,
@@ -87,29 +99,17 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n"
+          "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "karmaConfig": "karma.conf.js",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing",
-              "@angular/localize/init"
-            ],
+            "buildTarget": "demo-app:build:testing",
             "tsConfig": "projects/demo-app/tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "projects/demo-app/public"
-              }
-            ],
-            "styles": [
-              "projects/demo-app/src/styles.scss"
-            ],
-            "scripts": []
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
+            ]
           }
         },
         "lint": {
@@ -131,7 +131,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/shared-services/ng-package.json"
           },
@@ -145,15 +145,27 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/shared-services/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing",
               "@angular/localize/init"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/shared-services:test-build",
+            "tsConfig": "projects/meshmakers/shared-services/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
             ]
           }
         },
@@ -162,7 +174,8 @@
           "options": {
             "lintFilePatterns": [
               "projects/meshmakers/shared-services/**/*.ts",
-              "projects/meshmakers/shared-services/**/*.html"
+              "projects/meshmakers/shared-services/**/*.html",
+              "testing/**/*.ts"
             ],
             "eslintConfig": "projects/meshmakers/shared-services/eslint.config.js"
           }
@@ -176,7 +189,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/shared-ui/ng-package.json"
           },
@@ -190,14 +203,27 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/shared-ui/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
-              "zone.js/testing"
+              "zone.js/testing",
+              "@angular/localize/init"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/shared-ui:test-build",
+            "tsConfig": "projects/meshmakers/shared-ui/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
             ]
           }
         },
@@ -220,7 +246,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/shared-ui-legacy/ng-package.json"
           },
@@ -233,17 +259,6 @@
             }
           },
           "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "karmaConfig": "karma.conf.js",
-            "tsConfig": "projects/meshmakers/shared-ui-legacy/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
-          }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
@@ -264,7 +279,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/shared-auth/ng-package.json"
           },
@@ -278,15 +293,31 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/shared-auth/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing",
               "@angular/localize/init"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/shared-auth:test-build",
+            "tsConfig": "projects/meshmakers/shared-auth/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
+            ],
+            "include": [
+              "**/*.spec.ts",
+              "../login-ui/**/*.spec.ts"
             ]
           }
         },
@@ -309,7 +340,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/octo-ai-console/ng-package.json"
           },
@@ -323,14 +354,26 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-ai-console/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/octo-ai-console:test-build",
+            "tsConfig": "projects/meshmakers/octo-ai-console/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
             ]
           }
         },
@@ -353,7 +396,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/octo-services/ng-package.json"
           },
@@ -367,14 +410,26 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-services/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/octo-services:test-build",
+            "tsConfig": "projects/meshmakers/octo-services/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
             ]
           }
         },
@@ -397,7 +452,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/octo-ui/ng-package.json"
           },
@@ -411,14 +466,31 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-ui/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
-              "zone.js/testing"
+              "zone.js/testing",
+              "@angular/localize/init"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/octo-ui:test-build",
+            "tsConfig": "projects/meshmakers/octo-ui/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
+            ],
+            "include": [
+              "**/*.spec.ts",
+              "../**/*.spec.ts"
             ]
           }
         },
@@ -441,7 +513,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/octo-ui-legacy/ng-package.json"
           },
@@ -454,17 +526,6 @@
             }
           },
           "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "karmaConfig": "karma.conf.js",
-            "tsConfig": "projects/meshmakers/octo-ui-legacy/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
-          }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
@@ -485,7 +546,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/octo-process-diagrams/ng-package.json"
           },
@@ -499,14 +560,26 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-process-diagrams/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/octo-process-diagrams:test-build",
+            "tsConfig": "projects/meshmakers/octo-process-diagrams/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
             ]
           }
         },
@@ -534,12 +607,16 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/legacy-demo-app",
+            "outputPath": {
+              "base": "dist/legacy-demo-app",
+              "browser": ""
+            },
             "index": "projects/legacy-demo-app/src/index.html",
-            "main": "projects/legacy-demo-app/src/main.ts",
-            "polyfills": "projects/legacy-demo-app/src/polyfills.ts",
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "projects/legacy-demo-app/tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -550,7 +627,8 @@
               "@angular/material/prebuilt-themes/purple-green.css",
               "projects/legacy-demo-app/src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "browser": "projects/legacy-demo-app/src/main.ts"
           },
           "configurations": {
             "production": {
@@ -575,18 +653,25 @@
               "outputHashing": "all"
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "testing": {
+              "aot": false,
+              "optimization": false,
+              "extractLicenses": false,
+              "polyfills": [
+                "zone.js",
+                "zone.js/testing"
+              ]
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "options": {
             "host": "0.0.0.0",
             "ssl": true,
@@ -605,30 +690,20 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "legacy-demo-app:build"
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "buildTarget": "legacy-demo-app:build:testing",
             "tsConfig": "projects/legacy-demo-app/tsconfig.spec.json",
-            "karmaConfig": "projects/legacy-demo-app/karma.conf.js",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "projects/legacy-demo-app/src/favicon.ico",
-              "projects/legacy-demo-app/src/assets"
-            ],
-            "styles": [
-              "@angular/material/prebuilt-themes/purple-green.css",
-              "projects/legacy-demo-app/src/styles.scss"
-            ],
-            "scripts": []
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
+            ]
           }
         },
         "lint": {
@@ -650,7 +725,7 @@
       "prefix": "mm",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/meshmakers/octo-meshboard/ng-package.json"
           },
@@ -664,14 +739,26 @@
           },
           "defaultConfiguration": "production"
         },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+        "test-build": {
+          "builder": "@angular/build:application",
           "options": {
-            "karmaConfig": "karma.conf.js",
             "tsConfig": "projects/meshmakers/octo-meshboard/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing"
+            ],
+            "inlineStyleLanguage": "scss",
+            "aot": false
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "@meshmakers/octo-meshboard:test-build",
+            "tsConfig": "projects/meshmakers/octo-meshboard/tsconfig.spec.json",
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
             ]
           }
         },

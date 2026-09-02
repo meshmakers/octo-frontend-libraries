@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { MeshBoardDataService } from './meshboard-data.service';
@@ -8,39 +9,33 @@ import { GetCkModelsWithStateDtoGQL } from '../graphQL/getCkModelsWithState';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
 import { QueryExecutorService, QueryExecutionResult } from './query-executor.service';
 import { Apollo } from 'apollo-angular';
-import {
-  RuntimeEntityDataSource,
-  StaticDataSource,
-  PersistentQueryDataSource,
-  AggregationQuery,
-  ConstructionKitQueryDataSource,
-  RepeaterQueryDataSource,
-  MeshBoardVariable,
-  RuntimeEntityData
-} from '../models/meshboard.models';
+import { RuntimeEntityDataSource, StaticDataSource, PersistentQueryDataSource, AggregationQuery, ConstructionKitQueryDataSource, RepeaterQueryDataSource, MeshBoardVariable, RuntimeEntityData } from '../models/meshboard.models';
 import { FieldFilterOperatorsDto } from '@meshmakers/octo-services';
 
 describe('MeshBoardDataService', () => {
   let service: MeshBoardDataService;
-  let getDashboardEntityGQLSpy: jasmine.SpyObj<GetDashboardEntityDtoGQL>;
-  let getCkModelsWithStateGQLSpy: jasmine.SpyObj<GetCkModelsWithStateDtoGQL>;
-  let getEntitiesByCkTypeGQLSpy: jasmine.SpyObj<GetEntitiesByCkTypeDtoGQL>;
-  let queryExecutorSpy: jasmine.SpyObj<QueryExecutorService>;
-  let apolloSpy: jasmine.SpyObj<Apollo>;
-  let stateServiceSpy: jasmine.SpyObj<MeshBoardStateService>;
-  let variableServiceSpy: jasmine.SpyObj<MeshBoardVariableService>;
+  let getDashboardEntityGQLSpy: MockedObject<GetDashboardEntityDtoGQL>;
+  let getCkModelsWithStateGQLSpy: MockedObject<GetCkModelsWithStateDtoGQL>;
+  let getEntitiesByCkTypeGQLSpy: MockedObject<GetEntitiesByCkTypeDtoGQL>;
+  let queryExecutorSpy: MockedObject<QueryExecutorService>;
+  let apolloSpy: MockedObject<Apollo>;
+  let stateServiceSpy: MockedObject<MeshBoardStateService>;
+  let variableServiceSpy: MockedObject<MeshBoardVariableService>;
 
   /**
-   * Helper that builds a `QueryExecutionResult` from a flat list of row objects
-   * with cell entries, mirroring the runtime-query shape the service used to
-   * consume directly off the Apollo response. Keeps the existing test fixtures
-   * compact after the executor refactor.
-   */
+     * Helper that builds a `QueryExecutionResult` from a flat list of row objects
+     * with cell entries, mirroring the runtime-query shape the service used to
+     * consume directly off the Apollo response. Keeps the existing test fixtures
+     * compact after the executor refactor.
+     */
   function runtimeResult(rows: {
-    rtId?: string;
-    ckTypeId?: string;
-    cells: { attributePath: string; value: unknown }[];
-  }[], associatedCkTypeId?: string): QueryExecutionResult {
+        rtId?: string;
+        ckTypeId?: string;
+        cells: {
+            attributePath: string;
+            value: unknown;
+        }[];
+    }[], associatedCkTypeId?: string): QueryExecutionResult {
     return {
       family: 'runtime',
       queryRtId: null,
@@ -59,13 +54,30 @@ describe('MeshBoardDataService', () => {
   }
 
   beforeEach(() => {
-    getDashboardEntityGQLSpy = jasmine.createSpyObj('GetDashboardEntityDtoGQL', ['fetch']);
-    getCkModelsWithStateGQLSpy = jasmine.createSpyObj('GetCkModelsWithStateDtoGQL', ['fetch']);
-    getEntitiesByCkTypeGQLSpy = jasmine.createSpyObj('GetEntitiesByCkTypeDtoGQL', ['fetch']);
-    queryExecutorSpy = jasmine.createSpyObj('QueryExecutorService', ['execute', 'executeRuntime', 'executeStreamData']);
-    apolloSpy = jasmine.createSpyObj('Apollo', ['query']);
-    stateServiceSpy = jasmine.createSpyObj('MeshBoardStateService', ['getVariables', 'resolveCurrentTimeRange']);
-    variableServiceSpy = jasmine.createSpyObj('MeshBoardVariableService', ['convertToFieldFilterDto']);
+    getDashboardEntityGQLSpy = {
+      fetch: vi.fn().mockName('GetDashboardEntityDtoGQL.fetch')
+    } as unknown as MockedObject<GetDashboardEntityDtoGQL>;
+    getCkModelsWithStateGQLSpy = {
+      fetch: vi.fn().mockName('GetCkModelsWithStateDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkModelsWithStateDtoGQL>;
+    getEntitiesByCkTypeGQLSpy = {
+      fetch: vi.fn().mockName('GetEntitiesByCkTypeDtoGQL.fetch')
+    } as unknown as MockedObject<GetEntitiesByCkTypeDtoGQL>;
+    queryExecutorSpy = {
+      execute: vi.fn().mockName('QueryExecutorService.execute'),
+      executeRuntime: vi.fn().mockName('QueryExecutorService.executeRuntime'),
+      executeStreamData: vi.fn().mockName('QueryExecutorService.executeStreamData')
+    } as unknown as MockedObject<QueryExecutorService>;
+    apolloSpy = {
+      query: vi.fn().mockName('Apollo.query')
+    } as unknown as MockedObject<Apollo>;
+    stateServiceSpy = {
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
+      resolveCurrentTimeRange: vi.fn().mockName('MeshBoardStateService.resolveCurrentTimeRange')
+    } as unknown as MockedObject<MeshBoardStateService>;
+    variableServiceSpy = {
+      convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
+    } as unknown as MockedObject<MeshBoardVariableService>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -81,9 +93,9 @@ describe('MeshBoardDataService', () => {
     });
 
     service = TestBed.inject(MeshBoardDataService);
-    stateServiceSpy.getVariables.and.returnValue([]);
-    stateServiceSpy.resolveCurrentTimeRange.and.returnValue(null);
-    variableServiceSpy.convertToFieldFilterDto.and.returnValue(undefined);
+    stateServiceSpy.getVariables.mockReturnValue([]);
+    stateServiceSpy.resolveCurrentTimeRange.mockReturnValue(null);
+    variableServiceSpy.convertToFieldFilterDto.mockReturnValue(undefined);
   });
 
   // ========================================================================
@@ -91,7 +103,7 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
 
   describe('fetchData', () => {
-    it('should return null for unsupported data source types', (done) => {
+    it('should return null for unsupported data source types', () => new Promise<void>((done) => {
       const dataSource: PersistentQueryDataSource = {
         type: 'persistentQuery',
         queryRtId: 'test-query'
@@ -101,9 +113,9 @@ describe('MeshBoardDataService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should return static data for static data source', (done) => {
+    it('should return static data for static data source', () => new Promise<void>((done) => {
       const staticData = { rtId: 'static-1', ckTypeId: 'TestType', attributes: [], associations: [] };
       const dataSource: StaticDataSource = {
         type: 'static',
@@ -114,9 +126,9 @@ describe('MeshBoardDataService', () => {
         expect(result).toEqual(staticData);
         done();
       });
-    });
+    }));
 
-    it('should call fetchRuntimeEntity for runtimeEntity data source', (done) => {
+    it('should call fetchRuntimeEntity for runtimeEntity data source', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
@@ -124,7 +136,7 @@ describe('MeshBoardDataService', () => {
       };
 
       // Mock the GraphQL response
-      getDashboardEntityGQLSpy.fetch.and.returnValue(of({
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -148,7 +160,7 @@ describe('MeshBoardDataService', () => {
         expect(entity?.rtId).toBe('test-rt-id');
         done();
       });
-    });
+    }));
   });
 
   // ========================================================================
@@ -156,7 +168,7 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
 
   describe('fetchRuntimeEntity', () => {
-    it('should return null when rtId is missing', (done) => {
+    it('should return null when rtId is missing', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         ckTypeId: 'TestType'
@@ -167,9 +179,9 @@ describe('MeshBoardDataService', () => {
         expect(getDashboardEntityGQLSpy.fetch).not.toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should return null when ckTypeId is missing', (done) => {
+    it('should return null when ckTypeId is missing', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id'
@@ -180,16 +192,16 @@ describe('MeshBoardDataService', () => {
         expect(getDashboardEntityGQLSpy.fetch).not.toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should return null when entity not found', (done) => {
+    it('should return null when entity not found', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'non-existent',
         ckTypeId: 'TestType'
       };
 
-      getDashboardEntityGQLSpy.fetch.and.returnValue(of({
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -205,16 +217,16 @@ describe('MeshBoardDataService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should map entity data correctly', (done) => {
+    it('should map entity data correctly', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
         ckTypeId: 'TestType'
       };
 
-      getDashboardEntityGQLSpy.fetch.and.returnValue(of({
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -261,16 +273,16 @@ describe('MeshBoardDataService', () => {
         expect(result?.associations[0].targetRtId).toBe('target-1');
         done();
       });
-    });
+    }));
 
-    it('should handle null attributes gracefully', (done) => {
+    it('should handle null attributes gracefully', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
         ckTypeId: 'TestType'
       };
 
-      getDashboardEntityGQLSpy.fetch.and.returnValue(of({
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -298,16 +310,16 @@ describe('MeshBoardDataService', () => {
         expect(result?.attributes[0].attributeName).toBe('valid');
         done();
       });
-    });
+    }));
 
-    it('should handle null associations gracefully', (done) => {
+    it('should handle null associations gracefully', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
         ckTypeId: 'TestType'
       };
 
-      getDashboardEntityGQLSpy.fetch.and.returnValue(of({
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -342,7 +354,7 @@ describe('MeshBoardDataService', () => {
         expect(result?.associations[0].targetRtId).toBe('valid-target');
         done();
       });
-    });
+    }));
   });
 
   // ========================================================================
@@ -350,8 +362,8 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
 
   describe('fetchEntityWithAssociations', () => {
-    it('should fetch entity by rtId and ckTypeId', (done) => {
-      getDashboardEntityGQLSpy.fetch.and.returnValue(of({
+    it('should fetch entity by rtId and ckTypeId', () => new Promise<void>((done) => {
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -373,10 +385,10 @@ describe('MeshBoardDataService', () => {
         expect(result?.ckTypeId).toBe('EntityType');
         done();
       });
-    });
+    }));
 
-    it('should return null when entity not found', (done) => {
-      getDashboardEntityGQLSpy.fetch.and.returnValue(of({
+    it('should return null when entity not found', () => new Promise<void>((done) => {
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -392,7 +404,7 @@ describe('MeshBoardDataService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
   });
 
   // ========================================================================
@@ -411,7 +423,7 @@ describe('MeshBoardDataService', () => {
         { id: 'types', ckTypeId: 'ConstructionKit/CkType', aggregation: 'count' }
       ];
 
-      apolloSpy.query.and.returnValue(of({
+      apolloSpy.query.mockReturnValue(of({
         data: {
           constructionKit: {
             models: { totalCount: 10 },
@@ -442,7 +454,7 @@ describe('MeshBoardDataService', () => {
         { id: 'records', ckTypeId: 'ConstructionKit/CkRecord', aggregation: 'count' }
       ];
 
-      apolloSpy.query.and.returnValue(of({
+      apolloSpy.query.mockReturnValue(of({
         data: {
           constructionKit: {
             models: { totalCount: 10 },
@@ -472,7 +484,7 @@ describe('MeshBoardDataService', () => {
         { id: 'unknown', ckTypeId: 'ConstructionKit/Unknown', aggregation: 'count' }
       ];
 
-      apolloSpy.query.and.returnValue(of({
+      apolloSpy.query.mockReturnValue(of({
         data: {
           constructionKit: {
             models: { totalCount: 10 },
@@ -496,7 +508,7 @@ describe('MeshBoardDataService', () => {
         { id: 'customers', ckTypeId: 'OctoSdk/Customer', aggregation: 'count' }
       ];
 
-      getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(of({
+      getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -518,7 +530,7 @@ describe('MeshBoardDataService', () => {
         { id: 'customers', ckTypeId: 'OctoSdk/Customer', aggregation: 'count' }
       ];
 
-      apolloSpy.query.and.returnValue(of({
+      apolloSpy.query.mockReturnValue(of({
         data: {
           constructionKit: {
             models: { totalCount: 10 },
@@ -533,7 +545,7 @@ describe('MeshBoardDataService', () => {
         networkStatus: 7
       }));
 
-      getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(of({
+      getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -555,8 +567,8 @@ describe('MeshBoardDataService', () => {
         { id: 'models', ckTypeId: 'ConstructionKit/CkModel', aggregation: 'count' }
       ];
 
-      apolloSpy.query.and.returnValue(throwError(() => new Error('Network error')));
-      spyOn(console, 'error');
+      apolloSpy.query.mockReturnValue(throwError(() => new Error('Network error')));
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
 
       const results = await service.fetchAggregations(queries);
 
@@ -569,8 +581,8 @@ describe('MeshBoardDataService', () => {
         { id: 'customers', ckTypeId: 'OctoSdk/Customer', aggregation: 'count' }
       ];
 
-      getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(throwError(() => new Error('Network error')));
-      spyOn(console, 'error');
+      getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(throwError(() => new Error('Network error')));
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
 
       const results = await service.fetchAggregations(queries);
 
@@ -582,8 +594,8 @@ describe('MeshBoardDataService', () => {
       const variables: MeshBoardVariable[] = [
         { name: 'status', type: 'string', source: 'static', value: 'Active' }
       ];
-      stateServiceSpy.getVariables.and.returnValue(variables);
-      variableServiceSpy.convertToFieldFilterDto.and.returnValue([
+      stateServiceSpy.getVariables.mockReturnValue(variables);
+      variableServiceSpy.convertToFieldFilterDto.mockReturnValue([
         { attributePath: 'status', comparisonValue: 'Active', operator: FieldFilterOperatorsDto.EqualsDto }
       ]);
 
@@ -596,7 +608,7 @@ describe('MeshBoardDataService', () => {
         }
       ];
 
-      getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(of({
+      getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -619,7 +631,7 @@ describe('MeshBoardDataService', () => {
         { id: 'customers', ckTypeId: 'OctoSdk/Customer', aggregation: 'count' }
       ];
 
-      getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(of({
+      getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -662,7 +674,7 @@ describe('MeshBoardDataService', () => {
         groupBy: 'modelState'
       };
 
-      getCkModelsWithStateGQLSpy.fetch.and.returnValue(of({
+      getCkModelsWithStateGQLSpy.fetch.mockReturnValue(of({
         data: {
           constructionKit: {
             models: {
@@ -702,7 +714,7 @@ describe('MeshBoardDataService', () => {
         queryTarget: 'models'
       };
 
-      getCkModelsWithStateGQLSpy.fetch.and.returnValue(of({
+      getCkModelsWithStateGQLSpy.fetch.mockReturnValue(of({
         data: {
           constructionKit: {
             models: {
@@ -728,7 +740,7 @@ describe('MeshBoardDataService', () => {
         queryTarget: 'models'
       };
 
-      getCkModelsWithStateGQLSpy.fetch.and.returnValue(of({
+      getCkModelsWithStateGQLSpy.fetch.mockReturnValue(of({
         data: {
           constructionKit: {
             models: {
@@ -756,7 +768,7 @@ describe('MeshBoardDataService', () => {
         queryTarget: 'models'
       };
 
-      getCkModelsWithStateGQLSpy.fetch.and.returnValue(of({
+      getCkModelsWithStateGQLSpy.fetch.mockReturnValue(of({
         data: {
           constructionKit: {
             models: {
@@ -783,7 +795,7 @@ describe('MeshBoardDataService', () => {
         queryTarget: 'types' // Not yet implemented
       };
 
-      spyOn(console, 'warn');
+      vi.spyOn(console, 'warn').mockReturnValue(undefined);
       const result = await service.fetchCkQueryData(dataSource);
 
       expect(result.items).toEqual([]);
@@ -797,8 +809,8 @@ describe('MeshBoardDataService', () => {
         queryTarget: 'models'
       };
 
-      getCkModelsWithStateGQLSpy.fetch.and.returnValue(throwError(() => new Error('Query failed')));
-      spyOn(console, 'error');
+      getCkModelsWithStateGQLSpy.fetch.mockReturnValue(throwError(() => new Error('Query failed')));
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
 
       const result = await service.fetchCkQueryData(dataSource);
 
@@ -814,7 +826,7 @@ describe('MeshBoardDataService', () => {
         groupBy: 'customField'
       };
 
-      getCkModelsWithStateGQLSpy.fetch.and.returnValue(of({
+      getCkModelsWithStateGQLSpy.fetch.mockReturnValue(of({
         data: {
           constructionKit: {
             models: {
@@ -846,7 +858,7 @@ describe('MeshBoardDataService', () => {
   describe('fetchRepeaterData', () => {
     describe('Query Mode', () => {
       it('should return empty array when no queryRtId or ckTypeId configured', async () => {
-        spyOn(console, 'warn');
+        vi.spyOn(console, 'warn').mockReturnValue(undefined);
         const dataSource: RepeaterQueryDataSource = {
           type: 'repeaterQuery'
         };
@@ -864,7 +876,7 @@ describe('MeshBoardDataService', () => {
           maxItems: 10
         };
 
-        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([
+        queryExecutorSpy.execute.mockReturnValue(of(runtimeResult([
           {
             rtId: 'entity-1',
             ckTypeId: 'TestType',
@@ -900,7 +912,7 @@ describe('MeshBoardDataService', () => {
           queryRtId: 'query-123'
         };
 
-        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([{
+        queryExecutorSpy.execute.mockReturnValue(of(runtimeResult([{
           rtId: 'entity-1',
           ckTypeId: 'TestType',
           cells: [{ attributePath: 'nested.attribute.path', value: 'test-value' }]
@@ -919,7 +931,7 @@ describe('MeshBoardDataService', () => {
           queryRtId: 'query-123'
         };
 
-        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([])));
+        queryExecutorSpy.execute.mockReturnValue(of(runtimeResult([])));
 
         await service.fetchRepeaterData(dataSource);
 
@@ -942,8 +954,8 @@ describe('MeshBoardDataService', () => {
 
         const from = new Date('2024-01-01T00:00:00Z');
         const to = new Date('2024-01-31T23:59:59Z');
-        stateServiceSpy.resolveCurrentTimeRange.and.returnValue({ from, to });
-        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([])));
+        stateServiceSpy.resolveCurrentTimeRange.mockReturnValue({ from, to });
+        queryExecutorSpy.execute.mockReturnValue(of(runtimeResult([])));
 
         await service.fetchRepeaterData(dataSource);
 
@@ -959,7 +971,7 @@ describe('MeshBoardDataService', () => {
           queryRtId: 'query-123'
         };
 
-        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([])));
+        queryExecutorSpy.execute.mockReturnValue(of(runtimeResult([])));
 
         const result = await service.fetchRepeaterData(dataSource);
         expect(result).toEqual([]);
@@ -971,8 +983,8 @@ describe('MeshBoardDataService', () => {
           queryRtId: 'query-123'
         };
 
-        queryExecutorSpy.execute.and.returnValue(throwError(() => new Error('Query failed')));
-        spyOn(console, 'error');
+        queryExecutorSpy.execute.mockReturnValue(throwError(() => new Error('Query failed')));
+        vi.spyOn(console, 'error').mockReturnValue(undefined);
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -986,7 +998,7 @@ describe('MeshBoardDataService', () => {
           queryRtId: 'query-123'
         };
 
-        queryExecutorSpy.execute.and.returnValue(of({
+        queryExecutorSpy.execute.mockReturnValue(of({
           family: 'runtime',
           queryRtId: null,
           associatedCkTypeId: 'TestType',
@@ -1015,7 +1027,7 @@ describe('MeshBoardDataService', () => {
           maxItems: 20
         };
 
-        getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(of({
+        getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(of({
           data: {
             runtime: {
               runtimeEntities: {
@@ -1067,8 +1079,8 @@ describe('MeshBoardDataService', () => {
         const variables: MeshBoardVariable[] = [
           { name: 'statusFilter', type: 'string', source: 'static', value: 'Active' }
         ];
-        stateServiceSpy.getVariables.and.returnValue(variables);
-        variableServiceSpy.convertToFieldFilterDto.and.returnValue([
+        stateServiceSpy.getVariables.mockReturnValue(variables);
+        variableServiceSpy.convertToFieldFilterDto.mockReturnValue([
           { attributePath: 'status', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: 'Active' }
         ]);
 
@@ -1079,7 +1091,7 @@ describe('MeshBoardDataService', () => {
           maxItems: 10
         };
 
-        getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(of({
+        getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(of({
           data: {
             runtime: {
               runtimeEntities: {
@@ -1112,8 +1124,8 @@ describe('MeshBoardDataService', () => {
           ckTypeId: 'OctoSdk/Machine'
         };
 
-        getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(throwError(() => new Error('Fetch failed')));
-        spyOn(console, 'error');
+        getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(throwError(() => new Error('Fetch failed')));
+        vi.spyOn(console, 'error').mockReturnValue(undefined);
 
         const result = await service.fetchRepeaterData(dataSource);
 
@@ -1127,7 +1139,7 @@ describe('MeshBoardDataService', () => {
           ckTypeId: 'OctoSdk/Machine'
         };
 
-        getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(of({
+        getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(of({
           data: {
             runtime: {
               runtimeEntities: {
@@ -1157,7 +1169,7 @@ describe('MeshBoardDataService', () => {
           ckTypeId: 'OctoSdk/Machine'
         };
 
-        getEntitiesByCkTypeGQLSpy.fetch.and.returnValue(of({
+        getEntitiesByCkTypeGQLSpy.fetch.mockReturnValue(of({
           data: {
             runtime: {
               runtimeEntities: {
@@ -1195,7 +1207,7 @@ describe('MeshBoardDataService', () => {
           ckTypeId: 'OctoSdk/Machine'
         };
 
-        queryExecutorSpy.execute.and.returnValue(of(runtimeResult([])));
+        queryExecutorSpy.execute.mockReturnValue(of(runtimeResult([])));
 
         await service.fetchRepeaterData(dataSource);
 
@@ -1210,14 +1222,14 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
 
   describe('Edge Cases', () => {
-    it('should handle empty runtime response', (done) => {
+    it('should handle empty runtime response', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
         ckTypeId: 'TestType'
       };
 
-      getDashboardEntityGQLSpy.fetch.and.returnValue(of({
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: null
         },
@@ -1229,16 +1241,16 @@ describe('MeshBoardDataService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should handle undefined rtWellKnownName', (done) => {
+    it('should handle undefined rtWellKnownName', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
         ckTypeId: 'TestType'
       };
 
-      getDashboardEntityGQLSpy.fetch.and.returnValue(of({
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
           runtime: {
             runtimeEntities: {
@@ -1260,10 +1272,10 @@ describe('MeshBoardDataService', () => {
         expect(result?.rtWellKnownName).toBeUndefined();
         done();
       });
-    });
+    }));
 
     it('should handle CK query with null constructionKit data', async () => {
-      apolloSpy.query.and.returnValue(of({
+      apolloSpy.query.mockReturnValue(of({
         data: {
           constructionKit: null
         },
@@ -1280,7 +1292,7 @@ describe('MeshBoardDataService', () => {
     });
 
     it('should handle CK query with null totalCount values', async () => {
-      apolloSpy.query.and.returnValue(of({
+      apolloSpy.query.mockReturnValue(of({
         data: {
           constructionKit: {
             models: { totalCount: null },

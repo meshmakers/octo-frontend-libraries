@@ -1,4 +1,4 @@
-import '@angular/localize/init';
+import type { Mock, MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
@@ -11,23 +11,19 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { IconsModule } from '@progress/kendo-angular-icons';
 import { LoaderModule } from '@progress/kendo-angular-indicators';
 import { CkTypeSelectorService, CkTypeSelectorItem } from '@meshmakers/octo-services';
-import {
-  CkTypeSelectorDialogComponent,
-  CkTypeSelectorDialogData,
-  CkTypeSelectorDialogResult
-} from './ck-type-selector-dialog.component';
+import { CkTypeSelectorDialogComponent, CkTypeSelectorDialogData, CkTypeSelectorDialogResult } from './ck-type-selector-dialog.component';
 
 interface MockWindowContent {
-  instance: {
-    data: CkTypeSelectorDialogData | Record<string, unknown> | null;
-  };
+    instance: {
+        data: CkTypeSelectorDialogData | Record<string, unknown> | null;
+    };
 }
 
 describe('CkTypeSelectorDialogComponent', () => {
   let component: CkTypeSelectorDialogComponent;
   let fixture: ComponentFixture<CkTypeSelectorDialogComponent>;
-  let ckTypeSelectorServiceMock: jasmine.SpyObj<CkTypeSelectorService>;
-  let windowRefMock: jasmine.SpyObj<WindowRef>;
+  let ckTypeSelectorServiceMock: MockedObject<CkTypeSelectorService>;
+  let windowRefMock: MockedObject<WindowRef>;
   let windowContent: MockWindowContent;
 
   const mockCkTypes: CkTypeSelectorItem[] = [
@@ -78,13 +74,17 @@ describe('CkTypeSelectorDialogComponent', () => {
   };
 
   beforeEach(async () => {
-    ckTypeSelectorServiceMock = jasmine.createSpyObj('CkTypeSelectorService', ['getCkTypes']);
-    ckTypeSelectorServiceMock.getCkTypes.and.returnValue(of({
+    ckTypeSelectorServiceMock = {
+      getCkTypes: vi.fn().mockName('CkTypeSelectorService.getCkTypes')
+    } as unknown as MockedObject<CkTypeSelectorService>;
+    ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
       items: [...mockCkTypes],
       totalCount: mockCkTypes.length
     }));
 
-    windowRefMock = jasmine.createSpyObj('WindowRef', ['close']);
+    windowRefMock = {
+      close: vi.fn().mockName('WindowRef.close')
+    } as unknown as MockedObject<WindowRef>;
     windowContent = {
       instance: {
         data: { ...mockDialogData }
@@ -125,7 +125,7 @@ describe('CkTypeSelectorDialogComponent', () => {
       expect(component.searchText).toBe('');
       expect(component.selectedModel).toBeNull();
       expect(component.availableModels).toEqual([]);
-      expect(component.isLoading).toBeFalse();
+      expect(component.isLoading).toBe(false);
       expect(component.pageSize).toBe(50);
       expect(component.skip).toBe(0);
       expect(component.selectedKeys).toEqual([]);
@@ -137,7 +137,7 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should have allowAbstract default to true', () => {
-      expect(component.allowAbstract).toBeTrue();
+      expect(component.allowAbstract).toBe(true);
     });
   });
 
@@ -156,7 +156,7 @@ describe('CkTypeSelectorDialogComponent', () => {
     it('should set allowAbstract from dialog data', () => {
       component.data = { allowAbstract: true };
       fixture.detectChanges();
-      expect(component.allowAbstract).toBeTrue();
+      expect(component.allowAbstract).toBe(true);
     });
 
     it('should set selectedKeys from dialog data', () => {
@@ -219,7 +219,7 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should trigger search after debounce delay', fakeAsync(() => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
 
       component.onSearchChange('customer');
       expect(ckTypeSelectorServiceMock.getCkTypes).not.toHaveBeenCalled();
@@ -236,24 +236,24 @@ describe('CkTypeSelectorDialogComponent', () => {
     }));
 
     it('should not trigger search for same value (distinctUntilChanged)', fakeAsync(() => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
 
       component.onSearchChange('test');
       tick(300);
-      const callCount = ckTypeSelectorServiceMock.getCkTypes.calls.count();
+      const callCount = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls.length;
 
       component.onSearchChange('test');
       tick(300);
-      expect(ckTypeSelectorServiceMock.getCkTypes.calls.count()).toBe(callCount);
+      expect(vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls.length).toBe(callCount);
     }));
 
     it('should pass search text to service', fakeAsync(() => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       component.searchText = 'customer';
       component.onSearchChange('customer');
       tick(300);
 
-      const calls = ckTypeSelectorServiceMock.getCkTypes.calls.allArgs();
+      const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
       const lastCall = calls[calls.length - 1]?.[0];
       expect(lastCall?.searchText).toBe('customer');
     }));
@@ -265,11 +265,11 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should filter by selected model', () => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       component.selectedModel = 'OctoSdkDemo-1.0.0';
       component.onModelFilterChange('OctoSdkDemo-1.0.0');
 
-      const calls = ckTypeSelectorServiceMock.getCkTypes.calls.allArgs();
+      const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
       const lastCall = calls[calls.length - 1]?.[0];
       expect(lastCall?.ckModelIds).toEqual(['OctoSdkDemo-1.0.0']);
     });
@@ -286,10 +286,10 @@ describe('CkTypeSelectorDialogComponent', () => {
       component.data = {
         ckModelIds: ['OctoSdkDemo-1.0.0']
       };
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       fixture.detectChanges();
 
-      const calls = ckTypeSelectorServiceMock.getCkTypes.calls.allArgs();
+      const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
       expect(calls[0]?.[0]?.ckModelIds).toEqual(['OctoSdkDemo-1.0.0']);
     });
   });
@@ -318,7 +318,7 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should reload types', () => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       component.clearFilters();
       expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
     });
@@ -342,18 +342,18 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should reload types on page change', () => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       const pageEvent: PageChangeEvent = { skip: 50, take: 50 };
       component.onPageChange(pageEvent);
       expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
     });
 
     it('should pass pagination to service', () => {
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       const pageEvent: PageChangeEvent = { skip: 100, take: 25 };
       component.onPageChange(pageEvent);
 
-      const calls = ckTypeSelectorServiceMock.getCkTypes.calls.allArgs();
+      const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
       const lastCall = calls[calls.length - 1]?.[0];
       expect(lastCall?.skip).toBe(100);
       expect(lastCall?.first).toBe(25);
@@ -397,7 +397,7 @@ describe('CkTypeSelectorDialogComponent', () => {
         shiftKey: false
       };
       component.onSelectionChange(selectionEvent);
-      expect(component.selectedType?.isAbstract).toBeTrue();
+      expect(component.selectedType?.isAbstract).toBe(true);
     });
 
     it('should handle selection of final type', () => {
@@ -409,7 +409,7 @@ describe('CkTypeSelectorDialogComponent', () => {
         shiftKey: false
       };
       component.onSelectionChange(selectionEvent);
-      expect(component.selectedType?.isFinal).toBeTrue();
+      expect(component.selectedType?.isFinal).toBe(true);
     });
   });
 
@@ -423,7 +423,7 @@ describe('CkTypeSelectorDialogComponent', () => {
       component.onConfirm();
 
       expect(windowRefMock.close).toHaveBeenCalled();
-      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as CkTypeSelectorDialogResult;
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
       expect(result.selectedCkType).toBe(mockCkTypes[0]);
     });
 
@@ -437,7 +437,7 @@ describe('CkTypeSelectorDialogComponent', () => {
       component.selectedType = mockCkTypes[0];
       component.onConfirm();
 
-      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as CkTypeSelectorDialogResult;
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
       expect(result.selectedCkType.fullName).toBe('OctoSdkDemo-1.0.0/Customer-1');
       expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
       expect(result.selectedCkType.description).toBe('Customer entity');
@@ -465,22 +465,22 @@ describe('CkTypeSelectorDialogComponent', () => {
     it('should set isLoading to true while loading', () => {
       fixture.detectChanges();
       // isLoading is set to false after data loads, but we can check the flow
-      expect(component.isLoading).toBeFalse();
+      expect(component.isLoading).toBe(false);
     });
 
     it('should set isLoading to false after load completes', () => {
       fixture.detectChanges();
-      expect(component.isLoading).toBeFalse();
+      expect(component.isLoading).toBe(false);
     });
 
     it('should set isLoading to false on error', () => {
-      ckTypeSelectorServiceMock.getCkTypes.and.returnValue(throwError(() => new Error('Test error')));
+      ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(throwError(() => new Error('Test error')));
       fixture.detectChanges();
-      expect(component.isLoading).toBeFalse();
+      expect(component.isLoading).toBe(false);
     });
 
     it('should clear grid data on error', () => {
-      ckTypeSelectorServiceMock.getCkTypes.and.returnValue(throwError(() => new Error('Test error')));
+      ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(throwError(() => new Error('Test error')));
       fixture.detectChanges();
       expect(component.gridData.data).toEqual([]);
       expect(component.gridData.total).toBe(0);
@@ -497,21 +497,21 @@ describe('CkTypeSelectorDialogComponent', () => {
       component.selectedType = mockCkTypes.find(t => t.isAbstract)!;
       // The button disabled logic: !selectedType || (selectedType.isAbstract && !allowAbstract)
       const isDisabled = !component.selectedType || (component.selectedType.isAbstract && !component.allowAbstract);
-      expect(isDisabled).toBeFalse();
+      expect(isDisabled).toBe(false);
     });
 
     it('should disable confirm button when allowAbstract is false and abstract type selected', () => {
       component.allowAbstract = false;
       component.selectedType = mockCkTypes.find(t => t.isAbstract)!;
       const isDisabled = !component.selectedType || (component.selectedType.isAbstract && !component.allowAbstract);
-      expect(isDisabled).toBeTrue();
+      expect(isDisabled).toBe(true);
     });
 
     it('should enable confirm button for non-abstract type regardless of allowAbstract', () => {
       component.allowAbstract = false;
       component.selectedType = mockCkTypes.find(t => !t.isAbstract)!;
       const isDisabled = !component.selectedType || (component.selectedType.isAbstract && !component.allowAbstract);
-      expect(isDisabled).toBeFalse();
+      expect(isDisabled).toBe(false);
     });
   });
 
@@ -523,7 +523,7 @@ describe('CkTypeSelectorDialogComponent', () => {
 
     it('should clean up search subject', fakeAsync(() => {
       fixture.detectChanges();
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
 
       component.onSearchChange('test');
       component.ngOnDestroy();
@@ -543,7 +543,7 @@ describe('CkTypeSelectorDialogComponent', () => {
     });
 
     it('should handle types without slash in fullName', () => {
-      ckTypeSelectorServiceMock.getCkTypes.and.returnValue(of({
+      ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
         items: [{ fullName: 'NoSlashType', rtCkTypeId: 'NoSlash', isAbstract: false, isFinal: false }],
         totalCount: 1
       }));
@@ -575,7 +575,7 @@ describe('CkTypeSelectorDialogComponent', () => {
       // Confirm
       component.onConfirm();
 
-      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as CkTypeSelectorDialogResult;
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
       expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
     });
 
@@ -597,7 +597,7 @@ describe('CkTypeSelectorDialogComponent', () => {
       component.selectedModel = 'TestModel-2.0.0';
       component.skip = 50;
 
-      ckTypeSelectorServiceMock.getCkTypes.calls.reset();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
       component.clearFilters();
 
       expect(component.searchText).toBe('');

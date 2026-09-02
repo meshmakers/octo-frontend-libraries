@@ -1,10 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  OCTO_BRANDING_DEFAULTS,
-  OCTO_BRANDING_FALLBACK_ASSETS,
-  NEUTRAL_BRANDING_DEFAULTS,
-  NEUTRAL_FALLBACK_ASSETS,
-} from './branding.tokens';
+import { OCTO_BRANDING_DEFAULTS, OCTO_BRANDING_FALLBACK_ASSETS, NEUTRAL_BRANDING_DEFAULTS, NEUTRAL_FALLBACK_ASSETS, } from './branding.tokens';
 
 describe('branding.tokens', () => {
   it('NEUTRAL_BRANDING_DEFAULTS is a complete BrandingData carrying the Meshmakers brand mint', () => {

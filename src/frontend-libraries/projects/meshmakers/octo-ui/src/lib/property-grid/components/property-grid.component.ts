@@ -241,7 +241,14 @@ export class PropertyGridComponent implements OnInit, OnChanges {
   readonly listUnorderedIcon = listUnorderedIcon;
 
   // Enum reference
-  readonly AttributeValueTypeDto = AttributeValueTypeDto;
+  // Exposed to the template through a getter, not a `readonly X = X` field: Vite's
+  // module-runner transform (used by the Vitest unit-test builder) snapshots a class
+  // field whose initialiser is a bare imported identifier at module-evaluation time,
+  // which is before esbuild's lazily-initialised shared chunk has assigned the export,
+  // so the field would be `undefined`.
+  // A getter body is rewritten to a live read. Test-runner-only: production and
+  // ng-packagr builds do not use the module runner and are unaffected.
+  get AttributeValueTypeDto(): typeof AttributeValueTypeDto { return AttributeValueTypeDto; }
 
   ngOnInit() {
     this.updateFilteredData();

@@ -6,13 +6,7 @@ import { AnyWidgetConfig } from '../models/meshboard.models';
  * Creates a minimal mock widget config for testing grid operations.
  * Only includes the fields needed for grid calculations.
  */
-function createMockWidget(
-  id: string,
-  col: number,
-  row: number,
-  colSpan: number,
-  rowSpan: number
-): AnyWidgetConfig {
+function createMockWidget(id: string, col: number, row: number, colSpan: number, rowSpan: number): AnyWidgetConfig {
   return {
     id,
     col,
@@ -51,28 +45,28 @@ describe('MeshBoardGridService', () => {
       const cells = service.getCells(1, 1, 2, 2);
 
       expect(cells.length).toBe(4);
-      expect(cells).toContain(jasmine.objectContaining({ col: 1, row: 1 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 2, row: 1 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 1, row: 2 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 2, row: 2 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 1, row: 1 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 2, row: 1 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 1, row: 2 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 2, row: 2 }));
     });
 
     it('should return correct cells for 3x1 widget (horizontal)', () => {
       const cells = service.getCells(2, 3, 3, 1);
 
       expect(cells.length).toBe(3);
-      expect(cells).toContain(jasmine.objectContaining({ col: 2, row: 3 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 3, row: 3 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 4, row: 3 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 2, row: 3 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 3, row: 3 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 4, row: 3 }));
     });
 
     it('should return correct cells for 1x3 widget (vertical)', () => {
       const cells = service.getCells(5, 1, 1, 3);
 
       expect(cells.length).toBe(3);
-      expect(cells).toContain(jasmine.objectContaining({ col: 5, row: 1 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 5, row: 2 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 5, row: 3 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 1 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 2 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 3 }));
     });
 
     it('should handle large widget (4x3)', () => {
@@ -85,10 +79,10 @@ describe('MeshBoardGridService', () => {
       const cells = service.getCells(5, 10, 2, 2);
 
       expect(cells.length).toBe(4);
-      expect(cells).toContain(jasmine.objectContaining({ col: 5, row: 10 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 6, row: 10 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 5, row: 11 }));
-      expect(cells).toContain(jasmine.objectContaining({ col: 6, row: 11 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 10 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 6, row: 10 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 5, row: 11 }));
+      expect(cells).toContainEqual(expect.objectContaining({ col: 6, row: 11 }));
     });
   });
 
@@ -96,29 +90,29 @@ describe('MeshBoardGridService', () => {
     it('should return false for empty widget list', () => {
       const result = service.wouldCauseOverlap([], 'new', 1, 1, 2, 2);
 
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
 
     it('should return false when no overlap exists', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 2, 2)  // occupies cols 1-2, rows 1-2
+        createMockWidget('w1', 1, 1, 2, 2) // occupies cols 1-2, rows 1-2
       ];
 
       // Place new widget at col 3 - no overlap
       const result = service.wouldCauseOverlap(widgets, 'new', 3, 1, 2, 2);
 
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
 
     it('should return true when widgets overlap', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 2, 2)  // occupies cols 1-2, rows 1-2
+        createMockWidget('w1', 1, 1, 2, 2) // occupies cols 1-2, rows 1-2
       ];
 
       // Place new widget at col 2 - overlaps with w1
       const result = service.wouldCauseOverlap(widgets, 'new', 2, 1, 2, 2);
 
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should exclude the widget being moved from overlap check', () => {
@@ -130,71 +124,71 @@ describe('MeshBoardGridService', () => {
       // Move w1 to its own position - should not overlap with itself
       const result = service.wouldCauseOverlap(widgets, 'w1', 1, 1, 2, 2);
 
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
 
     it('should detect partial overlap', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 3, 3)  // occupies cols 1-3, rows 1-3
+        createMockWidget('w1', 1, 1, 3, 3) // occupies cols 1-3, rows 1-3
       ];
 
       // New widget at col 3, row 3 - overlaps at single cell (3,3)
       const result = service.wouldCauseOverlap(widgets, 'new', 3, 3, 2, 2);
 
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should return false for adjacent widgets', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 2, 2)  // occupies cols 1-2, rows 1-2
+        createMockWidget('w1', 1, 1, 2, 2) // occupies cols 1-2, rows 1-2
       ];
 
       // Adjacent widgets should not overlap
-      expect(service.wouldCauseOverlap(widgets, 'new', 3, 1, 1, 1)).toBeFalse(); // right
-      expect(service.wouldCauseOverlap(widgets, 'new', 1, 3, 1, 1)).toBeFalse(); // below
+      expect(service.wouldCauseOverlap(widgets, 'new', 3, 1, 1, 1)).toBe(false); // right
+      expect(service.wouldCauseOverlap(widgets, 'new', 1, 3, 1, 1)).toBe(false); // below
     });
 
     it('should handle multiple existing widgets', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 2, 2),   // cols 1-2, rows 1-2
-        createMockWidget('w2', 4, 1, 2, 2),   // cols 4-5, rows 1-2
-        createMockWidget('w3', 1, 4, 3, 1)    // cols 1-3, row 4
+        createMockWidget('w1', 1, 1, 2, 2), // cols 1-2, rows 1-2
+        createMockWidget('w2', 4, 1, 2, 2), // cols 4-5, rows 1-2
+        createMockWidget('w3', 1, 4, 3, 1) // cols 1-3, row 4
       ];
 
       // No overlap in gap
-      expect(service.wouldCauseOverlap(widgets, 'new', 3, 1, 1, 2)).toBeFalse();
+      expect(service.wouldCauseOverlap(widgets, 'new', 3, 1, 1, 2)).toBe(false);
 
       // Overlap with w1
-      expect(service.wouldCauseOverlap(widgets, 'new', 2, 2, 1, 1)).toBeTrue();
+      expect(service.wouldCauseOverlap(widgets, 'new', 2, 2, 1, 1)).toBe(true);
 
       // Overlap with w2
-      expect(service.wouldCauseOverlap(widgets, 'new', 5, 1, 2, 1)).toBeTrue();
+      expect(service.wouldCauseOverlap(widgets, 'new', 5, 1, 2, 1)).toBe(true);
 
       // Overlap with w3
-      expect(service.wouldCauseOverlap(widgets, 'new', 2, 4, 1, 1)).toBeTrue();
+      expect(service.wouldCauseOverlap(widgets, 'new', 2, 4, 1, 1)).toBe(true);
     });
   });
 
   describe('isOutOfBounds', () => {
     it('should return false when widget fits within grid', () => {
-      expect(service.isOutOfBounds(1, 2, 6)).toBeFalse(); // cols 1-2 in 6-col grid
-      expect(service.isOutOfBounds(5, 2, 6)).toBeFalse(); // cols 5-6 in 6-col grid
+      expect(service.isOutOfBounds(1, 2, 6)).toBe(false); // cols 1-2 in 6-col grid
+      expect(service.isOutOfBounds(5, 2, 6)).toBe(false); // cols 5-6 in 6-col grid
     });
 
     it('should return true when widget extends beyond grid', () => {
-      expect(service.isOutOfBounds(6, 2, 6)).toBeTrue();  // cols 6-7 in 6-col grid
-      expect(service.isOutOfBounds(5, 3, 6)).toBeTrue();  // cols 5-7 in 6-col grid
+      expect(service.isOutOfBounds(6, 2, 6)).toBe(true); // cols 6-7 in 6-col grid
+      expect(service.isOutOfBounds(5, 3, 6)).toBe(true); // cols 5-7 in 6-col grid
     });
 
     it('should handle edge case at boundary', () => {
       // Widget ending exactly at grid boundary
-      expect(service.isOutOfBounds(5, 2, 6)).toBeFalse(); // cols 5-6 in 6-col grid (fits)
-      expect(service.isOutOfBounds(6, 1, 6)).toBeFalse(); // col 6 in 6-col grid (fits)
+      expect(service.isOutOfBounds(5, 2, 6)).toBe(false); // cols 5-6 in 6-col grid (fits)
+      expect(service.isOutOfBounds(6, 1, 6)).toBe(false); // col 6 in 6-col grid (fits)
     });
 
     it('should handle 1-column widget', () => {
-      expect(service.isOutOfBounds(6, 1, 6)).toBeFalse();  // col 6 fits
-      expect(service.isOutOfBounds(7, 1, 6)).toBeTrue();   // col 7 doesn't fit
+      expect(service.isOutOfBounds(6, 1, 6)).toBe(false); // col 6 fits
+      expect(service.isOutOfBounds(7, 1, 6)).toBe(true); // col 7 doesn't fit
     });
   });
 
@@ -207,7 +201,7 @@ describe('MeshBoardGridService', () => {
 
     it('should find position after existing widget', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 2, 2)  // occupies cols 1-2, rows 1-2
+        createMockWidget('w1', 1, 1, 2, 2) // occupies cols 1-2, rows 1-2
       ];
 
       const position = service.findAvailablePosition(widgets, 2, 2, 6);
@@ -217,16 +211,14 @@ describe('MeshBoardGridService', () => {
       expect(position.row).toBeGreaterThanOrEqual(1);
 
       // Verify the position doesn't overlap
-      const wouldOverlap = service.wouldCauseOverlap(
-        widgets, 'new', position.col, position.row, 2, 2
-      );
-      expect(wouldOverlap).toBeFalse();
+      const wouldOverlap = service.wouldCauseOverlap(widgets, 'new', position.col, position.row, 2, 2);
+      expect(wouldOverlap).toBe(false);
     });
 
     it('should find position in gap between widgets', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 2, 2),  // cols 1-2
-        createMockWidget('w2', 5, 1, 2, 2)   // cols 5-6
+        createMockWidget('w1', 1, 1, 2, 2), // cols 1-2
+        createMockWidget('w2', 5, 1, 2, 2) // cols 5-6
       ];
 
       // There's a gap at cols 3-4
@@ -237,8 +229,8 @@ describe('MeshBoardGridService', () => {
 
     it('should go to next row when current row is full', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 3, 2),  // cols 1-3
-        createMockWidget('w2', 4, 1, 3, 2)   // cols 4-6
+        createMockWidget('w1', 1, 1, 3, 2), // cols 1-3
+        createMockWidget('w2', 4, 1, 3, 2) // cols 4-6
       ];
 
       // Row 1 is full, should place on row 3 (after rowSpan of 2)
@@ -249,7 +241,7 @@ describe('MeshBoardGridService', () => {
 
     it('should respect maxColumns constraint', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 4, 1)  // cols 1-4
+        createMockWidget('w1', 1, 1, 4, 1) // cols 1-4
       ];
 
       // 3-column widget in 6-column grid with 4 cols occupied
@@ -263,7 +255,7 @@ describe('MeshBoardGridService', () => {
     it('should handle widget larger than available horizontal space', () => {
       // 4-column wide widget in 6-column grid
       const widgets = [
-        createMockWidget('w1', 1, 1, 3, 1)  // cols 1-3
+        createMockWidget('w1', 1, 1, 3, 1) // cols 1-3
       ];
 
       const position = service.findAvailablePosition(widgets, 4, 1, 6);
@@ -289,7 +281,7 @@ describe('MeshBoardGridService', () => {
     it('should move overlapping widget to new position', () => {
       const widgets = [
         createMockWidget('w1', 1, 1, 2, 2),
-        createMockWidget('w2', 2, 1, 2, 2)  // overlaps with w1
+        createMockWidget('w2', 2, 1, 2, 2) // overlaps with w1
       ];
 
       const moved = service.resolveOverlaps(widgets, 6);
@@ -298,17 +290,15 @@ describe('MeshBoardGridService', () => {
       expect(moved[0].id).toBe('w2');
 
       // Verify w2 no longer overlaps with w1
-      const stillOverlaps = service.wouldCauseOverlap(
-        [widgets[0]], 'w2', widgets[1].col, widgets[1].row, 2, 2
-      );
-      expect(stillOverlaps).toBeFalse();
+      const stillOverlaps = service.wouldCauseOverlap([widgets[0]], 'w2', widgets[1].col, widgets[1].row, 2, 2);
+      expect(stillOverlaps).toBe(false);
     });
 
     it('should handle multiple overlapping widgets', () => {
       const widgets = [
         createMockWidget('w1', 1, 1, 2, 2),
-        createMockWidget('w2', 1, 1, 2, 2),  // overlaps with w1
-        createMockWidget('w3', 1, 1, 2, 2)   // overlaps with w1 and w2
+        createMockWidget('w2', 1, 1, 2, 2), // overlaps with w1
+        createMockWidget('w3', 1, 1, 2, 2) // overlaps with w1 and w2
       ];
 
       const moved = service.resolveOverlaps(widgets, 6);
@@ -320,10 +310,8 @@ describe('MeshBoardGridService', () => {
       // Note: positions may not be unique strings if sizes differ, so check overlap
       for (let i = 0; i < widgets.length; i++) {
         for (let j = i + 1; j < widgets.length; j++) {
-          const overlaps = service.wouldCauseOverlap(
-            [widgets[i]], widgets[j].id, widgets[j].col, widgets[j].row, widgets[j].colSpan, widgets[j].rowSpan
-          );
-          expect(overlaps).toBeFalse();
+          const overlaps = service.wouldCauseOverlap([widgets[i]], widgets[j].id, widgets[j].col, widgets[j].row, widgets[j].colSpan, widgets[j].rowSpan);
+          expect(overlaps).toBe(false);
         }
       }
     });
@@ -331,7 +319,7 @@ describe('MeshBoardGridService', () => {
     it('should preserve first widget position (first-come wins)', () => {
       const widgets = [
         createMockWidget('w1', 3, 3, 2, 2),
-        createMockWidget('w2', 3, 3, 2, 2)  // overlaps
+        createMockWidget('w2', 3, 3, 2, 2) // overlaps
       ];
 
       const originalW1Position = { col: widgets[0].col, row: widgets[0].row };
@@ -355,7 +343,7 @@ describe('MeshBoardGridService', () => {
 
       // Same reference, updated values
       expect(widgets[1]).toBe(originalW2);
-      expect(widgets[1].col !== 1 || widgets[1].row !== 1).toBeTrue();
+      expect(widgets[1].col !== 1 || widgets[1].row !== 1).toBe(true);
     });
   });
 
@@ -373,9 +361,9 @@ describe('MeshBoardGridService', () => {
 
     it('should return widgets that exceed new column limit', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 2, 2),  // cols 1-2, fits in 4
-        createMockWidget('w2', 4, 1, 2, 2),  // cols 4-5, exceeds 4
-        createMockWidget('w3', 5, 1, 2, 2)   // cols 5-6, exceeds 4
+        createMockWidget('w1', 1, 1, 2, 2), // cols 1-2, fits in 4
+        createMockWidget('w2', 4, 1, 2, 2), // cols 4-5, exceeds 4
+        createMockWidget('w3', 5, 1, 2, 2) // cols 5-6, exceeds 4
       ];
 
       const outOfBounds = service.getWidgetsOutOfBounds(widgets, 4);
@@ -387,7 +375,7 @@ describe('MeshBoardGridService', () => {
 
     it('should handle widget at exact boundary', () => {
       const widgets = [
-        createMockWidget('w1', 3, 1, 2, 2)  // cols 3-4
+        createMockWidget('w1', 3, 1, 2, 2) // cols 3-4
       ];
 
       // Widget ends at col 4, reducing to 4 cols should be fine
@@ -413,7 +401,7 @@ describe('MeshBoardGridService', () => {
 
     it('should return correct max row for single widget', () => {
       const widgets = [
-        createMockWidget('w1', 1, 3, 2, 2)  // rows 3-4
+        createMockWidget('w1', 1, 3, 2, 2) // rows 3-4
       ];
 
       const maxRow = service.getMaxRow(widgets);
@@ -423,9 +411,9 @@ describe('MeshBoardGridService', () => {
 
     it('should return correct max row for multiple widgets', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 2, 2),  // rows 1-2
-        createMockWidget('w2', 1, 5, 2, 3),  // rows 5-7
-        createMockWidget('w3', 4, 3, 2, 2)   // rows 3-4
+        createMockWidget('w1', 1, 1, 2, 2), // rows 1-2
+        createMockWidget('w2', 1, 5, 2, 3), // rows 5-7
+        createMockWidget('w3', 4, 3, 2, 2) // rows 3-4
       ];
 
       const maxRow = service.getMaxRow(widgets);
@@ -435,7 +423,7 @@ describe('MeshBoardGridService', () => {
 
     it('should handle widgets at row 1', () => {
       const widgets = [
-        createMockWidget('w1', 1, 1, 3, 1)  // row 1 only
+        createMockWidget('w1', 1, 1, 3, 1) // row 1 only
       ];
 
       const maxRow = service.getMaxRow(widgets);
@@ -448,10 +436,10 @@ describe('MeshBoardGridService', () => {
     it('should correctly handle dashboard layout scenario', () => {
       // Simulate typical dashboard with various widget sizes
       const widgets: AnyWidgetConfig[] = [
-        createMockWidget('kpi1', 1, 1, 2, 1),   // small KPI
-        createMockWidget('kpi2', 3, 1, 2, 1),   // small KPI
-        createMockWidget('chart', 5, 1, 2, 2),  // chart
-        createMockWidget('table', 1, 2, 4, 3),  // large table
+        createMockWidget('kpi1', 1, 1, 2, 1), // small KPI
+        createMockWidget('kpi2', 3, 1, 2, 1), // small KPI
+        createMockWidget('chart', 5, 1, 2, 2), // chart
+        createMockWidget('table', 1, 2, 4, 3), // large table
       ];
 
       const maxColumns = 6;
@@ -460,10 +448,8 @@ describe('MeshBoardGridService', () => {
       for (let i = 0; i < widgets.length; i++) {
         const w = widgets[i];
         const others = widgets.filter((_, idx) => idx !== i);
-        const overlaps = service.wouldCauseOverlap(
-          others, w.id, w.col, w.row, w.colSpan, w.rowSpan
-        );
-        expect(overlaps).withContext(`Widget ${w.id} should not overlap`).toBeFalse();
+        const overlaps = service.wouldCauseOverlap(others, w.id, w.col, w.row, w.colSpan, w.rowSpan);
+        expect(overlaps, `Widget ${w.id} should not overlap`).toBe(false);
       }
 
       // Find position for new widget
@@ -479,7 +465,7 @@ describe('MeshBoardGridService', () => {
       // Widgets laid out for 6 columns
       const widgets: AnyWidgetConfig[] = [
         createMockWidget('w1', 1, 1, 3, 2),
-        createMockWidget('w2', 4, 1, 3, 2),  // cols 4-6
+        createMockWidget('w2', 4, 1, 3, 2), // cols 4-6
       ];
 
       // Reduce to 4 columns - w2 is out of bounds
@@ -490,11 +476,7 @@ describe('MeshBoardGridService', () => {
       // Note: resolveOverlaps only fixes overlaps, not out-of-bounds
       // To fix out-of-bounds, manually move the widget first
       const outOfBoundsWidget = outOfBounds[0];
-      const newPos = service.findAvailablePosition(
-        widgets.filter(w => w.id !== outOfBoundsWidget.id),
-        outOfBoundsWidget.colSpan,
-        outOfBoundsWidget.rowSpan,
-        4  // new maxColumns
+      const newPos = service.findAvailablePosition(widgets.filter(w => w.id !== outOfBoundsWidget.id), outOfBoundsWidget.colSpan, outOfBoundsWidget.rowSpan, 4 // new maxColumns
       );
       outOfBoundsWidget.col = newPos.col;
       outOfBoundsWidget.row = newPos.row;
@@ -507,7 +489,7 @@ describe('MeshBoardGridService', () => {
       const w1 = widgets[0];
       const w2 = widgets[1];
       const overlaps = service.wouldCauseOverlap([w1], w2.id, w2.col, w2.row, w2.colSpan, w2.rowSpan);
-      expect(overlaps).toBeFalse();
+      expect(overlaps).toBe(false);
     });
   });
 });

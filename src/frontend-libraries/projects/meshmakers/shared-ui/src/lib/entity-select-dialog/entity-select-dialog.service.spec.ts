@@ -1,17 +1,15 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { WindowService, WindowCloseResult, WindowRef } from '@progress/kendo-angular-dialog';
 import { Subject, of } from 'rxjs';
 
-import { WindowStateService } from '../services/window-state.service';
+import { WindowStateService, WindowDimensions } from '../services/window-state.service';
 import { EntitySelectDialogService } from './entity-select-dialog.service';
-import {
-  EntitySelectDialogDataSource,
-  EntitySelectDialogResult
-} from './entity-select-dialog-data-source';
+import { EntitySelectDialogDataSource, EntitySelectDialogResult } from './entity-select-dialog-data-source';
 
 describe('EntitySelectDialogService', () => {
   let service: EntitySelectDialogService;
-  let windowServiceMock: jasmine.SpyObj<WindowService>;
+  let windowServiceMock: MockedObject<WindowService>;
   let resultSubject: Subject<EntitySelectDialogResult<string> | WindowCloseResult>;
   let mockWindowRef: Partial<WindowRef>;
   let mockDataSource: EntitySelectDialogDataSource<string>;
@@ -33,12 +31,14 @@ describe('EntitySelectDialogService', () => {
           preSelectedEntities: []
         }
       } as unknown as WindowRef['content'],
-      close: jasmine.createSpy('close'),
+      close: vi.fn().mockName('close'),
       window: { location: { nativeElement: mockNativeElement } } as unknown as WindowRef['window']
     };
 
-    windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
-    windowServiceMock.open.and.returnValue(mockWindowRef as WindowRef);
+    windowServiceMock = {
+      open: vi.fn().mockName('WindowService.open')
+    } as unknown as MockedObject<WindowService>;
+    windowServiceMock.open.mockReturnValue(mockWindowRef as WindowRef);
 
     mockDataSource = {
       getColumns: () => [],
@@ -55,12 +55,10 @@ describe('EntitySelectDialogService', () => {
     });
     service = TestBed.inject(EntitySelectDialogService);
     // Pin the viewport clamp in WindowStateService to a large screen — the
-    // karma browser window is small and would otherwise shrink the widths
+    // jsdom window is small and would otherwise shrink the widths
     // these specs assert verbatim.
     const windowState = TestBed.inject(WindowStateService);
-    spyOn<never>(windowState as never, 'viewportSize' as never).and.returnValue(
-      { width: 1920, height: 1080 } as never,
-    );
+    vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });
   });
 
   it('should be created', () => {
@@ -78,7 +76,7 @@ describe('EntitySelectDialogService', () => {
       await resultPromise;
 
       expect(windowServiceMock.open).toHaveBeenCalled();
-      const openCall = windowServiceMock.open.calls.mostRecent().args[0];
+      const openCall = vi.mocked(windowServiceMock.open).mock.lastCall![0];
       expect(openCall.title).toBe('Select Entity');
     });
 
@@ -87,7 +85,9 @@ describe('EntitySelectDialogService', () => {
         title: 'Select'
       });
 
-      const component = (mockWindowRef.content as { instance: Record<string, unknown> }).instance;
+      const component = (mockWindowRef.content as {
+                instance: Record<string, unknown>;
+            }).instance;
       expect(component['dataSource']).toBe(mockDataSource);
 
       resultSubject.next(new WindowCloseResult());
@@ -129,8 +129,10 @@ describe('EntitySelectDialogService', () => {
         multiSelect: true
       });
 
-      const component = (mockWindowRef.content as { instance: Record<string, unknown> }).instance;
-      expect(component['multiSelect']).toBeTrue();
+      const component = (mockWindowRef.content as {
+                instance: Record<string, unknown>;
+            }).instance;
+      expect(component['multiSelect']).toBe(true);
 
       resultSubject.next(new WindowCloseResult());
       resultSubject.complete();
@@ -143,7 +145,9 @@ describe('EntitySelectDialogService', () => {
         selectedEntities: ['entity1', 'entity2']
       });
 
-      const component = (mockWindowRef.content as { instance: Record<string, unknown> }).instance;
+      const component = (mockWindowRef.content as {
+                instance: Record<string, unknown>;
+            }).instance;
       expect(component['preSelectedEntities']).toEqual(['entity1', 'entity2']);
 
       resultSubject.next(new WindowCloseResult());
@@ -156,7 +160,7 @@ describe('EntitySelectDialogService', () => {
         title: 'Select'
       });
 
-      const openCall = windowServiceMock.open.calls.mostRecent().args[0];
+      const openCall = vi.mocked(windowServiceMock.open).mock.lastCall![0];
       expect(openCall.width).toBe(900);
       expect(openCall.height).toBe(640);
 
@@ -172,7 +176,7 @@ describe('EntitySelectDialogService', () => {
         height: 700
       });
 
-      const openCall = windowServiceMock.open.calls.mostRecent().args[0];
+      const openCall = vi.mocked(windowServiceMock.open).mock.lastCall![0];
       expect(openCall.width).toBe(1000);
       expect(openCall.height).toBe(700);
 

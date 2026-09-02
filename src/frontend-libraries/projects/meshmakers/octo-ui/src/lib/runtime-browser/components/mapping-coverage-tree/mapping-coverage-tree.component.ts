@@ -216,7 +216,14 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
   protected treeView!: TreeComponent;
 
   /** Optional override for non-default hierarchies / mapping roles. */
-  @Input() config: MappingCoverageTreeConfig = DEFAULT_MAPPING_COVERAGE_TREE_CONFIG;
+  // Assigned in the constructor rather than as a field initialiser: Vite's module-runner
+  // transform (used by the Vitest unit-test builder) snapshots a class field whose
+  // initialiser is a bare imported identifier at module-evaluation time, which is before
+  // esbuild's lazily-initialised shared chunk has assigned the export, so the field would
+  // be `undefined`. A constructor assignment is rewritten to a live read; a getter is not
+  // an option here because Angular has to be able to set an @Input. Test-runner-only:
+  // production and ng-packagr builds do not use the module runner and are unaffected.
+  @Input() config: MappingCoverageTreeConfig;
 
   /** Pre-select a root on first show (e.g. via route param). */
   @Input() initialRoot: CoverageEntityRef | null = null;
@@ -467,6 +474,10 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
         await this.selectRoot(match);
       }
     }
+  }
+
+  constructor() {
+    this.config = DEFAULT_MAPPING_COVERAGE_TREE_CONFIG;
   }
 
   /**

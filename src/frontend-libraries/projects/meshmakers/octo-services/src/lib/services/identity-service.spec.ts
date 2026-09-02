@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
@@ -16,7 +17,10 @@ import { PagedResultDto } from '@meshmakers/shared-services';
 describe('IdentityService', () => {
   let service: IdentityService;
   let httpMock: HttpTestingController;
-  let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: jasmine.Spy };
+  let mockConfigService: {
+        config: AddInConfiguration | null;
+        loadConfigAsync: Mock;
+    };
 
   const baseUrl = 'https://identity.example.com/';
   const apiPrefix = `${baseUrl}octosystem/v1/`;
@@ -73,7 +77,7 @@ describe('IdentityService', () => {
   beforeEach(() => {
     mockConfigService = {
       config: mockConfig,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync').and.returnValue(Promise.resolve())
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
     };
 
     TestBed.configureTestingModule({
@@ -306,9 +310,7 @@ describe('IdentityService', () => {
         const resultPromise = service.resetPassword('john.doe', 'newPassword123');
         await tick();
 
-        const req = httpMock.expectOne(
-          `${apiPrefix}users/ResetPassword?userName=john.doe&password=newPassword123`
-        );
+        const req = httpMock.expectOne(`${apiPrefix}users/ResetPassword?userName=john.doe&password=newPassword123`);
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toBeNull();
         req.flush({ success: true });
@@ -437,7 +439,7 @@ describe('IdentityService', () => {
 
         const req = httpMock.expectOne(`${apiPrefix}clients/cleanOverlayEntries`);
         expect(req.request.method).toBe('DELETE');
-        expect(req.request.params.has('overlayName')).toBeFalse();
+        expect(req.request.params.has('overlayName')).toBe(false);
         req.flush({ overlayName: null, clientsAffected: 2, totalEntriesRemoved: 5, clientResults: [] });
 
         const result = await resultPromise;
@@ -448,9 +450,7 @@ describe('IdentityService', () => {
         const resultPromise = service.cleanOverlayEntries('local-dev');
         await tick();
 
-        const req = httpMock.expectOne(
-          (r) => r.url === `${apiPrefix}clients/cleanOverlayEntries` && r.params.get('overlayName') === 'local-dev'
-        );
+        const req = httpMock.expectOne((r) => r.url === `${apiPrefix}clients/cleanOverlayEntries` && r.params.get('overlayName') === 'local-dev');
         expect(req.request.method).toBe('DELETE');
         req.flush({ overlayName: 'local-dev', clientsAffected: 0, totalEntriesRemoved: 0, clientResults: [] });
 
@@ -686,8 +686,7 @@ describe('IdentityService', () => {
       const resultPromise = service.getProvisioningSourceUsers('meshmakers', 'ger');
       await tick();
 
-      const req = httpMock.expectOne(
-        `${apiPrefix}adminProvisioning/meshmakers/sourceUsers?take=20&search=ger`);
+      const req = httpMock.expectOne(`${apiPrefix}adminProvisioning/meshmakers/sourceUsers?take=20&search=ger`);
       expect(req.request.method).toBe('GET');
       req.flush([
         { sourceTenantId: 'octosystem', userId: 'u1', userName: 'gerald@x', email: 'gerald@x' }

@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { JobManagementService } from './job-management.service';
 import { BotService } from './bot-service';
@@ -8,9 +9,9 @@ import { ProgressDialogRef, ProgressWindowOptions } from '../shared/progress-win
 
 describe('JobManagementService', () => {
   let service: JobManagementService;
-  let botServiceMock: jasmine.SpyObj<BotService>;
-  let messageServiceMock: jasmine.SpyObj<MessageService>;
-  let progressWindowServiceMock: jasmine.SpyObj<ProgressWindowService>;
+  let botServiceMock: MockedObject<BotService>;
+  let messageServiceMock: MockedObject<MessageService>;
+  let progressWindowServiceMock: MockedObject<ProgressWindowService>;
   let mockProgressDialog: ProgressDialogRef;
 
   const mockSucceededJobDto: JobDto = {
@@ -41,11 +42,20 @@ describe('JobManagementService', () => {
   };
 
   beforeEach(() => {
-    botServiceMock = jasmine.createSpyObj('BotService', ['downloadJobResultBinary', 'getJobStatus']);
-    messageServiceMock = jasmine.createSpyObj('MessageService', ['showInformation', 'showError', 'showErrorWithDetails']);
-    mockProgressDialog = { close: jasmine.createSpy('close') };
-    progressWindowServiceMock = jasmine.createSpyObj('ProgressWindowService', ['showIndeterminateProgress']);
-    progressWindowServiceMock.showIndeterminateProgress.and.returnValue(mockProgressDialog);
+    botServiceMock = {
+      downloadJobResultBinary: vi.fn().mockName('BotService.downloadJobResultBinary'),
+      getJobStatus: vi.fn().mockName('BotService.getJobStatus')
+    } as unknown as MockedObject<BotService>;
+    messageServiceMock = {
+      showInformation: vi.fn().mockName('MessageService.showInformation'),
+      showError: vi.fn().mockName('MessageService.showError'),
+      showErrorWithDetails: vi.fn().mockName('MessageService.showErrorWithDetails')
+    } as unknown as MockedObject<MessageService>;
+    mockProgressDialog = { close: vi.fn().mockName('close') };
+    progressWindowServiceMock = {
+      showIndeterminateProgress: vi.fn().mockName('ProgressWindowService.showIndeterminateProgress')
+    } as unknown as MockedObject<ProgressWindowService>;
+    progressWindowServiceMock.showIndeterminateProgress.mockReturnValue(mockProgressDialog);
 
     TestBed.configureTestingModule({
       providers: [
@@ -66,23 +76,21 @@ describe('JobManagementService', () => {
   describe('downloadJobResult', () => {
     it('should show information message and download blob', async () => {
       const mockBlob = new Blob(['test data'], { type: 'application/octet-stream' });
-      botServiceMock.downloadJobResultBinary.and.returnValue(Promise.resolve(mockBlob));
+      botServiceMock.downloadJobResultBinary.mockResolvedValue(mockBlob);
 
       // Mock URL.createObjectURL and document.createElement
       const mockUrl = 'blob:test-url';
-      spyOn(URL, 'createObjectURL').and.returnValue(mockUrl);
+      vi.spyOn(URL, 'createObjectURL').mockReturnValue(mockUrl);
       const mockLink = {
         href: '',
         download: '',
-        click: jasmine.createSpy('click')
+        click: vi.fn().mockName('click')
       };
-      spyOn(document, 'createElement').and.returnValue(mockLink as unknown as HTMLElement);
+      vi.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLElement);
 
       await service.downloadJobResult('tenant-1', 'job-123', 'export.zip');
 
-      expect(messageServiceMock.showInformation).toHaveBeenCalledWith(
-        'Operation completed. Download has been initialized.'
-      );
+      expect(messageServiceMock.showInformation).toHaveBeenCalledWith('Operation completed. Download has been initialized.');
       expect(botServiceMock.downloadJobResultBinary).toHaveBeenCalledWith('tenant-1', 'job-123');
       expect(mockLink.href).toBe(mockUrl);
       expect(mockLink.download).toBe('export.zip');
@@ -90,9 +98,9 @@ describe('JobManagementService', () => {
     });
 
     it('should not create download link when blob is null', async () => {
-      botServiceMock.downloadJobResultBinary.and.returnValue(Promise.resolve(null));
+      botServiceMock.downloadJobResultBinary.mockResolvedValue(null);
 
-      spyOn(document, 'createElement');
+      vi.spyOn(document, 'createElement').mockReturnValue(undefined as unknown as HTMLElement);
 
       await service.downloadJobResult('tenant-1', 'job-123', 'export.zip');
 
@@ -104,65 +112,56 @@ describe('JobManagementService', () => {
 
   describe('waitForJob', () => {
     it('should return true when job succeeds', async () => {
-      botServiceMock.getJobStatus.and.returnValue(Promise.resolve(mockSucceededJobDto));
+      botServiceMock.getJobStatus.mockResolvedValue(mockSucceededJobDto);
 
       const result = await service.waitForJob('job-123', 'Test Operation', 'Export');
 
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
       expect(progressWindowServiceMock.showIndeterminateProgress).toHaveBeenCalled();
       expect(mockProgressDialog.close).toHaveBeenCalled();
     });
 
     it('should return false and show error with details when job fails', async () => {
-      botServiceMock.getJobStatus.and.returnValue(Promise.resolve(mockFailedJobDto));
+      botServiceMock.getJobStatus.mockResolvedValue(mockFailedJobDto);
 
       const result = await service.waitForJob('job-123', 'Test Operation', 'Export');
 
-      expect(result).toBeFalse();
-      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
-        'Duplicate key error: entity already exists',
-        'Export'
-      );
+      expect(result).toBe(false);
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith('Duplicate key error: entity already exists', 'Export');
     });
 
     it('should show reason when errorMessage is null', async () => {
       const failedWithReasonOnly: JobDto = { ...mockFailedJobDto, errorMessage: null };
-      botServiceMock.getJobStatus.and.returnValue(Promise.resolve(failedWithReasonOnly));
+      botServiceMock.getJobStatus.mockResolvedValue(failedWithReasonOnly);
 
       const result = await service.waitForJob('job-123', 'Test Operation', 'Export');
 
-      expect(result).toBeFalse();
-      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
-        'Operation failed',
-        'Export'
-      );
+      expect(result).toBe(false);
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith('Operation failed', 'Export');
     });
 
     it('should return false and show error when job is deleted', async () => {
       const deletedJobDto: JobDto = { ...mockSucceededJobDto, status: 'Deleted' };
-      botServiceMock.getJobStatus.and.returnValue(Promise.resolve(deletedJobDto));
+      botServiceMock.getJobStatus.mockResolvedValue(deletedJobDto);
 
       const result = await service.waitForJob('job-123', 'Test Operation', 'Export');
 
-      expect(result).toBeFalse();
-      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
-        'Unknown error',
-        'Export'
-      );
+      expect(result).toBe(false);
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith('Unknown error', 'Export');
     });
 
     it('should return false and show error when job is not found', async () => {
-      botServiceMock.getJobStatus.and.returnValue(Promise.resolve(null));
+      botServiceMock.getJobStatus.mockResolvedValue(null);
 
       const result = await service.waitForJob('job-123', 'Test Operation', 'Export');
 
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
       expect(messageServiceMock.showError).toHaveBeenCalledWith('Export: Job not found');
     });
 
     it('should poll until job completes', fakeAsync(() => {
       let callCount = 0;
-      botServiceMock.getJobStatus.and.callFake(() => {
+      botServiceMock.getJobStatus.mockImplementation(() => {
         callCount++;
         if (callCount < 3) {
           return Promise.resolve(mockRunningJobDto);
@@ -177,19 +176,19 @@ describe('JobManagementService', () => {
       tick(1000); // Second call after 1 second delay
       tick(1000); // Third call after another 1 second delay
 
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
       expect(botServiceMock.getJobStatus).toHaveBeenCalledTimes(3);
     }));
 
     it('should set up progress dialog with cancel operation', async () => {
-      botServiceMock.getJobStatus.and.returnValue(Promise.resolve(mockSucceededJobDto));
+      botServiceMock.getJobStatus.mockResolvedValue(mockSucceededJobDto);
 
       await service.waitForJob('job-123', 'Test Title', 'Export');
 
-      const progressCallArgs = progressWindowServiceMock.showIndeterminateProgress.calls.mostRecent().args;
+      const progressCallArgs = vi.mocked(progressWindowServiceMock.showIndeterminateProgress).mock.lastCall!;
       expect(progressCallArgs[0]).toBe('Test Title');
       const options = progressCallArgs[2] as Partial<ProgressWindowOptions>;
-      expect(options.isCancelOperationAvailable).toBeTrue();
+      expect(options.isCancelOperationAvailable).toBe(true);
       expect(options.width).toBe(500);
     });
   });

@@ -1,8 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  DesignerRenderingService,
-  PortType
-} from './designer-rendering.service';
+import { DesignerRenderingService, PortType } from './designer-rendering.service';
 import { ProcessElement, ProcessDiagramConfig, ProcessConnection, ConnectionPort, Position } from '../../process-widget.models';
 import { BoundingBox } from './designer-grouping.service';
 import { PrimitiveBase, GroupPrimitive } from '../../primitives';
@@ -12,7 +9,10 @@ describe('DesignerRenderingService', () => {
   let service: DesignerRenderingService;
 
   // Helper to create a test element
-  function createElement(id: string, position: Position, size: { width: number; height: number }): ProcessElement {
+  function createElement(id: string, position: Position, size: {
+        width: number;
+        height: number;
+    }): ProcessElement {
     return {
       id,
       type: 'tank',
@@ -38,13 +38,7 @@ describe('DesignerRenderingService', () => {
   }
 
   // Helper to create a test connection
-  function createConnection(
-    id: string,
-    fromElementId: string,
-    fromPort: ConnectionPort,
-    toElementId: string,
-    toPort: ConnectionPort
-  ): ProcessConnection {
+  function createConnection(id: string, fromElementId: string, fromPort: ConnectionPort, toElementId: string, toPort: ConnectionPort): ProcessConnection {
     return {
       id,
       from: { elementId: fromElementId, port: fromPort },
@@ -202,11 +196,11 @@ describe('DesignerRenderingService', () => {
       const ports = service.getAllPortPositions(element);
 
       expect(ports.size).toBe(5);
-      expect(ports.has('top')).toBeTrue();
-      expect(ports.has('bottom')).toBeTrue();
-      expect(ports.has('left')).toBeTrue();
-      expect(ports.has('right')).toBeTrue();
-      expect(ports.has('center')).toBeTrue();
+      expect(ports.has('top')).toBe(true);
+      expect(ports.has('bottom')).toBe(true);
+      expect(ports.has('left')).toBe(true);
+      expect(ports.has('right')).toBe(true);
+      expect(ports.has('center')).toBe(true);
     });
 
     it('should calculate correct positions for all ports', () => {
@@ -374,7 +368,9 @@ describe('DesignerRenderingService', () => {
       } as GroupPrimitive;
 
       // Override to simulate missing values
-      (group.config as unknown as { originalBounds: unknown }).originalBounds = undefined;
+      (group.config as unknown as {
+                originalBounds: unknown;
+            }).originalBounds = undefined;
 
       const bounds = service.getPrimitiveBounds(group);
 
@@ -632,22 +628,22 @@ describe('DesignerRenderingService', () => {
     const bounds: BoundingBox = { x: 100, y: 100, width: 50, height: 50 };
 
     it('should return true for point inside bounds', () => {
-      expect(service.isPointInBounds({ x: 125, y: 125 }, bounds)).toBeTrue();
+      expect(service.isPointInBounds({ x: 125, y: 125 }, bounds)).toBe(true);
     });
 
     it('should return true for point on edge', () => {
-      expect(service.isPointInBounds({ x: 100, y: 100 }, bounds)).toBeTrue();
-      expect(service.isPointInBounds({ x: 150, y: 150 }, bounds)).toBeTrue();
+      expect(service.isPointInBounds({ x: 100, y: 100 }, bounds)).toBe(true);
+      expect(service.isPointInBounds({ x: 150, y: 150 }, bounds)).toBe(true);
     });
 
     it('should return false for point outside bounds', () => {
-      expect(service.isPointInBounds({ x: 50, y: 125 }, bounds)).toBeFalse();
-      expect(service.isPointInBounds({ x: 200, y: 125 }, bounds)).toBeFalse();
+      expect(service.isPointInBounds({ x: 50, y: 125 }, bounds)).toBe(false);
+      expect(service.isPointInBounds({ x: 200, y: 125 }, bounds)).toBe(false);
     });
 
     it('should account for padding', () => {
-      expect(service.isPointInBounds({ x: 95, y: 125 }, bounds, 10)).toBeTrue();
-      expect(service.isPointInBounds({ x: 85, y: 125 }, bounds, 10)).toBeFalse();
+      expect(service.isPointInBounds({ x: 95, y: 125 }, bounds, 10)).toBe(true);
+      expect(service.isPointInBounds({ x: 85, y: 125 }, bounds, 10)).toBe(false);
     });
   });
 
@@ -656,28 +652,28 @@ describe('DesignerRenderingService', () => {
       const a: BoundingBox = { x: 0, y: 0, width: 100, height: 100 };
       const b: BoundingBox = { x: 50, y: 50, width: 100, height: 100 };
 
-      expect(service.doBoundsIntersect(a, b)).toBeTrue();
+      expect(service.doBoundsIntersect(a, b)).toBe(true);
     });
 
     it('should return true for touching bounds', () => {
       const a: BoundingBox = { x: 0, y: 0, width: 100, height: 100 };
       const b: BoundingBox = { x: 100, y: 0, width: 100, height: 100 };
 
-      expect(service.doBoundsIntersect(a, b)).toBeTrue();
+      expect(service.doBoundsIntersect(a, b)).toBe(true);
     });
 
     it('should return false for separated bounds', () => {
       const a: BoundingBox = { x: 0, y: 0, width: 50, height: 50 };
       const b: BoundingBox = { x: 100, y: 100, width: 50, height: 50 };
 
-      expect(service.doBoundsIntersect(a, b)).toBeFalse();
+      expect(service.doBoundsIntersect(a, b)).toBe(false);
     });
 
     it('should return true for contained bounds', () => {
       const a: BoundingBox = { x: 0, y: 0, width: 200, height: 200 };
       const b: BoundingBox = { x: 50, y: 50, width: 50, height: 50 };
 
-      expect(service.doBoundsIntersect(a, b)).toBeTrue();
+      expect(service.doBoundsIntersect(a, b)).toBe(true);
     });
   });
 
@@ -686,27 +682,27 @@ describe('DesignerRenderingService', () => {
       const container: BoundingBox = { x: 0, y: 0, width: 200, height: 200 };
       const contained: BoundingBox = { x: 50, y: 50, width: 50, height: 50 };
 
-      expect(service.doesBoundsContain(container, contained)).toBeTrue();
+      expect(service.doesBoundsContain(container, contained)).toBe(true);
     });
 
     it('should return true for same bounds', () => {
       const bounds: BoundingBox = { x: 100, y: 100, width: 50, height: 50 };
 
-      expect(service.doesBoundsContain(bounds, bounds)).toBeTrue();
+      expect(service.doesBoundsContain(bounds, bounds)).toBe(true);
     });
 
     it('should return false when partially overlapping', () => {
       const container: BoundingBox = { x: 0, y: 0, width: 100, height: 100 };
       const contained: BoundingBox = { x: 50, y: 50, width: 100, height: 100 };
 
-      expect(service.doesBoundsContain(container, contained)).toBeFalse();
+      expect(service.doesBoundsContain(container, contained)).toBe(false);
     });
 
     it('should return false when separated', () => {
       const container: BoundingBox = { x: 0, y: 0, width: 50, height: 50 };
       const contained: BoundingBox = { x: 100, y: 100, width: 50, height: 50 };
 
-      expect(service.doesBoundsContain(container, contained)).toBeFalse();
+      expect(service.doesBoundsContain(container, contained)).toBe(false);
     });
   });
 

@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { LineChartWidgetComponent } from './line-chart-widget.component';
@@ -21,22 +22,29 @@ function sdRow(windowStart: string, obis: string, value: number) {
 
 describe('LineChartWidgetComponent dataInfo (load counter)', () => {
   function createWith(rows: unknown[], total: number): LineChartWidgetComponent {
-    const queryExecutor = jasmine.createSpyObj<QueryExecutorService>('QueryExecutorService', ['execute']);
-    queryExecutor.execute.and.returnValue(of({
+    const queryExecutor = {
+      execute: vi.fn().mockName('QueryExecutorService.execute')
+    };
+    queryExecutor.execute.mockReturnValue(of({
       family: 'streamData', queryRtId: 'q1', associatedCkTypeId: null,
       columns: [], rows, totalCount: total, hasNextPage: false, endCursor: null
     }) as ReturnType<QueryExecutorService['execute']>);
 
-    const stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService',
-      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'getVariables', 'timeZoneMode']);
-    stateService.resolveStreamDataTimeArgs.and.returnValue(undefined);
-    stateService.resolveStreamDataRtIds.and.returnValue(undefined);
-    stateService.getVariables.and.returnValue([]);
-    stateService.timeZoneMode.and.returnValue('local');
+    const stateService = {
+      resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
+      resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
+      timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')
+    };
+    stateService.resolveStreamDataTimeArgs.mockReturnValue(undefined);
+    stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
+    stateService.getVariables.mockReturnValue([]);
+    stateService.timeZoneMode.mockReturnValue('local');
 
-    const variableService = jasmine.createSpyObj<MeshBoardVariableService>('MeshBoardVariableService',
-      ['convertToFieldFilterDto']);
-    variableService.convertToFieldFilterDto.and.returnValue(undefined);
+    const variableService = {
+      convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
+    };
+    variableService.convertToFieldFilterDto.mockReturnValue(undefined);
 
     TestBed.configureTestingModule({
       imports: [LineChartWidgetComponent],
@@ -63,7 +71,9 @@ describe('LineChartWidgetComponent dataInfo (load counter)', () => {
       sdRow('2026-01-01T00:30:00Z', '1-1:1.9.0 G.01', 3)
     ], 3);
 
-    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+    await (cmp as unknown as {
+            loadData(): Promise<void>;
+        }).loadData();
 
     expect(cmp.dataInfo()).toEqual({ rows: 3, points: 3, total: 3 });
   });
@@ -77,7 +87,9 @@ describe('LineChartWidgetComponent dataInfo (load counter)', () => {
       sdRow('2026-01-01T00:00:00Z', '1-1:1.9.0 G.01', 1)
     ], 3);
 
-    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+    await (cmp as unknown as {
+            loadData(): Promise<void>;
+        }).loadData();
 
     const info = cmp.dataInfo();
     expect(info?.rows).toBe(3);
@@ -103,25 +115,32 @@ function dsRow(timestamp: string, obis: string, avg: number, min: number, max: n
 
 describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
   function createDownsampled(rows: unknown[]): LineChartWidgetComponent {
-    const queryExecutor = jasmine.createSpyObj<QueryExecutorService>('QueryExecutorService', ['execute']);
-    queryExecutor.execute.and.returnValue(of({
+    const queryExecutor = {
+      execute: vi.fn().mockName('QueryExecutorService.execute')
+    };
+    queryExecutor.execute.mockReturnValue(of({
       family: 'streamData', queryRtId: 'q1', associatedCkTypeId: null,
       columns: [], rows, totalCount: rows.length, hasNextPage: false, endCursor: null
     }) as ReturnType<QueryExecutorService['execute']>);
 
-    const stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService',
-      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'getVariables', 'timeZoneMode']);
+    const stateService = {
+      resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
+      resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
+      timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')
+    };
     // A resolved time range is what flips the widget into downsampling mode.
-    stateService.resolveStreamDataTimeArgs.and.returnValue({
+    stateService.resolveStreamDataTimeArgs.mockReturnValue({
       from: new Date('2026-01-01T00:00:00Z'), to: new Date('2026-12-31T00:00:00Z')
     });
-    stateService.resolveStreamDataRtIds.and.returnValue(['entity-1']);
-    stateService.getVariables.and.returnValue([]);
-    stateService.timeZoneMode.and.returnValue('local');
+    stateService.resolveStreamDataRtIds.mockReturnValue(['entity-1']);
+    stateService.getVariables.mockReturnValue([]);
+    stateService.timeZoneMode.mockReturnValue('local');
 
-    const variableService = jasmine.createSpyObj<MeshBoardVariableService>('MeshBoardVariableService',
-      ['convertToFieldFilterDto']);
-    variableService.convertToFieldFilterDto.and.returnValue(undefined);
+    const variableService = {
+      convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
+    };
+    variableService.convertToFieldFilterDto.mockReturnValue(undefined);
 
     TestBed.configureTestingModule({
       imports: [LineChartWidgetComponent],
@@ -143,11 +162,13 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
 
   it('requests downsampling with a pixel-sized limit when a time range is resolved', async () => {
     const cmp = createDownsampled([dsRow('2026-01-01T00:00:00Z', 'G.01', 2, 1, 9)]);
-    const qe = TestBed.inject(QueryExecutorService) as jasmine.SpyObj<QueryExecutorService>;
+    const qe = TestBed.inject(QueryExecutorService) as MockedObject<QueryExecutorService>;
 
-    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+    await (cmp as unknown as {
+            loadData(): Promise<void>;
+        }).loadData();
 
-    const opts = qe.execute.calls.mostRecent().args[2];
+    const opts = vi.mocked(qe.execute).mock.lastCall![2];
     expect(opts?.streamDataArgs?.queryMode).toBe(QueryModeDto.DownsamplingDto);
     expect(opts?.streamDataArgs?.limit).toBeGreaterThanOrEqual(50);
     expect(opts?.streamDataArgs?.limit).toBeLessThanOrEqual(4000);
@@ -159,7 +180,9 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
       dsRow('2026-01-01T06:00:00Z', 'G.01', 5, 3, 8)
     ]);
 
-    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+    await (cmp as unknown as {
+            loadData(): Promise<void>;
+        }).loadData();
 
     expect(cmp.categories().length).toBe(2);
     const series = cmp.seriesData();
@@ -172,33 +195,44 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
 // Resolution-aware source scope (AB#4818): the transient downsampling path bypasses the
 // persisted query execution, so the widget must re-apply the query's RtIds pin itself.
 describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () => {
-  function createResolutionAware(
-    selectorRtIds: string[] | undefined,
-    pinnedRtIds: string[] | null
-  ): { cmp: LineChartWidgetComponent; qe: jasmine.SpyObj<QueryExecutorService> } {
-    const qe = jasmine.createSpyObj<QueryExecutorService>('QueryExecutorService',
-      ['execute', 'fetchQueryArchive', 'resolveSeriesQuery', 'downsampleByArchive', 'fetchSeriesLabels']);
-    qe.fetchQueryArchive.and.resolveTo({ archiveRtId: 'base-1', ckTypeId: 'Basic/TemperatureSensor', rtIds: pinnedRtIds });
-    qe.resolveSeriesQuery.and.resolveTo({
-      archiveRtId: 'rollup-5m', effectiveBucketMs: 300_000, points: 10,
+  function createResolutionAware(selectorRtIds: string[] | undefined, pinnedRtIds: string[] | null): {
+        cmp: LineChartWidgetComponent;
+        qe: MockedObject<QueryExecutorService>;
+    } {
+    const qe = {
+      execute: vi.fn().mockName('QueryExecutorService.execute'),
+      fetchQueryArchive: vi.fn().mockName('QueryExecutorService.fetchQueryArchive'),
+      resolveSeriesQuery: vi.fn().mockName('QueryExecutorService.resolveSeriesQuery'),
+      downsampleByArchive: vi.fn().mockName('QueryExecutorService.downsampleByArchive'),
+      fetchSeriesLabels: vi.fn().mockName('QueryExecutorService.fetchSeriesLabels')
+    } as unknown as MockedObject<QueryExecutorService>;
+    qe.fetchQueryArchive.mockResolvedValue({ archiveRtId: 'base-1', ckTypeId: 'Basic/TemperatureSensor', rtIds: pinnedRtIds });
+    qe.resolveSeriesQuery.mockResolvedValue({
+      archiveRtId: 'rollup-5m', effectiveBucketMs: 300000, points: 10,
       reducingFunction: 'AVG', signal: null, actualPoints: null, diagnostic: null
     } as unknown as Awaited<ReturnType<QueryExecutorService['resolveSeriesQuery']>>);
-    qe.downsampleByArchive.and.resolveTo([]);
-    qe.fetchSeriesLabels.and.resolveTo(new Map<string, string>());
+    qe.downsampleByArchive.mockResolvedValue([]);
+    qe.fetchSeriesLabels.mockResolvedValue(new Map<string, string>());
 
-    const stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService',
-      ['resolveStreamDataTimeArgs', 'resolveStreamDataRtIds', 'resolveStreamDataTimeZone', 'getVariables', 'timeZoneMode']);
-    stateService.resolveStreamDataTimeArgs.and.returnValue({
+    const stateService = {
+      resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
+      resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
+      resolveStreamDataTimeZone: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeZone'),
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
+      timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')
+    };
+    stateService.resolveStreamDataTimeArgs.mockReturnValue({
       from: new Date('2026-08-16T00:00:00Z'), to: new Date('2026-08-17T00:00:00Z')
     });
-    stateService.resolveStreamDataRtIds.and.returnValue(selectorRtIds);
-    stateService.resolveStreamDataTimeZone.and.returnValue(undefined);
-    stateService.getVariables.and.returnValue([]);
-    stateService.timeZoneMode.and.returnValue('local');
+    stateService.resolveStreamDataRtIds.mockReturnValue(selectorRtIds);
+    stateService.resolveStreamDataTimeZone.mockReturnValue(undefined);
+    stateService.getVariables.mockReturnValue([]);
+    stateService.timeZoneMode.mockReturnValue('local');
 
-    const variableService = jasmine.createSpyObj<MeshBoardVariableService>('MeshBoardVariableService',
-      ['convertToFieldFilterDto']);
-    variableService.convertToFieldFilterDto.and.returnValue(undefined);
+    const variableService = {
+      convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
+    };
+    variableService.convertToFieldFilterDto.mockReturnValue(undefined);
 
     TestBed.configureTestingModule({
       imports: [LineChartWidgetComponent],
@@ -221,31 +255,37 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
   it('applies the persisted RtIds pin when no entity-selector scope is active', async () => {
     const { cmp, qe } = createResolutionAware(undefined, ['sensor-1', 'sensor-2']);
 
-    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+    await (cmp as unknown as {
+            loadData(): Promise<void>;
+        }).loadData();
 
-    expect(qe.resolveSeriesQuery.calls.mostRecent().args[0].rtIds).toEqual(['sensor-1', 'sensor-2']);
+    expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toEqual(['sensor-1', 'sensor-2']);
     // Default fan-out: one downsampling call per pinned source rtId.
-    const downsampledScopes = qe.downsampleByArchive.calls.allArgs().map(([params]) => params.rtIds);
+    const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);
     expect(downsampledScopes).toEqual([['sensor-1'], ['sensor-2']]);
   });
 
   it('lets an active entity-selector scope override the persisted pin', async () => {
     const { cmp, qe } = createResolutionAware(['selected-1'], ['sensor-1', 'sensor-2']);
 
-    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+    await (cmp as unknown as {
+            loadData(): Promise<void>;
+        }).loadData();
 
-    expect(qe.resolveSeriesQuery.calls.mostRecent().args[0].rtIds).toEqual(['selected-1']);
-    const downsampledScopes = qe.downsampleByArchive.calls.allArgs().map(([params]) => params.rtIds);
+    expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toEqual(['selected-1']);
+    const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);
     expect(downsampledScopes).toEqual([['selected-1']]);
   });
 
   it('sends no scope when the query has neither a pin nor a selector binding', async () => {
     const { cmp, qe } = createResolutionAware(undefined, null);
 
-    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+    await (cmp as unknown as {
+            loadData(): Promise<void>;
+        }).loadData();
 
-    expect(qe.resolveSeriesQuery.calls.mostRecent().args[0].rtIds).toBeUndefined();
-    const downsampledScopes = qe.downsampleByArchive.calls.allArgs().map(([params]) => params.rtIds);
+    expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toBeUndefined();
+    const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);
     expect(downsampledScopes).toEqual([undefined]);
   });
 });

@@ -21,13 +21,14 @@
 
 - **Node.js ≥ 22.22.3** (or ≥ 24.15.0 / ≥ 26.0.0) — required by Angular 22 / Angular CLI 22. The CLI hard-refuses older Node (e.g. Node 20 and Node 24.14.x are rejected). CI (`azure-pipelines.yml`) uses Node 24.15.x.
 - **TypeScript ~6.0** — required by Angular 22 (`@angular/compiler-cli` peer is `>=6.0 <6.1`).
+- **Build system: `@angular/build` (esbuild/Vite) only** (AB#5050). Every `angular.json` target runs on `@angular/build:*` (`application`, `unit-test`, `ng-packagr`, `dev-server`, `extract-i18n`); the deprecated Webpack toolchain `@angular-devkit/build-angular` is removed. Both demo apps use the `application` builder with `outputPath: { "base": "dist/<app>", "browser": "" }` so the dist layout stays flat — the CI docker context (`Dockerfile.prebuilt` copies `dist/demo-app`) depends on that. The shared `karma.conf.js` is gone — the `karma` builder was replaced by `@angular/build:unit-test` with Vitest (AB#5071). Also removed as deprecated: `@angular/platform-browser-dynamic` (legacy-demo-app bootstraps via `platformBrowser().bootstrapModule`), `@types/expr-eval` (stub — `expr-eval` ships its own typings), `source-map-explorer` (unused). **Deliberately kept although deprecated:** `@angular/animations` — every Kendo 24 package peer-requires it (`"19 - 22"`), and `octo-ui` mirrors that peer; drop it only when Kendo does.
 - **`@progress/kendo-theme-material` / `@progress/kendo-theme-default` use `^14.2.0`.** Version `14.2.0` removed the standalone `scss/adaptive/` module (its rendering was folded into the component modules). `octo-ui`'s slim theme `projects/meshmakers/octo-ui/src/lib/runtime-browser/styles/_kendo-theme.scss` used to `@use` `@progress/kendo-theme-material/scss/adaptive/_index.scss` without a matching `@include kendo-adaptive--styles()` — dead code that broke the SCSS build on 14.2.0 (`Can't find stylesheet to import`). That import was removed (AB#4253), so the theme now builds on both 14.1.x and 14.2.x. When adding a new Kendo module to the slim theme, `@use` its `_index.scss` **and** call its `@include kendo-<module>--styles()` — an import without the include emits nothing and silently couples to a removable module.
 
 ## Angular 22 Notes
 
 - **Change detection default flipped to OnPush.** In Angular 22 a component with an undefined `changeDetection` defaults to `OnPush` (was `CheckAlways`). The `ng update` `change-detection-eager` migration explicitly set every existing component to `ChangeDetectionStrategy.Eager` (the new name for the old `CheckAlways`/`Default`) to preserve behavior. New components default to `OnPush` — set `ChangeDetectionStrategy.Eager` if you need the old always-check behavior. The opinionated `@angular-eslint/prefer-on-push-component-change-detection` rule (new in angular-eslint 22's recommended set) is turned **off** in `eslint.config.js` because it conflicts with the Eager strategy left by the migration.
 - **`CanMatchFn` third argument is now mandatory.** Guards/specs calling a `CanMatch` function must pass `currentSnapshot` (an `ActivatedRouteSnapshot`).
-- **`katex` + `marked-katex-extension` are devDependencies.** ngx-markdown 22 has a dynamic `import('marked-katex-extension')`; the (webpack) karma test builder resolves it eagerly, so these optional peers must be installed for tests to build, even though the Markdown widget does not use KaTeX.
+- **`katex` + `marked-katex-extension` are devDependencies.** ngx-markdown 22 has a dynamic `import('marked-katex-extension')` that the Vitest test build resolves at bundle time (originally observed on the webpack builder; unchanged through the esbuild karma builder and the move to `@angular/build:unit-test`), so these optional peers must be installed for tests to build, even though the Markdown widget does not use KaTeX.
 
 ## Build Commands
 
@@ -47,8 +48,10 @@ npm run codegen
 npm run codegen:demo-app
 
 # Run tests for specific project
-npm test -- --project=@meshmakers/octo-meshboard --watch=false
+npm run test:octo-meshboard
 ```
+
+The full command reference is in [Testing (Vitest)](#testing-vitest) below.
 
 ## Documentation Standards
 
@@ -70,13 +73,154 @@ npm test -- --project=@meshmakers/octo-meshboard --watch=false
 - If tests fail, fix them before committing — never commit code with failing tests
 
 ```bash
-# Run all tests
-npm test -- --watch=false --browsers=ChromeHeadless
+# Run all tests (chains the 10 per-project scripts)
+npm test
 
-# Run tests for specific library
-npm test -- --project=@meshmakers/octo-meshboard --watch=false
-npm test -- --project=@meshmakers/shared-auth --watch=false
+# Run tests for a specific library
+npm run test:octo-meshboard
+npm run test:shared-auth
+
+# Run a single spec (path relative to the workspace root)
+ng test @meshmakers/shared-auth --watch=false --include=projects/meshmakers/shared-auth/src/lib/authorize.service.spec.ts
+
+# Debug a run in the Node Inspector
+ng test @meshmakers/shared-auth --debug
+
+# Coverage for one project (@vitest/coverage-v8 is a devDependency)
+ng test @meshmakers/shared-auth --watch=false --coverage
 ```
+
+`npm test -- <flag>` appends the flag to the **last** chained script only, so never pass
+per-project flags to `npm test`. Use `npm run test:<lib> -- <flag>` or `ng test <project>`.
+
+## Testing (Vitest)
+
+Karma and Jasmine were replaced by Vitest in AB#5071. Runner: **`@angular/build:unit-test`
+with `runner: "vitest"` on jsdom** — no browser, no `CHROME_BIN`, no `karma.conf.js`.
+10 `test` targets (the two legacy libraries have no specs), covering every spec file in the
+workspace.
+
+### How a test target is wired
+
+- Every **library** has a `test-build` target (`@angular/build:application`, `aot: false`)
+  that exists only to carry the `zone.js` / `zone.js/testing` polyfills — `setupFiles`,
+  `providersFile` and `runnerConfig` all run after `@angular/core/testing` captured `Zone`,
+  so zone.js has to come from the build. **Never build `test-build` yourself**; the `test`
+  target references it via `buildTarget`. The two demo apps use a `testing` configuration on
+  their `build` target instead (`demo-app:build:testing`).
+- `@angular/localize/init` is a **polyfill** of the `test-build` / `build:testing` target
+  (shared-services, shared-auth, shared-ui, octo-ui, demo-app). Never import it in a spec:
+  each spec file is its own module graph, so a per-spec import only covers that one file.
+- The shared setup file `testing/vitest-setup.ts` must be listed in each target's
+  `setupFiles` **and** in that project's `tsconfig.spec.json` `include`.
+- Specs in **secondary entry points** live outside `sourceRoot` and are invisible unless the
+  target lists them in `include`: octo-ui uses `["**/*.spec.ts", "../**/*.spec.ts"]`
+  (branding, branding-settings, tree-navigation-settings), shared-auth uses
+  `["**/*.spec.ts", "../login-ui/**/*.spec.ts"]`.
+- A project **without specs must not have a `test` target** at all.
+- The builder schema is closed (`additionalProperties: false`). `polyfills`, `styles`,
+  `assets`, `karmaConfig` and `codeCoverage` on a `test` target are hard errors.
+- `--include` patterns resolve against the project's `sourceRoot`; a full
+  workspace-root-relative path (`projects/…/x.spec.ts`) or a `**/x.spec.ts` glob both match.
+  A project-root-relative path (`src/lib/…`) does **not**.
+
+### `testing/vitest-setup.ts`
+
+- Loads `zone.js/plugins/vitest-patch`, which wraps `describe`/`it`/`beforeEach`/`afterEach`
+  in a ProxyZone — this is what keeps `fakeAsync` / `tick` / `flush` / `waitForAsync` working.
+- Runs `vi.restoreAllMocks()` in a global `afterEach`. Jasmine restored every `spyOn` spy
+  after each spec and Vitest does not, so this hook restores Jasmine parity. Note that
+  `vi.spyOn` on an already-spied member returns the **same** mock, so re-spying inside a test
+  does not stack.
+- Shims the jsdom gaps: `navigator.clipboard`, a `window.fetch` / `Response` / `Request` /
+  `Headers` bridge, `URL.createObjectURL` / `revokeObjectURL`, `ResizeObserver`, and
+  `HTMLElement.innerText` (jsdom implements none; Kendo's SplitButton reads it in `ngDoCheck`).
+- jsdom also has **no `DOMMatrix` / `DOMPoint` and no `matchMedia`** — stub those in the spec
+  that needs them.
+
+### Vite/esbuild class-field snapshot (production-code constraint)
+
+Under the Vitest runner a class field initialised with a **bare imported identifier** stays
+`undefined` when its module lands in a lazily initialised shared esbuild chunk, i.e. as soon
+as two or more spec entry points import that module:
+
+```ts
+readonly PropertyDisplayMode = PropertyDisplayMode;   // breaks under Vitest
+@Input() config = DEFAULT_CONFIG;                     // breaks under Vitest
+```
+
+Vite's module-runner transform hoists a `const` snapshot of the import to module top, taken
+before esbuild's `__esm(...)` wrapper for the shared chunk has run. Use a getter, or assign in
+the constructor where Angular has to be able to set the field:
+
+```ts
+get PropertyDisplayMode(): typeof PropertyDisplayMode { return PropertyDisplayMode; }
+@Input() config: MappingCoverageTreeConfig;
+constructor() { this.config = DEFAULT_MAPPING_COVERAGE_TREE_CONFIG; }
+```
+
+A namespace-qualified initialiser does **not** help (esbuild folds it back to the bare
+identifier); only forms that put the identifier inside a function body survive bundling.
+Production and `ng-packagr` builds do not use the module runner, so shipped libraries are
+unaffected — this is a test-runner-only defect. Symptom: a spec passes alone and fails as soon
+as a second spec importing the same module joins the run, and `--isolate` does not help.
+Fields initialised from **node_modules** imports (Kendo SVG icons) are fine.
+
+Known **latent** sites (green today only because their modules are not in a lazy shared chunk):
+
+| file | field |
+|---|---|
+| `shared-ui/src/lib/cron-builder/cron-builder.component.ts` | 6 fields from `./cron-builder.models` |
+| `shared-ui/src/lib/import-strategy-dialog/import-strategy-dialog.component.ts` | `ImportStrategyDto` |
+| `shared-ui/src/lib/upload-file-dialog/upload-file-dialog.component.ts` | `upload`, `deleteIcon` from `../svg-icons` |
+| `octo-meshboard/src/lib/dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component.ts` | `timeZoneMode` |
+| `octo-ui-legacy/src/lib/table/mm-octo-table.component.ts` | `getDisplayName`, `getDataKey` (project has no specs) |
+
+### Matcher and mock semantics the schematic does not translate
+
+- Jasmine's `toContain` is deep equality; Vitest's is identity. Use `toContainEqual` for
+  object or array members.
+- Jasmine's `toBe` is `===`; Vitest's is `Object.is`. `-0` vs `+0` now differ — use
+  `toSatisfy((v) => v === 0)`. `toBe(NaN)` would silently start passing.
+- `toBeRejectedWithError('msg')` became a **substring** match — use an anchored regex
+  (`/^Network error$/`). Do not use `toThrowError(new Error('msg'))`; it is stricter than
+  Jasmine and breaks on Error subclasses. `expect(p).resolves.not.toThrow()` is the intended
+  rendering of Jasmine's `toBeResolved()`.
+- Vitest has no `toBeTrue()` / `toBeFalse()` — use `toBe(true)` / `toBe(false)`.
+- A bare `vi.spyOn` **calls through** where Jasmine's `spyOn` stubbed. Always configure a
+  return value (`.mockReturnValue(...)`, `.mockResolvedValue(...)`).
+- `jasmine.SpyObj<T>` becomes `MockedObject<T>`, which requires every member of `T` including
+  private ones. Assign the object literal with a cast:
+  `x = { m: vi.fn() } as unknown as MockedObject<T>;` — never try to add the missing members.
+- `jasmine.objectContaining` becomes `expect.objectContaining`.
+- `vi.mock` with relative paths is blocked by the builder. Inject a fake through TestBed instead.
+- Done-callback tests are written as explicit Promises so Vitest waits for `done()`:
+  `it('x', () => new Promise<void>((done) => { … }))`. The conversion is scripted in
+  `scripts/codemod-done-to-promise.mjs` (plain `node`, no package.json entry).
+- An `expect` that throws inside an RxJS `subscribe` callback does **not** reject the wrapped
+  Promise: rxjs routes it to `reportUnhandledError`, so Vitest prints an `Unhandled Errors`
+  banner and exits 1 while the JUnit file still looks clean. **The exit code is the primary
+  gate**, not the XML.
+
+### CI
+
+The pipeline runs the eight library projects in three rounds of up to three, with
+`VITEST_MAX_WORKERS=2` (the only worker cap the builder exposes — there is no `pool` or
+`maxWorkers` option) and `NODE_OPTIONS=--max-old-space-size=6144`, and adds the JUnit
+reporter per project:
+
+```bash
+npm run test:<lib> -- --reporters=default --reporters=junit --output-file="test-results/<lib>/TESTS-junit.xml"
+```
+
+Repeat the `--reporters` flag — the builder does **no** comma splitting, and `progress` is not
+a Vitest reporter (valid: `default, verbose, dots, json, junit, tap, tap-flat, html`). The
+file name `TESTS-junit.xml` under `test-results/<project>/` is what the `PublishTestResults@2`
+glob `**/TESTS-*.xml` matches.
+
+If jsdom ever proves insufficient for one project, the escape hatch is browser mode:
+`"browsers": ["chromium"]` on that project's `test` target plus `@vitest/browser-playwright`
+and `playwright`. Do not install `happy-dom` (it silently wins over jsdom) or `@vitest/browser`.
 
 ## Linting (REQUIRED)
 
@@ -112,17 +256,21 @@ npm run build:octo-ui      # or whichever library was modified
 
 **CRITICAL: Before every commit and push, ALL of the following steps MUST be completed locally to prevent CI failures. NEVER push code without running lint and build locally first — this has caused multiple failed CI builds in the past.**
 
-### 1. Regenerate package-lock.json (if dependencies changed)
+### 1. Keep package.json and package-lock.json in sync (if dependencies changed)
 
-If `package.json` was modified (directly or via `npm install`), the `package-lock.json` must be regenerated:
+CI runs `npm ci`, which fails when `package.json` and `package-lock.json` disagree. Change
+dependencies with **targeted** commands — both files stay in sync automatically:
 
 ```bash
 # In frontend-libraries directory
-rm -f package-lock.json
-npm install
+npm install <pkg>
+npm uninstall <pkg>
 ```
 
-This is required because CI uses `npm ci` which requires `package.json` and `package-lock.json` to be in sync.
+Do **not** `rm -f package-lock.json && npm install` while the `@angular/*` patch level is
+aligned with Refinery Studio — a full regeneration floats every transitive dependency and
+silently breaks that alignment. A full lockfile refresh is a separate, deliberately reviewed
+dependency-refresh commit, never a side effect of a feature branch.
 
 ### 2. Run Linter
 
@@ -133,7 +281,7 @@ npm run lint
 ### 3. Run Tests
 
 ```bash
-npm test -- --watch=false --browsers=ChromeHeadless
+npm test
 ```
 
 ### 4. Verify Build
@@ -146,8 +294,28 @@ npm run build:prod
 
 ```bash
 # Run all checks before committing
-npm run lint && npm test -- --watch=false --browsers=ChromeHeadless && npm run build:prod
+npm run lint && npm test && npm run build:prod
 ```
+
+## Remaining deprecations
+
+Known deprecation warnings that are **deliberately not fixed here** (AB#5071). Do not "clean
+them up" without checking the reason first.
+
+- **`@angular/animations`** — every Kendo package peer-requires it (Kendo 24: `"19 - 22"`,
+  Kendo 25: `"20 - 22"`), and `octo-ui` mirrors that peer. Drop it only when Kendo does.
+- **`node-domexception`** — a transitive devDependency, reachable only through
+  `@graphql-codegen/cli` → `@graphql-tools/apollo-engine-loader` → `sync-fetch 0.6.0` →
+  `node-fetch@3` → `fetch-blob`. Nothing to do locally; it clears when upstream updates.
+- **`@angular/build:unit-test` is labelled `[EXPERIMENTAL]` in 22.0.x**
+  (`node_modules/@angular/build/builders.json`). Its option schema is closed, so a new option
+  name or a renamed one breaks `angular.json` outright — bump `@angular/build` deliberately
+  and re-run the full suite afterwards.
+- **npm `allowScripts` is advisory in npm 11.16** and undocumented in `npm help package-json`.
+  The format is a flat object mapping a package spec to a boolean, with **name-only** keys
+  (`"esbuild": true`), and `package.json` carries the six entries this workspace needs.
+- **`npm approve-scripts` requires an installed `node_modules`.** Without one it is a silent
+  no-op, so run it after `npm install`, never on a clean checkout.
 
 ## MeshBoard Widget System (octo-meshboard)
 

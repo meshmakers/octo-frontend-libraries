@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Signal, WritableSignal } from '@angular/core';
@@ -13,10 +14,10 @@ import { DataPointInfo } from './data-point-picker.utils';
  * drive them to verify the contains-filter and current-value logic.
  */
 interface PickerTestAccess {
-  dataPointInfos: WritableSignal<DataPointInfo[]>;
-  filter: WritableSignal<string>;
-  filteredOptions: Signal<string[]>;
-  onFilterChange(filter: string): void;
+    dataPointInfos: WritableSignal<DataPointInfo[]>;
+    filter: WritableSignal<string>;
+    filteredOptions: Signal<string[]>;
+    onFilterChange(filter: string): void;
 }
 
 function infos(...names: string[]): DataPointInfo[] {
@@ -27,17 +28,19 @@ describe('DataPointPickerComponent — contains filter', () => {
   let component: DataPointPickerComponent;
   let testAccess: PickerTestAccess;
   let fixture: ComponentFixture<DataPointPickerComponent>;
-  let resolverMock: jasmine.SpyObj<DataPointResolverService>;
+  let resolverMock: MockedObject<DataPointResolverService>;
 
   beforeEach(async () => {
-    resolverMock = jasmine.createSpyObj<DataPointResolverService>(
-      'DataPointResolverService',
-      ['extractFromEntity', 'extractInfosFromEntity', 'load', 'loadInfos']
-    );
-    resolverMock.extractFromEntity.and.returnValue([]);
-    resolverMock.extractInfosFromEntity.and.returnValue([]);
-    resolverMock.load.and.resolveTo([]);
-    resolverMock.loadInfos.and.resolveTo([]);
+    resolverMock = {
+      extractFromEntity: vi.fn().mockName('DataPointResolverService.extractFromEntity'),
+      extractInfosFromEntity: vi.fn().mockName('DataPointResolverService.extractInfosFromEntity'),
+      load: vi.fn().mockName('DataPointResolverService.load'),
+      loadInfos: vi.fn().mockName('DataPointResolverService.loadInfos')
+    } as unknown as MockedObject<DataPointResolverService>;
+    resolverMock.extractFromEntity.mockReturnValue([]);
+    resolverMock.extractInfosFromEntity.mockReturnValue([]);
+    resolverMock.load.mockResolvedValue([]);
+    resolverMock.loadInfos.mockResolvedValue([]);
 
     await TestBed.configureTestingModule({
       imports: [DataPointPickerComponent],
@@ -93,12 +96,14 @@ describe('DataPointPickerComponent — currentValue', () => {
   let fixture: ComponentFixture<DataPointPickerComponent>;
 
   beforeEach(async () => {
-    const resolverMock = jasmine.createSpyObj<DataPointResolverService>(
-      'DataPointResolverService',
-      ['extractFromEntity', 'extractInfosFromEntity', 'load', 'loadInfos']
-    );
-    resolverMock.extractInfosFromEntity.and.returnValue([]);
-    resolverMock.loadInfos.and.resolveTo([]);
+    const resolverMock = {
+      extractFromEntity: vi.fn().mockName('DataPointResolverService.extractFromEntity'),
+      extractInfosFromEntity: vi.fn().mockName('DataPointResolverService.extractInfosFromEntity'),
+      load: vi.fn().mockName('DataPointResolverService.load'),
+      loadInfos: vi.fn().mockName('DataPointResolverService.loadInfos')
+    };
+    resolverMock.extractInfosFromEntity.mockReturnValue([]);
+    resolverMock.loadInfos.mockResolvedValue([]);
 
     await TestBed.configureTestingModule({
       imports: [DataPointPickerComponent],

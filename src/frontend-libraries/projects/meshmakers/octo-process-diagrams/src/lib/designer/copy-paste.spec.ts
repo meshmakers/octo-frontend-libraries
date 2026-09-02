@@ -108,7 +108,7 @@ describe('Copy/Paste Functionality', () => {
       const expanded = selectionService.expandSelectionWithGroupChildren(testDiagram);
 
       expect(expanded.size).toBe(1);
-      expect(expanded.has('prim-c')).toBeTrue();
+      expect(expanded.has('prim-c')).toBe(true);
     });
 
     it('should expand when selecting a group', () => {
@@ -116,9 +116,9 @@ describe('Copy/Paste Functionality', () => {
       const expanded = selectionService.expandSelectionWithGroupChildren(testDiagram);
 
       expect(expanded.size).toBe(3); // group + 2 children
-      expect(expanded.has('group-1')).toBeTrue();
-      expect(expanded.has('prim-a')).toBeTrue();
-      expect(expanded.has('prim-b')).toBeTrue();
+      expect(expanded.has('group-1')).toBe(true);
+      expect(expanded.has('prim-a')).toBe(true);
+      expect(expanded.has('prim-b')).toBe(true);
     });
 
     it('should not expand when selecting a grouped child directly', () => {
@@ -128,7 +128,7 @@ describe('Copy/Paste Functionality', () => {
 
       // prim-a is NOT a group, so no expansion
       expect(expanded.size).toBe(1);
-      expect(expanded.has('prim-a')).toBeTrue();
+      expect(expanded.has('prim-a')).toBe(true);
     });
   });
 
@@ -142,7 +142,7 @@ describe('Copy/Paste Functionality', () => {
         centerPosition: { x: 200, y: 35 }
       });
 
-      expect(clipboardService.hasContent()).toBeTrue();
+      expect(clipboardService.hasContent()).toBe(true);
 
       const result = clipboardService.paste(() => 'new-id');
       expect(result).toBeTruthy();
@@ -167,9 +167,9 @@ describe('Copy/Paste Functionality', () => {
 
   describe('Copy Scenarios - Simulating User Actions', () => {
     /**
-     * Scenario 1: User clicks on primitive NOT in a group, then copies
-     * Expected: Only that primitive is copied
-     */
+         * Scenario 1: User clicks on primitive NOT in a group, then copies
+         * Expected: Only that primitive is copied
+         */
     it('should copy only clicked primitive when not in group', () => {
       // Simulate: User clicks on primitiveC (not in group)
       // Selection would be set to prim-c
@@ -184,9 +184,9 @@ describe('Copy/Paste Functionality', () => {
     });
 
     /**
-     * Scenario 2: User clicks on primitive in a group (left-click behavior)
-     * Current behavior: Group is selected, all children are copied
-     */
+         * Scenario 2: User clicks on primitive in a group (left-click behavior)
+         * Current behavior: Group is selected, all children are copied
+         */
     it('should select group when clicking on grouped primitive (current behavior)', () => {
       // Simulate: User left-clicks on primitiveA which is in group-1
       // findGroupForItem returns the group
@@ -207,9 +207,9 @@ describe('Copy/Paste Functionality', () => {
     });
 
     /**
-     * Scenario 3: User right-clicks on primitive in a group (context menu behavior)
-     * Current behavior: Only that primitive is selected (no group check)
-     */
+         * Scenario 3: User right-clicks on primitive in a group (context menu behavior)
+         * Current behavior: Only that primitive is selected (no group check)
+         */
     it('should select only primitive when using context menu on grouped primitive', () => {
       // Simulate: User right-clicks on primitiveA
       // Context menu handler selects primitive directly (no group check)
@@ -225,9 +225,9 @@ describe('Copy/Paste Functionality', () => {
     });
 
     /**
-     * Scenario 4: Using _lastClickedPrimitiveId to override group selection
-     * This is the fix that should make keyboard behave like context menu
-     */
+         * Scenario 4: Using _lastClickedPrimitiveId to override group selection
+         * This is the fix that should make keyboard behave like context menu
+         */
     it('should copy only clicked primitive when _lastClickedPrimitiveId is set', () => {
       // Simulate the fixed behavior:
       // 1. User clicks on prim-a (in group)
@@ -260,8 +260,8 @@ describe('Copy/Paste Functionality', () => {
 
   describe('Keyboard vs Context Menu Behavior', () => {
     /**
-     * This test documents the expected behavior difference and verifies the fix
-     */
+         * This test documents the expected behavior difference and verifies the fix
+         */
     it('should behave the same for keyboard and context menu when _lastClickedPrimitiveId is used', () => {
       // Context menu path: select primitive directly
       selectionService.clearSelection();
@@ -281,19 +281,19 @@ describe('Copy/Paste Functionality', () => {
     });
 
     /**
-     * This test documents the bug fix: _lastClickedPrimitiveId should NOT be cleared
-     * after a drag operation. Users often click, move slightly, then press Cmd+C.
-     *
-     * Previous buggy behavior:
-     * 1. Click on primitive (in group) → _lastClickedPrimitiveId set
-     * 2. Release mouse with tiny movement → wasDrag=true → _lastClickedPrimitiveId cleared
-     * 3. Press Cmd+C → _lastClickedPrimitiveId is null → copies entire group
-     *
-     * Fixed behavior:
-     * 1. Click on primitive (in group) → _lastClickedPrimitiveId set
-     * 2. Release mouse with tiny movement → wasDrag=true → _lastClickedPrimitiveId PRESERVED
-     * 3. Press Cmd+C → _lastClickedPrimitiveId is set → copies only clicked primitive
-     */
+         * This test documents the bug fix: _lastClickedPrimitiveId should NOT be cleared
+         * after a drag operation. Users often click, move slightly, then press Cmd+C.
+         *
+         * Previous buggy behavior:
+         * 1. Click on primitive (in group) → _lastClickedPrimitiveId set
+         * 2. Release mouse with tiny movement → wasDrag=true → _lastClickedPrimitiveId cleared
+         * 3. Press Cmd+C → _lastClickedPrimitiveId is null → copies entire group
+         *
+         * Fixed behavior:
+         * 1. Click on primitive (in group) → _lastClickedPrimitiveId set
+         * 2. Release mouse with tiny movement → wasDrag=true → _lastClickedPrimitiveId PRESERVED
+         * 3. Press Cmd+C → _lastClickedPrimitiveId is set → copies only clicked primitive
+         */
     it('should preserve _lastClickedPrimitiveId after drag operation', () => {
       // Simulate the fixed behavior:
       // 1. User clicks on prim-a (in group)

@@ -30,7 +30,7 @@ describe('DesignerDragService', () => {
 
   describe('initial state', () => {
     it('should start with isDragging false', () => {
-      expect(service.isDragging()).toBeFalse();
+      expect(service.isDragging()).toBe(false);
     });
 
     it('should have null draggedItemId', () => {
@@ -43,7 +43,7 @@ describe('DesignerDragService', () => {
 
     it('should have initial state with null values', () => {
       const state = service.state();
-      expect(state.isDragging).toBeFalse();
+      expect(state.isDragging).toBe(false);
       expect(state.itemId).toBeNull();
       expect(state.itemType).toBeNull();
       expect(state.startPosition).toBeNull();
@@ -59,7 +59,7 @@ describe('DesignerDragService', () => {
   describe('startDrag', () => {
     it('should set isDragging to true', () => {
       service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-      expect(service.isDragging()).toBeTrue();
+      expect(service.isDragging()).toBe(true);
     });
 
     it('should store item ID', () => {
@@ -97,14 +97,14 @@ describe('DesignerDragService', () => {
 
     it('should handle group item type', () => {
       service.startDrag('group-1', 'group', { x: 0, y: 0 }, { x: 50, y: 50 });
-      expect(service.isDraggingGroup()).toBeTrue();
-      expect(service.isDraggingPrimitive()).toBeTrue();
+      expect(service.isDraggingGroup()).toBe(true);
+      expect(service.isDraggingPrimitive()).toBe(true);
     });
 
     it('should handle symbol item type', () => {
       service.startDrag('symbol-1', 'symbol', { x: 0, y: 0 }, { x: 50, y: 50 });
       expect(service.draggedItemType()).toBe('symbol');
-      expect(service.isDraggingGroup()).toBeFalse();
+      expect(service.isDraggingGroup()).toBe(false);
     });
   });
 
@@ -131,7 +131,7 @@ describe('DesignerDragService', () => {
       service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
       service.endDrag();
 
-      expect(service.isDragging()).toBeFalse();
+      expect(service.isDragging()).toBe(false);
       expect(service.draggedItemId()).toBeNull();
     });
   });
@@ -141,7 +141,7 @@ describe('DesignerDragService', () => {
       service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
       service.cancelDrag();
 
-      expect(service.isDragging()).toBeFalse();
+      expect(service.isDragging()).toBe(false);
       expect(service.draggedItemId()).toBeNull();
     });
 
@@ -214,14 +214,14 @@ describe('DesignerDragService', () => {
       service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
       const result = service.calculateDragPosition({ x: 150, y: 250 }); // Same as start
 
-      expect(result!.hasMoved).toBeFalse();
+      expect(result!.hasMoved).toBe(false);
     });
 
     it('should report hasMoved true when position changed', () => {
       service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
       const result = service.calculateDragPosition({ x: 200, y: 350 });
 
-      expect(result!.hasMoved).toBeTrue();
+      expect(result!.hasMoved).toBe(true);
     });
 
     it('should handle negative movement', () => {
@@ -334,17 +334,17 @@ describe('DesignerDragService', () => {
 
   describe('isDraggingItem', () => {
     it('should return false when not dragging', () => {
-      expect(service.isDraggingItem('item-1')).toBeFalse();
+      expect(service.isDraggingItem('item-1')).toBe(false);
     });
 
     it('should return true for the dragged item', () => {
       service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-      expect(service.isDraggingItem('item-1')).toBeTrue();
+      expect(service.isDraggingItem('item-1')).toBe(true);
     });
 
     it('should return false for different item', () => {
       service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-      expect(service.isDraggingItem('item-2')).toBeFalse();
+      expect(service.isDraggingItem('item-2')).toBe(false);
     });
   });
 
@@ -382,31 +382,31 @@ describe('DesignerDragService', () => {
 
   describe('hasMovedBeyondThreshold', () => {
     it('should return false when not dragging', () => {
-      expect(service.hasMovedBeyondThreshold()).toBeFalse();
+      expect(service.hasMovedBeyondThreshold()).toBe(false);
     });
 
     it('should return false for small movement', () => {
       service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
       service.updateMousePosition({ x: 1, y: 1 }); // ~1.41 pixels
 
-      expect(service.hasMovedBeyondThreshold(3)).toBeFalse();
+      expect(service.hasMovedBeyondThreshold(3)).toBe(false);
     });
 
     it('should return true for movement beyond threshold', () => {
       service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
       service.updateMousePosition({ x: 3, y: 4 }); // 5 pixels
 
-      expect(service.hasMovedBeyondThreshold(3)).toBeTrue();
+      expect(service.hasMovedBeyondThreshold(3)).toBe(true);
     });
 
     it('should use default threshold of 3', () => {
       service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
       service.updateMousePosition({ x: 2, y: 2 }); // ~2.83 pixels
 
-      expect(service.hasMovedBeyondThreshold()).toBeFalse();
+      expect(service.hasMovedBeyondThreshold()).toBe(false);
 
       service.updateMousePosition({ x: 3, y: 3 }); // ~4.24 pixels
-      expect(service.hasMovedBeyondThreshold()).toBeTrue();
+      expect(service.hasMovedBeyondThreshold()).toBe(true);
     });
   });
 
@@ -418,39 +418,39 @@ describe('DesignerDragService', () => {
     describe('isDraggingGroup', () => {
       it('should be false for element', () => {
         service.startDrag('elem-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-        expect(service.isDraggingGroup()).toBeFalse();
+        expect(service.isDraggingGroup()).toBe(false);
       });
 
       it('should be true for group', () => {
         service.startDrag('group-1', 'group', { x: 0, y: 0 }, { x: 0, y: 0 });
-        expect(service.isDraggingGroup()).toBeTrue();
+        expect(service.isDraggingGroup()).toBe(true);
       });
 
       it('should be false for primitive', () => {
         service.startDrag('prim-1', 'primitive', { x: 0, y: 0 }, { x: 0, y: 0 });
-        expect(service.isDraggingGroup()).toBeFalse();
+        expect(service.isDraggingGroup()).toBe(false);
       });
     });
 
     describe('isDraggingPrimitive', () => {
       it('should be false for element', () => {
         service.startDrag('elem-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-        expect(service.isDraggingPrimitive()).toBeFalse();
+        expect(service.isDraggingPrimitive()).toBe(false);
       });
 
       it('should be true for primitive', () => {
         service.startDrag('prim-1', 'primitive', { x: 0, y: 0 }, { x: 0, y: 0 });
-        expect(service.isDraggingPrimitive()).toBeTrue();
+        expect(service.isDraggingPrimitive()).toBe(true);
       });
 
       it('should be true for group (groups are primitives)', () => {
         service.startDrag('group-1', 'group', { x: 0, y: 0 }, { x: 0, y: 0 });
-        expect(service.isDraggingPrimitive()).toBeTrue();
+        expect(service.isDraggingPrimitive()).toBe(true);
       });
 
       it('should be false for symbol', () => {
         service.startDrag('symbol-1', 'symbol', { x: 0, y: 0 }, { x: 0, y: 0 });
-        expect(service.isDraggingPrimitive()).toBeFalse();
+        expect(service.isDraggingPrimitive()).toBe(false);
       });
     });
   });

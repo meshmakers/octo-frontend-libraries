@@ -250,7 +250,7 @@ describe('PathEditorComponent', () => {
     });
 
     it('should update path when text changes', () => {
-      const spy = spyOn(component.pathChange, 'emit');
+      const spy = vi.spyOn(component.pathChange, 'emit').mockReturnValue(undefined);
 
       component.onTextChange('M 0 0 L 100 100');
 
@@ -280,7 +280,7 @@ describe('PathEditorComponent', () => {
       });
 
       it('should delete segment when node is selected', () => {
-        const spy = spyOn(component.pathChange, 'emit');
+        const spy = vi.spyOn(component.pathChange, 'emit').mockReturnValue(undefined);
 
         const segments = pathService.segments();
         const middleSegment = segments[1]; // L 50 50
@@ -309,7 +309,7 @@ describe('PathEditorComponent', () => {
       });
 
       it('should convert cubic to line when selected', () => {
-        const spy = spyOn(component.pathChange, 'emit');
+        const spy = vi.spyOn(component.pathChange, 'emit').mockReturnValue(undefined);
         const cubicSegment = pathService.segments()[1];
         const cubicNode = pathService.nodes().find(n => n.segmentId === cubicSegment.id && n.type === 'point');
 
@@ -330,7 +330,7 @@ describe('PathEditorComponent', () => {
       });
 
       it('should convert line to cubic when selected', () => {
-        const spy = spyOn(component.pathChange, 'emit');
+        const spy = vi.spyOn(component.pathChange, 'emit').mockReturnValue(undefined);
         const lineSegment = pathService.segments()[1];
         const lineNode = pathService.nodes().find(n => n.segmentId === lineSegment.id);
 
@@ -351,7 +351,7 @@ describe('PathEditorComponent', () => {
       });
 
       it('should convert line to quadratic when selected', () => {
-        const spy = spyOn(component.pathChange, 'emit');
+        const spy = vi.spyOn(component.pathChange, 'emit').mockReturnValue(undefined);
         const lineSegment = pathService.segments()[1];
         const lineNode = pathService.nodes().find(n => n.segmentId === lineSegment.id);
 
@@ -404,8 +404,8 @@ describe('PathEditorComponent', () => {
       it('should prevent event propagation', () => {
         const node = pathService.nodes()[0];
         const event = new MouseEvent('mousedown', { bubbles: true });
-        spyOn(event, 'preventDefault');
-        spyOn(event, 'stopPropagation');
+        vi.spyOn(event, 'preventDefault').mockReturnValue(undefined);
+        vi.spyOn(event, 'stopPropagation').mockReturnValue(undefined);
 
         component.onNodeMouseDown(event, node);
 
@@ -416,7 +416,7 @@ describe('PathEditorComponent', () => {
 
     describe('onCanvasMouseUp', () => {
       it('should emit change if path was modified during drag', () => {
-        const spy = spyOn(component.pathChange, 'emit');
+        const spy = vi.spyOn(component.pathChange, 'emit').mockReturnValue(undefined);
 
         // Select and start dragging
         const node = pathService.nodes()[0];

@@ -1,20 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { WindowService } from '@progress/kendo-angular-dialog';
-import {
-  WidgetRegistryService,
-  WidgetRegistration,
-  WidgetConfigResult,
-  BaseWidgetConfig,
-  PersistedWidgetData,
-  WidgetPersistenceData,
-  WidgetConfigDialog
-} from './widget-registry.service';
-import {
-  KpiWidgetConfig,
-  GaugeWidgetConfig,
-  WidgetType,
-  RuntimeEntityDataSource
-} from '../models/meshboard.models';
+import { WidgetRegistryService, WidgetRegistration, WidgetConfigResult, BaseWidgetConfig, PersistedWidgetData, WidgetPersistenceData, WidgetConfigDialog } from './widget-registry.service';
+import { KpiWidgetConfig, GaugeWidgetConfig, WidgetType, RuntimeEntityDataSource } from '../models/meshboard.models';
 
 describe('WidgetRegistryService', () => {
   let service: WidgetRegistryService;
@@ -160,7 +147,9 @@ describe('WidgetRegistryService', () => {
   }
 
   beforeEach(() => {
-    const mockWindowService = jasmine.createSpyObj('WindowService', ['open']);
+    const mockWindowService = {
+      open: vi.fn().mockName('WindowService.open')
+    };
 
     TestBed.configureTestingModule({
       providers: [
@@ -225,8 +214,8 @@ describe('WidgetRegistryService', () => {
       service.registerWidget(createGaugeRegistration());
 
       const widgets = service.getRegisteredWidgets();
-      expect(widgets).toContain({ type: 'kpi', label: 'KPI Widget' });
-      expect(widgets).toContain({ type: 'gauge', label: 'Gauge Widget' });
+      expect(widgets).toContainEqual({ type: 'kpi', label: 'KPI Widget' });
+      expect(widgets).toContainEqual({ type: 'gauge', label: 'Gauge Widget' });
     });
   });
 
@@ -408,7 +397,9 @@ describe('WidgetRegistryService', () => {
 
     it('should throw error for unknown widget type', () => {
       const widget = createMockKpiWidget();
-      (widget as { type: string }).type = 'unknownType';
+      (widget as {
+                type: string;
+            }).type = 'unknownType';
 
       expect(() => service.serializeWidget(widget)).toThrowError('Unknown widget type: unknownType');
     });
@@ -483,7 +474,7 @@ describe('WidgetRegistryService', () => {
         config: JSON.stringify({ valueAttribute: 'value' })
       };
 
-      spyOn(console, 'warn');
+      vi.spyOn(console, 'warn').mockReturnValue(undefined);
       const widget = service.deserializeWidget(persistedData);
 
       expect(console.warn).toHaveBeenCalledWith('Unknown widget type: unknownType, falling back to KPI');
@@ -505,7 +496,7 @@ describe('WidgetRegistryService', () => {
         config: '{}'
       };
 
-      spyOn(console, 'warn');
+      vi.spyOn(console, 'warn').mockReturnValue(undefined);
       expect(() => service.deserializeWidget(persistedData))
         .toThrowError('KPI widget registration not found for fallback');
     });
@@ -560,16 +551,16 @@ describe('WidgetRegistryService', () => {
   describe('hasConfigDialog', () => {
     it('should return true when widget has config dialog', () => {
       service.registerWidget(createKpiRegistration());
-      expect(service.hasConfigDialog('kpi')).toBeTrue();
+      expect(service.hasConfigDialog('kpi')).toBe(true);
     });
 
     it('should return false when widget has no config dialog', () => {
       service.registerWidget(createGaugeRegistration());
-      expect(service.hasConfigDialog('gauge')).toBeFalse();
+      expect(service.hasConfigDialog('gauge')).toBe(false);
     });
 
     it('should return false for unregistered widget type', () => {
-      expect(service.hasConfigDialog('unknownType' as WidgetType)).toBeFalse();
+      expect(service.hasConfigDialog('unknownType' as WidgetType)).toBe(false);
     });
   });
 
@@ -710,25 +701,25 @@ describe('WidgetRegistryService', () => {
   // ========================================================================
 
   describe('openConfigDialog', () => {
-    it('should return saved: false when widget has no config dialog', (done) => {
+    it('should return saved: false when widget has no config dialog', () => new Promise<void>((done) => {
       service.registerWidget(createGaugeRegistration());
       const widget = createMockGaugeWidget();
 
       service.openConfigDialog(widget).subscribe(result => {
-        expect(result.saved).toBeFalse();
+        expect(result.saved).toBe(false);
         expect(result.result).toBeUndefined();
         done();
       });
-    });
+    }));
 
-    it('should return saved: false for unregistered widget type', (done) => {
+    it('should return saved: false for unregistered widget type', () => new Promise<void>((done) => {
       const widget = createMockKpiWidget();
 
       service.openConfigDialog(widget).subscribe(result => {
-        expect(result.saved).toBeFalse();
+        expect(result.saved).toBe(false);
         done();
       });
-    });
+    }));
   });
 
   // ========================================================================
@@ -741,7 +732,7 @@ describe('WidgetRegistryService', () => {
       const widget = createMockGaugeWidget();
 
       const result = await service.openConfigDialogAsync(widget);
-      expect(result.saved).toBeFalse();
+      expect(result.saved).toBe(false);
     });
   });
 

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subject, firstValueFrom } from 'rxjs';
@@ -7,9 +8,9 @@ import { CommandSettingsService } from './command-settings.service';
 import { CommandOptions } from '../options/commandOptions';
 
 interface MutableMockRouter {
-  navigate: jasmine.Spy;
-  events: Subject<unknown>;
-  url: string;
+    navigate: Mock;
+    events: Subject<unknown>;
+    url: string;
 }
 
 describe('CommandService', () => {
@@ -20,7 +21,7 @@ describe('CommandService', () => {
 
   beforeEach(() => {
     mockRouter = {
-      navigate: jasmine.createSpy('navigate'),
+      navigate: vi.fn().mockName('navigate'),
       events: new Subject<unknown>(),
       url: '/'
     };
@@ -66,23 +67,25 @@ describe('CommandService', () => {
       expect(typeof service.drawerItems.subscribe).toBe('function');
     });
 
-    it('should emit empty array initially', (done) => {
+    it('should emit empty array initially', () => new Promise<void>((done) => {
       service.drawerItems.subscribe(items => {
         expect(items).toEqual([]);
         done();
       });
-    });
+    }));
   });
 
   describe('initialize', () => {
     it('should initialize without errors', async () => {
-      await expectAsync(service.initialize()).toBeResolved();
+      await expect(service.initialize()).resolves.not.toThrow();
     });
   });
 
   describe('createDrawerItems hierarchy markers', () => {
     it('should emit cssClass mm-drawer-level-N matching the nesting depth', async () => {
-      (mockCommandSettingsService as { commandItems: unknown[] }).commandItems = [
+      (mockCommandSettingsService as {
+                commandItems: unknown[];
+            }).commandItems = [
         {
           id: 'a',
           type: 'link',
@@ -102,11 +105,17 @@ describe('CommandService', () => {
 
       await service.initialize();
 
-      const items = await new Promise<{ id: unknown; cssClass: unknown }[]>(resolve => {
-        service.drawerItems.subscribe(emitted => {
-          resolve(emitted as { id: unknown; cssClass: unknown }[]);
-        });
-      });
+      const items = await new Promise<{
+                id: unknown;
+                cssClass: unknown;
+            }[]>(resolve => {
+              service.drawerItems.subscribe(emitted => {
+                resolve(emitted as {
+                        id: unknown;
+                        cssClass: unknown;
+                    }[]);
+              });
+            });
 
       expect(items.length).toBe(3);
       expect(items.find(i => i.id === 'a')?.cssClass).toBe('mm-drawer-level-0');
@@ -119,14 +128,19 @@ describe('CommandService', () => {
     beforeEach(() => {
       // Mirrors a typical app setup: a home entry pointing at the route root
       // plus flat list entries, navigating relative to a ':lang' child route.
-      (mockCommandSettingsService as { commandItems: unknown[]; navigateRelativeToRoute: unknown }).commandItems = [
+      (mockCommandSettingsService as {
+                commandItems: unknown[];
+                navigateRelativeToRoute: unknown;
+            }).commandItems = [
         { id: 'home', type: 'link', text: 'Home', link: './' },
         { id: 'documents', type: 'link', text: 'Documents', link: 'documents' },
         { id: 'separator-1', type: 'separator', text: '' },
         { id: 'settings', type: 'link', text: 'Settings', link: async () => 'settings' },
         { id: 'action', type: 'link', text: 'Action', onClick: async () => undefined }
       ];
-      (mockCommandSettingsService as { navigateRelativeToRoute: unknown }).navigateRelativeToRoute = {
+      (mockCommandSettingsService as {
+                navigateRelativeToRoute: unknown;
+            }).navigateRelativeToRoute = {
         snapshot: {
           pathFromRoot: [
             { url: [] },

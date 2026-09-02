@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { SymbolLibraryDetailComponent } from './symbol-library-detail.component';
 import { SymbolLibraryService } from '../../services/symbol-library.service';
@@ -13,7 +14,10 @@ import { By } from '@angular/platform-browser';
  * Test helper interface to access protected members of SymbolLibraryDetailComponent
  */
 interface SymbolLibraryDetailTestAccess {
-  getPointsString(points: string | { x?: number; y?: number }[] | null | undefined): string;
+    getPointsString(points: string | {
+        x?: number;
+        y?: number;
+    }[] | null | undefined): string;
 }
 
 // Helper to create primitives with config (using type assertion for tests)
@@ -24,12 +28,12 @@ function createPrimitive(primitive: Record<string, unknown>): PrimitiveBase {
 describe('SymbolLibraryDetailComponent', () => {
   let component: SymbolLibraryDetailComponent;
   let fixture: ComponentFixture<SymbolLibraryDetailComponent>;
-  let mockSymbolLibraryService: jasmine.SpyObj<SymbolLibraryService>;
-  let mockBreadCrumbService: jasmine.SpyObj<BreadCrumbService>;
-  let mockConfirmationService: jasmine.SpyObj<ConfirmationService>;
-  let mockNotificationService: jasmine.SpyObj<NotificationService>;
-  let mockInputService: jasmine.SpyObj<InputService>;
-  let mockRouter: jasmine.SpyObj<Router>;
+  let mockSymbolLibraryService: MockedObject<SymbolLibraryService>;
+  let mockBreadCrumbService: MockedObject<BreadCrumbService>;
+  let mockConfirmationService: MockedObject<ConfirmationService>;
+  let mockNotificationService: MockedObject<NotificationService>;
+  let mockInputService: MockedObject<InputService>;
+  let mockRouter: MockedObject<Router>;
 
   const createMockSymbol = (overrides: Partial<SymbolDefinition> = {}): SymbolDefinition => ({
     rtId: 'sym-1',
@@ -48,18 +52,28 @@ describe('SymbolLibraryDetailComponent', () => {
   });
 
   beforeEach(async () => {
-    mockSymbolLibraryService = jasmine.createSpyObj('SymbolLibraryService', [
-      'loadLibrary',
-      'createSymbol',
-      'deleteSymbol'
-    ]);
-    mockBreadCrumbService = jasmine.createSpyObj('BreadCrumbService', ['updateBreadcrumbLabels']);
-    mockConfirmationService = jasmine.createSpyObj('ConfirmationService', ['showYesNoConfirmationDialog']);
-    mockNotificationService = jasmine.createSpyObj('NotificationService', ['show']);
-    mockInputService = jasmine.createSpyObj('InputService', ['showInputDialog']);
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockSymbolLibraryService = {
+      loadLibrary: vi.fn().mockName('SymbolLibraryService.loadLibrary'),
+      createSymbol: vi.fn().mockName('SymbolLibraryService.createSymbol'),
+      deleteSymbol: vi.fn().mockName('SymbolLibraryService.deleteSymbol')
+    } as unknown as MockedObject<SymbolLibraryService>;
+    mockBreadCrumbService = {
+      updateBreadcrumbLabels: vi.fn().mockName('BreadCrumbService.updateBreadcrumbLabels')
+    } as unknown as MockedObject<BreadCrumbService>;
+    mockConfirmationService = {
+      showYesNoConfirmationDialog: vi.fn().mockName('ConfirmationService.showYesNoConfirmationDialog')
+    } as unknown as MockedObject<ConfirmationService>;
+    mockNotificationService = {
+      show: vi.fn().mockName('NotificationService.show')
+    } as unknown as MockedObject<NotificationService>;
+    mockInputService = {
+      showInputDialog: vi.fn().mockName('InputService.showInputDialog')
+    } as unknown as MockedObject<InputService>;
+    mockRouter = {
+      navigate: vi.fn().mockName('Router.navigate')
+    } as unknown as MockedObject<Router>;
 
-    mockBreadCrumbService.updateBreadcrumbLabels.and.returnValue(Promise.resolve());
+    mockBreadCrumbService.updateBreadcrumbLabels.mockResolvedValue();
 
     await TestBed.configureTestingModule({
       imports: [SymbolLibraryDetailComponent],
@@ -113,9 +127,7 @@ describe('SymbolLibraryDetailComponent', () => {
         ]
       });
 
-      mockSymbolLibraryService.loadLibrary.and.returnValue(
-        Promise.resolve(createMockLibrary([symbolWithPrimitives]))
-      );
+      mockSymbolLibraryService.loadLibrary.mockResolvedValue(createMockLibrary([symbolWithPrimitives]));
 
       fixture.detectChanges();
       tick();
@@ -178,9 +190,7 @@ describe('SymbolLibraryDetailComponent', () => {
         ]
       });
 
-      mockSymbolLibraryService.loadLibrary.and.returnValue(
-        Promise.resolve(createMockLibrary([symbolWithLine]))
-      );
+      mockSymbolLibraryService.loadLibrary.mockResolvedValue(createMockLibrary([symbolWithLine]));
 
       fixture.detectChanges();
       tick();
@@ -238,9 +248,7 @@ describe('SymbolLibraryDetailComponent', () => {
         ]
       });
 
-      mockSymbolLibraryService.loadLibrary.and.returnValue(
-        Promise.resolve(createMockLibrary([symbolWithEllipse]))
-      );
+      mockSymbolLibraryService.loadLibrary.mockResolvedValue(createMockLibrary([symbolWithEllipse]));
 
       fixture.detectChanges();
       tick();
@@ -290,9 +298,7 @@ describe('SymbolLibraryDetailComponent', () => {
         ]
       });
 
-      mockSymbolLibraryService.loadLibrary.and.returnValue(
-        Promise.resolve(createMockLibrary([symbolWithPath]))
-      );
+      mockSymbolLibraryService.loadLibrary.mockResolvedValue(createMockLibrary([symbolWithPath]));
 
       fixture.detectChanges();
       tick();
@@ -336,9 +342,7 @@ describe('SymbolLibraryDetailComponent', () => {
         ]
       });
 
-      mockSymbolLibraryService.loadLibrary.and.returnValue(
-        Promise.resolve(createMockLibrary([symbolWithoutStyles]))
-      );
+      mockSymbolLibraryService.loadLibrary.mockResolvedValue(createMockLibrary([symbolWithoutStyles]));
 
       fixture.detectChanges();
       tick();

@@ -1,4 +1,4 @@
-import '@angular/localize/init';
+import type { Mock, MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
@@ -6,18 +6,13 @@ import { of } from 'rxjs';
 import { WindowRef } from '@progress/kendo-angular-dialog';
 import { GridComponent, CellClickEvent } from '@progress/kendo-angular-grid';
 import { AttributeSelectorService, AttributeItem, AttributeValueTypeDto } from '@meshmakers/octo-services';
-import {
-  AttributeSortSelectorDialogComponent,
-  AttributeSortItem,
-  AttributeSortSelectorDialogData,
-  AttributeSortSelectorDialogResult
-} from './attribute-sort-selector-dialog.component';
+import { AttributeSortSelectorDialogComponent, AttributeSortItem, AttributeSortSelectorDialogData, AttributeSortSelectorDialogResult } from './attribute-sort-selector-dialog.component';
 
 describe('AttributeSortSelectorDialogComponent', () => {
   let component: AttributeSortSelectorDialogComponent;
   let fixture: ComponentFixture<AttributeSortSelectorDialogComponent>;
-  let attributeServiceMock: jasmine.SpyObj<AttributeSelectorService>;
-  let windowRefMock: jasmine.SpyObj<WindowRef>;
+  let attributeServiceMock: MockedObject<AttributeSelectorService>;
+  let windowRefMock: MockedObject<WindowRef>;
 
   const mockAttributes: AttributeItem[] = [
     { attributePath: 'name', attributeValueType: 'String', description: 'The name' },
@@ -33,10 +28,14 @@ describe('AttributeSortSelectorDialogComponent', () => {
   };
 
   beforeEach(async () => {
-    attributeServiceMock = jasmine.createSpyObj('AttributeSelectorService', ['getAvailableAttributes']);
-    attributeServiceMock.getAvailableAttributes.and.returnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
+    attributeServiceMock = {
+      getAvailableAttributes: vi.fn().mockName('AttributeSelectorService.getAvailableAttributes')
+    } as unknown as MockedObject<AttributeSelectorService>;
+    attributeServiceMock.getAvailableAttributes.mockReturnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
 
-    windowRefMock = jasmine.createSpyObj('WindowRef', ['close']);
+    windowRefMock = {
+      close: vi.fn().mockName('WindowRef.close')
+    } as unknown as MockedObject<WindowRef>;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -179,19 +178,17 @@ describe('AttributeSortSelectorDialogComponent', () => {
     });
 
     it('should trigger search after debounce delay', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.onSearchChange('test');
       expect(attributeServiceMock.getAvailableAttributes).not.toHaveBeenCalled();
 
       tick(300);
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestCkType', undefined, undefined, undefined, undefined, 'test', undefined, undefined
-      );
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestCkType', undefined, undefined, undefined, undefined, 'test', undefined, undefined);
     }));
 
     it('should not trigger search for same value (distinctUntilChanged)', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.onSearchChange('test');
       tick(300);
@@ -203,7 +200,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
     }));
 
     it('should trigger search for different values', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.onSearchChange('test1');
       tick(300);
@@ -214,7 +211,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
     }));
 
     it('should cancel pending search when new value entered', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.onSearchChange('test1');
       tick(150);
@@ -222,9 +219,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       tick(300);
 
       expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledTimes(1);
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestCkType', undefined, undefined, undefined, undefined, 'test2', undefined, undefined
-      );
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestCkType', undefined, undefined, undefined, undefined, 'test2', undefined, undefined);
     }));
   });
 
@@ -234,14 +229,12 @@ describe('AttributeSortSelectorDialogComponent', () => {
     });
 
     it('should reload attributes when value type filter changes', () => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.selectedValueTypeFilter = AttributeValueTypeDto.StringDto;
       component.onValueTypeFilterChange(component.selectedValueTypeFilter);
 
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestCkType', undefined, undefined, undefined, 'STRING', undefined, undefined, undefined
-      );
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestCkType', undefined, undefined, undefined, 'STRING', undefined, undefined, undefined);
     });
   });
 
@@ -560,7 +553,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       component.onOk();
 
       expect(windowRefMock.close).toHaveBeenCalled();
-      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSortSelectorDialogResult;
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSortSelectorDialogResult;
       expect(result.selectedAttributes).toEqual([]);
     });
 
@@ -576,7 +569,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       component.onOk();
 
       expect(windowRefMock.close).toHaveBeenCalled();
-      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSortSelectorDialogResult;
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSortSelectorDialogResult;
       expect(result.selectedAttributes.length).toBe(2);
       expect(result.selectedAttributes[0]).toEqual({
         attributePath: 'name',
@@ -700,7 +693,7 @@ describe('AttributeSortSelectorDialogComponent', () => {
       // Confirm
       component.onOk();
 
-      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSortSelectorDialogResult;
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSortSelectorDialogResult;
       expect(result.selectedAttributes.length).toBe(2);
       expect(result.selectedAttributes[0]).toEqual({
         attributePath: 'age',
@@ -763,8 +756,8 @@ describe('AttributeSortSelectorDialogComponent', () => {
       };
       fixture.detectChanges();
 
-      attributeServiceMock.getAvailableAttributes.calls.reset();
-      attributeServiceMock.getAvailableAttributes.and.returnValue(of({
+      attributeServiceMock.getAvailableAttributes.mockClear();
+      attributeServiceMock.getAvailableAttributes.mockReturnValue(of({
         items: [...mockAttributes],
         totalCount: mockAttributes.length
       }));

@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { SymbolRenderer } from './symbol.renderer';
 import { PrimitiveRendererRegistry } from '../primitive-renderer.registry';
@@ -9,7 +10,7 @@ import { RenderResult } from './primitive-renderer.interface';
 
 describe('SymbolRenderer', () => {
   let renderer: SymbolRenderer;
-  let primitiveRegistry: jasmine.SpyObj<PrimitiveRendererRegistry>;
+  let primitiveRegistry: MockedObject<PrimitiveRendererRegistry>;
 
   // Test data
   const createTestPrimitive = (id: string, name = 'Test Rect'): RectanglePrimitive => ({
@@ -43,10 +44,13 @@ describe('SymbolRenderer', () => {
   });
 
   beforeEach(() => {
-    primitiveRegistry = jasmine.createSpyObj('PrimitiveRendererRegistry', ['render', 'findPrimitiveAtPoint']);
+    primitiveRegistry = {
+      render: vi.fn().mockName('PrimitiveRendererRegistry.render'),
+      findPrimitiveAtPoint: vi.fn().mockName('PrimitiveRendererRegistry.findPrimitiveAtPoint')
+    } as unknown as MockedObject<PrimitiveRendererRegistry>;
 
     // Default mock implementation
-    primitiveRegistry.render.and.callFake((primitive, _context) => ({
+    primitiveRegistry.render.mockImplementation((primitive, _context) => ({
       tagName: 'rect',
       attributes: { id: primitive.id }
     } as RenderResult));
@@ -232,7 +236,7 @@ describe('SymbolRenderer', () => {
 
       // Verify the primitive was called with modified transform
       expect(primitiveRegistry.render).toHaveBeenCalled();
-      const callArgs = primitiveRegistry.render.calls.mostRecent().args[0];
+      const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
       expect(callArgs.transform?.rotation).toBe(180); // 50 * 3.6 = 180
     });
 
@@ -258,7 +262,7 @@ describe('SymbolRenderer', () => {
 
       renderer.render(instance, definition);
 
-      const callArgs = primitiveRegistry.render.calls.mostRecent().args[0];
+      const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
       expect(callArgs.style?.fill?.color).toBeDefined();
     });
 
@@ -284,7 +288,7 @@ describe('SymbolRenderer', () => {
 
       renderer.render(instance, definition);
 
-      const callArgs = primitiveRegistry.render.calls.mostRecent().args[0];
+      const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
       expect(callArgs.fillLevel).toBe(0.75);
     });
 
@@ -310,7 +314,7 @@ describe('SymbolRenderer', () => {
 
       renderer.render(instance, definition);
 
-      const callArgs = primitiveRegistry.render.calls.mostRecent().args[0];
+      const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
       expect(callArgs.visible).toBe(false);
     });
 
@@ -336,7 +340,7 @@ describe('SymbolRenderer', () => {
 
       renderer.render(instance, definition);
 
-      const callArgs = primitiveRegistry.render.calls.mostRecent().args[0];
+      const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
       expect(callArgs.transform?.rotation).toBe(45);
     });
 
@@ -369,7 +373,7 @@ describe('SymbolRenderer', () => {
 
       renderer.render(instance, definition);
 
-      const callArgs = primitiveRegistry.render.calls.mostRecent().args[0];
+      const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
       expect(callArgs.transform?.offsetX).toBe(25);
       expect(callArgs.transform?.offsetY).toBe(15);
     });
@@ -396,7 +400,7 @@ describe('SymbolRenderer', () => {
 
       renderer.render(instance, definition);
 
-      const callArgs = primitiveRegistry.render.calls.mostRecent().args[0];
+      const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
       expect(callArgs.transform?.scale).toBe(1.5);
     });
 
@@ -422,7 +426,7 @@ describe('SymbolRenderer', () => {
 
       renderer.render(instance, definition);
 
-      const callArgs = primitiveRegistry.render.calls.mostRecent().args[0];
+      const callArgs = vi.mocked(primitiveRegistry.render).mock.lastCall![0];
       expect(callArgs.style?.opacity).toBe(0.5);
     });
   });

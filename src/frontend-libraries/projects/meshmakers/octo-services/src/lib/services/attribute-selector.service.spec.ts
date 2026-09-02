@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { Apollo } from 'apollo-angular';
@@ -9,7 +10,7 @@ type MockQueryResult = Apollo.QueryResult<GetCkTypeAvailableQueryColumnsQueryDto
 
 describe('AttributeSelectorService', () => {
   let service: AttributeSelectorService;
-  let getCkTypeAvailableQueryColumnsGQLMock: jasmine.SpyObj<GetCkTypeAvailableQueryColumnsDtoGQL>;
+  let getCkTypeAvailableQueryColumnsGQLMock: MockedObject<GetCkTypeAvailableQueryColumnsDtoGQL>;
 
   const mockResponse = {
     data: {
@@ -47,7 +48,9 @@ describe('AttributeSelectorService', () => {
   } as unknown as MockQueryResult;
 
   beforeEach(() => {
-    getCkTypeAvailableQueryColumnsGQLMock = jasmine.createSpyObj('GetCkTypeAvailableQueryColumnsDtoGQL', ['fetch']);
+    getCkTypeAvailableQueryColumnsGQLMock = {
+      fetch: vi.fn().mockName('GetCkTypeAvailableQueryColumnsDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkTypeAvailableQueryColumnsDtoGQL>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -64,8 +67,8 @@ describe('AttributeSelectorService', () => {
   });
 
   describe('getAvailableAttributes', () => {
-    it('should return attributes for a valid ckTypeId', (done) => {
-      getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
+    it('should return attributes for a valid ckTypeId', () => new Promise<void>((done) => {
+      getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(result => {
         expect(result.items.length).toBe(3);
@@ -92,40 +95,40 @@ describe('AttributeSelectorService', () => {
         },
         fetchPolicy: 'network-only'
       });
-    });
+    }));
 
-    it('should use default first parameter', (done) => {
-      getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
+    it('should use default first parameter', () => new Promise<void>((done) => {
+      getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(() => {
-        const callArgs = getCkTypeAvailableQueryColumnsGQLMock.fetch.calls.mostRecent().args[0];
+        const callArgs = vi.mocked(getCkTypeAvailableQueryColumnsGQLMock.fetch).mock.lastCall![0];
         expect(callArgs.variables.first).toBe(1000);
         done();
       });
-    });
+    }));
 
-    it('should apply filter parameter', (done) => {
-      getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
+    it('should apply filter parameter', () => new Promise<void>((done) => {
+      getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer', 'name').subscribe(() => {
-        const callArgs = getCkTypeAvailableQueryColumnsGQLMock.fetch.calls.mostRecent().args[0];
+        const callArgs = vi.mocked(getCkTypeAvailableQueryColumnsGQLMock.fetch).mock.lastCall![0];
         expect(callArgs.variables.filter).toBe('name');
         done();
       });
-    });
+    }));
 
-    it('should apply pagination parameters', (done) => {
-      getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(mockResponse));
+    it('should apply pagination parameters', () => new Promise<void>((done) => {
+      getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(mockResponse));
 
       service.getAvailableAttributes('TestModel/Customer', undefined, 50, 'cursor1').subscribe(() => {
-        const callArgs = getCkTypeAvailableQueryColumnsGQLMock.fetch.calls.mostRecent().args[0];
+        const callArgs = vi.mocked(getCkTypeAvailableQueryColumnsGQLMock.fetch).mock.lastCall![0];
         expect(callArgs.variables.first).toBe(50);
         expect(callArgs.variables.after).toBe('cursor1');
         done();
       });
-    });
+    }));
 
-    it('should return empty result when type is not found', (done) => {
+    it('should return empty result when type is not found', () => new Promise<void>((done) => {
       const emptyResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -140,16 +143,16 @@ describe('AttributeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockQueryResult;
-      getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(emptyResponse));
+      getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(emptyResponse));
 
       service.getAvailableAttributes('NonExistent/Type').subscribe(result => {
         expect(result.items).toEqual([]);
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should return empty result when constructionKit is null', (done) => {
+    it('should return empty result when constructionKit is null', () => new Promise<void>((done) => {
       const nullCkResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -158,16 +161,16 @@ describe('AttributeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockQueryResult;
-      getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(nullCkResponse));
+      getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(nullCkResponse));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(result => {
         expect(result.items).toEqual([]);
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should filter out null items in the response', (done) => {
+    it('should filter out null items in the response', () => new Promise<void>((done) => {
       const responseWithNulls = {
         data: {
           __typename: 'OctoQuery',
@@ -201,16 +204,16 @@ describe('AttributeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockQueryResult;
-      getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(responseWithNulls));
+      getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(responseWithNulls));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(result => {
         expect(result.items.length).toBe(1);
         expect(result.items[0].attributePath).toBe('name');
         done();
       });
-    });
+    }));
 
-    it('should handle null availableQueryColumns', (done) => {
+    it('should handle null availableQueryColumns', () => new Promise<void>((done) => {
       const noColumnsResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -230,13 +233,13 @@ describe('AttributeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockQueryResult;
-      getCkTypeAvailableQueryColumnsGQLMock.fetch.and.returnValue(of(noColumnsResponse));
+      getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(noColumnsResponse));
 
       service.getAvailableAttributes('TestModel/Customer').subscribe(result => {
         expect(result.items).toEqual([]);
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
   });
 });

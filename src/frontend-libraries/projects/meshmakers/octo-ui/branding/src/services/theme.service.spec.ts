@@ -14,7 +14,8 @@ describe('ThemeService', () => {
       return k === 'theme' ? storedValue : null;
     };
     Storage.prototype.setItem = function (k: string, v: string): void {
-      if (k === 'theme') storedValue = v;
+      if (k === 'theme')
+        storedValue = v;
     };
   });
 
@@ -28,9 +29,7 @@ describe('ThemeService', () => {
     // Note: TestBed's matchMedia may report dark on some CI runners. We assert
     // that the attribute IS set and matches isDark(), rather than a hardcoded value.
     const svc = TestBed.inject(ThemeService);
-    expect(document.documentElement.getAttribute('data-theme')).toBe(
-      svc.isDark() ? 'dark' : 'light',
-    );
+    expect(document.documentElement.getAttribute('data-theme')).toBe(svc.isDark() ? 'dark' : 'light');
   });
 
   it('respects stored "dark" preference', () => {

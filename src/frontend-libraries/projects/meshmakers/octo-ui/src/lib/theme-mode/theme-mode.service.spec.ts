@@ -4,6 +4,7 @@ import { ThemeModeService, ThemeModePreference } from './theme-mode.service';
 describe('ThemeModeService', () => {
   let mediaQueryListeners: ((e: MediaQueryListEvent) => void)[];
   let mockMediaQuery: MediaQueryList;
+  let hadMatchMedia: boolean;
 
   beforeEach(() => {
     mediaQueryListeners = [];
@@ -16,12 +17,21 @@ describe('ThemeModeService', () => {
         mediaQueryListeners.push(listener),
       removeEventListener: () => undefined,
     } as unknown as MediaQueryList;
-    spyOn(window, 'matchMedia').and.returnValue(mockMediaQuery);
+    // jsdom implements no matchMedia, so there is nothing for vi.spyOn to wrap — install the stub.
+    hadMatchMedia = 'matchMedia' in window;
+    Object.defineProperty(window, 'matchMedia', {
+      value: () => mockMediaQuery,
+      configurable: true,
+      writable: true,
+    });
   });
 
   afterEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-theme');
+    if (!hadMatchMedia) {
+      delete (window as unknown as Record<string, unknown>)['matchMedia'];
+    }
   });
 
   function service(): ThemeModeService {
@@ -64,7 +74,7 @@ describe('ThemeModeService', () => {
     document.documentElement.setAttribute('data-theme', 'light');
     service().setPreference('system');
     expect(localStorage.getItem('octo-theme-preference')).toBeNull();
-    expect(document.documentElement.hasAttribute('data-theme')).toBeFalse();
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
   });
 
   it('cycle() goes system -> light -> dark -> system', () => {

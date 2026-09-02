@@ -5,16 +5,23 @@ import { ThemeModeService } from './theme-mode.service';
 describe('ThemeModeToggleComponent', () => {
   let fixture: ComponentFixture<ThemeModeToggleComponent>;
   let themeService: ThemeModeService;
+  let hadMatchMedia: boolean;
 
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-theme');
 
-    spyOn(window, 'matchMedia').and.returnValue({
-      matches: false,
-      addEventListener: () => undefined,
-      removeEventListener: () => undefined,
-    } as unknown as MediaQueryList);
+    // jsdom implements no matchMedia, so there is nothing for vi.spyOn to wrap — install the stub.
+    hadMatchMedia = 'matchMedia' in window;
+    Object.defineProperty(window, 'matchMedia', {
+      value: () => ({
+        matches: false,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      }) as unknown as MediaQueryList,
+      configurable: true,
+      writable: true,
+    });
 
     TestBed.configureTestingModule({
       imports: [ThemeModeToggleComponent],
@@ -27,6 +34,9 @@ describe('ThemeModeToggleComponent', () => {
   afterEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-theme');
+    if (!hadMatchMedia) {
+      delete (window as unknown as Record<string, unknown>)['matchMedia'];
+    }
   });
 
   it('renders a button with an aria-label', () => {

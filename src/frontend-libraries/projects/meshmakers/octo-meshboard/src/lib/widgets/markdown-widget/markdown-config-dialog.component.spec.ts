@@ -1,3 +1,4 @@
+import type { Mock, MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { WindowRef } from '@progress/kendo-angular-dialog';
 import { MarkdownConfigDialogComponent, MarkdownConfigResult } from './markdown-config-dialog.component';
@@ -9,12 +10,14 @@ import { MarkdownConfigDialogComponent, MarkdownConfigResult } from './markdown-
  */
 describe('MarkdownConfigDialogComponent', () => {
   let component: MarkdownConfigDialogComponent;
-  let mockWindowRef: jasmine.SpyObj<WindowRef>;
-  let closeSpy: jasmine.Spy;
+  let mockWindowRef: MockedObject<WindowRef>;
+  let closeSpy: Mock;
 
   beforeEach(() => {
-    mockWindowRef = jasmine.createSpyObj('WindowRef', ['close']);
-    closeSpy = mockWindowRef.close as jasmine.Spy;
+    mockWindowRef = {
+      close: vi.fn().mockName('WindowRef.close')
+    } as unknown as MockedObject<WindowRef>;
+    closeSpy = mockWindowRef.close as Mock;
 
     TestBed.configureTestingModule({
       providers: [
@@ -36,12 +39,12 @@ describe('MarkdownConfigDialogComponent', () => {
     });
 
     it('should have showPreview signal initially false', () => {
-      expect(component.showPreview()).toBeFalse();
+      expect(component.showPreview()).toBe(false);
     });
 
     it('should have default values before ngOnInit', () => {
       expect(component.content).toBe('');
-      expect(component.resolveVariables).toBeTrue();
+      expect(component.resolveVariables).toBe(true);
       expect(component.padding).toBe('16px');
       expect(component.textAlign).toBe('left');
     });
@@ -61,7 +64,7 @@ describe('MarkdownConfigDialogComponent', () => {
     it('should initialize resolveVariables from input', () => {
       component.initialResolveVariables = false;
       component.ngOnInit();
-      expect(component.resolveVariables).toBeFalse();
+      expect(component.resolveVariables).toBe(false);
     });
 
     it('should initialize padding from input', () => {
@@ -85,7 +88,7 @@ describe('MarkdownConfigDialogComponent', () => {
     it('should use default when initialResolveVariables is undefined', () => {
       component.initialResolveVariables = undefined;
       component.ngOnInit();
-      expect(component.resolveVariables).toBeTrue();
+      expect(component.resolveVariables).toBe(true);
     });
 
     it('should use default when initialPadding is undefined', () => {
@@ -108,7 +111,7 @@ describe('MarkdownConfigDialogComponent', () => {
       component.ngOnInit();
 
       expect(component.content).toBe('# Test');
-      expect(component.resolveVariables).toBeFalse();
+      expect(component.resolveVariables).toBe(false);
       expect(component.padding).toBe('32px');
       expect(component.textAlign).toBe('right');
     });
@@ -127,7 +130,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
       component.onSave();
 
-      expect(mockWindowRef.close).toHaveBeenCalledWith(jasmine.objectContaining({
+      expect(mockWindowRef.close).toHaveBeenCalledWith(expect.objectContaining({
         content: '# Test Content',
         resolveVariables: true,
         padding: '20px',
@@ -142,7 +145,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
       component.onSave();
 
-      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
       expect(result.padding).toBeUndefined();
     });
 
@@ -152,7 +155,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
       component.onSave();
 
-      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
       expect(result.textAlign).toBe('left');
     });
 
@@ -162,7 +165,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
       component.onSave();
 
-      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
       expect(result.textAlign).toBe('center');
     });
 
@@ -172,7 +175,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
       component.onSave();
 
-      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
       expect(result.textAlign).toBe('right');
     });
 
@@ -182,8 +185,8 @@ describe('MarkdownConfigDialogComponent', () => {
 
       component.onSave();
 
-      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
-      expect(result.resolveVariables).toBeFalse();
+      const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
+      expect(result.resolveVariables).toBe(false);
     });
 
     it('should emit empty content when not set', () => {
@@ -191,7 +194,7 @@ describe('MarkdownConfigDialogComponent', () => {
 
       component.onSave();
 
-      const result = closeSpy.calls.mostRecent().args[0] as MarkdownConfigResult;
+      const result = vi.mocked(closeSpy).mock.lastCall![0] as MarkdownConfigResult;
       expect(result.content).toBe('');
     });
   });
@@ -209,7 +212,7 @@ describe('MarkdownConfigDialogComponent', () => {
     it('should not pass any result on cancel', () => {
       component.onCancel();
       expect(mockWindowRef.close).toHaveBeenCalledTimes(1);
-      expect(closeSpy.calls.mostRecent().args.length).toBe(0);
+      expect(vi.mocked(closeSpy).mock.lastCall!.length).toBe(0);
     });
   });
 
@@ -219,16 +222,16 @@ describe('MarkdownConfigDialogComponent', () => {
 
   describe('preview toggle', () => {
     it('should toggle showPreview to true', () => {
-      expect(component.showPreview()).toBeFalse();
+      expect(component.showPreview()).toBe(false);
       component.showPreview.set(true);
-      expect(component.showPreview()).toBeTrue();
+      expect(component.showPreview()).toBe(true);
     });
 
     it('should toggle showPreview to false', () => {
       component.showPreview.set(true);
-      expect(component.showPreview()).toBeTrue();
+      expect(component.showPreview()).toBe(true);
       component.showPreview.set(false);
-      expect(component.showPreview()).toBeFalse();
+      expect(component.showPreview()).toBe(false);
     });
   });
 

@@ -309,46 +309,46 @@ describe('DesignerZOrderService', () => {
   describe('isAtFront', () => {
     it('should return true for last element', () => {
       const diagram = createTestDiagram();
-      expect(service.isAtFront(diagram, 'elem-3')).toBeTrue();
+      expect(service.isAtFront(diagram, 'elem-3')).toBe(true);
     });
 
     it('should return true for last primitive', () => {
       const diagram = createTestDiagram();
-      expect(service.isAtFront(diagram, 'prim-3')).toBeTrue();
+      expect(service.isAtFront(diagram, 'prim-3')).toBe(true);
     });
 
     it('should return true for last symbol', () => {
       const diagram = createTestDiagram();
-      expect(service.isAtFront(diagram, 'sym-2')).toBeTrue();
+      expect(service.isAtFront(diagram, 'sym-2')).toBe(true);
     });
 
     it('should return false for non-last items', () => {
       const diagram = createTestDiagram();
-      expect(service.isAtFront(diagram, 'elem-1')).toBeFalse();
-      expect(service.isAtFront(diagram, 'elem-2')).toBeFalse();
+      expect(service.isAtFront(diagram, 'elem-1')).toBe(false);
+      expect(service.isAtFront(diagram, 'elem-2')).toBe(false);
     });
   });
 
   describe('isAtBack', () => {
     it('should return true for first element', () => {
       const diagram = createTestDiagram();
-      expect(service.isAtBack(diagram, 'elem-1')).toBeTrue();
+      expect(service.isAtBack(diagram, 'elem-1')).toBe(true);
     });
 
     it('should return true for first primitive', () => {
       const diagram = createTestDiagram();
-      expect(service.isAtBack(diagram, 'prim-1')).toBeTrue();
+      expect(service.isAtBack(diagram, 'prim-1')).toBe(true);
     });
 
     it('should return true for first symbol', () => {
       const diagram = createTestDiagram();
-      expect(service.isAtBack(diagram, 'sym-1')).toBeTrue();
+      expect(service.isAtBack(diagram, 'sym-1')).toBe(true);
     });
 
     it('should return false for non-first items', () => {
       const diagram = createTestDiagram();
-      expect(service.isAtBack(diagram, 'elem-2')).toBeFalse();
-      expect(service.isAtBack(diagram, 'elem-3')).toBeFalse();
+      expect(service.isAtBack(diagram, 'elem-2')).toBe(false);
+      expect(service.isAtBack(diagram, 'elem-3')).toBe(false);
     });
   });
 
