@@ -166,8 +166,7 @@ unaffected — this is a test-runner-only defect. Symptom: a spec passes alone a
 as a second spec importing the same module joins the run, and `--isolate` does not help.
 Fields initialised from **node_modules** imports (Kendo SVG icons) are fine.
 
-**Upstream:** this is `angular/angular-cli#33728`. The rule stays until the workspace moves past
-the upstream fix, tracked in AB#5075.
+**Upstream:** `angular/angular-cli#33728`.
 
 The twelve sites that were latent (green only because their modules were not in a lazy shared
 chunk) were converted in AB#5075, together with three further fields in the same modules that

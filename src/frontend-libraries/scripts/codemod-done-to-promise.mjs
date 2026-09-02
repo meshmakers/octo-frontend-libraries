@@ -4,7 +4,7 @@
 // The test body is left byte-identical. Usage: node scripts/codemod-done-to-promise.mjs <dir> [<dir>...]
 import ts from 'typescript';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 function transform(source) {
   const sf = ts.createSourceFile('spec.ts', source, ts.ScriptTarget.Latest, true);
@@ -40,13 +40,9 @@ function transform(source) {
 
 let total = 0;
 for (const dir of process.argv.slice(2)) {
-  if (dir.includes('"')) {
-    console.error(`Skipping directory with unsupported double quote: ${dir}`);
-    continue;
-  }
   let listing = '';
   try {
-    listing = execSync(`grep -rl --include='*.spec.ts' -- '(done' "${dir}"`, { encoding: 'utf8' });
+    listing = execFileSync('grep', ['-rl', '--include=*.spec.ts', '--', '(done', dir], { encoding: 'utf8' }); // no shell: the directory argument is never interpreted
   } catch (e) {
     if (e.status !== 1) throw e; // grep exit 1 = no matches (fine); 2 = real error (bad path)
   }
