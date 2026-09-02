@@ -91,7 +91,7 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
 
   describe('fetchData', () => {
-    it('should return null for unsupported data source types', (done) => {
+    it('should return null for unsupported data source types', () => new Promise<void>((done) => {
       const dataSource: PersistentQueryDataSource = {
         type: 'persistentQuery',
         queryRtId: 'test-query'
@@ -101,9 +101,9 @@ describe('MeshBoardDataService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should return static data for static data source', (done) => {
+    it('should return static data for static data source', () => new Promise<void>((done) => {
       const staticData = { rtId: 'static-1', ckTypeId: 'TestType', attributes: [], associations: [] };
       const dataSource: StaticDataSource = {
         type: 'static',
@@ -114,9 +114,9 @@ describe('MeshBoardDataService', () => {
         expect(result).toEqual(staticData);
         done();
       });
-    });
+    }));
 
-    it('should call fetchRuntimeEntity for runtimeEntity data source', (done) => {
+    it('should call fetchRuntimeEntity for runtimeEntity data source', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
@@ -148,7 +148,7 @@ describe('MeshBoardDataService', () => {
         expect(entity?.rtId).toBe('test-rt-id');
         done();
       });
-    });
+    }));
   });
 
   // ========================================================================
@@ -156,7 +156,7 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
 
   describe('fetchRuntimeEntity', () => {
-    it('should return null when rtId is missing', (done) => {
+    it('should return null when rtId is missing', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         ckTypeId: 'TestType'
@@ -167,9 +167,9 @@ describe('MeshBoardDataService', () => {
         expect(getDashboardEntityGQLSpy.fetch).not.toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should return null when ckTypeId is missing', (done) => {
+    it('should return null when ckTypeId is missing', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id'
@@ -180,9 +180,9 @@ describe('MeshBoardDataService', () => {
         expect(getDashboardEntityGQLSpy.fetch).not.toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should return null when entity not found', (done) => {
+    it('should return null when entity not found', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'non-existent',
@@ -205,9 +205,9 @@ describe('MeshBoardDataService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should map entity data correctly', (done) => {
+    it('should map entity data correctly', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
@@ -261,9 +261,9 @@ describe('MeshBoardDataService', () => {
         expect(result?.associations[0].targetRtId).toBe('target-1');
         done();
       });
-    });
+    }));
 
-    it('should handle null attributes gracefully', (done) => {
+    it('should handle null attributes gracefully', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
@@ -298,9 +298,9 @@ describe('MeshBoardDataService', () => {
         expect(result?.attributes[0].attributeName).toBe('valid');
         done();
       });
-    });
+    }));
 
-    it('should handle null associations gracefully', (done) => {
+    it('should handle null associations gracefully', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
@@ -342,7 +342,7 @@ describe('MeshBoardDataService', () => {
         expect(result?.associations[0].targetRtId).toBe('valid-target');
         done();
       });
-    });
+    }));
   });
 
   // ========================================================================
@@ -350,7 +350,7 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
 
   describe('fetchEntityWithAssociations', () => {
-    it('should fetch entity by rtId and ckTypeId', (done) => {
+    it('should fetch entity by rtId and ckTypeId', () => new Promise<void>((done) => {
       getDashboardEntityGQLSpy.fetch.and.returnValue(of({
         data: {
           runtime: {
@@ -373,9 +373,9 @@ describe('MeshBoardDataService', () => {
         expect(result?.ckTypeId).toBe('EntityType');
         done();
       });
-    });
+    }));
 
-    it('should return null when entity not found', (done) => {
+    it('should return null when entity not found', () => new Promise<void>((done) => {
       getDashboardEntityGQLSpy.fetch.and.returnValue(of({
         data: {
           runtime: {
@@ -392,7 +392,7 @@ describe('MeshBoardDataService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
   });
 
   // ========================================================================
@@ -1210,7 +1210,7 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
 
   describe('Edge Cases', () => {
-    it('should handle empty runtime response', (done) => {
+    it('should handle empty runtime response', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
@@ -1229,9 +1229,9 @@ describe('MeshBoardDataService', () => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should handle undefined rtWellKnownName', (done) => {
+    it('should handle undefined rtWellKnownName', () => new Promise<void>((done) => {
       const dataSource: RuntimeEntityDataSource = {
         type: 'runtimeEntity',
         rtId: 'test-rt-id',
@@ -1260,7 +1260,7 @@ describe('MeshBoardDataService', () => {
         expect(result?.rtWellKnownName).toBeUndefined();
         done();
       });
-    });
+    }));
 
     it('should handle CK query with null constructionKit data', async () => {
       apolloSpy.query.and.returnValue(of({

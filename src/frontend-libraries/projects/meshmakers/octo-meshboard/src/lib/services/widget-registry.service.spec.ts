@@ -710,7 +710,7 @@ describe('WidgetRegistryService', () => {
   // ========================================================================
 
   describe('openConfigDialog', () => {
-    it('should return saved: false when widget has no config dialog', (done) => {
+    it('should return saved: false when widget has no config dialog', () => new Promise<void>((done) => {
       service.registerWidget(createGaugeRegistration());
       const widget = createMockGaugeWidget();
 
@@ -719,16 +719,16 @@ describe('WidgetRegistryService', () => {
         expect(result.result).toBeUndefined();
         done();
       });
-    });
+    }));
 
-    it('should return saved: false for unregistered widget type', (done) => {
+    it('should return saved: false for unregistered widget type', () => new Promise<void>((done) => {
       const widget = createMockKpiWidget();
 
       service.openConfigDialog(widget).subscribe(result => {
         expect(result.saved).toBeFalse();
         done();
       });
-    });
+    }));
   });
 
   // ========================================================================
