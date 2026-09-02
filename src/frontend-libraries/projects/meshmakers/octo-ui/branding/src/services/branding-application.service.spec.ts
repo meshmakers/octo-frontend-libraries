@@ -1,11 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import {
-  NEUTRAL_BRANDING_DEFAULTS,
-  NEUTRAL_FALLBACK_ASSETS,
-  OCTO_BRANDING_DEFAULTS,
-  OCTO_BRANDING_FALLBACK_ASSETS,
-} from '../branding.tokens';
+import { NEUTRAL_BRANDING_DEFAULTS, NEUTRAL_FALLBACK_ASSETS, OCTO_BRANDING_DEFAULTS, OCTO_BRANDING_FALLBACK_ASSETS, } from '../branding.tokens';
 import { BrandingData } from '../models/branding.models';
 import { BrandingApplicationService } from './branding-application.service';
 import { BrandingDataSource } from './branding-data-source.service';
@@ -24,7 +19,7 @@ describe('BrandingApplicationService – palette generation', () => {
           provide: ThemeService,
           useValue: {
             isDark: signal(false),
-            setDark: jasmine.createSpy('setDark'),
+            setDark: vi.fn().mockName('setDark'),
           },
         },
         {

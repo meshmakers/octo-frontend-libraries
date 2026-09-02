@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { Apollo } from 'apollo-angular';
@@ -11,9 +12,9 @@ type MockCkTypeByIdResult = Apollo.QueryResult<GetCkTypeByRtCkTypeIdQueryDto>;
 
 describe('CkTypeSelectorService', () => {
   let service: CkTypeSelectorService;
-  let getCkTypesGQLMock: jasmine.SpyObj<GetCkTypesDtoGQL>;
-  let getCkTypeByRtCkTypeIdGQLMock: jasmine.SpyObj<GetCkTypeByRtCkTypeIdDtoGQL>;
-  let getDerivedCkTypesGQLMock: jasmine.SpyObj<GetDerivedCkTypesDtoGQL>;
+  let getCkTypesGQLMock: MockedObject<GetCkTypesDtoGQL>;
+  let getCkTypeByRtCkTypeIdGQLMock: MockedObject<GetCkTypeByRtCkTypeIdDtoGQL>;
+  let getDerivedCkTypesGQLMock: MockedObject<GetDerivedCkTypesDtoGQL>;
 
   const mockCkTypeItem = {
     __typename: 'CkType' as const,
@@ -67,9 +68,15 @@ describe('CkTypeSelectorService', () => {
   } as unknown as MockCkTypeByIdResult;
 
   beforeEach(() => {
-    getCkTypesGQLMock = jasmine.createSpyObj('GetCkTypesDtoGQL', ['fetch']);
-    getCkTypeByRtCkTypeIdGQLMock = jasmine.createSpyObj('GetCkTypeByRtCkTypeIdDtoGQL', ['fetch']);
-    getDerivedCkTypesGQLMock = jasmine.createSpyObj('GetDerivedCkTypesDtoGQL', ['fetch']);
+    getCkTypesGQLMock = {
+      fetch: vi.fn().mockName('GetCkTypesDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkTypesDtoGQL>;
+    getCkTypeByRtCkTypeIdGQLMock = {
+      fetch: vi.fn().mockName('GetCkTypeByRtCkTypeIdDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkTypeByRtCkTypeIdDtoGQL>;
+    getDerivedCkTypesGQLMock = {
+      fetch: vi.fn().mockName('GetDerivedCkTypesDtoGQL.fetch')
+    } as unknown as MockedObject<GetDerivedCkTypesDtoGQL>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -88,15 +95,15 @@ describe('CkTypeSelectorService', () => {
   });
 
   describe('getCkTypeByRtCkTypeId', () => {
-    it('should return CkTypeSelectorItem when type is found', (done) => {
-      getCkTypeByRtCkTypeIdGQLMock.fetch.and.returnValue(of(mockCkTypeByIdResponse));
+    it('should return CkTypeSelectorItem when type is found', () => new Promise<void>((done) => {
+      getCkTypeByRtCkTypeIdGQLMock.fetch.mockReturnValue(of(mockCkTypeByIdResponse));
 
       service.getCkTypeByRtCkTypeId('TestModel/Customer').subscribe(result => {
         expect(result).toBeTruthy();
         expect(result?.fullName).toBe('TestModel-1.0.0/Customer-1');
         expect(result?.rtCkTypeId).toBe('TestModel/Customer');
-        expect(result?.isAbstract).toBeFalse();
-        expect(result?.isFinal).toBeFalse();
+        expect(result?.isAbstract).toBe(false);
+        expect(result?.isFinal).toBe(false);
         done();
       });
 
@@ -104,9 +111,9 @@ describe('CkTypeSelectorService', () => {
         variables: { rtCkTypeId: 'TestModel/Customer' },
         fetchPolicy: 'network-only'
       });
-    });
+    }));
 
-    it('should return null when type is not found', (done) => {
+    it('should return null when type is not found', () => new Promise<void>((done) => {
       const emptyResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -121,15 +128,15 @@ describe('CkTypeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockCkTypeByIdResult;
-      getCkTypeByRtCkTypeIdGQLMock.fetch.and.returnValue(of(emptyResponse));
+      getCkTypeByRtCkTypeIdGQLMock.fetch.mockReturnValue(of(emptyResponse));
 
       service.getCkTypeByRtCkTypeId('NonExistent/Type').subscribe(result => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should return null when items array is null', (done) => {
+    it('should return null when items array is null', () => new Promise<void>((done) => {
       const nullItemsResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -144,15 +151,15 @@ describe('CkTypeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockCkTypeByIdResult;
-      getCkTypeByRtCkTypeIdGQLMock.fetch.and.returnValue(of(nullItemsResponse));
+      getCkTypeByRtCkTypeIdGQLMock.fetch.mockReturnValue(of(nullItemsResponse));
 
       service.getCkTypeByRtCkTypeId('TestModel/Customer').subscribe(result => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should return null when constructionKit is null', (done) => {
+    it('should return null when constructionKit is null', () => new Promise<void>((done) => {
       const nullCkResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -161,18 +168,18 @@ describe('CkTypeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockCkTypeByIdResult;
-      getCkTypeByRtCkTypeIdGQLMock.fetch.and.returnValue(of(nullCkResponse));
+      getCkTypeByRtCkTypeIdGQLMock.fetch.mockReturnValue(of(nullCkResponse));
 
       service.getCkTypeByRtCkTypeId('TestModel/Customer').subscribe(result => {
         expect(result).toBeNull();
         done();
       });
-    });
+    }));
   });
 
   describe('getCkTypes', () => {
-    it('should return CkTypeSelectorResult with items', (done) => {
-      getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
+    it('should return CkTypeSelectorResult with items', () => new Promise<void>((done) => {
+      getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
       service.getCkTypes().subscribe(result => {
         expect(result.items.length).toBe(1);
@@ -180,73 +187,73 @@ describe('CkTypeSelectorService', () => {
         const item = result.items[0];
         expect(item.fullName).toBe('TestModel-1.0.0/Customer-1');
         expect(item.rtCkTypeId).toBe('TestModel/Customer');
-        expect(item.isAbstract).toBeFalse();
-        expect(item.isFinal).toBeTrue();
+        expect(item.isAbstract).toBe(false);
+        expect(item.isFinal).toBe(true);
         expect(item.description).toBe('Test customer type');
         expect(item.baseTypeFullName).toBe('TestModel-1.0.0/Entity-1');
         expect(item.baseTypeRtCkTypeId).toBe('TestModel/Entity');
         done();
       });
-    });
+    }));
 
-    it('should use default pagination parameters', (done) => {
-      getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
+    it('should use default pagination parameters', () => new Promise<void>((done) => {
+      getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
       service.getCkTypes().subscribe(() => {
-        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0]!;
+        const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall![0]!;
         expect(callArgs.variables!.ckModelIds).toBeNull();
         expect(callArgs.variables!.first).toBe(50);
         expect(callArgs.variables!.searchFilter).toBeNull();
         expect(callArgs.fetchPolicy).toBe('network-only');
         done();
       });
-    });
+    }));
 
-    it('should apply custom pagination parameters', (done) => {
-      getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
+    it('should apply custom pagination parameters', () => new Promise<void>((done) => {
+      getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ first: 20, skip: 10 }).subscribe(() => {
         expect(getCkTypesGQLMock.fetch).toHaveBeenCalledWith({
           variables: {
             ckModelIds: null,
             first: 20,
-            after: jasmine.any(String),
+            after: expect.any(String),
             searchFilter: null
           },
           fetchPolicy: 'network-only'
         });
         done();
       });
-    });
+    }));
 
-    it('should filter by model IDs', (done) => {
-      getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
+    it('should filter by model IDs', () => new Promise<void>((done) => {
+      getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ ckModelIds: ['model-1', 'model-2'] }).subscribe(() => {
-        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0]!;
+        const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall![0]!;
         expect(callArgs.variables!.ckModelIds).toEqual(['model-1', 'model-2']);
         expect(callArgs.variables!.first).toBe(50);
         expect(callArgs.variables!.searchFilter).toBeNull();
         expect(callArgs.fetchPolicy).toBe('network-only');
         done();
       });
-    });
+    }));
 
-    it('should apply search filter', (done) => {
-      getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
+    it('should apply search filter', () => new Promise<void>((done) => {
+      getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ searchText: 'Customer' }).subscribe(() => {
-        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0]!;
-        expect(callArgs.variables!.searchFilter).toEqual(jasmine.objectContaining({
+        const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall![0]!;
+        expect(callArgs.variables!.searchFilter).toEqual(expect.objectContaining({
           type: 'ATTRIBUTE_FILTER',
           attributePaths: ['ckTypeId'],
           searchTerm: 'Customer'
         }));
         done();
       });
-    });
+    }));
 
-    it('should return empty result when types is null', (done) => {
+    it('should return empty result when types is null', () => new Promise<void>((done) => {
       const nullTypesResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -258,16 +265,16 @@ describe('CkTypeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockCkTypesResult;
-      getCkTypesGQLMock.fetch.and.returnValue(of(nullTypesResponse));
+      getCkTypesGQLMock.fetch.mockReturnValue(of(nullTypesResponse));
 
       service.getCkTypes().subscribe(result => {
         expect(result.items).toEqual([]);
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should return empty result when constructionKit is null', (done) => {
+    it('should return empty result when constructionKit is null', () => new Promise<void>((done) => {
       const nullCkResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -276,16 +283,16 @@ describe('CkTypeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockCkTypesResult;
-      getCkTypesGQLMock.fetch.and.returnValue(of(nullCkResponse));
+      getCkTypesGQLMock.fetch.mockReturnValue(of(nullCkResponse));
 
       service.getCkTypes().subscribe(result => {
         expect(result.items).toEqual([]);
         expect(result.totalCount).toBe(0);
         done();
       });
-    });
+    }));
 
-    it('should handle null items in the array', (done) => {
+    it('should handle null items in the array', () => new Promise<void>((done) => {
       const responseWithNulls = {
         data: {
           __typename: 'OctoQuery',
@@ -301,26 +308,26 @@ describe('CkTypeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockCkTypesResult;
-      getCkTypesGQLMock.fetch.and.returnValue(of(responseWithNulls));
+      getCkTypesGQLMock.fetch.mockReturnValue(of(responseWithNulls));
 
       service.getCkTypes().subscribe(result => {
         expect(result.items.length).toBe(1);
         expect(result.totalCount).toBe(2);
         done();
       });
-    });
+    }));
 
-    it('should handle empty ckModelIds array as null', (done) => {
-      getCkTypesGQLMock.fetch.and.returnValue(of(mockCkTypesResponse));
+    it('should handle empty ckModelIds array as null', () => new Promise<void>((done) => {
+      getCkTypesGQLMock.fetch.mockReturnValue(of(mockCkTypesResponse));
 
       service.getCkTypes({ ckModelIds: [] }).subscribe(() => {
-        const callArgs = getCkTypesGQLMock.fetch.calls.mostRecent().args[0]!;
+        const callArgs = vi.mocked(getCkTypesGQLMock.fetch).mock.lastCall![0]!;
         expect(callArgs.variables!.ckModelIds).toBeNull();
         done();
       });
-    });
+    }));
 
-    it('should map item without base type correctly', (done) => {
+    it('should map item without base type correctly', () => new Promise<void>((done) => {
       const itemWithoutBaseType = {
         ...mockCkTypeItem,
         baseType: null
@@ -340,7 +347,7 @@ describe('CkTypeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockCkTypesResult;
-      getCkTypesGQLMock.fetch.and.returnValue(of(response));
+      getCkTypesGQLMock.fetch.mockReturnValue(of(response));
 
       service.getCkTypes().subscribe(result => {
         const item = result.items[0];
@@ -348,9 +355,9 @@ describe('CkTypeSelectorService', () => {
         expect(item.baseTypeRtCkTypeId).toBeUndefined();
         done();
       });
-    });
+    }));
 
-    it('should handle null description', (done) => {
+    it('should handle null description', () => new Promise<void>((done) => {
       const itemWithNullDescription = {
         ...mockCkTypeItem,
         description: null
@@ -370,13 +377,13 @@ describe('CkTypeSelectorService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockCkTypesResult;
-      getCkTypesGQLMock.fetch.and.returnValue(of(response));
+      getCkTypesGQLMock.fetch.mockReturnValue(of(response));
 
       service.getCkTypes().subscribe(result => {
         const item = result.items[0];
         expect(item.description).toBeUndefined();
         done();
       });
-    });
+    }));
   });
 });

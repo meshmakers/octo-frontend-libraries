@@ -18,27 +18,23 @@ describe('AiQuotaIndicatorComponent', () => {
     fixture.detectChanges();
 
     const bar = fixture.nativeElement.querySelector('.mm-ai-quota__bar');
-    expect(bar.classList.contains('mm-ai-quota__bar--ok')).toBeTrue();
+    expect(bar.classList.contains('mm-ai-quota__bar--ok')).toBe(true);
   });
 
   it('flips to warning state at 80% and critical at 100%', () => {
     fixture.componentRef.setInput('dailyConsumed', 800);
     fixture.componentRef.setInput('dailyCap', 1000);
     fixture.detectChanges();
-    expect(
-      fixture.nativeElement
-        .querySelector('.mm-ai-quota__bar')
-        .classList.contains('mm-ai-quota__bar--warning'),
-    ).toBeTrue();
+    expect(fixture.nativeElement
+      .querySelector('.mm-ai-quota__bar')
+      .classList.contains('mm-ai-quota__bar--warning')).toBe(true);
 
     fixture.componentRef.setInput('dailyConsumed', 1000);
     fixture.componentRef.setInput('dailyCap', 1000);
     fixture.detectChanges();
-    expect(
-      fixture.nativeElement
-        .querySelector('.mm-ai-quota__bar')
-        .classList.contains('mm-ai-quota__bar--critical'),
-    ).toBeTrue();
+    expect(fixture.nativeElement
+      .querySelector('.mm-ai-quota__bar')
+      .classList.contains('mm-ai-quota__bar--critical')).toBe(true);
   });
 
   it('hides the monthly row when the cap is not supplied', () => {

@@ -1,3 +1,4 @@
+import type { Mock, MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { OAuthService, OAuthEvent, TokenResponse } from 'angular-oauth2-oidc';
@@ -13,11 +14,11 @@ function createMockJwt(payload: Record<string, unknown>): string {
 
 describe('AuthorizeService', () => {
   let service: AuthorizeService;
-  let oauthServiceMock: jasmine.SpyObj<OAuthService>;
+  let oauthServiceMock: MockedObject<OAuthService>;
   let oauthEvents$: Subject<OAuthEvent>;
   let discoveryDocumentLoaded$: Subject<unknown>;
-  let _reloadPageSpy: jasmine.Spy;
-  let _navigateToSpy: jasmine.Spy;
+  let _reloadPageSpy: Mock;
+  let _navigateToSpy: Mock;
 
   const mockUser: IUser = {
     family_name: 'Mustermann',
@@ -44,29 +45,28 @@ describe('AuthorizeService', () => {
     oauthEvents$ = new Subject<OAuthEvent>();
     discoveryDocumentLoaded$ = new Subject<unknown>();
 
-    oauthServiceMock = jasmine.createSpyObj('OAuthService', [
-      'configure',
-      'setStorage',
-      'loadDiscoveryDocumentAndTryLogin',
-      'setupAutomaticSilentRefresh',
-      'stopAutomaticRefresh',
-      'hasValidIdToken',
-      'refreshToken',
-      'getIdentityClaims',
-      'getAccessToken',
-      'getIdToken',
-      'initImplicitFlow',
-      'logOut'
-    ], {
+    oauthServiceMock = {
+      configure: vi.fn().mockName('OAuthService.configure'),
+      setStorage: vi.fn().mockName('OAuthService.setStorage'),
+      loadDiscoveryDocumentAndTryLogin: vi.fn().mockName('OAuthService.loadDiscoveryDocumentAndTryLogin'),
+      setupAutomaticSilentRefresh: vi.fn().mockName('OAuthService.setupAutomaticSilentRefresh'),
+      stopAutomaticRefresh: vi.fn().mockName('OAuthService.stopAutomaticRefresh'),
+      hasValidIdToken: vi.fn().mockName('OAuthService.hasValidIdToken'),
+      refreshToken: vi.fn().mockName('OAuthService.refreshToken'),
+      getIdentityClaims: vi.fn().mockName('OAuthService.getIdentityClaims'),
+      getAccessToken: vi.fn().mockName('OAuthService.getAccessToken'),
+      getIdToken: vi.fn().mockName('OAuthService.getIdToken'),
+      initImplicitFlow: vi.fn().mockName('OAuthService.initImplicitFlow'),
+      logOut: vi.fn().mockName('OAuthService.logOut'),
       events: oauthEvents$.asObservable(),
       discoveryDocumentLoaded$: discoveryDocumentLoaded$.asObservable()
-    });
+    } as unknown as MockedObject<OAuthService>;
 
-    oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.returnValue(Promise.resolve(true));
-    oauthServiceMock.hasValidIdToken.and.returnValue(false);
-    oauthServiceMock.refreshToken.and.returnValue(Promise.resolve({} as TokenResponse));
-    oauthServiceMock.getIdentityClaims.and.returnValue(mockUser);
-    oauthServiceMock.getAccessToken.and.returnValue('mock-access-token');
+    oauthServiceMock.loadDiscoveryDocumentAndTryLogin.mockResolvedValue(true);
+    oauthServiceMock.hasValidIdToken.mockReturnValue(false);
+    oauthServiceMock.refreshToken.mockResolvedValue({} as TokenResponse);
+    oauthServiceMock.getIdentityClaims.mockReturnValue(mockUser);
+    oauthServiceMock.getAccessToken.mockReturnValue('mock-access-token');
 
     TestBed.configureTestingModule({
       providers: [
@@ -78,8 +78,12 @@ describe('AuthorizeService', () => {
     service = TestBed.inject(AuthorizeService);
 
     // Spy on the protected reloadPage and navigateTo methods to prevent actual page navigation during tests
-    _reloadPageSpy = spyOn(service as unknown as { reloadPage: () => void }, 'reloadPage');
-    _navigateToSpy = spyOn(service as unknown as { navigateTo: (url: string) => void }, 'navigateTo');
+    _reloadPageSpy = vi.spyOn(service as unknown as {
+            reloadPage: () => void;
+        }, 'reloadPage').mockReturnValue(undefined);
+    _navigateToSpy = vi.spyOn(service as unknown as {
+            navigateTo: (url: string) => void;
+        }, 'navigateTo').mockReturnValue(undefined);
   });
 
   // =============================================================================
@@ -93,7 +97,7 @@ describe('AuthorizeService', () => {
       });
 
       it('should have initial state as not authenticated', () => {
-        expect(service.isAuthenticated()).toBeFalse();
+        expect(service.isAuthenticated()).toBe(false);
       });
 
       it('should have initial user as null', () => {
@@ -113,7 +117,7 @@ describe('AuthorizeService', () => {
       });
 
       it('should have initial sessionLoading as false', () => {
-        expect(service.sessionLoading()).toBeFalse();
+        expect(service.sessionLoading()).toBe(false);
       });
 
       it('should have initial roles as empty array', () => {
@@ -125,7 +129,7 @@ describe('AuthorizeService', () => {
       it('should configure OAuthService with correct config', async () => {
         await service.initialize(mockOptions);
 
-        expect(oauthServiceMock.configure).toHaveBeenCalledWith(jasmine.objectContaining({
+        expect(oauthServiceMock.configure).toHaveBeenCalledWith(expect.objectContaining({
           issuer: mockOptions.issuer,
           redirectUri: mockOptions.redirectUri,
           postLogoutRedirectUri: mockOptions.postLogoutRedirectUri,
@@ -138,7 +142,7 @@ describe('AuthorizeService', () => {
       it('should set TenantAwareOAuthStorage as storage', async () => {
         await service.initialize(mockOptions);
 
-        expect(oauthServiceMock.setStorage).toHaveBeenCalledWith(jasmine.any(TenantAwareOAuthStorage));
+        expect(oauthServiceMock.setStorage).toHaveBeenCalledWith(expect.any(TenantAwareOAuthStorage));
       });
 
       it('should load discovery document and try login', async () => {
@@ -148,8 +152,8 @@ describe('AuthorizeService', () => {
       });
 
       it('should retry loadDiscoveryDocumentAndTryLogin when it fails transiently', async () => {
-        oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.callFake(() => {
-          const callCount = oauthServiceMock.loadDiscoveryDocumentAndTryLogin.calls.count();
+        oauthServiceMock.loadDiscoveryDocumentAndTryLogin.mockImplementation(() => {
+          const callCount = vi.mocked(oauthServiceMock.loadDiscoveryDocumentAndTryLogin).mock.calls.length;
           return callCount < 3
             ? Promise.reject(new Error('CORS / network error'))
             : Promise.resolve(true);
@@ -168,12 +172,12 @@ describe('AuthorizeService', () => {
 
       it('should surface the last error after exhausting all retry attempts', async () => {
         const failure = new Error('OIDC unavailable');
-        oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.returnValue(Promise.reject(failure));
+        oauthServiceMock.loadDiscoveryDocumentAndTryLogin.mockRejectedValue(failure);
 
-        await expectAsync(service.initialize({
+        await expect(service.initialize({
           ...mockOptions,
           discoveryDocumentRetry: { attempts: 3, initialDelayMs: 1, maxDelayMs: 4 }
-        })).toBeRejected();
+        })).rejects.toThrow();
 
         expect(oauthServiceMock.loadDiscoveryDocumentAndTryLogin).toHaveBeenCalledTimes(3);
         expect(service.discoveryDocumentError()).toBe(failure);
@@ -192,7 +196,7 @@ describe('AuthorizeService', () => {
       });
 
       it('should refresh token if valid id token exists', async () => {
-        oauthServiceMock.hasValidIdToken.and.returnValue(true);
+        oauthServiceMock.hasValidIdToken.mockReturnValue(true);
 
         await service.initialize(mockOptions);
 
@@ -200,7 +204,7 @@ describe('AuthorizeService', () => {
       });
 
       it('should not refresh token if no valid id token exists', async () => {
-        oauthServiceMock.hasValidIdToken.and.returnValue(false);
+        oauthServiceMock.hasValidIdToken.mockReturnValue(false);
 
         await service.initialize(mockOptions);
 
@@ -243,7 +247,7 @@ describe('AuthorizeService', () => {
       it('should call logOut with noRedirectToLogoutUrl=true', () => {
         service.logout();
 
-        expect(oauthServiceMock.logOut as jasmine.Spy).toHaveBeenCalledWith(true);
+        expect(oauthServiceMock.logOut as Mock).toHaveBeenCalledWith(true);
       });
     });
 
@@ -264,7 +268,7 @@ describe('AuthorizeService', () => {
           oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
           await new Promise(resolve => setTimeout(resolve, 0));
 
-          expect(service.isAuthenticated()).toBeTrue();
+          expect(service.isAuthenticated()).toBe(true);
         });
 
         it('should set accessToken after token received', async () => {
@@ -307,7 +311,7 @@ describe('AuthorizeService', () => {
 
           oauthEvents$.next({ type: 'session_terminated' } as OAuthEvent);
 
-          expect(service.isAuthenticated()).toBeFalse();
+          expect(service.isAuthenticated()).toBe(false);
         });
 
         it('should reset accessToken to null', async () => {
@@ -338,7 +342,7 @@ describe('AuthorizeService', () => {
           oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
           await new Promise(resolve => setTimeout(resolve, 0));
 
-          _reloadPageSpy.calls.reset();
+          _reloadPageSpy.mockClear();
           oauthEvents$.next({ type: 'session_terminated' } as OAuthEvent);
 
           expect(_reloadPageSpy).toHaveBeenCalled();
@@ -365,7 +369,7 @@ describe('AuthorizeService', () => {
 
           oauthEvents$.next({ type: 'logout' } as OAuthEvent);
 
-          expect(service.isAuthenticated()).toBeFalse();
+          expect(service.isAuthenticated()).toBe(false);
         });
 
         it('should reset accessToken to null on logout event', async () => {
@@ -385,7 +389,7 @@ describe('AuthorizeService', () => {
           oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
           await new Promise(resolve => setTimeout(resolve, 0));
 
-          _reloadPageSpy.calls.reset();
+          _reloadPageSpy.mockClear();
           oauthEvents$.next({ type: 'logout' } as OAuthEvent);
 
           expect(_reloadPageSpy).not.toHaveBeenCalled();
@@ -408,7 +412,7 @@ describe('AuthorizeService', () => {
           oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
           await new Promise(resolve => setTimeout(resolve, 0));
 
-          oauthServiceMock.getIdentityClaims.calls.reset();
+          oauthServiceMock.getIdentityClaims.mockClear();
 
           oauthEvents$.next({ type: 'session_unchanged' } as OAuthEvent);
           await new Promise(resolve => setTimeout(resolve, 0));
@@ -435,7 +439,7 @@ describe('AuthorizeService', () => {
           family_name: null,
           name: 'Admin'
         };
-        oauthServiceMock.getIdentityClaims.and.returnValue(userWithoutNames);
+        oauthServiceMock.getIdentityClaims.mockReturnValue(userWithoutNames);
 
         await service.initialize(mockOptions);
 
@@ -452,7 +456,7 @@ describe('AuthorizeService', () => {
           family_name: null,
           name: 'xt_octosystem_gerald.lochner@salzburgdev.at'
         };
-        oauthServiceMock.getIdentityClaims.and.returnValue(xtUser);
+        oauthServiceMock.getIdentityClaims.mockReturnValue(xtUser);
 
         await service.initialize(mockOptions);
 
@@ -469,7 +473,7 @@ describe('AuthorizeService', () => {
           family_name: null,
           name: 'gerald.lochner@salzburgdev.at'
         };
-        oauthServiceMock.getIdentityClaims.and.returnValue(emailUser);
+        oauthServiceMock.getIdentityClaims.mockReturnValue(emailUser);
 
         await service.initialize(mockOptions);
 
@@ -497,7 +501,7 @@ describe('AuthorizeService', () => {
           family_name: null,
           name: 'xt_octosystem_gerald.lochner@salzburgdev.at'
         };
-        oauthServiceMock.getIdentityClaims.and.returnValue(xtUser);
+        oauthServiceMock.getIdentityClaims.mockReturnValue(xtUser);
 
         await service.initialize(mockOptions);
 
@@ -514,7 +518,7 @@ describe('AuthorizeService', () => {
           family_name: null,
           name: 'gerald.lochner@salzburgdev.at'
         };
-        oauthServiceMock.getIdentityClaims.and.returnValue(emailUser);
+        oauthServiceMock.getIdentityClaims.mockReturnValue(emailUser);
 
         await service.initialize(mockOptions);
 
@@ -537,21 +541,21 @@ describe('AuthorizeService', () => {
       });
 
       it('should return true for existing role', () => {
-        expect(service.isInRole(Roles.AdminPanelManagement)).toBeTrue();
+        expect(service.isInRole(Roles.AdminPanelManagement)).toBe(true);
       });
 
       it('should return true for another existing role', () => {
-        expect(service.isInRole(Roles.ReportingViewer)).toBeTrue();
+        expect(service.isInRole(Roles.ReportingViewer)).toBe(true);
       });
 
       it('should return false for non-existing role', () => {
-        expect(service.isInRole(Roles.TenantManagement)).toBeFalse();
+        expect(service.isInRole(Roles.TenantManagement)).toBe(false);
       });
 
       it('should return false when user is null', async () => {
         oauthEvents$.next({ type: 'logout' } as OAuthEvent);
 
-        expect(service.isInRole(Roles.AdminPanelManagement)).toBeFalse();
+        expect(service.isInRole(Roles.AdminPanelManagement)).toBe(false);
       });
     });
 
@@ -594,34 +598,34 @@ describe('AuthorizeService', () => {
 
     describe('sessionLoading', () => {
       it('should be true when refreshing token with valid id token', async () => {
-        oauthServiceMock.hasValidIdToken.and.returnValue(true);
+        oauthServiceMock.hasValidIdToken.mockReturnValue(true);
 
         // Create a promise that resolves after a delay to capture sessionLoading state
         let capturedSessionLoading = false;
-        oauthServiceMock.refreshToken.and.callFake(async () => {
+        oauthServiceMock.refreshToken.mockImplementation(async () => {
           capturedSessionLoading = service.sessionLoading();
           return {} as TokenResponse;
         });
 
         await service.initialize(mockOptions);
 
-        expect(capturedSessionLoading).toBeTrue();
+        expect(capturedSessionLoading).toBe(true);
       });
 
       it('should be false after user is loaded', async () => {
-        oauthServiceMock.hasValidIdToken.and.returnValue(true);
+        oauthServiceMock.hasValidIdToken.mockReturnValue(true);
 
         await service.initialize(mockOptions);
         oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
         await new Promise(resolve => setTimeout(resolve, 0));
 
-        expect(service.sessionLoading()).toBeFalse();
+        expect(service.sessionLoading()).toBe(false);
       });
     });
 
     describe('edge cases', () => {
       it('should handle null claims gracefully', async () => {
-        oauthServiceMock.getIdentityClaims.and.returnValue(null as unknown as ReturnType<OAuthService['getIdentityClaims']>);
+        oauthServiceMock.getIdentityClaims.mockReturnValue(null as unknown as ReturnType<OAuthService['getIdentityClaims']>);
 
         await service.initialize(mockOptions);
         oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -638,7 +642,7 @@ describe('AuthorizeService', () => {
 
       it('should return parsed tenant_id after token_received', async () => {
         const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
-        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+        oauthServiceMock.getAccessToken.mockReturnValue(mockToken);
 
         await service.initialize(mockOptions);
         oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -649,7 +653,7 @@ describe('AuthorizeService', () => {
 
       it('should return null when token has no tenant_id claim', async () => {
         const mockToken = createMockJwt({ sub: 'user-123' });
-        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+        oauthServiceMock.getAccessToken.mockReturnValue(mockToken);
 
         await service.initialize(mockOptions);
         oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -660,7 +664,7 @@ describe('AuthorizeService', () => {
 
       it('should be cleared on logout event', async () => {
         const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
-        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+        oauthServiceMock.getAccessToken.mockReturnValue(mockToken);
 
         await service.initialize(mockOptions);
         oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -674,7 +678,7 @@ describe('AuthorizeService', () => {
 
       it('should be cleared on session_terminated event', async () => {
         const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
-        oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+        oauthServiceMock.getAccessToken.mockReturnValue(mockToken);
 
         await service.initialize(mockOptions);
         oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -707,7 +711,7 @@ describe('AuthorizeService', () => {
         service.setStorageTenantId('maco');
         await service.initialize(mockOptions);
 
-        const storageArg = oauthServiceMock.setStorage.calls.mostRecent().args[0] as TenantAwareOAuthStorage;
+        const storageArg = vi.mocked(oauthServiceMock.setStorage).mock.lastCall![0] as TenantAwareOAuthStorage;
         expect(storageArg).toBeInstanceOf(TenantAwareOAuthStorage);
         expect(storageArg.getTenantId()).toBe('maco');
       });
@@ -722,7 +726,7 @@ describe('AuthorizeService', () => {
       });
 
       it('should call stopAutomaticRefresh', () => {
-        oauthServiceMock.stopAutomaticRefresh.calls.reset();
+        oauthServiceMock.stopAutomaticRefresh.mockClear();
 
         // switchTenant will set window.location.href which triggers navigation,
         // but the stopAutomaticRefresh call happens before that
@@ -790,9 +794,9 @@ describe('AuthorizeService', () => {
       // Arrange: Set storage tenant to a different tenant than what the token contains
       service.setStorageTenantId('meshtest');
       const mockToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
-      oauthServiceMock.getAccessToken.and.returnValue(mockToken);
+      oauthServiceMock.getAccessToken.mockReturnValue(mockToken);
 
-      _navigateToSpy.calls.reset();
+      _navigateToSpy.mockClear();
 
       await service.initialize(mockOptions);
 
@@ -802,7 +806,7 @@ describe('AuthorizeService', () => {
 
       // Assert: Should NOT trigger switchTenant because this is the initial login
       expect(_navigateToSpy).not.toHaveBeenCalled();
-      expect(service.isAuthenticated()).toBeTrue();
+      expect(service.isAuthenticated()).toBe(true);
       expect(service.tokenTenantId()).toBe('octosystem');
     });
 
@@ -810,19 +814,19 @@ describe('AuthorizeService', () => {
       // Arrange: First login with matching tenant
       service.setStorageTenantId('octosystem');
       const initialToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
-      oauthServiceMock.getAccessToken.and.returnValue(initialToken);
+      oauthServiceMock.getAccessToken.mockReturnValue(initialToken);
 
       await service.initialize(mockOptions);
       oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
       await new Promise(resolve => setTimeout(resolve, 0));
-      expect(service.isAuthenticated()).toBeTrue();
+      expect(service.isAuthenticated()).toBe(true);
 
       // Now simulate a refresh that returns a token for the wrong tenant
       service.setStorageTenantId('meshtest');
       const mismatchedToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
-      oauthServiceMock.getAccessToken.and.returnValue(mismatchedToken);
+      oauthServiceMock.getAccessToken.mockReturnValue(mismatchedToken);
 
-      _navigateToSpy.calls.reset();
+      _navigateToSpy.mockClear();
 
       // Act: Simulate token refresh (previously authenticated = true)
       oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -836,13 +840,13 @@ describe('AuthorizeService', () => {
       // Arrange: First login
       service.setStorageTenantId('octosystem');
       const token = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
-      oauthServiceMock.getAccessToken.and.returnValue(token);
+      oauthServiceMock.getAccessToken.mockReturnValue(token);
 
       await service.initialize(mockOptions);
       oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      _navigateToSpy.calls.reset();
+      _navigateToSpy.mockClear();
 
       // Act: Refresh returns same tenant
       oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -856,7 +860,7 @@ describe('AuthorizeService', () => {
       // Arrange: First login with a token that has tenant_id
       service.setStorageTenantId('octosystem');
       const initialToken = createMockJwt({ tenant_id: 'octosystem', sub: 'user-123' });
-      oauthServiceMock.getAccessToken.and.returnValue(initialToken);
+      oauthServiceMock.getAccessToken.mockReturnValue(initialToken);
 
       await service.initialize(mockOptions);
       oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -864,9 +868,9 @@ describe('AuthorizeService', () => {
 
       // Now simulate refresh returning token without tenant_id
       const tokenWithoutTenant = createMockJwt({ sub: 'user-123' });
-      oauthServiceMock.getAccessToken.and.returnValue(tokenWithoutTenant);
+      oauthServiceMock.getAccessToken.mockReturnValue(tokenWithoutTenant);
 
-      _navigateToSpy.calls.reset();
+      _navigateToSpy.mockClear();
 
       // Act
       oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -883,8 +887,8 @@ describe('AuthorizeService', () => {
 
   describe('updateRedirectUris', () => {
     it('should not reset discovery document endpoints', async () => {
-      oauthServiceMock.hasValidIdToken.and.returnValue(false);
-      oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.resolveTo(true);
+      oauthServiceMock.hasValidIdToken.mockReturnValue(false);
+      oauthServiceMock.loadDiscoveryDocumentAndTryLogin.mockResolvedValue(true);
 
       await service.initialize(mockOptions);
 
@@ -906,8 +910,8 @@ describe('AuthorizeService', () => {
     });
 
     it('should update redirect URIs directly on the service', async () => {
-      oauthServiceMock.hasValidIdToken.and.returnValue(false);
-      oauthServiceMock.loadDiscoveryDocumentAndTryLogin.and.resolveTo(true);
+      oauthServiceMock.hasValidIdToken.mockReturnValue(false);
+      oauthServiceMock.loadDiscoveryDocumentAndTryLogin.mockResolvedValue(true);
 
       await service.initialize(mockOptions);
 
@@ -934,10 +938,10 @@ describe('AuthorizeService', () => {
       role: ['AccountingManagement']
     };
 
-    let fetchSpy: jasmine.Spy;
+    let fetchSpy: Mock;
 
     function stubEndpoints(tokenStatus = 200, userInfoStatus = 200): void {
-      fetchSpy = spyOn(window, 'fetch').and.callFake((input: RequestInfo | URL) => {
+      fetchSpy = vi.spyOn(window, 'fetch').mockImplementation((input: RequestInfo | URL) => {
         const url = typeof input === 'string' ? input : input.toString();
         if (url.includes('userinfo')) {
           return Promise.resolve(new Response(JSON.stringify(userInfo), { status: userInfoStatus }));
@@ -956,7 +960,7 @@ describe('AuthorizeService', () => {
       const mockObj = oauthServiceMock as any;
       mockObj.tokenEndpoint = 'https://auth.example.com/connect/token';
       mockObj.userinfoEndpoint = 'https://auth.example.com/connect/userinfo';
-      oauthServiceMock.getAccessToken.and.returnValue(sourceToken);
+      oauthServiceMock.getAccessToken.mockReturnValue(sourceToken);
 
       await service.initialize(mockOptions);
       oauthEvents$.next({ type: 'token_received' } as OAuthEvent);
@@ -964,9 +968,15 @@ describe('AuthorizeService', () => {
     });
 
     afterEach(() => {
+      // Jasmine restored every spy after each spec; Vitest does not by itself, and vi.spyOn on
+      // an already-spied member returns the SAME mock, so window.fetch would keep its call
+      // history across the tests below. The global afterEach in testing/vitest-setup.ts already
+      // restores it — this call is a belt-and-braces duplicate kept next to the spy it belongs to.
+      fetchSpy.mockRestore();
+
       for (const key of ['tecob__access_token', 'tecob__refresh_token', 'tecob__expires_at',
-                         'tecob__access_token_stored_at', 'tecob__granted_scopes',
-                         'tecob__id_token_claims_obj']) {
+        'tecob__access_token_stored_at', 'tecob__granted_scopes',
+        'tecob__id_token_claims_obj']) {
         localStorage.removeItem(key);
       }
     });
@@ -976,7 +986,7 @@ describe('AuthorizeService', () => {
 
       const switched = await service.switchTenantByExchange('tecob');
 
-      expect(switched).toBeTrue();
+      expect(switched).toBe(true);
       expect(service.tokenTenantId()).toBe('tecob');
       expect(service.accessToken()).toBe(exchangedToken);
       expect(_navigateToSpy).not.toHaveBeenCalled();
@@ -988,7 +998,10 @@ describe('AuthorizeService', () => {
 
       await service.switchTenantByExchange('tecob');
 
-      const [, init] = fetchSpy.calls.first().args as [string, RequestInit];
+      const [, init] = vi.mocked(fetchSpy).mock.calls[0] as [
+                string,
+                RequestInit
+            ];
       const body = new URLSearchParams(init.body as string);
       expect(body.get('grant_type')).toBe('urn:ietf:params:oauth:grant-type:token-exchange');
       expect(body.get('subject_token')).toBe(sourceToken);
@@ -1005,7 +1018,7 @@ describe('AuthorizeService', () => {
       expect(localStorage.getItem('tecob__refresh_token')).toBe('refresh-token-1');
       // The exchange returns no id_token, so the userinfo profile takes its place.
       expect(JSON.parse(localStorage.getItem('tecob__id_token_claims_obj') ?? '{}'))
-        .toEqual(jasmine.objectContaining({ name: userInfo.name }));
+        .toEqual(expect.objectContaining({ name: userInfo.name }));
     });
 
     it('refuses a tenant the token does not allow, without calling the endpoint', async () => {
@@ -1013,7 +1026,7 @@ describe('AuthorizeService', () => {
 
       const switched = await service.switchTenantByExchange('someone-elses-tenant');
 
-      expect(switched).toBeFalse();
+      expect(switched).toBe(false);
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
@@ -1022,7 +1035,7 @@ describe('AuthorizeService', () => {
 
       const switched = await service.switchTenantByExchange('tecob');
 
-      expect(switched).toBeFalse();
+      expect(switched).toBe(false);
       expect(service.tokenTenantId()).toBe('bierok');
       expect(localStorage.getItem('tecob__access_token')).toBeNull();
     });
@@ -1032,7 +1045,7 @@ describe('AuthorizeService', () => {
 
       const switched = await service.switchTenantByExchange('tecob');
 
-      expect(switched).toBeFalse();
+      expect(switched).toBe(false);
       expect(localStorage.getItem('tecob__access_token')).toBeNull();
     });
   });

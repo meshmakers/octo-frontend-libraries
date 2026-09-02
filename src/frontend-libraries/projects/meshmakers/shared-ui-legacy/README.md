@@ -18,10 +18,9 @@ npm run build:shared-ui-legacy
 
 # Lint
 npm run lint:shared-ui-legacy
-
-# Run tests
-npm test -- --project=@meshmakers/shared-ui-legacy --watch=false
 ```
+
+This project has no unit tests.
 
 ## Architecture
 

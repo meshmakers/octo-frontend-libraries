@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { WidgetGroupComponent } from './widget-group.component';
 import { MeshBoardDataService, RepeaterDataItem } from '../../services/meshboard-data.service';
@@ -40,9 +41,9 @@ class MockEntityCardWidgetComponent {
 describe('WidgetGroupComponent', () => {
   let component: WidgetGroupComponent;
   let fixture: ComponentFixture<WidgetGroupComponent>;
-  let dataServiceSpy: jasmine.SpyObj<MeshBoardDataService>;
-  let variableServiceSpy: jasmine.SpyObj<MeshBoardVariableService>;
-  let stateServiceSpy: jasmine.SpyObj<MeshBoardStateService>;
+  let dataServiceSpy: MockedObject<MeshBoardDataService>;
+  let variableServiceSpy: MockedObject<MeshBoardVariableService>;
+  let stateServiceSpy: MockedObject<MeshBoardStateService>;
 
   const createMockConfig = (overrides: Partial<WidgetGroupConfig> = {}): WidgetGroupConfig => ({
     id: 'widget-group-1',
@@ -87,11 +88,17 @@ describe('WidgetGroupComponent', () => {
   };
 
   beforeEach(async () => {
-    dataServiceSpy = jasmine.createSpyObj('MeshBoardDataService', ['fetchRepeaterData']);
-    variableServiceSpy = jasmine.createSpyObj('MeshBoardVariableService', ['resolveVariables']);
-    stateServiceSpy = jasmine.createSpyObj('MeshBoardStateService', ['getVariables']);
+    dataServiceSpy = {
+      fetchRepeaterData: vi.fn().mockName('MeshBoardDataService.fetchRepeaterData')
+    } as unknown as MockedObject<MeshBoardDataService>;
+    variableServiceSpy = {
+      resolveVariables: vi.fn().mockName('MeshBoardVariableService.resolveVariables')
+    } as unknown as MockedObject<MeshBoardVariableService>;
+    stateServiceSpy = {
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables')
+    } as unknown as MockedObject<MeshBoardStateService>;
 
-    stateServiceSpy.getVariables.and.returnValue([]);
+    stateServiceSpy.getVariables.mockReturnValue([]);
 
     await TestBed.configureTestingModule({
       imports: [WidgetGroupComponent],
@@ -125,7 +132,7 @@ describe('WidgetGroupComponent', () => {
     });
 
     it('should have initial loading state as false', () => {
-      expect(component.isLoading()).toBeFalse();
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should have initial data as null', () => {
@@ -144,7 +151,7 @@ describe('WidgetGroupComponent', () => {
   describe('data loading', () => {
     it('should load data on init', fakeAsync(() => {
       const mockData = createMockRepeaterData(3);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig();
       fixture.detectChanges();
@@ -152,7 +159,7 @@ describe('WidgetGroupComponent', () => {
 
       expect(dataServiceSpy.fetchRepeaterData).toHaveBeenCalled();
       expect(component.data()).toEqual(mockData);
-      expect(component.isLoading()).toBeFalse();
+      expect(component.isLoading()).toBe(false);
     }));
 
     it('should set error when no data source configured', fakeAsync(() => {
@@ -189,21 +196,21 @@ describe('WidgetGroupComponent', () => {
     }));
 
     it('should handle fetch errors gracefully', fakeAsync(() => {
-      dataServiceSpy.fetchRepeaterData.and.rejectWith(new Error('Network error'));
-      spyOn(console, 'error');
+      dataServiceSpy.fetchRepeaterData.mockRejectedValue(new Error('Network error'));
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
 
       component.config = createMockConfig();
       fixture.detectChanges();
       tick();
 
       expect(component.error()).toBe('Failed to load data');
-      expect(component.isLoading()).toBeFalse();
+      expect(component.isLoading()).toBe(false);
     }));
 
     it('should reload data on config change', fakeAsync(() => {
       const mockData1 = createMockRepeaterData(2);
       const mockData2 = createMockRepeaterData(5);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData1);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData1);
 
       component.config = createMockConfig();
       fixture.detectChanges();
@@ -212,7 +219,7 @@ describe('WidgetGroupComponent', () => {
       expect(component.data()?.length).toBe(2);
 
       // Change config
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData2);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData2);
       component.config = createMockConfig({ id: 'new-id' });
       component.ngOnChanges({
         config: {
@@ -230,7 +237,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should refresh data on refresh() call', fakeAsync(() => {
       const mockData = createMockRepeaterData(3);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig();
       fixture.detectChanges();
@@ -250,7 +257,7 @@ describe('WidgetGroupComponent', () => {
   describe('child config generation', () => {
     it('should generate child configs from data', fakeAsync(() => {
       const mockData = createMockRepeaterData(3);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig();
       fixture.detectChanges();
@@ -262,7 +269,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should generate unique IDs for child widgets', fakeAsync(() => {
       const mockData = createMockRepeaterData(3);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig();
       fixture.detectChanges();
@@ -279,7 +286,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should resolve title template with rtWellKnownName', fakeAsync(() => {
       const mockData = createMockRepeaterData(2);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig({
         childTemplate: {
@@ -298,7 +305,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should resolve title template with rtId', fakeAsync(() => {
       const mockData = createMockRepeaterData(1);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig({
         childTemplate: {
@@ -322,7 +329,7 @@ describe('WidgetGroupComponent', () => {
         ckTypeId: 'TestType',
         attributes: attrs
       }];
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig({
         childTemplate: {
@@ -340,7 +347,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should create KPI child config correctly', fakeAsync(() => {
       const mockData = createMockRepeaterData(1);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig({
         childTemplate: {
@@ -362,7 +369,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should create Gauge child config correctly', fakeAsync(() => {
       const mockData = createMockRepeaterData(1);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig({
         childTemplate: {
@@ -383,7 +390,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should create EntityCard child config correctly', fakeAsync(() => {
       const mockData = createMockRepeaterData(1);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig({
         childTemplate: {
@@ -402,7 +409,7 @@ describe('WidgetGroupComponent', () => {
     }));
 
     it('should return empty array when no data', fakeAsync(() => {
-      dataServiceSpy.fetchRepeaterData.and.resolveTo([]);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue([]);
 
       component.config = createMockConfig();
       fixture.detectChanges();
@@ -419,7 +426,7 @@ describe('WidgetGroupComponent', () => {
 
     it('should use fallback title when template is empty', fakeAsync(() => {
       const mockData = createMockRepeaterData(2);
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig({
         childTemplate: {
@@ -443,7 +450,7 @@ describe('WidgetGroupComponent', () => {
 
   describe('layout configuration', () => {
     beforeEach(() => {
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(createMockRepeaterData(4));
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(createMockRepeaterData(4));
     });
 
     it('should compute grid template columns for grid layout', fakeAsync(() => {
@@ -526,7 +533,7 @@ describe('WidgetGroupComponent', () => {
         rtWellKnownName: 'Test Entity',
         attributes: attrs
       }];
-      dataServiceSpy.fetchRepeaterData.and.resolveTo(mockData);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
 
       component.config = createMockConfig();
       fixture.detectChanges();

@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
@@ -7,14 +8,15 @@ import { ProgressValue } from '../models/progressValue';
 
 describe('ProgressWindowService', () => {
   let service: ProgressWindowService;
-  let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogRefMock: jasmine.SpyObj<DialogRef>;
+  let dialogServiceMock: MockedObject<DialogService>;
+  let dialogRefMock: MockedObject<DialogRef>;
   let progressSubject: Subject<ProgressValue>;
 
   beforeEach(() => {
     progressSubject = new Subject<ProgressValue>();
 
-    dialogRefMock = jasmine.createSpyObj('DialogRef', ['close'], {
+    dialogRefMock = {
+      close: vi.fn().mockName('DialogRef.close'),
       result: new Subject().asObservable(),
       content: {
         instance: {
@@ -24,10 +26,12 @@ describe('ProgressWindowService', () => {
           cancelOperation: null
         }
       }
-    });
+    } as unknown as MockedObject<DialogRef>;
 
-    dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
-    dialogServiceMock.open.and.returnValue(dialogRefMock);
+    dialogServiceMock = {
+      open: vi.fn().mockName('DialogService.open')
+    } as unknown as MockedObject<DialogService>;
+    dialogServiceMock.open.mockReturnValue(dialogRefMock);
 
     TestBed.configureTestingModule({
       providers: [
@@ -51,7 +55,7 @@ describe('ProgressWindowService', () => {
       });
 
       expect(dialogServiceMock.open).toHaveBeenCalled();
-      const openCall = dialogServiceMock.open.calls.mostRecent().args[0];
+      const openCall = vi.mocked(dialogServiceMock.open).mock.lastCall![0];
       expect(openCall.title).toBe('Test Title');
     });
 
@@ -64,7 +68,7 @@ describe('ProgressWindowService', () => {
       });
 
       const component = dialogRefMock.content.instance;
-      expect(component.isDeterminate).toBeTrue();
+      expect(component.isDeterminate).toBe(true);
     });
 
     it('should pass progress observable to component', () => {
@@ -80,7 +84,7 @@ describe('ProgressWindowService', () => {
 
     it('should pass cancel operation to component when available', () => {
       const progress = progressSubject.asObservable();
-      const cancelFn = jasmine.createSpy('cancelOperation');
+      const cancelFn = vi.fn().mockName('cancelOperation');
 
       service.showProgress({
         title: 'Title',
@@ -90,7 +94,7 @@ describe('ProgressWindowService', () => {
       });
 
       const component = dialogRefMock.content.instance;
-      expect(component.isCancelOperationAvailable).toBeTrue();
+      expect(component.isCancelOperationAvailable).toBe(true);
       expect(component.cancelOperation).toBe(cancelFn);
     });
 
@@ -111,12 +115,12 @@ describe('ProgressWindowService', () => {
       service.showDeterminateProgress('Title', progress);
 
       const component = dialogRefMock.content.instance;
-      expect(component.isDeterminate).toBeTrue();
+      expect(component.isDeterminate).toBe(true);
     });
 
     it('should pass optional options', () => {
       const progress = progressSubject.asObservable();
-      const cancelFn = jasmine.createSpy('cancelOperation');
+      const cancelFn = vi.fn().mockName('cancelOperation');
 
       service.showDeterminateProgress('Title', progress, {
         isCancelOperationAvailable: true,
@@ -124,7 +128,7 @@ describe('ProgressWindowService', () => {
       });
 
       const component = dialogRefMock.content.instance;
-      expect(component.isCancelOperationAvailable).toBeTrue();
+      expect(component.isCancelOperationAvailable).toBe(true);
     });
   });
 
@@ -134,12 +138,12 @@ describe('ProgressWindowService', () => {
       service.showIndeterminateProgress('Title', progress);
 
       const component = dialogRefMock.content.instance;
-      expect(component.isDeterminate).toBeFalse();
+      expect(component.isDeterminate).toBe(false);
     });
 
     it('should pass optional options', () => {
       const progress = progressSubject.asObservable();
-      const cancelFn = jasmine.createSpy('cancelOperation');
+      const cancelFn = vi.fn().mockName('cancelOperation');
 
       service.showIndeterminateProgress('Title', progress, {
         isCancelOperationAvailable: true,
@@ -147,7 +151,7 @@ describe('ProgressWindowService', () => {
       });
 
       const component = dialogRefMock.content.instance;
-      expect(component.isCancelOperationAvailable).toBeTrue();
+      expect(component.isCancelOperationAvailable).toBe(true);
     });
   });
 });

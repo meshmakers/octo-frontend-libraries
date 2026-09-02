@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { WritableSignal, ChangeDetectionStrategy } from '@angular/core';
 import { SymbolEditorPageComponent } from './symbol-editor-page.component';
@@ -13,11 +14,14 @@ import { SymbolSettings } from '../../designer/process-designer.component';
  * Test helper interface to access protected/private members of SymbolEditorPageComponent
  */
 interface SymbolEditorPageTestAccess {
-  onSymbolChange(symbol: SymbolDefinition): void;
-  saveSymbol(): Promise<void>;
-  isSaving: WritableSignal<boolean>;
-  _currentSymbol: SymbolDefinition | null;
-  onSymbolSettingsChange(event: { key: string; value: unknown }): void;
+    onSymbolChange(symbol: SymbolDefinition): void;
+    saveSymbol(): Promise<void>;
+    isSaving: WritableSignal<boolean>;
+    _currentSymbol: SymbolDefinition | null;
+    onSymbolSettingsChange(event: {
+        key: string;
+        value: unknown;
+    }): void;
 }
 
 // Mock SymbolEditorComponent to avoid complex dependencies
@@ -28,38 +32,50 @@ interface SymbolEditorPageTestAccess {
   template: '<div>Mock Symbol Editor</div>'
 })
 class MockSymbolEditorComponent {
-  @Input() symbol: SymbolDefinition | null = null;
-  @Input() canvasWidth?: number;
-  @Input() canvasHeight?: number;
-  @Input() gridSize?: number;
-  @Input() useDockview = false;
-  @Input() symbolSettings: SymbolSettings | null = null;
-  @Output() symbolChange = new EventEmitter<SymbolDefinition>();
-  @Output() saveRequest = new EventEmitter<SymbolDefinition>();
-  @Output() symbolSettingsChange = new EventEmitter<{ key: string; value: unknown }>();
+    @Input()
+      symbol: SymbolDefinition | null = null;
+    @Input()
+      canvasWidth?: number;
+    @Input()
+      canvasHeight?: number;
+    @Input()
+      gridSize?: number;
+    @Input()
+      useDockview = false;
+    @Input()
+      symbolSettings: SymbolSettings | null = null;
+    @Output()
+      symbolChange = new EventEmitter<SymbolDefinition>();
+    @Output()
+      saveRequest = new EventEmitter<SymbolDefinition>();
+    @Output()
+      symbolSettingsChange = new EventEmitter<{
+        key: string;
+        value: unknown;
+    }>();
 
-  private _clearChangesCalled = false;
+    private _clearChangesCalled = false;
 
-  clearChanges(): void {
-    this._clearChangesCalled = true;
-  }
+    clearChanges(): void {
+      this._clearChangesCalled = true;
+    }
 
-  get clearChangesCalled(): boolean {
-    return this._clearChangesCalled;
-  }
+    get clearChangesCalled(): boolean {
+      return this._clearChangesCalled;
+    }
 
-  resetClearChangesCalled(): void {
-    this._clearChangesCalled = false;
-  }
+    resetClearChangesCalled(): void {
+      this._clearChangesCalled = false;
+    }
 }
 
 describe('SymbolEditorPageComponent', () => {
   let component: SymbolEditorPageComponent;
   let fixture: ComponentFixture<SymbolEditorPageComponent>;
-  let mockSymbolLibraryService: jasmine.SpyObj<SymbolLibraryService>;
-  let mockBreadCrumbService: jasmine.SpyObj<BreadCrumbService>;
-  let mockNotificationService: jasmine.SpyObj<NotificationService>;
-  let mockRouter: jasmine.SpyObj<Router>;
+  let mockSymbolLibraryService: MockedObject<SymbolLibraryService>;
+  let mockBreadCrumbService: MockedObject<BreadCrumbService>;
+  let mockNotificationService: MockedObject<NotificationService>;
+  let mockRouter: MockedObject<Router>;
 
   const mockLibrary = {
     id: 'lib-1',
@@ -80,20 +96,26 @@ describe('SymbolEditorPageComponent', () => {
   };
 
   beforeEach(async () => {
-    mockSymbolLibraryService = jasmine.createSpyObj('SymbolLibraryService', [
-      'loadLibrary',
-      'loadSymbol',
-      'updateSymbol'
-    ]);
-    mockBreadCrumbService = jasmine.createSpyObj('BreadCrumbService', ['updateBreadcrumbLabels']);
-    mockNotificationService = jasmine.createSpyObj('NotificationService', ['show']);
-    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
+    mockSymbolLibraryService = {
+      loadLibrary: vi.fn().mockName('SymbolLibraryService.loadLibrary'),
+      loadSymbol: vi.fn().mockName('SymbolLibraryService.loadSymbol'),
+      updateSymbol: vi.fn().mockName('SymbolLibraryService.updateSymbol')
+    } as unknown as MockedObject<SymbolLibraryService>;
+    mockBreadCrumbService = {
+      updateBreadcrumbLabels: vi.fn().mockName('BreadCrumbService.updateBreadcrumbLabels')
+    } as unknown as MockedObject<BreadCrumbService>;
+    mockNotificationService = {
+      show: vi.fn().mockName('NotificationService.show')
+    } as unknown as MockedObject<NotificationService>;
+    mockRouter = {
+      navigate: vi.fn().mockName('Router.navigate')
+    } as unknown as MockedObject<Router>;
 
     // Setup default return values
-    mockSymbolLibraryService.loadLibrary.and.returnValue(Promise.resolve(mockLibrary));
-    mockSymbolLibraryService.loadSymbol.and.returnValue(Promise.resolve(mockSymbol));
-    mockSymbolLibraryService.updateSymbol.and.returnValue(Promise.resolve(mockSymbol));
-    mockBreadCrumbService.updateBreadcrumbLabels.and.returnValue(Promise.resolve());
+    mockSymbolLibraryService.loadLibrary.mockResolvedValue(mockLibrary);
+    mockSymbolLibraryService.loadSymbol.mockResolvedValue(mockSymbol);
+    mockSymbolLibraryService.updateSymbol.mockResolvedValue(mockSymbol);
+    mockBreadCrumbService.updateBreadcrumbLabels.mockResolvedValue();
 
     await TestBed.configureTestingModule({
       imports: [
@@ -111,8 +133,10 @@ describe('SymbolEditorPageComponent', () => {
             snapshot: {
               paramMap: {
                 get: (key: string) => {
-                  if (key === 'libraryId') return 'lib-1';
-                  if (key === 'symbolId') return 'sym-1';
+                  if (key === 'libraryId')
+                    return 'lib-1';
+                  if (key === 'symbolId')
+                    return 'sym-1';
                   return null;
                 }
               }
@@ -121,15 +145,15 @@ describe('SymbolEditorPageComponent', () => {
         }
       ]
     })
-    .overrideComponent(SymbolEditorPageComponent, {
-      remove: {
-        imports: []
-      },
-      add: {
-        imports: [MockSymbolEditorComponent]
-      }
-    })
-    .compileComponents();
+      .overrideComponent(SymbolEditorPageComponent, {
+        remove: {
+          imports: []
+        },
+        add: {
+          imports: [MockSymbolEditorComponent]
+        }
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(SymbolEditorPageComponent);
     component = fixture.componentInstance;
@@ -141,7 +165,7 @@ describe('SymbolEditorPageComponent', () => {
 
   describe('hasUnsavedChanges', () => {
     it('should initially have no unsaved changes', () => {
-      expect(component.hasUnsavedChanges()).toBeFalse();
+      expect(component.hasUnsavedChanges()).toBe(false);
     });
 
     it('should mark as changed when onSymbolChange is called after initialization', fakeAsync(() => {
@@ -153,7 +177,7 @@ describe('SymbolEditorPageComponent', () => {
       const updatedSymbol = { ...mockSymbol, name: 'Updated Name' };
       (component as unknown as SymbolEditorPageTestAccess).onSymbolChange(updatedSymbol);
 
-      expect(component.hasUnsavedChanges()).toBeTrue();
+      expect(component.hasUnsavedChanges()).toBe(true);
     }));
 
     it('should NOT mark as changed during initialization phase', fakeAsync(() => {
@@ -165,7 +189,7 @@ describe('SymbolEditorPageComponent', () => {
       (component as unknown as SymbolEditorPageTestAccess).onSymbolChange(updatedSymbol);
 
       // Should still be false because we're in initialization phase
-      expect(component.hasUnsavedChanges()).toBeFalse();
+      expect(component.hasUnsavedChanges()).toBe(false);
 
       tick(200); // Complete initialization
     }));
@@ -180,7 +204,7 @@ describe('SymbolEditorPageComponent', () => {
       // Mark as changed
       const updatedSymbol = { ...mockSymbol, name: 'Updated Name' };
       (component as unknown as SymbolEditorPageTestAccess).onSymbolChange(updatedSymbol);
-      expect(component.hasUnsavedChanges()).toBeTrue();
+      expect(component.hasUnsavedChanges()).toBe(true);
     }));
 
     it('should clear unsaved changes after successful save', fakeAsync(() => {
@@ -188,7 +212,7 @@ describe('SymbolEditorPageComponent', () => {
       (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick(); // Process the async save
 
-      expect(component.hasUnsavedChanges()).toBeFalse();
+      expect(component.hasUnsavedChanges()).toBe(false);
       expect(mockSymbolLibraryService.updateSymbol).toHaveBeenCalled();
     }));
 
@@ -201,9 +225,9 @@ describe('SymbolEditorPageComponent', () => {
       let symbolChangeTriggeredDuringSave = false;
 
       // Intercept updateSymbol to trigger symbolChange at the right moment
-      mockSymbolLibraryService.updateSymbol.and.callFake(async (symbol: SymbolDefinition) => {
+      mockSymbolLibraryService.updateSymbol.mockImplementation(async (symbol: SymbolDefinition) => {
         // Verify isSaving is true during the save
-        expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeTrue();
+        expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBe(true);
 
         // Simulate what happens in saveSymbol AFTER updateSymbol returns:
         // 1. symbol.set() is called which triggers symbolChange
@@ -221,11 +245,11 @@ describe('SymbolEditorPageComponent', () => {
       tick(); // Complete the save
 
       // Verify our simulation ran
-      expect(symbolChangeTriggeredDuringSave).toBeTrue();
+      expect(symbolChangeTriggeredDuringSave).toBe(true);
 
       // The key assertion: hasUnsavedChanges should be false
       // because onSymbolChange was called while isSaving was true
-      expect(component.hasUnsavedChanges()).toBeFalse();
+      expect(component.hasUnsavedChanges()).toBe(false);
     }));
 
     it('should remain clean after save even if user makes new edits', fakeAsync(() => {
@@ -237,63 +261,59 @@ describe('SymbolEditorPageComponent', () => {
       tick(); // Complete the save
 
       // At this point isSaving() is false and hasUnsavedChanges is false
-      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeFalse();
-      expect(component.hasUnsavedChanges()).toBeFalse();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBe(false);
+      expect(component.hasUnsavedChanges()).toBe(false);
 
       // Now simulate a real user edit (after save completes)
       const updatedSymbol = { ...mockSymbol, name: 'New Edit After Save' };
       (component as unknown as SymbolEditorPageTestAccess).onSymbolChange(updatedSymbol);
 
       // This SHOULD mark as changed because it's a real user edit
-      expect(component.hasUnsavedChanges()).toBeTrue();
+      expect(component.hasUnsavedChanges()).toBe(true);
     }));
 
     it('should show success notification after save', fakeAsync(() => {
       (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick();
 
-      expect(mockNotificationService.show).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          content: 'Symbol saved successfully',
-          type: jasmine.objectContaining({ style: 'success' })
-        })
-      );
+      expect(mockNotificationService.show).toHaveBeenCalledWith(expect.objectContaining({
+        content: 'Symbol saved successfully',
+        type: expect.objectContaining({ style: 'success' })
+      }));
     }));
 
     it('should show error notification on save failure', fakeAsync(() => {
-      mockSymbolLibraryService.updateSymbol.and.returnValue(Promise.reject(new Error('Save failed')));
+      mockSymbolLibraryService.updateSymbol.mockRejectedValue(new Error('Save failed'));
 
       (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick();
 
-      expect(mockNotificationService.show).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          content: 'Failed to save symbol',
-          type: jasmine.objectContaining({ style: 'error' })
-        })
-      );
+      expect(mockNotificationService.show).toHaveBeenCalledWith(expect.objectContaining({
+        content: 'Failed to save symbol',
+        type: expect.objectContaining({ style: 'error' })
+      }));
 
       // Should still have unsaved changes after failed save
-      expect(component.hasUnsavedChanges()).toBeTrue();
+      expect(component.hasUnsavedChanges()).toBe(true);
     }));
 
     it('should set isSaving to false after save completes', fakeAsync(() => {
-      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeFalse();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBe(false);
 
       (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
-      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeTrue();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBe(true);
 
       tick();
-      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeFalse();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBe(false);
     }));
 
     it('should set isSaving to false even after save failure', fakeAsync(() => {
-      mockSymbolLibraryService.updateSymbol.and.returnValue(Promise.reject(new Error('Save failed')));
+      mockSymbolLibraryService.updateSymbol.mockRejectedValue(new Error('Save failed'));
 
       (component as unknown as SymbolEditorPageTestAccess).saveSymbol();
       tick();
 
-      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBeFalse();
+      expect((component as unknown as SymbolEditorPageTestAccess).isSaving()).toBe(false);
     }));
   });
 
@@ -308,7 +328,7 @@ describe('SymbolEditorPageComponent', () => {
 
     it('should mark as changed when settings change', () => {
       (component as unknown as SymbolEditorPageTestAccess).onSymbolSettingsChange({ key: 'name', value: 'New Name' });
-      expect(component.hasUnsavedChanges()).toBeTrue();
+      expect(component.hasUnsavedChanges()).toBe(true);
     });
 
     it('should update canvas size when canvasWidth changes', () => {

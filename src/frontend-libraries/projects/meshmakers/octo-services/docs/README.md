@@ -1006,16 +1006,22 @@ describe('AssetRepoService', () => {
 ### GraphQL Service Tests
 
 ```typescript
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { CkTypeSelectorService, GetCkTypesDtoGQL } from '@meshmakers/octo-services';
+import { Apollo } from 'apollo-angular';
+import { CkTypeSelectorService, GetCkTypesDtoGQL, GetCkTypesQueryDto } from '@meshmakers/octo-services';
+
+type MockCkTypesResult = Apollo.QueryResult<GetCkTypesQueryDto>;
 
 describe('CkTypeSelectorService', () => {
   let service: CkTypeSelectorService;
-  let getCkTypesGQLMock: jasmine.SpyObj<GetCkTypesDtoGQL>;
+  let getCkTypesGQLMock: MockedObject<GetCkTypesDtoGQL>;
 
   beforeEach(() => {
-    getCkTypesGQLMock = jasmine.createSpyObj('GetCkTypesDtoGQL', ['fetch']);
+    getCkTypesGQLMock = {
+      fetch: vi.fn().mockName('GetCkTypesDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkTypesDtoGQL>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -1027,7 +1033,8 @@ describe('CkTypeSelectorService', () => {
     service = TestBed.inject(CkTypeSelectorService);
   });
 
-  it('should fetch types', (done) => {
+  // Done-callback tests are written as explicit Promises so Vitest waits for done().
+  it('should fetch types', () => new Promise<void>((done) => {
     const mockResponse = {
       data: {
         constructionKit: {
@@ -1044,28 +1051,28 @@ describe('CkTypeSelectorService', () => {
           }
         }
       }
-    } as any;
+    } as unknown as MockCkTypesResult;
 
-    getCkTypesGQLMock.fetch.and.returnValue(of(mockResponse));
+    getCkTypesGQLMock.fetch.mockReturnValue(of(mockResponse));
 
     service.getCkTypes().subscribe(result => {
       expect(result.items.length).toBe(1);
       expect(result.items[0].rtCkTypeId).toBe('Model/Type');
       done();
     });
-  });
+  }));
 });
 ```
 
 ### Run Tests
 
 ```bash
-# Run all octo-services tests
-npm test -- --project=@meshmakers/octo-services --watch=false
+# Run all octo-services tests (Vitest on jsdom, no browser needed)
+npm run test:octo-services
 
-# With Chrome Headless
-CHROME_BIN="/path/to/chrome" npm test -- --project=@meshmakers/octo-services --watch=false --browsers=ChromeHeadless
+# Run a single spec (path relative to the workspace root)
+ng test @meshmakers/octo-services --watch=false --include=projects/meshmakers/octo-services/src/lib/services/ck-type-selector.service.spec.ts
 
 # With coverage
-npm test -- --project=@meshmakers/octo-services --watch=false --code-coverage
+ng test @meshmakers/octo-services --watch=false --coverage
 ```

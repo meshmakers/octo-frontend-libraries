@@ -1,3 +1,4 @@
+import type { Mock, MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -8,31 +9,34 @@ import { EntityIdInfoComponent } from './entity-id-info.component';
 
 /** Mirrors the CopyOption interface from the component for test access */
 interface CopyOption {
-  label: string;
-  value: string;
-  displayText: string;
+    label: string;
+    value: string;
+    displayText: string;
 }
 
 /** Interface exposing protected/private members of EntityIdInfoComponent for testing */
 interface EntityIdInfoTestAccess {
-  copyIcon: SVGIcon;
-  copyOptions: CopyOption[];
-  truncateValue(value: string, maxLength: number): string;
-  copyToClipboard(option: CopyOption): Promise<void>;
+    copyIcon: SVGIcon;
+    copyOptions: CopyOption[];
+    truncateValue(value: string, maxLength: number): string;
+    copyToClipboard(option: CopyOption): Promise<void>;
 }
 
 describe('EntityIdInfoComponent', () => {
   let component: EntityIdInfoComponent;
   let testAccess: EntityIdInfoTestAccess;
   let fixture: ComponentFixture<EntityIdInfoComponent>;
-  let notificationServiceMock: jasmine.SpyObj<NotificationDisplayService>;
+  let notificationServiceMock: MockedObject<NotificationDisplayService>;
 
   const mockRtId = '65d5c447b420da3fb12381bc';
   const mockRtCkTypeId = 'System.Communication/Adapter';
   const mockCkTypeId = 'System.Communication~2.0.3/Adapter~1';
 
   beforeEach(async () => {
-    notificationServiceMock = jasmine.createSpyObj('NotificationDisplayService', ['showSuccess', 'showError']);
+    notificationServiceMock = {
+      showSuccess: vi.fn().mockName('NotificationDisplayService.showSuccess'),
+      showError: vi.fn().mockName('NotificationDisplayService.showError')
+    } as unknown as MockedObject<NotificationDisplayService>;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -158,7 +162,7 @@ describe('EntityIdInfoComponent', () => {
       const longValue = 'this-is-a-very-long-value-that-should-be-truncated';
       const result = testAccess.truncateValue(longValue, 24);
       expect(result.length).toBe(24);
-      expect(result.endsWith('...')).toBeTrue();
+      expect(result.endsWith('...')).toBe(true);
     });
 
     it('should truncate at exactly maxLength including ellipsis', () => {
@@ -185,21 +189,21 @@ describe('EntityIdInfoComponent', () => {
       const rtEntityId = `${mockRtCkTypeId}@${mockRtId}`;
       // RtEntityId is longer than 40 chars, so should be truncated
       if (rtEntityId.length > 40) {
-        expect(options[3].displayText.endsWith('...')).toBeTrue();
+        expect(options[3].displayText.endsWith('...')).toBe(true);
         expect(options[3].displayText.length).toBe(40);
       }
     });
   });
 
   describe('Clipboard copy functionality', () => {
-    let clipboardSpy: jasmine.Spy;
+    let clipboardSpy: Mock;
 
     beforeEach(() => {
       component.rtId = mockRtId;
       component.rtCkTypeId = mockRtCkTypeId;
       fixture.detectChanges();
 
-      clipboardSpy = spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+      clipboardSpy = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
     });
 
     it('should copy RtId to clipboard', async () => {
@@ -256,7 +260,7 @@ describe('EntityIdInfoComponent', () => {
     });
 
     it('should show error notification when clipboard fails', async () => {
-      clipboardSpy.and.returnValue(Promise.reject(new Error('Clipboard error')));
+      clipboardSpy.mockRejectedValue(new Error('Clipboard error'));
 
       const options = testAccess.copyOptions;
       await testAccess.copyToClipboard(options[0]);
@@ -265,9 +269,9 @@ describe('EntityIdInfoComponent', () => {
     });
 
     it('should log error to console when clipboard fails', async () => {
-      const consoleSpy = spyOn(console, 'error');
+      const consoleSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
       const error = new Error('Clipboard error');
-      clipboardSpy.and.returnValue(Promise.reject(error));
+      clipboardSpy.mockRejectedValue(error);
 
       const options = testAccess.copyOptions;
       await testAccess.copyToClipboard(options[0]);

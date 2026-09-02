@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
@@ -7,14 +8,15 @@ import { FileUploadResult } from '../models/confirmation';
 
 describe('FileUploadService', () => {
   let service: FileUploadService;
-  let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogRefMock: jasmine.SpyObj<DialogRef>;
+  let dialogServiceMock: MockedObject<DialogService>;
+  let dialogRefMock: MockedObject<DialogRef>;
   let resultSubject: Subject<FileUploadResult | object>;
 
   beforeEach(() => {
     resultSubject = new Subject<FileUploadResult | object>();
 
-    dialogRefMock = jasmine.createSpyObj('DialogRef', ['close'], {
+    dialogRefMock = {
+      close: vi.fn().mockName('DialogRef.close'),
       result: resultSubject.asObservable(),
       content: {
         instance: {
@@ -23,10 +25,12 @@ describe('FileUploadService', () => {
           fileExtensions: null
         }
       }
-    });
+    } as unknown as MockedObject<DialogRef>;
 
-    dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
-    dialogServiceMock.open.and.returnValue(dialogRefMock);
+    dialogServiceMock = {
+      open: vi.fn().mockName('DialogService.open')
+    } as unknown as MockedObject<DialogService>;
+    dialogServiceMock.open.mockReturnValue(dialogRefMock);
 
     TestBed.configureTestingModule({
       providers: [

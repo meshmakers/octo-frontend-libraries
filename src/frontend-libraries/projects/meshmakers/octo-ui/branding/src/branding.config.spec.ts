@@ -1,10 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideOctoBranding } from './branding.config';
-import {
-  NEUTRAL_BRANDING_DEFAULTS,
-  OCTO_BRANDING_DEFAULTS,
-  OCTO_BRANDING_FALLBACK_ASSETS,
-} from './branding.tokens';
+import { NEUTRAL_BRANDING_DEFAULTS, OCTO_BRANDING_DEFAULTS, OCTO_BRANDING_FALLBACK_ASSETS, } from './branding.tokens';
 
 describe('provideOctoBranding', () => {
   it('uses neutral defaults when no config is passed', () => {
@@ -25,9 +21,7 @@ describe('provideOctoBranding', () => {
     expect(v.appName).toBe('TecLink');
     expect(v.appTitle).toBe('TecLink');
     // Untouched keys remain neutral
-    expect(v.lightTheme.primaryColor).toBe(
-      NEUTRAL_BRANDING_DEFAULTS.lightTheme.primaryColor,
-    );
+    expect(v.lightTheme.primaryColor).toBe(NEUTRAL_BRANDING_DEFAULTS.lightTheme.primaryColor);
   });
 
   it('passes fallbackAssets through verbatim', () => {

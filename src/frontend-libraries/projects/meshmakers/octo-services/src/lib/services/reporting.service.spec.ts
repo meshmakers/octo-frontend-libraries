@@ -1,14 +1,15 @@
-import {TestBed} from '@angular/core/testing';
-import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {provideHttpClient, withXhr} from '@angular/common/http';
-import {ReportingService} from './reporting.service';
-import {CONFIGURATION_SERVICE, IConfigurationService} from './configuration.service';
-import {AddInConfiguration} from '../shared/addInConfiguration';
+import type { MockedObject } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withXhr } from '@angular/common/http';
+import { ReportingService } from './reporting.service';
+import { CONFIGURATION_SERVICE, IConfigurationService } from './configuration.service';
+import { AddInConfiguration } from '../shared/addInConfiguration';
 
 describe('ReportingService', () => {
   let service: ReportingService;
   let httpMock: HttpTestingController;
-  let mockConfigService: jasmine.SpyObj<IConfigurationService>;
+  let mockConfigService: MockedObject<IConfigurationService>;
 
   const mockConfig: AddInConfiguration = {
     communicationServices: 'https://api.example.com/communication/',
@@ -29,16 +30,16 @@ describe('ReportingService', () => {
   const tenantId = 'test-tenant';
 
   beforeEach(() => {
-    mockConfigService = jasmine.createSpyObj<IConfigurationService>('ConfigurationService', [], {
+    mockConfigService = {
       config: mockConfig
-    });
+    } as unknown as MockedObject<IConfigurationService>;
 
     TestBed.configureTestingModule({
       providers: [
         ReportingService,
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        {provide: CONFIGURATION_SERVICE, useValue: mockConfigService}
+        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
       ]
     });
 
@@ -54,9 +55,7 @@ describe('ReportingService', () => {
     it('should POST the tenant-scoped enable endpoint', async () => {
       const promise = service.enableReporting(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.reportingServices}${tenantId}/v1/reporting/enable`
-      );
+      const req = httpMock.expectOne(`${mockConfig.reportingServices}${tenantId}/v1/reporting/enable`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(null);
@@ -67,12 +66,10 @@ describe('ReportingService', () => {
     it('should propagate errors', async () => {
       const promise = service.enableReporting(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.reportingServices}${tenantId}/v1/reporting/enable`
-      );
-      req.flush({errorMessage: 'boom'}, {status: 500, statusText: 'Server Error'});
+      const req = httpMock.expectOne(`${mockConfig.reportingServices}${tenantId}/v1/reporting/enable`);
+      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
 
-      await expectAsync(promise).toBeRejected();
+      await expect(promise).rejects.toThrow();
     });
   });
 
@@ -80,9 +77,7 @@ describe('ReportingService', () => {
     it('should POST the tenant-scoped disable endpoint', async () => {
       const promise = service.disableReporting(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.reportingServices}${tenantId}/v1/reporting/disable`
-      );
+      const req = httpMock.expectOne(`${mockConfig.reportingServices}${tenantId}/v1/reporting/disable`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(null);
@@ -93,29 +88,27 @@ describe('ReportingService', () => {
     it('should propagate errors', async () => {
       const promise = service.disableReporting(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.reportingServices}${tenantId}/v1/reporting/disable`
-      );
-      req.flush({errorMessage: 'boom'}, {status: 500, statusText: 'Server Error'});
+      const req = httpMock.expectOne(`${mockConfig.reportingServices}${tenantId}/v1/reporting/disable`);
+      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
 
-      await expectAsync(promise).toBeRejected();
+      await expect(promise).rejects.toThrow();
     });
   });
 
   describe('when reportingServices is not configured', () => {
     beforeEach(() => {
       Object.defineProperty(mockConfigService, 'config', {
-        get: () => ({...mockConfig, reportingServices: ''})
+        get: () => ({ ...mockConfig, reportingServices: '' })
       });
     });
 
     it('enableReporting should throw and not make an HTTP call', async () => {
-      await expectAsync(service.enableReporting(tenantId)).toBeRejected();
+      await expect(service.enableReporting(tenantId)).rejects.toThrow();
       httpMock.expectNone(() => true);
     });
 
     it('disableReporting should throw and not make an HTTP call', async () => {
-      await expectAsync(service.disableReporting(tenantId)).toBeRejected();
+      await expect(service.disableReporting(tenantId)).rejects.toThrow();
       httpMock.expectNone(() => true);
     });
   });

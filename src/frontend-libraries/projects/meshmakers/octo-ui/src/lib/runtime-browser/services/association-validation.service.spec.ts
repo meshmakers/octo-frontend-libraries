@@ -1,3 +1,4 @@
+import type { Mock, MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { GetCkTypeAssociationRolesDtoGQL } from '../../graphQL/getCkTypeAssociationRoles';
@@ -5,7 +6,9 @@ import { AssociationValidationService } from './association-validation.service';
 
 describe('AssociationValidationService', () => {
   let service: AssociationValidationService;
-  let mockGetCkTypeAssociationRolesGQL: jasmine.SpyObj<{ fetch: jasmine.Spy }>;
+  let mockGetCkTypeAssociationRolesGQL: MockedObject<{
+        fetch: Mock;
+    }>;
 
   const mockMachineRolesResponse = {
     data: {
@@ -81,8 +84,8 @@ describe('AssociationValidationService', () => {
 
   beforeEach(() => {
     mockGetCkTypeAssociationRolesGQL = {
-      fetch: jasmine.createSpy('fetch'),
-    };
+      fetch: vi.fn().mockName('fetch'),
+    } as unknown as MockedObject<{ fetch: Mock }>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -104,17 +107,17 @@ describe('AssociationValidationService', () => {
 
   describe('canMove', () => {
     it('should allow move when ParentChild outbound role matches destination type', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of(mockMachineRolesResponse));
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
 
       const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
 
-      expect(result.allowed).toBeTrue();
+      expect(result.allowed).toBe(true);
       expect(result.rtRoleId).toBe('System/ParentChild');
       expect(result.navigationPropertyName).toBe('parent');
     });
 
     it('should normalize navigationPropertyName to lowerCamelCase', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of(mockMachineRolesResponse));
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
 
       const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
 
@@ -125,34 +128,34 @@ describe('AssociationValidationService', () => {
     });
 
     it('should allow move to Tree root', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of(mockMachineRolesResponse));
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
 
       const result = await service.canMove('Industry.Basic/Machine', 'Basic/Tree');
 
-      expect(result.allowed).toBeTrue();
+      expect(result.allowed).toBe(true);
       expect(result.rtRoleId).toBe('System/ParentChild');
     });
 
     it('should reject move when no ParentChild role matches destination', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of(mockMachineRolesResponse));
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
 
       const result = await service.canMove('Industry.Basic/Machine', 'Custom/UnrelatedType');
 
-      expect(result.allowed).toBeFalse();
+      expect(result.allowed).toBe(false);
       expect(result.reason).toContain('Industry.Basic/Machine');
       expect(result.reason).toContain('Custom/UnrelatedType');
     });
 
     it('should reject move when type has no ParentChild outbound roles', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of(mockNoParentChildResponse));
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockNoParentChildResponse));
 
       const result = await service.canMove('Custom/Sensor', 'Basic/TreeNode');
 
-      expect(result.allowed).toBeFalse();
+      expect(result.allowed).toBe(false);
     });
 
     it('should not match non-ParentChild roles', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of(mockMachineRolesResponse));
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
 
       // RelatedClassification also points to Basic/TreeNode, but should not be used for move
       const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
@@ -162,7 +165,7 @@ describe('AssociationValidationService', () => {
     });
 
     it('should use cached roles on subsequent calls', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of(mockMachineRolesResponse));
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
 
       await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
       await service.canMove('Industry.Basic/Machine', 'Basic/Tree');
@@ -171,17 +174,17 @@ describe('AssociationValidationService', () => {
     });
 
     it('should handle empty type response', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of({
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of({
         data: { constructionKit: { types: { items: [] } } },
       }));
 
       const result = await service.canMove('Unknown/Type', 'Basic/TreeNode');
 
-      expect(result.allowed).toBeFalse();
+      expect(result.allowed).toBe(false);
     });
 
     it('should handle null associations in response', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of({
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of({
         data: {
           constructionKit: {
             types: {
@@ -193,13 +196,13 @@ describe('AssociationValidationService', () => {
 
       const result = await service.canMove('Test/Type', 'Basic/TreeNode');
 
-      expect(result.allowed).toBeFalse();
+      expect(result.allowed).toBe(false);
     });
   });
 
   describe('clearCache', () => {
     it('should clear cache so next call fetches fresh data', async () => {
-      mockGetCkTypeAssociationRolesGQL.fetch.and.returnValue(of(mockMachineRolesResponse));
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
 
       await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
       service.clearCache();

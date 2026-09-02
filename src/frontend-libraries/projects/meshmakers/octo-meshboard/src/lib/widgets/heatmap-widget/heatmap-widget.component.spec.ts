@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HeatmapWidgetComponent } from './heatmap-widget.component';
 import { QueryExecutorService } from '../../services/query-executor.service';
@@ -5,7 +6,12 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { HeatmapWidgetConfig } from '../../models/meshboard.models';
 
-interface HeatmapCell { date: string; hour: string; value: number; color: string; }
+interface HeatmapCell {
+    date: string;
+    hour: string;
+    value: number;
+    color: string;
+}
 
 // Band colors mirrored from THRESHOLD_COLORS in the component.
 const OK = '#2e7d32';
@@ -14,7 +20,7 @@ const HIGH = '#c62828';
 
 describe('HeatmapWidgetComponent — threshold coloring', () => {
   let component: HeatmapWidgetComponent;
-  let stateService: jasmine.SpyObj<MeshBoardStateService>;
+  let stateService: MockedObject<MeshBoardStateService>;
 
   function configWith(partial: Partial<HeatmapWidgetConfig>): HeatmapWidgetConfig {
     return {
@@ -28,16 +34,22 @@ describe('HeatmapWidgetComponent — threshold coloring', () => {
   }
 
   beforeEach(() => {
-    stateService = jasmine.createSpyObj<MeshBoardStateService>('MeshBoardStateService', [
-      'resolveStreamDataRtIds', 'resolveStreamDataTimeArgs', 'timeZoneMode'
-    ]);
+    stateService = {
+      resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
+      resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
+      timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')
+    } as unknown as MockedObject<MeshBoardStateService>;
 
     TestBed.configureTestingModule({
       imports: [HeatmapWidgetComponent],
       providers: [
         { provide: MeshBoardStateService, useValue: stateService },
-        { provide: QueryExecutorService, useValue: jasmine.createSpyObj('QueryExecutorService', ['execute']) },
-        { provide: MeshBoardVariableService, useValue: jasmine.createSpyObj('MeshBoardVariableService', ['resolveVariables']) }
+        { provide: QueryExecutorService, useValue: {
+          execute: vi.fn().mockName('QueryExecutorService.execute')
+        } },
+        { provide: MeshBoardVariableService, useValue: {
+          resolveVariables: vi.fn().mockName('MeshBoardVariableService.resolveVariables')
+        } }
       ]
     });
 
@@ -46,47 +58,57 @@ describe('HeatmapWidgetComponent — threshold coloring', () => {
 
   describe('getThresholdColor', () => {
     it('greens a cell equal to the target', () => {
-      expect((component as unknown as { getThresholdColor(v: number, t: number): string }).getThresholdColor(2, 2)).toBe(OK);
+      expect((component as unknown as {
+                getThresholdColor(v: number, t: number): string;
+            }).getThresholdColor(2, 2)).toBe(OK);
     });
 
     it('ambers a cell below the target, including empty 0-cells', () => {
-      const c = component as unknown as { getThresholdColor(v: number, t: number): string };
+      const c = component as unknown as {
+                getThresholdColor(v: number, t: number): string;
+            };
       expect(c.getThresholdColor(1, 2)).toBe(WARN);
       expect(c.getThresholdColor(0, 2)).toBe(WARN);
     });
 
     it('reds a cell above the target', () => {
-      expect((component as unknown as { getThresholdColor(v: number, t: number): string }).getThresholdColor(8, 2)).toBe(HIGH);
+      expect((component as unknown as {
+                getThresholdColor(v: number, t: number): string;
+            }).getThresholdColor(8, 2)).toBe(HIGH);
     });
   });
 
   describe('resolveThresholdTarget', () => {
     function resolve(): number | null {
-      return (component as unknown as { resolveThresholdTarget(): number | null }).resolveThresholdTarget();
+      return (component as unknown as {
+                resolveThresholdTarget(): number | null;
+            }).resolveThresholdTarget();
     }
 
     it('uses the explicit thresholdTarget when set', () => {
       component.config = configWith({ thresholdTarget: 5, dataSource: { type: 'persistentQuery', queryRtId: 'q1', entitySelectorId: 'es1' } as never });
-      stateService.resolveStreamDataRtIds.and.returnValue(['a', 'b']);
+      stateService.resolveStreamDataRtIds.mockReturnValue(['a', 'b']);
       expect(resolve()).toBe(5);
     });
 
     it('auto-derives the target from the number of scoped source rtIds', () => {
       component.config = configWith({ dataSource: { type: 'persistentQuery', queryRtId: 'q1', entitySelectorId: 'es1' } as never });
-      stateService.resolveStreamDataRtIds.and.returnValue(['a', 'b']);
+      stateService.resolveStreamDataRtIds.mockReturnValue(['a', 'b']);
       expect(resolve()).toBe(2);
     });
 
     it('returns null when there is neither a manual target nor a resolvable scope', () => {
       component.config = configWith({});
-      stateService.resolveStreamDataRtIds.and.returnValue(undefined);
+      stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
       expect(resolve()).toBeNull();
     });
   });
 
   describe('assignColors', () => {
     function assign(data: HeatmapCell[]): void {
-      (component as unknown as { assignColors(d: HeatmapCell[]): void }).assignColors(data);
+      (component as unknown as {
+                assignColors(d: HeatmapCell[]): void;
+            }).assignColors(data);
     }
 
     it('bands cells around the target in threshold mode (0 → warn, target → ok, above → high)', () => {
@@ -103,7 +125,7 @@ describe('HeatmapWidgetComponent — threshold coloring', () => {
 
     it('falls back to gradient when threshold mode has no resolvable target', () => {
       component.config = configWith({ colorMode: 'threshold' });
-      stateService.resolveStreamDataRtIds.and.returnValue(undefined);
+      stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
       const data: HeatmapCell[] = [
         { date: 'd', hour: '00:00', value: 0, color: '' },
         { date: 'd', hour: '01:00', value: 5, color: '' }

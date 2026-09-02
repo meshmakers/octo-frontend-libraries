@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { DesignerHistoryService } from './designer-history.service';
 
 interface TestState {
-  id: string;
-  value: number;
+    id: string;
+    value: number;
 }
 
 describe('DesignerHistoryService', () => {
@@ -24,8 +24,8 @@ describe('DesignerHistoryService', () => {
     it('should initialize with empty history', () => {
       expect(service.historyLength()).toBe(0);
       expect(service.currentIndex()).toBe(-1);
-      expect(service.canUndo()).toBeFalse();
-      expect(service.canRedo()).toBeFalse();
+      expect(service.canUndo()).toBe(false);
+      expect(service.canRedo()).toBe(false);
     });
 
     it('should initialize with provided state', () => {
@@ -34,8 +34,8 @@ describe('DesignerHistoryService', () => {
 
       expect(service.historyLength()).toBe(1);
       expect(service.currentIndex()).toBe(0);
-      expect(service.canUndo()).toBeFalse();
-      expect(service.canRedo()).toBeFalse();
+      expect(service.canUndo()).toBe(false);
+      expect(service.canRedo()).toBe(false);
     });
 
     it('should deep clone state on initialize', () => {
@@ -82,12 +82,12 @@ describe('DesignerHistoryService', () => {
       // Undo twice
       service.undo();
       service.undo();
-      expect(service.canRedo()).toBeTrue();
+      expect(service.canRedo()).toBe(true);
 
       // Push new state - should clear redo
       service.push({ id: 'new', value: 99 });
 
-      expect(service.canRedo()).toBeFalse();
+      expect(service.canRedo()).toBe(false);
       expect(service.historyLength()).toBe(2); // initial + new
     });
 
@@ -126,11 +126,11 @@ describe('DesignerHistoryService', () => {
     });
 
     it('should enable redo after undo', () => {
-      expect(service.canRedo()).toBeFalse();
+      expect(service.canRedo()).toBe(false);
 
       service.undo();
 
-      expect(service.canRedo()).toBeTrue();
+      expect(service.canRedo()).toBe(true);
     });
 
     it('should return deep cloned state', () => {
@@ -185,29 +185,29 @@ describe('DesignerHistoryService', () => {
 
   describe('canUndo/canRedo signals', () => {
     it('should report canUndo correctly', () => {
-      expect(service.canUndo()).toBeFalse();
+      expect(service.canUndo()).toBe(false);
 
       service.initialize({ id: 'initial', value: 0 });
-      expect(service.canUndo()).toBeFalse(); // Only one state
+      expect(service.canUndo()).toBe(false); // Only one state
 
       service.push({ id: 'second', value: 1 });
-      expect(service.canUndo()).toBeTrue(); // Two states, can undo
+      expect(service.canUndo()).toBe(true); // Two states, can undo
 
       service.undo();
-      expect(service.canUndo()).toBeFalse(); // At first state
+      expect(service.canUndo()).toBe(false); // At first state
     });
 
     it('should report canRedo correctly', () => {
       service.initialize({ id: 'initial', value: 0 });
       service.push({ id: 'second', value: 1 });
 
-      expect(service.canRedo()).toBeFalse(); // At latest state
+      expect(service.canRedo()).toBe(false); // At latest state
 
       service.undo();
-      expect(service.canRedo()).toBeTrue(); // After undo
+      expect(service.canRedo()).toBe(true); // After undo
 
       service.redo();
-      expect(service.canRedo()).toBeFalse(); // Back at latest
+      expect(service.canRedo()).toBe(false); // Back at latest
     });
   });
 
@@ -246,8 +246,8 @@ describe('DesignerHistoryService', () => {
 
       expect(service.historyLength()).toBe(0);
       expect(service.currentIndex()).toBe(-1);
-      expect(service.canUndo()).toBeFalse();
-      expect(service.canRedo()).toBeFalse();
+      expect(service.canUndo()).toBe(false);
+      expect(service.canRedo()).toBe(false);
     });
   });
 
@@ -279,7 +279,7 @@ describe('DesignerHistoryService', () => {
       expect(service.historyLength()).toBe(3);
 
       // Cannot redo anymore
-      expect(service.canRedo()).toBeFalse();
+      expect(service.canRedo()).toBe(false);
 
       // Current state should be the new one
       expect(service.getCurrentState()?.id).toBe('state-new');

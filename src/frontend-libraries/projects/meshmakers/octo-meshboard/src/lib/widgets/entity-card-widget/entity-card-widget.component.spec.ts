@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { EntityCardWidgetComponent } from './entity-card-widget.component';
@@ -12,7 +13,7 @@ import { EntityCardWidgetConfig, MeshBoardVariable, RuntimeEntityData, EntitySel
  */
 describe('EntityCardWidgetComponent', () => {
   let component: EntityCardWidgetComponent;
-  let dataServiceSpy: jasmine.SpyObj<MeshBoardDataService>;
+  let dataServiceSpy: MockedObject<MeshBoardDataService>;
   let variables: MeshBoardVariable[];
   let selectors: EntitySelectorConfig[];
 
@@ -35,8 +36,10 @@ describe('EntityCardWidgetComponent', () => {
   beforeEach(() => {
     variables = [];
     selectors = [];
-    dataServiceSpy = jasmine.createSpyObj('DashboardDataService', ['fetchEntityWithAssociations']);
-    dataServiceSpy.fetchEntityWithAssociations.and.returnValue(of(entity));
+    dataServiceSpy = {
+      fetchEntityWithAssociations: vi.fn().mockName('DashboardDataService.fetchEntityWithAssociations')
+    } as unknown as MockedObject<MeshBoardDataService>;
+    dataServiceSpy.fetchEntityWithAssociations.mockReturnValue(of(entity));
 
     const stateStub: Partial<MeshBoardStateService> = {
       getVariables: () => variables,
@@ -58,7 +61,8 @@ describe('EntityCardWidgetComponent', () => {
   it('fetches with literal rtId/ckTypeId', () => {
     component.config = baseConfig({ type: 'runtimeEntity', ckTypeId: 'Energy/MeteringPoint', rtId: 'rt-123' });
     component.ngOnInit();
-    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledOnceWith('rt-123', 'Energy/MeteringPoint');
+    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledTimes(1);
+    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledWith('rt-123', 'Energy/MeteringPoint');
     expect(component.data()).toBe(entity);
   });
 
@@ -69,7 +73,8 @@ describe('EntityCardWidgetComponent', () => {
     ];
     component.config = baseConfig({ type: 'runtimeEntity', ckTypeId: '$mp_rtCkTypeId', rtId: '$mp_rtId' });
     component.ngOnInit();
-    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledOnceWith('rt-123', 'Energy/MeteringPoint');
+    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledTimes(1);
+    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledWith('rt-123', 'Energy/MeteringPoint');
   });
 
   it('does not fetch while a variable is unresolved', () => {
@@ -84,14 +89,16 @@ describe('EntityCardWidgetComponent', () => {
     variables = [{ name: 'mp_rtCkTypeId', type: 'string', source: 'entitySelector', value: 'Energy/MeteringPoint' }];
     component.config = baseConfig({ type: 'runtimeEntity', entitySelectorId: 'mp' });
     component.ngOnInit();
-    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledOnceWith('rt-123', 'Energy/MeteringPoint');
+    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledTimes(1);
+    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledWith('rt-123', 'Energy/MeteringPoint');
   });
 
   it('selector binding falls back to the selector ckTypeId when no rtCkTypeId variable is exposed', () => {
     selectors = [{ id: 'mp', label: 'MP', ckTypeId: 'Energy/MeteringPoint', attributeMappings: [], selectedRtId: 'rt-123' }];
     component.config = baseConfig({ type: 'runtimeEntity', entitySelectorId: 'mp' });
     component.ngOnInit();
-    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledOnceWith('rt-123', 'Energy/MeteringPoint');
+    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledTimes(1);
+    expect(dataServiceSpy.fetchEntityWithAssociations).toHaveBeenCalledWith('rt-123', 'Energy/MeteringPoint');
   });
 
   it('does not fetch when a bound selector has no current selection', () => {
@@ -103,11 +110,11 @@ describe('EntityCardWidgetComponent', () => {
 
   it('is configured when only an entitySelectorId is set', () => {
     component.config = baseConfig({ type: 'runtimeEntity', entitySelectorId: 'mp' });
-    expect(component.isNotConfigured()).toBeFalse();
+    expect(component.isNotConfigured()).toBe(false);
   });
 
   it('is not configured when runtimeEntity has neither rtId, ckTypeId nor selector', () => {
     component.config = baseConfig({ type: 'runtimeEntity' });
-    expect(component.isNotConfigured()).toBeTrue();
+    expect(component.isNotConfigured()).toBe(true);
   });
 });

@@ -1,30 +1,27 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { WindowStateService } from '@meshmakers/shared-ui';
+import { WindowStateService, WindowDimensions } from '@meshmakers/shared-ui';
 import { Subject } from 'rxjs';
 import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { AttributeItem } from '@meshmakers/octo-services';
 import { AttributeSortSelectorDialogService } from './attribute-sort-selector-dialog.service';
-import {
-  AttributeSortSelectorDialogComponent,
-  AttributeSortSelectorDialogResult,
-  AttributeSortItem
-} from './attribute-sort-selector-dialog.component';
+import { AttributeSortSelectorDialogComponent, AttributeSortSelectorDialogResult, AttributeSortItem } from './attribute-sort-selector-dialog.component';
 
 interface MockComponentInstance {
-  data?: {
-    ckTypeId: string;
-    selectedAttributes?: AttributeSortItem[];
-    dialogTitle?: string;
-    includeNavigationProperties?: boolean;
-    hideNavigationControls?: boolean;
-    attributePaths?: string[];
-    additionalAttributes?: AttributeItem[];
-  };
+    data?: {
+        ckTypeId: string;
+        selectedAttributes?: AttributeSortItem[];
+        dialogTitle?: string;
+        includeNavigationProperties?: boolean;
+        hideNavigationControls?: boolean;
+        attributePaths?: string[];
+        additionalAttributes?: AttributeItem[];
+    };
 }
 
 describe('AttributeSortSelectorDialogService', () => {
   let service: AttributeSortSelectorDialogService;
-  let windowServiceMock: jasmine.SpyObj<WindowService>;
+  let windowServiceMock: MockedObject<WindowService>;
   let windowResultSubject: Subject<AttributeSortSelectorDialogResult | WindowCloseResult | Record<string, unknown> | string | undefined>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockWindowRef: Record<string, any>;
@@ -58,8 +55,10 @@ describe('AttributeSortSelectorDialogService', () => {
       }
     };
 
-    windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
-    windowServiceMock.open.and.returnValue(mockWindowRef as WindowRef);
+    windowServiceMock = {
+      open: vi.fn().mockName('WindowService.open')
+    } as unknown as MockedObject<WindowService>;
+    windowServiceMock.open.mockReturnValue(mockWindowRef as WindowRef);
 
     TestBed.configureTestingModule({
       providers: [
@@ -70,12 +69,10 @@ describe('AttributeSortSelectorDialogService', () => {
 
     service = TestBed.inject(AttributeSortSelectorDialogService);
     // Pin the viewport clamp in the shared-ui WindowStateService to a large
-    // screen — the karma browser window is small and would otherwise shrink
+    // screen — the jsdom window is small and would otherwise shrink
     // the dimensions these specs assert verbatim.
     const windowState = TestBed.inject(WindowStateService);
-    spyOn<never>(windowState as never, 'viewportSize' as never).and.returnValue(
-      { width: 1920, height: 1080 } as never,
-    );
+    vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });
   });
 
   it('should be created', () => {
@@ -110,11 +107,9 @@ describe('AttributeSortSelectorDialogService', () => {
 
       await resultPromise;
 
-      expect(windowServiceMock.open).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          title: 'Sort Configuration'
-        })
-      );
+      expect(windowServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Sort Configuration'
+      }));
     });
 
     it('should pass data to dialog component', async () => {
@@ -287,16 +282,14 @@ describe('AttributeSortSelectorDialogService', () => {
     });
 
     it('should pass new optional params to dialog component', async () => {
-      const resultPromise = service.openAttributeSortSelector(
-        'TestType/Entity', undefined, undefined, false, true
-      );
+      const resultPromise = service.openAttributeSortSelector('TestType/Entity', undefined, undefined, false, true);
 
       windowResultSubject.next({ selectedAttributes: [] });
       windowResultSubject.complete();
 
       await resultPromise;
 
-      expect(mockComponentInstance.data).toEqual(jasmine.objectContaining({
+      expect(mockComponentInstance.data).toEqual(expect.objectContaining({
         includeNavigationProperties: false,
         hideNavigationControls: true
       }));
@@ -310,11 +303,9 @@ describe('AttributeSortSelectorDialogService', () => {
 
       await resultPromise;
 
-      expect(windowServiceMock.open).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          resizable: true
-        })
-      );
+      expect(windowServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        resizable: true
+      }));
     });
   });
 });

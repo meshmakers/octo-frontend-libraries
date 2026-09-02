@@ -1,8 +1,4 @@
-import {
-  coerceDataPointValue,
-  computeExpressionPreview,
-  MappingExpressionEvaluatorFn,
-} from './mapping-expression-preview';
+import { coerceDataPointValue, computeExpressionPreview, MappingExpressionEvaluatorFn, } from './mapping-expression-preview';
 
 describe('coerceDataPointValue', () => {
   it('coerces numeric strings to numbers', () => {
@@ -25,10 +21,9 @@ describe('coerceDataPointValue', () => {
 });
 
 describe('computeExpressionPreview', () => {
-  const doubler: MappingExpressionEvaluatorFn = (expression, value) =>
-    expression === 'boom'
-      ? { valid: false, error: 'kaputt' }
-      : { valid: true, preview: String((value as number) * 2) };
+  const doubler: MappingExpressionEvaluatorFn = (expression, value) => expression === 'boom'
+    ? { valid: false, error: 'kaputt' }
+    : { valid: true, preview: String((value as number) * 2) };
 
   it('returns null when the source value is unknown', () => {
     expect(computeExpressionPreview(doubler, 'value * 2', undefined)).toBeNull();
@@ -46,7 +41,7 @@ describe('computeExpressionPreview', () => {
 
   it('evaluates the expression against the coerced value', () => {
     const preview = computeExpressionPreview(doubler, 'value * 2', '21.5');
-    expect(preview?.passThrough).toBeFalse();
+    expect(preview?.passThrough).toBe(false);
     expect(preview?.valueLabel).toBe('21.5');
     expect(preview?.result).toEqual({ valid: true, preview: '43' });
   });

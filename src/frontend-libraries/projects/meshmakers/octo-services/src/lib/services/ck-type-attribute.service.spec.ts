@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { Apollo } from 'apollo-angular';
@@ -11,8 +12,8 @@ type MockRecordQueryResult = Apollo.QueryResult<GetCkRecordAttributesQueryDto>;
 
 describe('CkTypeAttributeService', () => {
   let service: CkTypeAttributeService;
-  let getCkTypeAttributesGQLMock: jasmine.SpyObj<GetCkTypeAttributesDtoGQL>;
-  let getCkRecordAttributesGQLMock: jasmine.SpyObj<GetCkRecordAttributesDtoGQL>;
+  let getCkTypeAttributesGQLMock: MockedObject<GetCkTypeAttributesDtoGQL>;
+  let getCkRecordAttributesGQLMock: MockedObject<GetCkRecordAttributesDtoGQL>;
 
   const mockTypeAttributesResponse = {
     data: {
@@ -67,8 +68,12 @@ describe('CkTypeAttributeService', () => {
   } as unknown as MockRecordQueryResult;
 
   beforeEach(() => {
-    getCkTypeAttributesGQLMock = jasmine.createSpyObj('GetCkTypeAttributesDtoGQL', ['fetch']);
-    getCkRecordAttributesGQLMock = jasmine.createSpyObj('GetCkRecordAttributesDtoGQL', ['fetch']);
+    getCkTypeAttributesGQLMock = {
+      fetch: vi.fn().mockName('GetCkTypeAttributesDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkTypeAttributesDtoGQL>;
+    getCkRecordAttributesGQLMock = {
+      fetch: vi.fn().mockName('GetCkRecordAttributesDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkRecordAttributesDtoGQL>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -86,8 +91,8 @@ describe('CkTypeAttributeService', () => {
   });
 
   describe('getCkTypeAttributes', () => {
-    it('should return attributes for a valid ckTypeId', (done) => {
-      getCkTypeAttributesGQLMock.fetch.and.returnValue(of(mockTypeAttributesResponse));
+    it('should return attributes for a valid ckTypeId', () => new Promise<void>((done) => {
+      getCkTypeAttributesGQLMock.fetch.mockReturnValue(of(mockTypeAttributesResponse));
 
       service.getCkTypeAttributes('TestModel-1.0.0/Customer-1').subscribe(result => {
         expect(result.length).toBe(2);
@@ -102,9 +107,9 @@ describe('CkTypeAttributeService', () => {
         variables: { ckTypeId: 'TestModel-1.0.0/Customer-1', first: 1000 },
         fetchPolicy: 'network-only'
       });
-    });
+    }));
 
-    it('should return empty array when type is not found', (done) => {
+    it('should return empty array when type is not found', () => new Promise<void>((done) => {
       const emptyResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -119,17 +124,17 @@ describe('CkTypeAttributeService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockTypeQueryResult;
-      getCkTypeAttributesGQLMock.fetch.and.returnValue(of(emptyResponse));
-      spyOn(console, 'warn');
+      getCkTypeAttributesGQLMock.fetch.mockReturnValue(of(emptyResponse));
+      vi.spyOn(console, 'warn').mockReturnValue(undefined);
 
       service.getCkTypeAttributes('NonExistent/Type').subscribe(result => {
         expect(result).toEqual([]);
         expect(console.warn).toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should return empty array when attributes is null', (done) => {
+    it('should return empty array when attributes is null', () => new Promise<void>((done) => {
       const noAttrsResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -149,27 +154,27 @@ describe('CkTypeAttributeService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockTypeQueryResult;
-      getCkTypeAttributesGQLMock.fetch.and.returnValue(of(noAttrsResponse));
-      spyOn(console, 'warn');
+      getCkTypeAttributesGQLMock.fetch.mockReturnValue(of(noAttrsResponse));
+      vi.spyOn(console, 'warn').mockReturnValue(undefined);
 
       service.getCkTypeAttributes('TestModel-1.0.0/Customer-1').subscribe(result => {
         expect(result).toEqual([]);
         done();
       });
-    });
+    }));
 
-    it('should handle GraphQL errors gracefully', (done) => {
-      getCkTypeAttributesGQLMock.fetch.and.returnValue(throwError(() => new Error('GraphQL Error')));
-      spyOn(console, 'error');
+    it('should handle GraphQL errors gracefully', () => new Promise<void>((done) => {
+      getCkTypeAttributesGQLMock.fetch.mockReturnValue(throwError(() => new Error('GraphQL Error')));
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
 
       service.getCkTypeAttributes('TestModel-1.0.0/Customer-1').subscribe(result => {
         expect(result).toEqual([]);
         expect(console.error).toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should filter out null attributes', (done) => {
+    it('should filter out null attributes', () => new Promise<void>((done) => {
       const responseWithNulls = {
         data: {
           __typename: 'OctoQuery',
@@ -195,19 +200,19 @@ describe('CkTypeAttributeService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockTypeQueryResult;
-      getCkTypeAttributesGQLMock.fetch.and.returnValue(of(responseWithNulls));
+      getCkTypeAttributesGQLMock.fetch.mockReturnValue(of(responseWithNulls));
 
       service.getCkTypeAttributes('TestModel-1.0.0/Customer-1').subscribe(result => {
         expect(result.length).toBe(1);
         expect(result[0].attributeName).toBe('name');
         done();
       });
-    });
+    }));
   });
 
   describe('getCkRecordAttributes', () => {
-    it('should return attributes for a valid ckRecordId', (done) => {
-      getCkRecordAttributesGQLMock.fetch.and.returnValue(of(mockRecordAttributesResponse));
+    it('should return attributes for a valid ckRecordId', () => new Promise<void>((done) => {
+      getCkRecordAttributesGQLMock.fetch.mockReturnValue(of(mockRecordAttributesResponse));
 
       service.getCkRecordAttributes('TestModel-1.0.0/StatusRecord-1').subscribe(result => {
         expect(result.length).toBe(2);
@@ -222,9 +227,9 @@ describe('CkTypeAttributeService', () => {
         variables: { ckRecordId: 'TestModel-1.0.0/StatusRecord-1', first: 1000 },
         fetchPolicy: 'network-only'
       });
-    });
+    }));
 
-    it('should return empty array when record is not found', (done) => {
+    it('should return empty array when record is not found', () => new Promise<void>((done) => {
       const emptyResponse = {
         data: {
           __typename: 'OctoQuery',
@@ -239,28 +244,28 @@ describe('CkTypeAttributeService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockRecordQueryResult;
-      getCkRecordAttributesGQLMock.fetch.and.returnValue(of(emptyResponse));
-      spyOn(console, 'warn');
+      getCkRecordAttributesGQLMock.fetch.mockReturnValue(of(emptyResponse));
+      vi.spyOn(console, 'warn').mockReturnValue(undefined);
 
       service.getCkRecordAttributes('NonExistent/Record').subscribe(result => {
         expect(result).toEqual([]);
         expect(console.warn).toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should handle GraphQL errors gracefully', (done) => {
-      getCkRecordAttributesGQLMock.fetch.and.returnValue(throwError(() => new Error('GraphQL Error')));
-      spyOn(console, 'error');
+    it('should handle GraphQL errors gracefully', () => new Promise<void>((done) => {
+      getCkRecordAttributesGQLMock.fetch.mockReturnValue(throwError(() => new Error('GraphQL Error')));
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
 
       service.getCkRecordAttributes('TestModel-1.0.0/StatusRecord-1').subscribe(result => {
         expect(result).toEqual([]);
         expect(console.error).toHaveBeenCalled();
         done();
       });
-    });
+    }));
 
-    it('should filter out null attributes', (done) => {
+    it('should filter out null attributes', () => new Promise<void>((done) => {
       const responseWithNulls = {
         data: {
           __typename: 'OctoQuery',
@@ -286,13 +291,13 @@ describe('CkTypeAttributeService', () => {
         loading: false,
         networkStatus: 7
       } as unknown as MockRecordQueryResult;
-      getCkRecordAttributesGQLMock.fetch.and.returnValue(of(responseWithNulls));
+      getCkRecordAttributesGQLMock.fetch.mockReturnValue(of(responseWithNulls));
 
       service.getCkRecordAttributes('TestModel-1.0.0/StatusRecord-1').subscribe(result => {
         expect(result.length).toBe(1);
         expect(result[0].attributeName).toBe('status');
         done();
       });
-    });
+    }));
   });
 });

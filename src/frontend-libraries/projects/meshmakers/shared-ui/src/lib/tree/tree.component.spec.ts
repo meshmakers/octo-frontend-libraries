@@ -1,4 +1,3 @@
-import '@angular/localize/init';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
@@ -13,7 +12,7 @@ describe('TreeViewComponent', () => {
       imports: [TreeComponent],
       providers: [provideNoopAnimations()]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(TreeComponent);
     component = fixture.componentInstance;

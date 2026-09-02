@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { Apollo } from 'apollo-angular';
+import { ApolloLink } from '@apollo/client';
 import { HttpLink } from 'apollo-angular/http';
 
 import { TenantComponent } from './tenant.component';
@@ -27,19 +28,33 @@ describe('TenantComponent', () => {
       }
     };
 
-    const mockAuthorizeService = jasmine.createSpyObj('AuthorizeService', ['initialize']);
-    mockAuthorizeService.initialize.and.returnValue(Promise.resolve());
+    const mockAuthorizeService = {
+      initialize: vi.fn().mockName('AuthorizeService.initialize')
+    };
+    mockAuthorizeService.initialize.mockResolvedValue(undefined);
 
-    const mockHttpLink = jasmine.createSpyObj('HttpLink', ['create']);
-    mockHttpLink.create.and.returnValue({});
+    const mockHttpLink = {
+      create: vi.fn().mockName('HttpLink.create')
+    };
+    // Real ApolloLink instances: the component feeds both this and OctoErrorLink to
+    // `ApolloLink.from`, which concatenates them and throws on a plain object.
+    mockHttpLink.create.mockReturnValue(ApolloLink.empty());
 
-    const mockApollo = jasmine.createSpyObj('Apollo', ['removeClient', 'create']);
+    const mockApollo = {
+      removeClient: vi.fn().mockName('Apollo.removeClient'),
+      create: vi.fn().mockName('Apollo.create')
+    };
 
-    const mockTitleService = jasmine.createSpyObj('Title', ['setTitle']);
+    const mockTitleService = {
+      setTitle: vi.fn().mockName('Title.setTitle')
+    };
 
-    const mockAppTitleService = jasmine.createSpyObj('AppTitleService', ['setTitle']);
+    const mockAppTitleService = {
+      setTitle: vi.fn().mockName('AppTitleService.setTitle')
+    };
 
-    const mockOctoErrorLink = {};
+    // Real ApolloLink instance for the same reason as mockHttpLink.create above.
+    const mockOctoErrorLink = ApolloLink.empty();
 
     await TestBed.configureTestingModule({
       imports: [TenantComponent],
@@ -54,7 +69,7 @@ describe('TenantComponent', () => {
         { provide: OctoErrorLink, useValue: mockOctoErrorLink }
       ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(TenantComponent);
     component = fixture.componentInstance;

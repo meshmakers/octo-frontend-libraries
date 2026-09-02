@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
@@ -7,24 +8,27 @@ import { ButtonTypes, ConfirmationWindowResult, DialogType } from '../models/con
 
 describe('ConfirmationService', () => {
   let service: ConfirmationService;
-  let dialogServiceMock: jasmine.SpyObj<DialogService>;
-  let dialogRefMock: jasmine.SpyObj<DialogRef>;
+  let dialogServiceMock: MockedObject<DialogService>;
+  let dialogRefMock: MockedObject<DialogRef>;
   let resultSubject: Subject<ConfirmationWindowResult | object>;
 
   beforeEach(() => {
     resultSubject = new Subject<ConfirmationWindowResult | object>();
 
-    dialogRefMock = jasmine.createSpyObj('DialogRef', ['close'], {
+    dialogRefMock = {
+      close: vi.fn().mockName('DialogRef.close'),
       result: resultSubject.asObservable(),
       content: {
         instance: {
           data: null
         }
       }
-    });
+    } as unknown as MockedObject<DialogRef>;
 
-    dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
-    dialogServiceMock.open.and.returnValue(dialogRefMock);
+    dialogServiceMock = {
+      open: vi.fn().mockName('DialogService.open')
+    } as unknown as MockedObject<DialogService>;
+    dialogServiceMock.open.mockReturnValue(dialogRefMock);
 
     TestBed.configureTestingModule({
       providers: [
@@ -50,7 +54,7 @@ describe('ConfirmationService', () => {
       resultSubject.complete();
 
       const result = await resultPromise;
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should return false when user clicks No', async () => {
@@ -61,7 +65,7 @@ describe('ConfirmationService', () => {
       resultSubject.complete();
 
       const result = await resultPromise;
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
 
     it('should return false when dialog is closed without selection', async () => {
@@ -72,7 +76,7 @@ describe('ConfirmationService', () => {
       resultSubject.complete();
 
       const result = await resultPromise;
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
 
     it('should pass YesNo dialog type to component', async () => {
@@ -91,7 +95,7 @@ describe('ConfirmationService', () => {
     it('should pass cssClass to dialog service when provided', async () => {
       const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message', 'mm-dialog-danger');
 
-      expect(dialogServiceMock.open).toHaveBeenCalledWith(jasmine.objectContaining({
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
         cssClass: 'mm-dialog-danger'
       }));
 
@@ -103,7 +107,7 @@ describe('ConfirmationService', () => {
     it('should not pass cssClass when not provided', async () => {
       const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
 
-      expect(dialogServiceMock.open).toHaveBeenCalledWith(jasmine.objectContaining({
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
         cssClass: undefined
       }));
 
@@ -167,7 +171,7 @@ describe('ConfirmationService', () => {
       resultSubject.complete();
 
       const result = await resultPromise;
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should return false when user clicks Cancel', async () => {
@@ -177,7 +181,7 @@ describe('ConfirmationService', () => {
       resultSubject.complete();
 
       const result = await resultPromise;
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
 
     it('should return false when dialog is closed', async () => {
@@ -187,7 +191,7 @@ describe('ConfirmationService', () => {
       resultSubject.complete();
 
       const result = await resultPromise;
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
   });
 
@@ -199,7 +203,7 @@ describe('ConfirmationService', () => {
       resultSubject.complete();
 
       const result = await resultPromise;
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should return false when dialog is closed', async () => {
@@ -209,7 +213,7 @@ describe('ConfirmationService', () => {
       resultSubject.complete();
 
       const result = await resultPromise;
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
   });
 });

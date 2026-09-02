@@ -38,7 +38,7 @@ describe('AiSessionStreamService', () => {
     expect(service.hubUrl).toBe('https://ai.test/acme/hubs/ai');
   });
 
-  it('streamSession backfills events from listEvents on open', (done) => {
+  it('streamSession backfills events from listEvents on open', () => new Promise<void>((done) => {
     const events: AiSessionEventDto[] = [
       {
         sessionId: 's',
@@ -61,5 +61,5 @@ describe('AiSessionStreamService', () => {
       'https://ai.test/acme/v1/sessions/s/events',
     );
     req.flush(events);
-  });
+  }));
 });

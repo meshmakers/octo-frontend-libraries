@@ -1,23 +1,17 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  DesignerKeyboardService,
-  KeyboardShortcut
-} from './designer-keyboard.service';
+import { DesignerKeyboardService, KeyboardShortcut } from './designer-keyboard.service';
 
 describe('DesignerKeyboardService', () => {
   let service: DesignerKeyboardService;
 
   // Helper to create mock keyboard event
-  function createKeyEvent(
-    key: string,
-    options: {
-      ctrlKey?: boolean;
-      shiftKey?: boolean;
-      altKey?: boolean;
-      metaKey?: boolean;
-      target?: Partial<HTMLElement>;
-    } = {}
-  ): KeyboardEvent {
+  function createKeyEvent(key: string, options: {
+        ctrlKey?: boolean;
+        shiftKey?: boolean;
+        altKey?: boolean;
+        metaKey?: boolean;
+        target?: Partial<HTMLElement>;
+    } = {}): KeyboardEvent {
     const event = new KeyboardEvent('keydown', {
       key,
       ctrlKey: options.ctrlKey ?? false,
@@ -68,14 +62,14 @@ describe('DesignerKeyboardService', () => {
       const shortcut = service.getShortcut('undo');
       expect(shortcut).toBeDefined();
       expect(shortcut?.key).toBe('z');
-      expect(shortcut?.modifiers?.ctrl).toBeTrue();
+      expect(shortcut?.modifiers?.ctrl).toBe(true);
     });
 
     it('should include redo shortcut', () => {
       const shortcut = service.getShortcut('redo');
       expect(shortcut).toBeDefined();
-      expect(shortcut?.modifiers?.ctrl).toBeTrue();
-      expect(shortcut?.modifiers?.shift).toBeTrue();
+      expect(shortcut?.modifiers?.ctrl).toBe(true);
+      expect(shortcut?.modifiers?.shift).toBe(true);
     });
 
     it('should include mode shortcuts', () => {
@@ -129,7 +123,7 @@ describe('DesignerKeyboardService', () => {
       });
 
       const shortcut = service.getShortcut('custom');
-      expect(shortcut?.enabled).toBeTrue();
+      expect(shortcut?.enabled).toBe(true);
     });
   });
 
@@ -160,7 +154,7 @@ describe('DesignerKeyboardService', () => {
 
       service.setShortcutEnabled('custom', true);
 
-      expect(service.getShortcut('custom')?.enabled).toBeTrue();
+      expect(service.getShortcut('custom')?.enabled).toBe(true);
     });
 
     it('should disable a shortcut', () => {
@@ -172,7 +166,7 @@ describe('DesignerKeyboardService', () => {
 
       service.setShortcutEnabled('custom', false);
 
-      expect(service.getShortcut('custom')?.enabled).toBeFalse();
+      expect(service.getShortcut('custom')?.enabled).toBe(false);
     });
 
     it('should handle non-existent shortcut', () => {
@@ -183,7 +177,7 @@ describe('DesignerKeyboardService', () => {
   describe('getAllShortcuts', () => {
     it('should return all shortcuts as array', () => {
       const shortcuts = service.getAllShortcuts();
-      expect(Array.isArray(shortcuts)).toBeTrue();
+      expect(Array.isArray(shortcuts)).toBe(true);
       expect(shortcuts.length).toBeGreaterThan(0);
     });
   });
@@ -192,7 +186,7 @@ describe('DesignerKeyboardService', () => {
     it('should group shortcuts by category', () => {
       const categories = service.getShortcutsByCategory();
 
-      expect(categories.has('mode')).toBeTrue();
+      expect(categories.has('mode')).toBe(true);
       expect(categories.get('mode')?.length).toBeGreaterThan(0);
     });
   });
@@ -206,7 +200,7 @@ describe('DesignerKeyboardService', () => {
       const event = createKeyEvent('Delete');
       const result = service.processKeyEvent(event);
 
-      expect(result.handled).toBeTrue();
+      expect(result.handled).toBe(true);
       expect(result.actionId).toBe('delete');
     });
 
@@ -214,7 +208,7 @@ describe('DesignerKeyboardService', () => {
       const event = createKeyEvent('q');
       const result = service.processKeyEvent(event);
 
-      expect(result.handled).toBeFalse();
+      expect(result.handled).toBe(false);
       expect(result.actionId).toBeNull();
     });
 
@@ -257,7 +251,7 @@ describe('DesignerKeyboardService', () => {
       const event = createKeyEvent('z', { ctrlKey: true });
       const result = service.processKeyEvent(event);
 
-      expect(result.preventDefault).toBeTrue();
+      expect(result.preventDefault).toBe(true);
     });
 
     it('should not match disabled shortcuts', () => {
@@ -266,7 +260,7 @@ describe('DesignerKeyboardService', () => {
       const event = createKeyEvent('Delete');
       const result = service.processKeyEvent(event);
 
-      expect(result.handled).toBeFalse();
+      expect(result.handled).toBe(false);
     });
 
     it('should prefer more specific shortcuts', () => {
@@ -445,7 +439,7 @@ describe('DesignerKeyboardService', () => {
         target: { tagName: 'INPUT' }
       });
 
-      expect(service.shouldIgnoreEvent(event)).toBeTrue();
+      expect(service.shouldIgnoreEvent(event)).toBe(true);
     });
 
     it('should ignore events from textarea elements', () => {
@@ -453,7 +447,7 @@ describe('DesignerKeyboardService', () => {
         target: { tagName: 'TEXTAREA' }
       });
 
-      expect(service.shouldIgnoreEvent(event)).toBeTrue();
+      expect(service.shouldIgnoreEvent(event)).toBe(true);
     });
 
     it('should ignore events from contenteditable elements', () => {
@@ -461,7 +455,7 @@ describe('DesignerKeyboardService', () => {
         target: { tagName: 'DIV', isContentEditable: true }
       });
 
-      expect(service.shouldIgnoreEvent(event)).toBeTrue();
+      expect(service.shouldIgnoreEvent(event)).toBe(true);
     });
 
     it('should not ignore events from regular elements', () => {
@@ -469,7 +463,7 @@ describe('DesignerKeyboardService', () => {
         target: { tagName: 'DIV', isContentEditable: false }
       });
 
-      expect(service.shouldIgnoreEvent(event)).toBeFalse();
+      expect(service.shouldIgnoreEvent(event)).toBe(false);
     });
 
     it('should not ignore Escape in input', () => {
@@ -477,7 +471,7 @@ describe('DesignerKeyboardService', () => {
         target: { tagName: 'INPUT' }
       });
 
-      expect(service.shouldIgnoreEvent(event)).toBeFalse();
+      expect(service.shouldIgnoreEvent(event)).toBe(false);
     });
 
     it('should not ignore Ctrl+S in input', () => {
@@ -486,7 +480,7 @@ describe('DesignerKeyboardService', () => {
         target: { tagName: 'INPUT' }
       });
 
-      expect(service.shouldIgnoreEvent(event)).toBeFalse();
+      expect(service.shouldIgnoreEvent(event)).toBe(false);
     });
 
     it('should not ignore Ctrl+Z in input', () => {
@@ -495,7 +489,7 @@ describe('DesignerKeyboardService', () => {
         target: { tagName: 'INPUT' }
       });
 
-      expect(service.shouldIgnoreEvent(event)).toBeFalse();
+      expect(service.shouldIgnoreEvent(event)).toBe(false);
     });
   });
 
@@ -528,9 +522,9 @@ describe('DesignerKeyboardService', () => {
       service.processKeyEvent(event);
       const modifiers = service.modifierKeys();
 
-      expect(modifiers.ctrl).toBeTrue();
-      expect(modifiers.shift).toBeTrue();
-      expect(modifiers.alt).toBeFalse();
+      expect(modifiers.ctrl).toBe(true);
+      expect(modifiers.shift).toBe(true);
+      expect(modifiers.alt).toBe(false);
     });
   });
 

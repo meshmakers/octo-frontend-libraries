@@ -1,12 +1,8 @@
-import '@angular/localize/init';
+import type { Mock, MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import {
-  BrandingDataSource,
-  NEUTRAL_BRANDING_DEFAULTS,
-  OCTO_BRANDING_DEFAULTS,
-} from '@meshmakers/octo-ui/branding';
+import { BrandingDataSource, NEUTRAL_BRANDING_DEFAULTS, OCTO_BRANDING_DEFAULTS, } from '@meshmakers/octo-ui/branding';
 import { MessageService } from '@meshmakers/shared-services';
 import { SettingsPageComponent } from './settings-page.component';
 import { BrandingSettingsMessages } from './branding-settings.messages';
@@ -45,33 +41,27 @@ const TEST_MESSAGES: BrandingSettingsMessages = {
 
 describe('SettingsPageComponent', () => {
   function configure(): {
-    fixture: ReturnType<typeof TestBed.createComponent<SettingsPageComponent>>;
-    el: HTMLElement;
-    dataSource: {
-      branding: ReturnType<typeof signal<typeof NEUTRAL_BRANDING_DEFAULTS>>;
-      load: jasmine.Spy;
-      save: jasmine.Spy;
-      resetToDefaults: jasmine.Spy;
-    };
-    msg: jasmine.SpyObj<MessageService>;
-  } {
+        fixture: ReturnType<typeof TestBed.createComponent<SettingsPageComponent>>;
+        el: HTMLElement;
+        dataSource: {
+            branding: ReturnType<typeof signal<typeof NEUTRAL_BRANDING_DEFAULTS>>;
+            load: Mock;
+            save: Mock;
+            resetToDefaults: Mock;
+        };
+        msg: MockedObject<MessageService>;
+        } {
     const branding = signal(NEUTRAL_BRANDING_DEFAULTS);
     const dataSource = {
       branding,
-      load: jasmine.createSpy('load').and.returnValue(Promise.resolve()),
-      save: jasmine
-        .createSpy('save')
-        .and.callFake((_u: unknown) =>
-          Promise.resolve(NEUTRAL_BRANDING_DEFAULTS),
-        ),
-      resetToDefaults: jasmine
-        .createSpy('resetToDefaults')
-        .and.returnValue(Promise.resolve()),
+      load: vi.fn().mockName('load').mockResolvedValue(undefined),
+      save: vi.fn().mockName('save').mockImplementation((_u: unknown) => Promise.resolve(NEUTRAL_BRANDING_DEFAULTS)),
+      resetToDefaults: vi.fn().mockName('resetToDefaults').mockResolvedValue(undefined),
     };
-    const msg = jasmine.createSpyObj<MessageService>('MessageService', [
-      'showError',
-      'showInformation',
-    ]);
+    const msg = {
+      showError: vi.fn().mockName('MessageService.showError'),
+      showInformation: vi.fn().mockName('MessageService.showInformation')
+    } as unknown as MockedObject<MessageService>;
     TestBed.configureTestingModule({
       imports: [SettingsPageComponent],
       providers: [
@@ -103,8 +93,8 @@ describe('SettingsPageComponent', () => {
     const { fixture, dataSource, msg } = configure();
     await fixture.whenStable();
     const component = fixture.componentInstance as unknown as {
-      onSubmit: () => Promise<void>;
-    };
+            onSubmit: () => Promise<void>;
+        };
     await component.onSubmit();
     expect(dataSource.save).toHaveBeenCalled();
     expect(msg.showInformation).toHaveBeenCalled();
@@ -114,8 +104,8 @@ describe('SettingsPageComponent', () => {
     const { fixture, dataSource } = configure();
     await fixture.whenStable();
     const component = fixture.componentInstance as unknown as {
-      onResetDefaults: () => Promise<void>;
-    };
+            onResetDefaults: () => Promise<void>;
+        };
     await component.onResetDefaults();
     expect(dataSource.resetToDefaults).toHaveBeenCalled();
   });

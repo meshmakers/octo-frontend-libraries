@@ -66,7 +66,7 @@ describe('HealthService', () => {
   beforeEach(() => {
     mockConfigService = {
       config: mockConfig,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync').and.returnValue(Promise.resolve())
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
     };
 
     TestBed.configureTestingModule({
@@ -126,7 +126,7 @@ describe('HealthService', () => {
     });
 
     it('should return null on network error', async () => {
-      spyOn(console, 'error');
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
       const resultPromise = service.getAssetRepoServiceHealthAsync();
 
       const req = httpMock.expectOne(expectedUrl);
@@ -138,7 +138,7 @@ describe('HealthService', () => {
     });
 
     it('should return null on 500 server error', async () => {
-      spyOn(console, 'error');
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
       const resultPromise = service.getAssetRepoServiceHealthAsync();
 
       const req = httpMock.expectOne(expectedUrl);
@@ -149,7 +149,7 @@ describe('HealthService', () => {
     });
 
     it('should return null on 404 not found', async () => {
-      spyOn(console, 'error');
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
       const resultPromise = service.getAssetRepoServiceHealthAsync();
 
       const req = httpMock.expectOne(expectedUrl);
@@ -185,7 +185,7 @@ describe('HealthService', () => {
     });
 
     it('should return null on error', async () => {
-      spyOn(console, 'error');
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
       const resultPromise = service.getIdentityServiceAsync();
 
       const req = httpMock.expectOne(expectedUrl);
@@ -221,7 +221,7 @@ describe('HealthService', () => {
     });
 
     it('should return null on error', async () => {
-      spyOn(console, 'error');
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
       const resultPromise = service.getBotServiceAsync();
 
       const req = httpMock.expectOne(expectedUrl);
@@ -257,7 +257,7 @@ describe('HealthService', () => {
     });
 
     it('should return null on error', async () => {
-      spyOn(console, 'error');
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
       const resultPromise = service.getCommunicationControllerServiceAsync();
 
       const req = httpMock.expectOne(expectedUrl);
@@ -293,7 +293,7 @@ describe('HealthService', () => {
     });
 
     it('should return null on error', async () => {
-      spyOn(console, 'error');
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
       const resultPromise = service.getMeshAdapterAsync();
 
       const req = httpMock.expectOne(expectedUrl);

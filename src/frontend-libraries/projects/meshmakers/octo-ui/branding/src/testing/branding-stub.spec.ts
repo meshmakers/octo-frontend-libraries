@@ -23,6 +23,8 @@ describe('createBrandingStub / provideBrandingTesting', () => {
       providers: [provideBrandingTesting(stub)],
     });
     const ds = TestBed.inject(BrandingDataSource);
-    expect((ds.branding as () => { appName: string })().appName).toBe('X');
+    expect((ds.branding as () => {
+            appName: string;
+        })().appName).toBe('X');
   });
 });

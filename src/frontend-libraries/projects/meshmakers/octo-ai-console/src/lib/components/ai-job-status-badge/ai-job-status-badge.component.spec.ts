@@ -18,7 +18,7 @@ describe('AiJobStatusBadgeComponent', () => {
 
     const span = fixture.nativeElement.querySelector('.mm-ai-status-badge');
     expect(span.textContent.trim()).toBe('Running');
-    expect(span.classList.contains('mm-ai-status-badge--running')).toBeTrue();
+    expect(span.classList.contains('mm-ai-status-badge--running')).toBe(true);
   });
 
   it('collapses Cancelled into the failed variant', () => {
@@ -26,13 +26,13 @@ describe('AiJobStatusBadgeComponent', () => {
     fixture.detectChanges();
 
     const span = fixture.nativeElement.querySelector('.mm-ai-status-badge');
-    expect(span.classList.contains('mm-ai-status-badge--failed')).toBeTrue();
+    expect(span.classList.contains('mm-ai-status-badge--failed')).toBe(true);
   });
 
   it('collapses QuotaBlocked / RateLimited into the blocked variant', () => {
     fixture.componentRef.setInput('status', 'QuotaBlocked');
     fixture.detectChanges();
     const span = fixture.nativeElement.querySelector('.mm-ai-status-badge');
-    expect(span.classList.contains('mm-ai-status-badge--blocked')).toBeTrue();
+    expect(span.classList.contains('mm-ai-status-badge--blocked')).toBe(true);
   });
 });

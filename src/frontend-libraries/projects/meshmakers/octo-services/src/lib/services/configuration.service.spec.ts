@@ -14,8 +14,8 @@ describe('CONFIGURATION_SERVICE', () => {
       botServices: 'https://bot.example.com/',
       communicationServices: 'https://comm.example.com/',
       meshAdapterUrl: 'https://mesh.example.com/',
-    aiServices: 'https://ai.example.com/',
-    reportingServices: 'https://reporting.example.com/',
+      aiServices: 'https://ai.example.com/',
+      reportingServices: 'https://reporting.example.com/',
       crateDbAdminUrl: 'https://crate.example.com/',
       grafanaUrl: 'https://grafana.example.com/',
       systemTenantId: 'system',
@@ -26,7 +26,7 @@ describe('CONFIGURATION_SERVICE', () => {
 
     const mockConfigService: IConfigurationService = {
       config: mockConfig,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync').and.returnValue(Promise.resolve())
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
     };
 
     TestBed.configureTestingModule({
@@ -45,7 +45,7 @@ describe('CONFIGURATION_SERVICE', () => {
 
     const mockConfigService: IConfigurationService = {
       config: {} as AddInConfiguration,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync').and.callFake(async () => {
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockImplementation(async () => {
         configLoaded = true;
       })
     };
@@ -59,7 +59,7 @@ describe('CONFIGURATION_SERVICE', () => {
     const service = TestBed.inject(CONFIGURATION_SERVICE);
     await service.loadConfigAsync();
 
-    expect(configLoaded).toBeTrue();
+    expect(configLoaded).toBe(true);
     expect(mockConfigService.loadConfigAsync).toHaveBeenCalled();
   });
 });

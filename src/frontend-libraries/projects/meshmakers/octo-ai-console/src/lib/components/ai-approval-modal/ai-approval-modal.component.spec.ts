@@ -32,7 +32,7 @@ describe('AiApprovalModalComponent', () => {
     expect(pre.textContent.trim()).toBe('{\n  "foo": "bar"\n}');
   });
 
-  it('emits Approved on the Approve button click', (done) => {
+  it('emits Approved on the Approve button click', () => new Promise<void>((done) => {
     fixture.componentInstance.decide.subscribe((decision: AiApprovalDecisionDto) => {
       expect(decision.outcome).toBe('Approved');
       done();
@@ -43,9 +43,9 @@ describe('AiApprovalModalComponent', () => {
     );
     // [0] reject, [1] approve in the template order.
     buttons[1].click();
-  });
+  }));
 
-  it('emits Rejected on the Reject button click', (done) => {
+  it('emits Rejected on the Reject button click', () => new Promise<void>((done) => {
     fixture.componentInstance.decide.subscribe((decision: AiApprovalDecisionDto) => {
       expect(decision.outcome).toBe('Rejected');
       done();
@@ -55,5 +55,5 @@ describe('AiApprovalModalComponent', () => {
       '.mm-ai-approval__btn',
     );
     buttons[0].click();
-  });
+  }));
 });

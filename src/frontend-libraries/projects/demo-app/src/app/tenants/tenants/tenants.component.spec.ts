@@ -10,13 +10,16 @@ describe('TenantsComponent', () => {
   let fixture: ComponentFixture<TenantsComponent>;
 
   beforeEach(async () => {
-    const mockAssetRepoService = jasmine.createSpyObj('AssetRepoService', ['getTenants']);
-    mockAssetRepoService.getTenants.and.returnValue(Promise.resolve({ list: [], totalCount: 0 }));
+    const mockAssetRepoService = {
+      getTenants: vi.fn().mockName('AssetRepoService.getTenants')
+    };
+    mockAssetRepoService.getTenants.mockResolvedValue({ list: [], totalCount: 0 });
 
-    const mockCommandSettingsService = jasmine.createSpyObj('CommandSettingsService', ['setSelectedDrawerItem'], {
+    const mockCommandSettingsService = {
+      setSelectedDrawerItem: vi.fn().mockName('CommandSettingsService.setSelectedDrawerItem'),
       commandItems: [],
       navigateRelativeToRoute: null
-    });
+    };
 
     await TestBed.configureTestingModule({
       imports: [TenantsComponent],
@@ -26,7 +29,7 @@ describe('TenantsComponent', () => {
         { provide: CommandSettingsService, useValue: mockCommandSettingsService }
       ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(TenantsComponent);
     component = fixture.componentInstance;

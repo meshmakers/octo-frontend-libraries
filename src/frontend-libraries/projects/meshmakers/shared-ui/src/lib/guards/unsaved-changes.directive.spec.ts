@@ -31,7 +31,8 @@ class TestHostWithChangesComponent implements HasUnsavedChanges {
   imports: [UnsavedChangesDirective]
   // No HAS_UNSAVED_CHANGES provider
 })
-class TestHostWithoutProviderComponent {}
+class TestHostWithoutProviderComponent {
+}
 
 describe('UnsavedChangesDirective', () => {
   describe('with host implementing HasUnsavedChanges', () => {
@@ -63,7 +64,7 @@ describe('UnsavedChangesDirective', () => {
 
       // Create a mock event
       const event = {
-        preventDefault: jasmine.createSpy('preventDefault'),
+        preventDefault: vi.fn().mockName('preventDefault'),
         returnValue: true
       } as unknown as BeforeUnloadEvent;
 
@@ -78,7 +79,7 @@ describe('UnsavedChangesDirective', () => {
 
       // Create a mock event
       const event = {
-        preventDefault: jasmine.createSpy('preventDefault'),
+        preventDefault: vi.fn().mockName('preventDefault'),
         returnValue: true
       } as unknown as BeforeUnloadEvent;
 
@@ -93,7 +94,7 @@ describe('UnsavedChangesDirective', () => {
 
       // Create a mock event with writable returnValue
       const event = {
-        preventDefault: jasmine.createSpy('preventDefault'),
+        preventDefault: vi.fn().mockName('preventDefault'),
         returnValue: true
       } as unknown as BeforeUnloadEvent;
 
@@ -124,7 +125,7 @@ describe('UnsavedChangesDirective', () => {
     it('should not prevent unload when host is not provided', () => {
       // Create a mock event
       const event = {
-        preventDefault: jasmine.createSpy('preventDefault'),
+        preventDefault: vi.fn().mockName('preventDefault'),
         returnValue: true
       } as unknown as BeforeUnloadEvent;
 

@@ -1,4 +1,3 @@
-import '@angular/localize/init';
 import { Component, Directive, forwardRef, inject, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
@@ -16,9 +15,9 @@ import { DataSourceBase, FetchDataOptions } from '../data-sources/data-source-ba
 import { FetchResult, FetchResultBase } from '../models/fetchResult';
 
 interface RecordedCall {
-  state: State;
-  textSearch: string | null;
-  forceRefresh?: boolean;
+    state: State;
+    textSearch: string | null;
+    forceRefresh?: boolean;
 }
 
 /**
@@ -42,7 +41,9 @@ class RecordingDataSourceDirective extends DataSourceBase {
   }
 
   public override isPageOutOfRangeError(error: unknown): boolean {
-    return (error as { pageOutOfRange?: boolean })?.pageOutOfRange === true;
+    return (error as {
+            pageOutOfRange?: boolean;
+        })?.pageOutOfRange === true;
   }
 
   public fetchData(options: FetchDataOptions): Observable<FetchResult | null> {
@@ -77,10 +78,11 @@ class RecordingDataSourceDirective extends DataSourceBase {
   `
 })
 class HostComponent {
-  @ViewChild(RecordingDataSourceDirective) dataSource!: RecordingDataSourceDirective;
-  columns = [
-    { field: 'name', displayName: 'Name', dataType: 'text' as const }
-  ];
+    @ViewChild(RecordingDataSourceDirective)
+      dataSource!: RecordingDataSourceDirective;
+    columns = [
+      { field: 'name', displayName: 'Name', dataType: 'text' as const }
+    ];
 }
 
 describe('MmListViewDataBindingDirective (server binding)', () => {
@@ -90,14 +92,18 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
   let directive: MmListViewDataBindingDirective;
 
   const lastCall = () => host.dataSource.calls[host.dataSource.calls.length - 1];
-  const gridRowNames = () => (grid.data as { data: { name: string }[] }).data.map(r => r.name);
+  const gridRowNames = () => (grid.data as {
+        data: {
+            name: string;
+        }[];
+    }).data.map(r => r.name);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HostComponent],
       providers: [
         provideNoopAnimations(),
-        { provide: Router, useValue: { navigate: jasmine.createSpy('navigate') } },
+        { provide: Router, useValue: { navigate: vi.fn().mockName('navigate') } },
         { provide: CommandSettingsService, useValue: { navigateRelativeToRoute: {}, commandItems: [] } }
       ]
     }).compileComponents();
@@ -120,9 +126,7 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     fixture.detectChanges();
     tick();
     expect(lastCall().state.skip).toBe(20);
-    expect(lastCall().state.sort)
-      .withContext('sort must survive paging')
-      .toEqual([{ field: 'name', dir: 'asc' }]);
+    expect(lastCall().state.sort, 'sort must survive paging').toEqual([{ field: 'name', dir: 'asc' }]);
     flush();
   }));
 
@@ -136,9 +140,7 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     fixture.detectChanges();
     tick();
     expect(lastCall().state.skip).toBe(20);
-    expect(lastCall().state.filter?.filters?.length)
-      .withContext('filter must survive paging')
-      .toBe(1);
+    expect(lastCall().state.filter?.filters?.length, 'filter must survive paging').toBe(1);
     flush();
   }));
 
@@ -169,9 +171,7 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     fixture.detectChanges();
     tick();
 
-    expect(lastCall().state.skip)
-      .withContext('a changed filter changes the result set — the old page offset would point past it')
-      .toBe(0);
+    expect(lastCall().state.skip, 'a changed filter changes the result set — the old page offset would point past it').toBe(0);
     expect(lastCall().state.filter?.filters?.length).toBe(1);
     expect(grid.skip).toBe(0);
     flush();
@@ -205,10 +205,8 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     fixture.detectChanges();
     tick();
 
-    expect(lastCall().state.skip)
-      .withContext('changed bar filters change the result set — the old page offset would point past it')
-      .toBe(0);
-    expect(lastCall().forceRefresh).toBeTrue();
+    expect(lastCall().state.skip, 'changed bar filters change the result set — the old page offset would point past it').toBe(0);
+    expect(lastCall().forceRefresh).toBe(true);
     expect(grid.skip).toBe(0);
     flush();
   }));
@@ -222,9 +220,7 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     fixture.detectChanges();
     tick();
 
-    expect(lastCall().state.skip)
-      .withContext('a plain refresh must not yank the user back to page 1')
-      .toBe(40);
+    expect(lastCall().state.skip, 'a plain refresh must not yank the user back to page 1').toBe(40);
     flush();
   }));
 
@@ -239,12 +235,8 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     fixture.detectChanges();
     tick();
 
-    expect(lastCall().state.skip)
-      .withContext('the failed out-of-range fetch must be retried from page 1')
-      .toBe(0);
-    expect(gridRowNames()[0])
-      .withContext('the grid must show page-1 data, not silently keep the previous rows')
-      .toBe('unsorted-row-0');
+    expect(lastCall().state.skip, 'the failed out-of-range fetch must be retried from page 1').toBe(0);
+    expect(gridRowNames()[0], 'the grid must show page-1 data, not silently keep the previous rows').toBe('unsorted-row-0');
     expect(grid.skip).toBe(0);
     flush();
   }));
@@ -260,9 +252,7 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     fixture.detectChanges();
     tick();
 
-    expect(host.dataSource.calls.length)
-      .withContext('a non-page error must not trigger a retry')
-      .toBe(callsBefore + 1);
+    expect(host.dataSource.calls.length, 'a non-page error must not trigger a retry').toBe(callsBefore + 1);
     expect(lastCall().state.skip).toBe(40);
     flush();
   }));
@@ -284,9 +274,7 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     expect(gridRowNames()[0]).toMatch(/^name:asc-/);
 
     tick(600); // stale unsorted fetch would resolve now — it must have been cancelled
-    expect(gridRowNames()[0])
-      .withContext('late stale response must not replace the sorted data')
-      .toMatch(/^name:asc-/);
+    expect(gridRowNames()[0], 'late stale response must not replace the sorted data').toMatch(/^name:asc-/);
     flush();
   }));
 });
@@ -295,23 +283,25 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
   const STORAGE_KEY = 'mm-list-view-state';
   const LIST_KEY = '/documents';
 
-  const configure = async () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  // The TestBed setup lives in a hook rather than in the test bodies: awaiting
+  // compileComponents() inside fakeAsync() resumes outside the fakeAsync zone, so a
+  // later tick() would not find it.
+  beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HostComponent],
       providers: [
         provideNoopAnimations(),
         // A url makes resolveListStateKey() return '/documents' -> persistence on.
-        { provide: Router, useValue: { navigate: jasmine.createSpy('navigate'), url: '/documents?tab=all' } },
+        { provide: Router, useValue: { navigate: vi.fn().mockName('navigate'), url: '/documents?tab=all' } },
         { provide: CommandSettingsService, useValue: { navigateRelativeToRoute: {}, commandItems: [] } }
       ]
     }).compileComponents();
-  };
+  });
 
-  beforeEach(() => localStorage.clear());
-  afterEach(() => localStorage.clear());
-
-  it('persists the sort under the route-derived key after a sort change', fakeAsync(async () => {
-    await configure();
+  it('persists the sort under the route-derived key after a sort change', fakeAsync(() => {
     const fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();
     const grid = fixture.debugElement.query(By.directive(GridComponent)).componentInstance as GridComponent;
@@ -325,26 +315,22 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
     flush();
   }));
 
-  it('restores a persisted sort + skip into the very first fetch', fakeAsync(async () => {
+  it('restores a persisted sort + skip into the very first fetch', fakeAsync(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       [LIST_KEY]: { sort: [{ field: 'name', dir: 'desc' }], skip: 40 }
     }));
-    await configure();
     const fixture = TestBed.createComponent(HostComponent);
     const host = fixture.componentInstance;
     fixture.detectChanges();
     tick();
 
     const firstCall = host.dataSource.calls[0];
-    expect(firstCall.state.sort)
-      .withContext('the initial fetch must already carry the restored sort')
-      .toEqual([{ field: 'name', dir: 'desc' }]);
+    expect(firstCall.state.sort, 'the initial fetch must already carry the restored sort').toEqual([{ field: 'name', dir: 'desc' }]);
     expect(firstCall.state.skip).toBe(40);
     flush();
   }));
 
-  it('persists the free-text search value', fakeAsync(async () => {
-    await configure();
+  it('persists the free-text search value', fakeAsync(() => {
     const fixture = TestBed.createComponent(HostComponent);
     const host = fixture.componentInstance;
     fixture.detectChanges();
@@ -358,27 +344,23 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
     flush();
   }));
 
-  it('restores the free-text search into the very first fetch', fakeAsync(async () => {
+  it('restores the free-text search into the very first fetch', fakeAsync(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       [LIST_KEY]: { textSearch: 'acme' }
     }));
-    await configure();
     const fixture = TestBed.createComponent(HostComponent);
     const host = fixture.componentInstance;
     fixture.detectChanges();
     tick();
 
-    expect(host.dataSource.calls[0].textSearch)
-      .withContext('the initial fetch must already carry the restored search term')
-      .toBe('acme');
+    expect(host.dataSource.calls[0].textSearch, 'the initial fetch must already carry the restored search term').toBe('acme');
     flush();
   }));
 
-  it('fetchAgain({ resetSkip: true }) persists the page reset', fakeAsync(async () => {
+  it('fetchAgain({ resetSkip: true }) persists the page reset', fakeAsync(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       [LIST_KEY]: { skip: 40 }
     }));
-    await configure();
     const fixture = TestBed.createComponent(HostComponent);
     const host = fixture.componentInstance;
     fixture.detectChanges();
@@ -389,17 +371,14 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
     tick();
 
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
-    expect(stored[LIST_KEY]?.skip)
-      .withContext('the stale page offset must not be restored on the next visit')
-      .toBe(0);
+    expect(stored[LIST_KEY]?.skip, 'the stale page offset must not be restored on the next visit').toBe(0);
     flush();
   }));
 
-  it('resetState() clears sort/filter/search + drops the persisted entry', fakeAsync(async () => {
+  it('resetState() clears sort/filter/search + drops the persisted entry', fakeAsync(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       [LIST_KEY]: { sort: [{ field: 'name', dir: 'desc' }], textSearch: 'acme', extra: { view: 'done' } }
     }));
-    await configure();
     const fixture = TestBed.createComponent(HostComponent);
     const host = fixture.componentInstance;
     fixture.detectChanges();
@@ -416,7 +395,7 @@ describe('MmListViewDataBindingDirective (state persistence)', () => {
     expect(lastCall.state.filter?.filters ?? []).toEqual([]);
     expect(lastCall.textSearch).toBeNull();
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}');
-    expect(stored[LIST_KEY]).withContext('the whole entry (incl. app extra) is dropped').toBeUndefined();
+    expect(stored[LIST_KEY], 'the whole entry (incl. app extra) is dropped').toBeUndefined();
     flush();
   }));
 });

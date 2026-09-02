@@ -20,10 +20,10 @@ describe('DesignerStateService', () => {
       expect(service.mode()).toBe('select');
       expect(service.zoom()).toBe(1);
       expect(service.panOffset()).toEqual({ x: 0, y: 0 });
-      expect(service.showGrid()).toBeTrue();
-      expect(service.snapToGrid()).toBeTrue();
+      expect(service.showGrid()).toBe(true);
+      expect(service.snapToGrid()).toBe(true);
       expect(service.gridSize()).toBe(20);
-      expect(service.hasChanges()).toBeFalse();
+      expect(service.hasChanges()).toBe(false);
     });
 
     it('should compute zoomPercentage correctly', () => {
@@ -125,29 +125,29 @@ describe('DesignerStateService', () => {
 
   describe('grid operations', () => {
     it('should toggle grid visibility', () => {
-      expect(service.showGrid()).toBeTrue();
+      expect(service.showGrid()).toBe(true);
       service.toggleGrid();
-      expect(service.showGrid()).toBeFalse();
+      expect(service.showGrid()).toBe(false);
       service.toggleGrid();
-      expect(service.showGrid()).toBeTrue();
+      expect(service.showGrid()).toBe(true);
     });
 
     it('should set grid visibility', () => {
       service.setShowGrid(false);
-      expect(service.showGrid()).toBeFalse();
+      expect(service.showGrid()).toBe(false);
     });
 
     it('should toggle snap to grid', () => {
-      expect(service.snapToGrid()).toBeTrue();
+      expect(service.snapToGrid()).toBe(true);
       service.toggleSnapToGrid();
-      expect(service.snapToGrid()).toBeFalse();
+      expect(service.snapToGrid()).toBe(false);
       service.toggleSnapToGrid();
-      expect(service.snapToGrid()).toBeTrue();
+      expect(service.snapToGrid()).toBe(true);
     });
 
     it('should set snap to grid', () => {
       service.setSnapToGrid(false);
-      expect(service.snapToGrid()).toBeFalse();
+      expect(service.snapToGrid()).toBe(false);
     });
 
     it('should set grid size', () => {
@@ -168,33 +168,33 @@ describe('DesignerStateService', () => {
     it('should sync grid settings', () => {
       service.syncGridSettings(15, false);
       expect(service.gridSize()).toBe(15);
-      expect(service.showGrid()).toBeFalse();
+      expect(service.showGrid()).toBe(false);
     });
 
     it('should sync only provided settings', () => {
       service.syncGridSettings(25);
       expect(service.gridSize()).toBe(25);
-      expect(service.showGrid()).toBeTrue(); // unchanged
+      expect(service.showGrid()).toBe(true); // unchanged
     });
   });
 
   describe('change tracking', () => {
     it('should mark as changed', () => {
       service.markChanged();
-      expect(service.hasChanges()).toBeTrue();
+      expect(service.hasChanges()).toBe(true);
     });
 
     it('should clear changes', () => {
       service.markChanged();
       service.clearChanges();
-      expect(service.hasChanges()).toBeFalse();
+      expect(service.hasChanges()).toBe(false);
     });
 
     it('should set hasChanges directly', () => {
       service.setHasChanges(true);
-      expect(service.hasChanges()).toBeTrue();
+      expect(service.hasChanges()).toBe(true);
       service.setHasChanges(false);
-      expect(service.hasChanges()).toBeFalse();
+      expect(service.hasChanges()).toBe(false);
     });
   });
 
@@ -243,10 +243,10 @@ describe('DesignerStateService', () => {
       expect(service.mode()).toBe('select');
       expect(service.zoom()).toBe(1);
       expect(service.panOffset()).toEqual({ x: 0, y: 0 });
-      expect(service.showGrid()).toBeTrue();
-      expect(service.snapToGrid()).toBeTrue();
+      expect(service.showGrid()).toBe(true);
+      expect(service.snapToGrid()).toBe(true);
       expect(service.gridSize()).toBe(20);
-      expect(service.hasChanges()).toBeFalse();
+      expect(service.hasChanges()).toBe(false);
     });
   });
 });

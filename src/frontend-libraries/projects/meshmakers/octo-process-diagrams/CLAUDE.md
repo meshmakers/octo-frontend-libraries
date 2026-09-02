@@ -10,7 +10,7 @@ npm run build:octo-process-diagrams
 npm run lint:octo-process-diagrams
 
 # Run tests
-npm test -- --project=@meshmakers/octo-process-diagrams --watch=false
+npm run test:octo-process-diagrams
 ```
 
 ## Documentation and Testing Standards

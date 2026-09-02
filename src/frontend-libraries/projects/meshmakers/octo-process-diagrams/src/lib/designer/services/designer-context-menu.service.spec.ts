@@ -1,8 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  DesignerContextMenuService,
-  ContextMenuSelectionState
-} from './designer-context-menu.service';
+import { DesignerContextMenuService, ContextMenuSelectionState } from './designer-context-menu.service';
 
 describe('DesignerContextMenuService', () => {
   let service: DesignerContextMenuService;
@@ -41,7 +38,7 @@ describe('DesignerContextMenuService', () => {
       service.show({ x: 100, y: 200 });
 
       const state = service.state();
-      expect(state.visible).toBeTrue();
+      expect(state.visible).toBe(true);
       expect(state.screenPosition.x).toBe(100);
       expect(state.screenPosition.y).toBe(200);
     });
@@ -65,7 +62,7 @@ describe('DesignerContextMenuService', () => {
       service.show({ x: 100, y: 200 });
       service.hide();
 
-      expect(service.state().visible).toBeFalse();
+      expect(service.state().visible).toBe(false);
     });
 
     it('should reset positions', () => {
@@ -82,25 +79,25 @@ describe('DesignerContextMenuService', () => {
     it('should show when hidden', () => {
       service.toggle({ x: 100, y: 200 });
 
-      expect(service.state().visible).toBeTrue();
+      expect(service.state().visible).toBe(true);
     });
 
     it('should hide when visible', () => {
       service.show({ x: 100, y: 200 });
       service.toggle({ x: 150, y: 250 });
 
-      expect(service.state().visible).toBeFalse();
+      expect(service.state().visible).toBe(false);
     });
   });
 
   describe('isVisible', () => {
     it('should return true when visible', () => {
       service.show({ x: 100, y: 200 });
-      expect(service.isVisible()).toBeTrue();
+      expect(service.isVisible()).toBe(true);
     });
 
     it('should return false when hidden', () => {
-      expect(service.isVisible()).toBeFalse();
+      expect(service.isVisible()).toBe(false);
     });
   });
 
@@ -126,8 +123,8 @@ describe('DesignerContextMenuService', () => {
     it('should update partial selection state', () => {
       service.updateSelectionState({ hasSelection: true });
 
-      expect(service.selectionState().hasSelection).toBeTrue();
-      expect(service.selectionState().hasClipboard).toBeFalse();
+      expect(service.selectionState().hasSelection).toBe(true);
+      expect(service.selectionState().hasClipboard).toBe(false);
     });
 
     it('should preserve existing state', () => {
@@ -139,9 +136,9 @@ describe('DesignerContextMenuService', () => {
       service.updateSelectionState({ canGroup: true });
 
       const state = service.selectionState();
-      expect(state.hasSelection).toBeTrue();
-      expect(state.hasClipboard).toBeTrue();
-      expect(state.canGroup).toBeTrue();
+      expect(state.hasSelection).toBe(true);
+      expect(state.hasClipboard).toBe(true);
+      expect(state.canGroup).toBe(true);
     });
   });
 
@@ -175,70 +172,70 @@ describe('DesignerContextMenuService', () => {
       const items = service.buildMenuItems(createSelectionState({ hasSelection: false }));
       const copyItem = items.find(i => i.id === 'copy');
 
-      expect(copyItem?.disabled).toBeTrue();
+      expect(copyItem?.disabled).toBe(true);
     });
 
     it('should enable copy when has selection', () => {
       const items = service.buildMenuItems(createSelectionState({ hasSelection: true }));
       const copyItem = items.find(i => i.id === 'copy');
 
-      expect(copyItem?.disabled).toBeFalse();
+      expect(copyItem?.disabled).toBe(false);
     });
 
     it('should disable paste when no clipboard', () => {
       const items = service.buildMenuItems(createSelectionState({ hasClipboard: false }));
       const pasteItem = items.find(i => i.id === 'paste');
 
-      expect(pasteItem?.disabled).toBeTrue();
+      expect(pasteItem?.disabled).toBe(true);
     });
 
     it('should enable paste when has clipboard', () => {
       const items = service.buildMenuItems(createSelectionState({ hasClipboard: true }));
       const pasteItem = items.find(i => i.id === 'paste');
 
-      expect(pasteItem?.disabled).toBeFalse();
+      expect(pasteItem?.disabled).toBe(false);
     });
 
     it('should disable group when canGroup is false', () => {
       const items = service.buildMenuItems(createSelectionState({ canGroup: false }));
       const groupItem = items.find(i => i.id === 'group');
 
-      expect(groupItem?.disabled).toBeTrue();
+      expect(groupItem?.disabled).toBe(true);
     });
 
     it('should enable group when canGroup is true', () => {
       const items = service.buildMenuItems(createSelectionState({ canGroup: true }));
       const groupItem = items.find(i => i.id === 'group');
 
-      expect(groupItem?.disabled).toBeFalse();
+      expect(groupItem?.disabled).toBe(false);
     });
 
     it('should disable ungroup when canUngroup is false', () => {
       const items = service.buildMenuItems(createSelectionState({ canUngroup: false }));
       const ungroupItem = items.find(i => i.id === 'ungroup');
 
-      expect(ungroupItem?.disabled).toBeTrue();
+      expect(ungroupItem?.disabled).toBe(true);
     });
 
     it('should enable ungroup when canUngroup is true', () => {
       const items = service.buildMenuItems(createSelectionState({ canUngroup: true }));
       const ungroupItem = items.find(i => i.id === 'ungroup');
 
-      expect(ungroupItem?.disabled).toBeFalse();
+      expect(ungroupItem?.disabled).toBe(false);
     });
 
     it('should disable delete when no selection', () => {
       const items = service.buildMenuItems(createSelectionState({ hasSelection: false }));
       const deleteItem = items.find(i => i.id === 'delete');
 
-      expect(deleteItem?.disabled).toBeTrue();
+      expect(deleteItem?.disabled).toBe(true);
     });
 
     it('should enable delete when has selection', () => {
       const items = service.buildMenuItems(createSelectionState({ hasSelection: true }));
       const deleteItem = items.find(i => i.id === 'delete');
 
-      expect(deleteItem?.disabled).toBeFalse();
+      expect(deleteItem?.disabled).toBe(false);
     });
 
     it('should include separators', () => {
@@ -254,8 +251,8 @@ describe('DesignerContextMenuService', () => {
       const bringToFront = items.find(i => i.id === 'bringToFront');
       const sendToBack = items.find(i => i.id === 'sendToBack');
 
-      expect(bringToFront?.disabled).toBeTrue();
-      expect(sendToBack?.disabled).toBeTrue();
+      expect(bringToFront?.disabled).toBe(true);
+      expect(sendToBack?.disabled).toBe(true);
     });
 
     it('should enable z-order items when has selection and can move', () => {
@@ -268,8 +265,8 @@ describe('DesignerContextMenuService', () => {
       const bringToFront = items.find(i => i.id === 'bringToFront');
       const sendToBack = items.find(i => i.id === 'sendToBack');
 
-      expect(bringToFront?.disabled).toBeFalse();
-      expect(sendToBack?.disabled).toBeFalse();
+      expect(bringToFront?.disabled).toBe(false);
+      expect(sendToBack?.disabled).toBe(false);
     });
   });
 
@@ -283,8 +280,8 @@ describe('DesignerContextMenuService', () => {
       const itemsAfter = service.items();
       const copyAfter = itemsAfter.find(i => i.id === 'copy');
 
-      expect(copyBefore?.disabled).toBeTrue();
-      expect(copyAfter?.disabled).toBeFalse();
+      expect(copyBefore?.disabled).toBe(true);
+      expect(copyAfter?.disabled).toBe(false);
     });
   });
 
@@ -298,8 +295,8 @@ describe('DesignerContextMenuService', () => {
 
       const enabledItems = service.getEnabledItems();
 
-      expect(enabledItems.every(i => !i.separator)).toBeTrue();
-      expect(enabledItems.every(i => !i.disabled)).toBeTrue();
+      expect(enabledItems.every(i => !i.separator)).toBe(true);
+      expect(enabledItems.every(i => !i.disabled)).toBe(true);
     });
 
     it('should exclude disabled items', () => {
@@ -318,7 +315,7 @@ describe('DesignerContextMenuService', () => {
     it('should return items without separators', () => {
       const actionItems = service.getActionItems();
 
-      expect(actionItems.every(i => !i.separator)).toBeTrue();
+      expect(actionItems.every(i => !i.separator)).toBe(true);
     });
 
     it('should include disabled items', () => {
@@ -328,7 +325,7 @@ describe('DesignerContextMenuService', () => {
       const copyItem = actionItems.find(i => i.id === 'copy');
 
       expect(copyItem).toBeDefined();
-      expect(copyItem?.disabled).toBeTrue();
+      expect(copyItem?.disabled).toBe(true);
     });
   });
 
@@ -336,17 +333,17 @@ describe('DesignerContextMenuService', () => {
     it('should return true for enabled action', () => {
       service.setSelectionState(createSelectionState({ hasSelection: true }));
 
-      expect(service.isActionEnabled('copy')).toBeTrue();
+      expect(service.isActionEnabled('copy')).toBe(true);
     });
 
     it('should return false for disabled action', () => {
       service.setSelectionState(createSelectionState({ hasSelection: false }));
 
-      expect(service.isActionEnabled('copy')).toBeFalse();
+      expect(service.isActionEnabled('copy')).toBe(false);
     });
 
     it('should return false for unknown action', () => {
-      expect(service.isActionEnabled('unknown')).toBeFalse();
+      expect(service.isActionEnabled('unknown')).toBe(false);
     });
   });
 
@@ -402,20 +399,14 @@ describe('DesignerContextMenuService', () => {
     });
 
     it('should respect clipboard state in canvas context', () => {
-      const itemsNoClipboard = service.buildCustomMenuItems(
-        'canvas',
-        createSelectionState({ hasClipboard: false })
-      );
+      const itemsNoClipboard = service.buildCustomMenuItems('canvas', createSelectionState({ hasClipboard: false }));
       const pasteNoClipboard = itemsNoClipboard.find(i => i.id === 'paste');
 
-      const itemsWithClipboard = service.buildCustomMenuItems(
-        'canvas',
-        createSelectionState({ hasClipboard: true })
-      );
+      const itemsWithClipboard = service.buildCustomMenuItems('canvas', createSelectionState({ hasClipboard: true }));
       const pasteWithClipboard = itemsWithClipboard.find(i => i.id === 'paste');
 
-      expect(pasteNoClipboard?.disabled).toBeTrue();
-      expect(pasteWithClipboard?.disabled).toBeFalse();
+      expect(pasteNoClipboard?.disabled).toBe(true);
+      expect(pasteWithClipboard?.disabled).toBe(false);
     });
   });
 
@@ -432,7 +423,7 @@ describe('DesignerContextMenuService', () => {
       service.show({ x: 200, y: 300 });
 
       const state = service.state();
-      expect(state.visible).toBeTrue();
+      expect(state.visible).toBe(true);
       expect(state.screenPosition).toEqual({ x: 200, y: 300 });
     });
 
@@ -440,7 +431,7 @@ describe('DesignerContextMenuService', () => {
       service.show({ x: 100, y: 200 });
       service.show({ x: 100, y: 200 });
 
-      expect(service.state().visible).toBeTrue();
+      expect(service.state().visible).toBe(true);
     });
 
     it('should handle empty selection state update', () => {

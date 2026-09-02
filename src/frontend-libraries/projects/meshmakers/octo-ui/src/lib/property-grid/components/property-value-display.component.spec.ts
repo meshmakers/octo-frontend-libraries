@@ -1,10 +1,8 @@
+import type { Mock } from 'vitest';
 import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PropertyValueDisplayComponent } from './property-value-display.component';
-import {
-  AttributeValueTypeDto,
-  PropertyDisplayMode
-} from '../models/property-grid.models';
+import { AttributeValueTypeDto, PropertyDisplayMode } from '../models/property-grid.models';
 import { chevronRightIcon, chevronDownIcon, downloadIcon } from '@progress/kendo-svg-icons';
 
 describe('PropertyValueDisplayComponent', () => {
@@ -24,7 +22,8 @@ describe('PropertyValueDisplayComponent', () => {
   function initComponent(value: unknown, type: AttributeValueTypeDto, displayMode?: PropertyDisplayMode): void {
     component.value = value;
     component.type = type;
-    if (displayMode) component.displayMode = displayMode;
+    if (displayMode)
+      component.displayMode = displayMode;
     fixture.detectChanges(); // triggers ngOnInit
   }
 
@@ -474,8 +473,8 @@ describe('PropertyValueDisplayComponent', () => {
       const obj = { name: 'Test', value: 123 };
       const result = component.getObjectProperties(obj);
       expect(result.length).toBe(2);
-      expect(result).toContain(jasmine.objectContaining({ key: 'name', value: 'Test' }));
-      expect(result).toContain(jasmine.objectContaining({ key: 'value', value: 123 }));
+      expect(result).toContainEqual(expect.objectContaining({ key: 'name', value: 'Test' }));
+      expect(result).toContainEqual(expect.objectContaining({ key: 'value', value: 123 }));
     });
 
     it('should handle nested objects', () => {
@@ -609,10 +608,10 @@ describe('PropertyValueDisplayComponent', () => {
   // =========================================================================
 
   describe('onDownload', () => {
-    let windowOpenSpy: jasmine.Spy;
+    let windowOpenSpy: Mock;
 
     beforeEach(() => {
-      windowOpenSpy = spyOn(window, 'open');
+      windowOpenSpy = vi.spyOn(window, 'open').mockReturnValue(null);
     });
 
     it('should do nothing for null value', () => {
@@ -630,13 +629,11 @@ describe('PropertyValueDisplayComponent', () => {
     it('should open downloadUri in new window when present', () => {
       component.value = { downloadUri: 'https://example.com/file.pdf' };
       component.onDownload();
-      expect(windowOpenSpy).toHaveBeenCalledWith(
-        'https://example.com/file.pdf', '_blank', 'noopener,noreferrer'
-      );
+      expect(windowOpenSpy).toHaveBeenCalledWith('https://example.com/file.pdf', '_blank', 'noopener,noreferrer');
     });
 
     it('should emit binaryDownload event when only binaryId present', () => {
-      spyOn(component.binaryDownload, 'emit');
+      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
       component.value = { binaryId: '123', filename: 'test.pdf', contentType: 'application/pdf' };
       component.onDownload();
       expect(component.binaryDownload.emit).toHaveBeenCalledWith({
@@ -645,7 +642,7 @@ describe('PropertyValueDisplayComponent', () => {
     });
 
     it('should prefer downloadUri over binaryId', () => {
-      spyOn(component.binaryDownload, 'emit');
+      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
       component.value = { binaryId: '123', downloadUri: 'https://example.com/file.pdf' };
       component.onDownload();
       expect(windowOpenSpy).toHaveBeenCalled();
@@ -653,7 +650,7 @@ describe('PropertyValueDisplayComponent', () => {
     });
 
     it('should do nothing when neither binaryId nor downloadUri present', () => {
-      spyOn(component.binaryDownload, 'emit');
+      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
       component.value = { filename: 'test.pdf' };
       component.onDownload();
       expect(windowOpenSpy).not.toHaveBeenCalled();
@@ -704,10 +701,7 @@ describe('PropertyValueDisplayComponent', () => {
     });
 
     it('should reset binary metadata when transitioning from BINARY_LINKED to plain STRING', () => {
-      initComponent(
-        { binaryId: '1', filename: 'doc.pdf', size: 1024, contentType: 'application/pdf' },
-        AttributeValueTypeDto.BinaryLinkedDto,
-      );
+      initComponent({ binaryId: '1', filename: 'doc.pdf', size: 1024, contentType: 'application/pdf' }, AttributeValueTypeDto.BinaryLinkedDto);
       expect(component.binaryFilename).toBe('doc.pdf');
       expect(component.binarySize).toBe(1024);
       expect(component.binaryContentType).toBe('application/pdf');

@@ -1,5 +1,6 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { WindowStateService } from '@meshmakers/shared-ui';
+import { WindowStateService, WindowDimensions } from '@meshmakers/shared-ui';
 import { Subject } from 'rxjs';
 import { WindowService, WindowRef, WindowCloseResult } from '@progress/kendo-angular-dialog';
 import { AttributeSelectorDialogService } from './attribute-selector-dialog.service';
@@ -7,22 +8,22 @@ import { AttributeSelectorDialogComponent, AttributeSelectorDialogResult } from 
 import { AttributeItem } from '@meshmakers/octo-services';
 
 interface MockComponentInstance {
-  data?: {
-    rtCkTypeId: string;
-    selectedAttributes?: string[];
-    dialogTitle?: string;
-    singleSelect?: boolean;
-    additionalAttributes?: AttributeItem[];
-    includeNavigationProperties?: boolean;
-    maxDepth?: number;
-    hideNavigationControls?: boolean;
-    attributePaths?: string[];
-  };
+    data?: {
+        rtCkTypeId: string;
+        selectedAttributes?: string[];
+        dialogTitle?: string;
+        singleSelect?: boolean;
+        additionalAttributes?: AttributeItem[];
+        includeNavigationProperties?: boolean;
+        maxDepth?: number;
+        hideNavigationControls?: boolean;
+        attributePaths?: string[];
+    };
 }
 
 describe('AttributeSelectorDialogService', () => {
   let service: AttributeSelectorDialogService;
-  let windowServiceMock: jasmine.SpyObj<WindowService>;
+  let windowServiceMock: MockedObject<WindowService>;
   let windowResultSubject: Subject<AttributeSelectorDialogResult | WindowCloseResult | Record<string, unknown> | string | undefined>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockWindowRef: Record<string, any>;
@@ -56,8 +57,10 @@ describe('AttributeSelectorDialogService', () => {
       }
     };
 
-    windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
-    windowServiceMock.open.and.returnValue(mockWindowRef as WindowRef);
+    windowServiceMock = {
+      open: vi.fn().mockName('WindowService.open')
+    } as unknown as MockedObject<WindowService>;
+    windowServiceMock.open.mockReturnValue(mockWindowRef as WindowRef);
 
     TestBed.configureTestingModule({
       providers: [
@@ -68,12 +71,10 @@ describe('AttributeSelectorDialogService', () => {
 
     service = TestBed.inject(AttributeSelectorDialogService);
     // Pin the viewport clamp in the shared-ui WindowStateService to a large
-    // screen — the karma browser window is small and would otherwise shrink
+    // screen — the jsdom window is small and would otherwise shrink
     // the dimensions these specs assert verbatim.
     const windowState = TestBed.inject(WindowStateService);
-    spyOn<never>(windowState as never, 'viewportSize' as never).and.returnValue(
-      { width: 1920, height: 1080 } as never,
-    );
+    vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });
   });
 
   it('should be created', () => {
@@ -128,11 +129,9 @@ describe('AttributeSelectorDialogService', () => {
 
       await resultPromise;
 
-      expect(windowServiceMock.open).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          title: 'Custom Title'
-        })
-      );
+      expect(windowServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Custom Title'
+      }));
     });
 
     it('should pass data to dialog component', async () => {
@@ -281,17 +280,14 @@ describe('AttributeSelectorDialogService', () => {
     });
 
     it('should pass new optional params to dialog component', async () => {
-      const resultPromise = service.openAttributeSelector(
-        'TestType/Entity', undefined, undefined, undefined, undefined,
-        false, 2, true
-      );
+      const resultPromise = service.openAttributeSelector('TestType/Entity', undefined, undefined, undefined, undefined, false, 2, true);
 
       windowResultSubject.next({ selectedAttributes: [] });
       windowResultSubject.complete();
 
       await resultPromise;
 
-      expect(mockComponentInstance.data).toEqual(jasmine.objectContaining({
+      expect(mockComponentInstance.data).toEqual(expect.objectContaining({
         includeNavigationProperties: false,
         maxDepth: 2,
         hideNavigationControls: true
@@ -306,11 +302,9 @@ describe('AttributeSelectorDialogService', () => {
 
       await resultPromise;
 
-      expect(windowServiceMock.open).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          resizable: true
-        })
-      );
+      expect(windowServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        resizable: true
+      }));
     });
   });
 });

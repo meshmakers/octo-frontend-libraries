@@ -14,7 +14,7 @@ npm run build:shared-services
 npm run lint:shared-services
 
 # Run tests
-npm test -- --project=@meshmakers/shared-services --watch=false
+npm run test:shared-services
 ```
 
 ## Architecture

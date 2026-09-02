@@ -39,7 +39,7 @@ npm run build:shared-ui
 npm run lint:shared-ui
 
 # Run tests
-npm test -- --project=@meshmakers/shared-ui --watch=false
+npm run test:shared-ui
 ```
 
 ## Architecture

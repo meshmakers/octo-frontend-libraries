@@ -111,13 +111,13 @@ describe('DesignerGroupingService', () => {
 
   describe('canGroup', () => {
     it('should return true for 2 or more items', () => {
-      expect(service.canGroup(new Set(['a', 'b']))).toBeTrue();
-      expect(service.canGroup(new Set(['a', 'b', 'c']))).toBeTrue();
+      expect(service.canGroup(new Set(['a', 'b']))).toBe(true);
+      expect(service.canGroup(new Set(['a', 'b', 'c']))).toBe(true);
     });
 
     it('should return false for less than 2 items', () => {
-      expect(service.canGroup(new Set())).toBeFalse();
-      expect(service.canGroup(new Set(['a']))).toBeFalse();
+      expect(service.canGroup(new Set())).toBe(false);
+      expect(service.canGroup(new Set(['a']))).toBe(false);
     });
   });
 
@@ -131,17 +131,17 @@ describe('DesignerGroupingService', () => {
         ]
       };
 
-      expect(service.canUngroup(diagram, new Set(['group-1']))).toBeTrue();
+      expect(service.canUngroup(diagram, new Set(['group-1']))).toBe(true);
     });
 
     it('should return false if selection contains no groups', () => {
       const diagram = createTestDiagram();
-      expect(service.canUngroup(diagram, new Set(['prim-1', 'prim-2']))).toBeFalse();
+      expect(service.canUngroup(diagram, new Set(['prim-1', 'prim-2']))).toBe(false);
     });
 
     it('should return false for empty selection', () => {
       const diagram = createTestDiagram();
-      expect(service.canUngroup(diagram, new Set())).toBeFalse();
+      expect(service.canUngroup(diagram, new Set())).toBe(false);
     });
   });
 
@@ -176,11 +176,7 @@ describe('DesignerGroupingService', () => {
   describe('groupItems', () => {
     it('should create group from selected primitives', () => {
       const diagram = createTestDiagram();
-      const result = service.groupItems(
-        diagram,
-        new Set(['prim-1', 'prim-2']),
-        generateId
-      );
+      const result = service.groupItems(diagram, new Set(['prim-1', 'prim-2']), generateId);
 
       expect(result).not.toBeNull();
       expect(result!.groupId).toBe('test-id-1');
@@ -204,11 +200,7 @@ describe('DesignerGroupingService', () => {
         ]
       };
 
-      const result = service.groupItems(
-        diagram,
-        new Set(['group-1', 'prim-3']),
-        generateId
-      );
+      const result = service.groupItems(diagram, new Set(['group-1', 'prim-3']), generateId);
 
       expect(result).not.toBeNull();
       // Children should include prim-1, prim-2 (from flattened group), and prim-3
@@ -234,11 +226,7 @@ describe('DesignerGroupingService', () => {
         ]
       };
 
-      const result = service.groupItems(
-        diagram,
-        new Set(['prim-1', 'prim-2']),
-        generateId
-      );
+      const result = service.groupItems(diagram, new Set(['prim-1', 'prim-2']), generateId);
 
       expect(result).not.toBeNull();
       const group = result!.primitives.find(p => p.id === result!.groupId) as GroupPrimitive;
@@ -348,11 +336,7 @@ describe('DesignerGroupingService', () => {
         })
       };
 
-      const bounds = service.calculateCombinedBounds(
-        diagram,
-        ['sym-1', 'sym-2'],
-        symbolBoundsProvider
-      );
+      const bounds = service.calculateCombinedBounds(diagram, ['sym-1', 'sym-2'], symbolBoundsProvider);
 
       expect(bounds).not.toBeNull();
       expect(bounds!.x).toBe(0);
@@ -467,8 +451,8 @@ describe('DesignerGroupingService', () => {
       const descendants = service.getAllGroupDescendants(diagram, 'group-1');
 
       expect(descendants.size).toBe(2);
-      expect(descendants.has('prim-1')).toBeTrue();
-      expect(descendants.has('prim-2')).toBeTrue();
+      expect(descendants.has('prim-1')).toBe(true);
+      expect(descendants.has('prim-2')).toBe(true);
     });
 
     it('should get nested children recursively', () => {
@@ -485,9 +469,9 @@ describe('DesignerGroupingService', () => {
       const descendants = service.getAllGroupDescendants(diagram, 'outer-group');
 
       expect(descendants.size).toBe(3);
-      expect(descendants.has('inner-group')).toBeTrue();
-      expect(descendants.has('prim-1')).toBeTrue();
-      expect(descendants.has('prim-2')).toBeTrue();
+      expect(descendants.has('inner-group')).toBe(true);
+      expect(descendants.has('prim-1')).toBe(true);
+      expect(descendants.has('prim-2')).toBe(true);
     });
 
     it('should return empty set for non-group', () => {
@@ -530,12 +514,12 @@ describe('DesignerGroupingService', () => {
         ]
       };
 
-      expect(service.isItemInGroup(diagram, 'prim-1')).toBeTrue();
+      expect(service.isItemInGroup(diagram, 'prim-1')).toBe(true);
     });
 
     it('should return false for ungrouped item', () => {
       const diagram = createTestDiagram();
-      expect(service.isItemInGroup(diagram, 'prim-1')).toBeFalse();
+      expect(service.isItemInGroup(diagram, 'prim-1')).toBe(false);
     });
   });
 
@@ -587,7 +571,7 @@ describe('DesignerGroupingService', () => {
         connections: []
       } as ProcessDiagramConfig;
 
-      expect(service.canUngroup(diagram, new Set(['any']))).toBeFalse();
+      expect(service.canUngroup(diagram, new Set(['any']))).toBe(false);
       expect(service.getSelectedGroups(diagram, new Set(['any'])).length).toBe(0);
     });
 
@@ -616,11 +600,7 @@ describe('DesignerGroupingService', () => {
         ]
       };
 
-      const result = service.groupItems(
-        diagram,
-        new Set(['elem-1', 'elem-2']),
-        generateId
-      );
+      const result = service.groupItems(diagram, new Set(['elem-1', 'elem-2']), generateId);
 
       expect(result).not.toBeNull();
       expect(result!.childIds).toContain('elem-1');
@@ -638,12 +618,7 @@ describe('DesignerGroupingService', () => {
         })
       };
 
-      const result = service.groupItems(
-        diagram,
-        new Set(['prim-1', 'sym-1', 'elem-1']),
-        generateId,
-        symbolBoundsProvider
-      );
+      const result = service.groupItems(diagram, new Set(['prim-1', 'sym-1', 'elem-1']), generateId, symbolBoundsProvider);
 
       expect(result).not.toBeNull();
       expect(result!.childIds.length).toBe(3);

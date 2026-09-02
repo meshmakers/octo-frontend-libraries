@@ -473,9 +473,13 @@ single-locale apps.
   `[formControl]="ctrl"` not `formControlName="..."` on color pickers in
   v23. The Settings page already follows this rule; if you copy patterns,
   carry the binding form across.
-- **`Cannot find name 'jasmine'` when building the library.** → The
-  `branding-stub.ts` test utility uses jasmine types. The shipped file
-  has `/// <reference types="jasmine" />` at the top — keep it.
+- **`Cannot find name 'vi'` / `Cannot find name 'describe'` in a branding spec.** →
+  Vitest globals come from `"types": ["vitest/globals"]` in the project's
+  `tsconfig.spec.json`; the library build (`tsconfig.lib.json`) does not see them.
+  Keep test-only helpers in `*.spec.ts` files. `branding-stub.ts` is deliberately
+  framework-agnostic — its async methods are plain functions and it carries no
+  test-framework types or triple-slash reference, so it compiles into the shipped
+  library.
 - **Light/dark switcher disabled on a tenant with `darkTheme = null`.** →
   Intentional. Single-theme tenants force light mode; the toggle is
   greyed-out to prevent stale `'dark'` in localStorage from showing

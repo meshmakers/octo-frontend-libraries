@@ -217,7 +217,7 @@ npm run build:octo-ui
 ## Test
 
 ```bash
-npm test -- --project=@meshmakers/octo-ui --watch=false
+npm run test:octo-ui
 ```
 
 ## Lint

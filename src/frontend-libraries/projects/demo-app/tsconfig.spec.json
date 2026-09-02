@@ -5,13 +5,14 @@
   "compilerOptions": {
     "outDir": "../../out-tsc/spec",
     "types": [
-      "jasmine",
+      "vitest/globals",
       "@angular/localize"
     ]
   },
   "include": [
     "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "../../testing/vitest-setup.ts"
   ],
   "angularCompilerOptions": {
     "extendedDiagnostics": {

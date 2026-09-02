@@ -27,7 +27,7 @@ describe('PathEditorService', () => {
         expect(result.segments.length).toBe(1);
         const segment = result.segments[0] as MoveToSegment;
         expect(segment.command).toBe('M');
-        expect(segment.isRelative).toBeFalse();
+        expect(segment.isRelative).toBe(false);
         expect(segment.point).toEqual({ x: 10, y: 20 });
       });
 
@@ -37,7 +37,7 @@ describe('PathEditorService', () => {
         expect(result.segments.length).toBe(1);
         const segment = result.segments[0] as MoveToSegment;
         expect(segment.command).toBe('m');
-        expect(segment.isRelative).toBeTrue();
+        expect(segment.isRelative).toBe(true);
         expect(segment.point).toEqual({ x: 10, y: 20 });
       });
 
@@ -65,7 +65,7 @@ describe('PathEditorService', () => {
         expect(result.segments.length).toBe(2);
         const segment = result.segments[1] as LineToSegment;
         expect(segment.command).toBe('L');
-        expect(segment.isRelative).toBeFalse();
+        expect(segment.isRelative).toBe(false);
         expect(segment.point).toEqual({ x: 50, y: 50 });
       });
 
@@ -74,7 +74,7 @@ describe('PathEditorService', () => {
 
         const segment = result.segments[1] as LineToSegment;
         expect(segment.command).toBe('l');
-        expect(segment.isRelative).toBeTrue();
+        expect(segment.isRelative).toBe(true);
       });
 
       it('should parse multiple LineTo points', () => {
@@ -172,8 +172,8 @@ describe('PathEditorService', () => {
         expect(segment.rx).toBe(10);
         expect(segment.ry).toBe(20);
         expect(segment.xAxisRotation).toBe(30);
-        expect(segment.largeArcFlag).toBeTrue();
-        expect(segment.sweepFlag).toBeFalse();
+        expect(segment.largeArcFlag).toBe(true);
+        expect(segment.sweepFlag).toBe(false);
         expect(segment.point).toEqual({ x: 50, y: 60 });
       });
     });
@@ -356,9 +356,9 @@ describe('PathEditorService', () => {
 
     it('should serialize multiple segments', () => {
       const segments: PathSegment[] = [
-        { id: '1', command: 'M', isRelative: false, point: { x: 0, y: 0 } } as MoveToSegment,
-        { id: '2', command: 'L', isRelative: false, point: { x: 50, y: 50 } } as LineToSegment,
-        { id: '3', command: 'Z', isRelative: false } as ClosePathSegment
+                { id: '1', command: 'M', isRelative: false, point: { x: 0, y: 0 } } as MoveToSegment,
+                { id: '2', command: 'L', isRelative: false, point: { x: 50, y: 50 } } as LineToSegment,
+                { id: '3', command: 'Z', isRelative: false } as ClosePathSegment
       ];
 
       expect(service.serialize(segments)).toBe('M0,0 L50,50 Z');
@@ -405,11 +405,11 @@ describe('PathEditorService', () => {
       service.loadPath('M10,20');
       service.moveNode(service.nodes()[0].id, { x: 100, y: 100 });
 
-      expect(service.isDirty()).toBeTrue();
+      expect(service.isDirty()).toBe(true);
 
       service.loadPath('M50,60');
 
-      expect(service.isDirty()).toBeFalse();
+      expect(service.isDirty()).toBe(false);
     });
   });
 
@@ -424,7 +424,7 @@ describe('PathEditorService', () => {
       expect(service.segments()).toEqual([]);
       expect(service.nodes()).toEqual([]);
       expect(service.selectedNodeId()).toBeNull();
-      expect(service.isDirty()).toBeFalse();
+      expect(service.isDirty()).toBe(false);
     });
   });
 
@@ -481,7 +481,7 @@ describe('PathEditorService', () => {
 
       service.moveNode(service.nodes()[0].id, { x: 100, y: 200 });
 
-      expect(service.isDirty()).toBeTrue();
+      expect(service.isDirty()).toBe(true);
     });
 
     it('should move control points in cubic bezier', () => {
@@ -542,7 +542,7 @@ describe('PathEditorService', () => {
 
       service.deleteSegment(service.segments()[1].id);
 
-      expect(service.isDirty()).toBeTrue();
+      expect(service.isDirty()).toBe(true);
     });
   });
 
@@ -577,7 +577,7 @@ describe('PathEditorService', () => {
 
       service.convertSegmentType(service.segments()[1].id, 'C');
 
-      expect(service.isDirty()).toBeTrue();
+      expect(service.isDirty()).toBe(true);
     });
   });
 
@@ -596,7 +596,7 @@ describe('PathEditorService', () => {
 
       service.updateFromText('M10,20');
 
-      expect(service.isDirty()).toBeTrue();
+      expect(service.isDirty()).toBe(true);
     });
   });
 
@@ -757,27 +757,27 @@ describe('PathEditorService', () => {
   describe('isCurveSegment', () => {
     it('should return true for C command', () => {
       const segment = { command: 'C' } as PathSegment;
-      expect(service.isCurveSegment(segment)).toBeTrue();
+      expect(service.isCurveSegment(segment)).toBe(true);
     });
 
     it('should return true for Q command', () => {
       const segment = { command: 'Q' } as PathSegment;
-      expect(service.isCurveSegment(segment)).toBeTrue();
+      expect(service.isCurveSegment(segment)).toBe(true);
     });
 
     it('should return true for lowercase c command', () => {
       const segment = { command: 'c' } as PathSegment;
-      expect(service.isCurveSegment(segment)).toBeTrue();
+      expect(service.isCurveSegment(segment)).toBe(true);
     });
 
     it('should return false for L command', () => {
       const segment = { command: 'L' } as PathSegment;
-      expect(service.isCurveSegment(segment)).toBeFalse();
+      expect(service.isCurveSegment(segment)).toBe(false);
     });
 
     it('should return false for M command', () => {
       const segment = { command: 'M' } as PathSegment;
-      expect(service.isCurveSegment(segment)).toBeFalse();
+      expect(service.isCurveSegment(segment)).toBe(false);
     });
   });
 

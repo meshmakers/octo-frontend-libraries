@@ -11,7 +11,7 @@ The `@meshmakers/shared-services` library provides common Angular services for m
 npm run build:shared-services
 
 # Run tests
-npm test -- --project=@meshmakers/shared-services --watch=false
+npm run test:shared-services
 
 # Run lint
 npm run lint:shared-services

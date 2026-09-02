@@ -1,14 +1,15 @@
-import {TestBed} from '@angular/core/testing';
-import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
-import {provideHttpClient, withXhr} from '@angular/common/http';
-import {AiService} from './ai.service';
-import {CONFIGURATION_SERVICE, IConfigurationService} from './configuration.service';
-import {AddInConfiguration} from '../shared/addInConfiguration';
+import type { MockedObject } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient, withXhr } from '@angular/common/http';
+import { AiService } from './ai.service';
+import { CONFIGURATION_SERVICE, IConfigurationService } from './configuration.service';
+import { AddInConfiguration } from '../shared/addInConfiguration';
 
 describe('AiService', () => {
   let service: AiService;
   let httpMock: HttpTestingController;
-  let mockConfigService: jasmine.SpyObj<IConfigurationService>;
+  let mockConfigService: MockedObject<IConfigurationService>;
 
   const mockConfig: AddInConfiguration = {
     communicationServices: 'https://api.example.com/communication/',
@@ -29,16 +30,16 @@ describe('AiService', () => {
   const tenantId = 'test-tenant';
 
   beforeEach(() => {
-    mockConfigService = jasmine.createSpyObj<IConfigurationService>('ConfigurationService', [], {
+    mockConfigService = {
       config: mockConfig
-    });
+    } as unknown as MockedObject<IConfigurationService>;
 
     TestBed.configureTestingModule({
       providers: [
         AiService,
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        {provide: CONFIGURATION_SERVICE, useValue: mockConfigService}
+        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
       ]
     });
 
@@ -54,9 +55,7 @@ describe('AiService', () => {
     it('should POST the tenant-scoped enable endpoint', async () => {
       const promise = service.enableAi(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.aiServices}${tenantId}/v1/aiservice/enable`
-      );
+      const req = httpMock.expectOne(`${mockConfig.aiServices}${tenantId}/v1/aiservice/enable`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(null);
@@ -67,12 +66,10 @@ describe('AiService', () => {
     it('should propagate errors', async () => {
       const promise = service.enableAi(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.aiServices}${tenantId}/v1/aiservice/enable`
-      );
-      req.flush({errorMessage: 'boom'}, {status: 409, statusText: 'Conflict'});
+      const req = httpMock.expectOne(`${mockConfig.aiServices}${tenantId}/v1/aiservice/enable`);
+      req.flush({ errorMessage: 'boom' }, { status: 409, statusText: 'Conflict' });
 
-      await expectAsync(promise).toBeRejected();
+      await expect(promise).rejects.toThrow();
     });
   });
 
@@ -80,9 +77,7 @@ describe('AiService', () => {
     it('should POST the tenant-scoped disable endpoint', async () => {
       const promise = service.disableAi(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.aiServices}${tenantId}/v1/aiservice/disable`
-      );
+      const req = httpMock.expectOne(`${mockConfig.aiServices}${tenantId}/v1/aiservice/disable`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(null);
@@ -93,29 +88,27 @@ describe('AiService', () => {
     it('should propagate errors', async () => {
       const promise = service.disableAi(tenantId);
 
-      const req = httpMock.expectOne(
-        `${mockConfig.aiServices}${tenantId}/v1/aiservice/disable`
-      );
-      req.flush({errorMessage: 'boom'}, {status: 500, statusText: 'Server Error'});
+      const req = httpMock.expectOne(`${mockConfig.aiServices}${tenantId}/v1/aiservice/disable`);
+      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
 
-      await expectAsync(promise).toBeRejected();
+      await expect(promise).rejects.toThrow();
     });
   });
 
   describe('when aiServices is not configured (service not installed)', () => {
     beforeEach(() => {
       Object.defineProperty(mockConfigService, 'config', {
-        get: () => ({...mockConfig, aiServices: ''})
+        get: () => ({ ...mockConfig, aiServices: '' })
       });
     });
 
     it('enableAi should throw and not make an HTTP call', async () => {
-      await expectAsync(service.enableAi(tenantId)).toBeRejected();
+      await expect(service.enableAi(tenantId)).rejects.toThrow();
       httpMock.expectNone(() => true);
     });
 
     it('disableAi should throw and not make an HTTP call', async () => {
-      await expectAsync(service.disableAi(tenantId)).toBeRejected();
+      await expect(service.disableAi(tenantId)).rejects.toThrow();
       httpMock.expectNone(() => true);
     });
   });

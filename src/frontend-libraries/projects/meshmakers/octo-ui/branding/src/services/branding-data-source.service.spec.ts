@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { Apollo } from 'apollo-angular';
@@ -6,24 +7,27 @@ import { BrandingDataSource } from './branding-data-source.service';
 import { GetBrandingDtoGQL } from '../graphQL/getBranding';
 import { CreateBrandingDtoGQL } from '../graphQL/createBranding';
 import { UpdateBrandingDtoGQL } from '../graphQL/updateBranding';
-import {
-  OCTO_BRANDING_DEFAULTS,
-  NEUTRAL_BRANDING_DEFAULTS,
-} from '../branding.tokens';
+import { OCTO_BRANDING_DEFAULTS, NEUTRAL_BRANDING_DEFAULTS, } from '../branding.tokens';
 
 describe('BrandingDataSource', () => {
   let service: BrandingDataSource;
-  let getStub: jasmine.SpyObj<GetBrandingDtoGQL>;
-  let createStub: jasmine.SpyObj<CreateBrandingDtoGQL>;
-  let updateStub: jasmine.SpyObj<UpdateBrandingDtoGQL>;
+  let getStub: MockedObject<GetBrandingDtoGQL>;
+  let createStub: MockedObject<CreateBrandingDtoGQL>;
+  let updateStub: MockedObject<UpdateBrandingDtoGQL>;
 
   function setupTestBed(getReturnValue: unknown): void {
-    getStub = jasmine.createSpyObj('GetBrandingDtoGQL', ['fetch']);
-    createStub = jasmine.createSpyObj('CreateBrandingDtoGQL', ['mutate']);
-    updateStub = jasmine.createSpyObj('UpdateBrandingDtoGQL', ['mutate']);
+    getStub = {
+      fetch: vi.fn().mockName('GetBrandingDtoGQL.fetch')
+    } as unknown as MockedObject<GetBrandingDtoGQL>;
+    createStub = {
+      mutate: vi.fn().mockName('CreateBrandingDtoGQL.mutate')
+    } as unknown as MockedObject<CreateBrandingDtoGQL>;
+    updateStub = {
+      mutate: vi.fn().mockName('UpdateBrandingDtoGQL.mutate')
+    } as unknown as MockedObject<UpdateBrandingDtoGQL>;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getStub.fetch.and.returnValue(of(getReturnValue as any));
+    getStub.fetch.mockReturnValue(of(getReturnValue as any));
 
     TestBed.configureTestingModule({
       providers: [
@@ -51,9 +55,7 @@ describe('BrandingDataSource', () => {
       expect(branding.appName).toBe(NEUTRAL_BRANDING_DEFAULTS.appName);
       expect(branding.appTitle).toBe(NEUTRAL_BRANDING_DEFAULTS.appTitle);
       expect(branding.rtId).toBeNull();
-      expect(branding.lightTheme.primaryColor).toBe(
-        NEUTRAL_BRANDING_DEFAULTS.lightTheme.primaryColor,
-      );
+      expect(branding.lightTheme.primaryColor).toBe(NEUTRAL_BRANDING_DEFAULTS.lightTheme.primaryColor);
     });
   });
 

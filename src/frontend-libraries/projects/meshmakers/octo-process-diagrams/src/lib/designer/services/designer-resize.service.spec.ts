@@ -33,7 +33,7 @@ describe('DesignerResizeService', () => {
 
   describe('initial state', () => {
     it('should start with isResizing false', () => {
-      expect(service.isResizing()).toBeFalse();
+      expect(service.isResizing()).toBe(false);
     });
 
     it('should have null resizingItemId', () => {
@@ -46,7 +46,7 @@ describe('DesignerResizeService', () => {
 
     it('should have initial state with null values', () => {
       const state = service.state();
-      expect(state.isResizing).toBeFalse();
+      expect(state.isResizing).toBe(false);
       expect(state.itemId).toBeNull();
       expect(state.itemType).toBeNull();
       expect(state.handle).toBeNull();
@@ -60,43 +60,23 @@ describe('DesignerResizeService', () => {
 
   describe('startElementResize', () => {
     it('should set isResizing to true', () => {
-      service.startElementResize(
-        'elem-1', 'element', 'se',
-        { width: 100, height: 80 },
-        { x: 50, y: 50 },
-        { x: 150, y: 130 }
-      );
-      expect(service.isResizing()).toBeTrue();
+      service.startElementResize('elem-1', 'element', 'se', { width: 100, height: 80 }, { x: 50, y: 50 }, { x: 150, y: 130 });
+      expect(service.isResizing()).toBe(true);
     });
 
     it('should store item ID and type', () => {
-      service.startElementResize(
-        'elem-1', 'element', 'se',
-        { width: 100, height: 80 },
-        { x: 50, y: 50 },
-        { x: 150, y: 130 }
-      );
+      service.startElementResize('elem-1', 'element', 'se', { width: 100, height: 80 }, { x: 50, y: 50 }, { x: 150, y: 130 });
       expect(service.resizingItemId()).toBe('elem-1');
       expect(service.resizingItemType()).toBe('element');
     });
 
     it('should store handle', () => {
-      service.startElementResize(
-        'elem-1', 'element', 'nw',
-        { width: 100, height: 80 },
-        { x: 50, y: 50 },
-        { x: 50, y: 50 }
-      );
+      service.startElementResize('elem-1', 'element', 'nw', { width: 100, height: 80 }, { x: 50, y: 50 }, { x: 50, y: 50 });
       expect(service.activeHandle()).toBe('nw');
     });
 
     it('should compute start bounds from size and position', () => {
-      service.startElementResize(
-        'elem-1', 'element', 'se',
-        { width: 100, height: 80 },
-        { x: 50, y: 50 },
-        { x: 150, y: 130 }
-      );
+      service.startElementResize('elem-1', 'element', 'se', { width: 100, height: 80 }, { x: 50, y: 50 }, { x: 150, y: 130 });
       expect(service.state().startBounds).toEqual({ x: 50, y: 50, width: 100, height: 80 });
     });
 
@@ -120,20 +100,12 @@ describe('DesignerResizeService', () => {
 
   describe('startPrimitiveResize', () => {
     it('should set isResizing to true', () => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'se',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 150, y: 130 }
-      );
-      expect(service.isResizing()).toBeTrue();
+      service.startPrimitiveResize('prim-1', 'primitive', 'se', { x: 50, y: 50, width: 100, height: 80 }, { x: 150, y: 130 });
+      expect(service.isResizing()).toBe(true);
     });
 
     it('should store bounds', () => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'se',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 150, y: 130 }
-      );
+      service.startPrimitiveResize('prim-1', 'primitive', 'se', { x: 50, y: 50, width: 100, height: 80 }, { x: 150, y: 130 });
       expect(service.state().startBounds).toEqual({ x: 50, y: 50, width: 100, height: 80 });
     });
 
@@ -143,16 +115,11 @@ describe('DesignerResizeService', () => {
         { id: 'child-2', type: 'symbol', startBounds: { x: 100, y: 60, width: 40, height: 40 } }
       ];
 
-      service.startPrimitiveResize(
-        'group-1', 'group', 'se',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 150, y: 130 },
-        childData
-      );
+      service.startPrimitiveResize('group-1', 'group', 'se', { x: 50, y: 50, width: 100, height: 80 }, { x: 150, y: 130 }, childData);
 
-      expect(service.state().groupChildData).toHaveSize(2);
+      expect(service.state().groupChildData).toHaveLength(2);
       expect(service.state().groupChildData![0].id).toBe('child-1');
-      expect(service.isResizingGroup()).toBeTrue();
+      expect(service.isResizingGroup()).toBe(true);
     });
   });
 
@@ -167,12 +134,7 @@ describe('DesignerResizeService', () => {
     });
 
     it('should return final state when resizing', () => {
-      service.startElementResize(
-        'elem-1', 'element', 'se',
-        { width: 100, height: 80 },
-        { x: 50, y: 50 },
-        { x: 150, y: 130 }
-      );
+      service.startElementResize('elem-1', 'element', 'se', { width: 100, height: 80 }, { x: 50, y: 50 }, { x: 150, y: 130 });
       const result = service.endResize();
 
       expect(result).not.toBeNull();
@@ -181,30 +143,20 @@ describe('DesignerResizeService', () => {
     });
 
     it('should reset state after ending', () => {
-      service.startElementResize(
-        'elem-1', 'element', 'se',
-        { width: 100, height: 80 },
-        { x: 50, y: 50 },
-        { x: 150, y: 130 }
-      );
+      service.startElementResize('elem-1', 'element', 'se', { width: 100, height: 80 }, { x: 50, y: 50 }, { x: 150, y: 130 });
       service.endResize();
 
-      expect(service.isResizing()).toBeFalse();
+      expect(service.isResizing()).toBe(false);
       expect(service.resizingItemId()).toBeNull();
     });
   });
 
   describe('cancelResize', () => {
     it('should reset state', () => {
-      service.startElementResize(
-        'elem-1', 'element', 'se',
-        { width: 100, height: 80 },
-        { x: 50, y: 50 },
-        { x: 150, y: 130 }
-      );
+      service.startElementResize('elem-1', 'element', 'se', { width: 100, height: 80 }, { x: 50, y: 50 }, { x: 150, y: 130 });
       service.cancelResize();
 
-      expect(service.isResizing()).toBeFalse();
+      expect(service.isResizing()).toBe(false);
       expect(service.resizingItemId()).toBeNull();
     });
   });
@@ -215,10 +167,7 @@ describe('DesignerResizeService', () => {
 
   describe('calculateResize - SE handle', () => {
     beforeEach(() => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'se',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 150, y: 130 } // Mouse at bottom-right corner
+      service.startPrimitiveResize('prim-1', 'primitive', 'se', { x: 50, y: 50, width: 100, height: 80 }, { x: 150, y: 130 } // Mouse at bottom-right corner
       );
     });
 
@@ -257,10 +206,10 @@ describe('DesignerResizeService', () => {
 
     it('should report hasChanged correctly', () => {
       const unchanged = service.calculateResize({ x: 150, y: 130 }, { snap: false });
-      expect(unchanged!.hasChanged).toBeFalse();
+      expect(unchanged!.hasChanged).toBe(false);
 
       const changed = service.calculateResize({ x: 200, y: 180 }, { snap: false });
-      expect(changed!.hasChanged).toBeTrue();
+      expect(changed!.hasChanged).toBe(true);
     });
   });
 
@@ -270,10 +219,7 @@ describe('DesignerResizeService', () => {
 
   describe('calculateResize - NW handle', () => {
     beforeEach(() => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'nw',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 50, y: 50 } // Mouse at top-left corner
+      service.startPrimitiveResize('prim-1', 'primitive', 'nw', { x: 50, y: 50, width: 100, height: 80 }, { x: 50, y: 50 } // Mouse at top-left corner
       );
     });
 
@@ -304,10 +250,7 @@ describe('DesignerResizeService', () => {
 
   describe('calculateResize - NE handle', () => {
     beforeEach(() => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'ne',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 150, y: 50 } // Mouse at top-right corner
+      service.startPrimitiveResize('prim-1', 'primitive', 'ne', { x: 50, y: 50, width: 100, height: 80 }, { x: 150, y: 50 } // Mouse at top-right corner
       );
     });
 
@@ -328,10 +271,7 @@ describe('DesignerResizeService', () => {
 
   describe('calculateResize - SW handle', () => {
     beforeEach(() => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'sw',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 50, y: 130 } // Mouse at bottom-left corner
+      service.startPrimitiveResize('prim-1', 'primitive', 'sw', { x: 50, y: 50, width: 100, height: 80 }, { x: 50, y: 130 } // Mouse at bottom-left corner
       );
     });
 
@@ -352,11 +292,7 @@ describe('DesignerResizeService', () => {
 
   describe('calculateResize - edge handles', () => {
     it('should resize only horizontally for E handle', () => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'e',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 150, y: 90 }
-      );
+      service.startPrimitiveResize('prim-1', 'primitive', 'e', { x: 50, y: 50, width: 100, height: 80 }, { x: 150, y: 90 });
 
       const result = service.calculateResize({ x: 200, y: 100 }, { snap: false });
 
@@ -367,11 +303,7 @@ describe('DesignerResizeService', () => {
     });
 
     it('should resize only horizontally for W handle', () => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'w',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 50, y: 90 }
-      );
+      service.startPrimitiveResize('prim-1', 'primitive', 'w', { x: 50, y: 50, width: 100, height: 80 }, { x: 50, y: 90 });
 
       const result = service.calculateResize({ x: 30, y: 90 }, { snap: false });
 
@@ -382,11 +314,7 @@ describe('DesignerResizeService', () => {
     });
 
     it('should resize only vertically for N handle', () => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'n',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 100, y: 50 }
-      );
+      service.startPrimitiveResize('prim-1', 'primitive', 'n', { x: 50, y: 50, width: 100, height: 80 }, { x: 100, y: 50 });
 
       const result = service.calculateResize({ x: 100, y: 20 }, { snap: false });
 
@@ -397,11 +325,7 @@ describe('DesignerResizeService', () => {
     });
 
     it('should resize only vertically for S handle', () => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 's',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 100, y: 130 }
-      );
+      service.startPrimitiveResize('prim-1', 'primitive', 's', { x: 50, y: 50, width: 100, height: 80 }, { x: 100, y: 130 });
 
       const result = service.calculateResize({ x: 100, y: 180 }, { snap: false });
 
@@ -421,11 +345,7 @@ describe('DesignerResizeService', () => {
       stateService.setSnapToGrid(true);
       stateService.setGridSize(20);
 
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'se',
-        { x: 40, y: 40, width: 100, height: 80 },
-        { x: 140, y: 120 }
-      );
+      service.startPrimitiveResize('prim-1', 'primitive', 'se', { x: 40, y: 40, width: 100, height: 80 }, { x: 140, y: 120 });
     });
 
     it('should snap bounds to grid when enabled', () => {
@@ -453,11 +373,7 @@ describe('DesignerResizeService', () => {
 
   describe('scale factors', () => {
     beforeEach(() => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'se',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 150, y: 130 }
-      );
+      service.startPrimitiveResize('prim-1', 'primitive', 'se', { x: 50, y: 50, width: 100, height: 80 }, { x: 150, y: 130 });
     });
 
     it('should calculate scale factors', () => {
@@ -493,12 +409,7 @@ describe('DesignerResizeService', () => {
         { id: 'child-2', type: 'symbol', startBounds: { x: 110, y: 70, width: 30, height: 20 } }
       ];
 
-      service.startPrimitiveResize(
-        'group-1', 'group', 'se',
-        { x: 50, y: 50, width: 100, height: 80 },
-        { x: 150, y: 130 },
-        childData
-      );
+      service.startPrimitiveResize('group-1', 'group', 'se', { x: 50, y: 50, width: 100, height: 80 }, { x: 150, y: 130 }, childData);
     });
 
     it('should return empty map when not resizing', () => {
@@ -554,25 +465,17 @@ describe('DesignerResizeService', () => {
 
   describe('isResizingItem', () => {
     it('should return false when not resizing', () => {
-      expect(service.isResizingItem('item-1')).toBeFalse();
+      expect(service.isResizingItem('item-1')).toBe(false);
     });
 
     it('should return true for the resized item', () => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'se',
-        { x: 0, y: 0, width: 100, height: 100 },
-        { x: 100, y: 100 }
-      );
-      expect(service.isResizingItem('prim-1')).toBeTrue();
+      service.startPrimitiveResize('prim-1', 'primitive', 'se', { x: 0, y: 0, width: 100, height: 100 }, { x: 100, y: 100 });
+      expect(service.isResizingItem('prim-1')).toBe(true);
     });
 
     it('should return false for different item', () => {
-      service.startPrimitiveResize(
-        'prim-1', 'primitive', 'se',
-        { x: 0, y: 0, width: 100, height: 100 },
-        { x: 100, y: 100 }
-      );
-      expect(service.isResizingItem('prim-2')).toBeFalse();
+      service.startPrimitiveResize('prim-1', 'primitive', 'se', { x: 0, y: 0, width: 100, height: 100 }, { x: 100, y: 100 });
+      expect(service.isResizingItem('prim-2')).toBe(false);
     });
   });
 
@@ -582,7 +485,7 @@ describe('DesignerResizeService', () => {
 
       for (const handle of horizontalHandles) {
         service.startPrimitiveResize('p', 'primitive', handle, { x: 0, y: 0, width: 100, height: 100 }, { x: 0, y: 0 });
-        expect(service.isHorizontalResize()).toBeTrue();
+        expect(service.isHorizontalResize()).toBe(true);
         service.endResize();
       }
     });
@@ -592,7 +495,7 @@ describe('DesignerResizeService', () => {
 
       for (const handle of verticalHandles) {
         service.startPrimitiveResize('p', 'primitive', handle, { x: 0, y: 0, width: 100, height: 100 }, { x: 0, y: 0 });
-        expect(service.isHorizontalResize()).toBeFalse();
+        expect(service.isHorizontalResize()).toBe(false);
         service.endResize();
       }
     });
@@ -604,7 +507,7 @@ describe('DesignerResizeService', () => {
 
       for (const handle of verticalHandles) {
         service.startPrimitiveResize('p', 'primitive', handle, { x: 0, y: 0, width: 100, height: 100 }, { x: 0, y: 0 });
-        expect(service.isVerticalResize()).toBeTrue();
+        expect(service.isVerticalResize()).toBe(true);
         service.endResize();
       }
     });
@@ -614,7 +517,7 @@ describe('DesignerResizeService', () => {
 
       for (const handle of horizontalHandles) {
         service.startPrimitiveResize('p', 'primitive', handle, { x: 0, y: 0, width: 100, height: 100 }, { x: 0, y: 0 });
-        expect(service.isVerticalResize()).toBeFalse();
+        expect(service.isVerticalResize()).toBe(false);
         service.endResize();
       }
     });

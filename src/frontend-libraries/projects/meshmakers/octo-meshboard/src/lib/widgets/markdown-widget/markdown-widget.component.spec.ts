@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MarkdownWidgetComponent } from './markdown-widget.component';
@@ -30,8 +31,8 @@ class MockWidgetNotConfiguredComponent {
 describe('MarkdownWidgetComponent', () => {
   let component: MarkdownWidgetComponent;
   let fixture: ComponentFixture<MarkdownWidgetComponent>;
-  let stateServiceSpy: jasmine.SpyObj<MeshBoardStateService>;
-  let variableServiceSpy: jasmine.SpyObj<MeshBoardVariableService>;
+  let stateServiceSpy: MockedObject<MeshBoardStateService>;
+  let variableServiceSpy: MockedObject<MeshBoardVariableService>;
 
   const createMockConfig = (overrides: Partial<MarkdownWidgetConfig> = {}): MarkdownWidgetConfig => ({
     id: 'markdown-1',
@@ -50,11 +51,15 @@ describe('MarkdownWidgetComponent', () => {
   });
 
   beforeEach(async () => {
-    stateServiceSpy = jasmine.createSpyObj('MeshBoardStateService', ['getVariables']);
-    variableServiceSpy = jasmine.createSpyObj('MeshBoardVariableService', ['resolveVariables']);
+    stateServiceSpy = {
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables')
+    } as unknown as MockedObject<MeshBoardStateService>;
+    variableServiceSpy = {
+      resolveVariables: vi.fn().mockName('MeshBoardVariableService.resolveVariables')
+    } as unknown as MockedObject<MeshBoardVariableService>;
 
-    stateServiceSpy.getVariables.and.returnValue([]);
-    variableServiceSpy.resolveVariables.and.callFake((text: string) => text);
+    stateServiceSpy.getVariables.mockReturnValue([]);
+    variableServiceSpy.resolveVariables.mockImplementation((text: string) => text);
 
     await TestBed.configureTestingModule({
       imports: [MarkdownWidgetComponent],
@@ -83,7 +88,7 @@ describe('MarkdownWidgetComponent', () => {
     });
 
     it('should have initial loading state as false', () => {
-      expect(component.isLoading()).toBeFalse();
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should have initial data as null', () => {
@@ -102,22 +107,22 @@ describe('MarkdownWidgetComponent', () => {
   describe('configuration', () => {
     it('should detect when widget is not configured (no content)', () => {
       component.config = createMockConfig({ content: '' });
-      expect(component.isNotConfigured()).toBeTrue();
+      expect(component.isNotConfigured()).toBe(true);
     });
 
     it('should detect when widget is not configured (whitespace only)', () => {
       component.config = createMockConfig({ content: '   ' });
-      expect(component.isNotConfigured()).toBeTrue();
+      expect(component.isNotConfigured()).toBe(true);
     });
 
     it('should detect when widget is not configured (undefined content)', () => {
       component.config = createMockConfig({ content: undefined as unknown as string });
-      expect(component.isNotConfigured()).toBeTrue();
+      expect(component.isNotConfigured()).toBe(true);
     });
 
     it('should detect when widget is configured', () => {
       component.config = createMockConfig({ content: '# Title' });
-      expect(component.isNotConfigured()).toBeFalse();
+      expect(component.isNotConfigured()).toBe(false);
     });
 
     it('should set data on init', () => {
@@ -213,8 +218,8 @@ describe('MarkdownWidgetComponent', () => {
       const variables: MeshBoardVariable[] = [
         { name: 'name', type: 'string', source: 'static', value: 'World' }
       ];
-      stateServiceSpy.getVariables.and.returnValue(variables);
-      variableServiceSpy.resolveVariables.and.returnValue('Hello World');
+      stateServiceSpy.getVariables.mockReturnValue(variables);
+      variableServiceSpy.resolveVariables.mockReturnValue('Hello World');
 
       component.config = createMockConfig({
         content: 'Hello $name',

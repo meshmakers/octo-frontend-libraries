@@ -50,7 +50,7 @@ Generated\ Files/
 TestResult.xml
 nunit-*.xml
 
-# Karma JUnit reporter
+# JUnit reporter output (Vitest)
 **/TESTS-junit.xml
 
 # Build Results of an ATL Project

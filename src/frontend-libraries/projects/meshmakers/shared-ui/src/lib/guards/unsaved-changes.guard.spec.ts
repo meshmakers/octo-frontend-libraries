@@ -1,3 +1,4 @@
+import type { Mock, MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { UnsavedChangesGuard } from './unsaved-changes.guard';
 import { ConfirmationService } from '../services/confirmation.service';
@@ -6,13 +7,13 @@ import { ButtonTypes, ConfirmationWindowResult } from '../models/confirmation';
 
 describe('UnsavedChangesGuard', () => {
   let guard: UnsavedChangesGuard;
-  let confirmationServiceMock: jasmine.SpyObj<ConfirmationService>;
+  let confirmationServiceMock: MockedObject<ConfirmationService>;
 
   beforeEach(() => {
-    confirmationServiceMock = jasmine.createSpyObj('ConfirmationService', [
-      'showYesNoConfirmationDialog',
-      'showYesNoCancelConfirmationDialog'
-    ]);
+    confirmationServiceMock = {
+      showYesNoConfirmationDialog: vi.fn().mockName('ConfirmationService.showYesNoConfirmationDialog'),
+      showYesNoCancelConfirmationDialog: vi.fn().mockName('ConfirmationService.showYesNoCancelConfirmationDialog')
+    } as unknown as MockedObject<ConfirmationService>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -31,12 +32,12 @@ describe('UnsavedChangesGuard', () => {
   describe('when component is null or undefined', () => {
     it('should allow navigation when component is null', async () => {
       const result = await guard.canDeactivate(null as unknown as HasUnsavedChanges);
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should allow navigation when component is undefined', async () => {
       const result = await guard.canDeactivate(undefined as unknown as HasUnsavedChanges);
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
   });
 
@@ -44,7 +45,7 @@ describe('UnsavedChangesGuard', () => {
     it('should allow navigation when hasUnsavedChanges is not a function', async () => {
       const component = {} as HasUnsavedChanges;
       const result = await guard.canDeactivate(component);
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
   });
 
@@ -55,7 +56,7 @@ describe('UnsavedChangesGuard', () => {
       };
 
       const result = await guard.canDeactivate(component);
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
       expect(confirmationServiceMock.showYesNoConfirmationDialog).not.toHaveBeenCalled();
       expect(confirmationServiceMock.showYesNoCancelConfirmationDialog).not.toHaveBeenCalled();
     });
@@ -63,10 +64,10 @@ describe('UnsavedChangesGuard', () => {
 
   describe('when component has unsaved changes and supports saving', () => {
     let component: HasUnsavedChanges;
-    let saveChangesSpy: jasmine.Spy;
+    let saveChangesSpy: Mock;
 
     beforeEach(() => {
-      saveChangesSpy = jasmine.createSpy('saveChanges');
+      saveChangesSpy = vi.fn().mockName('saveChanges');
       component = {
         hasUnsavedChanges: () => true,
         saveChanges: saveChangesSpy
@@ -74,65 +75,51 @@ describe('UnsavedChangesGuard', () => {
     });
 
     it('should save and allow navigation when user clicks Yes and save succeeds', async () => {
-      saveChangesSpy.and.returnValue(Promise.resolve(true));
-      confirmationServiceMock.showYesNoCancelConfirmationDialog.and.returnValue(
-        Promise.resolve(new ConfirmationWindowResult(ButtonTypes.Yes))
-      );
+      saveChangesSpy.mockResolvedValue(true);
+      confirmationServiceMock.showYesNoCancelConfirmationDialog.mockResolvedValue(new ConfirmationWindowResult(ButtonTypes.Yes));
 
       const result = await guard.canDeactivate(component);
 
-      expect(confirmationServiceMock.showYesNoCancelConfirmationDialog).toHaveBeenCalledWith(
-        'Unsaved Changes',
-        'You have unsaved changes. Do you want to save before leaving?',
-        undefined
-      );
+      expect(confirmationServiceMock.showYesNoCancelConfirmationDialog).toHaveBeenCalledWith('Unsaved Changes', 'You have unsaved changes. Do you want to save before leaving?', undefined);
       expect(saveChangesSpy).toHaveBeenCalled();
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should block navigation when user clicks Yes but save fails', async () => {
-      saveChangesSpy.and.returnValue(Promise.resolve(false));
-      confirmationServiceMock.showYesNoCancelConfirmationDialog.and.returnValue(
-        Promise.resolve(new ConfirmationWindowResult(ButtonTypes.Yes))
-      );
+      saveChangesSpy.mockResolvedValue(false);
+      confirmationServiceMock.showYesNoCancelConfirmationDialog.mockResolvedValue(new ConfirmationWindowResult(ButtonTypes.Yes));
 
       const result = await guard.canDeactivate(component);
 
       expect(saveChangesSpy).toHaveBeenCalled();
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
 
     it('should discard changes and allow navigation when user clicks No', async () => {
-      confirmationServiceMock.showYesNoCancelConfirmationDialog.and.returnValue(
-        Promise.resolve(new ConfirmationWindowResult(ButtonTypes.No))
-      );
+      confirmationServiceMock.showYesNoCancelConfirmationDialog.mockResolvedValue(new ConfirmationWindowResult(ButtonTypes.No));
 
       const result = await guard.canDeactivate(component);
 
       expect(saveChangesSpy).not.toHaveBeenCalled();
-      expect(result).toBeTrue();
+      expect(result).toBe(true);
     });
 
     it('should block navigation when user clicks Cancel', async () => {
-      confirmationServiceMock.showYesNoCancelConfirmationDialog.and.returnValue(
-        Promise.resolve(new ConfirmationWindowResult(ButtonTypes.Cancel))
-      );
+      confirmationServiceMock.showYesNoCancelConfirmationDialog.mockResolvedValue(new ConfirmationWindowResult(ButtonTypes.Cancel));
 
       const result = await guard.canDeactivate(component);
 
       expect(saveChangesSpy).not.toHaveBeenCalled();
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
 
     it('should block navigation when dialog is closed without selection', async () => {
-      confirmationServiceMock.showYesNoCancelConfirmationDialog.and.returnValue(
-        Promise.resolve(undefined)
-      );
+      confirmationServiceMock.showYesNoCancelConfirmationDialog.mockResolvedValue(undefined);
 
       const result = await guard.canDeactivate(component);
 
       expect(saveChangesSpy).not.toHaveBeenCalled();
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
   });
 
@@ -147,29 +134,20 @@ describe('UnsavedChangesGuard', () => {
     });
 
     it('should allow navigation when user confirms to leave', async () => {
-      confirmationServiceMock.showYesNoConfirmationDialog.and.returnValue(
-        Promise.resolve(true)
-      );
+      confirmationServiceMock.showYesNoConfirmationDialog.mockResolvedValue(true);
 
       const result = await guard.canDeactivate(component);
 
-      expect(confirmationServiceMock.showYesNoConfirmationDialog).toHaveBeenCalledWith(
-        'Unsaved Changes',
-        'You have unsaved changes. Are you sure you want to leave? Your changes will be lost.',
-        undefined,
-        undefined
-      );
-      expect(result).toBeTrue();
+      expect(confirmationServiceMock.showYesNoConfirmationDialog).toHaveBeenCalledWith('Unsaved Changes', 'You have unsaved changes. Are you sure you want to leave? Your changes will be lost.', undefined, undefined);
+      expect(result).toBe(true);
     });
 
     it('should block navigation when user declines to leave', async () => {
-      confirmationServiceMock.showYesNoConfirmationDialog.and.returnValue(
-        Promise.resolve(false)
-      );
+      confirmationServiceMock.showYesNoConfirmationDialog.mockResolvedValue(false);
 
       const result = await guard.canDeactivate(component);
 
-      expect(result).toBeFalse();
+      expect(result).toBe(false);
     });
   });
 });

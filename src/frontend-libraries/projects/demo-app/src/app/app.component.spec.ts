@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { Router, ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
@@ -8,34 +9,43 @@ import { AuthorizeService } from '@meshmakers/shared-auth';
 import { BrandingApplicationService, provideBrandingTesting } from '@meshmakers/octo-ui/branding';
 
 describe('AppComponent', () => {
-  let mockAppTitleService: jasmine.SpyObj<AppTitleService>;
-  let mockBreadCrumbService: jasmine.SpyObj<BreadCrumbService>;
-  let mockCommandService: jasmine.SpyObj<CommandService>;
-  let mockComponentMenuService: jasmine.SpyObj<ComponentMenuService>;
-  let mockRouter: jasmine.SpyObj<Router>;
-  let mockAuthorizeService: jasmine.SpyObj<AuthorizeService>;
+  let mockAppTitleService: MockedObject<AppTitleService>;
+  let mockBreadCrumbService: MockedObject<BreadCrumbService>;
+  let mockCommandService: MockedObject<CommandService>;
+  let mockComponentMenuService: MockedObject<ComponentMenuService>;
+  let mockRouter: MockedObject<Router>;
+  let mockAuthorizeService: MockedObject<AuthorizeService>;
 
   beforeEach(async () => {
-    mockAppTitleService = jasmine.createSpyObj('AppTitleService', ['setTitle'], {
+    mockAppTitleService = {
+      setTitle: vi.fn().mockName('AppTitleService.setTitle'),
       appTitle: of('Test App')
-    });
-    mockBreadCrumbService = jasmine.createSpyObj('BreadCrumbService', ['updateBreadcrumbLabels'], {
+    } as unknown as MockedObject<AppTitleService>;
+    mockBreadCrumbService = {
+      updateBreadcrumbLabels: vi.fn().mockName('BreadCrumbService.updateBreadcrumbLabels'),
       breadCrumbItems: of([])
-    });
-    mockCommandService = jasmine.createSpyObj('CommandService', ['setSelectedDrawerItem'], {
+    } as unknown as MockedObject<BreadCrumbService>;
+    mockCommandService = {
+      setSelectedDrawerItem: vi.fn().mockName('CommandService.setSelectedDrawerItem'),
       drawerItems: of([])
-    });
-    mockComponentMenuService = jasmine.createSpyObj('ComponentMenuService', ['setSelectedMenuItem'], {
+    } as unknown as MockedObject<CommandService>;
+    mockComponentMenuService = {
+      setSelectedMenuItem: vi.fn().mockName('ComponentMenuService.setSelectedMenuItem'),
       menuItems: of([])
-    });
-    mockRouter = jasmine.createSpyObj('Router', ['navigate'], {
+    } as unknown as MockedObject<ComponentMenuService>;
+    mockRouter = {
+      navigate: vi.fn().mockName('Router.navigate'),
       events: of()
-    });
-    mockAuthorizeService = jasmine.createSpyObj('AuthorizeService', [
-      'initialize', 'isAuthenticated', 'isInRole', 'login', 'logout', 'getUsername'
-    ], {
+    } as unknown as MockedObject<Router>;
+    mockAuthorizeService = {
+      initialize: vi.fn().mockName('AuthorizeService.initialize'),
+      isAuthenticated: vi.fn().mockName('AuthorizeService.isAuthenticated'),
+      isInRole: vi.fn().mockName('AuthorizeService.isInRole'),
+      login: vi.fn().mockName('AuthorizeService.login'),
+      logout: vi.fn().mockName('AuthorizeService.logout'),
+      getUsername: vi.fn().mockName('AuthorizeService.getUsername'),
       isAuthenticated$: of(false)
-    });
+    } as unknown as MockedObject<AuthorizeService>;
 
     const mockActivatedRoute = {
       firstChild: null,

@@ -1,21 +1,11 @@
-import '@angular/localize/init';
+import type { Mock } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { SimpleChange } from '@angular/core';
 import { PropertyGridComponent } from './property-grid.component';
-import {
-  PropertyGridItem,
-  AttributeValueTypeDto,
-  BinaryDownloadEvent
-} from '../models/property-grid.models';
-import {
-  fileIcon,
-  folderIcon,
-  calendarIcon,
-  checkboxCheckedIcon,
-  listUnorderedIcon
-} from '@progress/kendo-svg-icons';
+import { PropertyGridItem, AttributeValueTypeDto, BinaryDownloadEvent } from '../models/property-grid.models';
+import { fileIcon, folderIcon, calendarIcon, checkboxCheckedIcon, listUnorderedIcon } from '@progress/kendo-svg-icons';
 
 describe('PropertyGridComponent', () => {
   let component: PropertyGridComponent;
@@ -314,7 +304,7 @@ describe('PropertyGridComponent', () => {
     });
 
     it('should call updateFilteredData on onSearch', () => {
-      spyOn(component, 'updateFilteredData');
+      vi.spyOn(component, 'updateFilteredData').mockReturnValue(undefined);
       component.onSearch();
 
       expect(component.updateFilteredData).toHaveBeenCalled();
@@ -457,7 +447,7 @@ describe('PropertyGridComponent', () => {
     });
 
     it('should emit propertyChange event', () => {
-      spyOn(component.propertyChange, 'emit');
+      vi.spyOn(component.propertyChange, 'emit').mockReturnValue(undefined);
       const property = mockProperties[0];
 
       component.onPropertyChange(property, 'old', 'new');
@@ -498,14 +488,14 @@ describe('PropertyGridComponent', () => {
     });
 
     it('should emit saveRequested with updated data', () => {
-      spyOn(component.saveRequested, 'emit');
+      vi.spyOn(component.saveRequested, 'emit').mockReturnValue(undefined);
       const property = mockProperties[0];
 
       component.onPropertyChange(property, 'Test Entity', 'Updated Entity');
       component.saveChanges();
 
       expect(component.saveRequested.emit).toHaveBeenCalled();
-      const emittedData = (component.saveRequested.emit as jasmine.Spy).calls.mostRecent().args[0];
+      const emittedData = vi.mocked((component.saveRequested.emit as Mock)).mock.lastCall![0];
       expect(emittedData.find((p: PropertyGridItem) => p.id === '1')?.value).toBe('Updated Entity');
     });
 
@@ -524,18 +514,18 @@ describe('PropertyGridComponent', () => {
     });
 
     it('should not emit saveRequested when no pending changes', () => {
-      spyOn(component.saveRequested, 'emit');
+      vi.spyOn(component.saveRequested, 'emit').mockReturnValue(undefined);
       component.saveChanges();
 
       expect(component.saveRequested.emit).not.toHaveBeenCalled();
     });
 
     it('should preserve unchanged properties in emitted data', () => {
-      spyOn(component.saveRequested, 'emit');
+      vi.spyOn(component.saveRequested, 'emit').mockReturnValue(undefined);
       component.onPropertyChange(mockProperties[0], 'old', 'new');
       component.saveChanges();
 
-      const emittedData = (component.saveRequested.emit as jasmine.Spy).calls.mostRecent().args[0];
+      const emittedData = vi.mocked((component.saveRequested.emit as Mock)).mock.lastCall![0];
       expect(emittedData.length).toBe(mockProperties.length);
     });
   });
@@ -565,7 +555,7 @@ describe('PropertyGridComponent', () => {
     });
 
     it('should update filtered data', () => {
-      spyOn(component, 'updateFilteredData');
+      vi.spyOn(component, 'updateFilteredData').mockReturnValue(undefined);
       component.discardChanges();
 
       expect(component.updateFilteredData).toHaveBeenCalled();
@@ -578,7 +568,7 @@ describe('PropertyGridComponent', () => {
 
   describe('onBinaryDownload', () => {
     it('should emit binaryDownload event', () => {
-      spyOn(component.binaryDownload, 'emit');
+      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
       const event: BinaryDownloadEvent = {
         binaryId: 'binary-123',
         filename: 'document.pdf',
@@ -591,7 +581,7 @@ describe('PropertyGridComponent', () => {
     });
 
     it('should emit binaryDownload with minimal data', () => {
-      spyOn(component.binaryDownload, 'emit');
+      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
       const event: BinaryDownloadEvent = {
         binaryId: 'binary-456'
       };
@@ -602,7 +592,7 @@ describe('PropertyGridComponent', () => {
     });
 
     it('should include downloadUri when provided', () => {
-      spyOn(component.binaryDownload, 'emit');
+      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
       const event: BinaryDownloadEvent = {
         binaryId: 'binary-789',
         downloadUri: 'https://example.com/download/binary-789'

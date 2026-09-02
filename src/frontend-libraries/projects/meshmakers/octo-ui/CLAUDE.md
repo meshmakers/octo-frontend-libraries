@@ -11,7 +11,7 @@ The `@meshmakers/octo-ui` library provides reusable Angular UI components for Oc
 npm run build:octo-ui
 
 # Run tests
-npm test -- --project=@meshmakers/octo-ui --watch=false
+npm run test:octo-ui
 
 # Run lint
 npm run lint:octo-ui
@@ -923,10 +923,11 @@ Available icon patterns:
 
 ### Test Structure
 
-Tests use Jasmine with Angular TestBed. For Kendo Grid components, include `@angular/localize/init`:
+Tests run on Vitest with Angular TestBed. Do **not** import `@angular/localize/init` in a
+spec — the Kendo Grid i18n polyfill is loaded once by the `test-build` target's `polyfills`
+for every spec in the project:
 
 ```typescript
-import '@angular/localize/init';  // Required for Kendo Grid i18n
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 
 describe('MyComponent', () => {
@@ -937,7 +938,7 @@ describe('MyComponent', () => {
     await TestBed.configureTestingModule({
       imports: [MyComponent, ...KendoModules],
       providers: [
-        { provide: MyService, useValue: jasmine.createSpyObj('MyService', ['method']) }
+        { provide: MyService, useValue: { method: vi.fn() } }
       ],
       animationsEnabled: false  // Use TestBed option instead of NoopAnimationsModule
     }).compileComponents();
@@ -948,18 +949,22 @@ describe('MyComponent', () => {
 ### Dialog Service Test Pattern
 
 ```typescript
+import type { MockedObject } from 'vitest';
+
 describe('CkTypeSelectorDialogService', () => {
   let service: CkTypeSelectorDialogService;
-  let dialogServiceMock: jasmine.SpyObj<DialogService>;
+  let dialogServiceMock: MockedObject<DialogService>;
   let dialogClosedSubject: Subject<CkTypeSelectorDialogResult | undefined>;
 
   beforeEach(() => {
     dialogClosedSubject = new Subject();
-    dialogServiceMock = jasmine.createSpyObj('DialogService', ['open']);
-    dialogServiceMock.open.and.returnValue({
+    dialogServiceMock = {
+      open: vi.fn().mockName('open')
+    } as unknown as MockedObject<DialogService>;
+    dialogServiceMock.open.mockReturnValue({
       content: { instance: { data: null } },
       result: dialogClosedSubject.asObservable()
-    } as any);
+    } as unknown as DialogRef);
 
     // ... setup TestBed
   });
@@ -968,7 +973,7 @@ describe('CkTypeSelectorDialogService', () => {
     const promise = service.openCkTypeSelector({ ... });
     dialogClosedSubject.next({ selectedCkType: mockType });
     const result = await promise;
-    expect(result.confirmed).toBeTrue();
+    expect(result.confirmed).toBe(true);   // Vitest has no toBeTrue()
   });
 });
 ```
@@ -976,15 +981,14 @@ describe('CkTypeSelectorDialogService', () => {
 ### Running Tests
 
 ```bash
-# Run all octo-ui tests
-CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  npm test -- --project=@meshmakers/octo-ui --watch=false
+# Run all octo-ui tests (Vitest on jsdom, no browser needed)
+npm run test:octo-ui
+
+# Run a single spec (path relative to the workspace root)
+ng test @meshmakers/octo-ui --watch=false --include=projects/meshmakers/octo-ui/src/lib/ck-type-selector-dialog/ck-type-selector-dialog.service.spec.ts
 
 # Run with coverage
-npm test -- --project=@meshmakers/octo-ui --watch=false --code-coverage
-
-# CI mode
-ng test @meshmakers/octo-ui --no-watch --browsers=ChromeHeadless
+ng test @meshmakers/octo-ui --watch=false --coverage
 ```
 
 ---

@@ -46,16 +46,13 @@ describe('compact-layout', () => {
   describe('placeWidgetsForTier', () => {
     it('passes the persisted anchors through untouched in the native tier', () => {
       const placements = placeWidgetsForTier([widget('a', 3, 2, 2, 1)], 'none', 6);
-      expect(placements[0]).toEqual(jasmine.objectContaining({ col: 3, row: 2, colSpan: 2, rowSpan: 1 }));
+      expect(placements[0]).toEqual(expect.objectContaining({ col: 3, row: 2, colSpan: 2, rowSpan: 1 }));
     });
 
     it('drops anchors and sorts by reading order in compact tiers', () => {
-      const placements = placeWidgetsForTier(
-        [widget('bottom', 1, 2), widget('right', 4, 1), widget('left', 1, 1)],
-        'phone', 6
-      );
+      const placements = placeWidgetsForTier([widget('bottom', 1, 2), widget('right', 4, 1), widget('left', 1, 1)], 'phone', 6);
       expect(placements.map(p => p.widget.id)).toEqual(['left', 'right', 'bottom']);
-      expect(placements.every(p => p.col === undefined && p.row === undefined)).toBeTrue();
+      expect(placements.every(p => p.col === undefined && p.row === undefined)).toBe(true);
     });
 
     it('clamps colSpan to the tier column count and preserves rowSpan', () => {

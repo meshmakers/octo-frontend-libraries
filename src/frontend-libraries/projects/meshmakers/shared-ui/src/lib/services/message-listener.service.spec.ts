@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { MessageService, NotificationMessage } from '@meshmakers/shared-services';
@@ -7,8 +8,8 @@ import { NotificationDisplayService } from './notification-display.service';
 
 describe('MessageListenerService', () => {
   let service: MessageListenerService;
-  let messageServiceMock: jasmine.SpyObj<MessageService>;
-  let notificationDisplayMock: jasmine.SpyObj<NotificationDisplayService>;
+  let messageServiceMock: MockedObject<MessageService>;
+  let notificationDisplayMock: MockedObject<NotificationDisplayService>;
   let messagesSubject: Subject<NotificationMessage>;
 
   const createMessage = (level: 'error' | 'warning' | 'info' | 'success', message: string, details?: string): NotificationMessage => ({
@@ -21,16 +22,16 @@ describe('MessageListenerService', () => {
   beforeEach(() => {
     messagesSubject = new Subject<NotificationMessage>();
 
-    messageServiceMock = jasmine.createSpyObj('MessageService', [], {
+    messageServiceMock = {
       messages$: messagesSubject.asObservable()
-    });
+    } as unknown as MockedObject<MessageService>;
 
-    notificationDisplayMock = jasmine.createSpyObj('NotificationDisplayService', [
-      'showError',
-      'showWarning',
-      'showInfo',
-      'showSuccess'
-    ]);
+    notificationDisplayMock = {
+      showError: vi.fn().mockName('NotificationDisplayService.showError'),
+      showWarning: vi.fn().mockName('NotificationDisplayService.showWarning'),
+      showInfo: vi.fn().mockName('NotificationDisplayService.showInfo'),
+      showSuccess: vi.fn().mockName('NotificationDisplayService.showSuccess')
+    } as unknown as MockedObject<NotificationDisplayService>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -125,7 +126,7 @@ describe('MessageListenerService', () => {
 
   describe('ngOnDestroy', () => {
     it('should call stop on destroy', () => {
-      spyOn(service, 'stop');
+      vi.spyOn(service, 'stop').mockReturnValue(undefined);
 
       service.ngOnDestroy();
 

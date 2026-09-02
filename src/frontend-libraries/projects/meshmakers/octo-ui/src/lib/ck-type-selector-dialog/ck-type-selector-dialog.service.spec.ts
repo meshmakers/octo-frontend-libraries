@@ -1,5 +1,6 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { WindowStateService } from '@meshmakers/shared-ui';
+import { WindowStateService, WindowDimensions } from '@meshmakers/shared-ui';
 import { Observable, Subject } from 'rxjs';
 import { WindowService, WindowCloseResult, WindowRef } from '@progress/kendo-angular-dialog';
 import { CkTypeSelectorDialogService } from './ck-type-selector-dialog.service';
@@ -7,18 +8,18 @@ import { CkTypeSelectorDialogComponent, CkTypeSelectorDialogResult } from './ck-
 import { CkTypeSelectorItem } from '@meshmakers/octo-services';
 
 interface MockComponentInstance {
-  data?: {
-    selectedCkTypeId?: string;
-    ckModelIds?: string[];
-    dialogTitle?: string;
-    allowAbstract?: boolean;
-    derivedFromRtCkTypeId?: string;
-  };
+    data?: {
+        selectedCkTypeId?: string;
+        ckModelIds?: string[];
+        dialogTitle?: string;
+        allowAbstract?: boolean;
+        derivedFromRtCkTypeId?: string;
+    };
 }
 
 describe('CkTypeSelectorDialogService', () => {
   let service: CkTypeSelectorDialogService;
-  let windowServiceMock: jasmine.SpyObj<WindowService>;
+  let windowServiceMock: MockedObject<WindowService>;
   let dialogResultSubject: Subject<CkTypeSelectorDialogResult | WindowCloseResult | Record<string, unknown> | string | undefined>;
   let mockWindowRef: Partial<WindowRef>;
   let mockComponentInstance: MockComponentInstance;
@@ -41,7 +42,7 @@ describe('CkTypeSelectorDialogService', () => {
       content: {
         instance: mockComponentInstance
       } as unknown as WindowRef['content'],
-      close: jasmine.createSpy('close'),
+      close: vi.fn().mockName('close'),
       window: {
         location: {
           nativeElement: {
@@ -55,8 +56,10 @@ describe('CkTypeSelectorDialogService', () => {
       } as unknown as WindowRef['window']
     };
 
-    windowServiceMock = jasmine.createSpyObj('WindowService', ['open']);
-    windowServiceMock.open.and.returnValue(mockWindowRef as WindowRef);
+    windowServiceMock = {
+      open: vi.fn().mockName('WindowService.open')
+    } as unknown as MockedObject<WindowService>;
+    windowServiceMock.open.mockReturnValue(mockWindowRef as WindowRef);
 
     TestBed.configureTestingModule({
       providers: [
@@ -67,12 +70,10 @@ describe('CkTypeSelectorDialogService', () => {
 
     service = TestBed.inject(CkTypeSelectorDialogService);
     // Pin the viewport clamp in the shared-ui WindowStateService to a large
-    // screen — the karma browser window is small and would otherwise shrink
+    // screen — the jsdom window is small and would otherwise shrink
     // the dimensions these specs assert verbatim.
     const windowState = TestBed.inject(WindowStateService);
-    spyOn<never>(windowState as never, 'viewportSize' as never).and.returnValue(
-      { width: 1920, height: 1080 } as never,
-    );
+    vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });
   });
 
   it('should be created', () => {
@@ -88,16 +89,14 @@ describe('CkTypeSelectorDialogService', () => {
 
       await resultPromise;
 
-      expect(windowServiceMock.open).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          content: CkTypeSelectorDialogComponent,
-          width: 900,
-          height: 650,
-          minWidth: 750,
-          minHeight: 550,
-          title: 'Select Construction Kit Type'
-        })
-      );
+      expect(windowServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        content: CkTypeSelectorDialogComponent,
+        width: 900,
+        height: 650,
+        minWidth: 750,
+        minHeight: 550,
+        title: 'Select Construction Kit Type'
+      }));
     });
 
     it('should use custom dialog title when provided', async () => {
@@ -108,11 +107,9 @@ describe('CkTypeSelectorDialogService', () => {
 
       await resultPromise;
 
-      expect(windowServiceMock.open).toHaveBeenCalledWith(
-        jasmine.objectContaining({
-          title: 'Choose CK Type'
-        })
-      );
+      expect(windowServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Choose CK Type'
+      }));
     });
 
     it('should pass all options to dialog component', async () => {

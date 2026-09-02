@@ -49,7 +49,7 @@ describe('AiSessionListComponent', () => {
     expect(rows[2].textContent).toContain('Goal a');
   });
 
-  it('emits select with the rtId on row click', (done) => {
+  it('emits select with the rtId on row click', () => new Promise<void>((done) => {
     fixture.componentRef.setInput('sessions', [
       session('a', '2026-01-01T00:00:00Z'),
     ]);
@@ -63,5 +63,5 @@ describe('AiSessionListComponent', () => {
     fixture.nativeElement
       .querySelector('.mm-ai-session-list__button')
       .click();
-  });
+  }));
 });

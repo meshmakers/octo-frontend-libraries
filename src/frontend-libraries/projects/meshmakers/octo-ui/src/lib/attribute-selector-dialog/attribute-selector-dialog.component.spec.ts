@@ -1,21 +1,18 @@
-import '@angular/localize/init';
+import type { Mock, MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { of } from 'rxjs';
 import { WindowRef } from '@progress/kendo-angular-dialog';
 import { CellClickEvent } from '@progress/kendo-angular-grid';
-import {
-  AttributeSelectorDialogComponent,
-  AttributeSelectorDialogResult
-} from './attribute-selector-dialog.component';
+import { AttributeSelectorDialogComponent, AttributeSelectorDialogResult } from './attribute-selector-dialog.component';
 import { AttributeSelectorService, AttributeItem, AttributeValueTypeDto } from '@meshmakers/octo-services';
 
 describe('AttributeSelectorDialogComponent', () => {
   let component: AttributeSelectorDialogComponent;
   let fixture: ComponentFixture<AttributeSelectorDialogComponent>;
-  let attributeServiceMock: jasmine.SpyObj<AttributeSelectorService>;
-  let windowRefMock: jasmine.SpyObj<WindowRef>;
+  let attributeServiceMock: MockedObject<AttributeSelectorService>;
+  let windowRefMock: MockedObject<WindowRef>;
 
   const mockAttributes: AttributeItem[] = [
     { attributePath: 'name', attributeValueType: 'STRING', description: 'The name field' },
@@ -26,10 +23,14 @@ describe('AttributeSelectorDialogComponent', () => {
   ];
 
   beforeEach(async () => {
-    attributeServiceMock = jasmine.createSpyObj('AttributeSelectorService', ['getAvailableAttributes']);
-    attributeServiceMock.getAvailableAttributes.and.returnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
+    attributeServiceMock = {
+      getAvailableAttributes: vi.fn().mockName('AttributeSelectorService.getAvailableAttributes')
+    } as unknown as MockedObject<AttributeSelectorService>;
+    attributeServiceMock.getAvailableAttributes.mockReturnValue(of({ items: [...mockAttributes], totalCount: mockAttributes.length }));
 
-    windowRefMock = jasmine.createSpyObj('WindowRef', ['close']);
+    windowRefMock = {
+      close: vi.fn().mockName('WindowRef.close')
+    } as unknown as MockedObject<WindowRef>;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -296,14 +297,14 @@ describe('AttributeSelectorDialogComponent', () => {
       component.onConfirm();
 
       expect(windowRefMock.close).toHaveBeenCalled();
-      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSelectorDialogResult;
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSelectorDialogResult;
       expect(result.selectedAttributes.length).toBe(2);
     });
 
     it('should return empty array on confirm with no selection', () => {
       component.onConfirm();
 
-      const result = (windowRefMock.close as jasmine.Spy).calls.mostRecent().args[0] as AttributeSelectorDialogResult;
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as AttributeSelectorDialogResult;
       expect(result.selectedAttributes).toEqual([]);
     });
   });
@@ -320,7 +321,7 @@ describe('AttributeSelectorDialogComponent', () => {
     }));
 
     it('should debounce search calls', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.onSearchChange('test');
       tick(100);
@@ -334,7 +335,7 @@ describe('AttributeSelectorDialogComponent', () => {
     }));
 
     it('should not call service for duplicate search terms', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.onSearchChange('test');
       tick(300);
@@ -346,14 +347,12 @@ describe('AttributeSelectorDialogComponent', () => {
     }));
 
     it('should pass searchTerm to attribute service', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.onSearchChange('test');
       tick(300);
 
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, undefined, 'test', true, 1, undefined, false
-      );
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestType/Entity', undefined, undefined, undefined, undefined, 'test', true, 1, undefined, false);
     }));
   });
 
@@ -369,14 +368,12 @@ describe('AttributeSelectorDialogComponent', () => {
     }));
 
     it('should reload attributes when value type filter changes', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.selectedValueTypeFilter = AttributeValueTypeDto.StringDto;
       component.onValueTypeFilterChange(component.selectedValueTypeFilter);
 
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, 'STRING', undefined, true, 1, undefined, false
-      );
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestType/Entity', undefined, undefined, undefined, 'STRING', undefined, true, 1, undefined, false);
     }));
   });
 
@@ -408,14 +405,12 @@ describe('AttributeSelectorDialogComponent', () => {
     }));
 
     it('should reload attributes with includeNavigationProperties=false when toggled', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.includeNavigationProperties = false;
       component.onNavigationPropertiesChange();
 
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, false, undefined, undefined, false
-      );
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestType/Entity', undefined, undefined, undefined, undefined, undefined, false, undefined, undefined, false);
     }));
 
     it('should clear maxDepth when navigation properties is unchecked', fakeAsync(() => {
@@ -427,14 +422,12 @@ describe('AttributeSelectorDialogComponent', () => {
     }));
 
     it('should reload attributes when maxDepth changes', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.onMaxDepthChange(2);
 
       expect(component.maxDepth).toBe(2);
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, true, 2, undefined, false
-      );
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestType/Entity', undefined, undefined, undefined, undefined, undefined, true, 2, undefined, false);
     }));
 
     it('should set maxDepth to null when null is passed', fakeAsync(() => {
@@ -461,14 +454,12 @@ describe('AttributeSelectorDialogComponent', () => {
     });
 
     it('should reload attributes with includeManyNavigations=true when toggled', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.calls.reset();
+      attributeServiceMock.getAvailableAttributes.mockClear();
 
       component.includeManyNavigations = true;
       component.onIncludeManyNavigationsChange();
 
-      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith(
-        'TestType/Entity', undefined, undefined, undefined, undefined, undefined, true, 1, undefined, true
-      );
+      expect(attributeServiceMock.getAvailableAttributes).toHaveBeenCalledWith('TestType/Entity', undefined, undefined, undefined, undefined, undefined, true, 1, undefined, true);
     }));
 
     it('should clear includeManyNavigations when navigation properties are unchecked', () => {
@@ -511,7 +502,7 @@ describe('AttributeSelectorDialogComponent', () => {
     });
 
     it('should preserve stored selector paths when reopening the dialog', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.and.returnValue(of({
+      attributeServiceMock.getAvailableAttributes.mockReturnValue(of({
         items: [
           ...mockAttributes,
           { attributePath: 'containedSensors.temperatureSensor->currentValue', attributeValueType: 'DOUBLE' }
@@ -558,8 +549,8 @@ describe('AttributeSelectorDialogComponent', () => {
       // Second click (double-click)
       component.onAvailableCellClick(cellClickEvent);
 
-      expect(component.selectedAttributes).toContain(attribute);
-      expect(component.availableAttributes).not.toContain(attribute);
+      expect(component.selectedAttributes).toContainEqual(attribute);
+      expect(component.availableAttributes).not.toContainEqual(attribute);
     }));
 
     it('should move item on double-click in selected list', fakeAsync(() => {
@@ -574,8 +565,8 @@ describe('AttributeSelectorDialogComponent', () => {
       // Second click (double-click)
       component.onSelectedCellClick(cellClickEvent);
 
-      expect(component.availableAttributes).toContain(attribute);
-      expect(component.selectedAttributes).not.toContain(attribute);
+      expect(component.availableAttributes).toContainEqual(attribute);
+      expect(component.selectedAttributes).not.toContainEqual(attribute);
     }));
 
     it('should not move item on single click', fakeAsync(() => {
@@ -702,7 +693,7 @@ describe('AttributeSelectorDialogComponent', () => {
     }));
 
     it('should handle empty service response', fakeAsync(() => {
-      attributeServiceMock.getAvailableAttributes.and.returnValue(of({ items: [], totalCount: 0 }));
+      attributeServiceMock.getAvailableAttributes.mockReturnValue(of({ items: [], totalCount: 0 }));
 
       component.data = { rtCkTypeId: 'EmptyType' };
       component.ngOnInit();
@@ -787,7 +778,7 @@ describe('AttributeSelectorDialogComponent', () => {
       tick(300);
 
       // Simulate search returning only matching items
-      attributeServiceMock.getAvailableAttributes.and.returnValue(of({
+      attributeServiceMock.getAvailableAttributes.mockReturnValue(of({
         items: [{ attributePath: 'name', attributeValueType: 'STRING', description: 'The name field' }],
         totalCount: 1
       }));

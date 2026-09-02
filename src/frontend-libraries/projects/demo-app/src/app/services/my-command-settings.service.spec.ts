@@ -29,11 +29,15 @@ describe('MyCommandSettingsService', () => {
       }
     };
 
-    const mockTenantService = jasmine.createSpyObj('TenantService', ['isModelAvailable']);
-    mockTenantService.isModelAvailable.and.returnValue(Promise.resolve(true));
+    const mockTenantService = {
+      isModelAvailable: vi.fn().mockName('TenantService.isModelAvailable')
+    };
+    mockTenantService.isModelAvailable.mockResolvedValue(true);
 
-    const mockAuthorizeService = jasmine.createSpyObj('AuthorizeService', ['isInRole']);
-    mockAuthorizeService.isInRole.and.returnValue(false);
+    const mockAuthorizeService = {
+      isInRole: vi.fn().mockName('AuthorizeService.isInRole')
+    };
+    mockAuthorizeService.isInRole.mockReturnValue(false);
 
     TestBed.configureTestingModule({
       providers: [

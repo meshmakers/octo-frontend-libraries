@@ -1,17 +1,15 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterStateSnapshot } from '@angular/router';
-import {
-  AppTitleService,
-  OCTO_TITLE_TRANSLATOR,
-} from './app-title.service';
+import { AppTitleService, OCTO_TITLE_TRANSLATOR, } from './app-title.service';
 import { BrandingDataSource } from './branding-data-source.service';
 import { NEUTRAL_BRANDING_DEFAULTS } from '../branding.tokens';
 
 interface MutableRouteSnapshot {
-  data: Record<string, unknown>;
-  children: MutableRouteSnapshot[];
+    data: Record<string, unknown>;
+    children: MutableRouteSnapshot[];
 }
 
 function makeRouterState(...breadcrumbs: string[]): RouterStateSnapshot {
@@ -32,20 +30,22 @@ function makeRouterState(...breadcrumbs: string[]): RouterStateSnapshot {
 
 describe('AppTitleService', () => {
   function configure(opts?: {
-    appTitle?: string;
-    appName?: string;
-    translator?: (k: string) => string;
-  }): {
-    service: AppTitleService;
-    titleStub: jasmine.SpyObj<Title>;
-    brandingSignal: ReturnType<typeof signal<typeof NEUTRAL_BRANDING_DEFAULTS>>;
-  } {
+        appTitle?: string;
+        appName?: string;
+        translator?: (k: string) => string;
+    }): {
+        service: AppTitleService;
+        titleStub: MockedObject<Title>;
+        brandingSignal: ReturnType<typeof signal<typeof NEUTRAL_BRANDING_DEFAULTS>>;
+    } {
     const branding = signal({
       ...NEUTRAL_BRANDING_DEFAULTS,
       appTitle: opts?.appTitle ?? 'TabTitle',
       appName: opts?.appName ?? NEUTRAL_BRANDING_DEFAULTS.appName,
     });
-    const titleStub = jasmine.createSpyObj<Title>('Title', ['setTitle']);
+    const titleStub = {
+      setTitle: vi.fn().mockName('Title.setTitle')
+    } as unknown as MockedObject<Title>;
     TestBed.configureTestingModule({
       providers: [
         { provide: BrandingDataSource, useValue: { branding } },
@@ -94,7 +94,7 @@ describe('AppTitleService', () => {
   it('re-applies title when branding signal changes', () => {
     const { service, titleStub, brandingSignal } = configure();
     service.updateTitle(makeRouterState());
-    titleStub.setTitle.calls.reset();
+    titleStub.setTitle.mockClear();
     brandingSignal.set({ ...brandingSignal(), appTitle: 'NewTitle' });
     TestBed.flushEffects();
     expect(titleStub.setTitle).toHaveBeenCalledWith('NewTitle');

@@ -11,7 +11,7 @@ The `@meshmakers/octo-services` library provides Angular services for interactin
 npm run build:octo-services
 
 # Run tests
-npm test -- --project=@meshmakers/octo-services --watch=false
+npm run test:octo-services
 
 # Run lint
 npx ng lint @meshmakers/octo-services
@@ -695,14 +695,16 @@ The error link:
 
 ### Test Structure
 
-Tests use Jasmine with Angular TestBed:
+Tests run on Vitest with Angular TestBed (`vi.fn()` / `vi.spyOn`, `MockedObject<T>` for typed mocks):
 
 ```typescript
 // HTTP Service Test Pattern
+import type { Mock } from 'vitest';
+
 describe('AssetRepoService', () => {
   let service: AssetRepoService;
   let httpMock: HttpTestingController;
-  let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: jasmine.Spy };
+  let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: Mock };
 
   beforeEach(() => {
     mockConfigService = {
@@ -710,7 +712,7 @@ describe('AssetRepoService', () => {
         assetServices: 'https://api.example.com/',
         // ... other URLs
       } as AddInConfiguration,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync')
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync')
     };
 
     TestBed.configureTestingModule({
@@ -734,12 +736,20 @@ describe('AssetRepoService', () => {
 
 ```typescript
 // GraphQL Service Test Pattern
+import type { MockedObject } from 'vitest';
+
+type MockCkTypesResult = Apollo.QueryResult<GetCkTypesQueryDto>;
+
 describe('CkTypeSelectorService', () => {
   let service: CkTypeSelectorService;
-  let getCkTypesGQLMock: jasmine.SpyObj<GetCkTypesDtoGQL>;
+  let getCkTypesGQLMock: MockedObject<GetCkTypesDtoGQL>;
 
   beforeEach(() => {
-    getCkTypesGQLMock = jasmine.createSpyObj('GetCkTypesDtoGQL', ['fetch']);
+    // A bare object literal is a subset of the class, so cast it — never try to
+    // satisfy MockedObject<T> member by member (classes have private fields).
+    getCkTypesGQLMock = {
+      fetch: vi.fn().mockName('GetCkTypesDtoGQL.fetch')
+    } as unknown as MockedObject<GetCkTypesDtoGQL>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -751,26 +761,29 @@ describe('CkTypeSelectorService', () => {
     service = TestBed.inject(CkTypeSelectorService);
   });
 
-  it('should fetch types', (done) => {
-    getCkTypesGQLMock.fetch.and.returnValue(of(mockResponse as any));
+  // Done-callback tests are written as explicit Promises so Vitest waits for done().
+  it('should fetch types', () => new Promise<void>((done) => {
+    getCkTypesGQLMock.fetch.mockReturnValue(of(mockResponse as unknown as MockCkTypesResult));
 
     service.getCkTypes().subscribe(result => {
       expect(result.items.length).toBe(1);
       done();
     });
-  });
+  }));
 });
 ```
 
 ### Running Tests
 
 ```bash
-# Run all octo-services tests
-CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  npm test -- --project=@meshmakers/octo-services --watch=false --browsers=ChromeHeadless
+# Run all octo-services tests (Vitest on jsdom, no browser needed)
+npm run test:octo-services
+
+# Run a single spec (path relative to the workspace root)
+ng test @meshmakers/octo-services --watch=false --include=projects/meshmakers/octo-services/src/lib/services/ck-type-selector.service.spec.ts
 
 # Run with coverage
-npm test -- --project=@meshmakers/octo-services --watch=false --code-coverage
+ng test @meshmakers/octo-services --watch=false --coverage
 ```
 
 ---

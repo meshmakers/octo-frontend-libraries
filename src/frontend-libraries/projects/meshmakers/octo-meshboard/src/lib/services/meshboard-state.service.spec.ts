@@ -1,3 +1,4 @@
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { MeshBoardStateService } from './meshboard-state.service';
 import { MeshBoardPersistenceService, PersistedMeshBoard, PersistedWidget } from './meshboard-persistence.service';
@@ -73,29 +74,29 @@ function createMockConfig(overrides: Partial<MeshBoardConfig> = {}): MeshBoardCo
 
 describe('MeshBoardStateService', () => {
   let service: MeshBoardStateService;
-  let mockPersistenceService: jasmine.SpyObj<MeshBoardPersistenceService>;
-  let mockGridService: jasmine.SpyObj<MeshBoardGridService>;
-  let mockCkModelService: jasmine.SpyObj<CkModelService>;
+  let mockPersistenceService: MockedObject<MeshBoardPersistenceService>;
+  let mockGridService: MockedObject<MeshBoardGridService>;
+  let mockCkModelService: MockedObject<CkModelService>;
 
   beforeEach(() => {
-    mockPersistenceService = jasmine.createSpyObj('MeshBoardPersistenceService', [
-      'getMeshBoards',
-      'getMeshBoardWithWidgets',
-      'createMeshBoard',
-      'updateMeshBoard',
-      'deleteMeshBoard',
-      'renameMeshBoard',
-      'toMeshBoardConfig'
-    ]);
+    mockPersistenceService = {
+      getMeshBoards: vi.fn().mockName('MeshBoardPersistenceService.getMeshBoards'),
+      getMeshBoardWithWidgets: vi.fn().mockName('MeshBoardPersistenceService.getMeshBoardWithWidgets'),
+      createMeshBoard: vi.fn().mockName('MeshBoardPersistenceService.createMeshBoard'),
+      updateMeshBoard: vi.fn().mockName('MeshBoardPersistenceService.updateMeshBoard'),
+      deleteMeshBoard: vi.fn().mockName('MeshBoardPersistenceService.deleteMeshBoard'),
+      renameMeshBoard: vi.fn().mockName('MeshBoardPersistenceService.renameMeshBoard'),
+      toMeshBoardConfig: vi.fn().mockName('MeshBoardPersistenceService.toMeshBoardConfig')
+    } as unknown as MockedObject<MeshBoardPersistenceService>;
 
-    mockGridService = jasmine.createSpyObj('MeshBoardGridService', [
-      'resolveOverlaps'
-    ]);
-    mockGridService.resolveOverlaps.and.returnValue([]);
+    mockGridService = {
+      resolveOverlaps: vi.fn().mockName('MeshBoardGridService.resolveOverlaps')
+    } as unknown as MockedObject<MeshBoardGridService>;
+    mockGridService.resolveOverlaps.mockReturnValue([]);
 
-    mockCkModelService = jasmine.createSpyObj('CkModelService', [
-      'isModelAvailableWithMinVersion'
-    ]);
+    mockCkModelService = {
+      isModelAvailableWithMinVersion: vi.fn().mockName('CkModelService.isModelAvailableWithMinVersion')
+    } as unknown as MockedObject<CkModelService>;
 
     TestBed.configureTestingModule({
       providers: [
@@ -126,7 +127,7 @@ describe('MeshBoardStateService', () => {
     });
 
     it('should not be loading initially', () => {
-      expect(service.isLoading()).toBeFalse();
+      expect(service.isLoading()).toBe(false);
     });
 
     it('should have no persisted ID initially', () => {
@@ -554,17 +555,17 @@ describe('MeshBoardStateService', () => {
   describe('Time Filter Management', () => {
     describe('isTimeFilterEnabled', () => {
       it('should return false when no time filter', () => {
-        expect(service.isTimeFilterEnabled()).toBeFalse();
+        expect(service.isTimeFilterEnabled()).toBe(false);
       });
 
       it('should return false when time filter disabled', () => {
         service.updateTimeFilterConfig({ enabled: false });
-        expect(service.isTimeFilterEnabled()).toBeFalse();
+        expect(service.isTimeFilterEnabled()).toBe(false);
       });
 
       it('should return true when time filter enabled', () => {
         service.updateTimeFilterConfig({ enabled: true });
-        expect(service.isTimeFilterEnabled()).toBeTrue();
+        expect(service.isTimeFilterEnabled()).toBe(true);
       });
     });
 
@@ -577,7 +578,7 @@ describe('MeshBoardStateService', () => {
         service.updateTimeFilterConfig({ enabled: true });
 
         const config = service.getTimeFilterConfig();
-        expect(config?.enabled).toBeTrue();
+        expect(config?.enabled).toBe(true);
       });
     });
 
@@ -620,8 +621,8 @@ describe('MeshBoardStateService', () => {
 
         const range = service.resolveCurrentTimeRange();
         expect(range).not.toBeNull();
-        expect(range?.from).toEqual(jasmine.any(Date));
-        expect(range?.to).toEqual(jasmine.any(Date));
+        expect(range?.from).toEqual(expect.any(Date));
+        expect(range?.to).toEqual(expect.any(Date));
         // Range covers at least 364 days (DST edges allow for slight variance) —
         // the picker resolves civil-calendar boundaries in the local zone.
         const spanDays = (range!.to.getTime() - range!.from.getTime()) / (1000 * 60 * 60 * 24);
@@ -640,8 +641,8 @@ describe('MeshBoardStateService', () => {
 
         const range = service.resolveCurrentTimeRange();
         expect(range).not.toBeNull();
-        expect(range?.from).toEqual(jasmine.any(Date));
-        expect(range?.to).toEqual(jasmine.any(Date));
+        expect(range?.from).toEqual(expect.any(Date));
+        expect(range?.to).toEqual(expect.any(Date));
       });
     });
 
@@ -658,8 +659,8 @@ describe('MeshBoardStateService', () => {
 
         const args = service.resolveStreamDataTimeArgs();
         expect(args).toBeDefined();
-        expect(args?.from).toEqual(jasmine.any(Date));
-        expect(args?.to).toEqual(jasmine.any(Date));
+        expect(args?.from).toEqual(expect.any(Date));
+        expect(args?.to).toEqual(expect.any(Date));
       });
 
       it('should return undefined when the widget opts out via ignoreTimeFilter', () => {
@@ -776,14 +777,10 @@ describe('MeshBoardStateService', () => {
 
     describe('updateTimeFilterSelection', () => {
       it('should update selection and set variables', () => {
-        service.updateTimeFilterSelection(
-          { type: 'year', year: 2024 },
-          '2024-01-01T00:00:00Z',
-          '2024-12-31T23:59:59Z'
-        );
+        service.updateTimeFilterSelection({ type: 'year', year: 2024 }, '2024-01-01T00:00:00Z', '2024-12-31T23:59:59Z');
 
         const config = service.getTimeFilterConfig();
-        expect(config?.enabled).toBeTrue();
+        expect(config?.enabled).toBe(true);
         expect(config?.selection?.type).toBe('year');
         expect(config?.selection?.year).toBe(2024);
 
@@ -810,53 +807,45 @@ describe('MeshBoardStateService', () => {
   describe('Async Operations', () => {
     describe('loadInitialMeshBoard', () => {
       it('should set isLoading during load', async () => {
-        mockCkModelService.isModelAvailableWithMinVersion.and.returnValue(
-          Promise.resolve(true)
-        );
-        mockPersistenceService.getMeshBoards.and.returnValue(Promise.resolve([]));
+        mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(true);
+        mockPersistenceService.getMeshBoards.mockResolvedValue([]);
 
         const loadPromise = service.loadInitialMeshBoard();
 
         // Note: Due to async nature, we verify the final state
         await loadPromise;
 
-        expect(service.isLoading()).toBeFalse();
+        expect(service.isLoading()).toBe(false);
       });
 
       it('should return empty array when model not available', async () => {
-        mockCkModelService.isModelAvailableWithMinVersion.and.returnValue(
-          Promise.resolve(false)
-        );
+        mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(false);
 
         const result = await service.loadInitialMeshBoard();
 
         expect(result).toEqual([]);
-        expect(service.isModelAvailable()).toBeFalse();
+        expect(service.isModelAvailable()).toBe(false);
       });
 
       it('should set model availability', async () => {
-        mockCkModelService.isModelAvailableWithMinVersion.and.returnValue(
-          Promise.resolve(true)
-        );
-        mockPersistenceService.getMeshBoards.and.returnValue(Promise.resolve([]));
+        mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(true);
+        mockPersistenceService.getMeshBoards.mockResolvedValue([]);
 
         await service.loadInitialMeshBoard();
 
-        expect(service.isModelAvailable()).toBeTrue();
+        expect(service.isModelAvailable()).toBe(true);
       });
 
       it('should load available meshboards', async () => {
-        mockCkModelService.isModelAvailableWithMinVersion.and.returnValue(
-          Promise.resolve(true)
-        );
-        mockPersistenceService.getMeshBoards.and.returnValue(Promise.resolve([
+        mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(true);
+        mockPersistenceService.getMeshBoards.mockResolvedValue([
           createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' })
-        ]));
-        mockPersistenceService.getMeshBoardWithWidgets.and.returnValue(Promise.resolve({
+        ]);
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
           meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
           widgets: []
-        }));
-        mockPersistenceService.toMeshBoardConfig.and.returnValue(createMockConfig());
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
 
         await service.loadInitialMeshBoard();
 
@@ -864,26 +853,22 @@ describe('MeshBoardStateService', () => {
       });
 
       it('should handle errors gracefully', async () => {
-        mockCkModelService.isModelAvailableWithMinVersion.and.returnValue(
-          Promise.reject(new Error('Network error'))
-        );
+        mockCkModelService.isModelAvailableWithMinVersion.mockRejectedValue(new Error('Network error'));
 
         const result = await service.loadInitialMeshBoard();
 
         expect(result).toEqual([]);
-        expect(service.isLoading()).toBeFalse();
+        expect(service.isLoading()).toBe(false);
       });
     });
 
     describe('switchToMeshBoard', () => {
       it('should resolve overlaps when switching', async () => {
-        mockPersistenceService.getMeshBoardWithWidgets.and.returnValue(Promise.resolve({
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
           meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
           widgets: [createMockPersistedWidget('w1')]
-        }));
-        mockPersistenceService.toMeshBoardConfig.and.returnValue(
-          createMockConfig({ widgets: [createMockWidget('w1')] })
-        );
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig({ widgets: [createMockWidget('w1')] }));
 
         await service.switchToMeshBoard('board1');
 
@@ -891,11 +876,11 @@ describe('MeshBoardStateService', () => {
       });
 
       it('should update persisted ID', async () => {
-        mockPersistenceService.getMeshBoardWithWidgets.and.returnValue(Promise.resolve({
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
           meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
           widgets: []
-        }));
-        mockPersistenceService.toMeshBoardConfig.and.returnValue(createMockConfig());
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
 
         await service.switchToMeshBoard('board1');
 
@@ -904,7 +889,7 @@ describe('MeshBoardStateService', () => {
 
       it('should return current widgets when board not found', async () => {
         service.addWidget(createMockWidget('existing'));
-        mockPersistenceService.getMeshBoardWithWidgets.and.returnValue(Promise.resolve(null));
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue(null);
 
         const result = await service.switchToMeshBoard('nonexistent');
 
@@ -915,17 +900,15 @@ describe('MeshBoardStateService', () => {
 
     describe('createNewMeshBoard', () => {
       it('should create and switch to new board', async () => {
-        mockPersistenceService.createMeshBoard.and.returnValue(Promise.resolve('new-board-id'));
-        mockPersistenceService.getMeshBoards.and.returnValue(Promise.resolve([
+        mockPersistenceService.createMeshBoard.mockResolvedValue('new-board-id');
+        mockPersistenceService.getMeshBoards.mockResolvedValue([
           createMockPersistedMeshBoard({ rtId: 'new-board-id', name: 'New Board' })
-        ]));
-        mockPersistenceService.getMeshBoardWithWidgets.and.returnValue(Promise.resolve({
+        ]);
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
           meshBoard: createMockPersistedMeshBoard({ rtId: 'new-board-id', name: 'New Board' }),
           widgets: []
-        }));
-        mockPersistenceService.toMeshBoardConfig.and.returnValue(
-          createMockConfig({ id: 'new-board-id', name: 'New Board' })
-        );
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig({ id: 'new-board-id', name: 'New Board' }));
 
         const rtId = await service.createNewMeshBoard('New Board', 'Description');
 
@@ -936,11 +919,11 @@ describe('MeshBoardStateService', () => {
 
     describe('deleteMeshBoard', () => {
       beforeEach(() => {
-        mockPersistenceService.deleteMeshBoard.and.returnValue(Promise.resolve());
+        mockPersistenceService.deleteMeshBoard.mockResolvedValue();
       });
 
       it('should delete and refresh list', async () => {
-        mockPersistenceService.getMeshBoards.and.returnValue(Promise.resolve([]));
+        mockPersistenceService.getMeshBoards.mockResolvedValue([]);
 
         await service.deleteMeshBoard('board-to-delete');
 
@@ -950,17 +933,15 @@ describe('MeshBoardStateService', () => {
 
       it('should reset state when deleting current board and no others exist', async () => {
         // Set up current board
-        mockPersistenceService.getMeshBoardWithWidgets.and.returnValue(Promise.resolve({
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
           meshBoard: createMockPersistedMeshBoard({ rtId: 'current-board', name: 'Current' }),
           widgets: []
-        }));
-        mockPersistenceService.toMeshBoardConfig.and.returnValue(
-          createMockConfig({ id: 'current-board' })
-        );
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig({ id: 'current-board' }));
         await service.switchToMeshBoard('current-board');
 
         // Delete with no remaining boards
-        mockPersistenceService.getMeshBoards.and.returnValue(Promise.resolve([]));
+        mockPersistenceService.getMeshBoards.mockResolvedValue([]);
 
         await service.deleteMeshBoard('current-board');
 

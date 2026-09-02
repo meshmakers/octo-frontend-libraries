@@ -1,8 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  ApolloTestingController,
-  ApolloTestingModule,
-} from 'apollo-angular/testing';
+import { ApolloTestingController, ApolloTestingModule, } from 'apollo-angular/testing';
 import { MappingCoverageConfigService } from './mapping-coverage-config.service';
 
 describe('MappingCoverageConfigService', () => {
@@ -21,9 +18,10 @@ describe('MappingCoverageConfigService', () => {
     },
   });
 
-  const configResponse = (
-    items: { rtId: string; sourceCandidateCkTypeIds: (string | null)[] }[],
-  ) => ({
+  const configResponse = (items: {
+        rtId: string;
+        sourceCandidateCkTypeIds: (string | null)[];
+    }[]) => ({
     data: {
       runtime: {
         systemUIMappingCoverageConfiguration: { items },
@@ -31,20 +29,19 @@ describe('MappingCoverageConfigService', () => {
     },
   });
 
-  // Waits up to a few microtasks for the named operation to be issued, then flushes it.
-  async function flushOp(
-    operationName: string,
-    response: { data: Record<string, unknown> },
-  ): Promise<void> {
+  // Waits up to a few macrotask turns for the named operation to be issued, then flushes it.
+  // A microtask yield is not enough: Apollo's testing backend delivers the previous
+  // flush across a timer, so the follow-up query is only issued after the task queue drains.
+  async function flushOp(operationName: string, response: {
+        data: Record<string, unknown>;
+    }): Promise<void> {
     for (let i = 0; i < 10; i++) {
-      const matches = controller.match(
-        (op) => op.operationName === operationName,
-      );
+      const matches = controller.match((op) => op.operationName === operationName);
       if (matches.length > 0) {
         matches[0].flush(response);
         return;
       }
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
     }
     throw new Error(`operation not issued: ${operationName}`);
   }
@@ -67,29 +64,24 @@ describe('MappingCoverageConfigService', () => {
     await flushOp('mappingCoverageConfigTypeExists', typeExistsResponse(false));
     const config = await promise;
 
-    expect(config.typePresent).toBeFalse();
+    expect(config.typePresent).toBe(false);
     expect(config.rtId).toBeNull();
     expect(config.sourceCandidateCkTypeIds).toEqual([]);
-    controller.expectNone(
-      (op) => op.operationName === 'getMappingCoverageConfiguration',
-    );
+    controller.expectNone((op) => op.operationName === 'getMappingCoverageConfiguration');
   });
 
   it('loads the singleton with its source CK types, dropping empty entries', async () => {
     const promise = service.loadConfig();
     await flushOp('mappingCoverageConfigTypeExists', typeExistsResponse(true));
-    await flushOp(
-      'getMappingCoverageConfiguration',
-      configResponse([
-        {
-          rtId: 'cfg-1',
-          sourceCandidateCkTypeIds: ['Loxone/Control', null, '', 'MQTT/Topic'],
-        },
-      ]),
-    );
+    await flushOp('getMappingCoverageConfiguration', configResponse([
+      {
+        rtId: 'cfg-1',
+        sourceCandidateCkTypeIds: ['Loxone/Control', null, '', 'MQTT/Topic'],
+      },
+    ]));
     const config = await promise;
 
-    expect(config.typePresent).toBeTrue();
+    expect(config.typePresent).toBe(true);
     expect(config.rtId).toBe('cfg-1');
     expect(config.sourceCandidateCkTypeIds).toEqual([
       'Loxone/Control',
@@ -103,7 +95,7 @@ describe('MappingCoverageConfigService', () => {
     await flushOp('getMappingCoverageConfiguration', configResponse([]));
     const config = await promise;
 
-    expect(config.typePresent).toBeTrue();
+    expect(config.typePresent).toBe(true);
     expect(config.rtId).toBeNull();
     expect(config.sourceCandidateCkTypeIds).toEqual([]);
   });
@@ -122,9 +114,7 @@ describe('MappingCoverageConfigService', () => {
     const rtId = await promise;
 
     expect(rtId).toBe('cfg-new');
-    const ops = controller.match(
-      (op) => op.operationName === 'createMappingCoverageConfiguration',
-    );
+    const ops = controller.match((op) => op.operationName === 'createMappingCoverageConfiguration');
     expect(ops.length).toBe(0); // already flushed above
   });
 
@@ -132,9 +122,7 @@ describe('MappingCoverageConfigService', () => {
     const promise = service.saveConfig('cfg-1', ['Loxone/Control', '']);
     let capturedVariables: Record<string, unknown> | undefined;
     for (let i = 0; i < 10; i++) {
-      const matches = controller.match(
-        (op) => op.operationName === 'updateMappingCoverageConfiguration',
-      );
+      const matches = controller.match((op) => op.operationName === 'updateMappingCoverageConfiguration');
       if (matches.length > 0) {
         capturedVariables = matches[0].operation.variables;
         matches[0].flush({
@@ -148,7 +136,7 @@ describe('MappingCoverageConfigService', () => {
         });
         break;
       }
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
     }
     const rtId = await promise;
 
