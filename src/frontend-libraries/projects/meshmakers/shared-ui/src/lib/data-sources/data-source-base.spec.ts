@@ -28,12 +28,12 @@ describe('DataSourceBase', () => {
   });
 
   describe('isLoading$', () => {
-    it('should initially be false', (done) => {
+    it('should initially be false', () => new Promise<void>((done) => {
       dataSource.isLoading$.subscribe(loading => {
         expect(loading).toBeFalse();
         done();
       });
-    });
+    }));
 
     it('should be an observable', () => {
       expect(dataSource.isLoading$).toBeInstanceOf(Observable);
@@ -47,16 +47,16 @@ describe('DataSourceBase', () => {
   });
 
   describe('setLoading', () => {
-    it('should set loading to true', (done) => {
+    it('should set loading to true', () => new Promise<void>((done) => {
       dataSource.setLoading(true);
 
       dataSource.isLoading$.subscribe(loading => {
         expect(loading).toBeTrue();
         done();
       });
-    });
+    }));
 
-    it('should set loading to false', (done) => {
+    it('should set loading to false', () => new Promise<void>((done) => {
       dataSource.setLoading(true);
       dataSource.setLoading(false);
 
@@ -64,7 +64,7 @@ describe('DataSourceBase', () => {
         expect(loading).toBeFalse();
         done();
       });
-    });
+    }));
 
     it('should update isLoading getter', () => {
       dataSource.setLoading(true);
@@ -93,23 +93,23 @@ describe('DataSourceBase', () => {
   });
 
   describe('fetchAgain', () => {
-    it('should emit fetchAgainEvent', (done) => {
+    it('should emit fetchAgainEvent', () => new Promise<void>((done) => {
       dataSource.fetchAgainEvent.subscribe(() => {
         expect(true).toBeTrue();
         done();
       });
 
       dataSource.fetchAgain();
-    });
+    }));
 
-    it('should pass the options through to the event', (done) => {
+    it('should pass the options through to the event', () => new Promise<void>((done) => {
       dataSource.fetchAgainEvent.subscribe((options) => {
         expect(options).toEqual({ resetSkip: true });
         done();
       });
 
       dataSource.fetchAgain({ resetSkip: true });
-    });
+    }));
   });
 
   describe('isPageOutOfRangeError', () => {
