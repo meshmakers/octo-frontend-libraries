@@ -38,7 +38,7 @@
     "test:octo-process-diagrams": "ng test @meshmakers/octo-process-diagrams --watch=false --browsers=ChromeHeadlessCI",
     "test:octo-meshboard": "ng test @meshmakers/octo-meshboard --watch=false --browsers=ChromeHeadlessCI",
     "test:octo-ui": "ng test @meshmakers/octo-ui --watch=false --browsers=ChromeHeadlessCI",
-    "test:octo-ai-console": "ng test @meshmakers/octo-ai-console --watch=false --browsers=ChromeHeadlessCI",
+    "test:octo-ai-console": "ng test @meshmakers/octo-ai-console --watch=false",
     "test:demo-app": "ng test demo-app --watch=false --browsers=ChromeHeadlessCI",
     "test:legacy-demo-app": "ng test legacy-demo-app --watch=false --browsers=ChromeHeadlessCI",
     "codegen": "cross-env NODE_OPTIONS=\"--max-old-space-size=16384\" graphql-codegen --config codegen.yml",
