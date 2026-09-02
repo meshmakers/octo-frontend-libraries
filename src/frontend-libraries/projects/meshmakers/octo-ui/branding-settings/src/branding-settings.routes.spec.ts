@@ -10,8 +10,9 @@ describe('BRANDING_ROUTES', () => {
     it('loadComponent resolves to SettingsPageComponent', async () => {
         const ctor = await BRANDING_ROUTES[0].loadComponent!();
         expect(ctor).toBeDefined();
-        expect((ctor as {
-            name: string;
-        }).name).toBe('SettingsPageComponent');
+        // Identity, not `.name`: the bundler renames the class expression to avoid a symbol
+        // collision, so `.name` reports whatever suffix it picked rather than the source name.
+        const { SettingsPageComponent } = await import('./settings-page.component');
+        expect(ctor).toBe(SettingsPageComponent);
     });
 });
