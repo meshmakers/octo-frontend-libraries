@@ -28,8 +28,8 @@ describe('DesignerCoordinateService', () => {
         // jsdom does not implement DOMMatrix, so the identity matrix is supplied as a
         // structural stub. The service only calls inverse() on the CTM and passes it to
         // matrixTransform, which is mocked below, so this behaves exactly like the real
-        // `new DOMMatrix([1, 0, 0, 1, 0, 0])` did under Karma (the identity matrix is its
-        // own inverse).
+        // `new DOMMatrix([1, 0, 0, 1, 0, 0])` did in the previous browser runner
+        // (the identity matrix is its own inverse).
         mockCtm = {
             a: 1,
             b: 0,

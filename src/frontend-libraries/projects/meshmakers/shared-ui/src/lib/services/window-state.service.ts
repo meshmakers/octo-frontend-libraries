@@ -65,7 +65,7 @@ export class WindowStateService {
     };
   }
 
-  /** Seam for tests — window.innerWidth/innerHeight are not assignable in Karma. */
+  /** Seam for tests — window.innerWidth/innerHeight are not assignable in jsdom. */
   protected viewportSize(): WindowDimensions {
     return { width: window.innerWidth, height: window.innerHeight };
   }

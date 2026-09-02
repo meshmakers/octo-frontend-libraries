@@ -10,7 +10,7 @@ import { Injectable, OnDestroy } from '@angular/core';
  *
  * The service has no Angular signal or component dependency — it's a thin
  * stateful wrapper around `setInterval`, which lets it be unit-tested with
- * `jasmine.clock()` without standing up a TestBed.
+ * `vi.useFakeTimers()` without standing up a TestBed.
  *
  * Provide at the component level (`providers: [AutoRefreshTimerService]`) so
  * each MeshBoard view gets its own timer instance; `ngOnDestroy` clears the

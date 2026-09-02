@@ -494,7 +494,7 @@ describe('MmHttpErrorInterceptor', () => {
         });
 
         it('recognises an HttpErrorResponse structurally, not by class identity', () => {
-            // The Studio's Karma run compiles this library from source with a second @angular/common
+            // The Studio's Vitest run compiles this library from source with a second @angular/common
             // instance; instanceof would be false there while the object is a real HttpErrorResponse.
             const foreignInstance = Object.assign(Object.create(null), {
                 name: 'HttpErrorResponse', status: 409, error: { message: 'refused' }, url: '/api/data'

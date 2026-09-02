@@ -6,9 +6,8 @@ import { BrandingDataSource } from '../services/branding-data-source.service';
 /**
  * Framework-agnostic stub matching the runtime shape of `BrandingDataSource`.
  * The async methods are plain functions; consumers wrap them in their own
- * spy primitive (`jasmine.createSpy`, `jest.fn`, `vi.fn`) when they need
- * call assertions. Casting `branding` back to `WritableSignal` lets specs
- * drive state changes.
+ * spy primitive (`vi.fn()`) when they need call assertions. Casting
+ * `branding` back to `WritableSignal` lets specs drive state changes.
  */
 export interface BrandingDataSourceStub {
   branding: WritableSignal<BrandingData>;

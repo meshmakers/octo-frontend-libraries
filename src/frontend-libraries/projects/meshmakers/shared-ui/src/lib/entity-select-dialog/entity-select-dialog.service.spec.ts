@@ -55,7 +55,7 @@ describe('EntitySelectDialogService', () => {
         });
         service = TestBed.inject(EntitySelectDialogService);
         // Pin the viewport clamp in WindowStateService to a large screen — the
-        // karma browser window is small and would otherwise shrink the widths
+        // jsdom window is small and would otherwise shrink the widths
         // these specs assert verbatim.
         const windowState = TestBed.inject(WindowStateService);
         vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });

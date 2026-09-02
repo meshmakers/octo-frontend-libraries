@@ -42,7 +42,7 @@ describe('MessageDetailsDialogService', () => {
         });
         service = TestBed.inject(MessageDetailsDialogService);
         // Pin the viewport clamp in WindowStateService to a large screen — the
-        // karma browser window is small and would otherwise shrink the dimensions
+        // jsdom window is small and would otherwise shrink the dimensions
         // this spec asserts verbatim.
         const windowState = TestBed.inject(WindowStateService);
         vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });

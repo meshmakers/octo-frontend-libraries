@@ -69,7 +69,7 @@ describe('AttributeSortSelectorDialogService', () => {
 
         service = TestBed.inject(AttributeSortSelectorDialogService);
         // Pin the viewport clamp in the shared-ui WindowStateService to a large
-        // screen — the karma browser window is small and would otherwise shrink
+        // screen — the jsdom window is small and would otherwise shrink
         // the dimensions these specs assert verbatim.
         const windowState = TestBed.inject(WindowStateService);
         vi.spyOn(windowState as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });

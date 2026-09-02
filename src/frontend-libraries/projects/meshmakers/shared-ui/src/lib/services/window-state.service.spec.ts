@@ -15,8 +15,8 @@ describe('WindowStateService', () => {
         TestBed.configureTestingModule({});
         service = TestBed.inject(WindowStateService);
         // Pin the viewport seam to a large screen so the viewport clamp in
-        // resolveWindowSize is inert for the classic persistence specs (the karma
-        // browser window is small); the clamp itself has dedicated specs below.
+        // resolveWindowSize is inert for the classic persistence specs (the jsdom
+        // window is small); the clamp itself has dedicated specs below.
         viewportSpy = vi.spyOn(service as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 });
     });
 
