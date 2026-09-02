@@ -167,8 +167,20 @@ as a second spec importing the same module joins the run, and `--isolate` does n
 Fields initialised from **node_modules** imports (Kendo SVG icons) are fine.
 
 The twelve sites that were latent (green only because their modules were not in a lazy shared
-chunk) were converted in AB#5075. The rule stays: **never write a new class field whose
-initialiser is a bare imported identifier** — a reviewer should reject it on sight.
+chunk) were converted in AB#5075, together with three further fields in the same modules that
+read *through* a relative import rather than being a bare identifier: `hourOptions`,
+`minuteOptions` and `dayOfMonthOptions` in `shared-ui/src/lib/cron-builder/cron-builder.component.ts`
+(calls to the imported `generate*Options()`) and `selectedStrategy` in
+`shared-ui/src/lib/import-strategy-dialog/import-strategy-dialog.component.ts`
+(`ImportStrategyDto.Upsert`, a member access). Those forms fail louder — an `undefined` import
+binding makes the call or the member access throw instead of silently yielding `undefined` — but
+they fail for the same reason.
+
+The rule stays, and covers all three forms: **any new field initialised from a relative import —
+bare identifier, member access, or call — is written as a getter or assigned in the constructor
+from the start.** A reviewer should reject the field-initialiser form on sight. Prefer the
+constructor when the initialiser does work (a getter would re-run it on every template read) or
+when the field is written at runtime; a getter otherwise.
 
 | file | field | form used |
 |---|---|---|
@@ -177,6 +189,8 @@ initialiser is a bare imported identifier** — a reviewer should reject it on s
 | `shared-ui/src/lib/upload-file-dialog/upload-file-dialog.component.ts` | `upload`, `deleteIcon` (from `../svg-icons`) | getter |
 | `octo-meshboard/src/lib/dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component.ts` | `timeZoneMode` | constructor assignment (the field is written at runtime, so a getter is not an option) |
 | `octo-ui-legacy/src/lib/table/mm-octo-table.component.ts` | `getDisplayName`, `getDataKey` | getter (project has no specs; verified with `npm run build:octo-ui-legacy`) |
+| `shared-ui/src/lib/cron-builder/cron-builder.component.ts` | `hourOptions`, `minuteOptions`, `dayOfMonthOptions` | constructor assignment (calls `generate*Options()`; a getter would rebuild the arrays on every template read) |
+| `shared-ui/src/lib/import-strategy-dialog/import-strategy-dialog.component.ts` | `selectedStrategy` | constructor assignment (the field is written by the template's two-way binding) |
 
 A getter that returns a function keeps template call syntax working: the template's
 `getDisplayName(c)` reads the getter and calls the returned function.

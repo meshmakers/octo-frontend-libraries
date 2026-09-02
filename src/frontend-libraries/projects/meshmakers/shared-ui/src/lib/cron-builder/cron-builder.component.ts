@@ -175,9 +175,9 @@ export class CronBuilderComponent implements OnInit, ControlValueAccessor {
   protected get weekdayOptions(): typeof WEEKDAYS { return WEEKDAYS; }
   protected get weekdayAbbreviations(): typeof WEEKDAY_ABBREVIATIONS { return WEEKDAY_ABBREVIATIONS; }
   protected get relativeWeekOptions(): typeof RELATIVE_WEEKS { return RELATIVE_WEEKS; }
-  protected readonly hourOptions = generateHourOptions();
-  protected readonly minuteOptions = generateMinuteOptions();
-  protected readonly dayOfMonthOptions = generateDayOfMonthOptions();
+  protected readonly hourOptions: DropdownOption<number>[];
+  protected readonly minuteOptions: DropdownOption<number>[];
+  protected readonly dayOfMonthOptions: DropdownOption<number>[];
 
   // --- Tab mapping ---
   protected readonly tabIndexToType: ScheduleType[] = [
@@ -185,6 +185,15 @@ export class CronBuilderComponent implements OnInit, ControlValueAccessor {
   ];
 
   constructor() {
+    // Assigned here rather than as field initialisers: a class field initialised from a
+    // relative import reads `undefined` under the Vitest module runner, so calling the
+    // imported generator at field-init time would throw (see CLAUDE.md,
+    // "Vite/esbuild class-field snapshot"). A getter is not an option — the template reads
+    // these three every change detection cycle and would rebuild the option arrays each time.
+    this.hourOptions = generateHourOptions();
+    this.minuteOptions = generateMinuteOptions();
+    this.dayOfMonthOptions = generateDayOfMonthOptions();
+
     // Effect to generate expression when schedule values change
     effect(() => {
       const type = this.scheduleType();
