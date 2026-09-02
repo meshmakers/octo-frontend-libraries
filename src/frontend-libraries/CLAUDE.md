@@ -234,7 +234,7 @@ and `playwright`. Do not install `happy-dom` (it silently wins over jsdom) or `@
 The CI/CD pipeline runs lint before building each library. If linting fails, the build fails.
 
 ```bash
-# Lint all projects
+# Lint all projects (12 targets: 10 libraries + demo-app + legacy-demo-app)
 npm run lint
 
 # Lint specific library
@@ -245,7 +245,43 @@ npm run lint:shared-ui
 npm run lint:shared-auth
 npm run lint:shared-services
 npm run lint:octo-process-diagrams
+npm run lint:demo-app
+npm run lint:legacy-demo-app
 ```
+
+`npm run lint` is a chain of the per-project scripts, so `npm run lint -- --fix` reaches only
+the **last** one. To auto-fix the whole workspace, loop over the lint targets:
+
+```bash
+for p in @meshmakers/shared-services @meshmakers/shared-auth @meshmakers/shared-ui \
+         @meshmakers/shared-ui-legacy @meshmakers/octo-services @meshmakers/octo-process-diagrams \
+         @meshmakers/octo-meshboard @meshmakers/octo-ai-console @meshmakers/octo-ui \
+         @meshmakers/octo-ui-legacy demo-app legacy-demo-app; do
+  npx ng lint $p --fix
+done
+```
+
+### `.editorconfig` enforced by ESLint
+
+`.editorconfig` is advisory — only the editor reads it — so the root `eslint.config.js` carries
+the same four rules via `@stylistic/eslint-plugin` (AB#5075). They are all auto-fixable:
+
+| rule | `.editorconfig` counterpart |
+|---|---|
+| `@stylistic/indent: ["error", 2, { SwitchCase: 1 }]` | `indent_style = space`, `indent_size = 2` |
+| `@stylistic/quotes: ["error", "single", { avoidEscape: true, allowTemplateLiterals: "always" }]` | `[*.ts] quote_type = single` |
+| `@stylistic/eol-last: ["error", "always"]` | `insert_final_newline = true` |
+| `@stylistic/no-trailing-spaces: "error"` | `trim_trailing_whitespace = true` |
+
+The rules live in the **root** config only; every `projects/*/eslint.config.js` spreads
+`...rootConfig`, so adding them per project would duplicate them.
+
+Generated code is excluded by a **global** ignore entry (an `ignores`-only config object) in the
+root config: `**/graphQL/**` and `**/environments/version.ts`. It has to be global rather than an
+`ignores` key on the rule block — a per-block `ignores` only removes that block's rules while
+another block still matches the file, and ESLint then parses it with the default
+(non-TypeScript) parser and reports `Parsing error: Unexpected token`. Never auto-fix generated
+files: `npm run codegen` reintroduces the violations on the next run.
 
 Common lint issues:
 - **Unused imports**: Auto-fix with `npm run lint:octo-ui -- --fix`
