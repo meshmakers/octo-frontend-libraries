@@ -1,4 +1,3 @@
-import '@angular/localize/init';
 import { SimpleChange } from "@angular/core";
 import { ComponentFixture, TestBed, fakeAsync } from "@angular/core/testing";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";

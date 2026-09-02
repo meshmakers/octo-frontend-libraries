@@ -1,5 +1,4 @@
 import type { MockedObject } from "vitest";
-import '@angular/localize/init';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';

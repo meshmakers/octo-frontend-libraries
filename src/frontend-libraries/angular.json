@@ -209,7 +209,8 @@
             "tsConfig": "projects/meshmakers/shared-ui/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
-              "zone.js/testing"
+              "zone.js/testing",
+              "@angular/localize/init"
             ],
             "inlineStyleLanguage": "scss",
             "aot": false
@@ -471,7 +472,8 @@
             "tsConfig": "projects/meshmakers/octo-ui/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
-              "zone.js/testing"
+              "zone.js/testing",
+              "@angular/localize/init"
             ],
             "inlineStyleLanguage": "scss",
             "aot": false

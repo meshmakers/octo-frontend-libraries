@@ -1,5 +1,4 @@
 import type { MockedObject } from "vitest";
-import '@angular/localize/init';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { DialogRef } from '@progress/kendo-angular-dialog';

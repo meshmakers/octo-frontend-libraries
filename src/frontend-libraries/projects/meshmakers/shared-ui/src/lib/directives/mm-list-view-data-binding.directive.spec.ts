@@ -1,4 +1,3 @@
-import '@angular/localize/init';
 import { Component, Directive, forwardRef, inject, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';

@@ -1,5 +1,4 @@
 import type { Mock, MockedObject } from "vitest";
-import '@angular/localize/init';
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
