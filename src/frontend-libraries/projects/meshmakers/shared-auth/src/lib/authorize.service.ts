@@ -927,7 +927,7 @@ export class AuthorizeService {
   private async loadUserAsync(): Promise<void> {
     const claims = this.oauthService.getIdentityClaims();
     if (!claims) {
-      console.error('claims where null when loading identity claims');
+      console.error('claims were null when loading identity claims');
       return;
     }
 

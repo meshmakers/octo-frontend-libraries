@@ -13,7 +13,7 @@ export abstract class CommandBaseService {
     const hrefUri = await CommandBaseService.getHref(commandItem, data);
     const link = await CommandBaseService.getLink(commandItem, data);
     if (hrefUri) {
-      window.open(hrefUri, commandItem.target ?? '_blank');
+      window.open(hrefUri, commandItem.target ?? '_blank', 'noopener,noreferrer');
     } else if (link) {
 
       await this.router.navigate([link], {

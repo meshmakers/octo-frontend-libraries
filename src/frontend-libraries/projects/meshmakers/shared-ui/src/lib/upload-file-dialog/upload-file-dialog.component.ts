@@ -76,10 +76,7 @@ export class UploadFileDialogComponent extends DialogContentBase {
     if (!file) {
       return;
     }
-    console.debug('type: ' + file.type);
-    console.debug('name: ' + file.name);
     const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-    console.debug('extension: ' + extension);
 
     if ((allowedFileExtensions.includes(extension) || allowedMimeTypes.includes(file.type)) ||
       allowedFileExtensions.length > 0 && allowedMimeTypes.length > 0) {
