@@ -11,7 +11,7 @@ The `@meshmakers/octo-meshboard` library provides a configurable dashboard (Mesh
 npm run build:octo-meshboard
 
 # Run tests
-npm test -- --project=@meshmakers/octo-meshboard --watch=false
+npm run test:octo-meshboard
 
 # Run lint
 npm run lint:octo-meshboard
@@ -817,25 +817,30 @@ the widget is configured with. Only meaningful with `resolutionAware`; stream-da
 
 ### Test Structure
 
-Tests use Jasmine with Angular TestBed. Mock services appropriately:
+Tests run on Vitest with Angular TestBed. Mock services appropriately:
 
 ```typescript
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 
 describe('MeshBoardStateService', () => {
   let service: MeshBoardStateService;
-  let persistenceServiceSpy: jasmine.SpyObj<MeshBoardPersistenceService>;
+  let persistenceServiceMock: MockedObject<MeshBoardPersistenceService>;
 
   beforeEach(() => {
-    persistenceServiceSpy = jasmine.createSpyObj('MeshBoardPersistenceService', [
-      'getMeshBoards', 'getMeshBoardWithWidgets', 'createMeshBoard'
-    ]);
+    // A bare object literal is a subset of the class, so cast it — never try to
+    // satisfy MockedObject<T> member by member (classes have private fields).
+    persistenceServiceMock = {
+      getMeshBoards: vi.fn().mockName('getMeshBoards'),
+      getMeshBoardWithWidgets: vi.fn().mockName('getMeshBoardWithWidgets'),
+      createMeshBoard: vi.fn().mockName('createMeshBoard')
+    } as unknown as MockedObject<MeshBoardPersistenceService>;
 
     TestBed.configureTestingModule({
       providers: [
         MeshBoardStateService,
-        { provide: MeshBoardPersistenceService, useValue: persistenceServiceSpy },
-        { provide: CkModelService, useValue: jasmine.createSpyObj('CkModelService', ['isModelAvailableWithMinVersion']) }
+        { provide: MeshBoardPersistenceService, useValue: persistenceServiceMock },
+        { provide: CkModelService, useValue: { isModelAvailableWithMinVersion: vi.fn() } }
       ]
     });
 
@@ -844,18 +849,21 @@ describe('MeshBoardStateService', () => {
 });
 ```
 
+Always configure a return value on a mock: unlike Jasmine's `spyOn`, a bare `vi.spyOn`
+calls the original implementation through.
+
 ### Running Tests
 
 ```bash
-# Run all octo-meshboard tests
-CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-  npm test -- --project=@meshmakers/octo-meshboard --watch=false
+# Run all octo-meshboard tests (Vitest on jsdom, no browser needed)
+npm run test:octo-meshboard
+
+# Run a single spec (path relative to the workspace root)
+ng test @meshmakers/octo-meshboard --watch=false --include=projects/meshmakers/octo-meshboard/src/lib/services/meshboard-grid.service.spec.ts
 
 # Run with coverage
-npm test -- --project=@meshmakers/octo-meshboard --watch=false --code-coverage
-
-# CI mode
-ng test @meshmakers/octo-meshboard --no-watch --browsers=ChromeHeadless
+npm install -D @vitest/coverage-v8   # provider is not a dependency
+ng test @meshmakers/octo-meshboard --watch=false --coverage
 ```
 
 ### Test Coverage

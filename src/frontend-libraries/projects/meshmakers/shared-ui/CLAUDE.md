@@ -10,7 +10,7 @@ npm run build:shared-ui
 npm run lint:shared-ui
 
 # Run tests
-npm test -- --project=@meshmakers/shared-ui --watch=false
+npm run test:shared-ui
 ```
 
 ## Documentation and Testing Standards
@@ -300,9 +300,10 @@ two guards:
   captured on a bigger monitor can never push the dialog's action bar below
   the fold on small resolutions. The clamp deliberately wins over the dialog's
   minWidth/minHeight; stored sizes stay untouched, so returning to a larger
-  screen restores them. Tests pin the protected `viewportSize()` seam
-  (`spyOn`) because `window.innerWidth` is not assignable in Karma — specs
-  that assert verbatim dialog dimensions must pin it to a large screen.
+  screen restores them. Tests pin the protected `viewportSize()` seam rather
+  than the jsdom window, so specs that assert verbatim dialog dimensions must
+  pin it to a large screen:
+  `vi.spyOn(service as unknown as { viewportSize: () => WindowDimensions }, 'viewportSize').mockReturnValue({ width: 1920, height: 1080 })`.
 
 ## Key Development Patterns
 
