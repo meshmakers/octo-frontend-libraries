@@ -270,15 +270,39 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 
 Manages background jobs and repository operations.
 
-| Method | Description |
-|--------|-------------|
-| `runFixupScripts(tenantId)` | Run fixup scripts |
-| `dumpRepository(tenantId, includeArchiveData?)` | Create repository dump. `includeArchiveData` (default `false`, AB#4231) additionally bundles the tenant's CrateDB archive row data → larger `.octobak.zip` instead of `.tar.gz`. |
-| `restoreRepository(tenantId, dbName, file)` | Restore from dump |
-| `downloadJobResultBinary(tenantId, jobId)` | Download job result as Blob |
-| `getJobStatus(jobId)` | Get job status |
-| `startExportArchiveData(tenantId, archiveRtId, window?)` | Start archive-data export job (AB#4230). Optional `TimeWindowDto` window scopes to `[fromUtc, toUtc)`; omit for whole archive. Returns `{ jobId }`. |
-| `startImportArchiveDataWithUpload(tenantId, archiveRtId, file, mode, onProgress?)` | TUS-upload a ZIP then start archive-data import job (AB#4230). `mode` is `ImportStrategyDto` (InsertOnly/Upsert). Returns `{ jobId }`. |
+**Tenant addressing (AB#5060).** The five tenant-securing verbs address their tenant through a
+**route segment** — `{botServices}{tenantId}/v1/jobs/…` — the same
+`{serviceUrl}{tenantId}/v1/…` shape `AssetRepoService` and `IdentityService` use. The tenant is an
+explicit method argument rather than the ambient `TENANT_ID_PROVIDER` route tenant, because these
+operations legitimately target a **child** tenant (backing up / restoring a child from the Child
+Tenants list); the bot service's tenant controller permits that via
+`[AllowParentTenantAdministration]`. Do not reintroduce `?tenantId=` here: as a query parameter the
+call is invisible to the bot service's transport tenant gate, which is the cross-tenant hole
+AB#5060 closes. The `system/v1/jobs/…` variants still exist server-side but are deprecated and get
+removed in stage three.
+
+Three calls stay on `system/v1/jobs/…` deliberately — the backend gave them no tenant route:
+`downloadJobResultBinary` and `getJobStatus` (a Hangfire job id is global to the instance, so these
+are instance-scoped, not tenant-scoped) and the deprecated multipart `restoreRepository`. Because a
+system route carries no route tenant, the transport tenant gate does not apply to them; they are
+guarded by the job API scope alone (`OctoApiReadOnly` / `OctoApiFullAccess`). The tenant-admin
+backup flow therefore works end to end — but knowing a job id is enough to fetch its artifact from
+any tenant, which is a backend decision (AB#5060 deliberately left the download unmarked), not
+something the frontend can or should compensate for.
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| `runFixupScripts(tenantId)` | `POST {tenantId}/v1/jobs/run-fixup-scripts` | Run fixup scripts |
+| `dumpRepository(tenantId, includeArchiveData?)` | `POST {tenantId}/v1/jobs/dump-repository` | Create repository dump. `includeArchiveData` (default `false`, AB#4231) additionally bundles the tenant's CrateDB archive row data → larger `.octobak.zip` instead of `.tar.gz`. |
+| `restoreRepository(tenantId, dbName, file)` | `POST system/v1/jobs/restore-repository` | Restore from dump. **Deprecated** — use `TusUploadService.startUpload()`; no tenant route exists |
+| `downloadJobResultBinary(tenantId, jobId)` | `GET system/v1/jobs/download` | Download job result as Blob (system-only, see above) |
+| `getJobStatus(jobId)` | `GET system/v1/jobs` | Get job status (system-only, see above) |
+| `startExportArchiveData(tenantId, archiveRtId, window?)` | `POST {tenantId}/v1/jobs/export-archive-data` | Start archive-data export job (AB#4230). Optional `TimeWindowDto` window scopes to `[fromUtc, toUtc)`; omit for whole archive. Returns `{ jobId }`. |
+| `startImportArchiveDataWithUpload(tenantId, archiveRtId, file, mode, onProgress?)` | TUS `system/v1/tus-upload` → `POST {tenantId}/v1/jobs/import-archive-data-from-upload` | TUS-upload a ZIP then start archive-data import job (AB#4230). `mode` is `ImportStrategyDto` (InsertOnly/Upsert). Returns `{ jobId }`. |
+
+The tus upload sink stays tenant-neutral on purpose: the file is stored flat under its tus file id
+and nothing reads the `tenantId` upload metadata, so the tenant-carrying, gated decision is the
+job-start call that follows.
 
 ### JobManagementService
 
@@ -336,6 +360,12 @@ Resumable file uploads using the TUS protocol for large database restore operati
 | Method | Description |
 |--------|-------------|
 | `startUpload(options: TusUploadOptions)` | Upload file and start restore job, returns `{ jobId }`. `TusUploadOptions.restoreArchiveData` (default `false`, AB#4231) opts into restoring CrateDB archive data when the artifact is an `.octobak.zip`; sent as `restoreArchiveData` query param to `restore-from-upload`. |
+
+Two hops with deliberately different tenant addressing (AB#5060): the tus transfer goes to the
+tenant-neutral sink `system/v1/tus-upload` (staging area keyed by tus file id), then the restore job
+is started on the tenant route `POST {tenantId}/v1/jobs/restore-from-upload` — that second call is
+the gated, tenant-carrying decision. `options.tenantId` may be a child tenant (restoring a child
+from the Child Tenants list), which the bot service allows via `[AllowParentTenantAdministration]`.
 
 ---
 

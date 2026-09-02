@@ -94,6 +94,19 @@ export class TusUploadService {
     });
   }
 
+  /**
+   * Starts the restore job for the uploaded artifact.
+   *
+   * The tenant travels as a **route segment** (`{tenantId}/v1/jobs/restore-from-upload`, AB#5060),
+   * matching the `{serviceUrl}{tenantId}/v1/...` shape of the other tenant-addressed services. That
+   * is what puts the call in front of the bot service's transport tenant gate; as a `?tenantId=`
+   * query parameter it was invisible to it. The route accepts a child tenant too — the tenant
+   * controller carries `[AllowParentTenantAdministration]`, which is what the Child Tenants restore
+   * relies on.
+   *
+   * The tus upload itself (above) stays on the tenant-neutral system sink by design: the file is
+   * stored flat under its tus id, and this call is the tenant-carrying, gated decision.
+   */
   private async startRestoreJob(
     botServicesUrl: string,
     tusFileId: string,
@@ -101,7 +114,6 @@ export class TusUploadService {
   ): Promise<JobResponseDto | null> {
     let params = new HttpParams()
       .set('tusFileId', tusFileId)
-      .set('tenantId', options.tenantId)
       .set('databaseName', options.databaseName)
       .set('restoreArchiveData', options.restoreArchiveData ?? false);
 
@@ -110,7 +122,7 @@ export class TusUploadService {
     }
 
     const r = await firstValueFrom(this.httpClient.post<JobResponseDto>(
-      botServicesUrl + 'system/v1/jobs/restore-from-upload',
+      `${botServicesUrl}${options.tenantId}/v1/jobs/restore-from-upload`,
       null,
       {params, observe: 'response'}
     ));

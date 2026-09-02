@@ -17,12 +17,27 @@ export class BotService {
   private readonly configurationService = inject(CONFIGURATION_SERVICE);
   private readonly authorizeService = inject(AuthorizeService);
 
-  public async runFixupScripts(tenantId: string): Promise<JobResponseDto | null> {
-    const params = new HttpParams().set('tenantId', tenantId);
+  /**
+   * Builds the tenant-scoped jobs API base URL for an explicit tenant (AB#5060), following the same
+   * `{serviceUrl}{tenantId}/v1/...` shape the other tenant-addressed services use.
+   *
+   * The tenant is deliberately an argument rather than the ambient `TENANT_ID_PROVIDER` route
+   * tenant: these operations legitimately target a *child* tenant (backing up a child from the
+   * Child Tenants list), which the bot service permits via `[AllowParentTenantAdministration]`.
+   * Putting the tenant in the route is what makes the transport tenant gate see these calls at all —
+   * as a `?tenantId=` query parameter they bypassed it.
+   */
+  private jobsBaseUrlForTenant(tenantId: string): string | null {
+    const botServicesUrl = this.configurationService.config?.botServices;
+    if (!botServicesUrl) return null;
+    return `${botServicesUrl}${tenantId}/v1/jobs/`;
+  }
 
-    if (this.configurationService.config?.botServices) {
-      const r = await firstValueFrom(this.httpClient.post<JobResponseDto>(this.configurationService.config.botServices + 'system/v1/jobs/run-fixup-scripts', null, {
-        params,
+  public async runFixupScripts(tenantId: string): Promise<JobResponseDto | null> {
+    const baseUrl = this.jobsBaseUrlForTenant(tenantId);
+
+    if (baseUrl) {
+      const r = await firstValueFrom(this.httpClient.post<JobResponseDto>(baseUrl + 'run-fixup-scripts', null, {
         observe: 'response'
       }));
 
@@ -39,15 +54,15 @@ export class BotService {
    * fully backward-compatible behaviour (Mongo metadata/config only → single `.tar.gz`); with the
    * flag set the bot job emits a larger `.octobak.zip` container instead.
    *
-   * Frozen bot contract: `POST system/v1/jobs/dump-repository?tenantId=&includeArchiveData=`.
+   * Bot contract: `POST {tenantId}/v1/jobs/dump-repository?includeArchiveData=` (AB#5060).
    */
   public async dumpRepository(tenantId: string, includeArchiveData = false): Promise<JobResponseDto | null> {
     const params = new HttpParams()
-      .set('tenantId', tenantId)
       .set('includeArchiveData', includeArchiveData);
 
-    if (this.configurationService.config?.botServices) {
-      const r = await firstValueFrom(this.httpClient.post<JobResponseDto>(this.configurationService.config.botServices + 'system/v1/jobs/dump-repository', null, {
+    const baseUrl = this.jobsBaseUrlForTenant(tenantId);
+    if (baseUrl) {
+      const r = await firstValueFrom(this.httpClient.post<JobResponseDto>(baseUrl + 'dump-repository', null, {
         params,
         observe: 'response'
       }));
@@ -57,7 +72,18 @@ export class BotService {
     return null;
   }
 
-  /** @deprecated Use TusUploadService.startUpload() instead for resumable uploads supporting large files. */
+  /**
+   * @deprecated Dead as of AB#5060 — do not migrate it, remove it.
+   *
+   * There is no `restore-repository` route in the bot service any more, on the system API or
+   * anywhere else: only the `IRestoreRepositoryJob` this multipart variant used to enqueue survives,
+   * and `restore-from-upload` is what enqueues it now. So this method posts to an endpoint that does
+   * not exist, and its only callers are its own spec tests — the tus flow superseded it.
+   *
+   * It is left in place rather than deleted because it is public API of a published package; removing
+   * it is a breaking change that belongs in a deliberate major, not in this migration. It is called
+   * out here so that stage 3 does not mistake it for a caller still to be moved.
+   */
   public async restoreRepository(tenantId: string, databaseName: string, file: File): Promise<JobResponseDto | null> {
     const params = new HttpParams().set('tenantId', tenantId).set('databaseName', databaseName);
 
@@ -75,6 +101,14 @@ export class BotService {
     return null;
   }
 
+  /**
+   * Downloads the artifact a finished job produced.
+   *
+   * Deliberately still on the system route (AB#5060): a Hangfire job id is global to the instance,
+   * so this action is instance-scoped rather than tenant-scoped and got no tenant route. It is
+   * guarded by the job API scope alone — the transport tenant gate reads a *route* tenant, and a
+   * system route has none.
+   */
   public async downloadJobResultBinary(tenantId: string, jobId: string): Promise<Blob | null> {
     const params = new HttpParams().set('tenantId', tenantId).set('id', jobId);
 
@@ -87,6 +121,10 @@ export class BotService {
     return null;
   }
 
+  /**
+   * Polls a job by id. Job ids are not tenant-addressed, so this stays on the system route
+   * (AB#5060 moved only the five tenant-securing verbs).
+   */
   public async getJobStatus(jobId: string): Promise<JobDto | null> {
     const params = new HttpParams().set('id', jobId);
 
@@ -113,20 +151,20 @@ export class BotService {
    * When `window` is omitted the whole archive is exported; when supplied only rows whose
    * timestamp / `window_start` fall in `[fromUtc, toUtc)` are included.
    *
-   * Frozen bot contract:
-   * `POST system/v1/jobs/export-archive-data?tenantId=&archiveRtId=&fromUtc=&toUtc=` → `{ jobId }`.
+   * Bot contract:
+   * `POST {tenantId}/v1/jobs/export-archive-data?archiveRtId=&fromUtc=&toUtc=` → `{ jobId }` (AB#5060).
    */
   public async startExportArchiveData(
     tenantId: string,
     archiveRtId: string,
     window?: TimeWindowDto
   ): Promise<JobResponseDto | null> {
-    if (!this.configurationService.config?.botServices) {
+    const baseUrl = this.jobsBaseUrlForTenant(tenantId);
+    if (!baseUrl) {
       return null;
     }
 
     let params = new HttpParams()
-      .set('tenantId', tenantId)
       .set('archiveRtId', archiveRtId);
 
     if (window) {
@@ -134,7 +172,7 @@ export class BotService {
     }
 
     const r = await firstValueFrom(this.httpClient.post<JobResponseDto>(
-      this.configurationService.config.botServices + 'system/v1/jobs/export-archive-data',
+      baseUrl + 'export-archive-data',
       null,
       {params, observe: 'response'}
     ));
@@ -149,11 +187,12 @@ export class BotService {
    * mismatch the job fails with a field-level message that surfaces through
    * `JobManagementService.waitForJob` → `MessageService.showErrorWithDetails`.
    *
-   * Frozen bot contract:
+   * Bot contract:
    * 1. TUS upload to `system/v1/tus-upload` (metadata: `filename`, `filetype`, `tenantId`,
-   *    `archiveRtId`, `importMode`).
-   * 2. `POST system/v1/jobs/import-archive-data-from-upload?tusFileId=&tenantId=&archiveRtId=&mode=`
-   *    → `{ jobId }`.
+   *    `archiveRtId`, `importMode`). The upload sink stays tenant-neutral by design (AB#5060): it
+   *    is a staging area keyed by tus file id, and the tenant-carrying, gated decision is step 2.
+   * 2. `POST {tenantId}/v1/jobs/import-archive-data-from-upload?tusFileId=&archiveRtId=&mode=`
+   *    → `{ jobId }` (AB#5060).
    */
   public async startImportArchiveDataWithUpload(
     tenantId: string,
@@ -163,7 +202,8 @@ export class BotService {
     onProgress?: (bytesUploaded: number, bytesTotal: number) => void
   ): Promise<JobResponseDto | null> {
     const botServicesUrl = this.configurationService.config?.botServices;
-    if (!botServicesUrl) {
+    const baseUrl = this.jobsBaseUrlForTenant(tenantId);
+    if (!botServicesUrl || !baseUrl) {
       return null;
     }
 
@@ -171,12 +211,11 @@ export class BotService {
 
     const params = new HttpParams()
       .set('tusFileId', tusFileId)
-      .set('tenantId', tenantId)
       .set('archiveRtId', archiveRtId)
       .set('mode', mode.toString());
 
     const r = await firstValueFrom(this.httpClient.post<JobResponseDto>(
-      botServicesUrl + 'system/v1/jobs/import-archive-data-from-upload',
+      baseUrl + 'import-archive-data-from-upload',
       null,
       {params, observe: 'response'}
     ));

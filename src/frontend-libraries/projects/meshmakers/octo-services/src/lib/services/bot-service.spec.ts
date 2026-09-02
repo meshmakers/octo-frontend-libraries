@@ -81,7 +81,7 @@ describe('BotService', () => {
     it('should run fixup scripts and return job response', async () => {
       const resultPromise = service.runFixupScripts('tenant-1');
 
-      const req = httpMock.expectOne(`${baseUrl}system/v1/jobs/run-fixup-scripts?tenantId=tenant-1`);
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/jobs/run-fixup-scripts`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
       req.flush(mockJobResponse);
@@ -111,7 +111,7 @@ describe('BotService', () => {
       const resultPromise = service.dumpRepository('tenant-1');
 
       const req = httpMock.expectOne(
-        `${baseUrl}system/v1/jobs/dump-repository?tenantId=tenant-1&includeArchiveData=false`
+        `${baseUrl}tenant-1/v1/jobs/dump-repository?includeArchiveData=false`
       );
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
@@ -126,10 +126,37 @@ describe('BotService', () => {
       const resultPromise = service.dumpRepository('tenant-1', true);
 
       const req = httpMock.expectOne(
-        `${baseUrl}system/v1/jobs/dump-repository?tenantId=tenant-1&includeArchiveData=true`
+        `${baseUrl}tenant-1/v1/jobs/dump-repository?includeArchiveData=true`
       );
       expect(req.request.method).toBe('POST');
       expect(req.request.params.get('includeArchiveData')).toBe('true');
+      req.flush(mockJobResponse);
+
+      const result = await resultPromise;
+      expect(result).toEqual(mockJobResponse);
+    });
+
+    // AB#5060: the tenant must travel as a route segment. As a `?tenantId=` query parameter the
+    // call bypassed the bot service's transport tenant gate entirely, so a regression here is a
+    // cross-tenant hole, not a cosmetic URL change.
+    it('should address the tenant through the route, not a query parameter', async () => {
+      const resultPromise = service.dumpRepository('tenant-1');
+
+      const req = httpMock.expectOne((request) => request.url.startsWith(`${baseUrl}tenant-1/v1/jobs/`));
+      expect(req.request.params.has('tenantId')).toBeFalse();
+      req.flush(mockJobResponse);
+
+      await resultPromise;
+    });
+
+    // Backing up a child tenant from the Child Tenants list passes the child, not the route tenant;
+    // the bot service's tenant controller allows this via [AllowParentTenantAdministration].
+    it('should target a child tenant when one is passed', async () => {
+      const resultPromise = service.dumpRepository('child-tenant', true);
+
+      const req = httpMock.expectOne(
+        `${baseUrl}child-tenant/v1/jobs/dump-repository?includeArchiveData=true`
+      );
       req.flush(mockJobResponse);
 
       const result = await resultPromise;
@@ -234,7 +261,7 @@ describe('BotService', () => {
       const resultPromise = service.startExportArchiveData('tenant-1', 'archive-1');
 
       const req = httpMock.expectOne(
-        `${baseUrl}system/v1/jobs/export-archive-data?tenantId=tenant-1&archiveRtId=archive-1`
+        `${baseUrl}tenant-1/v1/jobs/export-archive-data?archiveRtId=archive-1`
       );
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toBeNull();
@@ -254,8 +281,7 @@ describe('BotService', () => {
 
       const req = httpMock.expectOne(
         (request) =>
-          request.url === `${baseUrl}system/v1/jobs/export-archive-data` &&
-          request.params.get('tenantId') === 'tenant-1' &&
+          request.url === `${baseUrl}tenant-1/v1/jobs/export-archive-data` &&
           request.params.get('archiveRtId') === 'archive-1' &&
           request.params.get('fromUtc') === '2026-06-01T00:00:00Z' &&
           request.params.get('toUtc') === '2026-07-01T00:00:00Z'
