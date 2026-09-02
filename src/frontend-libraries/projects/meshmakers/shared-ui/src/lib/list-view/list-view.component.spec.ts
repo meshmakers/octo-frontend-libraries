@@ -294,22 +294,59 @@ describe('MmTableComponent', () => {
   });
 
   describe('actions column width (AB#3444)', () => {
-    interface WidthApi { effectiveActionsColumnWidth: number }
+    interface WidthApi {
+      effectiveActionsColumnWidth: number;
+      _actionMenuItems: { text?: string; separator?: boolean }[];
+      _contextMenuItems: unknown[];
+    }
     const api = () => component as unknown as WidthApi;
+    // padding 21 + n*36 + (n-1)*6, measured off a rendered command cell
+    const fitting = (n: number) => 21 + n * 36 + (n - 1) * 6;
 
-    it('keeps a host width that can show the header', () => {
+    beforeEach(() => {
+      api()._actionMenuItems = [];
+      api()._contextMenuItems = [];
+    });
+
+    it('keeps a host width that fits header and buttons', () => {
       component.actionsColumnWidth = 150;
       expect(api().effectiveActionsColumnWidth).toBe(150);
     });
 
-    it('raises a width too narrow for the header to its floor', () => {
-      // The archives, child-tenants and provisioning lists all passed 70,
-      // which clipped the title to "ACTIO…" — the buttons fit, the word did not.
+    it('raises a width too narrow for the header', () => {
+      // Archives, child-tenants and provisioning all passed 70, clipping the
+      // title to "ACTIO…" — 73px is what the English word needs.
       component.actionsColumnWidth = 70;
       expect(api().effectiveActionsColumnWidth).toBe(90);
     });
 
-    it('uses the floor for a nonsensical width rather than collapsing', () => {
+    it('raises a width too narrow for the buttons it renders', () => {
+      // Three buttons need 140px; 90 fits the header but clipped the third.
+      component.actionsColumnWidth = 90;
+      api()._actionMenuItems = [{ text: 'Edit' }, { text: 'Disable' }];
+      api()._contextMenuItems = [{}];
+      expect(api().effectiveActionsColumnWidth).toBe(fitting(3));
+    });
+
+    it('counts the context-menu button only when it renders inline', () => {
+      component.actionsColumnWidth = 0;
+      api()._actionMenuItems = [{ text: 'Edit' }];
+      api()._contextMenuItems = [{}];
+
+      component.contextMenuType = 'actionMenu';
+      expect(api().effectiveActionsColumnWidth).toBe(Math.max(90, fitting(2)));
+
+      component.contextMenuType = 'contextMenu';
+      expect(api().effectiveActionsColumnWidth).toBe(Math.max(90, fitting(1)));
+    });
+
+    it('ignores separators, which render no button', () => {
+      component.actionsColumnWidth = 0;
+      api()._actionMenuItems = [{ text: 'Edit' }, { separator: true }, { text: 'Delete' }];
+      expect(api().effectiveActionsColumnWidth).toBe(Math.max(90, fitting(2)));
+    });
+
+    it('falls back to the header floor when there are no buttons', () => {
       component.actionsColumnWidth = 0;
       expect(api().effectiveActionsColumnWidth).toBe(90);
     });

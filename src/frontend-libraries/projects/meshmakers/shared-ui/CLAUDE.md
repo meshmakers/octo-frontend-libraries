@@ -254,14 +254,23 @@ the single row item, as before.
 
 **Actions column width (`actionsColumnWidth`, AB#3444)**
 
-Default 220, floored at **90**. The floor exists because a column has to be able
-to show its own header, and that header is a translated word: at the grid's
-header font "Actions" needs 73px once cell padding is counted, German
-"Aktionen" 83px, Spanish "Acciones" 82px. Sizing the column by its BUTTONS alone
-clips the title — three Studio lists passed 70 and rendered "ACTIO…".
+Default 220, and the value passed is a **minimum request, not the final width**.
+The component raises it to whatever the column actually needs, because sizing it
+by eye goes wrong in both directions:
 
-Pass a larger value when the buttons need it; passing a smaller one has no
-effect.
+- **Header floor, 90px.** The title is a translated word: at the grid's header
+  font "Actions" needs 73px once cell padding is counted, German "Aktionen" 83px,
+  Spanish "Acciones" 82px. Three Studio lists passed 70 and rendered "ACTIO…".
+- **Content floor, computed.** `21 + n × 36 + (n − 1) × 6` for n buttons —
+  measured off a rendered command cell. n is one per non-separator
+  `actionCommandItems` entry plus the context-menu button when
+  `contextMenuType` is `'actionMenu'`. Item visibility is per row, so the width
+  uses the worst case; an archives row with three buttons needs 141px, and 90
+  clipped the third.
+
+Pass a larger value when you want more room; passing a smaller one has no
+effect. If the button metrics ever change, the three constants at the top of the
+component are the single place to correct.
 
 **Host filter controls in the toolbar (`mmListViewFilters`, AB#3444)**
 

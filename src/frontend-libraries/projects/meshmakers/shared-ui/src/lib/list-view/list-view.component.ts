@@ -266,21 +266,52 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public actionsColumnWidth = 220;
 
   /**
-   * Floor for the actions column. A column has to be able to show its own
-   * header, and the header is a translated word: "Actions" needs 73px at this
-   * font once the cell padding is counted, German "Aktionen" 83px, Spanish
-   * "Acciones" 82px. Hosts that sized the column by its BUTTONS alone — the
-   * archives, child-tenants and provisioning lists all passed 70 — ended up
-   * with a title clipped to "ACTIO…".
+   * Floor for the actions column HEADER. The header is a translated word, and
+   * at the grid's header font "Actions" needs 73px once the cell's padding is
+   * counted, German "Aktionen" 83px, Spanish "Acciones" 82px.
    */
-  private static readonly MIN_ACTIONS_COLUMN_WIDTH = 90;
+  private static readonly MIN_ACTIONS_HEADER_WIDTH = 90;
+
+  /** Measured geometry of one flat icon button in a command cell. */
+  private static readonly ACTION_BUTTON_WIDTH = 36;
+  private static readonly ACTION_BUTTON_GAP = 6;
+  private static readonly COMMAND_CELL_PADDING = 21;
 
   /**
-   * The actions column width actually used: never below the floor above, so a
-   * host cannot accidentally size the header out of existence.
+   * Buttons the actions cell can render at once: one per non-separator action
+   * item, plus the context-menu button when that menu is shown inline. Item
+   * visibility is evaluated per row, so this is the worst case — which is the
+   * case the column has to be wide enough for.
+   */
+  private get maxActionButtons(): number {
+    const actions = this._actionMenuItems.filter(item => !item.separator).length;
+    const contextButton =
+      this._contextMenuItems.length > 0 && this.contextMenuType === 'actionMenu' ? 1 : 0;
+    return actions + contextButton;
+  }
+
+  /**
+   * The actions column width actually used.
+   *
+   * A host sizes this by eye and gets it wrong in both directions: too narrow
+   * for the header (three Studio lists passed 70 and rendered "ACTIO…") or too
+   * narrow for the buttons (the same 70, and even a 90 that fits the header,
+   * clipped the third button off an archives row). Both floors are computed
+   * rather than guessed, so the column always fits its own content.
    */
   protected get effectiveActionsColumnWidth(): number {
-    return Math.max(this.actionsColumnWidth, ListViewComponent.MIN_ACTIONS_COLUMN_WIDTH);
+    const buttons = this.maxActionButtons;
+    const contentWidth = buttons === 0
+      ? 0
+      : ListViewComponent.COMMAND_CELL_PADDING +
+        buttons * ListViewComponent.ACTION_BUTTON_WIDTH +
+        (buttons - 1) * ListViewComponent.ACTION_BUTTON_GAP;
+
+    return Math.max(
+      this.actionsColumnWidth,
+      ListViewComponent.MIN_ACTIONS_HEADER_WIDTH,
+      contentWidth,
+    );
   }
 
   /**
