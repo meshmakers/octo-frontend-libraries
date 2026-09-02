@@ -60,8 +60,15 @@ include; none of them keeps its own palette any more:
   `var(--iron-navy)` usages follow the active theme automatically.
 
 **Kendo colour bridge.** `theme()` also declares the `--kendo-color-*` tokens
-(surface, surface-alt, subtle, border, secondary/tertiary/info/success/warning/
-error) against our theme tokens. The slim Kendo build in `_kendo-theme.scss`
+(surface, surface-alt, subtle, border, base-on-subtle, and
+secondary/tertiary/info/success/warning/error) against our theme tokens.
+
+One rule when extending it: Kendo derives every `*-on-subtle` **ink** from the
+matching `*-subtle` **surface**, assuming that surface is light. So overriding a
+`*-subtle` surface without its ink leaves dark text on a dark pill — that is
+what made the identity pages' role and group chips unreadable. We override only
+`base-subtle`, hence only `base-on-subtle` is repointed; the other families keep
+Kendo's light surfaces and their inks stay correct. The slim Kendo build in `_kendo-theme.scss`
 already binds these for hosts using `_with-kendo.scss`; a host that imports the
 FULL `@progress/kendo-theme-material` itself does not get them and falls back to
 Material's light defaults — which is what made the Meshmakers App's grids,

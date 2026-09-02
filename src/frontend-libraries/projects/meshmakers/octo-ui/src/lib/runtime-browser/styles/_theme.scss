@@ -397,6 +397,14 @@
   --kendo-color-subtle: var(--theme-text-secondary);
   --kendo-color-border: var(--theme-border-divider);
 
+  // Kendo derives every `*-on-subtle` ink from its own `*-subtle` surface,
+  // assuming that surface is light. We repoint --kendo-color-base-subtle at a
+  // dark elevated surface, but the derived ink stayed near-black (#131316) —
+  // which is what made chips (assigned roles and groups on the identity pages)
+  // render as dark text on a dark pill. The other `*-subtle` surfaces are left
+  // at Kendo's light values, so their inks stay correct and are not touched.
+  --kendo-color-base-on-subtle: var(--kendo-color-base-on-surface);
+
   --kendo-color-secondary: var(--neo-cyan);
   --kendo-color-tertiary: var(--toffee);
   --kendo-color-info: var(--indigogo);
