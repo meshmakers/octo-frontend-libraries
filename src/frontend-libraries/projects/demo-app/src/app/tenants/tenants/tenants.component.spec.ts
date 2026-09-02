@@ -6,34 +6,37 @@ import { AssetRepoService } from '@meshmakers/octo-services';
 import { CommandSettingsService } from '@meshmakers/shared-services';
 
 describe('TenantsComponent', () => {
-  let component: TenantsComponent;
-  let fixture: ComponentFixture<TenantsComponent>;
+    let component: TenantsComponent;
+    let fixture: ComponentFixture<TenantsComponent>;
 
-  beforeEach(async () => {
-    const mockAssetRepoService = jasmine.createSpyObj('AssetRepoService', ['getTenants']);
-    mockAssetRepoService.getTenants.and.returnValue(Promise.resolve({ list: [], totalCount: 0 }));
+    beforeEach(async () => {
+        const mockAssetRepoService = {
+            getTenants: vi.fn().mockName("AssetRepoService.getTenants")
+        };
+        mockAssetRepoService.getTenants.mockResolvedValue({ list: [], totalCount: 0 });
 
-    const mockCommandSettingsService = jasmine.createSpyObj('CommandSettingsService', ['setSelectedDrawerItem'], {
-      commandItems: [],
-      navigateRelativeToRoute: null
+        const mockCommandSettingsService = {
+            setSelectedDrawerItem: vi.fn().mockName("CommandSettingsService.setSelectedDrawerItem"),
+            commandItems: [],
+            navigateRelativeToRoute: null
+        };
+
+        await TestBed.configureTestingModule({
+            imports: [TenantsComponent],
+            providers: [
+                provideNoopAnimations(),
+                { provide: AssetRepoService, useValue: mockAssetRepoService },
+                { provide: CommandSettingsService, useValue: mockCommandSettingsService }
+            ]
+        })
+            .compileComponents();
+
+        fixture = TestBed.createComponent(TenantsComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
     });
 
-    await TestBed.configureTestingModule({
-      imports: [TenantsComponent],
-      providers: [
-        provideNoopAnimations(),
-        { provide: AssetRepoService, useValue: mockAssetRepoService },
-        { provide: CommandSettingsService, useValue: mockCommandSettingsService }
-      ]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(TenantsComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });

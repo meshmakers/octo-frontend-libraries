@@ -9,37 +9,44 @@ import { GetTreeNodesDtoGQL, GetTreeNodesQueryDto } from '../../../graphQL/getTr
 import { ApolloQueryResult } from '@apollo/client/core';
 
 describe('TreeDemoComponent', () => {
-  let component: TreeDemoComponent;
-  let fixture: ComponentFixture<TreeDemoComponent>;
+    let component: TreeDemoComponent;
+    let fixture: ComponentFixture<TreeDemoComponent>;
 
-  beforeEach(async () => {
-    const mockGetTreesGQL = jasmine.createSpyObj('GetTreesDtoGQL', ['fetch']);
-    mockGetTreesGQL.fetch.and.returnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreesQueryDto>));
+    beforeEach(async () => {
+        const mockGetTreesGQL = {
+            fetch: vi.fn().mockName("GetTreesDtoGQL.fetch")
+        };
+        mockGetTreesGQL.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreesQueryDto>));
 
-    const mockGetTreeNodesGQL = jasmine.createSpyObj('GetTreeNodesDtoGQL', ['fetch']);
-    mockGetTreeNodesGQL.fetch.and.returnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreeNodesQueryDto>));
+        const mockGetTreeNodesGQL = {
+            fetch: vi.fn().mockName("GetTreeNodesDtoGQL.fetch")
+        };
+        mockGetTreeNodesGQL.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } } as unknown as ApolloQueryResult<GetTreeNodesQueryDto>));
 
-    const mockTreeDemoDataSource = jasmine.createSpyObj('TreeDemoDataSource', ['fetchRootNodes', 'fetchChildren']);
-    mockTreeDemoDataSource.fetchRootNodes.and.returnValue(Promise.resolve([]));
-    mockTreeDemoDataSource.fetchChildren.and.returnValue(Promise.resolve([]));
+        const mockTreeDemoDataSource = {
+            fetchRootNodes: vi.fn().mockName("TreeDemoDataSource.fetchRootNodes"),
+            fetchChildren: vi.fn().mockName("TreeDemoDataSource.fetchChildren")
+        };
+        mockTreeDemoDataSource.fetchRootNodes.mockResolvedValue([]);
+        mockTreeDemoDataSource.fetchChildren.mockResolvedValue([]);
 
-    await TestBed.configureTestingModule({
-      imports: [TreeDemoComponent],
-      providers: [
-        provideNoopAnimations(),
-        { provide: GetTreesDtoGQL, useValue: mockGetTreesGQL },
-        { provide: GetTreeNodesDtoGQL, useValue: mockGetTreeNodesGQL },
-        { provide: TreeDemoDataSource, useValue: mockTreeDemoDataSource }
-      ]
-    })
-    .compileComponents();
+        await TestBed.configureTestingModule({
+            imports: [TreeDemoComponent],
+            providers: [
+                provideNoopAnimations(),
+                { provide: GetTreesDtoGQL, useValue: mockGetTreesGQL },
+                { provide: GetTreeNodesDtoGQL, useValue: mockGetTreeNodesGQL },
+                { provide: TreeDemoDataSource, useValue: mockTreeDemoDataSource }
+            ]
+        })
+            .compileComponents();
 
-    fixture = TestBed.createComponent(TreeDemoComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+        fixture = TestBed.createComponent(TreeDemoComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });
