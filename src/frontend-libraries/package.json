@@ -135,5 +135,13 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "8.62.0",
     "vitest": "^4.1.11"
+  },
+  "allowScripts": {
+    "@parcel/watcher": true,
+    "@progress/kendo-licensing": true,
+    "esbuild": true,
+    "fsevents": true,
+    "lmdb": true,
+    "msgpackr-extract": true
   }
 }
