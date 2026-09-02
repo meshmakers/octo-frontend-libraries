@@ -1,128 +1,129 @@
+import type { Mock } from "vitest";
 import { AutoRefreshTimerService } from './auto-refresh-timer.service';
 
 describe('AutoRefreshTimerService', () => {
-  let service: AutoRefreshTimerService;
-  let onTick: jasmine.Spy;
+    let service: AutoRefreshTimerService;
+    let onTick: Mock;
 
-  beforeEach(() => {
-    jasmine.clock().install();
-    service = new AutoRefreshTimerService();
-    onTick = jasmine.createSpy('onTick');
-  });
-
-  afterEach(() => {
-    service.ngOnDestroy();
-    jasmine.clock().uninstall();
-  });
-
-  describe('starting and stopping', () => {
-    it('does not start a timer when seconds = 0', () => {
-      service.update(0, true, onTick);
-      expect(service.isRunning).toBeFalse();
-      jasmine.clock().tick(60_000);
-      expect(onTick).not.toHaveBeenCalled();
+    beforeEach(() => {
+        vi.useFakeTimers();
+        service = new AutoRefreshTimerService();
+        onTick = vi.fn().mockName('onTick');
     });
 
-    it('does not start a timer when the tab is hidden', () => {
-      service.update(10, false, onTick);
-      expect(service.isRunning).toBeFalse();
-      jasmine.clock().tick(60_000);
-      expect(onTick).not.toHaveBeenCalled();
+    afterEach(() => {
+        service.ngOnDestroy();
+        vi.useRealTimers();
     });
 
-    it('starts a timer and fires onTick at the requested interval', () => {
-      service.update(5, true, onTick);
-      expect(service.isRunning).toBeTrue();
-      expect(service.intervalSeconds).toBe(5);
+    describe('starting and stopping', () => {
+        it('does not start a timer when seconds = 0', () => {
+            service.update(0, true, onTick);
+            expect(service.isRunning).toBe(false);
+            vi.advanceTimersByTime(60000);
+            expect(onTick).not.toHaveBeenCalled();
+        });
 
-      jasmine.clock().tick(5_000);
-      expect(onTick).toHaveBeenCalledTimes(1);
+        it('does not start a timer when the tab is hidden', () => {
+            service.update(10, false, onTick);
+            expect(service.isRunning).toBe(false);
+            vi.advanceTimersByTime(60000);
+            expect(onTick).not.toHaveBeenCalled();
+        });
 
-      jasmine.clock().tick(5_000);
-      expect(onTick).toHaveBeenCalledTimes(2);
+        it('starts a timer and fires onTick at the requested interval', () => {
+            service.update(5, true, onTick);
+            expect(service.isRunning).toBe(true);
+            expect(service.intervalSeconds).toBe(5);
 
-      jasmine.clock().tick(10_000);
-      expect(onTick).toHaveBeenCalledTimes(4);
+            vi.advanceTimersByTime(5000);
+            expect(onTick).toHaveBeenCalledTimes(1);
+
+            vi.advanceTimersByTime(5000);
+            expect(onTick).toHaveBeenCalledTimes(2);
+
+            vi.advanceTimersByTime(10000);
+            expect(onTick).toHaveBeenCalledTimes(4);
+        });
+
+        it('stops the timer and resets state on stop()', () => {
+            service.update(10, true, onTick);
+            service.stop();
+            expect(service.isRunning).toBe(false);
+            expect(service.intervalSeconds).toBe(0);
+
+            vi.advanceTimersByTime(60000);
+            expect(onTick).not.toHaveBeenCalled();
+        });
     });
 
-    it('stops the timer and resets state on stop()', () => {
-      service.update(10, true, onTick);
-      service.stop();
-      expect(service.isRunning).toBeFalse();
-      expect(service.intervalSeconds).toBe(0);
+    describe('reconcile semantics', () => {
+        it('is a no-op when called with the same interval and visible state', () => {
+            service.update(10, true, onTick);
+            vi.advanceTimersByTime(5000); // halfway to first tick
 
-      jasmine.clock().tick(60_000);
-      expect(onTick).not.toHaveBeenCalled();
-    });
-  });
+            // Second update with same interval should NOT restart the countdown
+            service.update(10, true, onTick);
 
-  describe('reconcile semantics', () => {
-    it('is a no-op when called with the same interval and visible state', () => {
-      service.update(10, true, onTick);
-      jasmine.clock().tick(5_000); // halfway to first tick
+            vi.advanceTimersByTime(5000); // total: 10s — the original fire
+            expect(onTick).toHaveBeenCalledTimes(1);
+        });
 
-      // Second update with same interval should NOT restart the countdown
-      service.update(10, true, onTick);
+        it('restarts the timer when the interval changes', () => {
+            service.update(10, true, onTick);
+            expect(service.intervalSeconds).toBe(10);
 
-      jasmine.clock().tick(5_000); // total: 10s — the original fire
-      expect(onTick).toHaveBeenCalledTimes(1);
-    });
+            service.update(2, true, onTick);
+            expect(service.intervalSeconds).toBe(2);
 
-    it('restarts the timer when the interval changes', () => {
-      service.update(10, true, onTick);
-      expect(service.intervalSeconds).toBe(10);
+            vi.advanceTimersByTime(2000);
+            expect(onTick).toHaveBeenCalledTimes(1);
+        });
 
-      service.update(2, true, onTick);
-      expect(service.intervalSeconds).toBe(2);
+        it('stops the timer when visibility transitions to hidden', () => {
+            service.update(5, true, onTick);
+            vi.advanceTimersByTime(5000);
+            expect(onTick).toHaveBeenCalledTimes(1);
 
-      jasmine.clock().tick(2_000);
-      expect(onTick).toHaveBeenCalledTimes(1);
-    });
+            service.update(5, false, onTick);
+            expect(service.isRunning).toBe(false);
 
-    it('stops the timer when visibility transitions to hidden', () => {
-      service.update(5, true, onTick);
-      jasmine.clock().tick(5_000);
-      expect(onTick).toHaveBeenCalledTimes(1);
+            vi.advanceTimersByTime(60000);
+            expect(onTick).toHaveBeenCalledTimes(1); // no further fires
+        });
 
-      service.update(5, false, onTick);
-      expect(service.isRunning).toBeFalse();
+        it('resumes the timer when visibility transitions back to visible', () => {
+            service.update(5, false, onTick);
+            expect(service.isRunning).toBe(false);
 
-      jasmine.clock().tick(60_000);
-      expect(onTick).toHaveBeenCalledTimes(1); // no further fires
-    });
+            service.update(5, true, onTick);
+            expect(service.isRunning).toBe(true);
 
-    it('resumes the timer when visibility transitions back to visible', () => {
-      service.update(5, false, onTick);
-      expect(service.isRunning).toBeFalse();
-
-      service.update(5, true, onTick);
-      expect(service.isRunning).toBeTrue();
-
-      jasmine.clock().tick(5_000);
-      expect(onTick).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('cleanup', () => {
-    it('clears the interval on ngOnDestroy', () => {
-      service.update(5, true, onTick);
-      service.ngOnDestroy();
-
-      expect(service.isRunning).toBeFalse();
-      jasmine.clock().tick(60_000);
-      expect(onTick).not.toHaveBeenCalled();
+            vi.advanceTimersByTime(5000);
+            expect(onTick).toHaveBeenCalledTimes(1);
+        });
     });
 
-    it('is safe to call stop() multiple times', () => {
-      service.update(5, true, onTick);
-      service.stop();
-      service.stop();
-      expect(service.isRunning).toBeFalse();
-    });
+    describe('cleanup', () => {
+        it('clears the interval on ngOnDestroy', () => {
+            service.update(5, true, onTick);
+            service.ngOnDestroy();
 
-    it('is safe to call stop() when no timer was started', () => {
-      expect(() => service.stop()).not.toThrow();
-      expect(service.isRunning).toBeFalse();
+            expect(service.isRunning).toBe(false);
+            vi.advanceTimersByTime(60000);
+            expect(onTick).not.toHaveBeenCalled();
+        });
+
+        it('is safe to call stop() multiple times', () => {
+            service.update(5, true, onTick);
+            service.stop();
+            service.stop();
+            expect(service.isRunning).toBe(false);
+        });
+
+        it('is safe to call stop() when no timer was started', () => {
+            expect(() => service.stop()).not.toThrow();
+            expect(service.isRunning).toBe(false);
+        });
     });
-  });
 });
