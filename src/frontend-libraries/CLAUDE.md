@@ -166,14 +166,8 @@ unaffected — this is a test-runner-only defect. Symptom: a spec passes alone a
 as a second spec importing the same module joins the run, and `--isolate` does not help.
 Fields initialised from **node_modules** imports (Kendo SVG icons) are fine.
 
-**Upstream:** this is `angular/angular-cli#33728`, fixed by commit `0ffe2d2` in `@angular/build`
-**≥ 22.1.5** (and independently by Vite 8). This workspace runs `@angular/build` 22.0.4 with
-vite 7.3.5 — exactly the failing combination — and the 22.0.x line will not receive the fix.
-
-So the getter / constructor rule below stays in force until the workspace moves to the 22.1 line,
-which happens **in lockstep with Refinery Studio and as one bump**: every `@angular/*` package
-plus `@angular/build` and `@angular/cli` together, never `@angular/build` on its own. Once that
-lands, the conversions can be relaxed.
+**Upstream:** this is `angular/angular-cli#33728`. The rule stays until the workspace moves past
+the upstream fix, tracked in AB#5075.
 
 The twelve sites that were latent (green only because their modules were not in a lazy shared
 chunk) were converted in AB#5075, together with three further fields in the same modules that
