@@ -655,6 +655,15 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "testing": {
+              "aot": false,
+              "optimization": false,
+              "extractLicenses": false,
+              "polyfills": [
+                "zone.js",
+                "zone.js/testing"
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -685,24 +694,14 @@
           }
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "buildTarget": "legacy-demo-app:build:testing",
             "tsConfig": "projects/legacy-demo-app/tsconfig.spec.json",
-            "karmaConfig": "projects/legacy-demo-app/karma.conf.js",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "projects/legacy-demo-app/src/favicon.ico",
-              "projects/legacy-demo-app/src/assets"
-            ],
-            "styles": [
-              "@angular/material/prebuilt-themes/purple-green.css",
-              "projects/legacy-demo-app/src/styles.scss"
-            ],
-            "scripts": []
+            "runner": "vitest",
+            "setupFiles": [
+              "testing/vitest-setup.ts"
+            ]
           }
         },
         "lint": {
