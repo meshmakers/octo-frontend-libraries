@@ -3,63 +3,63 @@ import { CONFIGURATION_SERVICE, IConfigurationService } from './configuration.se
 import { AddInConfiguration } from '../shared/addInConfiguration';
 
 describe('CONFIGURATION_SERVICE', () => {
-    it('should be defined as an InjectionToken', () => {
-        expect(CONFIGURATION_SERVICE).toBeDefined();
+  it('should be defined as an InjectionToken', () => {
+    expect(CONFIGURATION_SERVICE).toBeDefined();
+  });
+
+  it('should allow providing a mock implementation', () => {
+    const mockConfig: AddInConfiguration = {
+      assetServices: 'https://api.example.com/',
+      issuer: 'https://auth.example.com/',
+      botServices: 'https://bot.example.com/',
+      communicationServices: 'https://comm.example.com/',
+      meshAdapterUrl: 'https://mesh.example.com/',
+      aiServices: 'https://ai.example.com/',
+      reportingServices: 'https://reporting.example.com/',
+      crateDbAdminUrl: 'https://crate.example.com/',
+      grafanaUrl: 'https://grafana.example.com/',
+      systemTenantId: 'system',
+      clientId: 'test-client',
+      redirectUri: 'https://app.example.com/',
+      postLogoutRedirectUri: 'https://app.example.com/logout'
+    };
+
+    const mockConfigService: IConfigurationService = {
+      config: mockConfig,
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
+      ]
     });
 
-    it('should allow providing a mock implementation', () => {
-        const mockConfig: AddInConfiguration = {
-            assetServices: 'https://api.example.com/',
-            issuer: 'https://auth.example.com/',
-            botServices: 'https://bot.example.com/',
-            communicationServices: 'https://comm.example.com/',
-            meshAdapterUrl: 'https://mesh.example.com/',
-            aiServices: 'https://ai.example.com/',
-            reportingServices: 'https://reporting.example.com/',
-            crateDbAdminUrl: 'https://crate.example.com/',
-            grafanaUrl: 'https://grafana.example.com/',
-            systemTenantId: 'system',
-            clientId: 'test-client',
-            redirectUri: 'https://app.example.com/',
-            postLogoutRedirectUri: 'https://app.example.com/logout'
-        };
+    const service = TestBed.inject(CONFIGURATION_SERVICE);
+    expect(service).toBeTruthy();
+    expect(service.config).toBe(mockConfig);
+  });
 
-        const mockConfigService: IConfigurationService = {
-            config: mockConfig,
-            loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue(undefined)
-        };
+  it('should support async config loading', async () => {
+    let configLoaded = false;
 
-        TestBed.configureTestingModule({
-            providers: [
-                { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
-            ]
-        });
+    const mockConfigService: IConfigurationService = {
+      config: {} as AddInConfiguration,
+      loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockImplementation(async () => {
+        configLoaded = true;
+      })
+    };
 
-        const service = TestBed.inject(CONFIGURATION_SERVICE);
-        expect(service).toBeTruthy();
-        expect(service.config).toBe(mockConfig);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
+      ]
     });
 
-    it('should support async config loading', async () => {
-        let configLoaded = false;
+    const service = TestBed.inject(CONFIGURATION_SERVICE);
+    await service.loadConfigAsync();
 
-        const mockConfigService: IConfigurationService = {
-            config: {} as AddInConfiguration,
-            loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockImplementation(async () => {
-                configLoaded = true;
-            })
-        };
-
-        TestBed.configureTestingModule({
-            providers: [
-                { provide: CONFIGURATION_SERVICE, useValue: mockConfigService }
-            ]
-        });
-
-        const service = TestBed.inject(CONFIGURATION_SERVICE);
-        await service.loadConfigAsync();
-
-        expect(configLoaded).toBe(true);
-        expect(mockConfigService.loadConfigAsync).toHaveBeenCalled();
-    });
+    expect(configLoaded).toBe(true);
+    expect(mockConfigService.loadConfigAsync).toHaveBeenCalled();
+  });
 });

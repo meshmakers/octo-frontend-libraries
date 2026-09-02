@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { GetProcessDiagramDtoGQL, GetProcessDiagramsDtoGQL, CreateProcessDiagramDtoGQL, UpdateProcessDiagramDtoGQL } from '@meshmakers/octo-process-diagrams';
@@ -16,159 +16,159 @@ import { ProcessWidgetConfig } from '../process-widget-config.model';
  * into streamDataArgs, and the unified result is mapped to QueryResultData.
  */
 describe('ProcessDataService — stream-data query binding', () => {
-    let service: ProcessDataService;
-    let queryExecutor: MockedObject<QueryExecutorService>;
-    let stateService: MockedObject<MeshBoardStateService>;
-    let variableService: MockedObject<MeshBoardVariableService>;
+  let service: ProcessDataService;
+  let queryExecutor: MockedObject<QueryExecutorService>;
+  let stateService: MockedObject<MeshBoardStateService>;
+  let variableService: MockedObject<MeshBoardVariableService>;
 
-    function sdResult(): QueryExecutionResult {
-        return {
-            family: 'streamData',
-            queryRtId: 'q1',
-            associatedCkTypeId: null,
-            columns: [{ attributePath: 'amount.value', attributeValueType: 'Double' }],
-            rows: [
-                {
-                    __typename: 'StreamDataQueryRow',
-                    rtId: 'entity-1',
-                    cells: [
-                        { attributePath: 'window_start', value: '2026-01-01T00:00:00Z' },
-                        { attributePath: 'amount.value', value: 42 }
-                    ]
-                }
-            ],
-            totalCount: 1,
-            hasNextPage: false,
-            endCursor: null
-        };
-    }
+  function sdResult(): QueryExecutionResult {
+    return {
+      family: 'streamData',
+      queryRtId: 'q1',
+      associatedCkTypeId: null,
+      columns: [{ attributePath: 'amount.value', attributeValueType: 'Double' }],
+      rows: [
+        {
+          __typename: 'StreamDataQueryRow',
+          rtId: 'entity-1',
+          cells: [
+            { attributePath: 'window_start', value: '2026-01-01T00:00:00Z' },
+            { attributePath: 'amount.value', value: 42 }
+          ]
+        }
+      ],
+      totalCount: 1,
+      hasNextPage: false,
+      endCursor: null
+    };
+  }
 
-    function baseConfig(): ProcessWidgetConfig {
-        return {
-            id: 'w1',
-            type: 'process',
-            title: 'Process',
-            col: 1,
-            row: 1,
-            colSpan: 4,
-            rowSpan: 3,
-            dataSource: { type: 'static', data: null },
-            fitToBounds: true,
-            allowZoom: false,
-            allowPan: false,
-            showToolbar: false,
-            initialZoom: 1,
-            dataBindingMode: 'persistentQuery',
-            bindingQueryRtId: 'q1',
-            bindingQueryFamily: 'streamData'
-        };
-    }
+  function baseConfig(): ProcessWidgetConfig {
+    return {
+      id: 'w1',
+      type: 'process',
+      title: 'Process',
+      col: 1,
+      row: 1,
+      colSpan: 4,
+      rowSpan: 3,
+      dataSource: { type: 'static', data: null },
+      fitToBounds: true,
+      allowZoom: false,
+      allowPan: false,
+      showToolbar: false,
+      initialZoom: 1,
+      dataBindingMode: 'persistentQuery',
+      bindingQueryRtId: 'q1',
+      bindingQueryFamily: 'streamData'
+    };
+  }
 
-    beforeEach(() => {
-        queryExecutor = {
-            execute: vi.fn().mockName("QueryExecutorService.execute")
-        } as unknown as MockedObject<QueryExecutorService>;
-        queryExecutor.execute.mockReturnValue(of(sdResult()) as ReturnType<QueryExecutorService['execute']>);
+  beforeEach(() => {
+    queryExecutor = {
+      execute: vi.fn().mockName('QueryExecutorService.execute')
+    } as unknown as MockedObject<QueryExecutorService>;
+    queryExecutor.execute.mockReturnValue(of(sdResult()) as ReturnType<QueryExecutorService['execute']>);
 
-        stateService = {
-            resolveStreamDataTimeArgs: vi.fn().mockName("MeshBoardStateService.resolveStreamDataTimeArgs"),
-            resolveStreamDataRtIds: vi.fn().mockName("MeshBoardStateService.resolveStreamDataRtIds"),
-            getVariables: vi.fn().mockName("MeshBoardStateService.getVariables")
-        } as unknown as MockedObject<MeshBoardStateService>;
-        stateService.resolveStreamDataTimeArgs.mockReturnValue(undefined);
-        stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
-        stateService.getVariables.mockReturnValue([]);
+    stateService = {
+      resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
+      resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables')
+    } as unknown as MockedObject<MeshBoardStateService>;
+    stateService.resolveStreamDataTimeArgs.mockReturnValue(undefined);
+    stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
+    stateService.getVariables.mockReturnValue([]);
 
-        variableService = {
-            convertToFieldFilterDto: vi.fn().mockName("MeshBoardVariableService.convertToFieldFilterDto")
-        } as unknown as MockedObject<MeshBoardVariableService>;
-        variableService.convertToFieldFilterDto.mockReturnValue(undefined);
+    variableService = {
+      convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
+    } as unknown as MockedObject<MeshBoardVariableService>;
+    variableService.convertToFieldFilterDto.mockReturnValue(undefined);
 
-        const gqlStub = {} as unknown;
+    const gqlStub = {} as unknown;
 
-        TestBed.configureTestingModule({
-            providers: [
-                ProcessDataService,
-                { provide: QueryExecutorService, useValue: queryExecutor },
-                { provide: MeshBoardStateService, useValue: stateService },
-                { provide: MeshBoardVariableService, useValue: variableService },
-                { provide: MeshBoardDataService, useValue: {} },
-                { provide: GetProcessDiagramDtoGQL, useValue: gqlStub },
-                { provide: GetProcessDiagramsDtoGQL, useValue: gqlStub },
-                { provide: CreateProcessDiagramDtoGQL, useValue: gqlStub },
-                { provide: UpdateProcessDiagramDtoGQL, useValue: gqlStub }
-            ]
-        });
-
-        service = TestBed.inject(ProcessDataService);
+    TestBed.configureTestingModule({
+      providers: [
+        ProcessDataService,
+        { provide: QueryExecutorService, useValue: queryExecutor },
+        { provide: MeshBoardStateService, useValue: stateService },
+        { provide: MeshBoardVariableService, useValue: variableService },
+        { provide: MeshBoardDataService, useValue: {} },
+        { provide: GetProcessDiagramDtoGQL, useValue: gqlStub },
+        { provide: GetProcessDiagramsDtoGQL, useValue: gqlStub },
+        { provide: CreateProcessDiagramDtoGQL, useValue: gqlStub },
+        { provide: UpdateProcessDiagramDtoGQL, useValue: gqlStub }
+      ]
     });
 
-    it('routes the bound query through the executor with the persisted family', async () => {
-        const result = await service.loadBoundData(baseConfig());
+    service = TestBed.inject(ProcessDataService);
+  });
 
-        expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
-        const args = vi.mocked(queryExecutor.execute).mock.lastCall!;
-        expect(args[0]).toBe('streamData');
-        expect(args[1]).toBe('q1');
+  it('routes the bound query through the executor with the persisted family', async () => {
+    const result = await service.loadBoundData(baseConfig());
 
-        expect(result?.type).toBe('query');
-        const rows = result?.queryResult?.rows ?? [];
-        expect(rows.length).toBe(1);
-        // Cells are mapped from the unified QueryCell[] into a Map keyed by attributePath.
-        expect(rows[0].cells.get('amount.value')).toBe(42);
-        expect(result?.queryResult?.totalCount).toBe(1);
-    });
+    expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
+    const args = vi.mocked(queryExecutor.execute).mock.lastCall!;
+    expect(args[0]).toBe('streamData');
+    expect(args[1]).toBe('q1');
 
-    it('binds the active time filter and asset scope into streamDataArgs', async () => {
-        const from = new Date('2026-01-01T00:00:00Z');
-        const to = new Date('2026-02-01T00:00:00Z');
-        stateService.resolveStreamDataTimeArgs.mockReturnValue({ from, to });
-        stateService.resolveStreamDataRtIds.mockReturnValue(['rt-1', 'rt-2']);
+    expect(result?.type).toBe('query');
+    const rows = result?.queryResult?.rows ?? [];
+    expect(rows.length).toBe(1);
+    // Cells are mapped from the unified QueryCell[] into a Map keyed by attributePath.
+    expect(rows[0].cells.get('amount.value')).toBe(42);
+    expect(result?.queryResult?.totalCount).toBe(1);
+  });
 
-        const config = baseConfig();
-        config.bindingEntitySelectorId = 'mp';
+  it('binds the active time filter and asset scope into streamDataArgs', async () => {
+    const from = new Date('2026-01-01T00:00:00Z');
+    const to = new Date('2026-02-01T00:00:00Z');
+    stateService.resolveStreamDataTimeArgs.mockReturnValue({ from, to });
+    stateService.resolveStreamDataRtIds.mockReturnValue(['rt-1', 'rt-2']);
 
-        await service.loadBoundData(config);
+    const config = baseConfig();
+    config.bindingEntitySelectorId = 'mp';
 
-        expect(stateService.resolveStreamDataRtIds).toHaveBeenCalledWith('mp');
-        const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
-        expect(opts?.streamDataArgs).toEqual({ from, to, rtIds: ['rt-1', 'rt-2'] });
-    });
+    await service.loadBoundData(config);
 
-    it('honors the time-filter opt-out', async () => {
-        const config = baseConfig();
-        config.bindingIgnoreTimeFilter = true;
+    expect(stateService.resolveStreamDataRtIds).toHaveBeenCalledWith('mp');
+    const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
+    expect(opts?.streamDataArgs).toEqual({ from, to, rtIds: ['rt-1', 'rt-2'] });
+  });
 
-        await service.loadBoundData(config);
+  it('honors the time-filter opt-out', async () => {
+    const config = baseConfig();
+    config.bindingIgnoreTimeFilter = true;
 
-        expect(stateService.resolveStreamDataTimeArgs).toHaveBeenCalledWith(true);
-        // No time args and no rtIds → no streamDataArgs override.
-        const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
-        expect(opts?.streamDataArgs).toBeUndefined();
-    });
+    await service.loadBoundData(config);
 
-    it('still maps a runtime query result (no streamDataArgs)', async () => {
-        queryExecutor.execute.mockReturnValue(of({
-            ...sdResult(),
-            family: 'runtime',
-            rows: [
-                {
-                    __typename: 'RtSimpleQueryRow',
-                    rtId: 'e-9',
-                    ckTypeId: 'OctoSdk/Thing',
-                    cells: [{ attributePath: 'amount.value', value: 7 }]
-                }
-            ]
-        }) as ReturnType<QueryExecutorService['execute']>);
+    expect(stateService.resolveStreamDataTimeArgs).toHaveBeenCalledWith(true);
+    // No time args and no rtIds → no streamDataArgs override.
+    const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
+    expect(opts?.streamDataArgs).toBeUndefined();
+  });
 
-        const config = baseConfig();
-        config.bindingQueryFamily = 'runtime';
+  it('still maps a runtime query result (no streamDataArgs)', async () => {
+    queryExecutor.execute.mockReturnValue(of({
+      ...sdResult(),
+      family: 'runtime',
+      rows: [
+        {
+          __typename: 'RtSimpleQueryRow',
+          rtId: 'e-9',
+          ckTypeId: 'OctoSdk/Thing',
+          cells: [{ attributePath: 'amount.value', value: 7 }]
+        }
+      ]
+    }) as ReturnType<QueryExecutorService['execute']>);
 
-        const result = await service.loadBoundData(config);
+    const config = baseConfig();
+    config.bindingQueryFamily = 'runtime';
 
-        const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
-        expect(opts?.streamDataArgs).toBeUndefined();
-        expect(result?.queryResult?.rows[0].cells.get('amount.value')).toBe(7);
-        expect(result?.queryResult?.rows[0].rtId).toBe('e-9');
-    });
+    const result = await service.loadBoundData(config);
+
+    const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
+    expect(opts?.streamDataArgs).toBeUndefined();
+    expect(result?.queryResult?.rows[0].cells.get('amount.value')).toBe(7);
+    expect(result?.queryResult?.rows[0].rtId).toBe('e-9');
+  });
 });

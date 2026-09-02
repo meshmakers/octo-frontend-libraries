@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { MeshBoardStateService } from './meshboard-state.service';
 import { MeshBoardPersistenceService, PersistedMeshBoard, PersistedWidget } from './meshboard-persistence.service';
@@ -10,1145 +10,1145 @@ import { AnyWidgetConfig, MeshBoardConfig, MeshBoardVariable } from '../models/m
  * Creates a mock PersistedMeshBoard for testing.
  */
 function createMockPersistedMeshBoard(overrides: Partial<PersistedMeshBoard> = {}): PersistedMeshBoard {
-    return {
-        rtId: 'test-board',
-        ckTypeId: 'System.UI/MeshBoard',
-        name: 'Test Board',
-        description: 'Test description',
-        columns: 6,
-        rowHeight: 200,
-        gap: 16,
-        ...overrides
-    };
+  return {
+    rtId: 'test-board',
+    ckTypeId: 'System.UI/MeshBoard',
+    name: 'Test Board',
+    description: 'Test description',
+    columns: 6,
+    rowHeight: 200,
+    gap: 16,
+    ...overrides
+  };
 }
 
 /**
  * Creates a mock PersistedWidget for testing.
  */
 function createMockPersistedWidget(rtId: string): PersistedWidget {
-    return {
-        rtId,
-        ckTypeId: 'System.UI/Widget',
-        name: `Widget ${rtId}`,
-        type: 'kpi',
-        col: 1,
-        row: 1,
-        colSpan: 2,
-        rowSpan: 2,
-        dataSourceType: 'static',
-        config: '{}'
-    };
+  return {
+    rtId,
+    ckTypeId: 'System.UI/Widget',
+    name: `Widget ${rtId}`,
+    type: 'kpi',
+    col: 1,
+    row: 1,
+    colSpan: 2,
+    rowSpan: 2,
+    dataSourceType: 'static',
+    config: '{}'
+  };
 }
 
 /**
  * Creates a minimal mock widget config for testing.
  */
 function createMockWidget(id: string, title = `Widget ${id}`): AnyWidgetConfig {
-    return {
-        id,
-        title,
-        type: 'kpi',
-        col: 1,
-        row: 1,
-        colSpan: 2,
-        rowSpan: 2,
-        dataSource: { type: 'static' }
-    } as AnyWidgetConfig;
+  return {
+    id,
+    title,
+    type: 'kpi',
+    col: 1,
+    row: 1,
+    colSpan: 2,
+    rowSpan: 2,
+    dataSource: { type: 'static' }
+  } as AnyWidgetConfig;
 }
 
 /**
  * Creates a mock MeshBoardConfig for testing.
  */
 function createMockConfig(overrides: Partial<MeshBoardConfig> = {}): MeshBoardConfig {
-    return {
-        id: 'test-board',
-        name: 'Test Board',
-        description: 'Test description',
-        columns: 6,
-        rowHeight: 200,
-        gap: 16,
-        widgets: [],
-        ...overrides
-    };
+  return {
+    id: 'test-board',
+    name: 'Test Board',
+    description: 'Test description',
+    columns: 6,
+    rowHeight: 200,
+    gap: 16,
+    widgets: [],
+    ...overrides
+  };
 }
 
 describe('MeshBoardStateService', () => {
-    let service: MeshBoardStateService;
-    let mockPersistenceService: MockedObject<MeshBoardPersistenceService>;
-    let mockGridService: MockedObject<MeshBoardGridService>;
-    let mockCkModelService: MockedObject<CkModelService>;
+  let service: MeshBoardStateService;
+  let mockPersistenceService: MockedObject<MeshBoardPersistenceService>;
+  let mockGridService: MockedObject<MeshBoardGridService>;
+  let mockCkModelService: MockedObject<CkModelService>;
 
-    beforeEach(() => {
-        mockPersistenceService = {
-            getMeshBoards: vi.fn().mockName("MeshBoardPersistenceService.getMeshBoards"),
-            getMeshBoardWithWidgets: vi.fn().mockName("MeshBoardPersistenceService.getMeshBoardWithWidgets"),
-            createMeshBoard: vi.fn().mockName("MeshBoardPersistenceService.createMeshBoard"),
-            updateMeshBoard: vi.fn().mockName("MeshBoardPersistenceService.updateMeshBoard"),
-            deleteMeshBoard: vi.fn().mockName("MeshBoardPersistenceService.deleteMeshBoard"),
-            renameMeshBoard: vi.fn().mockName("MeshBoardPersistenceService.renameMeshBoard"),
-            toMeshBoardConfig: vi.fn().mockName("MeshBoardPersistenceService.toMeshBoardConfig")
-        } as unknown as MockedObject<MeshBoardPersistenceService>;
+  beforeEach(() => {
+    mockPersistenceService = {
+      getMeshBoards: vi.fn().mockName('MeshBoardPersistenceService.getMeshBoards'),
+      getMeshBoardWithWidgets: vi.fn().mockName('MeshBoardPersistenceService.getMeshBoardWithWidgets'),
+      createMeshBoard: vi.fn().mockName('MeshBoardPersistenceService.createMeshBoard'),
+      updateMeshBoard: vi.fn().mockName('MeshBoardPersistenceService.updateMeshBoard'),
+      deleteMeshBoard: vi.fn().mockName('MeshBoardPersistenceService.deleteMeshBoard'),
+      renameMeshBoard: vi.fn().mockName('MeshBoardPersistenceService.renameMeshBoard'),
+      toMeshBoardConfig: vi.fn().mockName('MeshBoardPersistenceService.toMeshBoardConfig')
+    } as unknown as MockedObject<MeshBoardPersistenceService>;
 
-        mockGridService = {
-            resolveOverlaps: vi.fn().mockName("MeshBoardGridService.resolveOverlaps")
-        } as unknown as MockedObject<MeshBoardGridService>;
-        mockGridService.resolveOverlaps.mockReturnValue([]);
+    mockGridService = {
+      resolveOverlaps: vi.fn().mockName('MeshBoardGridService.resolveOverlaps')
+    } as unknown as MockedObject<MeshBoardGridService>;
+    mockGridService.resolveOverlaps.mockReturnValue([]);
 
-        mockCkModelService = {
-            isModelAvailableWithMinVersion: vi.fn().mockName("CkModelService.isModelAvailableWithMinVersion")
-        } as unknown as MockedObject<CkModelService>;
+    mockCkModelService = {
+      isModelAvailableWithMinVersion: vi.fn().mockName('CkModelService.isModelAvailableWithMinVersion')
+    } as unknown as MockedObject<CkModelService>;
 
-        TestBed.configureTestingModule({
-            providers: [
-                MeshBoardStateService,
-                { provide: MeshBoardPersistenceService, useValue: mockPersistenceService },
-                { provide: MeshBoardGridService, useValue: mockGridService },
-                { provide: CkModelService, useValue: mockCkModelService }
-            ]
-        });
-
-        service = TestBed.inject(MeshBoardStateService);
+    TestBed.configureTestingModule({
+      providers: [
+        MeshBoardStateService,
+        { provide: MeshBoardPersistenceService, useValue: mockPersistenceService },
+        { provide: MeshBoardGridService, useValue: mockGridService },
+        { provide: CkModelService, useValue: mockCkModelService }
+      ]
     });
 
-    it('should be created', () => {
-        expect(service).toBeTruthy();
+    service = TestBed.inject(MeshBoardStateService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  describe('initial state', () => {
+    it('should have default config', () => {
+      const config = service.getConfig();
+
+      expect(config.id).toBe('demo-meshboard');
+      expect(config.name).toBe('Demo MeshBoard');
+      expect(config.columns).toBe(6);
+      expect(config.rowHeight).toBe(200);
+      expect(config.gap).toBe(16);
+      expect(config.widgets).toEqual([]);
     });
 
-    describe('initial state', () => {
-        it('should have default config', () => {
-            const config = service.getConfig();
-
-            expect(config.id).toBe('demo-meshboard');
-            expect(config.name).toBe('Demo MeshBoard');
-            expect(config.columns).toBe(6);
-            expect(config.rowHeight).toBe(200);
-            expect(config.gap).toBe(16);
-            expect(config.widgets).toEqual([]);
-        });
-
-        it('should not be loading initially', () => {
-            expect(service.isLoading()).toBe(false);
-        });
-
-        it('should have no persisted ID initially', () => {
-            expect(service.persistedMeshBoardId()).toBeNull();
-        });
-
-        it('should have empty available meshboards', () => {
-            expect(service.availableMeshBoards()).toEqual([]);
-        });
-
-        it('should have null model availability initially', () => {
-            expect(service.isModelAvailable()).toBeNull();
-        });
+    it('should not be loading initially', () => {
+      expect(service.isLoading()).toBe(false);
     });
 
-    describe('setConfig / getConfig', () => {
-        it('should set and get config', () => {
-            const newConfig = createMockConfig({ name: 'New Board' });
-
-            service.setConfig(newConfig);
-
-            expect(service.getConfig().name).toBe('New Board');
-        });
-
-        it('should update meshBoardConfig signal', () => {
-            const newConfig = createMockConfig({ name: 'Signal Test' });
-
-            service.setConfig(newConfig);
-
-            expect(service.meshBoardConfig().name).toBe('Signal Test');
-        });
+    it('should have no persisted ID initially', () => {
+      expect(service.persistedMeshBoardId()).toBeNull();
     });
 
-    describe('updateConfig', () => {
-        it('should update config with updater function', () => {
-            service.updateConfig(config => ({
-                ...config,
-                name: 'Updated Name'
-            }));
-
-            expect(service.getConfig().name).toBe('Updated Name');
-        });
-
-        it('should preserve other config values', () => {
-            const original = service.getConfig();
-
-            service.updateConfig(config => ({
-                ...config,
-                name: 'Changed'
-            }));
-
-            const updated = service.getConfig();
-            expect(updated.columns).toBe(original.columns);
-            expect(updated.rowHeight).toBe(original.rowHeight);
-        });
+    it('should have empty available meshboards', () => {
+      expect(service.availableMeshBoards()).toEqual([]);
     });
 
-    describe('Widget Management', () => {
-        describe('addWidget', () => {
-            it('should add widget to config', () => {
-                const widget = createMockWidget('w1');
+    it('should have null model availability initially', () => {
+      expect(service.isModelAvailable()).toBeNull();
+    });
+  });
 
-                service.addWidget(widget);
+  describe('setConfig / getConfig', () => {
+    it('should set and get config', () => {
+      const newConfig = createMockConfig({ name: 'New Board' });
 
-                expect(service.widgets().length).toBe(1);
-                expect(service.widgets()[0].id).toBe('w1');
-            });
+      service.setConfig(newConfig);
 
-            it('should preserve existing widgets', () => {
-                service.addWidget(createMockWidget('w1'));
-                service.addWidget(createMockWidget('w2'));
-
-                expect(service.widgets().length).toBe(2);
-            });
-        });
-
-        describe('removeWidget', () => {
-            it('should remove widget by ID', () => {
-                service.addWidget(createMockWidget('w1'));
-                service.addWidget(createMockWidget('w2'));
-
-                service.removeWidget('w1');
-
-                expect(service.widgets().length).toBe(1);
-                expect(service.widgets()[0].id).toBe('w2');
-            });
-
-            it('should do nothing if widget not found', () => {
-                service.addWidget(createMockWidget('w1'));
-
-                service.removeWidget('nonexistent');
-
-                expect(service.widgets().length).toBe(1);
-            });
-        });
-
-        describe('updateWidget', () => {
-            it('should update specific widget', () => {
-                service.addWidget(createMockWidget('w1', 'Original'));
-                service.addWidget(createMockWidget('w2', 'Other'));
-
-                service.updateWidget('w1', w => ({ ...w, title: 'Updated' }));
-
-                expect(service.getWidget('w1')?.title).toBe('Updated');
-                expect(service.getWidget('w2')?.title).toBe('Other');
-            });
-
-            it('should not affect other widgets', () => {
-                service.addWidget(createMockWidget('w1'));
-                service.addWidget(createMockWidget('w2'));
-
-                service.updateWidget('w1', w => ({ ...w, col: 5 }));
-
-                expect(service.getWidget('w2')?.col).toBe(1);
-            });
-        });
-
-        describe('getWidget', () => {
-            it('should return widget by ID', () => {
-                service.addWidget(createMockWidget('w1', 'Test Widget'));
-
-                const widget = service.getWidget('w1');
-
-                expect(widget).toBeDefined();
-                expect(widget?.title).toBe('Test Widget');
-            });
-
-            it('should return undefined for nonexistent widget', () => {
-                expect(service.getWidget('nonexistent')).toBeUndefined();
-            });
-        });
-
-        describe('widgets signal', () => {
-            it('should be reactive', () => {
-                expect(service.widgets().length).toBe(0);
-
-                service.addWidget(createMockWidget('w1'));
-
-                expect(service.widgets().length).toBe(1);
-            });
-        });
+      expect(service.getConfig().name).toBe('New Board');
     });
 
-    describe('Settings Management', () => {
-        describe('updateSettings', () => {
-            it('should update all settings', () => {
-                service.updateSettings({
-                    name: 'New Name',
-                    description: 'New Description',
-                    columns: 8,
-                    rowHeight: 250,
-                    gap: 20
-                });
+    it('should update meshBoardConfig signal', () => {
+      const newConfig = createMockConfig({ name: 'Signal Test' });
 
-                const config = service.getConfig();
-                expect(config.name).toBe('New Name');
-                expect(config.description).toBe('New Description');
-                expect(config.columns).toBe(8);
-                expect(config.rowHeight).toBe(250);
-                expect(config.gap).toBe(20);
-            });
+      service.setConfig(newConfig);
 
-            it('should update rtWellKnownName', () => {
-                service.updateSettings({
-                    name: 'Test',
-                    description: '',
-                    rtWellKnownName: 'my-board',
-                    columns: 6,
-                    rowHeight: 200,
-                    gap: 16
-                });
+      expect(service.meshBoardConfig().name).toBe('Signal Test');
+    });
+  });
 
-                expect(service.getConfig().rtWellKnownName).toBe('my-board');
-            });
+  describe('updateConfig', () => {
+    it('should update config with updater function', () => {
+      service.updateConfig(config => ({
+        ...config,
+        name: 'Updated Name'
+      }));
 
-            it('should preserve variables when not specified', () => {
-                const variable: MeshBoardVariable = {
-                    name: 'test',
-                    type: 'string',
-                    source: 'static',
-                    value: 'value'
-                };
-                service.updateVariables([variable]);
-
-                service.updateSettings({
-                    name: 'Test',
-                    description: '',
-                    columns: 6,
-                    rowHeight: 200,
-                    gap: 16
-                });
-
-                expect(service.getVariables().length).toBe(1);
-            });
-
-            it('should update variables when specified', () => {
-                const newVariable: MeshBoardVariable = {
-                    name: 'newVar',
-                    type: 'number',
-                    source: 'static',
-                    value: '42'
-                };
-
-                service.updateSettings({
-                    name: 'Test',
-                    description: '',
-                    columns: 6,
-                    rowHeight: 200,
-                    gap: 16,
-                    variables: [newVariable]
-                });
-
-                expect(service.getVariables()[0].name).toBe('newVar');
-            });
-
-            it('should clear time filter variables when time filter disabled', () => {
-                // First set some time filter variables
-                service.setTimeFilterVariables('2024-01-01', '2024-12-31');
-                expect(service.getVariables().length).toBe(2);
-
-                // Disable time filter
-                service.updateSettings({
-                    name: 'Test',
-                    description: '',
-                    columns: 6,
-                    rowHeight: 200,
-                    gap: 16,
-                    timeFilter: { enabled: false }
-                });
-
-                expect(service.getVariables().length).toBe(0);
-            });
-        });
-
-        describe('getCurrentSettings', () => {
-            it('should return current settings', () => {
-                service.updateSettings({
-                    name: 'Current',
-                    description: 'Desc',
-                    columns: 4,
-                    rowHeight: 150,
-                    gap: 8
-                });
-
-                const settings = service.getCurrentSettings();
-
-                expect(settings.name).toBe('Current');
-                expect(settings.description).toBe('Desc');
-                expect(settings.columns).toBe(4);
-                expect(settings.rowHeight).toBe(150);
-                expect(settings.gap).toBe(8);
-            });
-
-            it('should return empty array for variables if undefined', () => {
-                const settings = service.getCurrentSettings();
-                expect(settings.variables).toEqual([]);
-            });
-        });
-
-        describe('timeZoneMode', () => {
-            it('defaults to local when none is configured', () => {
-                expect(service.timeZoneMode()).toBe('local');
-            });
-
-            it('reflects an explicit utc mode set via updateSettings', () => {
-                service.updateSettings({
-                    name: 'B',
-                    description: '',
-                    columns: 4,
-                    rowHeight: 150,
-                    gap: 8,
-                    timeZoneMode: 'utc'
-                });
-                expect(service.timeZoneMode()).toBe('utc');
-                expect(service.getCurrentSettings().timeZoneMode).toBe('utc');
-            });
-
-            it('preserves the existing mode when updateSettings omits it', () => {
-                service.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
-                service.updateSettings({ name: 'C', description: '', columns: 4, rowHeight: 150, gap: 8 });
-                expect(service.timeZoneMode()).toBe('utc');
-            });
-
-            it('reflects an explicit IANA zone set via updateSettings (AB#4190)', () => {
-                service.updateSettings({
-                    name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'Europe/Vienna'
-                });
-                expect(service.timeZoneMode()).toBe('Europe/Vienna');
-            });
-        });
-
-        describe('resolveStreamDataTimeZone', () => {
-            it('returns undefined for local (browser zone has no server meaning)', () => {
-                expect(service.resolveStreamDataTimeZone()).toBeUndefined();
-            });
-
-            it('maps utc to "UTC"', () => {
-                service.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
-                expect(service.resolveStreamDataTimeZone()).toBe('UTC');
-            });
-
-            it('passes an IANA id straight through (AB#4190)', () => {
-                service.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'Europe/Vienna' });
-                expect(service.resolveStreamDataTimeZone()).toBe('Europe/Vienna');
-            });
-        });
+      expect(service.getConfig().name).toBe('Updated Name');
     });
 
-    describe('Variable Management', () => {
-        const testVariable: MeshBoardVariable = {
-            name: 'testVar',
-            type: 'string',
-            source: 'static',
-            value: 'testValue'
+    it('should preserve other config values', () => {
+      const original = service.getConfig();
+
+      service.updateConfig(config => ({
+        ...config,
+        name: 'Changed'
+      }));
+
+      const updated = service.getConfig();
+      expect(updated.columns).toBe(original.columns);
+      expect(updated.rowHeight).toBe(original.rowHeight);
+    });
+  });
+
+  describe('Widget Management', () => {
+    describe('addWidget', () => {
+      it('should add widget to config', () => {
+        const widget = createMockWidget('w1');
+
+        service.addWidget(widget);
+
+        expect(service.widgets().length).toBe(1);
+        expect(service.widgets()[0].id).toBe('w1');
+      });
+
+      it('should preserve existing widgets', () => {
+        service.addWidget(createMockWidget('w1'));
+        service.addWidget(createMockWidget('w2'));
+
+        expect(service.widgets().length).toBe(2);
+      });
+    });
+
+    describe('removeWidget', () => {
+      it('should remove widget by ID', () => {
+        service.addWidget(createMockWidget('w1'));
+        service.addWidget(createMockWidget('w2'));
+
+        service.removeWidget('w1');
+
+        expect(service.widgets().length).toBe(1);
+        expect(service.widgets()[0].id).toBe('w2');
+      });
+
+      it('should do nothing if widget not found', () => {
+        service.addWidget(createMockWidget('w1'));
+
+        service.removeWidget('nonexistent');
+
+        expect(service.widgets().length).toBe(1);
+      });
+    });
+
+    describe('updateWidget', () => {
+      it('should update specific widget', () => {
+        service.addWidget(createMockWidget('w1', 'Original'));
+        service.addWidget(createMockWidget('w2', 'Other'));
+
+        service.updateWidget('w1', w => ({ ...w, title: 'Updated' }));
+
+        expect(service.getWidget('w1')?.title).toBe('Updated');
+        expect(service.getWidget('w2')?.title).toBe('Other');
+      });
+
+      it('should not affect other widgets', () => {
+        service.addWidget(createMockWidget('w1'));
+        service.addWidget(createMockWidget('w2'));
+
+        service.updateWidget('w1', w => ({ ...w, col: 5 }));
+
+        expect(service.getWidget('w2')?.col).toBe(1);
+      });
+    });
+
+    describe('getWidget', () => {
+      it('should return widget by ID', () => {
+        service.addWidget(createMockWidget('w1', 'Test Widget'));
+
+        const widget = service.getWidget('w1');
+
+        expect(widget).toBeDefined();
+        expect(widget?.title).toBe('Test Widget');
+      });
+
+      it('should return undefined for nonexistent widget', () => {
+        expect(service.getWidget('nonexistent')).toBeUndefined();
+      });
+    });
+
+    describe('widgets signal', () => {
+      it('should be reactive', () => {
+        expect(service.widgets().length).toBe(0);
+
+        service.addWidget(createMockWidget('w1'));
+
+        expect(service.widgets().length).toBe(1);
+      });
+    });
+  });
+
+  describe('Settings Management', () => {
+    describe('updateSettings', () => {
+      it('should update all settings', () => {
+        service.updateSettings({
+          name: 'New Name',
+          description: 'New Description',
+          columns: 8,
+          rowHeight: 250,
+          gap: 20
+        });
+
+        const config = service.getConfig();
+        expect(config.name).toBe('New Name');
+        expect(config.description).toBe('New Description');
+        expect(config.columns).toBe(8);
+        expect(config.rowHeight).toBe(250);
+        expect(config.gap).toBe(20);
+      });
+
+      it('should update rtWellKnownName', () => {
+        service.updateSettings({
+          name: 'Test',
+          description: '',
+          rtWellKnownName: 'my-board',
+          columns: 6,
+          rowHeight: 200,
+          gap: 16
+        });
+
+        expect(service.getConfig().rtWellKnownName).toBe('my-board');
+      });
+
+      it('should preserve variables when not specified', () => {
+        const variable: MeshBoardVariable = {
+          name: 'test',
+          type: 'string',
+          source: 'static',
+          value: 'value'
+        };
+        service.updateVariables([variable]);
+
+        service.updateSettings({
+          name: 'Test',
+          description: '',
+          columns: 6,
+          rowHeight: 200,
+          gap: 16
+        });
+
+        expect(service.getVariables().length).toBe(1);
+      });
+
+      it('should update variables when specified', () => {
+        const newVariable: MeshBoardVariable = {
+          name: 'newVar',
+          type: 'number',
+          source: 'static',
+          value: '42'
         };
 
-        describe('getVariables', () => {
-            it('should return empty array when no variables', () => {
-                expect(service.getVariables()).toEqual([]);
-            });
-
-            it('should return all variables', () => {
-                service.addVariable(testVariable);
-                service.addVariable({ ...testVariable, name: 'var2' });
-
-                expect(service.getVariables().length).toBe(2);
-            });
+        service.updateSettings({
+          name: 'Test',
+          description: '',
+          columns: 6,
+          rowHeight: 200,
+          gap: 16,
+          variables: [newVariable]
         });
 
-        describe('getVariable', () => {
-            it('should return variable by name', () => {
-                service.addVariable(testVariable);
+        expect(service.getVariables()[0].name).toBe('newVar');
+      });
 
-                const result = service.getVariable('testVar');
+      it('should clear time filter variables when time filter disabled', () => {
+        // First set some time filter variables
+        service.setTimeFilterVariables('2024-01-01', '2024-12-31');
+        expect(service.getVariables().length).toBe(2);
 
-                expect(result).toBeDefined();
-                expect(result?.value).toBe('testValue');
-            });
-
-            it('should return undefined for nonexistent variable', () => {
-                expect(service.getVariable('nonexistent')).toBeUndefined();
-            });
+        // Disable time filter
+        service.updateSettings({
+          name: 'Test',
+          description: '',
+          columns: 6,
+          rowHeight: 200,
+          gap: 16,
+          timeFilter: { enabled: false }
         });
 
-        describe('addVariable', () => {
-            it('should add variable', () => {
-                service.addVariable(testVariable);
-
-                expect(service.getVariables().length).toBe(1);
-                expect(service.getVariables()[0].name).toBe('testVar');
-            });
-
-            it('should preserve existing variables', () => {
-                service.addVariable(testVariable);
-                service.addVariable({ ...testVariable, name: 'var2' });
-
-                expect(service.getVariables().length).toBe(2);
-            });
-        });
-
-        describe('removeVariable', () => {
-            it('should remove variable by name', () => {
-                service.addVariable(testVariable);
-                service.addVariable({ ...testVariable, name: 'var2' });
-
-                service.removeVariable('testVar');
-
-                expect(service.getVariables().length).toBe(1);
-                expect(service.getVariables()[0].name).toBe('var2');
-            });
-
-            it('should do nothing if variable not found', () => {
-                service.addVariable(testVariable);
-
-                service.removeVariable('nonexistent');
-
-                expect(service.getVariables().length).toBe(1);
-            });
-        });
-
-        describe('setVariableValue', () => {
-            it('should update variable value', () => {
-                service.addVariable(testVariable);
-
-                service.setVariableValue('testVar', 'newValue');
-
-                expect(service.getVariable('testVar')?.value).toBe('newValue');
-            });
-
-            it('should not create variable if not exists', () => {
-                service.setVariableValue('nonexistent', 'value');
-
-                expect(service.getVariable('nonexistent')).toBeUndefined();
-            });
-
-            it('should preserve other variable properties', () => {
-                service.addVariable({ ...testVariable, label: 'Test Label' });
-
-                service.setVariableValue('testVar', 'newValue');
-
-                const updated = service.getVariable('testVar');
-                expect(updated?.label).toBe('Test Label');
-                expect(updated?.type).toBe('string');
-            });
-        });
-
-        describe('updateVariables', () => {
-            it('should replace all variables', () => {
-                service.addVariable(testVariable);
-
-                const newVars: MeshBoardVariable[] = [
-                    { name: 'new1', type: 'number', source: 'static', value: '1' },
-                    { name: 'new2', type: 'boolean', source: 'static', value: 'true' }
-                ];
-
-                service.updateVariables(newVars);
-
-                expect(service.getVariables().length).toBe(2);
-                expect(service.getVariable('testVar')).toBeUndefined();
-                expect(service.getVariable('new1')).toBeDefined();
-            });
-        });
+        expect(service.getVariables().length).toBe(0);
+      });
     });
 
-    describe('Time Filter Management', () => {
-        describe('isTimeFilterEnabled', () => {
-            it('should return false when no time filter', () => {
-                expect(service.isTimeFilterEnabled()).toBe(false);
-            });
-
-            it('should return false when time filter disabled', () => {
-                service.updateTimeFilterConfig({ enabled: false });
-                expect(service.isTimeFilterEnabled()).toBe(false);
-            });
-
-            it('should return true when time filter enabled', () => {
-                service.updateTimeFilterConfig({ enabled: true });
-                expect(service.isTimeFilterEnabled()).toBe(true);
-            });
+    describe('getCurrentSettings', () => {
+      it('should return current settings', () => {
+        service.updateSettings({
+          name: 'Current',
+          description: 'Desc',
+          columns: 4,
+          rowHeight: 150,
+          gap: 8
         });
 
-        describe('getTimeFilterConfig', () => {
-            it('should return undefined when no config', () => {
-                expect(service.getTimeFilterConfig()).toBeUndefined();
-            });
+        const settings = service.getCurrentSettings();
 
-            it('should return config when set', () => {
-                service.updateTimeFilterConfig({ enabled: true });
+        expect(settings.name).toBe('Current');
+        expect(settings.description).toBe('Desc');
+        expect(settings.columns).toBe(4);
+        expect(settings.rowHeight).toBe(150);
+        expect(settings.gap).toBe(8);
+      });
 
-                const config = service.getTimeFilterConfig();
-                expect(config?.enabled).toBe(true);
-            });
-        });
-
-        describe('updateTimeFilterConfig', () => {
-            it('should set time filter config', () => {
-                service.updateTimeFilterConfig({
-                    enabled: true,
-                    selection: { type: 'year', year: 2024 }
-                });
-
-                const config = service.getTimeFilterConfig();
-                expect(config?.selection?.type).toBe('year');
-                expect(config?.selection?.year).toBe(2024);
-            });
-        });
-
-        describe('resolveCurrentTimeRange', () => {
-            it('should return null when time filter is undefined', () => {
-                expect(service.resolveCurrentTimeRange()).toBeNull();
-            });
-
-            it('should return null when time filter is disabled', () => {
-                service.updateTimeFilterConfig({
-                    enabled: false,
-                    selection: { type: 'year', year: 2024 }
-                });
-                expect(service.resolveCurrentTimeRange()).toBeNull();
-            });
-
-            it('should return null when no selection is set', () => {
-                service.updateTimeFilterConfig({ enabled: true });
-                expect(service.resolveCurrentTimeRange()).toBeNull();
-            });
-
-            it('should resolve year selection to a non-empty range', () => {
-                service.updateTimeFilterConfig({
-                    enabled: true,
-                    selection: { type: 'year', year: 2024 }
-                });
-
-                const range = service.resolveCurrentTimeRange();
-                expect(range).not.toBeNull();
-                expect(range?.from).toEqual(expect.any(Date));
-                expect(range?.to).toEqual(expect.any(Date));
-                // Range covers at least 364 days (DST edges allow for slight variance) —
-                // the picker resolves civil-calendar boundaries in the local zone.
-                const spanDays = (range!.to.getTime() - range!.from.getTime()) / (1000 * 60 * 60 * 24);
-                expect(spanDays).toBeGreaterThan(364);
-            });
-
-            it('should convert ISO-string customFrom/customTo to Date before resolving', () => {
-                service.updateTimeFilterConfig({
-                    enabled: true,
-                    selection: {
-                        type: 'custom',
-                        customFrom: '2024-06-01T00:00:00Z',
-                        customTo: '2024-06-30T23:59:59Z'
-                    }
-                });
-
-                const range = service.resolveCurrentTimeRange();
-                expect(range).not.toBeNull();
-                expect(range?.from).toEqual(expect.any(Date));
-                expect(range?.to).toEqual(expect.any(Date));
-            });
-        });
-
-        describe('resolveStreamDataTimeArgs', () => {
-            it('should return undefined when no time filter is active', () => {
-                expect(service.resolveStreamDataTimeArgs()).toBeUndefined();
-            });
-
-            it('should bind the active time filter range when not opted out', () => {
-                service.updateTimeFilterConfig({
-                    enabled: true,
-                    selection: { type: 'year', year: 2024 }
-                });
-
-                const args = service.resolveStreamDataTimeArgs();
-                expect(args).toBeDefined();
-                expect(args?.from).toEqual(expect.any(Date));
-                expect(args?.to).toEqual(expect.any(Date));
-            });
-
-            it('should return undefined when the widget opts out via ignoreTimeFilter', () => {
-                service.updateTimeFilterConfig({
-                    enabled: true,
-                    selection: { type: 'year', year: 2024 }
-                });
-
-                expect(service.resolveStreamDataTimeArgs(true)).toBeUndefined();
-            });
-        });
-
-        describe('resolveStreamDataRtIds / setEntitySelectorRtIds / clearEntitySelectorRtIds', () => {
-            it('should return undefined when no selector id is given', () => {
-                expect(service.resolveStreamDataRtIds()).toBeUndefined();
-                expect(service.resolveStreamDataRtIds(undefined)).toBeUndefined();
-            });
-
-            it('should return undefined for an unknown selector', () => {
-                expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
-            });
-
-            it('should return the cached rtIds once set for the selector', () => {
-                service.setEntitySelectorRtIds('mp', ['rt-1', 'rt-2']);
-                expect(service.resolveStreamDataRtIds('mp')).toEqual(['rt-1', 'rt-2']);
-            });
-
-            it('should treat an empty rtId set as no scope', () => {
-                service.setEntitySelectorRtIds('mp', []);
-                expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
-            });
-
-            it('should isolate rtIds per selector', () => {
-                service.setEntitySelectorRtIds('mp', ['rt-1']);
-                service.setEntitySelectorRtIds('plant', ['rt-9']);
-                expect(service.resolveStreamDataRtIds('mp')).toEqual(['rt-1']);
-                expect(service.resolveStreamDataRtIds('plant')).toEqual(['rt-9']);
-            });
-
-            it('should clear the cached rtIds for a selector', () => {
-                service.setEntitySelectorRtIds('mp', ['rt-1', 'rt-2']);
-                service.clearEntitySelectorRtIds('mp');
-                expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
-            });
-        });
-
-        describe('setTimeFilterVariables', () => {
-            it('should create time filter variables', () => {
-                service.setTimeFilterVariables('2024-01-01T00:00:00Z', '2024-12-31T23:59:59Z');
-
-                const vars = service.getVariables();
-                expect(vars.length).toBe(2);
-
-                const fromVar = vars.find(v => v.name === 'timeRangeFrom');
-                const toVar = vars.find(v => v.name === 'timeRangeTo');
-
-                expect(fromVar?.value).toBe('2024-01-01T00:00:00Z');
-                expect(fromVar?.source).toBe('timeFilter');
-                expect(fromVar?.type).toBe('datetime');
-
-                expect(toVar?.value).toBe('2024-12-31T23:59:59Z');
-                expect(toVar?.source).toBe('timeFilter');
-            });
-
-            it('should preserve non-time-filter variables', () => {
-                service.addVariable({
-                    name: 'customVar',
-                    type: 'string',
-                    source: 'static',
-                    value: 'custom'
-                });
-
-                service.setTimeFilterVariables('2024-01-01', '2024-12-31');
-
-                expect(service.getVariables().length).toBe(3);
-                expect(service.getVariable('customVar')).toBeDefined();
-            });
-
-            it('should replace existing time filter variables', () => {
-                service.setTimeFilterVariables('2024-01-01', '2024-06-30');
-                service.setTimeFilterVariables('2024-07-01', '2024-12-31');
-
-                const vars = service.getVariables().filter(v => v.source === 'timeFilter');
-                expect(vars.length).toBe(2);
-                expect(service.getVariable('timeRangeFrom')?.value).toBe('2024-07-01');
-            });
-        });
-
-        describe('clearTimeFilterVariables', () => {
-            it('should remove time filter variables', () => {
-                service.setTimeFilterVariables('2024-01-01', '2024-12-31');
-
-                service.clearTimeFilterVariables();
-
-                expect(service.getVariable('timeRangeFrom')).toBeUndefined();
-                expect(service.getVariable('timeRangeTo')).toBeUndefined();
-            });
-
-            it('should preserve other variables', () => {
-                service.addVariable({
-                    name: 'customVar',
-                    type: 'string',
-                    source: 'static',
-                    value: 'custom'
-                });
-                service.setTimeFilterVariables('2024-01-01', '2024-12-31');
-
-                service.clearTimeFilterVariables();
-
-                expect(service.getVariables().length).toBe(1);
-                expect(service.getVariable('customVar')).toBeDefined();
-            });
-        });
-
-        describe('updateTimeFilterSelection', () => {
-            it('should update selection and set variables', () => {
-                service.updateTimeFilterSelection({ type: 'year', year: 2024 }, '2024-01-01T00:00:00Z', '2024-12-31T23:59:59Z');
-
-                const config = service.getTimeFilterConfig();
-                expect(config?.enabled).toBe(true);
-                expect(config?.selection?.type).toBe('year');
-                expect(config?.selection?.year).toBe(2024);
-
-                expect(service.getVariable('timeRangeFrom')?.value).toBe('2024-01-01T00:00:00Z');
-                expect(service.getVariable('timeRangeTo')?.value).toBe('2024-12-31T23:59:59Z');
-            });
-        });
+      it('should return empty array for variables if undefined', () => {
+        const settings = service.getCurrentSettings();
+        expect(settings.variables).toEqual([]);
+      });
     });
 
-    describe('triggerRefresh', () => {
-        it('should create new widget references', () => {
-            const widget = createMockWidget('w1');
-            service.addWidget(widget);
-            const originalWidget = service.widgets()[0];
+    describe('timeZoneMode', () => {
+      it('defaults to local when none is configured', () => {
+        expect(service.timeZoneMode()).toBe('local');
+      });
 
-            service.triggerRefresh();
-
-            const refreshedWidget = service.widgets()[0];
-            expect(refreshedWidget).not.toBe(originalWidget);
-            expect(refreshedWidget.id).toBe(originalWidget.id);
+      it('reflects an explicit utc mode set via updateSettings', () => {
+        service.updateSettings({
+          name: 'B',
+          description: '',
+          columns: 4,
+          rowHeight: 150,
+          gap: 8,
+          timeZoneMode: 'utc'
         });
+        expect(service.timeZoneMode()).toBe('utc');
+        expect(service.getCurrentSettings().timeZoneMode).toBe('utc');
+      });
+
+      it('preserves the existing mode when updateSettings omits it', () => {
+        service.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
+        service.updateSettings({ name: 'C', description: '', columns: 4, rowHeight: 150, gap: 8 });
+        expect(service.timeZoneMode()).toBe('utc');
+      });
+
+      it('reflects an explicit IANA zone set via updateSettings (AB#4190)', () => {
+        service.updateSettings({
+          name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'Europe/Vienna'
+        });
+        expect(service.timeZoneMode()).toBe('Europe/Vienna');
+      });
     });
 
-    describe('Async Operations', () => {
-        describe('loadInitialMeshBoard', () => {
-            it('should set isLoading during load', async () => {
-                mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(true);
-                mockPersistenceService.getMeshBoards.mockResolvedValue([]);
+    describe('resolveStreamDataTimeZone', () => {
+      it('returns undefined for local (browser zone has no server meaning)', () => {
+        expect(service.resolveStreamDataTimeZone()).toBeUndefined();
+      });
 
-                const loadPromise = service.loadInitialMeshBoard();
+      it('maps utc to "UTC"', () => {
+        service.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
+        expect(service.resolveStreamDataTimeZone()).toBe('UTC');
+      });
 
-                // Note: Due to async nature, we verify the final state
-                await loadPromise;
+      it('passes an IANA id straight through (AB#4190)', () => {
+        service.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'Europe/Vienna' });
+        expect(service.resolveStreamDataTimeZone()).toBe('Europe/Vienna');
+      });
+    });
+  });
 
-                expect(service.isLoading()).toBe(false);
-            });
+  describe('Variable Management', () => {
+    const testVariable: MeshBoardVariable = {
+      name: 'testVar',
+      type: 'string',
+      source: 'static',
+      value: 'testValue'
+    };
 
-            it('should return empty array when model not available', async () => {
-                mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(false);
+    describe('getVariables', () => {
+      it('should return empty array when no variables', () => {
+        expect(service.getVariables()).toEqual([]);
+      });
 
-                const result = await service.loadInitialMeshBoard();
+      it('should return all variables', () => {
+        service.addVariable(testVariable);
+        service.addVariable({ ...testVariable, name: 'var2' });
 
-                expect(result).toEqual([]);
-                expect(service.isModelAvailable()).toBe(false);
-            });
-
-            it('should set model availability', async () => {
-                mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(true);
-                mockPersistenceService.getMeshBoards.mockResolvedValue([]);
-
-                await service.loadInitialMeshBoard();
-
-                expect(service.isModelAvailable()).toBe(true);
-            });
-
-            it('should load available meshboards', async () => {
-                mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(true);
-                mockPersistenceService.getMeshBoards.mockResolvedValue([
-                    createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' })
-                ]);
-                mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
-                    meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
-                    widgets: []
-                });
-                mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
-
-                await service.loadInitialMeshBoard();
-
-                expect(service.availableMeshBoards().length).toBe(1);
-            });
-
-            it('should handle errors gracefully', async () => {
-                mockCkModelService.isModelAvailableWithMinVersion.mockRejectedValue(new Error('Network error'));
-
-                const result = await service.loadInitialMeshBoard();
-
-                expect(result).toEqual([]);
-                expect(service.isLoading()).toBe(false);
-            });
-        });
-
-        describe('switchToMeshBoard', () => {
-            it('should resolve overlaps when switching', async () => {
-                mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
-                    meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
-                    widgets: [createMockPersistedWidget('w1')]
-                });
-                mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig({ widgets: [createMockWidget('w1')] }));
-
-                await service.switchToMeshBoard('board1');
-
-                expect(mockGridService.resolveOverlaps).toHaveBeenCalled();
-            });
-
-            it('should update persisted ID', async () => {
-                mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
-                    meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
-                    widgets: []
-                });
-                mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
-
-                await service.switchToMeshBoard('board1');
-
-                expect(service.persistedMeshBoardId()).toBe('board1');
-            });
-
-            it('should return current widgets when board not found', async () => {
-                service.addWidget(createMockWidget('existing'));
-                mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue(null);
-
-                const result = await service.switchToMeshBoard('nonexistent');
-
-                expect(result.length).toBe(1);
-                expect(result[0].id).toBe('existing');
-            });
-        });
-
-        describe('createNewMeshBoard', () => {
-            it('should create and switch to new board', async () => {
-                mockPersistenceService.createMeshBoard.mockResolvedValue('new-board-id');
-                mockPersistenceService.getMeshBoards.mockResolvedValue([
-                    createMockPersistedMeshBoard({ rtId: 'new-board-id', name: 'New Board' })
-                ]);
-                mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
-                    meshBoard: createMockPersistedMeshBoard({ rtId: 'new-board-id', name: 'New Board' }),
-                    widgets: []
-                });
-                mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig({ id: 'new-board-id', name: 'New Board' }));
-
-                const rtId = await service.createNewMeshBoard('New Board', 'Description');
-
-                expect(rtId).toBe('new-board-id');
-                expect(mockPersistenceService.createMeshBoard).toHaveBeenCalled();
-            });
-        });
-
-        describe('deleteMeshBoard', () => {
-            beforeEach(() => {
-                mockPersistenceService.deleteMeshBoard.mockResolvedValue();
-            });
-
-            it('should delete and refresh list', async () => {
-                mockPersistenceService.getMeshBoards.mockResolvedValue([]);
-
-                await service.deleteMeshBoard('board-to-delete');
-
-                expect(mockPersistenceService.deleteMeshBoard).toHaveBeenCalledWith('board-to-delete');
-                expect(mockPersistenceService.getMeshBoards).toHaveBeenCalled();
-            });
-
-            it('should reset state when deleting current board and no others exist', async () => {
-                // Set up current board
-                mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
-                    meshBoard: createMockPersistedMeshBoard({ rtId: 'current-board', name: 'Current' }),
-                    widgets: []
-                });
-                mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig({ id: 'current-board' }));
-                await service.switchToMeshBoard('current-board');
-
-                // Delete with no remaining boards
-                mockPersistenceService.getMeshBoards.mockResolvedValue([]);
-
-                await service.deleteMeshBoard('current-board');
-
-                expect(service.persistedMeshBoardId()).toBeNull();
-            });
-        });
+        expect(service.getVariables().length).toBe(2);
+      });
     });
 
-    describe('Deprecated aliases', () => {
-        it('should have dashboardConfig alias', () => {
-            expect(service.dashboardConfig).toBe(service.meshBoardConfig);
-        });
+    describe('getVariable', () => {
+      it('should return variable by name', () => {
+        service.addVariable(testVariable);
 
-        it('should have persistedDashboardId alias', () => {
-            expect(service.persistedDashboardId).toBe(service.persistedMeshBoardId);
-        });
+        const result = service.getVariable('testVar');
 
-        it('should have availableDashboards alias', () => {
-            expect(service.availableDashboards).toBe(service.availableMeshBoards);
-        });
+        expect(result).toBeDefined();
+        expect(result?.value).toBe('testValue');
+      });
+
+      it('should return undefined for nonexistent variable', () => {
+        expect(service.getVariable('nonexistent')).toBeUndefined();
+      });
     });
 
-    // ============================================================================
-    // Entity Selector Management
-    // ============================================================================
+    describe('addVariable', () => {
+      it('should add variable', () => {
+        service.addVariable(testVariable);
 
-    describe('Entity Selector Management', () => {
-        it('should return empty array when no entity selectors configured', () => {
-            expect(service.getEntitySelectors()).toEqual([]);
-        });
+        expect(service.getVariables().length).toBe(1);
+        expect(service.getVariables()[0].name).toBe('testVar');
+      });
 
-        it('should return entity selectors from config', () => {
-            const selectors = [
-                {
-                    id: 'mp',
-                    label: 'Metering Point',
-                    ckTypeId: 'Energy/MeteringPoint',
-                    attributeMappings: [
-                        { attributePath: 'name', variableName: 'mpName' }
-                    ]
-                }
-            ];
-            service.setConfig(createMockConfig({ entitySelectors: selectors }));
-            expect(service.getEntitySelectors()).toEqual(selectors);
-        });
+      it('should preserve existing variables', () => {
+        service.addVariable(testVariable);
+        service.addVariable({ ...testVariable, name: 'var2' });
 
-        it('should get specific entity selector by ID', () => {
-            const selectors = [
-                { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] },
-                { id: 'plant', label: 'Plant', ckTypeId: 'Energy/Plant', attributeMappings: [] }
-            ];
-            service.setConfig(createMockConfig({ entitySelectors: selectors }));
-
-            expect(service.getEntitySelector('mp')?.label).toBe('Metering Point');
-            expect(service.getEntitySelector('plant')?.label).toBe('Plant');
-            expect(service.getEntitySelector('nonexistent')).toBeUndefined();
-        });
-
-        it('should update entity selectors', () => {
-            const selectors = [
-                { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
-            ];
-            service.updateEntitySelectors(selectors);
-            expect(service.getEntitySelectors()).toEqual(selectors);
-        });
-
-        it('should update entity selector selection', () => {
-            const selectors = [
-                { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
-            ];
-            service.setConfig(createMockConfig({ entitySelectors: selectors }));
-
-            service.updateEntitySelectorSelection('mp', 'rt-123', 'Test Entity');
-
-            const updated = service.getEntitySelector('mp');
-            expect(updated?.selectedRtId).toBe('rt-123');
-            expect(updated?.selectedDisplayName).toBe('Test Entity');
-        });
-
-        it('should clear entity selector selection', () => {
-            const selectors = [
-                { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [], selectedRtId: 'rt-123' }
-            ];
-            service.setConfig(createMockConfig({ entitySelectors: selectors }));
-
-            service.updateEntitySelectorSelection('mp', undefined);
-
-            const updated = service.getEntitySelector('mp');
-            expect(updated?.selectedRtId).toBeUndefined();
-        });
-
-        it('should set entity selector variables', () => {
-            service.setEntitySelectorVariables('mp', [
-                { name: 'mpName', value: 'Test MP', type: 'string' },
-                { name: 'mpNumber', value: '42', type: 'number' }
-            ]);
-
-            const vars = service.getVariables();
-            expect(vars.length).toBe(2);
-            expect(vars[0].name).toBe('mpName');
-            expect(vars[0].value).toBe('Test MP');
-            expect(vars[0].source).toBe('entitySelector');
-            expect(vars[0].entitySelectorId).toBe('mp');
-            expect(vars[1].name).toBe('mpNumber');
-            expect(vars[1].value).toBe('42');
-        });
-
-        it('should replace entity selector variables on re-selection', () => {
-            // Set initial variables
-            service.setEntitySelectorVariables('mp', [
-                { name: 'mpName', value: 'Old MP' }
-            ]);
-            expect(service.getVariables().length).toBe(1);
-
-            // Set new variables for same selector
-            service.setEntitySelectorVariables('mp', [
-                { name: 'mpName', value: 'New MP' },
-                { name: 'mpCity', value: 'Vienna' }
-            ]);
-
-            const vars = service.getVariables();
-            expect(vars.length).toBe(2);
-            expect(vars.find(v => v.name === 'mpName')?.value).toBe('New MP');
-            expect(vars.find(v => v.name === 'mpCity')?.value).toBe('Vienna');
-        });
-
-        it('should not affect variables from other selectors', () => {
-            // Set variables for two different selectors
-            service.setEntitySelectorVariables('mp', [
-                { name: 'mpName', value: 'MP 1' }
-            ]);
-            service.setEntitySelectorVariables('plant', [
-                { name: 'plantName', value: 'Plant 1' }
-            ]);
-
-            expect(service.getVariables().length).toBe(2);
-
-            // Update only mp
-            service.setEntitySelectorVariables('mp', [
-                { name: 'mpName', value: 'MP 2' }
-            ]);
-
-            const vars = service.getVariables();
-            expect(vars.length).toBe(2);
-            expect(vars.find(v => v.name === 'mpName')?.value).toBe('MP 2');
-            expect(vars.find(v => v.name === 'plantName')?.value).toBe('Plant 1');
-        });
-
-        it('should clear entity selector variables', () => {
-            service.setEntitySelectorVariables('mp', [
-                { name: 'mpName', value: 'Test MP' }
-            ]);
-            service.setEntitySelectorVariables('plant', [
-                { name: 'plantName', value: 'Test Plant' }
-            ]);
-
-            service.clearEntitySelectorVariables('mp');
-
-            const vars = service.getVariables();
-            expect(vars.length).toBe(1);
-            expect(vars[0].name).toBe('plantName');
-        });
-
-        it('should not affect static variables when setting entity selector variables', () => {
-            // Add a static variable first
-            service.addVariable({
-                name: 'staticVar',
-                type: 'string',
-                source: 'static',
-                value: 'hello'
-            });
-
-            // Set entity selector variables
-            service.setEntitySelectorVariables('mp', [
-                { name: 'mpName', value: 'Test MP' }
-            ]);
-
-            const vars = service.getVariables();
-            expect(vars.length).toBe(2);
-            expect(vars.find(v => v.name === 'staticVar')?.value).toBe('hello');
-            expect(vars.find(v => v.name === 'mpName')?.value).toBe('Test MP');
-        });
-
-        it('should include entitySelectors in getCurrentSettings', () => {
-            const selectors = [
-                { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
-            ];
-            service.setConfig(createMockConfig({ entitySelectors: selectors }));
-
-            const settings = service.getCurrentSettings();
-            expect(settings.entitySelectors).toEqual(selectors);
-        });
-
-        it('should update entitySelectors via updateSettings', () => {
-            const selectors = [
-                { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
-            ];
-            service.updateSettings({
-                name: 'Test',
-                description: '',
-                columns: 6,
-                rowHeight: 200,
-                gap: 16,
-                entitySelectors: selectors
-            });
-
-            expect(service.getEntitySelectors()).toEqual(selectors);
-        });
+        expect(service.getVariables().length).toBe(2);
+      });
     });
+
+    describe('removeVariable', () => {
+      it('should remove variable by name', () => {
+        service.addVariable(testVariable);
+        service.addVariable({ ...testVariable, name: 'var2' });
+
+        service.removeVariable('testVar');
+
+        expect(service.getVariables().length).toBe(1);
+        expect(service.getVariables()[0].name).toBe('var2');
+      });
+
+      it('should do nothing if variable not found', () => {
+        service.addVariable(testVariable);
+
+        service.removeVariable('nonexistent');
+
+        expect(service.getVariables().length).toBe(1);
+      });
+    });
+
+    describe('setVariableValue', () => {
+      it('should update variable value', () => {
+        service.addVariable(testVariable);
+
+        service.setVariableValue('testVar', 'newValue');
+
+        expect(service.getVariable('testVar')?.value).toBe('newValue');
+      });
+
+      it('should not create variable if not exists', () => {
+        service.setVariableValue('nonexistent', 'value');
+
+        expect(service.getVariable('nonexistent')).toBeUndefined();
+      });
+
+      it('should preserve other variable properties', () => {
+        service.addVariable({ ...testVariable, label: 'Test Label' });
+
+        service.setVariableValue('testVar', 'newValue');
+
+        const updated = service.getVariable('testVar');
+        expect(updated?.label).toBe('Test Label');
+        expect(updated?.type).toBe('string');
+      });
+    });
+
+    describe('updateVariables', () => {
+      it('should replace all variables', () => {
+        service.addVariable(testVariable);
+
+        const newVars: MeshBoardVariable[] = [
+          { name: 'new1', type: 'number', source: 'static', value: '1' },
+          { name: 'new2', type: 'boolean', source: 'static', value: 'true' }
+        ];
+
+        service.updateVariables(newVars);
+
+        expect(service.getVariables().length).toBe(2);
+        expect(service.getVariable('testVar')).toBeUndefined();
+        expect(service.getVariable('new1')).toBeDefined();
+      });
+    });
+  });
+
+  describe('Time Filter Management', () => {
+    describe('isTimeFilterEnabled', () => {
+      it('should return false when no time filter', () => {
+        expect(service.isTimeFilterEnabled()).toBe(false);
+      });
+
+      it('should return false when time filter disabled', () => {
+        service.updateTimeFilterConfig({ enabled: false });
+        expect(service.isTimeFilterEnabled()).toBe(false);
+      });
+
+      it('should return true when time filter enabled', () => {
+        service.updateTimeFilterConfig({ enabled: true });
+        expect(service.isTimeFilterEnabled()).toBe(true);
+      });
+    });
+
+    describe('getTimeFilterConfig', () => {
+      it('should return undefined when no config', () => {
+        expect(service.getTimeFilterConfig()).toBeUndefined();
+      });
+
+      it('should return config when set', () => {
+        service.updateTimeFilterConfig({ enabled: true });
+
+        const config = service.getTimeFilterConfig();
+        expect(config?.enabled).toBe(true);
+      });
+    });
+
+    describe('updateTimeFilterConfig', () => {
+      it('should set time filter config', () => {
+        service.updateTimeFilterConfig({
+          enabled: true,
+          selection: { type: 'year', year: 2024 }
+        });
+
+        const config = service.getTimeFilterConfig();
+        expect(config?.selection?.type).toBe('year');
+        expect(config?.selection?.year).toBe(2024);
+      });
+    });
+
+    describe('resolveCurrentTimeRange', () => {
+      it('should return null when time filter is undefined', () => {
+        expect(service.resolveCurrentTimeRange()).toBeNull();
+      });
+
+      it('should return null when time filter is disabled', () => {
+        service.updateTimeFilterConfig({
+          enabled: false,
+          selection: { type: 'year', year: 2024 }
+        });
+        expect(service.resolveCurrentTimeRange()).toBeNull();
+      });
+
+      it('should return null when no selection is set', () => {
+        service.updateTimeFilterConfig({ enabled: true });
+        expect(service.resolveCurrentTimeRange()).toBeNull();
+      });
+
+      it('should resolve year selection to a non-empty range', () => {
+        service.updateTimeFilterConfig({
+          enabled: true,
+          selection: { type: 'year', year: 2024 }
+        });
+
+        const range = service.resolveCurrentTimeRange();
+        expect(range).not.toBeNull();
+        expect(range?.from).toEqual(expect.any(Date));
+        expect(range?.to).toEqual(expect.any(Date));
+        // Range covers at least 364 days (DST edges allow for slight variance) —
+        // the picker resolves civil-calendar boundaries in the local zone.
+        const spanDays = (range!.to.getTime() - range!.from.getTime()) / (1000 * 60 * 60 * 24);
+        expect(spanDays).toBeGreaterThan(364);
+      });
+
+      it('should convert ISO-string customFrom/customTo to Date before resolving', () => {
+        service.updateTimeFilterConfig({
+          enabled: true,
+          selection: {
+            type: 'custom',
+            customFrom: '2024-06-01T00:00:00Z',
+            customTo: '2024-06-30T23:59:59Z'
+          }
+        });
+
+        const range = service.resolveCurrentTimeRange();
+        expect(range).not.toBeNull();
+        expect(range?.from).toEqual(expect.any(Date));
+        expect(range?.to).toEqual(expect.any(Date));
+      });
+    });
+
+    describe('resolveStreamDataTimeArgs', () => {
+      it('should return undefined when no time filter is active', () => {
+        expect(service.resolveStreamDataTimeArgs()).toBeUndefined();
+      });
+
+      it('should bind the active time filter range when not opted out', () => {
+        service.updateTimeFilterConfig({
+          enabled: true,
+          selection: { type: 'year', year: 2024 }
+        });
+
+        const args = service.resolveStreamDataTimeArgs();
+        expect(args).toBeDefined();
+        expect(args?.from).toEqual(expect.any(Date));
+        expect(args?.to).toEqual(expect.any(Date));
+      });
+
+      it('should return undefined when the widget opts out via ignoreTimeFilter', () => {
+        service.updateTimeFilterConfig({
+          enabled: true,
+          selection: { type: 'year', year: 2024 }
+        });
+
+        expect(service.resolveStreamDataTimeArgs(true)).toBeUndefined();
+      });
+    });
+
+    describe('resolveStreamDataRtIds / setEntitySelectorRtIds / clearEntitySelectorRtIds', () => {
+      it('should return undefined when no selector id is given', () => {
+        expect(service.resolveStreamDataRtIds()).toBeUndefined();
+        expect(service.resolveStreamDataRtIds(undefined)).toBeUndefined();
+      });
+
+      it('should return undefined for an unknown selector', () => {
+        expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
+      });
+
+      it('should return the cached rtIds once set for the selector', () => {
+        service.setEntitySelectorRtIds('mp', ['rt-1', 'rt-2']);
+        expect(service.resolveStreamDataRtIds('mp')).toEqual(['rt-1', 'rt-2']);
+      });
+
+      it('should treat an empty rtId set as no scope', () => {
+        service.setEntitySelectorRtIds('mp', []);
+        expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
+      });
+
+      it('should isolate rtIds per selector', () => {
+        service.setEntitySelectorRtIds('mp', ['rt-1']);
+        service.setEntitySelectorRtIds('plant', ['rt-9']);
+        expect(service.resolveStreamDataRtIds('mp')).toEqual(['rt-1']);
+        expect(service.resolveStreamDataRtIds('plant')).toEqual(['rt-9']);
+      });
+
+      it('should clear the cached rtIds for a selector', () => {
+        service.setEntitySelectorRtIds('mp', ['rt-1', 'rt-2']);
+        service.clearEntitySelectorRtIds('mp');
+        expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
+      });
+    });
+
+    describe('setTimeFilterVariables', () => {
+      it('should create time filter variables', () => {
+        service.setTimeFilterVariables('2024-01-01T00:00:00Z', '2024-12-31T23:59:59Z');
+
+        const vars = service.getVariables();
+        expect(vars.length).toBe(2);
+
+        const fromVar = vars.find(v => v.name === 'timeRangeFrom');
+        const toVar = vars.find(v => v.name === 'timeRangeTo');
+
+        expect(fromVar?.value).toBe('2024-01-01T00:00:00Z');
+        expect(fromVar?.source).toBe('timeFilter');
+        expect(fromVar?.type).toBe('datetime');
+
+        expect(toVar?.value).toBe('2024-12-31T23:59:59Z');
+        expect(toVar?.source).toBe('timeFilter');
+      });
+
+      it('should preserve non-time-filter variables', () => {
+        service.addVariable({
+          name: 'customVar',
+          type: 'string',
+          source: 'static',
+          value: 'custom'
+        });
+
+        service.setTimeFilterVariables('2024-01-01', '2024-12-31');
+
+        expect(service.getVariables().length).toBe(3);
+        expect(service.getVariable('customVar')).toBeDefined();
+      });
+
+      it('should replace existing time filter variables', () => {
+        service.setTimeFilterVariables('2024-01-01', '2024-06-30');
+        service.setTimeFilterVariables('2024-07-01', '2024-12-31');
+
+        const vars = service.getVariables().filter(v => v.source === 'timeFilter');
+        expect(vars.length).toBe(2);
+        expect(service.getVariable('timeRangeFrom')?.value).toBe('2024-07-01');
+      });
+    });
+
+    describe('clearTimeFilterVariables', () => {
+      it('should remove time filter variables', () => {
+        service.setTimeFilterVariables('2024-01-01', '2024-12-31');
+
+        service.clearTimeFilterVariables();
+
+        expect(service.getVariable('timeRangeFrom')).toBeUndefined();
+        expect(service.getVariable('timeRangeTo')).toBeUndefined();
+      });
+
+      it('should preserve other variables', () => {
+        service.addVariable({
+          name: 'customVar',
+          type: 'string',
+          source: 'static',
+          value: 'custom'
+        });
+        service.setTimeFilterVariables('2024-01-01', '2024-12-31');
+
+        service.clearTimeFilterVariables();
+
+        expect(service.getVariables().length).toBe(1);
+        expect(service.getVariable('customVar')).toBeDefined();
+      });
+    });
+
+    describe('updateTimeFilterSelection', () => {
+      it('should update selection and set variables', () => {
+        service.updateTimeFilterSelection({ type: 'year', year: 2024 }, '2024-01-01T00:00:00Z', '2024-12-31T23:59:59Z');
+
+        const config = service.getTimeFilterConfig();
+        expect(config?.enabled).toBe(true);
+        expect(config?.selection?.type).toBe('year');
+        expect(config?.selection?.year).toBe(2024);
+
+        expect(service.getVariable('timeRangeFrom')?.value).toBe('2024-01-01T00:00:00Z');
+        expect(service.getVariable('timeRangeTo')?.value).toBe('2024-12-31T23:59:59Z');
+      });
+    });
+  });
+
+  describe('triggerRefresh', () => {
+    it('should create new widget references', () => {
+      const widget = createMockWidget('w1');
+      service.addWidget(widget);
+      const originalWidget = service.widgets()[0];
+
+      service.triggerRefresh();
+
+      const refreshedWidget = service.widgets()[0];
+      expect(refreshedWidget).not.toBe(originalWidget);
+      expect(refreshedWidget.id).toBe(originalWidget.id);
+    });
+  });
+
+  describe('Async Operations', () => {
+    describe('loadInitialMeshBoard', () => {
+      it('should set isLoading during load', async () => {
+        mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(true);
+        mockPersistenceService.getMeshBoards.mockResolvedValue([]);
+
+        const loadPromise = service.loadInitialMeshBoard();
+
+        // Note: Due to async nature, we verify the final state
+        await loadPromise;
+
+        expect(service.isLoading()).toBe(false);
+      });
+
+      it('should return empty array when model not available', async () => {
+        mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(false);
+
+        const result = await service.loadInitialMeshBoard();
+
+        expect(result).toEqual([]);
+        expect(service.isModelAvailable()).toBe(false);
+      });
+
+      it('should set model availability', async () => {
+        mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(true);
+        mockPersistenceService.getMeshBoards.mockResolvedValue([]);
+
+        await service.loadInitialMeshBoard();
+
+        expect(service.isModelAvailable()).toBe(true);
+      });
+
+      it('should load available meshboards', async () => {
+        mockCkModelService.isModelAvailableWithMinVersion.mockResolvedValue(true);
+        mockPersistenceService.getMeshBoards.mockResolvedValue([
+          createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' })
+        ]);
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
+          meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
+          widgets: []
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
+
+        await service.loadInitialMeshBoard();
+
+        expect(service.availableMeshBoards().length).toBe(1);
+      });
+
+      it('should handle errors gracefully', async () => {
+        mockCkModelService.isModelAvailableWithMinVersion.mockRejectedValue(new Error('Network error'));
+
+        const result = await service.loadInitialMeshBoard();
+
+        expect(result).toEqual([]);
+        expect(service.isLoading()).toBe(false);
+      });
+    });
+
+    describe('switchToMeshBoard', () => {
+      it('should resolve overlaps when switching', async () => {
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
+          meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
+          widgets: [createMockPersistedWidget('w1')]
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig({ widgets: [createMockWidget('w1')] }));
+
+        await service.switchToMeshBoard('board1');
+
+        expect(mockGridService.resolveOverlaps).toHaveBeenCalled();
+      });
+
+      it('should update persisted ID', async () => {
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
+          meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
+          widgets: []
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
+
+        await service.switchToMeshBoard('board1');
+
+        expect(service.persistedMeshBoardId()).toBe('board1');
+      });
+
+      it('should return current widgets when board not found', async () => {
+        service.addWidget(createMockWidget('existing'));
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue(null);
+
+        const result = await service.switchToMeshBoard('nonexistent');
+
+        expect(result.length).toBe(1);
+        expect(result[0].id).toBe('existing');
+      });
+    });
+
+    describe('createNewMeshBoard', () => {
+      it('should create and switch to new board', async () => {
+        mockPersistenceService.createMeshBoard.mockResolvedValue('new-board-id');
+        mockPersistenceService.getMeshBoards.mockResolvedValue([
+          createMockPersistedMeshBoard({ rtId: 'new-board-id', name: 'New Board' })
+        ]);
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
+          meshBoard: createMockPersistedMeshBoard({ rtId: 'new-board-id', name: 'New Board' }),
+          widgets: []
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig({ id: 'new-board-id', name: 'New Board' }));
+
+        const rtId = await service.createNewMeshBoard('New Board', 'Description');
+
+        expect(rtId).toBe('new-board-id');
+        expect(mockPersistenceService.createMeshBoard).toHaveBeenCalled();
+      });
+    });
+
+    describe('deleteMeshBoard', () => {
+      beforeEach(() => {
+        mockPersistenceService.deleteMeshBoard.mockResolvedValue();
+      });
+
+      it('should delete and refresh list', async () => {
+        mockPersistenceService.getMeshBoards.mockResolvedValue([]);
+
+        await service.deleteMeshBoard('board-to-delete');
+
+        expect(mockPersistenceService.deleteMeshBoard).toHaveBeenCalledWith('board-to-delete');
+        expect(mockPersistenceService.getMeshBoards).toHaveBeenCalled();
+      });
+
+      it('should reset state when deleting current board and no others exist', async () => {
+        // Set up current board
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
+          meshBoard: createMockPersistedMeshBoard({ rtId: 'current-board', name: 'Current' }),
+          widgets: []
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig({ id: 'current-board' }));
+        await service.switchToMeshBoard('current-board');
+
+        // Delete with no remaining boards
+        mockPersistenceService.getMeshBoards.mockResolvedValue([]);
+
+        await service.deleteMeshBoard('current-board');
+
+        expect(service.persistedMeshBoardId()).toBeNull();
+      });
+    });
+  });
+
+  describe('Deprecated aliases', () => {
+    it('should have dashboardConfig alias', () => {
+      expect(service.dashboardConfig).toBe(service.meshBoardConfig);
+    });
+
+    it('should have persistedDashboardId alias', () => {
+      expect(service.persistedDashboardId).toBe(service.persistedMeshBoardId);
+    });
+
+    it('should have availableDashboards alias', () => {
+      expect(service.availableDashboards).toBe(service.availableMeshBoards);
+    });
+  });
+
+  // ============================================================================
+  // Entity Selector Management
+  // ============================================================================
+
+  describe('Entity Selector Management', () => {
+    it('should return empty array when no entity selectors configured', () => {
+      expect(service.getEntitySelectors()).toEqual([]);
+    });
+
+    it('should return entity selectors from config', () => {
+      const selectors = [
+        {
+          id: 'mp',
+          label: 'Metering Point',
+          ckTypeId: 'Energy/MeteringPoint',
+          attributeMappings: [
+            { attributePath: 'name', variableName: 'mpName' }
+          ]
+        }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+      expect(service.getEntitySelectors()).toEqual(selectors);
+    });
+
+    it('should get specific entity selector by ID', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] },
+        { id: 'plant', label: 'Plant', ckTypeId: 'Energy/Plant', attributeMappings: [] }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+
+      expect(service.getEntitySelector('mp')?.label).toBe('Metering Point');
+      expect(service.getEntitySelector('plant')?.label).toBe('Plant');
+      expect(service.getEntitySelector('nonexistent')).toBeUndefined();
+    });
+
+    it('should update entity selectors', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
+      ];
+      service.updateEntitySelectors(selectors);
+      expect(service.getEntitySelectors()).toEqual(selectors);
+    });
+
+    it('should update entity selector selection', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+
+      service.updateEntitySelectorSelection('mp', 'rt-123', 'Test Entity');
+
+      const updated = service.getEntitySelector('mp');
+      expect(updated?.selectedRtId).toBe('rt-123');
+      expect(updated?.selectedDisplayName).toBe('Test Entity');
+    });
+
+    it('should clear entity selector selection', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [], selectedRtId: 'rt-123' }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+
+      service.updateEntitySelectorSelection('mp', undefined);
+
+      const updated = service.getEntitySelector('mp');
+      expect(updated?.selectedRtId).toBeUndefined();
+    });
+
+    it('should set entity selector variables', () => {
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'Test MP', type: 'string' },
+        { name: 'mpNumber', value: '42', type: 'number' }
+      ]);
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(2);
+      expect(vars[0].name).toBe('mpName');
+      expect(vars[0].value).toBe('Test MP');
+      expect(vars[0].source).toBe('entitySelector');
+      expect(vars[0].entitySelectorId).toBe('mp');
+      expect(vars[1].name).toBe('mpNumber');
+      expect(vars[1].value).toBe('42');
+    });
+
+    it('should replace entity selector variables on re-selection', () => {
+      // Set initial variables
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'Old MP' }
+      ]);
+      expect(service.getVariables().length).toBe(1);
+
+      // Set new variables for same selector
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'New MP' },
+        { name: 'mpCity', value: 'Vienna' }
+      ]);
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(2);
+      expect(vars.find(v => v.name === 'mpName')?.value).toBe('New MP');
+      expect(vars.find(v => v.name === 'mpCity')?.value).toBe('Vienna');
+    });
+
+    it('should not affect variables from other selectors', () => {
+      // Set variables for two different selectors
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'MP 1' }
+      ]);
+      service.setEntitySelectorVariables('plant', [
+        { name: 'plantName', value: 'Plant 1' }
+      ]);
+
+      expect(service.getVariables().length).toBe(2);
+
+      // Update only mp
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'MP 2' }
+      ]);
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(2);
+      expect(vars.find(v => v.name === 'mpName')?.value).toBe('MP 2');
+      expect(vars.find(v => v.name === 'plantName')?.value).toBe('Plant 1');
+    });
+
+    it('should clear entity selector variables', () => {
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'Test MP' }
+      ]);
+      service.setEntitySelectorVariables('plant', [
+        { name: 'plantName', value: 'Test Plant' }
+      ]);
+
+      service.clearEntitySelectorVariables('mp');
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(1);
+      expect(vars[0].name).toBe('plantName');
+    });
+
+    it('should not affect static variables when setting entity selector variables', () => {
+      // Add a static variable first
+      service.addVariable({
+        name: 'staticVar',
+        type: 'string',
+        source: 'static',
+        value: 'hello'
+      });
+
+      // Set entity selector variables
+      service.setEntitySelectorVariables('mp', [
+        { name: 'mpName', value: 'Test MP' }
+      ]);
+
+      const vars = service.getVariables();
+      expect(vars.length).toBe(2);
+      expect(vars.find(v => v.name === 'staticVar')?.value).toBe('hello');
+      expect(vars.find(v => v.name === 'mpName')?.value).toBe('Test MP');
+    });
+
+    it('should include entitySelectors in getCurrentSettings', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
+      ];
+      service.setConfig(createMockConfig({ entitySelectors: selectors }));
+
+      const settings = service.getCurrentSettings();
+      expect(settings.entitySelectors).toEqual(selectors);
+    });
+
+    it('should update entitySelectors via updateSettings', () => {
+      const selectors = [
+        { id: 'mp', label: 'Metering Point', ckTypeId: 'Energy/MP', attributeMappings: [] }
+      ];
+      service.updateSettings({
+        name: 'Test',
+        description: '',
+        columns: 6,
+        rowHeight: 200,
+        gap: 16,
+        entitySelectors: selectors
+      });
+
+      expect(service.getEntitySelectors()).toEqual(selectors);
+    });
+  });
 });

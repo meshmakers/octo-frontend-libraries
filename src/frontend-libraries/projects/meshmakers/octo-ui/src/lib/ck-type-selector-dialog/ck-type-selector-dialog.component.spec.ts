@@ -1,4 +1,4 @@
-import type { Mock, MockedObject } from "vitest";
+import type { Mock, MockedObject } from 'vitest';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
@@ -20,602 +20,602 @@ interface MockWindowContent {
 }
 
 describe('CkTypeSelectorDialogComponent', () => {
-    let component: CkTypeSelectorDialogComponent;
-    let fixture: ComponentFixture<CkTypeSelectorDialogComponent>;
-    let ckTypeSelectorServiceMock: MockedObject<CkTypeSelectorService>;
-    let windowRefMock: MockedObject<WindowRef>;
-    let windowContent: MockWindowContent;
+  let component: CkTypeSelectorDialogComponent;
+  let fixture: ComponentFixture<CkTypeSelectorDialogComponent>;
+  let ckTypeSelectorServiceMock: MockedObject<CkTypeSelectorService>;
+  let windowRefMock: MockedObject<WindowRef>;
+  let windowContent: MockWindowContent;
 
-    const mockCkTypes: CkTypeSelectorItem[] = [
-        {
-            fullName: 'OctoSdkDemo-1.0.0/Customer-1',
-            rtCkTypeId: 'OctoSdkDemo/Customer',
-            baseTypeFullName: 'OctoSdkDemo-1.0.0/Entity-1',
-            baseTypeRtCkTypeId: 'OctoSdkDemo/Entity',
-            isAbstract: false,
-            isFinal: false,
-            description: 'Customer entity'
-        },
-        {
-            fullName: 'OctoSdkDemo-1.0.0/Order-1',
-            rtCkTypeId: 'OctoSdkDemo/Order',
-            baseTypeFullName: 'OctoSdkDemo-1.0.0/Entity-1',
-            baseTypeRtCkTypeId: 'OctoSdkDemo/Entity',
-            isAbstract: false,
-            isFinal: true,
-            description: 'Order entity'
-        },
-        {
-            fullName: 'OctoSdkDemo-1.0.0/Entity-1',
-            rtCkTypeId: 'OctoSdkDemo/Entity',
-            isAbstract: true,
-            isFinal: false,
-            description: 'Base entity'
-        },
-        {
-            fullName: 'TestModel-2.0.0/Product-1',
-            rtCkTypeId: 'TestModel/Product',
-            isAbstract: false,
-            isFinal: false,
-            description: 'Product entity'
-        },
-        {
-            fullName: 'TestModel-2.0.0/Category-1',
-            rtCkTypeId: 'TestModel/Category',
-            isAbstract: false,
-            isFinal: true,
-            description: 'Category entity'
-        }
-    ];
+  const mockCkTypes: CkTypeSelectorItem[] = [
+    {
+      fullName: 'OctoSdkDemo-1.0.0/Customer-1',
+      rtCkTypeId: 'OctoSdkDemo/Customer',
+      baseTypeFullName: 'OctoSdkDemo-1.0.0/Entity-1',
+      baseTypeRtCkTypeId: 'OctoSdkDemo/Entity',
+      isAbstract: false,
+      isFinal: false,
+      description: 'Customer entity'
+    },
+    {
+      fullName: 'OctoSdkDemo-1.0.0/Order-1',
+      rtCkTypeId: 'OctoSdkDemo/Order',
+      baseTypeFullName: 'OctoSdkDemo-1.0.0/Entity-1',
+      baseTypeRtCkTypeId: 'OctoSdkDemo/Entity',
+      isAbstract: false,
+      isFinal: true,
+      description: 'Order entity'
+    },
+    {
+      fullName: 'OctoSdkDemo-1.0.0/Entity-1',
+      rtCkTypeId: 'OctoSdkDemo/Entity',
+      isAbstract: true,
+      isFinal: false,
+      description: 'Base entity'
+    },
+    {
+      fullName: 'TestModel-2.0.0/Product-1',
+      rtCkTypeId: 'TestModel/Product',
+      isAbstract: false,
+      isFinal: false,
+      description: 'Product entity'
+    },
+    {
+      fullName: 'TestModel-2.0.0/Category-1',
+      rtCkTypeId: 'TestModel/Category',
+      isAbstract: false,
+      isFinal: true,
+      description: 'Category entity'
+    }
+  ];
 
-    const mockDialogData: CkTypeSelectorDialogData = {
-        dialogTitle: 'Select CK Type',
-        allowAbstract: false
+  const mockDialogData: CkTypeSelectorDialogData = {
+    dialogTitle: 'Select CK Type',
+    allowAbstract: false
+  };
+
+  beforeEach(async () => {
+    ckTypeSelectorServiceMock = {
+      getCkTypes: vi.fn().mockName('CkTypeSelectorService.getCkTypes')
+    } as unknown as MockedObject<CkTypeSelectorService>;
+    ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
+      items: [...mockCkTypes],
+      totalCount: mockCkTypes.length
+    }));
+
+    windowRefMock = {
+      close: vi.fn().mockName('WindowRef.close')
+    } as unknown as MockedObject<WindowRef>;
+    windowContent = {
+      instance: {
+        data: { ...mockDialogData }
+      }
     };
+    (windowRefMock as unknown as Record<string, unknown>)['content'] = windowContent;
 
-    beforeEach(async () => {
-        ckTypeSelectorServiceMock = {
-            getCkTypes: vi.fn().mockName("CkTypeSelectorService.getCkTypes")
-        } as unknown as MockedObject<CkTypeSelectorService>;
-        ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
-            items: [...mockCkTypes],
-            totalCount: mockCkTypes.length
-        }));
+    await TestBed.configureTestingModule({
+      imports: [
+        CkTypeSelectorDialogComponent,
+        FormsModule,
+        GridModule,
+        ButtonsModule,
+        InputsModule,
+        DropDownsModule,
+        IconsModule,
+        LoaderModule,
+        WindowModule
+      ],
+      providers: [
+        provideNoopAnimations(),
+        { provide: CkTypeSelectorService, useValue: ckTypeSelectorServiceMock },
+        { provide: WindowRef, useValue: windowRefMock }
+      ]
+    }).compileComponents();
 
-        windowRefMock = {
-            close: vi.fn().mockName("WindowRef.close")
-        } as unknown as MockedObject<WindowRef>;
-        windowContent = {
-            instance: {
-                data: { ...mockDialogData }
-            }
-        };
-        (windowRefMock as unknown as Record<string, unknown>)['content'] = windowContent;
+    fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
+    component = fixture.componentInstance;
+    component.data = { ...mockDialogData };
+  });
 
-        await TestBed.configureTestingModule({
-            imports: [
-                CkTypeSelectorDialogComponent,
-                FormsModule,
-                GridModule,
-                ButtonsModule,
-                InputsModule,
-                DropDownsModule,
-                IconsModule,
-                LoaderModule,
-                WindowModule
-            ],
-            providers: [
-                provideNoopAnimations(),
-                { provide: CkTypeSelectorService, useValue: ckTypeSelectorServiceMock },
-                { provide: WindowRef, useValue: windowRefMock }
-            ]
-        }).compileComponents();
-
-        fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
-        component = fixture.componentInstance;
-        component.data = { ...mockDialogData };
+  describe('Component creation', () => {
+    it('should create the component', () => {
+      expect(component).toBeTruthy();
     });
 
-    describe('Component creation', () => {
-        it('should create the component', () => {
-            expect(component).toBeTruthy();
-        });
-
-        it('should initialize with default values', () => {
-            expect(component.searchText).toBe('');
-            expect(component.selectedModel).toBeNull();
-            expect(component.availableModels).toEqual([]);
-            expect(component.isLoading).toBe(false);
-            expect(component.pageSize).toBe(50);
-            expect(component.skip).toBe(0);
-            expect(component.selectedKeys).toEqual([]);
-            expect(component.selectedType).toBeNull();
-        });
-
-        it('should have default dialog title', () => {
-            expect(component.dialogTitle).toBe('Select Construction Kit Type');
-        });
-
-        it('should have allowAbstract default to true', () => {
-            expect(component.allowAbstract).toBe(true);
-        });
+    it('should initialize with default values', () => {
+      expect(component.searchText).toBe('');
+      expect(component.selectedModel).toBeNull();
+      expect(component.availableModels).toEqual([]);
+      expect(component.isLoading).toBe(false);
+      expect(component.pageSize).toBe(50);
+      expect(component.skip).toBe(0);
+      expect(component.selectedKeys).toEqual([]);
+      expect(component.selectedType).toBeNull();
     });
 
-    describe('ngOnInit', () => {
-        it('should set dialog title from dialog data', () => {
-            fixture.detectChanges();
-            expect(component.dialogTitle).toBe('Select CK Type');
-        });
-
-        it('should use default dialog title when not provided', () => {
-            component.data = {};
-            fixture.detectChanges();
-            expect(component.dialogTitle).toBe('Select Construction Kit Type');
-        });
-
-        it('should set allowAbstract from dialog data', () => {
-            component.data = { allowAbstract: true };
-            fixture.detectChanges();
-            expect(component.allowAbstract).toBe(true);
-        });
-
-        it('should set selectedKeys from dialog data', () => {
-            component.data = {
-                selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
-            };
-            fixture.detectChanges();
-            expect(component.selectedKeys).toEqual(['OctoSdkDemo-1.0.0/Customer-1']);
-        });
-
-        it('should load types on init', () => {
-            fixture.detectChanges();
-            expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
-        });
-
-        it('should load available models on init', () => {
-            fixture.detectChanges();
-            // Called twice: once for types, once for available models
-            expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalledTimes(2);
-        });
-
-        it('should populate grid data after loading', () => {
-            fixture.detectChanges();
-            expect(component.gridData.data.length).toBe(5);
-            expect(component.gridData.total).toBe(5);
-        });
-
-        it('should extract unique models from loaded types', () => {
-            fixture.detectChanges();
-            expect(component.availableModels).toContain('OctoSdkDemo-1.0.0');
-            expect(component.availableModels).toContain('TestModel-2.0.0');
-            expect(component.availableModels.length).toBe(2);
-        });
-
-        it('should sort available models alphabetically', () => {
-            fixture.detectChanges();
-            const models = component.availableModels;
-            const sortedModels = [...models].sort();
-            expect(models).toEqual(sortedModels);
-        });
-
-        it('should handle null dialog data', () => {
-            component.data = undefined;
-            expect(() => fixture.detectChanges()).not.toThrow();
-        });
-
-        it('should restore selection if item exists in loaded data', () => {
-            component.data = {
-                selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
-            };
-            fixture.detectChanges();
-            expect(component.selectedType).toBeTruthy();
-            expect(component.selectedType?.rtCkTypeId).toBe('OctoSdkDemo/Customer');
-        });
+    it('should have default dialog title', () => {
+      expect(component.dialogTitle).toBe('Select Construction Kit Type');
     });
 
-    describe('Search functionality', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
+    it('should have allowAbstract default to true', () => {
+      expect(component.allowAbstract).toBe(true);
+    });
+  });
 
-        it('should trigger search after debounce delay', fakeAsync(() => {
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-
-            component.onSearchChange('customer');
-            expect(ckTypeSelectorServiceMock.getCkTypes).not.toHaveBeenCalled();
-
-            tick(300);
-            expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
-        }));
-
-        it('should reset skip to 0 on search', fakeAsync(() => {
-            component.skip = 50;
-            component.onSearchChange('test');
-            tick(300);
-            expect(component.skip).toBe(0);
-        }));
-
-        it('should not trigger search for same value (distinctUntilChanged)', fakeAsync(() => {
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-
-            component.onSearchChange('test');
-            tick(300);
-            const callCount = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls.length;
-
-            component.onSearchChange('test');
-            tick(300);
-            expect(vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls.length).toBe(callCount);
-        }));
-
-        it('should pass search text to service', fakeAsync(() => {
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-            component.searchText = 'customer';
-            component.onSearchChange('customer');
-            tick(300);
-
-            const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
-            const lastCall = calls[calls.length - 1]?.[0];
-            expect(lastCall?.searchText).toBe('customer');
-        }));
+  describe('ngOnInit', () => {
+    it('should set dialog title from dialog data', () => {
+      fixture.detectChanges();
+      expect(component.dialogTitle).toBe('Select CK Type');
     });
 
-    describe('Model filter', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
-
-        it('should filter by selected model', () => {
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-            component.selectedModel = 'OctoSdkDemo-1.0.0';
-            component.onModelFilterChange('OctoSdkDemo-1.0.0');
-
-            const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
-            const lastCall = calls[calls.length - 1]?.[0];
-            expect(lastCall?.ckModelIds).toEqual(['OctoSdkDemo-1.0.0']);
-        });
-
-        it('should reset skip to 0 on model filter change', () => {
-            component.skip = 50;
-            component.onModelFilterChange('TestModel-2.0.0');
-            expect(component.skip).toBe(0);
-        });
-
-        it('should use initial ckModelIds when no model selected', () => {
-            fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
-            component = fixture.componentInstance;
-            component.data = {
-                ckModelIds: ['OctoSdkDemo-1.0.0']
-            };
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-            fixture.detectChanges();
-
-            const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
-            expect(calls[0]?.[0]?.ckModelIds).toEqual(['OctoSdkDemo-1.0.0']);
-        });
+    it('should use default dialog title when not provided', () => {
+      component.data = {};
+      fixture.detectChanges();
+      expect(component.dialogTitle).toBe('Select Construction Kit Type');
     });
 
-    describe('clearFilters', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
-
-        it('should clear search text', () => {
-            component.searchText = 'test';
-            component.clearFilters();
-            expect(component.searchText).toBe('');
-        });
-
-        it('should clear selected model', () => {
-            component.selectedModel = 'OctoSdkDemo-1.0.0';
-            component.clearFilters();
-            expect(component.selectedModel).toBeNull();
-        });
-
-        it('should reset skip to 0', () => {
-            component.skip = 50;
-            component.clearFilters();
-            expect(component.skip).toBe(0);
-        });
-
-        it('should reload types', () => {
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-            component.clearFilters();
-            expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
-        });
+    it('should set allowAbstract from dialog data', () => {
+      component.data = { allowAbstract: true };
+      fixture.detectChanges();
+      expect(component.allowAbstract).toBe(true);
     });
 
-    describe('Pagination', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
-
-        it('should update skip on page change', () => {
-            const pageEvent: PageChangeEvent = { skip: 50, take: 50 };
-            component.onPageChange(pageEvent);
-            expect(component.skip).toBe(50);
-        });
-
-        it('should update pageSize on page change', () => {
-            const pageEvent: PageChangeEvent = { skip: 0, take: 100 };
-            component.onPageChange(pageEvent);
-            expect(component.pageSize).toBe(100);
-        });
-
-        it('should reload types on page change', () => {
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-            const pageEvent: PageChangeEvent = { skip: 50, take: 50 };
-            component.onPageChange(pageEvent);
-            expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
-        });
-
-        it('should pass pagination to service', () => {
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-            const pageEvent: PageChangeEvent = { skip: 100, take: 25 };
-            component.onPageChange(pageEvent);
-
-            const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
-            const lastCall = calls[calls.length - 1]?.[0];
-            expect(lastCall?.skip).toBe(100);
-            expect(lastCall?.first).toBe(25);
-        });
+    it('should set selectedKeys from dialog data', () => {
+      component.data = {
+        selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
+      };
+      fixture.detectChanges();
+      expect(component.selectedKeys).toEqual(['OctoSdkDemo-1.0.0/Customer-1']);
     });
 
-    describe('Selection', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
-
-        it('should set selectedType on selection', () => {
-            const selectionEvent: SelectionEvent = {
-                selectedRows: [{ dataItem: mockCkTypes[0], index: 0 }],
-                deselectedRows: [],
-                ctrlKey: false,
-                shiftKey: false
-            };
-            component.onSelectionChange(selectionEvent);
-            expect(component.selectedType).toBe(mockCkTypes[0]);
-        });
-
-        it('should clear selectedType on deselection', () => {
-            component.selectedType = mockCkTypes[0];
-            const selectionEvent: SelectionEvent = {
-                selectedRows: [],
-                deselectedRows: [{ dataItem: mockCkTypes[0], index: 0 }],
-                ctrlKey: false,
-                shiftKey: false
-            };
-            component.onSelectionChange(selectionEvent);
-            expect(component.selectedType).toBeNull();
-        });
-
-        it('should handle selection of abstract type', () => {
-            const abstractType = mockCkTypes.find(t => t.isAbstract);
-            const selectionEvent: SelectionEvent = {
-                selectedRows: [{ dataItem: abstractType, index: 2 }],
-                deselectedRows: [],
-                ctrlKey: false,
-                shiftKey: false
-            };
-            component.onSelectionChange(selectionEvent);
-            expect(component.selectedType?.isAbstract).toBe(true);
-        });
-
-        it('should handle selection of final type', () => {
-            const finalType = mockCkTypes.find(t => t.isFinal);
-            const selectionEvent: SelectionEvent = {
-                selectedRows: [{ dataItem: finalType, index: 1 }],
-                deselectedRows: [],
-                ctrlKey: false,
-                shiftKey: false
-            };
-            component.onSelectionChange(selectionEvent);
-            expect(component.selectedType?.isFinal).toBe(true);
-        });
+    it('should load types on init', () => {
+      fixture.detectChanges();
+      expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
     });
 
-    describe('onConfirm', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
-
-        it('should close dialog with selected type', () => {
-            component.selectedType = mockCkTypes[0];
-            component.onConfirm();
-
-            expect(windowRefMock.close).toHaveBeenCalled();
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
-            expect(result.selectedCkType).toBe(mockCkTypes[0]);
-        });
-
-        it('should not close dialog when no selection', () => {
-            component.selectedType = null;
-            component.onConfirm();
-            expect(windowRefMock.close).not.toHaveBeenCalled();
-        });
-
-        it('should include all type properties in result', () => {
-            component.selectedType = mockCkTypes[0];
-            component.onConfirm();
-
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
-            expect(result.selectedCkType.fullName).toBe('OctoSdkDemo-1.0.0/Customer-1');
-            expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
-            expect(result.selectedCkType.description).toBe('Customer entity');
-        });
+    it('should load available models on init', () => {
+      fixture.detectChanges();
+      // Called twice: once for types, once for available models
+      expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalledTimes(2);
     });
 
-    describe('onCancel', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
-
-        it('should close dialog without result', () => {
-            component.onCancel();
-            expect(windowRefMock.close).toHaveBeenCalledWith();
-        });
-
-        it('should close dialog without result even with selection', () => {
-            component.selectedType = mockCkTypes[0];
-            component.onCancel();
-            expect(windowRefMock.close).toHaveBeenCalledWith();
-        });
+    it('should populate grid data after loading', () => {
+      fixture.detectChanges();
+      expect(component.gridData.data.length).toBe(5);
+      expect(component.gridData.total).toBe(5);
     });
 
-    describe('Loading state', () => {
-        it('should set isLoading to true while loading', () => {
-            fixture.detectChanges();
-            // isLoading is set to false after data loads, but we can check the flow
-            expect(component.isLoading).toBe(false);
-        });
-
-        it('should set isLoading to false after load completes', () => {
-            fixture.detectChanges();
-            expect(component.isLoading).toBe(false);
-        });
-
-        it('should set isLoading to false on error', () => {
-            ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(throwError(() => new Error('Test error')));
-            fixture.detectChanges();
-            expect(component.isLoading).toBe(false);
-        });
-
-        it('should clear grid data on error', () => {
-            ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(throwError(() => new Error('Test error')));
-            fixture.detectChanges();
-            expect(component.gridData.data).toEqual([]);
-            expect(component.gridData.total).toBe(0);
-        });
+    it('should extract unique models from loaded types', () => {
+      fixture.detectChanges();
+      expect(component.availableModels).toContain('OctoSdkDemo-1.0.0');
+      expect(component.availableModels).toContain('TestModel-2.0.0');
+      expect(component.availableModels.length).toBe(2);
     });
 
-    describe('Abstract type handling', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
-
-        it('should allow confirm button when allowAbstract is true and abstract type selected', () => {
-            component.allowAbstract = true;
-            component.selectedType = mockCkTypes.find(t => t.isAbstract)!;
-            // The button disabled logic: !selectedType || (selectedType.isAbstract && !allowAbstract)
-            const isDisabled = !component.selectedType || (component.selectedType.isAbstract && !component.allowAbstract);
-            expect(isDisabled).toBe(false);
-        });
-
-        it('should disable confirm button when allowAbstract is false and abstract type selected', () => {
-            component.allowAbstract = false;
-            component.selectedType = mockCkTypes.find(t => t.isAbstract)!;
-            const isDisabled = !component.selectedType || (component.selectedType.isAbstract && !component.allowAbstract);
-            expect(isDisabled).toBe(true);
-        });
-
-        it('should enable confirm button for non-abstract type regardless of allowAbstract', () => {
-            component.allowAbstract = false;
-            component.selectedType = mockCkTypes.find(t => !t.isAbstract)!;
-            const isDisabled = !component.selectedType || (component.selectedType.isAbstract && !component.allowAbstract);
-            expect(isDisabled).toBe(false);
-        });
+    it('should sort available models alphabetically', () => {
+      fixture.detectChanges();
+      const models = component.availableModels;
+      const sortedModels = [...models].sort();
+      expect(models).toEqual(sortedModels);
     });
 
-    describe('ngOnDestroy', () => {
-        it('should unsubscribe from subscriptions on destroy', () => {
-            fixture.detectChanges();
-            expect(() => component.ngOnDestroy()).not.toThrow();
-        });
-
-        it('should clean up search subject', fakeAsync(() => {
-            fixture.detectChanges();
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-
-            component.onSearchChange('test');
-            component.ngOnDestroy();
-            tick(300);
-
-            // After destroy, no new calls should be made
-            // (subscription is cleaned up)
-        }));
+    it('should handle null dialog data', () => {
+      component.data = undefined;
+      expect(() => fixture.detectChanges()).not.toThrow();
     });
 
-    describe('Model extraction', () => {
-        it('should extract model from fullName format', () => {
-            fixture.detectChanges();
-            // Models should be extracted from "ModelName-Version/TypeName-Version" format
-            expect(component.availableModels).toContain('OctoSdkDemo-1.0.0');
-            expect(component.availableModels).toContain('TestModel-2.0.0');
-        });
+    it('should restore selection if item exists in loaded data', () => {
+      component.data = {
+        selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
+      };
+      fixture.detectChanges();
+      expect(component.selectedType).toBeTruthy();
+      expect(component.selectedType?.rtCkTypeId).toBe('OctoSdkDemo/Customer');
+    });
+  });
 
-        it('should handle types without slash in fullName', () => {
-            ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
-                items: [{ fullName: 'NoSlashType', rtCkTypeId: 'NoSlash', isAbstract: false, isFinal: false }],
-                totalCount: 1
-            }));
-            fixture.detectChanges();
-            // Should not throw and should handle gracefully
-            expect(component.availableModels.length).toBe(0);
-        });
+  describe('Search functionality', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
     });
 
-    describe('Integration scenarios', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
+    it('should trigger search after debounce delay', fakeAsync(() => {
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
 
-        it('should filter, select, and confirm workflow', () => {
-            // Set model filter
-            component.selectedModel = 'OctoSdkDemo-1.0.0';
-            component.onModelFilterChange('OctoSdkDemo-1.0.0');
+      component.onSearchChange('customer');
+      expect(ckTypeSelectorServiceMock.getCkTypes).not.toHaveBeenCalled();
 
-            // Select a type
-            const selectionEvent: SelectionEvent = {
-                selectedRows: [{ dataItem: mockCkTypes[0], index: 0 }],
-                deselectedRows: [],
-                ctrlKey: false,
-                shiftKey: false
-            };
-            component.onSelectionChange(selectionEvent);
+      tick(300);
+      expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
+    }));
 
-            // Confirm
-            component.onConfirm();
+    it('should reset skip to 0 on search', fakeAsync(() => {
+      component.skip = 50;
+      component.onSearchChange('test');
+      tick(300);
+      expect(component.skip).toBe(0);
+    }));
 
-            const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
-            expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
-        });
+    it('should not trigger search for same value (distinctUntilChanged)', fakeAsync(() => {
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
 
-        it('should search, paginate, and select workflow', fakeAsync(() => {
-            // Search
-            component.searchText = 'product';
-            component.onSearchChange('product');
-            tick(300);
+      component.onSearchChange('test');
+      tick(300);
+      const callCount = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls.length;
 
-            // Change page size
-            const pageEvent: PageChangeEvent = { skip: 0, take: 25 };
-            component.onPageChange(pageEvent);
+      component.onSearchChange('test');
+      tick(300);
+      expect(vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls.length).toBe(callCount);
+    }));
 
-            expect(component.pageSize).toBe(25);
-        }));
+    it('should pass search text to service', fakeAsync(() => {
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
+      component.searchText = 'customer';
+      component.onSearchChange('customer');
+      tick(300);
 
-        it('should clear filters and reload', () => {
-            component.searchText = 'test';
-            component.selectedModel = 'TestModel-2.0.0';
-            component.skip = 50;
+      const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
+      const lastCall = calls[calls.length - 1]?.[0];
+      expect(lastCall?.searchText).toBe('customer');
+    }));
+  });
 
-            ckTypeSelectorServiceMock.getCkTypes.mockClear();
-            component.clearFilters();
-
-            expect(component.searchText).toBe('');
-            expect(component.selectedModel).toBeNull();
-            expect(component.skip).toBe(0);
-            expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
-        });
-
-        it('should handle pre-selected type that exists in initial load', () => {
-            fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
-            component = fixture.componentInstance;
-            component.data = {
-                selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
-            };
-            fixture.detectChanges();
-
-            expect(component.selectedType).toBeTruthy();
-            expect(component.selectedType?.fullName).toBe('OctoSdkDemo-1.0.0/Customer-1');
-        });
+  describe('Model filter', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
     });
+
+    it('should filter by selected model', () => {
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
+      component.selectedModel = 'OctoSdkDemo-1.0.0';
+      component.onModelFilterChange('OctoSdkDemo-1.0.0');
+
+      const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
+      const lastCall = calls[calls.length - 1]?.[0];
+      expect(lastCall?.ckModelIds).toEqual(['OctoSdkDemo-1.0.0']);
+    });
+
+    it('should reset skip to 0 on model filter change', () => {
+      component.skip = 50;
+      component.onModelFilterChange('TestModel-2.0.0');
+      expect(component.skip).toBe(0);
+    });
+
+    it('should use initial ckModelIds when no model selected', () => {
+      fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
+      component = fixture.componentInstance;
+      component.data = {
+        ckModelIds: ['OctoSdkDemo-1.0.0']
+      };
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
+      fixture.detectChanges();
+
+      const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
+      expect(calls[0]?.[0]?.ckModelIds).toEqual(['OctoSdkDemo-1.0.0']);
+    });
+  });
+
+  describe('clearFilters', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should clear search text', () => {
+      component.searchText = 'test';
+      component.clearFilters();
+      expect(component.searchText).toBe('');
+    });
+
+    it('should clear selected model', () => {
+      component.selectedModel = 'OctoSdkDemo-1.0.0';
+      component.clearFilters();
+      expect(component.selectedModel).toBeNull();
+    });
+
+    it('should reset skip to 0', () => {
+      component.skip = 50;
+      component.clearFilters();
+      expect(component.skip).toBe(0);
+    });
+
+    it('should reload types', () => {
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
+      component.clearFilters();
+      expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
+    });
+  });
+
+  describe('Pagination', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should update skip on page change', () => {
+      const pageEvent: PageChangeEvent = { skip: 50, take: 50 };
+      component.onPageChange(pageEvent);
+      expect(component.skip).toBe(50);
+    });
+
+    it('should update pageSize on page change', () => {
+      const pageEvent: PageChangeEvent = { skip: 0, take: 100 };
+      component.onPageChange(pageEvent);
+      expect(component.pageSize).toBe(100);
+    });
+
+    it('should reload types on page change', () => {
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
+      const pageEvent: PageChangeEvent = { skip: 50, take: 50 };
+      component.onPageChange(pageEvent);
+      expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
+    });
+
+    it('should pass pagination to service', () => {
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
+      const pageEvent: PageChangeEvent = { skip: 100, take: 25 };
+      component.onPageChange(pageEvent);
+
+      const calls = vi.mocked(ckTypeSelectorServiceMock.getCkTypes).mock.calls;
+      const lastCall = calls[calls.length - 1]?.[0];
+      expect(lastCall?.skip).toBe(100);
+      expect(lastCall?.first).toBe(25);
+    });
+  });
+
+  describe('Selection', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should set selectedType on selection', () => {
+      const selectionEvent: SelectionEvent = {
+        selectedRows: [{ dataItem: mockCkTypes[0], index: 0 }],
+        deselectedRows: [],
+        ctrlKey: false,
+        shiftKey: false
+      };
+      component.onSelectionChange(selectionEvent);
+      expect(component.selectedType).toBe(mockCkTypes[0]);
+    });
+
+    it('should clear selectedType on deselection', () => {
+      component.selectedType = mockCkTypes[0];
+      const selectionEvent: SelectionEvent = {
+        selectedRows: [],
+        deselectedRows: [{ dataItem: mockCkTypes[0], index: 0 }],
+        ctrlKey: false,
+        shiftKey: false
+      };
+      component.onSelectionChange(selectionEvent);
+      expect(component.selectedType).toBeNull();
+    });
+
+    it('should handle selection of abstract type', () => {
+      const abstractType = mockCkTypes.find(t => t.isAbstract);
+      const selectionEvent: SelectionEvent = {
+        selectedRows: [{ dataItem: abstractType, index: 2 }],
+        deselectedRows: [],
+        ctrlKey: false,
+        shiftKey: false
+      };
+      component.onSelectionChange(selectionEvent);
+      expect(component.selectedType?.isAbstract).toBe(true);
+    });
+
+    it('should handle selection of final type', () => {
+      const finalType = mockCkTypes.find(t => t.isFinal);
+      const selectionEvent: SelectionEvent = {
+        selectedRows: [{ dataItem: finalType, index: 1 }],
+        deselectedRows: [],
+        ctrlKey: false,
+        shiftKey: false
+      };
+      component.onSelectionChange(selectionEvent);
+      expect(component.selectedType?.isFinal).toBe(true);
+    });
+  });
+
+  describe('onConfirm', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should close dialog with selected type', () => {
+      component.selectedType = mockCkTypes[0];
+      component.onConfirm();
+
+      expect(windowRefMock.close).toHaveBeenCalled();
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
+      expect(result.selectedCkType).toBe(mockCkTypes[0]);
+    });
+
+    it('should not close dialog when no selection', () => {
+      component.selectedType = null;
+      component.onConfirm();
+      expect(windowRefMock.close).not.toHaveBeenCalled();
+    });
+
+    it('should include all type properties in result', () => {
+      component.selectedType = mockCkTypes[0];
+      component.onConfirm();
+
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
+      expect(result.selectedCkType.fullName).toBe('OctoSdkDemo-1.0.0/Customer-1');
+      expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
+      expect(result.selectedCkType.description).toBe('Customer entity');
+    });
+  });
+
+  describe('onCancel', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should close dialog without result', () => {
+      component.onCancel();
+      expect(windowRefMock.close).toHaveBeenCalledWith();
+    });
+
+    it('should close dialog without result even with selection', () => {
+      component.selectedType = mockCkTypes[0];
+      component.onCancel();
+      expect(windowRefMock.close).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('Loading state', () => {
+    it('should set isLoading to true while loading', () => {
+      fixture.detectChanges();
+      // isLoading is set to false after data loads, but we can check the flow
+      expect(component.isLoading).toBe(false);
+    });
+
+    it('should set isLoading to false after load completes', () => {
+      fixture.detectChanges();
+      expect(component.isLoading).toBe(false);
+    });
+
+    it('should set isLoading to false on error', () => {
+      ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(throwError(() => new Error('Test error')));
+      fixture.detectChanges();
+      expect(component.isLoading).toBe(false);
+    });
+
+    it('should clear grid data on error', () => {
+      ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(throwError(() => new Error('Test error')));
+      fixture.detectChanges();
+      expect(component.gridData.data).toEqual([]);
+      expect(component.gridData.total).toBe(0);
+    });
+  });
+
+  describe('Abstract type handling', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should allow confirm button when allowAbstract is true and abstract type selected', () => {
+      component.allowAbstract = true;
+      component.selectedType = mockCkTypes.find(t => t.isAbstract)!;
+      // The button disabled logic: !selectedType || (selectedType.isAbstract && !allowAbstract)
+      const isDisabled = !component.selectedType || (component.selectedType.isAbstract && !component.allowAbstract);
+      expect(isDisabled).toBe(false);
+    });
+
+    it('should disable confirm button when allowAbstract is false and abstract type selected', () => {
+      component.allowAbstract = false;
+      component.selectedType = mockCkTypes.find(t => t.isAbstract)!;
+      const isDisabled = !component.selectedType || (component.selectedType.isAbstract && !component.allowAbstract);
+      expect(isDisabled).toBe(true);
+    });
+
+    it('should enable confirm button for non-abstract type regardless of allowAbstract', () => {
+      component.allowAbstract = false;
+      component.selectedType = mockCkTypes.find(t => !t.isAbstract)!;
+      const isDisabled = !component.selectedType || (component.selectedType.isAbstract && !component.allowAbstract);
+      expect(isDisabled).toBe(false);
+    });
+  });
+
+  describe('ngOnDestroy', () => {
+    it('should unsubscribe from subscriptions on destroy', () => {
+      fixture.detectChanges();
+      expect(() => component.ngOnDestroy()).not.toThrow();
+    });
+
+    it('should clean up search subject', fakeAsync(() => {
+      fixture.detectChanges();
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
+
+      component.onSearchChange('test');
+      component.ngOnDestroy();
+      tick(300);
+
+      // After destroy, no new calls should be made
+      // (subscription is cleaned up)
+    }));
+  });
+
+  describe('Model extraction', () => {
+    it('should extract model from fullName format', () => {
+      fixture.detectChanges();
+      // Models should be extracted from "ModelName-Version/TypeName-Version" format
+      expect(component.availableModels).toContain('OctoSdkDemo-1.0.0');
+      expect(component.availableModels).toContain('TestModel-2.0.0');
+    });
+
+    it('should handle types without slash in fullName', () => {
+      ckTypeSelectorServiceMock.getCkTypes.mockReturnValue(of({
+        items: [{ fullName: 'NoSlashType', rtCkTypeId: 'NoSlash', isAbstract: false, isFinal: false }],
+        totalCount: 1
+      }));
+      fixture.detectChanges();
+      // Should not throw and should handle gracefully
+      expect(component.availableModels.length).toBe(0);
+    });
+  });
+
+  describe('Integration scenarios', () => {
+    beforeEach(() => {
+      fixture.detectChanges();
+    });
+
+    it('should filter, select, and confirm workflow', () => {
+      // Set model filter
+      component.selectedModel = 'OctoSdkDemo-1.0.0';
+      component.onModelFilterChange('OctoSdkDemo-1.0.0');
+
+      // Select a type
+      const selectionEvent: SelectionEvent = {
+        selectedRows: [{ dataItem: mockCkTypes[0], index: 0 }],
+        deselectedRows: [],
+        ctrlKey: false,
+        shiftKey: false
+      };
+      component.onSelectionChange(selectionEvent);
+
+      // Confirm
+      component.onConfirm();
+
+      const result = vi.mocked((windowRefMock.close as Mock)).mock.lastCall![0] as CkTypeSelectorDialogResult;
+      expect(result.selectedCkType.rtCkTypeId).toBe('OctoSdkDemo/Customer');
+    });
+
+    it('should search, paginate, and select workflow', fakeAsync(() => {
+      // Search
+      component.searchText = 'product';
+      component.onSearchChange('product');
+      tick(300);
+
+      // Change page size
+      const pageEvent: PageChangeEvent = { skip: 0, take: 25 };
+      component.onPageChange(pageEvent);
+
+      expect(component.pageSize).toBe(25);
+    }));
+
+    it('should clear filters and reload', () => {
+      component.searchText = 'test';
+      component.selectedModel = 'TestModel-2.0.0';
+      component.skip = 50;
+
+      ckTypeSelectorServiceMock.getCkTypes.mockClear();
+      component.clearFilters();
+
+      expect(component.searchText).toBe('');
+      expect(component.selectedModel).toBeNull();
+      expect(component.skip).toBe(0);
+      expect(ckTypeSelectorServiceMock.getCkTypes).toHaveBeenCalled();
+    });
+
+    it('should handle pre-selected type that exists in initial load', () => {
+      fixture = TestBed.createComponent(CkTypeSelectorDialogComponent);
+      component = fixture.componentInstance;
+      component.data = {
+        selectedCkTypeId: 'OctoSdkDemo-1.0.0/Customer-1'
+      };
+      fixture.detectChanges();
+
+      expect(component.selectedType).toBeTruthy();
+      expect(component.selectedType?.fullName).toBe('OctoSdkDemo-1.0.0/Customer-1');
+    });
+  });
 });

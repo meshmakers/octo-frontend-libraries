@@ -6,237 +6,237 @@ import { RtEntityDto } from '../../graphQL/globalTypes';
 import { CkTypeEntitiesDataSourceDirective } from './ck-type-entities-data-source.directive';
 
 describe('CkTypeEntitiesDataSourceDirective', () => {
-    let directive: CkTypeEntitiesDataSourceDirective;
+  let directive: CkTypeEntitiesDataSourceDirective;
 
-    const mockListViewComponent = {
-        pageSize: 20,
-        skip: 0,
-    };
+  const mockListViewComponent = {
+    pageSize: 20,
+    skip: 0,
+  };
 
-    const mockEntities = [
-        {
-            rtId: 'entity-1',
-            ckTypeId: 'TestType',
-            rtWellKnownName: 'test-entity-1',
-            rtCreationDateTime: '2024-01-01T00:00:00Z',
-            rtChangedDateTime: '2024-01-02T00:00:00Z',
+  const mockEntities = [
+    {
+      rtId: 'entity-1',
+      ckTypeId: 'TestType',
+      rtWellKnownName: 'test-entity-1',
+      rtCreationDateTime: '2024-01-01T00:00:00Z',
+      rtChangedDateTime: '2024-01-02T00:00:00Z',
+    },
+    {
+      rtId: 'entity-2',
+      ckTypeId: 'TestType',
+      rtWellKnownName: 'test-entity-2',
+      rtCreationDateTime: '2024-01-03T00:00:00Z',
+      rtChangedDateTime: '2024-01-04T00:00:00Z',
+    },
+  ];
+
+  const mockGQLResponse = {
+    data: {
+      runtime: {
+        runtimeEntities: {
+          items: mockEntities,
+          totalCount: 2,
+          pageInfo: {
+            hasNextPage: false,
+            endCursor: 'cursor-2',
+          },
         },
-        {
-            rtId: 'entity-2',
-            ckTypeId: 'TestType',
-            rtWellKnownName: 'test-entity-2',
-            rtCreationDateTime: '2024-01-03T00:00:00Z',
-            rtChangedDateTime: '2024-01-04T00:00:00Z',
-        },
-    ];
+      },
+    },
+  };
 
-    const mockGQLResponse = {
+  const mockGetRuntimeEntitiesGQL = {
+    fetch: vi.fn().mockName('fetch').mockReturnValue(of(mockGQLResponse)),
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [
+        CkTypeEntitiesDataSourceDirective,
+        { provide: ListViewComponent, useValue: mockListViewComponent },
+        {
+          provide: GetRuntimeEntitiesByTypeDtoGQL,
+          useValue: mockGetRuntimeEntitiesGQL,
+        },
+      ],
+    }).compileComponents();
+
+    directive = TestBed.inject(CkTypeEntitiesDataSourceDirective);
+  });
+
+  afterEach(() => {
+    mockGetRuntimeEntitiesGQL.fetch.mockClear();
+    mockGetRuntimeEntitiesGQL.fetch.mockReturnValue(of(mockGQLResponse));
+  });
+
+  it('should be created', () => {
+    expect(directive).toBeTruthy();
+  });
+
+  describe('fetchData without ckTypeId', () => {
+    it('should return empty result when ckTypeId is not set', () => new Promise<void>((done) => {
+      const options: FetchDataOptions = {
+        state: { take: 20, skip: 0 },
+        textSearch: null,
+      };
+
+      directive.fetchData(options).subscribe((result) => {
+        expect(result?.data.length).toBe(0);
+        expect(result?.totalCount).toBe(0);
+        expect(mockGetRuntimeEntitiesGQL.fetch).not.toHaveBeenCalled();
+        done();
+      });
+    }));
+  });
+
+  describe('fetchData with ckTypeId', () => {
+    beforeEach(() => {
+      directive.setRtCkTypeId('TestType');
+      mockGetRuntimeEntitiesGQL.fetch.mockClear();
+    });
+
+    it('should fetch entities and return typed result', () => new Promise<void>((done) => {
+      const options: FetchDataOptions = {
+        state: { take: 20, skip: 0 },
+        textSearch: null,
+      };
+
+      directive.fetchData(options).subscribe((result) => {
+        expect(result).toBeTruthy();
+        expect(result?.data.length).toBe(2);
+        expect(result?.totalCount).toBe(2);
+        const first = result?.data[0] as RtEntityDto;
+        const second = result?.data[1] as RtEntityDto;
+        expect(first.rtId).toBe('entity-1');
+        expect(first.ckTypeId).toBe('TestType');
+        expect(second.rtId).toBe('entity-2');
+        done();
+      });
+    }));
+
+    it('should call GraphQL with correct ckTypeId', () => new Promise<void>((done) => {
+      const options: FetchDataOptions = {
+        state: { take: 10, skip: 0 },
+        textSearch: null,
+      };
+
+      directive.fetchData(options).subscribe(() => {
+        expect(mockGetRuntimeEntitiesGQL.fetch).toHaveBeenCalled();
+        const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
+        expect(callArgs.variables.ckTypeId).toBe('TestType');
+        expect(callArgs.variables.first).toBe(10);
+        done();
+      });
+    }));
+
+    it('should use cache-first policy by default', () => new Promise<void>((done) => {
+      const options: FetchDataOptions = {
+        state: { take: 20, skip: 0 },
+        textSearch: null,
+      };
+
+      directive.fetchData(options).subscribe(() => {
+        const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
+        expect(callArgs.fetchPolicy).toBe('cache-first');
+        done();
+      });
+    }));
+
+    it('should use network-only policy when forceRefresh is true', () => new Promise<void>((done) => {
+      const options: FetchDataOptions = {
+        state: { take: 20, skip: 0 },
+        textSearch: null,
+        forceRefresh: true,
+      };
+
+      directive.fetchData(options).subscribe(() => {
+        const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
+        expect(callArgs.fetchPolicy).toBe('network-only');
+        done();
+      });
+    }));
+
+    it('should include sort definitions when sorting is applied', () => new Promise<void>((done) => {
+      const options: FetchDataOptions = {
+        state: {
+          take: 20,
+          skip: 0,
+          sort: [{ field: 'rtWellKnownName', dir: 'asc' }],
+        },
+        textSearch: null,
+      };
+
+      directive.fetchData(options).subscribe(() => {
+        const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
+        expect(callArgs.variables.sort).toBeTruthy();
+        expect(callArgs.variables.sort.length).toBe(1);
+        done();
+      });
+    }));
+
+    it('should handle empty result', () => new Promise<void>((done) => {
+      mockGetRuntimeEntitiesGQL.fetch.mockReturnValue(of({
         data: {
-            runtime: {
-                runtimeEntities: {
-                    items: mockEntities,
-                    totalCount: 2,
-                    pageInfo: {
-                        hasNextPage: false,
-                        endCursor: 'cursor-2',
-                    },
-                },
+          runtime: {
+            runtimeEntities: {
+              items: [],
+              totalCount: 0,
             },
+          },
         },
-    };
+      }));
 
-    const mockGetRuntimeEntitiesGQL = {
-        fetch: vi.fn().mockName('fetch').mockReturnValue(of(mockGQLResponse)),
-    };
+      const options: FetchDataOptions = {
+        state: { take: 20, skip: 0 },
+        textSearch: null,
+      };
 
-    beforeEach(async () => {
-        await TestBed.configureTestingModule({
-            providers: [
-                CkTypeEntitiesDataSourceDirective,
-                { provide: ListViewComponent, useValue: mockListViewComponent },
-                {
-                    provide: GetRuntimeEntitiesByTypeDtoGQL,
-                    useValue: mockGetRuntimeEntitiesGQL,
-                },
-            ],
-        }).compileComponents();
+      directive.fetchData(options).subscribe((result) => {
+        expect(result?.data.length).toBe(0);
+        expect(result?.totalCount).toBe(0);
+        done();
+      });
+    }));
 
-        directive = TestBed.inject(CkTypeEntitiesDataSourceDirective);
-    });
+    it('should handle null items in response', () => new Promise<void>((done) => {
+      mockGetRuntimeEntitiesGQL.fetch.mockReturnValue(of({
+        data: {
+          runtime: {
+            runtimeEntities: {
+              items: [mockEntities[0], null, mockEntities[1]],
+              totalCount: 2,
+            },
+          },
+        },
+      }));
 
-    afterEach(() => {
-        mockGetRuntimeEntitiesGQL.fetch.mockClear();
-        mockGetRuntimeEntitiesGQL.fetch.mockReturnValue(of(mockGQLResponse));
-    });
+      const options: FetchDataOptions = {
+        state: { take: 20, skip: 0 },
+        textSearch: null,
+      };
 
-    it('should be created', () => {
-        expect(directive).toBeTruthy();
-    });
+      directive.fetchData(options).subscribe((result) => {
+        expect(result?.data.length).toBe(2);
+        done();
+      });
+    }));
+  });
 
-    describe('fetchData without ckTypeId', () => {
-        it('should return empty result when ckTypeId is not set', () => new Promise<void>((done) => {
-            const options: FetchDataOptions = {
-                state: { take: 20, skip: 0 },
-                textSearch: null,
-            };
+  describe('setRtCkTypeId', () => {
+    it('should update ckTypeId and allow fetching', () => new Promise<void>((done) => {
+      directive.setRtCkTypeId('NewType');
+      mockGetRuntimeEntitiesGQL.fetch.mockClear();
 
-            directive.fetchData(options).subscribe((result) => {
-                expect(result?.data.length).toBe(0);
-                expect(result?.totalCount).toBe(0);
-                expect(mockGetRuntimeEntitiesGQL.fetch).not.toHaveBeenCalled();
-                done();
-            });
-        }));
-    });
+      const options: FetchDataOptions = {
+        state: { take: 20, skip: 0 },
+        textSearch: null,
+      };
 
-    describe('fetchData with ckTypeId', () => {
-        beforeEach(() => {
-            directive.setRtCkTypeId('TestType');
-            mockGetRuntimeEntitiesGQL.fetch.mockClear();
-        });
-
-        it('should fetch entities and return typed result', () => new Promise<void>((done) => {
-            const options: FetchDataOptions = {
-                state: { take: 20, skip: 0 },
-                textSearch: null,
-            };
-
-            directive.fetchData(options).subscribe((result) => {
-                expect(result).toBeTruthy();
-                expect(result?.data.length).toBe(2);
-                expect(result?.totalCount).toBe(2);
-                const first = result?.data[0] as RtEntityDto;
-                const second = result?.data[1] as RtEntityDto;
-                expect(first.rtId).toBe('entity-1');
-                expect(first.ckTypeId).toBe('TestType');
-                expect(second.rtId).toBe('entity-2');
-                done();
-            });
-        }));
-
-        it('should call GraphQL with correct ckTypeId', () => new Promise<void>((done) => {
-            const options: FetchDataOptions = {
-                state: { take: 10, skip: 0 },
-                textSearch: null,
-            };
-
-            directive.fetchData(options).subscribe(() => {
-                expect(mockGetRuntimeEntitiesGQL.fetch).toHaveBeenCalled();
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
-                expect(callArgs.variables.ckTypeId).toBe('TestType');
-                expect(callArgs.variables.first).toBe(10);
-                done();
-            });
-        }));
-
-        it('should use cache-first policy by default', () => new Promise<void>((done) => {
-            const options: FetchDataOptions = {
-                state: { take: 20, skip: 0 },
-                textSearch: null,
-            };
-
-            directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
-                expect(callArgs.fetchPolicy).toBe('cache-first');
-                done();
-            });
-        }));
-
-        it('should use network-only policy when forceRefresh is true', () => new Promise<void>((done) => {
-            const options: FetchDataOptions = {
-                state: { take: 20, skip: 0 },
-                textSearch: null,
-                forceRefresh: true,
-            };
-
-            directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
-                expect(callArgs.fetchPolicy).toBe('network-only');
-                done();
-            });
-        }));
-
-        it('should include sort definitions when sorting is applied', () => new Promise<void>((done) => {
-            const options: FetchDataOptions = {
-                state: {
-                    take: 20,
-                    skip: 0,
-                    sort: [{ field: 'rtWellKnownName', dir: 'asc' }],
-                },
-                textSearch: null,
-            };
-
-            directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
-                expect(callArgs.variables.sort).toBeTruthy();
-                expect(callArgs.variables.sort.length).toBe(1);
-                done();
-            });
-        }));
-
-        it('should handle empty result', () => new Promise<void>((done) => {
-            mockGetRuntimeEntitiesGQL.fetch.mockReturnValue(of({
-                data: {
-                    runtime: {
-                        runtimeEntities: {
-                            items: [],
-                            totalCount: 0,
-                        },
-                    },
-                },
-            }));
-
-            const options: FetchDataOptions = {
-                state: { take: 20, skip: 0 },
-                textSearch: null,
-            };
-
-            directive.fetchData(options).subscribe((result) => {
-                expect(result?.data.length).toBe(0);
-                expect(result?.totalCount).toBe(0);
-                done();
-            });
-        }));
-
-        it('should handle null items in response', () => new Promise<void>((done) => {
-            mockGetRuntimeEntitiesGQL.fetch.mockReturnValue(of({
-                data: {
-                    runtime: {
-                        runtimeEntities: {
-                            items: [mockEntities[0], null, mockEntities[1]],
-                            totalCount: 2,
-                        },
-                    },
-                },
-            }));
-
-            const options: FetchDataOptions = {
-                state: { take: 20, skip: 0 },
-                textSearch: null,
-            };
-
-            directive.fetchData(options).subscribe((result) => {
-                expect(result?.data.length).toBe(2);
-                done();
-            });
-        }));
-    });
-
-    describe('setRtCkTypeId', () => {
-        it('should update ckTypeId and allow fetching', () => new Promise<void>((done) => {
-            directive.setRtCkTypeId('NewType');
-            mockGetRuntimeEntitiesGQL.fetch.mockClear();
-
-            const options: FetchDataOptions = {
-                state: { take: 20, skip: 0 },
-                textSearch: null,
-            };
-
-            directive.fetchData(options).subscribe(() => {
-                const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
-                expect(callArgs.variables.ckTypeId).toBe('NewType');
-                done();
-            });
-        }));
-    });
+      directive.fetchData(options).subscribe(() => {
+        const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
+        expect(callArgs.variables.ckTypeId).toBe('NewType');
+        done();
+      });
+    }));
+  });
 });

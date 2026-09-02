@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
@@ -7,213 +7,213 @@ import { ConfirmationService } from './confirmation.service';
 import { ButtonTypes, ConfirmationWindowResult, DialogType } from '../models/confirmation';
 
 describe('ConfirmationService', () => {
-    let service: ConfirmationService;
-    let dialogServiceMock: MockedObject<DialogService>;
-    let dialogRefMock: MockedObject<DialogRef>;
-    let resultSubject: Subject<ConfirmationWindowResult | object>;
+  let service: ConfirmationService;
+  let dialogServiceMock: MockedObject<DialogService>;
+  let dialogRefMock: MockedObject<DialogRef>;
+  let resultSubject: Subject<ConfirmationWindowResult | object>;
 
-    beforeEach(() => {
-        resultSubject = new Subject<ConfirmationWindowResult | object>();
+  beforeEach(() => {
+    resultSubject = new Subject<ConfirmationWindowResult | object>();
 
-        dialogRefMock = {
-            close: vi.fn().mockName("DialogRef.close"),
-            result: resultSubject.asObservable(),
-            content: {
-                instance: {
-                    data: null
-                }
-            }
-        } as unknown as MockedObject<DialogRef>;
+    dialogRefMock = {
+      close: vi.fn().mockName('DialogRef.close'),
+      result: resultSubject.asObservable(),
+      content: {
+        instance: {
+          data: null
+        }
+      }
+    } as unknown as MockedObject<DialogRef>;
 
-        dialogServiceMock = {
-            open: vi.fn().mockName("DialogService.open")
-        } as unknown as MockedObject<DialogService>;
-        dialogServiceMock.open.mockReturnValue(dialogRefMock);
+    dialogServiceMock = {
+      open: vi.fn().mockName('DialogService.open')
+    } as unknown as MockedObject<DialogService>;
+    dialogServiceMock.open.mockReturnValue(dialogRefMock);
 
-        TestBed.configureTestingModule({
-            providers: [
-                ConfirmationService,
-                { provide: DialogService, useValue: dialogServiceMock }
-            ]
-        });
-        service = TestBed.inject(ConfirmationService);
+    TestBed.configureTestingModule({
+      providers: [
+        ConfirmationService,
+        { provide: DialogService, useValue: dialogServiceMock }
+      ]
+    });
+    service = TestBed.inject(ConfirmationService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  describe('showYesNoConfirmationDialog', () => {
+    it('should return true when user clicks Yes', async () => {
+      const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
+
+      expect(dialogServiceMock.open).toHaveBeenCalled();
+
+      // Emit Yes result
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result).toBe(true);
     });
 
-    it('should be created', () => {
-        expect(service).toBeTruthy();
+    it('should return false when user clicks No', async () => {
+      const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
+
+      // Emit No result
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.No));
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result).toBe(false);
     });
 
-    describe('showYesNoConfirmationDialog', () => {
-        it('should return true when user clicks Yes', async () => {
-            const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
+    it('should return false when dialog is closed without selection', async () => {
+      const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
 
-            expect(dialogServiceMock.open).toHaveBeenCalled();
+      // Emit empty object (dialog closed)
+      resultSubject.next({});
+      resultSubject.complete();
 
-            // Emit Yes result
-            resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
-            resultSubject.complete();
-
-            const result = await resultPromise;
-            expect(result).toBe(true);
-        });
-
-        it('should return false when user clicks No', async () => {
-            const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
-
-            // Emit No result
-            resultSubject.next(new ConfirmationWindowResult(ButtonTypes.No));
-            resultSubject.complete();
-
-            const result = await resultPromise;
-            expect(result).toBe(false);
-        });
-
-        it('should return false when dialog is closed without selection', async () => {
-            const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
-
-            // Emit empty object (dialog closed)
-            resultSubject.next({});
-            resultSubject.complete();
-
-            const result = await resultPromise;
-            expect(result).toBe(false);
-        });
-
-        it('should pass YesNo dialog type to component', async () => {
-            const resultPromise = service.showYesNoConfirmationDialog('Test Title', 'Test Message');
-
-            const component = dialogRefMock.content.instance;
-            expect(component.data.title).toBe('Test Title');
-            expect(component.data.message).toBe('Test Message');
-            expect(component.data.dialogType).toBe(DialogType.YesNo);
-
-            resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
-            resultSubject.complete();
-            await resultPromise;
-        });
-
-        it('should pass cssClass to dialog service when provided', async () => {
-            const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message', 'mm-dialog-danger');
-
-            expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
-                cssClass: 'mm-dialog-danger'
-            }));
-
-            resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
-            resultSubject.complete();
-            await resultPromise;
-        });
-
-        it('should not pass cssClass when not provided', async () => {
-            const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
-
-            expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
-                cssClass: undefined
-            }));
-
-            resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
-            resultSubject.complete();
-            await resultPromise;
-        });
+      const result = await resultPromise;
+      expect(result).toBe(false);
     });
 
-    describe('showYesNoCancelConfirmationDialog', () => {
-        it('should return ConfirmationWindowResult with Yes', async () => {
-            const resultPromise = service.showYesNoCancelConfirmationDialog('Title', 'Message');
+    it('should pass YesNo dialog type to component', async () => {
+      const resultPromise = service.showYesNoConfirmationDialog('Test Title', 'Test Message');
 
-            const expectedResult = new ConfirmationWindowResult(ButtonTypes.Yes);
-            resultSubject.next(expectedResult);
-            resultSubject.complete();
+      const component = dialogRefMock.content.instance;
+      expect(component.data.title).toBe('Test Title');
+      expect(component.data.message).toBe('Test Message');
+      expect(component.data.dialogType).toBe(DialogType.YesNo);
 
-            const result = await resultPromise;
-            expect(result).toEqual(expectedResult);
-            expect(result?.result).toBe(ButtonTypes.Yes);
-        });
-
-        it('should return ConfirmationWindowResult with No', async () => {
-            const resultPromise = service.showYesNoCancelConfirmationDialog('Title', 'Message');
-
-            const expectedResult = new ConfirmationWindowResult(ButtonTypes.No);
-            resultSubject.next(expectedResult);
-            resultSubject.complete();
-
-            const result = await resultPromise;
-            expect(result?.result).toBe(ButtonTypes.No);
-        });
-
-        it('should return ConfirmationWindowResult with Cancel', async () => {
-            const resultPromise = service.showYesNoCancelConfirmationDialog('Title', 'Message');
-
-            const expectedResult = new ConfirmationWindowResult(ButtonTypes.Cancel);
-            resultSubject.next(expectedResult);
-            resultSubject.complete();
-
-            const result = await resultPromise;
-            expect(result?.result).toBe(ButtonTypes.Cancel);
-        });
-
-        it('should return undefined when dialog is closed without selection', async () => {
-            const resultPromise = service.showYesNoCancelConfirmationDialog('Title', 'Message');
-
-            resultSubject.next({});
-            resultSubject.complete();
-
-            const result = await resultPromise;
-            expect(result).toBeUndefined();
-        });
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
+      resultSubject.complete();
+      await resultPromise;
     });
 
-    describe('showOkCancelConfirmationDialog', () => {
-        it('should return true when user clicks Ok', async () => {
-            const resultPromise = service.showOkCancelConfirmationDialog('Title', 'Message');
+    it('should pass cssClass to dialog service when provided', async () => {
+      const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message', 'mm-dialog-danger');
 
-            resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Ok));
-            resultSubject.complete();
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        cssClass: 'mm-dialog-danger'
+      }));
 
-            const result = await resultPromise;
-            expect(result).toBe(true);
-        });
-
-        it('should return false when user clicks Cancel', async () => {
-            const resultPromise = service.showOkCancelConfirmationDialog('Title', 'Message');
-
-            resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Cancel));
-            resultSubject.complete();
-
-            const result = await resultPromise;
-            expect(result).toBe(false);
-        });
-
-        it('should return false when dialog is closed', async () => {
-            const resultPromise = service.showOkCancelConfirmationDialog('Title', 'Message');
-
-            resultSubject.next({});
-            resultSubject.complete();
-
-            const result = await resultPromise;
-            expect(result).toBe(false);
-        });
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
+      resultSubject.complete();
+      await resultPromise;
     });
 
-    describe('showOkDialog', () => {
-        it('should return true when user clicks Ok', async () => {
-            const resultPromise = service.showOkDialog('Title', 'Message');
+    it('should not pass cssClass when not provided', async () => {
+      const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
 
-            resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Ok));
-            resultSubject.complete();
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        cssClass: undefined
+      }));
 
-            const result = await resultPromise;
-            expect(result).toBe(true);
-        });
-
-        it('should return false when dialog is closed', async () => {
-            const resultPromise = service.showOkDialog('Title', 'Message');
-
-            resultSubject.next({});
-            resultSubject.complete();
-
-            const result = await resultPromise;
-            expect(result).toBe(false);
-        });
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
+      resultSubject.complete();
+      await resultPromise;
     });
+  });
+
+  describe('showYesNoCancelConfirmationDialog', () => {
+    it('should return ConfirmationWindowResult with Yes', async () => {
+      const resultPromise = service.showYesNoCancelConfirmationDialog('Title', 'Message');
+
+      const expectedResult = new ConfirmationWindowResult(ButtonTypes.Yes);
+      resultSubject.next(expectedResult);
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result).toEqual(expectedResult);
+      expect(result?.result).toBe(ButtonTypes.Yes);
+    });
+
+    it('should return ConfirmationWindowResult with No', async () => {
+      const resultPromise = service.showYesNoCancelConfirmationDialog('Title', 'Message');
+
+      const expectedResult = new ConfirmationWindowResult(ButtonTypes.No);
+      resultSubject.next(expectedResult);
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result?.result).toBe(ButtonTypes.No);
+    });
+
+    it('should return ConfirmationWindowResult with Cancel', async () => {
+      const resultPromise = service.showYesNoCancelConfirmationDialog('Title', 'Message');
+
+      const expectedResult = new ConfirmationWindowResult(ButtonTypes.Cancel);
+      resultSubject.next(expectedResult);
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result?.result).toBe(ButtonTypes.Cancel);
+    });
+
+    it('should return undefined when dialog is closed without selection', async () => {
+      const resultPromise = service.showYesNoCancelConfirmationDialog('Title', 'Message');
+
+      resultSubject.next({});
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('showOkCancelConfirmationDialog', () => {
+    it('should return true when user clicks Ok', async () => {
+      const resultPromise = service.showOkCancelConfirmationDialog('Title', 'Message');
+
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Ok));
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result).toBe(true);
+    });
+
+    it('should return false when user clicks Cancel', async () => {
+      const resultPromise = service.showOkCancelConfirmationDialog('Title', 'Message');
+
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Cancel));
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result).toBe(false);
+    });
+
+    it('should return false when dialog is closed', async () => {
+      const resultPromise = service.showOkCancelConfirmationDialog('Title', 'Message');
+
+      resultSubject.next({});
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('showOkDialog', () => {
+    it('should return true when user clicks Ok', async () => {
+      const resultPromise = service.showOkDialog('Title', 'Message');
+
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Ok));
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result).toBe(true);
+    });
+
+    it('should return false when dialog is closed', async () => {
+      const resultPromise = service.showOkDialog('Title', 'Message');
+
+      resultSubject.next({});
+      resultSubject.complete();
+
+      const result = await resultPromise;
+      expect(result).toBe(false);
+    });
+  });
 });

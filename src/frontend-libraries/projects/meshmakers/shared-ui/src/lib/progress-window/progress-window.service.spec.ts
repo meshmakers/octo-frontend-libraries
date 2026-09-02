@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DialogRef, DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
@@ -7,151 +7,151 @@ import { ProgressWindowService } from './progress-window.service';
 import { ProgressValue } from '../models/progressValue';
 
 describe('ProgressWindowService', () => {
-    let service: ProgressWindowService;
-    let dialogServiceMock: MockedObject<DialogService>;
-    let dialogRefMock: MockedObject<DialogRef>;
-    let progressSubject: Subject<ProgressValue>;
+  let service: ProgressWindowService;
+  let dialogServiceMock: MockedObject<DialogService>;
+  let dialogRefMock: MockedObject<DialogRef>;
+  let progressSubject: Subject<ProgressValue>;
 
-    beforeEach(() => {
-        progressSubject = new Subject<ProgressValue>();
+  beforeEach(() => {
+    progressSubject = new Subject<ProgressValue>();
 
-        dialogRefMock = {
-            close: vi.fn().mockName("DialogRef.close"),
-            result: new Subject().asObservable(),
-            content: {
-                instance: {
-                    isDeterminate: true,
-                    progress: null,
-                    isCancelOperationAvailable: false,
-                    cancelOperation: null
-                }
-            }
-        } as unknown as MockedObject<DialogRef>;
+    dialogRefMock = {
+      close: vi.fn().mockName('DialogRef.close'),
+      result: new Subject().asObservable(),
+      content: {
+        instance: {
+          isDeterminate: true,
+          progress: null,
+          isCancelOperationAvailable: false,
+          cancelOperation: null
+        }
+      }
+    } as unknown as MockedObject<DialogRef>;
 
-        dialogServiceMock = {
-            open: vi.fn().mockName("DialogService.open")
-        } as unknown as MockedObject<DialogService>;
-        dialogServiceMock.open.mockReturnValue(dialogRefMock);
+    dialogServiceMock = {
+      open: vi.fn().mockName('DialogService.open')
+    } as unknown as MockedObject<DialogService>;
+    dialogServiceMock.open.mockReturnValue(dialogRefMock);
 
-        TestBed.configureTestingModule({
-            providers: [
-                ProgressWindowService,
-                { provide: DialogService, useValue: dialogServiceMock }
-            ]
-        });
-        service = TestBed.inject(ProgressWindowService);
+    TestBed.configureTestingModule({
+      providers: [
+        ProgressWindowService,
+        { provide: DialogService, useValue: dialogServiceMock }
+      ]
+    });
+    service = TestBed.inject(ProgressWindowService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  describe('showProgress', () => {
+    it('should open dialog with progress window component', () => {
+      const progress = progressSubject.asObservable();
+      service.showProgress({
+        title: 'Test Title',
+        progress
+      });
+
+      expect(dialogServiceMock.open).toHaveBeenCalled();
+      const openCall = vi.mocked(dialogServiceMock.open).mock.lastCall![0];
+      expect(openCall.title).toBe('Test Title');
     });
 
-    it('should be created', () => {
-        expect(service).toBeTruthy();
+    it('should pass isDeterminate to component', () => {
+      const progress = progressSubject.asObservable();
+      service.showProgress({
+        title: 'Title',
+        progress,
+        isDeterminate: true
+      });
+
+      const component = dialogRefMock.content.instance;
+      expect(component.isDeterminate).toBe(true);
     });
 
-    describe('showProgress', () => {
-        it('should open dialog with progress window component', () => {
-            const progress = progressSubject.asObservable();
-            service.showProgress({
-                title: 'Test Title',
-                progress
-            });
+    it('should pass progress observable to component', () => {
+      const progress = progressSubject.asObservable();
+      service.showProgress({
+        title: 'Title',
+        progress
+      });
 
-            expect(dialogServiceMock.open).toHaveBeenCalled();
-            const openCall = vi.mocked(dialogServiceMock.open).mock.lastCall![0];
-            expect(openCall.title).toBe('Test Title');
-        });
-
-        it('should pass isDeterminate to component', () => {
-            const progress = progressSubject.asObservable();
-            service.showProgress({
-                title: 'Title',
-                progress,
-                isDeterminate: true
-            });
-
-            const component = dialogRefMock.content.instance;
-            expect(component.isDeterminate).toBe(true);
-        });
-
-        it('should pass progress observable to component', () => {
-            const progress = progressSubject.asObservable();
-            service.showProgress({
-                title: 'Title',
-                progress
-            });
-
-            const component = dialogRefMock.content.instance;
-            expect(component.progress).toBe(progress);
-        });
-
-        it('should pass cancel operation to component when available', () => {
-            const progress = progressSubject.asObservable();
-            const cancelFn = vi.fn().mockName('cancelOperation');
-
-            service.showProgress({
-                title: 'Title',
-                progress,
-                isCancelOperationAvailable: true,
-                cancelOperation: cancelFn
-            });
-
-            const component = dialogRefMock.content.instance;
-            expect(component.isCancelOperationAvailable).toBe(true);
-            expect(component.cancelOperation).toBe(cancelFn);
-        });
-
-        it('should return DialogRef', () => {
-            const progress = progressSubject.asObservable();
-            const result = service.showProgress({
-                title: 'Title',
-                progress
-            });
-
-            expect(result).toBe(dialogRefMock);
-        });
+      const component = dialogRefMock.content.instance;
+      expect(component.progress).toBe(progress);
     });
 
-    describe('showDeterminateProgress', () => {
-        it('should set isDeterminate to true', () => {
-            const progress = progressSubject.asObservable();
-            service.showDeterminateProgress('Title', progress);
+    it('should pass cancel operation to component when available', () => {
+      const progress = progressSubject.asObservable();
+      const cancelFn = vi.fn().mockName('cancelOperation');
 
-            const component = dialogRefMock.content.instance;
-            expect(component.isDeterminate).toBe(true);
-        });
+      service.showProgress({
+        title: 'Title',
+        progress,
+        isCancelOperationAvailable: true,
+        cancelOperation: cancelFn
+      });
 
-        it('should pass optional options', () => {
-            const progress = progressSubject.asObservable();
-            const cancelFn = vi.fn().mockName('cancelOperation');
-
-            service.showDeterminateProgress('Title', progress, {
-                isCancelOperationAvailable: true,
-                cancelOperation: cancelFn
-            });
-
-            const component = dialogRefMock.content.instance;
-            expect(component.isCancelOperationAvailable).toBe(true);
-        });
+      const component = dialogRefMock.content.instance;
+      expect(component.isCancelOperationAvailable).toBe(true);
+      expect(component.cancelOperation).toBe(cancelFn);
     });
 
-    describe('showIndeterminateProgress', () => {
-        it('should set isDeterminate to false', () => {
-            const progress = progressSubject.asObservable();
-            service.showIndeterminateProgress('Title', progress);
+    it('should return DialogRef', () => {
+      const progress = progressSubject.asObservable();
+      const result = service.showProgress({
+        title: 'Title',
+        progress
+      });
 
-            const component = dialogRefMock.content.instance;
-            expect(component.isDeterminate).toBe(false);
-        });
-
-        it('should pass optional options', () => {
-            const progress = progressSubject.asObservable();
-            const cancelFn = vi.fn().mockName('cancelOperation');
-
-            service.showIndeterminateProgress('Title', progress, {
-                isCancelOperationAvailable: true,
-                cancelOperation: cancelFn
-            });
-
-            const component = dialogRefMock.content.instance;
-            expect(component.isCancelOperationAvailable).toBe(true);
-        });
+      expect(result).toBe(dialogRefMock);
     });
+  });
+
+  describe('showDeterminateProgress', () => {
+    it('should set isDeterminate to true', () => {
+      const progress = progressSubject.asObservable();
+      service.showDeterminateProgress('Title', progress);
+
+      const component = dialogRefMock.content.instance;
+      expect(component.isDeterminate).toBe(true);
+    });
+
+    it('should pass optional options', () => {
+      const progress = progressSubject.asObservable();
+      const cancelFn = vi.fn().mockName('cancelOperation');
+
+      service.showDeterminateProgress('Title', progress, {
+        isCancelOperationAvailable: true,
+        cancelOperation: cancelFn
+      });
+
+      const component = dialogRefMock.content.instance;
+      expect(component.isCancelOperationAvailable).toBe(true);
+    });
+  });
+
+  describe('showIndeterminateProgress', () => {
+    it('should set isDeterminate to false', () => {
+      const progress = progressSubject.asObservable();
+      service.showIndeterminateProgress('Title', progress);
+
+      const component = dialogRefMock.content.instance;
+      expect(component.isDeterminate).toBe(false);
+    });
+
+    it('should pass optional options', () => {
+      const progress = progressSubject.asObservable();
+      const cancelFn = vi.fn().mockName('cancelOperation');
+
+      service.showIndeterminateProgress('Title', progress, {
+        isCancelOperationAvailable: true,
+        cancelOperation: cancelFn
+      });
+
+      const component = dialogRefMock.content.instance;
+      expect(component.isCancelOperationAvailable).toBe(true);
+    });
+  });
 });

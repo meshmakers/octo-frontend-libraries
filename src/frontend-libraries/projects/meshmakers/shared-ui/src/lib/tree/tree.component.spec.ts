@@ -12,7 +12,7 @@ describe('TreeViewComponent', () => {
       imports: [TreeComponent],
       providers: [provideNoopAnimations()]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(TreeComponent);
     component = fixture.componentInstance;

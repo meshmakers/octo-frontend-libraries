@@ -4,454 +4,454 @@ import { DesignerCoordinateService } from './designer-coordinate.service';
 import { DesignerStateService } from './designer-state.service';
 
 describe('DesignerDragService', () => {
-    let service: DesignerDragService;
-    let stateService: DesignerStateService;
+  let service: DesignerDragService;
+  let stateService: DesignerStateService;
 
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        DesignerDragService,
+        DesignerCoordinateService,
+        DesignerStateService
+      ]
+    });
+
+    service = TestBed.inject(DesignerDragService);
+    stateService = TestBed.inject(DesignerStateService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  // ============================================================================
+  // Initial State
+  // ============================================================================
+
+  describe('initial state', () => {
+    it('should start with isDragging false', () => {
+      expect(service.isDragging()).toBe(false);
+    });
+
+    it('should have null draggedItemId', () => {
+      expect(service.draggedItemId()).toBeNull();
+    });
+
+    it('should have null draggedItemType', () => {
+      expect(service.draggedItemType()).toBeNull();
+    });
+
+    it('should have initial state with null values', () => {
+      const state = service.state();
+      expect(state.isDragging).toBe(false);
+      expect(state.itemId).toBeNull();
+      expect(state.itemType).toBeNull();
+      expect(state.startPosition).toBeNull();
+      expect(state.startMousePosition).toBeNull();
+      expect(state.currentMousePosition).toBeNull();
+    });
+  });
+
+  // ============================================================================
+  // Start Drag
+  // ============================================================================
+
+  describe('startDrag', () => {
+    it('should set isDragging to true', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      expect(service.isDragging()).toBe(true);
+    });
+
+    it('should store item ID', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      expect(service.draggedItemId()).toBe('item-1');
+    });
+
+    it('should store item type', () => {
+      service.startDrag('item-1', 'primitive', { x: 100, y: 200 }, { x: 150, y: 250 });
+      expect(service.draggedItemType()).toBe('primitive');
+    });
+
+    it('should store start position', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      expect(service.state().startPosition).toEqual({ x: 100, y: 200 });
+    });
+
+    it('should store start mouse position', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      expect(service.state().startMousePosition).toEqual({ x: 150, y: 250 });
+    });
+
+    it('should clone positions to prevent external mutation', () => {
+      const startPos = { x: 100, y: 200 };
+      const mousePos = { x: 150, y: 250 };
+
+      service.startDrag('item-1', 'element', startPos, mousePos);
+
+      startPos.x = 999;
+      mousePos.x = 888;
+
+      expect(service.state().startPosition).toEqual({ x: 100, y: 200 });
+      expect(service.state().startMousePosition).toEqual({ x: 150, y: 250 });
+    });
+
+    it('should handle group item type', () => {
+      service.startDrag('group-1', 'group', { x: 0, y: 0 }, { x: 50, y: 50 });
+      expect(service.isDraggingGroup()).toBe(true);
+      expect(service.isDraggingPrimitive()).toBe(true);
+    });
+
+    it('should handle symbol item type', () => {
+      service.startDrag('symbol-1', 'symbol', { x: 0, y: 0 }, { x: 50, y: 50 });
+      expect(service.draggedItemType()).toBe('symbol');
+      expect(service.isDraggingGroup()).toBe(false);
+    });
+  });
+
+  // ============================================================================
+  // End Drag
+  // ============================================================================
+
+  describe('endDrag', () => {
+    it('should return null when not dragging', () => {
+      const result = service.endDrag();
+      expect(result).toBeNull();
+    });
+
+    it('should return final state when dragging', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      const result = service.endDrag();
+
+      expect(result).not.toBeNull();
+      expect(result!.itemId).toBe('item-1');
+      expect(result!.startPosition).toEqual({ x: 100, y: 200 });
+    });
+
+    it('should reset state after ending', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      service.endDrag();
+
+      expect(service.isDragging()).toBe(false);
+      expect(service.draggedItemId()).toBeNull();
+    });
+  });
+
+  describe('cancelDrag', () => {
+    it('should reset state without returning it', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      service.cancelDrag();
+
+      expect(service.isDragging()).toBe(false);
+      expect(service.draggedItemId()).toBeNull();
+    });
+
+    it('should not throw when not dragging', () => {
+      expect(() => service.cancelDrag()).not.toThrow();
+    });
+  });
+
+  // ============================================================================
+  // Update Mouse Position
+  // ============================================================================
+
+  describe('updateMousePosition', () => {
+    it('should not update when not dragging', () => {
+      service.updateMousePosition({ x: 200, y: 300 });
+      expect(service.state().currentMousePosition).toBeNull();
+    });
+
+    it('should update current mouse position when dragging', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      service.updateMousePosition({ x: 200, y: 300 });
+
+      expect(service.state().currentMousePosition).toEqual({ x: 200, y: 300 });
+    });
+
+    it('should clone position to prevent external mutation', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+
+      const mousePos = { x: 200, y: 300 };
+      service.updateMousePosition(mousePos);
+      mousePos.x = 999;
+
+      expect(service.state().currentMousePosition).toEqual({ x: 200, y: 300 });
+    });
+  });
+
+  // ============================================================================
+  // Calculate Drag Position
+  // ============================================================================
+
+  describe('calculateDragPosition', () => {
     beforeEach(() => {
-        TestBed.configureTestingModule({
-            providers: [
-                DesignerDragService,
-                DesignerCoordinateService,
-                DesignerStateService
-            ]
-        });
-
-        service = TestBed.inject(DesignerDragService);
-        stateService = TestBed.inject(DesignerStateService);
+      // Disable grid snapping for predictable tests
+      stateService.setSnapToGrid(false);
     });
 
-    it('should be created', () => {
-        expect(service).toBeTruthy();
+    it('should return null when not dragging', () => {
+      const result = service.calculateDragPosition({ x: 200, y: 300 });
+      expect(result).toBeNull();
     });
 
-    // ============================================================================
-    // Initial State
-    // ============================================================================
+    it('should calculate new position based on mouse delta', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
 
-    describe('initial state', () => {
-        it('should start with isDragging false', () => {
-            expect(service.isDragging()).toBe(false);
-        });
+      // Mouse moved by (50, 100)
+      const result = service.calculateDragPosition({ x: 200, y: 350 });
 
-        it('should have null draggedItemId', () => {
-            expect(service.draggedItemId()).toBeNull();
-        });
-
-        it('should have null draggedItemType', () => {
-            expect(service.draggedItemType()).toBeNull();
-        });
-
-        it('should have initial state with null values', () => {
-            const state = service.state();
-            expect(state.isDragging).toBe(false);
-            expect(state.itemId).toBeNull();
-            expect(state.itemType).toBeNull();
-            expect(state.startPosition).toBeNull();
-            expect(state.startMousePosition).toBeNull();
-            expect(state.currentMousePosition).toBeNull();
-        });
+      expect(result).not.toBeNull();
+      expect(result!.newPosition).toEqual({ x: 150, y: 300 }); // 100+50, 200+100
     });
 
-    // ============================================================================
-    // Start Drag
-    // ============================================================================
+    it('should calculate delta correctly', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      const result = service.calculateDragPosition({ x: 200, y: 350 });
 
-    describe('startDrag', () => {
-        it('should set isDragging to true', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            expect(service.isDragging()).toBe(true);
-        });
-
-        it('should store item ID', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            expect(service.draggedItemId()).toBe('item-1');
-        });
-
-        it('should store item type', () => {
-            service.startDrag('item-1', 'primitive', { x: 100, y: 200 }, { x: 150, y: 250 });
-            expect(service.draggedItemType()).toBe('primitive');
-        });
-
-        it('should store start position', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            expect(service.state().startPosition).toEqual({ x: 100, y: 200 });
-        });
-
-        it('should store start mouse position', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            expect(service.state().startMousePosition).toEqual({ x: 150, y: 250 });
-        });
-
-        it('should clone positions to prevent external mutation', () => {
-            const startPos = { x: 100, y: 200 };
-            const mousePos = { x: 150, y: 250 };
-
-            service.startDrag('item-1', 'element', startPos, mousePos);
-
-            startPos.x = 999;
-            mousePos.x = 888;
-
-            expect(service.state().startPosition).toEqual({ x: 100, y: 200 });
-            expect(service.state().startMousePosition).toEqual({ x: 150, y: 250 });
-        });
-
-        it('should handle group item type', () => {
-            service.startDrag('group-1', 'group', { x: 0, y: 0 }, { x: 50, y: 50 });
-            expect(service.isDraggingGroup()).toBe(true);
-            expect(service.isDraggingPrimitive()).toBe(true);
-        });
-
-        it('should handle symbol item type', () => {
-            service.startDrag('symbol-1', 'symbol', { x: 0, y: 0 }, { x: 50, y: 50 });
-            expect(service.draggedItemType()).toBe('symbol');
-            expect(service.isDraggingGroup()).toBe(false);
-        });
+      expect(result!.delta).toEqual({ x: 50, y: 100 });
     });
 
-    // ============================================================================
-    // End Drag
-    // ============================================================================
+    it('should report hasMoved false when position unchanged', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      const result = service.calculateDragPosition({ x: 150, y: 250 }); // Same as start
 
-    describe('endDrag', () => {
-        it('should return null when not dragging', () => {
-            const result = service.endDrag();
-            expect(result).toBeNull();
-        });
-
-        it('should return final state when dragging', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            const result = service.endDrag();
-
-            expect(result).not.toBeNull();
-            expect(result!.itemId).toBe('item-1');
-            expect(result!.startPosition).toEqual({ x: 100, y: 200 });
-        });
-
-        it('should reset state after ending', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            service.endDrag();
-
-            expect(service.isDragging()).toBe(false);
-            expect(service.draggedItemId()).toBeNull();
-        });
+      expect(result!.hasMoved).toBe(false);
     });
 
-    describe('cancelDrag', () => {
-        it('should reset state without returning it', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            service.cancelDrag();
+    it('should report hasMoved true when position changed', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      const result = service.calculateDragPosition({ x: 200, y: 350 });
 
-            expect(service.isDragging()).toBe(false);
-            expect(service.draggedItemId()).toBeNull();
-        });
-
-        it('should not throw when not dragging', () => {
-            expect(() => service.cancelDrag()).not.toThrow();
-        });
+      expect(result!.hasMoved).toBe(true);
     });
 
-    // ============================================================================
-    // Update Mouse Position
-    // ============================================================================
+    it('should handle negative movement', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      const result = service.calculateDragPosition({ x: 100, y: 200 }); // Move back
 
-    describe('updateMousePosition', () => {
-        it('should not update when not dragging', () => {
-            service.updateMousePosition({ x: 200, y: 300 });
-            expect(service.state().currentMousePosition).toBeNull();
-        });
-
-        it('should update current mouse position when dragging', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            service.updateMousePosition({ x: 200, y: 300 });
-
-            expect(service.state().currentMousePosition).toEqual({ x: 200, y: 300 });
-        });
-
-        it('should clone position to prevent external mutation', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-
-            const mousePos = { x: 200, y: 300 };
-            service.updateMousePosition(mousePos);
-            mousePos.x = 999;
-
-            expect(service.state().currentMousePosition).toEqual({ x: 200, y: 300 });
-        });
+      expect(result!.newPosition).toEqual({ x: 50, y: 150 });
+      expect(result!.delta).toEqual({ x: -50, y: -50 });
     });
 
-    // ============================================================================
-    // Calculate Drag Position
-    // ============================================================================
+    describe('with grid snapping', () => {
+      beforeEach(() => {
+        stateService.setSnapToGrid(true);
+        stateService.setGridSize(20);
+      });
 
-    describe('calculateDragPosition', () => {
-        beforeEach(() => {
-            // Disable grid snapping for predictable tests
-            stateService.setSnapToGrid(false);
-        });
+      it('should snap position to grid when snap enabled', () => {
+        service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+        const result = service.calculateDragPosition({ x: 165, y: 265 }, true);
 
-        it('should return null when not dragging', () => {
-            const result = service.calculateDragPosition({ x: 200, y: 300 });
-            expect(result).toBeNull();
-        });
+        // New pos would be 115, 215 -> snapped to 120, 220
+        expect(result!.newPosition).toEqual({ x: 120, y: 220 });
+      });
 
-        it('should calculate new position based on mouse delta', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      it('should not snap when snap parameter is false', () => {
+        service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+        const result = service.calculateDragPosition({ x: 165, y: 265 }, false);
 
-            // Mouse moved by (50, 100)
-            const result = service.calculateDragPosition({ x: 200, y: 350 });
+        expect(result!.newPosition).toEqual({ x: 115, y: 215 });
+      });
+    });
+  });
 
-            expect(result).not.toBeNull();
-            expect(result!.newPosition).toEqual({ x: 150, y: 300 }); // 100+50, 200+100
-        });
+  // ============================================================================
+  // Calculate Drag Delta
+  // ============================================================================
 
-        it('should calculate delta correctly', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            const result = service.calculateDragPosition({ x: 200, y: 350 });
-
-            expect(result!.delta).toEqual({ x: 50, y: 100 });
-        });
-
-        it('should report hasMoved false when position unchanged', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            const result = service.calculateDragPosition({ x: 150, y: 250 }); // Same as start
-
-            expect(result!.hasMoved).toBe(false);
-        });
-
-        it('should report hasMoved true when position changed', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            const result = service.calculateDragPosition({ x: 200, y: 350 });
-
-            expect(result!.hasMoved).toBe(true);
-        });
-
-        it('should handle negative movement', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            const result = service.calculateDragPosition({ x: 100, y: 200 }); // Move back
-
-            expect(result!.newPosition).toEqual({ x: 50, y: 150 });
-            expect(result!.delta).toEqual({ x: -50, y: -50 });
-        });
-
-        describe('with grid snapping', () => {
-            beforeEach(() => {
-                stateService.setSnapToGrid(true);
-                stateService.setGridSize(20);
-            });
-
-            it('should snap position to grid when snap enabled', () => {
-                service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-                const result = service.calculateDragPosition({ x: 165, y: 265 }, true);
-
-                // New pos would be 115, 215 -> snapped to 120, 220
-                expect(result!.newPosition).toEqual({ x: 120, y: 220 });
-            });
-
-            it('should not snap when snap parameter is false', () => {
-                service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-                const result = service.calculateDragPosition({ x: 165, y: 265 }, false);
-
-                expect(result!.newPosition).toEqual({ x: 115, y: 215 });
-            });
-        });
+  describe('calculateDragDelta', () => {
+    it('should return null when not dragging', () => {
+      const result = service.calculateDragDelta({ x: 200, y: 300 });
+      expect(result).toBeNull();
     });
 
-    // ============================================================================
-    // Calculate Drag Delta
-    // ============================================================================
+    it('should calculate delta from start mouse position', () => {
+      service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
+      const result = service.calculateDragDelta({ x: 200, y: 350 });
 
-    describe('calculateDragDelta', () => {
-        it('should return null when not dragging', () => {
-            const result = service.calculateDragDelta({ x: 200, y: 300 });
-            expect(result).toBeNull();
-        });
+      expect(result).toEqual({ x: 50, y: 100 });
+    });
+  });
 
-        it('should calculate delta from start mouse position', () => {
-            service.startDrag('item-1', 'element', { x: 100, y: 200 }, { x: 150, y: 250 });
-            const result = service.calculateDragDelta({ x: 200, y: 350 });
+  // ============================================================================
+  // Calculate Multi-Item Positions
+  // ============================================================================
 
-            expect(result).toEqual({ x: 50, y: 100 });
-        });
+  describe('calculateMultiItemPositions', () => {
+    beforeEach(() => {
+      stateService.setSnapToGrid(false);
     });
 
-    // ============================================================================
-    // Calculate Multi-Item Positions
-    // ============================================================================
+    it('should return empty map when not dragging', () => {
+      const items = [
+        { id: 'a', position: { x: 10, y: 20 } },
+        { id: 'b', position: { x: 30, y: 40 } }
+      ];
 
-    describe('calculateMultiItemPositions', () => {
-        beforeEach(() => {
-            stateService.setSnapToGrid(false);
-        });
-
-        it('should return empty map when not dragging', () => {
-            const items = [
-                { id: 'a', position: { x: 10, y: 20 } },
-                { id: 'b', position: { x: 30, y: 40 } }
-            ];
-
-            const result = service.calculateMultiItemPositions(items, { x: 200, y: 300 });
-            expect(result.size).toBe(0);
-        });
-
-        it('should calculate new positions for all items', () => {
-            service.startDrag('item-1', 'group', { x: 0, y: 0 }, { x: 100, y: 100 });
-
-            const items = [
-                { id: 'a', position: { x: 10, y: 20 } },
-                { id: 'b', position: { x: 30, y: 40 } }
-            ];
-
-            // Mouse moved by (50, 60)
-            const result = service.calculateMultiItemPositions(items, { x: 150, y: 160 });
-
-            expect(result.get('a')).toEqual({ x: 60, y: 80 }); // 10+50, 20+60
-            expect(result.get('b')).toEqual({ x: 80, y: 100 }); // 30+50, 40+60
-        });
-
-        it('should snap all positions when snap enabled', () => {
-            stateService.setSnapToGrid(true);
-            stateService.setGridSize(20);
-
-            service.startDrag('item-1', 'group', { x: 0, y: 0 }, { x: 100, y: 100 });
-
-            const items = [
-                { id: 'a', position: { x: 10, y: 20 } },
-                { id: 'b', position: { x: 30, y: 40 } }
-            ];
-
-            // Mouse moved by (55, 65)
-            const result = service.calculateMultiItemPositions(items, { x: 155, y: 165 }, true);
-
-            // a: 10+55=65 -> 60, 20+65=85 -> 80
-            expect(result.get('a')).toEqual({ x: 60, y: 80 });
-            // b: 30+55=85 -> 80, 40+65=105 -> 100
-            expect(result.get('b')).toEqual({ x: 80, y: 100 });
-        });
+      const result = service.calculateMultiItemPositions(items, { x: 200, y: 300 });
+      expect(result.size).toBe(0);
     });
 
-    // ============================================================================
-    // State Queries
-    // ============================================================================
+    it('should calculate new positions for all items', () => {
+      service.startDrag('item-1', 'group', { x: 0, y: 0 }, { x: 100, y: 100 });
 
-    describe('isDraggingItem', () => {
-        it('should return false when not dragging', () => {
-            expect(service.isDraggingItem('item-1')).toBe(false);
-        });
+      const items = [
+        { id: 'a', position: { x: 10, y: 20 } },
+        { id: 'b', position: { x: 30, y: 40 } }
+      ];
 
-        it('should return true for the dragged item', () => {
-            service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-            expect(service.isDraggingItem('item-1')).toBe(true);
-        });
+      // Mouse moved by (50, 60)
+      const result = service.calculateMultiItemPositions(items, { x: 150, y: 160 });
 
-        it('should return false for different item', () => {
-            service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-            expect(service.isDraggingItem('item-2')).toBe(false);
-        });
+      expect(result.get('a')).toEqual({ x: 60, y: 80 }); // 10+50, 20+60
+      expect(result.get('b')).toEqual({ x: 80, y: 100 }); // 30+50, 40+60
     });
 
-    describe('getCurrentDelta', () => {
-        it('should return zero when not dragging', () => {
-            expect(service.getCurrentDelta()).toEqual({ x: 0, y: 0 });
-        });
+    it('should snap all positions when snap enabled', () => {
+      stateService.setSnapToGrid(true);
+      stateService.setGridSize(20);
 
-        it('should return zero when current position not set', () => {
-            service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 100, y: 100 });
-            // currentMousePosition is set to startMousePosition initially
-            expect(service.getCurrentDelta()).toEqual({ x: 0, y: 0 });
-        });
+      service.startDrag('item-1', 'group', { x: 0, y: 0 }, { x: 100, y: 100 });
 
-        it('should return delta after mouse move', () => {
-            service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 100, y: 100 });
-            service.updateMousePosition({ x: 150, y: 180 });
+      const items = [
+        { id: 'a', position: { x: 10, y: 20 } },
+        { id: 'b', position: { x: 30, y: 40 } }
+      ];
 
-            expect(service.getCurrentDelta()).toEqual({ x: 50, y: 80 });
-        });
+      // Mouse moved by (55, 65)
+      const result = service.calculateMultiItemPositions(items, { x: 155, y: 165 }, true);
+
+      // a: 10+55=65 -> 60, 20+65=85 -> 80
+      expect(result.get('a')).toEqual({ x: 60, y: 80 });
+      // b: 30+55=85 -> 80, 40+65=105 -> 100
+      expect(result.get('b')).toEqual({ x: 80, y: 100 });
+    });
+  });
+
+  // ============================================================================
+  // State Queries
+  // ============================================================================
+
+  describe('isDraggingItem', () => {
+    it('should return false when not dragging', () => {
+      expect(service.isDraggingItem('item-1')).toBe(false);
     });
 
-    describe('getDragDistance', () => {
-        it('should return 0 when not dragging', () => {
-            expect(service.getDragDistance()).toBe(0);
-        });
-
-        it('should calculate distance correctly', () => {
-            service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-            service.updateMousePosition({ x: 3, y: 4 }); // 3-4-5 triangle
-
-            expect(service.getDragDistance()).toBe(5);
-        });
+    it('should return true for the dragged item', () => {
+      service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
+      expect(service.isDraggingItem('item-1')).toBe(true);
     });
 
-    describe('hasMovedBeyondThreshold', () => {
-        it('should return false when not dragging', () => {
-            expect(service.hasMovedBeyondThreshold()).toBe(false);
-        });
+    it('should return false for different item', () => {
+      service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
+      expect(service.isDraggingItem('item-2')).toBe(false);
+    });
+  });
 
-        it('should return false for small movement', () => {
-            service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-            service.updateMousePosition({ x: 1, y: 1 }); // ~1.41 pixels
-
-            expect(service.hasMovedBeyondThreshold(3)).toBe(false);
-        });
-
-        it('should return true for movement beyond threshold', () => {
-            service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-            service.updateMousePosition({ x: 3, y: 4 }); // 5 pixels
-
-            expect(service.hasMovedBeyondThreshold(3)).toBe(true);
-        });
-
-        it('should use default threshold of 3', () => {
-            service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-            service.updateMousePosition({ x: 2, y: 2 }); // ~2.83 pixels
-
-            expect(service.hasMovedBeyondThreshold()).toBe(false);
-
-            service.updateMousePosition({ x: 3, y: 3 }); // ~4.24 pixels
-            expect(service.hasMovedBeyondThreshold()).toBe(true);
-        });
+  describe('getCurrentDelta', () => {
+    it('should return zero when not dragging', () => {
+      expect(service.getCurrentDelta()).toEqual({ x: 0, y: 0 });
     });
 
-    // ============================================================================
-    // Computed Signals
-    // ============================================================================
-
-    describe('computed signals', () => {
-        describe('isDraggingGroup', () => {
-            it('should be false for element', () => {
-                service.startDrag('elem-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-                expect(service.isDraggingGroup()).toBe(false);
-            });
-
-            it('should be true for group', () => {
-                service.startDrag('group-1', 'group', { x: 0, y: 0 }, { x: 0, y: 0 });
-                expect(service.isDraggingGroup()).toBe(true);
-            });
-
-            it('should be false for primitive', () => {
-                service.startDrag('prim-1', 'primitive', { x: 0, y: 0 }, { x: 0, y: 0 });
-                expect(service.isDraggingGroup()).toBe(false);
-            });
-        });
-
-        describe('isDraggingPrimitive', () => {
-            it('should be false for element', () => {
-                service.startDrag('elem-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
-                expect(service.isDraggingPrimitive()).toBe(false);
-            });
-
-            it('should be true for primitive', () => {
-                service.startDrag('prim-1', 'primitive', { x: 0, y: 0 }, { x: 0, y: 0 });
-                expect(service.isDraggingPrimitive()).toBe(true);
-            });
-
-            it('should be true for group (groups are primitives)', () => {
-                service.startDrag('group-1', 'group', { x: 0, y: 0 }, { x: 0, y: 0 });
-                expect(service.isDraggingPrimitive()).toBe(true);
-            });
-
-            it('should be false for symbol', () => {
-                service.startDrag('symbol-1', 'symbol', { x: 0, y: 0 }, { x: 0, y: 0 });
-                expect(service.isDraggingPrimitive()).toBe(false);
-            });
-        });
+    it('should return zero when current position not set', () => {
+      service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 100, y: 100 });
+      // currentMousePosition is set to startMousePosition initially
+      expect(service.getCurrentDelta()).toEqual({ x: 0, y: 0 });
     });
+
+    it('should return delta after mouse move', () => {
+      service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 100, y: 100 });
+      service.updateMousePosition({ x: 150, y: 180 });
+
+      expect(service.getCurrentDelta()).toEqual({ x: 50, y: 80 });
+    });
+  });
+
+  describe('getDragDistance', () => {
+    it('should return 0 when not dragging', () => {
+      expect(service.getDragDistance()).toBe(0);
+    });
+
+    it('should calculate distance correctly', () => {
+      service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
+      service.updateMousePosition({ x: 3, y: 4 }); // 3-4-5 triangle
+
+      expect(service.getDragDistance()).toBe(5);
+    });
+  });
+
+  describe('hasMovedBeyondThreshold', () => {
+    it('should return false when not dragging', () => {
+      expect(service.hasMovedBeyondThreshold()).toBe(false);
+    });
+
+    it('should return false for small movement', () => {
+      service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
+      service.updateMousePosition({ x: 1, y: 1 }); // ~1.41 pixels
+
+      expect(service.hasMovedBeyondThreshold(3)).toBe(false);
+    });
+
+    it('should return true for movement beyond threshold', () => {
+      service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
+      service.updateMousePosition({ x: 3, y: 4 }); // 5 pixels
+
+      expect(service.hasMovedBeyondThreshold(3)).toBe(true);
+    });
+
+    it('should use default threshold of 3', () => {
+      service.startDrag('item-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
+      service.updateMousePosition({ x: 2, y: 2 }); // ~2.83 pixels
+
+      expect(service.hasMovedBeyondThreshold()).toBe(false);
+
+      service.updateMousePosition({ x: 3, y: 3 }); // ~4.24 pixels
+      expect(service.hasMovedBeyondThreshold()).toBe(true);
+    });
+  });
+
+  // ============================================================================
+  // Computed Signals
+  // ============================================================================
+
+  describe('computed signals', () => {
+    describe('isDraggingGroup', () => {
+      it('should be false for element', () => {
+        service.startDrag('elem-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
+        expect(service.isDraggingGroup()).toBe(false);
+      });
+
+      it('should be true for group', () => {
+        service.startDrag('group-1', 'group', { x: 0, y: 0 }, { x: 0, y: 0 });
+        expect(service.isDraggingGroup()).toBe(true);
+      });
+
+      it('should be false for primitive', () => {
+        service.startDrag('prim-1', 'primitive', { x: 0, y: 0 }, { x: 0, y: 0 });
+        expect(service.isDraggingGroup()).toBe(false);
+      });
+    });
+
+    describe('isDraggingPrimitive', () => {
+      it('should be false for element', () => {
+        service.startDrag('elem-1', 'element', { x: 0, y: 0 }, { x: 0, y: 0 });
+        expect(service.isDraggingPrimitive()).toBe(false);
+      });
+
+      it('should be true for primitive', () => {
+        service.startDrag('prim-1', 'primitive', { x: 0, y: 0 }, { x: 0, y: 0 });
+        expect(service.isDraggingPrimitive()).toBe(true);
+      });
+
+      it('should be true for group (groups are primitives)', () => {
+        service.startDrag('group-1', 'group', { x: 0, y: 0 }, { x: 0, y: 0 });
+        expect(service.isDraggingPrimitive()).toBe(true);
+      });
+
+      it('should be false for symbol', () => {
+        service.startDrag('symbol-1', 'symbol', { x: 0, y: 0 }, { x: 0, y: 0 });
+        expect(service.isDraggingPrimitive()).toBe(false);
+      });
+    });
+  });
 });

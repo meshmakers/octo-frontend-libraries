@@ -5,62 +5,62 @@ import { ComponentMenuService } from './component-menu.service';
 import { CommandSettingsService } from './command-settings.service';
 
 describe('ComponentMenuService', () => {
-    let service: ComponentMenuService;
-    let routerEvents$: Subject<RouterEvent>;
-    let mockActivatedRoute: unknown;
-    let mockRouter: unknown;
-    let mockCommandSettingsService: unknown;
+  let service: ComponentMenuService;
+  let routerEvents$: Subject<RouterEvent>;
+  let mockActivatedRoute: unknown;
+  let mockRouter: unknown;
+  let mockCommandSettingsService: unknown;
 
-    beforeEach(() => {
-        routerEvents$ = new Subject<RouterEvent>();
+  beforeEach(() => {
+    routerEvents$ = new Subject<RouterEvent>();
 
-        mockActivatedRoute = {
-            root: {
-                children: [],
-                snapshot: {
-                    data: {},
-                    params: {}
-                }
-            }
-        };
+    mockActivatedRoute = {
+      root: {
+        children: [],
+        snapshot: {
+          data: {},
+          params: {}
+        }
+      }
+    };
 
-        mockRouter = {
-            events: routerEvents$.asObservable(),
-            navigate: vi.fn().mockName('navigate')
-        };
+    mockRouter = {
+      events: routerEvents$.asObservable(),
+      navigate: vi.fn().mockName('navigate')
+    };
 
-        mockCommandSettingsService = {
-            navigateRelativeToRoute: mockActivatedRoute,
-            commandItems: []
-        };
+    mockCommandSettingsService = {
+      navigateRelativeToRoute: mockActivatedRoute,
+      commandItems: []
+    };
 
-        TestBed.configureTestingModule({
-            providers: [
-                ComponentMenuService,
-                { provide: ActivatedRoute, useValue: mockActivatedRoute },
-                { provide: Router, useValue: mockRouter },
-                { provide: CommandSettingsService, useValue: mockCommandSettingsService }
-            ]
-        });
-
-        service = TestBed.inject(ComponentMenuService);
+    TestBed.configureTestingModule({
+      providers: [
+        ComponentMenuService,
+        { provide: ActivatedRoute, useValue: mockActivatedRoute },
+        { provide: Router, useValue: mockRouter },
+        { provide: CommandSettingsService, useValue: mockCommandSettingsService }
+      ]
     });
 
-    it('should be created', () => {
-        expect(service).toBeTruthy();
+    service = TestBed.inject(ComponentMenuService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  describe('menuItems', () => {
+    it('should return an observable', () => {
+      expect(service.menuItems).toBeTruthy();
+      expect(typeof service.menuItems.subscribe).toBe('function');
     });
 
-    describe('menuItems', () => {
-        it('should return an observable', () => {
-            expect(service.menuItems).toBeTruthy();
-            expect(typeof service.menuItems.subscribe).toBe('function');
-        });
-
-        it('should emit empty array when no navigation menu data', () => new Promise<void>((done) => {
-            service.menuItems.subscribe(items => {
-                expect(items).toEqual([]);
-                done();
-            });
-        }));
-    });
+    it('should emit empty array when no navigation menu data', () => new Promise<void>((done) => {
+      service.menuItems.subscribe(items => {
+        expect(items).toEqual([]);
+        done();
+      });
+    }));
+  });
 });

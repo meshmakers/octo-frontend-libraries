@@ -1,214 +1,214 @@
-import type { Mock, MockedObject } from "vitest";
+import type { Mock, MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { GetCkTypeAssociationRolesDtoGQL } from '../../graphQL/getCkTypeAssociationRoles';
 import { AssociationValidationService } from './association-validation.service';
 
 describe('AssociationValidationService', () => {
-    let service: AssociationValidationService;
-    let mockGetCkTypeAssociationRolesGQL: MockedObject<{
+  let service: AssociationValidationService;
+  let mockGetCkTypeAssociationRolesGQL: MockedObject<{
         fetch: Mock;
     }>;
 
-    const mockMachineRolesResponse = {
-        data: {
-            constructionKit: {
-                types: {
-                    items: [
-                        {
-                            rtCkTypeId: 'Industry.Basic/Machine',
-                            associations: {
-                                out: {
-                                    all: [
-                                        {
-                                            roleId: { fullName: 'System-2.0.8/ParentChild-1', semanticVersionedFullName: '' },
-                                            rtRoleId: 'System/ParentChild',
-                                            navigationPropertyName: 'Parent',
-                                            multiplicity: 'ONE',
-                                            targetCkTypeId: { fullName: 'Basic-2.0.2/Tree-1' },
-                                            rtTargetCkTypeId: 'Basic/Tree',
-                                        },
-                                        {
-                                            roleId: { fullName: 'System-2.0.8/ParentChild-1', semanticVersionedFullName: '' },
-                                            rtRoleId: 'System/ParentChild',
-                                            navigationPropertyName: 'Parent',
-                                            multiplicity: 'ONE',
-                                            targetCkTypeId: { fullName: 'Basic-2.0.2/TreeNode-1' },
-                                            rtTargetCkTypeId: 'Basic/TreeNode',
-                                        },
-                                        {
-                                            roleId: { fullName: 'Basic-2.0.2/RelatedClassification-1', semanticVersionedFullName: '' },
-                                            rtRoleId: 'Basic/RelatedClassification',
-                                            navigationPropertyName: 'RelatesTo',
-                                            multiplicity: 'N',
-                                            targetCkTypeId: { fullName: 'Basic-2.0.2/TreeNode-1' },
-                                            rtTargetCkTypeId: 'Basic/TreeNode',
-                                        },
-                                    ],
-                                },
-                            },
-                        },
-                    ],
-                },
-            },
-        },
-    };
-
-    const mockNoParentChildResponse = {
-        data: {
-            constructionKit: {
-                types: {
-                    items: [
-                        {
-                            rtCkTypeId: 'Custom/Sensor',
-                            associations: {
-                                out: {
-                                    all: [
-                                        {
-                                            roleId: { fullName: 'System-2.0.8/Related-1', semanticVersionedFullName: '' },
-                                            rtRoleId: 'System/Related',
-                                            navigationPropertyName: 'RelatesTo',
-                                            multiplicity: 'N',
-                                            targetCkTypeId: { fullName: 'System-2.0.8/Entity-1' },
-                                            rtTargetCkTypeId: 'System/Entity',
-                                        },
-                                    ],
-                                },
-                            },
-                        },
-                    ],
-                },
-            },
-        },
-    };
-
-    beforeEach(() => {
-        mockGetCkTypeAssociationRolesGQL = {
-            fetch: vi.fn().mockName('fetch'),
-        } as unknown as MockedObject<{ fetch: Mock }>;
-
-        TestBed.configureTestingModule({
-            providers: [
-                AssociationValidationService,
-                { provide: GetCkTypeAssociationRolesDtoGQL, useValue: mockGetCkTypeAssociationRolesGQL },
-            ],
-        });
-
-        service = TestBed.inject(AssociationValidationService);
-    });
-
-    afterEach(() => {
-        service.clearCache();
-    });
-
-    it('should be created', () => {
-        expect(service).toBeTruthy();
-    });
-
-    describe('canMove', () => {
-        it('should allow move when ParentChild outbound role matches destination type', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
-
-            const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
-
-            expect(result.allowed).toBe(true);
-            expect(result.rtRoleId).toBe('System/ParentChild');
-            expect(result.navigationPropertyName).toBe('parent');
-        });
-
-        it('should normalize navigationPropertyName to lowerCamelCase', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
-
-            const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
-
-            // CK metadata returns "Parent" (PascalCase); service must emit "parent" (camelCase)
-            // to match backend's typed input convention.
-            expect(result.navigationPropertyName?.charAt(0)).toBe('p');
-            expect(result.navigationPropertyName).not.toBe('Parent');
-        });
-
-        it('should allow move to Tree root', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
-
-            const result = await service.canMove('Industry.Basic/Machine', 'Basic/Tree');
-
-            expect(result.allowed).toBe(true);
-            expect(result.rtRoleId).toBe('System/ParentChild');
-        });
-
-        it('should reject move when no ParentChild role matches destination', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
-
-            const result = await service.canMove('Industry.Basic/Machine', 'Custom/UnrelatedType');
-
-            expect(result.allowed).toBe(false);
-            expect(result.reason).toContain('Industry.Basic/Machine');
-            expect(result.reason).toContain('Custom/UnrelatedType');
-        });
-
-        it('should reject move when type has no ParentChild outbound roles', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockNoParentChildResponse));
-
-            const result = await service.canMove('Custom/Sensor', 'Basic/TreeNode');
-
-            expect(result.allowed).toBe(false);
-        });
-
-        it('should not match non-ParentChild roles', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
-
-            // RelatedClassification also points to Basic/TreeNode, but should not be used for move
-            const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
-
-            expect(result.rtRoleId).toBe('System/ParentChild');
-            expect(result.navigationPropertyName).toBe('parent');
-        });
-
-        it('should use cached roles on subsequent calls', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
-
-            await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
-            await service.canMove('Industry.Basic/Machine', 'Basic/Tree');
-
-            expect(mockGetCkTypeAssociationRolesGQL.fetch).toHaveBeenCalledTimes(1);
-        });
-
-        it('should handle empty type response', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of({
-                data: { constructionKit: { types: { items: [] } } },
-            }));
-
-            const result = await service.canMove('Unknown/Type', 'Basic/TreeNode');
-
-            expect(result.allowed).toBe(false);
-        });
-
-        it('should handle null associations in response', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of({
-                data: {
-                    constructionKit: {
-                        types: {
-                            items: [{ rtCkTypeId: 'Test/Type', associations: null }],
-                        },
+  const mockMachineRolesResponse = {
+    data: {
+      constructionKit: {
+        types: {
+          items: [
+            {
+              rtCkTypeId: 'Industry.Basic/Machine',
+              associations: {
+                out: {
+                  all: [
+                    {
+                      roleId: { fullName: 'System-2.0.8/ParentChild-1', semanticVersionedFullName: '' },
+                      rtRoleId: 'System/ParentChild',
+                      navigationPropertyName: 'Parent',
+                      multiplicity: 'ONE',
+                      targetCkTypeId: { fullName: 'Basic-2.0.2/Tree-1' },
+                      rtTargetCkTypeId: 'Basic/Tree',
                     },
+                    {
+                      roleId: { fullName: 'System-2.0.8/ParentChild-1', semanticVersionedFullName: '' },
+                      rtRoleId: 'System/ParentChild',
+                      navigationPropertyName: 'Parent',
+                      multiplicity: 'ONE',
+                      targetCkTypeId: { fullName: 'Basic-2.0.2/TreeNode-1' },
+                      rtTargetCkTypeId: 'Basic/TreeNode',
+                    },
+                    {
+                      roleId: { fullName: 'Basic-2.0.2/RelatedClassification-1', semanticVersionedFullName: '' },
+                      rtRoleId: 'Basic/RelatedClassification',
+                      navigationPropertyName: 'RelatesTo',
+                      multiplicity: 'N',
+                      targetCkTypeId: { fullName: 'Basic-2.0.2/TreeNode-1' },
+                      rtTargetCkTypeId: 'Basic/TreeNode',
+                    },
+                  ],
                 },
-            }));
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
 
-            const result = await service.canMove('Test/Type', 'Basic/TreeNode');
+  const mockNoParentChildResponse = {
+    data: {
+      constructionKit: {
+        types: {
+          items: [
+            {
+              rtCkTypeId: 'Custom/Sensor',
+              associations: {
+                out: {
+                  all: [
+                    {
+                      roleId: { fullName: 'System-2.0.8/Related-1', semanticVersionedFullName: '' },
+                      rtRoleId: 'System/Related',
+                      navigationPropertyName: 'RelatesTo',
+                      multiplicity: 'N',
+                      targetCkTypeId: { fullName: 'System-2.0.8/Entity-1' },
+                      rtTargetCkTypeId: 'System/Entity',
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
 
-            expect(result.allowed).toBe(false);
-        });
+  beforeEach(() => {
+    mockGetCkTypeAssociationRolesGQL = {
+      fetch: vi.fn().mockName('fetch'),
+    } as unknown as MockedObject<{ fetch: Mock }>;
+
+    TestBed.configureTestingModule({
+      providers: [
+        AssociationValidationService,
+        { provide: GetCkTypeAssociationRolesDtoGQL, useValue: mockGetCkTypeAssociationRolesGQL },
+      ],
     });
 
-    describe('clearCache', () => {
-        it('should clear cache so next call fetches fresh data', async () => {
-            mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
+    service = TestBed.inject(AssociationValidationService);
+  });
 
-            await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
-            service.clearCache();
-            await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
+  afterEach(() => {
+    service.clearCache();
+  });
 
-            expect(mockGetCkTypeAssociationRolesGQL.fetch).toHaveBeenCalledTimes(2);
-        });
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  describe('canMove', () => {
+    it('should allow move when ParentChild outbound role matches destination type', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
+
+      const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
+
+      expect(result.allowed).toBe(true);
+      expect(result.rtRoleId).toBe('System/ParentChild');
+      expect(result.navigationPropertyName).toBe('parent');
     });
+
+    it('should normalize navigationPropertyName to lowerCamelCase', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
+
+      const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
+
+      // CK metadata returns "Parent" (PascalCase); service must emit "parent" (camelCase)
+      // to match backend's typed input convention.
+      expect(result.navigationPropertyName?.charAt(0)).toBe('p');
+      expect(result.navigationPropertyName).not.toBe('Parent');
+    });
+
+    it('should allow move to Tree root', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
+
+      const result = await service.canMove('Industry.Basic/Machine', 'Basic/Tree');
+
+      expect(result.allowed).toBe(true);
+      expect(result.rtRoleId).toBe('System/ParentChild');
+    });
+
+    it('should reject move when no ParentChild role matches destination', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
+
+      const result = await service.canMove('Industry.Basic/Machine', 'Custom/UnrelatedType');
+
+      expect(result.allowed).toBe(false);
+      expect(result.reason).toContain('Industry.Basic/Machine');
+      expect(result.reason).toContain('Custom/UnrelatedType');
+    });
+
+    it('should reject move when type has no ParentChild outbound roles', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockNoParentChildResponse));
+
+      const result = await service.canMove('Custom/Sensor', 'Basic/TreeNode');
+
+      expect(result.allowed).toBe(false);
+    });
+
+    it('should not match non-ParentChild roles', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
+
+      // RelatedClassification also points to Basic/TreeNode, but should not be used for move
+      const result = await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
+
+      expect(result.rtRoleId).toBe('System/ParentChild');
+      expect(result.navigationPropertyName).toBe('parent');
+    });
+
+    it('should use cached roles on subsequent calls', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
+
+      await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
+      await service.canMove('Industry.Basic/Machine', 'Basic/Tree');
+
+      expect(mockGetCkTypeAssociationRolesGQL.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle empty type response', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of({
+        data: { constructionKit: { types: { items: [] } } },
+      }));
+
+      const result = await service.canMove('Unknown/Type', 'Basic/TreeNode');
+
+      expect(result.allowed).toBe(false);
+    });
+
+    it('should handle null associations in response', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of({
+        data: {
+          constructionKit: {
+            types: {
+              items: [{ rtCkTypeId: 'Test/Type', associations: null }],
+            },
+          },
+        },
+      }));
+
+      const result = await service.canMove('Test/Type', 'Basic/TreeNode');
+
+      expect(result.allowed).toBe(false);
+    });
+  });
+
+  describe('clearCache', () => {
+    it('should clear cache so next call fetches fresh data', async () => {
+      mockGetCkTypeAssociationRolesGQL.fetch.mockReturnValue(of(mockMachineRolesResponse));
+
+      await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
+      service.clearCache();
+      await service.canMove('Industry.Basic/Machine', 'Basic/TreeNode');
+
+      expect(mockGetCkTypeAssociationRolesGQL.fetch).toHaveBeenCalledTimes(2);
+    });
+  });
 });

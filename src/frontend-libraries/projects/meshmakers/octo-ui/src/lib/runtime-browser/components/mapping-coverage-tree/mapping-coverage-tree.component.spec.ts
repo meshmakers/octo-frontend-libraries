@@ -1,4 +1,4 @@
-import type { MockedObject } from "vitest";
+import type { MockedObject } from 'vitest';
 import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
@@ -43,428 +43,428 @@ interface OrphanItemStub {
 }
 
 function orphanItem(rtId: string, name: string, mappingCount = 0): OrphanItemStub {
-    return {
-        rtId,
-        ckTypeId: 'Loxone/Control',
-        rtDisplayName: name,
-        rtDisplayDescription: null,
-        rtWellKnownName: null,
-        attributes: { items: [{ attributeName: 'name', value: name }] },
-        associations: {
-            mappings: { totalCount: mappingCount },
-            parent: { items: [] },
-        },
-    };
+  return {
+    rtId,
+    ckTypeId: 'Loxone/Control',
+    rtDisplayName: name,
+    rtDisplayDescription: null,
+    rtWellKnownName: null,
+    attributes: { items: [{ attributeName: 'name', value: name }] },
+    associations: {
+      mappings: { totalCount: mappingCount },
+      parent: { items: [] },
+    },
+  };
 }
 
 function orphanPage(items: OrphanItemStub[], hasNextPage: boolean, endCursor: string | null) {
-    return {
-        data: {
-            runtime: {
-                runtimeEntities: {
-                    totalCount: items.length,
-                    pageInfo: { hasNextPage, endCursor },
-                    items,
-                },
-            },
+  return {
+    data: {
+      runtime: {
+        runtimeEntities: {
+          totalCount: items.length,
+          pageInfo: { hasNextPage, endCursor },
+          items,
         },
-    };
+      },
+    },
+  };
 }
 
 describe('MappingCoverageTreeComponent', () => {
-    let component: MappingCoverageTreeComponent;
-    let fixture: ComponentFixture<MappingCoverageTreeComponent>;
-    let getOrphanCandidatesGQL: MockedObject<GetOrphanCandidatesDtoGQL>;
-    let getEntitiesByCkTypeGQL: MockedObject<GetEntitiesByCkTypeDtoGQL>;
-    let treeNavConfig: MockedObject<TreeNavigationConfigService>;
-    let bulkDialog: MockedObject<BulkMappingDialogService>;
-    let createEntitiesGQL: MockedObject<CreateEntitiesDtoGQL>;
-    let getLatestValidationGQL: MockedObject<GetLatestValidationExecutionDtoGQL>;
-    let communicationService: MockedObject<CommunicationService>;
+  let component: MappingCoverageTreeComponent;
+  let fixture: ComponentFixture<MappingCoverageTreeComponent>;
+  let getOrphanCandidatesGQL: MockedObject<GetOrphanCandidatesDtoGQL>;
+  let getEntitiesByCkTypeGQL: MockedObject<GetEntitiesByCkTypeDtoGQL>;
+  let treeNavConfig: MockedObject<TreeNavigationConfigService>;
+  let bulkDialog: MockedObject<BulkMappingDialogService>;
+  let createEntitiesGQL: MockedObject<CreateEntitiesDtoGQL>;
+  let getLatestValidationGQL: MockedObject<GetLatestValidationExecutionDtoGQL>;
+  let communicationService: MockedObject<CommunicationService>;
 
-    const SYSTEMS_PERSPECTIVE: PerspectiveDefinition = {
-        key: 'Systems',
-        displayName: 'Systems',
-        rootMode: 'Type',
-        rootCkTypeId: 'EnergyIQ/DistributionSystem',
-        primaryRoleId: 'EnergyIQ/SystemMembers',
-        primaryDirection: 'Outbound',
-        sortIndex: 1,
-    };
+  const SYSTEMS_PERSPECTIVE: PerspectiveDefinition = {
+    key: 'Systems',
+    displayName: 'Systems',
+    rootMode: 'Type',
+    rootCkTypeId: 'EnergyIQ/DistributionSystem',
+    primaryRoleId: 'EnergyIQ/SystemMembers',
+    primaryDirection: 'Outbound',
+    sortIndex: 1,
+  };
+
+  beforeEach(async () => {
+    getOrphanCandidatesGQL = {
+      fetch: vi.fn().mockName('GetOrphanCandidatesDtoGQL.fetch')
+    } as unknown as MockedObject<GetOrphanCandidatesDtoGQL>;
+    getEntitiesByCkTypeGQL = {
+      fetch: vi.fn().mockName('GetEntitiesByCkTypeDtoGQL.fetch')
+    } as unknown as MockedObject<GetEntitiesByCkTypeDtoGQL>;
+    getEntitiesByCkTypeGQL.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } }) as unknown as ReturnType<GetEntitiesByCkTypeDtoGQL['fetch']>);
+    treeNavConfig = {
+      perspectives: vi.fn().mockName('TreeNavigationConfigService.perspectives'),
+      resolve: vi.fn().mockName('TreeNavigationConfigService.resolve')
+    } as unknown as MockedObject<TreeNavigationConfigService>;
+    treeNavConfig.perspectives.mockResolvedValue([]);
+    treeNavConfig.resolve.mockResolvedValue(undefined);
+    bulkDialog = {
+      open: vi.fn().mockName('BulkMappingDialogService.open')
+    } as unknown as MockedObject<BulkMappingDialogService>;
+    createEntitiesGQL = {
+      mutate: vi.fn().mockName('CreateEntitiesDtoGQL.mutate')
+    } as unknown as MockedObject<CreateEntitiesDtoGQL>;
+    getLatestValidationGQL = {
+      fetch: vi.fn().mockName('GetLatestValidationExecutionDtoGQL.fetch')
+    } as unknown as MockedObject<GetLatestValidationExecutionDtoGQL>;
+    communicationService = {
+      executePipeline: vi.fn().mockName('CommunicationService.executePipeline'),
+      getLatestPipelineExecution: vi.fn().mockName('CommunicationService.getLatestPipelineExecution')
+    } as unknown as MockedObject<CommunicationService>;
+
+    await TestBed.configureTestingModule({
+      imports: [MappingCoverageTreeComponent],
+      providers: [
+        { provide: EntitySelectorDialogService, useValue: {} },
+        { provide: MappingEditDialogService, useValue: {} },
+        { provide: ConfirmationService, useValue: {} },
+        { provide: CommunicationService, useValue: communicationService },
+        { provide: GetEntitiesByCkTypeDtoGQL, useValue: getEntitiesByCkTypeGQL },
+        { provide: GetNodeMappingsDtoGQL, useValue: {} },
+        { provide: GetRuntimeEntityByIdDtoGQL, useValue: {} },
+        { provide: GetLatestValidationExecutionDtoGQL, useValue: getLatestValidationGQL },
+        { provide: GetOrphanCandidatesDtoGQL, useValue: getOrphanCandidatesGQL },
+        { provide: GetMappingCoverageNodeDtoGQL, useValue: {} },
+        { provide: GetRuntimeEntityAssociationsByIdDtoGQL, useValue: {} },
+        { provide: GetCkTypeAssociationRolesDtoGQL, useValue: {} },
+        { provide: CreateEntitiesDtoGQL, useValue: createEntitiesGQL },
+        { provide: DeleteEntitiesDtoGQL, useValue: {} },
+        { provide: UpdateRuntimeEntitiesDtoGQL, useValue: {} },
+        { provide: TreeNavigationConfigService, useValue: treeNavConfig },
+        { provide: BulkMappingDialogService, useValue: bulkDialog },
+      ],
+    }).compileComponents();
+
+    // No fixture.detectChanges(): ngOnInit would load roots/pipelines, which
+    // is out of scope here — these specs exercise the orphan-catalogue load.
+    fixture = TestBed.createComponent(MappingCoverageTreeComponent);
+    component = fixture.componentInstance;
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  describe('loadOrphanCandidates paging', () => {
+    beforeEach(() => {
+      component['orphanCkType'].set('Loxone/Control');
+    });
+
+    it('collects all pages until hasNextPage is false', async () => {
+      getOrphanCandidatesGQL.fetch.mockReturnValueOnce(of(orphanPage([orphanItem('a1', 'Alpha'), orphanItem('b2', 'Beta', 3)], true, 'cursor-1'))).mockReturnValueOnce(of(orphanPage([orphanItem('c3', 'Gamma')], false, 'cursor-2')));
+
+      await component['loadOrphanCandidates']();
+
+      expect(getOrphanCandidatesGQL.fetch).toHaveBeenCalledTimes(2);
+      const candidates = component['orphanCandidates']();
+      expect(candidates.length).toBe(3);
+      // Unmapped first, then alphabetical.
+      expect(candidates.map(c => c.name)).toEqual(['Alpha', 'Gamma', 'Beta']);
+    });
+
+    it('passes the previous endCursor as after on the follow-up page', async () => {
+      getOrphanCandidatesGQL.fetch.mockReturnValueOnce(of(orphanPage([orphanItem('a1', 'Alpha')], true, 'cursor-1'))).mockReturnValueOnce(of(orphanPage([], false, null)));
+
+      await component['loadOrphanCandidates']();
+
+      const secondCallVariables = vi.mocked(getOrphanCandidatesGQL.fetch).mock.calls[1][0]?.variables;
+      expect(secondCallVariables?.after).toBe('cursor-1');
+    });
+
+    it('stops after a single page when hasNextPage is false', async () => {
+      getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([orphanItem('a1', 'Alpha')], false, 'cursor-1')));
+
+      await component['loadOrphanCandidates']();
+
+      expect(getOrphanCandidatesGQL.fetch).toHaveBeenCalledTimes(1);
+      expect(component['orphanCandidates']().length).toBe(1);
+    });
+
+    it('sets the error signal when the query fails', async () => {
+      getOrphanCandidatesGQL.fetch.mockImplementation(() => {
+        throw new Error('boom');
+      });
+
+      await component['loadOrphanCandidates']();
+
+      expect(component['orphanError']()).toBe('Failed to load source candidates.');
+      expect(component['orphanCandidates']().length).toBe(0);
+    });
+  });
+
+  describe('orphan full-text search', () => {
+    beforeEach(async () => {
+      component['orphanCkType'].set('Loxone/Control');
+      const withParent = orphanItem('a1', 'Raumregler', 0);
+      withParent.associations.parent.items = [
+        {
+          rtId: 'p1',
+          ckTypeId: 'Loxone/Room',
+          rtDisplayName: 'Wohnzimmer',
+          associations: { parent: { items: [] } },
+        },
+      ] as never[];
+      getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([withParent, orphanItem('b2', 'Meter Keller', 0)], false, null)));
+      await component['loadOrphanCandidates']();
+    });
+
+    it('filters by entity name (case-insensitive contains)', () => {
+      component['orphanSearchText'].set('meter');
+      expect(component['orphanFilteredList']().map(c => c.name)).toEqual(['Meter Keller']);
+    });
+
+    it('matches the parent breadcrumb (search by room)', () => {
+      component['orphanSearchText'].set('wohnzimmer');
+      expect(component['orphanFilteredList']().map(c => c.name)).toEqual(['Raumregler']);
+    });
+
+    it('shows everything again when cleared', () => {
+      component['orphanSearchText'].set('meter');
+      component['orphanSearchText'].set('');
+      expect(component['orphanFilteredList']().length).toBe(2);
+    });
+
+    it('select-all respects the active search filter', () => {
+      component['orphanSearchText'].set('meter');
+      component['selectAllVisibleOrphans']();
+      expect(component['orphanSelectedIds']().has('b2')).toBe(true);
+      expect(component['orphanSelectedCount']()).toBe(1);
+    });
+
+    it('is reset when the source type changes', () => {
+      component['orphanSearchText'].set('meter');
+      component['onOrphanCkTypeChange']('MQTT/Topic');
+      expect(component['orphanSearchText']()).toBe('');
+    });
+  });
+
+  describe('orphan grouping + group-name filter', () => {
+    function withParent(item: OrphanItemStub, parentRtId: string, parentName: string, parentCkTypeId = 'Loxone/Category'): OrphanItemStub {
+      item.associations.parent.items = [
+        {
+          rtId: parentRtId,
+          ckTypeId: parentCkTypeId,
+          rtDisplayName: parentName,
+          associations: { parent: { items: [] } },
+        },
+      ] as never[];
+      return item;
+    }
 
     beforeEach(async () => {
-        getOrphanCandidatesGQL = {
-            fetch: vi.fn().mockName("GetOrphanCandidatesDtoGQL.fetch")
-        } as unknown as MockedObject<GetOrphanCandidatesDtoGQL>;
-        getEntitiesByCkTypeGQL = {
-            fetch: vi.fn().mockName("GetEntitiesByCkTypeDtoGQL.fetch")
-        } as unknown as MockedObject<GetEntitiesByCkTypeDtoGQL>;
-        getEntitiesByCkTypeGQL.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } }) as unknown as ReturnType<GetEntitiesByCkTypeDtoGQL['fetch']>);
-        treeNavConfig = {
-            perspectives: vi.fn().mockName("TreeNavigationConfigService.perspectives"),
-            resolve: vi.fn().mockName("TreeNavigationConfigService.resolve")
-        } as unknown as MockedObject<TreeNavigationConfigService>;
-        treeNavConfig.perspectives.mockResolvedValue([]);
-        treeNavConfig.resolve.mockResolvedValue(undefined);
-        bulkDialog = {
-            open: vi.fn().mockName("BulkMappingDialogService.open")
-        } as unknown as MockedObject<BulkMappingDialogService>;
-        createEntitiesGQL = {
-            mutate: vi.fn().mockName("CreateEntitiesDtoGQL.mutate")
-        } as unknown as MockedObject<CreateEntitiesDtoGQL>;
-        getLatestValidationGQL = {
-            fetch: vi.fn().mockName("GetLatestValidationExecutionDtoGQL.fetch")
-        } as unknown as MockedObject<GetLatestValidationExecutionDtoGQL>;
-        communicationService = {
-            executePipeline: vi.fn().mockName("CommunicationService.executePipeline"),
-            getLatestPipelineExecution: vi.fn().mockName("CommunicationService.getLatestPipelineExecution")
-        } as unknown as MockedObject<CommunicationService>;
-
-        await TestBed.configureTestingModule({
-            imports: [MappingCoverageTreeComponent],
-            providers: [
-                { provide: EntitySelectorDialogService, useValue: {} },
-                { provide: MappingEditDialogService, useValue: {} },
-                { provide: ConfirmationService, useValue: {} },
-                { provide: CommunicationService, useValue: communicationService },
-                { provide: GetEntitiesByCkTypeDtoGQL, useValue: getEntitiesByCkTypeGQL },
-                { provide: GetNodeMappingsDtoGQL, useValue: {} },
-                { provide: GetRuntimeEntityByIdDtoGQL, useValue: {} },
-                { provide: GetLatestValidationExecutionDtoGQL, useValue: getLatestValidationGQL },
-                { provide: GetOrphanCandidatesDtoGQL, useValue: getOrphanCandidatesGQL },
-                { provide: GetMappingCoverageNodeDtoGQL, useValue: {} },
-                { provide: GetRuntimeEntityAssociationsByIdDtoGQL, useValue: {} },
-                { provide: GetCkTypeAssociationRolesDtoGQL, useValue: {} },
-                { provide: CreateEntitiesDtoGQL, useValue: createEntitiesGQL },
-                { provide: DeleteEntitiesDtoGQL, useValue: {} },
-                { provide: UpdateRuntimeEntitiesDtoGQL, useValue: {} },
-                { provide: TreeNavigationConfigService, useValue: treeNavConfig },
-                { provide: BulkMappingDialogService, useValue: bulkDialog },
-            ],
-        }).compileComponents();
-
-        // No fixture.detectChanges(): ngOnInit would load roots/pipelines, which
-        // is out of scope here — these specs exercise the orphan-catalogue load.
-        fixture = TestBed.createComponent(MappingCoverageTreeComponent);
-        component = fixture.componentInstance;
+      component['orphanCkType'].set('Loxone/Control');
+      getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([
+        // Same category name "Beleuchtung" as two DIFFERENT instances
+        // (one per room) — must merge into ONE group.
+        withParent(orphanItem('a1', 'Spot Wohnzimmer'), 'cat-1', 'Beleuchtung'),
+        withParent(orphanItem('b2', 'Spot Küche'), 'cat-2', 'Beleuchtung'),
+        withParent(orphanItem('c3', 'Klimagerät'), 'cat-3', 'Klima'),
+        orphanItem('d4', 'Verwaist'),
+      ], false, null)));
+      await component['loadOrphanCandidates']();
+      component['onOrphanGroupParentTypeChange']('Loxone/Category');
     });
 
-    it('should create', () => {
-        expect(component).toBeTruthy();
+    it('merges same-named parent instances into one group', () => {
+      const groups = component['orphanGroupedList']();
+      expect(groups.map(g => g.label)).toEqual(['Beleuchtung', 'Klima', '(no parent of this type)']);
+      // Candidate order (alphabetical): Spot Küche before Spot Wohnzimmer.
+      expect(groups[0].items.map(i => i.rtId)).toEqual(['b2', 'a1']);
     });
 
-    describe('loadOrphanCandidates paging', () => {
-        beforeEach(() => {
-            component['orphanCkType'].set('Loxone/Control');
-        });
-
-        it('collects all pages until hasNextPage is false', async () => {
-            getOrphanCandidatesGQL.fetch.mockReturnValueOnce(of(orphanPage([orphanItem('a1', 'Alpha'), orphanItem('b2', 'Beta', 3)], true, 'cursor-1'))).mockReturnValueOnce(of(orphanPage([orphanItem('c3', 'Gamma')], false, 'cursor-2')));
-
-            await component['loadOrphanCandidates']();
-
-            expect(getOrphanCandidatesGQL.fetch).toHaveBeenCalledTimes(2);
-            const candidates = component['orphanCandidates']();
-            expect(candidates.length).toBe(3);
-            // Unmapped first, then alphabetical.
-            expect(candidates.map(c => c.name)).toEqual(['Alpha', 'Gamma', 'Beta']);
-        });
-
-        it('passes the previous endCursor as after on the follow-up page', async () => {
-            getOrphanCandidatesGQL.fetch.mockReturnValueOnce(of(orphanPage([orphanItem('a1', 'Alpha')], true, 'cursor-1'))).mockReturnValueOnce(of(orphanPage([], false, null)));
-
-            await component['loadOrphanCandidates']();
-
-            const secondCallVariables = vi.mocked(getOrphanCandidatesGQL.fetch).mock.calls[1][0]?.variables;
-            expect(secondCallVariables?.after).toBe('cursor-1');
-        });
-
-        it('stops after a single page when hasNextPage is false', async () => {
-            getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([orphanItem('a1', 'Alpha')], false, 'cursor-1')));
-
-            await component['loadOrphanCandidates']();
-
-            expect(getOrphanCandidatesGQL.fetch).toHaveBeenCalledTimes(1);
-            expect(component['orphanCandidates']().length).toBe(1);
-        });
-
-        it('sets the error signal when the query fails', async () => {
-            getOrphanCandidatesGQL.fetch.mockImplementation(() => {
-                throw new Error('boom');
-            });
-
-            await component['loadOrphanCandidates']();
-
-            expect(component['orphanError']()).toBe('Failed to load source candidates.');
-            expect(component['orphanCandidates']().length).toBe(0);
-        });
+    it('offers distinct group names sorted, catch-all last', () => {
+      expect(component['orphanAvailableGroupNames']()).toEqual([
+        'Beleuchtung', 'Klima', '(no parent of this type)',
+      ]);
     });
 
-    describe('orphan full-text search', () => {
-        beforeEach(async () => {
-            component['orphanCkType'].set('Loxone/Control');
-            const withParent = orphanItem('a1', 'Raumregler', 0);
-            withParent.associations.parent.items = [
-                {
-                    rtId: 'p1',
-                    ckTypeId: 'Loxone/Room',
-                    rtDisplayName: 'Wohnzimmer',
-                    associations: { parent: { items: [] } },
-                },
-            ] as never[];
-            getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([withParent, orphanItem('b2', 'Meter Keller', 0)], false, null)));
-            await component['loadOrphanCandidates']();
-        });
-
-        it('filters by entity name (case-insensitive contains)', () => {
-            component['orphanSearchText'].set('meter');
-            expect(component['orphanFilteredList']().map(c => c.name)).toEqual(['Meter Keller']);
-        });
-
-        it('matches the parent breadcrumb (search by room)', () => {
-            component['orphanSearchText'].set('wohnzimmer');
-            expect(component['orphanFilteredList']().map(c => c.name)).toEqual(['Raumregler']);
-        });
-
-        it('shows everything again when cleared', () => {
-            component['orphanSearchText'].set('meter');
-            component['orphanSearchText'].set('');
-            expect(component['orphanFilteredList']().length).toBe(2);
-        });
-
-        it('select-all respects the active search filter', () => {
-            component['orphanSearchText'].set('meter');
-            component['selectAllVisibleOrphans']();
-            expect(component['orphanSelectedIds']().has('b2')).toBe(true);
-            expect(component['orphanSelectedCount']()).toBe(1);
-        });
-
-        it('is reset when the source type changes', () => {
-            component['orphanSearchText'].set('meter');
-            component['onOrphanCkTypeChange']('MQTT/Topic');
-            expect(component['orphanSearchText']()).toBe('');
-        });
+    it('filters the visible list by the selected group names (multi-select)', () => {
+      component['onOrphanGroupNamesChange'](['Beleuchtung', 'Klima']);
+      expect(component['orphanVisibleList']().map(c => c.rtId)).toEqual(['c3', 'b2', 'a1']);
+      expect(component['orphanGroupedList']().map(g => g.label)).toEqual(['Beleuchtung', 'Klima']);
     });
 
-    describe('orphan grouping + group-name filter', () => {
-        function withParent(item: OrphanItemStub, parentRtId: string, parentName: string, parentCkTypeId = 'Loxone/Category'): OrphanItemStub {
-            item.associations.parent.items = [
-                {
-                    rtId: parentRtId,
-                    ckTypeId: parentCkTypeId,
-                    rtDisplayName: parentName,
-                    associations: { parent: { items: [] } },
-                },
-            ] as never[];
-            return item;
-        }
-
-        beforeEach(async () => {
-            component['orphanCkType'].set('Loxone/Control');
-            getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([
-                // Same category name "Beleuchtung" as two DIFFERENT instances
-                // (one per room) — must merge into ONE group.
-                withParent(orphanItem('a1', 'Spot Wohnzimmer'), 'cat-1', 'Beleuchtung'),
-                withParent(orphanItem('b2', 'Spot Küche'), 'cat-2', 'Beleuchtung'),
-                withParent(orphanItem('c3', 'Klimagerät'), 'cat-3', 'Klima'),
-                orphanItem('d4', 'Verwaist'),
-            ], false, null)));
-            await component['loadOrphanCandidates']();
-            component['onOrphanGroupParentTypeChange']('Loxone/Category');
-        });
-
-        it('merges same-named parent instances into one group', () => {
-            const groups = component['orphanGroupedList']();
-            expect(groups.map(g => g.label)).toEqual(['Beleuchtung', 'Klima', '(no parent of this type)']);
-            // Candidate order (alphabetical): Spot Küche before Spot Wohnzimmer.
-            expect(groups[0].items.map(i => i.rtId)).toEqual(['b2', 'a1']);
-        });
-
-        it('offers distinct group names sorted, catch-all last', () => {
-            expect(component['orphanAvailableGroupNames']()).toEqual([
-                'Beleuchtung', 'Klima', '(no parent of this type)',
-            ]);
-        });
-
-        it('filters the visible list by the selected group names (multi-select)', () => {
-            component['onOrphanGroupNamesChange'](['Beleuchtung', 'Klima']);
-            expect(component['orphanVisibleList']().map(c => c.rtId)).toEqual(['c3', 'b2', 'a1']);
-            expect(component['orphanGroupedList']().map(g => g.label)).toEqual(['Beleuchtung', 'Klima']);
-        });
-
-        it('supports filtering on the catch-all bucket', () => {
-            component['onOrphanGroupNamesChange'](['(no parent of this type)']);
-            expect(component['orphanVisibleList']().map(c => c.rtId)).toEqual(['d4']);
-        });
-
-        it('select-all respects the group-name filter', () => {
-            component['onOrphanGroupNamesChange'](['Klima']);
-            component['selectAllVisibleOrphans']();
-            expect(component['orphanSelectedIds']().has('c3')).toBe(true);
-            expect(component['orphanSelectedCount']()).toBe(1);
-        });
-
-        it('clears the group-name selection when the grouping type changes', () => {
-            component['onOrphanGroupNamesChange'](['Beleuchtung']);
-            component['onOrphanGroupParentTypeChange']('Loxone/Room');
-            expect(component['orphanSelectedGroupNames']()).toEqual([]);
-            // Stale names of the previous type would silently hide everything.
-            expect(component['orphanVisibleList']().length).toBe(4);
-        });
-
-        it('clears the group-name selection when the source type changes', () => {
-            component['onOrphanGroupNamesChange'](['Beleuchtung']);
-            component['onOrphanCkTypeChange']('MQTT/Topic');
-            expect(component['orphanSelectedGroupNames']()).toEqual([]);
-        });
+    it('supports filtering on the catch-all bucket', () => {
+      component['onOrphanGroupNamesChange'](['(no parent of this type)']);
+      expect(component['orphanVisibleList']().map(c => c.rtId)).toEqual(['d4']);
     });
 
-    describe('late-arriving source-candidate config (ngOnChanges)', () => {
-        function changeConfigTo(sourceCandidateCkTypeIds: string[]): void {
-            const previous = component.config;
-            component.config = { ...component.config, sourceCandidateCkTypeIds };
-            component.ngOnChanges({
-                config: new SimpleChange(previous, component.config, false),
-            });
-        }
-
-        it('initialises the orphan type selection when the config arrives late', () => {
-            expect(component['orphanCkType']()).toBeNull();
-
-            changeConfigTo(['Loxone/Control', 'MQTT/Topic']);
-
-            expect(component['orphanCkType']()).toBe('Loxone/Control');
-        });
-
-        it('loads the catalogue immediately when the orphan tab is already active', () => {
-            getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([orphanItem('a1', 'Alpha')], false, null)));
-            component['activeTab'].set('orphans');
-
-            changeConfigTo(['Loxone/Control']);
-
-            expect(getOrphanCandidatesGQL.fetch).toHaveBeenCalled();
-        });
-
-        it('does not reload when the tab is inactive', () => {
-            changeConfigTo(['Loxone/Control']);
-
-            expect(getOrphanCandidatesGQL.fetch).not.toHaveBeenCalled();
-        });
-
-        it('clears a selection whose type was removed from the config', () => {
-            changeConfigTo(['Loxone/Control']);
-            expect(component['orphanCkType']()).toBe('Loxone/Control');
-
-            changeConfigTo(['MQTT/Topic']);
-
-            expect(component['orphanCkType']()).toBe('MQTT/Topic');
-        });
-
-        it('ignores the first change (ngOnInit handles the initial config)', () => {
-            const config = { ...component.config, sourceCandidateCkTypeIds: ['Loxone/Control'] };
-            component.config = config;
-            component.ngOnChanges({ config: new SimpleChange(undefined, config, true) });
-
-            expect(component['orphanCkType']()).toBeNull();
-        });
+    it('select-all respects the group-name filter', () => {
+      component['onOrphanGroupNamesChange'](['Klima']);
+      component['selectAllVisibleOrphans']();
+      expect(component['orphanSelectedIds']().has('c3')).toBe(true);
+      expect(component['orphanSelectedCount']()).toBe(1);
     });
 
-    describe('perspective switching', () => {
-        it('merges the built-in Spatial perspective with the configured ones', async () => {
-            treeNavConfig.perspectives.mockResolvedValue([SYSTEMS_PERSPECTIVE]);
-
-            await component['loadPerspectives']();
-
-            expect(component['perspectives']().map(p => p.key)).toEqual(['Spatial', 'Systems']);
-        });
-
-        it('keeps only the built-in perspective when loading fails', async () => {
-            treeNavConfig.perspectives.mockRejectedValue(new Error('boom'));
-
-            await component['loadPerspectives']();
-
-            expect(component['perspectives']().map(p => p.key)).toEqual(['Spatial']);
-        });
-
-        it('applies the Type perspective: root nav override + roots from its root CK type', async () => {
-            treeNavConfig.perspectives.mockResolvedValue([SYSTEMS_PERSPECTIVE]);
-            await component['loadPerspectives']();
-
-            await component['onPerspectiveChange']('Systems');
-
-            expect(component['activePerspectiveKey']()).toBe('Systems');
-            expect(component['activeRootCkTypeId']()).toBe('EnergyIQ/DistributionSystem');
-            expect(component['dataSource'].getRootPerspectiveNav()).toEqual({
-                childRoleId: 'EnergyIQ/SystemMembers',
-                childDirection: GraphDirectionDto.OutboundDto,
-            });
-            const rootQueryVariables = vi.mocked(getEntitiesByCkTypeGQL.fetch).mock.lastCall![0]?.variables;
-            expect(rootQueryVariables?.ckTypeId).toBe('EnergyIQ/DistributionSystem');
-            expect(component['selectedRoot']()).toBeNull();
-            expect(component['selectedNode']()).toBeNull();
-        });
-
-        it('clears the nav override when switching back to Spatial', async () => {
-            treeNavConfig.perspectives.mockResolvedValue([SYSTEMS_PERSPECTIVE]);
-            await component['loadPerspectives']();
-            await component['onPerspectiveChange']('Systems');
-
-            await component['onPerspectiveChange']('Spatial');
-
-            expect(component['dataSource'].getRootPerspectiveNav()).toBeNull();
-            expect(component['activeRootCkTypeId']()).toBe(component.config.rootCkTypeId);
-            const rootQueryVariables = vi.mocked(getEntitiesByCkTypeGQL.fetch).mock.lastCall![0]?.variables;
-            expect(rootQueryVariables?.ckTypeId).toBe(component.config.rootCkTypeId);
-        });
+    it('clears the group-name selection when the grouping type changes', () => {
+      component['onOrphanGroupNamesChange'](['Beleuchtung']);
+      component['onOrphanGroupParentTypeChange']('Loxone/Room');
+      expect(component['orphanSelectedGroupNames']()).toEqual([]);
+      // Stale names of the previous type would silently hide everything.
+      expect(component['orphanVisibleList']().length).toBe(4);
     });
 
-    describe('orphan multi-select + bulk mapping', () => {
-        beforeEach(async () => {
-            component['orphanCkType'].set('Loxone/Control');
-            getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([orphanItem('a1', 'Alpha'), orphanItem('b2', 'Beta')], false, null)));
-            await component['loadOrphanCandidates']();
-        });
+    it('clears the group-name selection when the source type changes', () => {
+      component['onOrphanGroupNamesChange'](['Beleuchtung']);
+      component['onOrphanCkTypeChange']('MQTT/Topic');
+      expect(component['orphanSelectedGroupNames']()).toEqual([]);
+    });
+  });
 
-        it('toggles, selects all visible and clears the selection', () => {
-            component['toggleOrphanSelected']('a1');
-            expect(component['orphanSelectedCount']()).toBe(1);
-            expect(component['isOrphanSelected']('a1')).toBe(true);
+  describe('late-arriving source-candidate config (ngOnChanges)', () => {
+    function changeConfigTo(sourceCandidateCkTypeIds: string[]): void {
+      const previous = component.config;
+      component.config = { ...component.config, sourceCandidateCkTypeIds };
+      component.ngOnChanges({
+        config: new SimpleChange(previous, component.config, false),
+      });
+    }
 
-            component['toggleOrphanSelected']('a1');
-            expect(component['orphanSelectedCount']()).toBe(0);
+    it('initialises the orphan type selection when the config arrives late', () => {
+      expect(component['orphanCkType']()).toBeNull();
 
-            component['selectAllVisibleOrphans']();
-            expect(component['orphanSelectedCount']()).toBe(2);
+      changeConfigTo(['Loxone/Control', 'MQTT/Topic']);
 
-            component['clearOrphanSelection']();
-            expect(component['orphanSelectedCount']()).toBe(0);
-        });
+      expect(component['orphanCkType']()).toBe('Loxone/Control');
+    });
 
-        it('creates one mapping per selected source in a single mutation', async () => {
-            component['selectAllVisibleOrphans']();
-            bulkDialog.open.mockResolvedValue({
-                confirmed: true,
-                value: {
-                    targetRtId: 'space-1',
-                    targetCkTypeId: 'EnergyIQ/Space',
-                    targetName: 'Wohnzimmer',
-                    sourceAttributePath: 'tempActual',
-                    targetAttributePath: 'Temperature',
-                    mappingExpression: 'value',
-                    enabled: true,
-                },
-            });
-            createEntitiesGQL.mutate.mockReturnValue(of({ data: {} }) as never);
+    it('loads the catalogue immediately when the orphan tab is already active', () => {
+      getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([orphanItem('a1', 'Alpha')], false, null)));
+      component['activeTab'].set('orphans');
 
-            await component['bulkMapSelected']();
+      changeConfigTo(['Loxone/Control']);
 
-            expect(createEntitiesGQL.mutate).toHaveBeenCalledTimes(1);
-            const variables = vi.mocked(createEntitiesGQL.mutate).mock.lastCall![0]
-                ?.variables as {
+      expect(getOrphanCandidatesGQL.fetch).toHaveBeenCalled();
+    });
+
+    it('does not reload when the tab is inactive', () => {
+      changeConfigTo(['Loxone/Control']);
+
+      expect(getOrphanCandidatesGQL.fetch).not.toHaveBeenCalled();
+    });
+
+    it('clears a selection whose type was removed from the config', () => {
+      changeConfigTo(['Loxone/Control']);
+      expect(component['orphanCkType']()).toBe('Loxone/Control');
+
+      changeConfigTo(['MQTT/Topic']);
+
+      expect(component['orphanCkType']()).toBe('MQTT/Topic');
+    });
+
+    it('ignores the first change (ngOnInit handles the initial config)', () => {
+      const config = { ...component.config, sourceCandidateCkTypeIds: ['Loxone/Control'] };
+      component.config = config;
+      component.ngOnChanges({ config: new SimpleChange(undefined, config, true) });
+
+      expect(component['orphanCkType']()).toBeNull();
+    });
+  });
+
+  describe('perspective switching', () => {
+    it('merges the built-in Spatial perspective with the configured ones', async () => {
+      treeNavConfig.perspectives.mockResolvedValue([SYSTEMS_PERSPECTIVE]);
+
+      await component['loadPerspectives']();
+
+      expect(component['perspectives']().map(p => p.key)).toEqual(['Spatial', 'Systems']);
+    });
+
+    it('keeps only the built-in perspective when loading fails', async () => {
+      treeNavConfig.perspectives.mockRejectedValue(new Error('boom'));
+
+      await component['loadPerspectives']();
+
+      expect(component['perspectives']().map(p => p.key)).toEqual(['Spatial']);
+    });
+
+    it('applies the Type perspective: root nav override + roots from its root CK type', async () => {
+      treeNavConfig.perspectives.mockResolvedValue([SYSTEMS_PERSPECTIVE]);
+      await component['loadPerspectives']();
+
+      await component['onPerspectiveChange']('Systems');
+
+      expect(component['activePerspectiveKey']()).toBe('Systems');
+      expect(component['activeRootCkTypeId']()).toBe('EnergyIQ/DistributionSystem');
+      expect(component['dataSource'].getRootPerspectiveNav()).toEqual({
+        childRoleId: 'EnergyIQ/SystemMembers',
+        childDirection: GraphDirectionDto.OutboundDto,
+      });
+      const rootQueryVariables = vi.mocked(getEntitiesByCkTypeGQL.fetch).mock.lastCall![0]?.variables;
+      expect(rootQueryVariables?.ckTypeId).toBe('EnergyIQ/DistributionSystem');
+      expect(component['selectedRoot']()).toBeNull();
+      expect(component['selectedNode']()).toBeNull();
+    });
+
+    it('clears the nav override when switching back to Spatial', async () => {
+      treeNavConfig.perspectives.mockResolvedValue([SYSTEMS_PERSPECTIVE]);
+      await component['loadPerspectives']();
+      await component['onPerspectiveChange']('Systems');
+
+      await component['onPerspectiveChange']('Spatial');
+
+      expect(component['dataSource'].getRootPerspectiveNav()).toBeNull();
+      expect(component['activeRootCkTypeId']()).toBe(component.config.rootCkTypeId);
+      const rootQueryVariables = vi.mocked(getEntitiesByCkTypeGQL.fetch).mock.lastCall![0]?.variables;
+      expect(rootQueryVariables?.ckTypeId).toBe(component.config.rootCkTypeId);
+    });
+  });
+
+  describe('orphan multi-select + bulk mapping', () => {
+    beforeEach(async () => {
+      component['orphanCkType'].set('Loxone/Control');
+      getOrphanCandidatesGQL.fetch.mockReturnValue(of(orphanPage([orphanItem('a1', 'Alpha'), orphanItem('b2', 'Beta')], false, null)));
+      await component['loadOrphanCandidates']();
+    });
+
+    it('toggles, selects all visible and clears the selection', () => {
+      component['toggleOrphanSelected']('a1');
+      expect(component['orphanSelectedCount']()).toBe(1);
+      expect(component['isOrphanSelected']('a1')).toBe(true);
+
+      component['toggleOrphanSelected']('a1');
+      expect(component['orphanSelectedCount']()).toBe(0);
+
+      component['selectAllVisibleOrphans']();
+      expect(component['orphanSelectedCount']()).toBe(2);
+
+      component['clearOrphanSelection']();
+      expect(component['orphanSelectedCount']()).toBe(0);
+    });
+
+    it('creates one mapping per selected source in a single mutation', async () => {
+      component['selectAllVisibleOrphans']();
+      bulkDialog.open.mockResolvedValue({
+        confirmed: true,
+        value: {
+          targetRtId: 'space-1',
+          targetCkTypeId: 'EnergyIQ/Space',
+          targetName: 'Wohnzimmer',
+          sourceAttributePath: 'tempActual',
+          targetAttributePath: 'Temperature',
+          mappingExpression: 'value',
+          enabled: true,
+        },
+      });
+      createEntitiesGQL.mutate.mockReturnValue(of({ data: {} }) as never);
+
+      await component['bulkMapSelected']();
+
+      expect(createEntitiesGQL.mutate).toHaveBeenCalledTimes(1);
+      const variables = vi.mocked(createEntitiesGQL.mutate).mock.lastCall![0]
+        ?.variables as {
                 entities: Record<string, unknown>[];
             };
-            expect(variables.entities.length).toBe(2);
-            const first = variables.entities[0] as {
+      expect(variables.entities.length).toBe(2);
+      const first = variables.entities[0] as {
                 ckTypeId: string;
                 attributes: {
                     attributeName: string;
@@ -479,214 +479,214 @@ describe('MappingCoverageTreeComponent', () => {
                     }[];
                 }[];
             };
-            expect(first.ckTypeId).toBe(component.config.mappingCkTypeId);
-            expect(first.attributes.find(a => a.attributeName === 'TargetAttributePath')?.value)
-                .toBe('Temperature');
-            expect(first.associations.map(a => a.roleName)).toEqual([
-                component.config.mappingSourceOutboundRoleName,
-                component.config.mappingTargetOutboundRoleName,
-            ]);
-            expect(first.associations[0].targets[0].target.rtId).toBe('a1');
-            expect(first.associations[1].targets[0].target.rtId).toBe('space-1');
-            // Selection is cleared and the catalogue reloaded.
-            expect(component['orphanSelectedCount']()).toBe(0);
-            expect(vi.mocked(getOrphanCandidatesGQL.fetch).mock.calls.length).toBeGreaterThan(1);
-        });
-
-        it('creates nothing when the dialog is cancelled', async () => {
-            component['toggleOrphanSelected']('a1');
-            bulkDialog.open.mockResolvedValue({ confirmed: false });
-
-            await component['bulkMapSelected']();
-
-            expect(createEntitiesGQL.mutate).not.toHaveBeenCalled();
-            expect(component['orphanSelectedCount']()).toBe(1);
-        });
+      expect(first.ckTypeId).toBe(component.config.mappingCkTypeId);
+      expect(first.attributes.find(a => a.attributeName === 'TargetAttributePath')?.value)
+        .toBe('Temperature');
+      expect(first.associations.map(a => a.roleName)).toEqual([
+        component.config.mappingSourceOutboundRoleName,
+        component.config.mappingTargetOutboundRoleName,
+      ]);
+      expect(first.associations[0].targets[0].target.rtId).toBe('a1');
+      expect(first.associations[1].targets[0].target.rtId).toBe('space-1');
+      // Selection is cleared and the catalogue reloaded.
+      expect(component['orphanSelectedCount']()).toBe(0);
+      expect(vi.mocked(getOrphanCandidatesGQL.fetch).mock.calls.length).toBeGreaterThan(1);
     });
 
-    describe('generation result loading', () => {
-        function latestExecutionResponse(outputData: string | null): ReturnType<GetLatestValidationExecutionDtoGQL['fetch']> {
-            return of({
-                data: {
-                    runtime: {
-                        runtimeEntities: {
+    it('creates nothing when the dialog is cancelled', async () => {
+      component['toggleOrphanSelected']('a1');
+      bulkDialog.open.mockResolvedValue({ confirmed: false });
+
+      await component['bulkMapSelected']();
+
+      expect(createEntitiesGQL.mutate).not.toHaveBeenCalled();
+      expect(component['orphanSelectedCount']()).toBe(1);
+    });
+  });
+
+  describe('generation result loading', () => {
+    function latestExecutionResponse(outputData: string | null): ReturnType<GetLatestValidationExecutionDtoGQL['fetch']> {
+      return of({
+        data: {
+          runtime: {
+            runtimeEntities: {
+              items: [
+                {
+                  rtId: 'pipe-1',
+                  associations: {
+                    executions: {
+                      items: [
+                        {
+                          rtId: 'exec-1',
+                          attributes: {
                             items: [
-                                {
-                                    rtId: 'pipe-1',
-                                    associations: {
-                                        executions: {
-                                            items: [
-                                                {
-                                                    rtId: 'exec-1',
-                                                    attributes: {
-                                                        items: [
-                                                            { attributeName: 'outputData', value: outputData },
-                                                            { attributeName: 'completedAt', value: '2026-07-04T10:00:00Z' },
-                                                        ],
-                                                    },
-                                                },
-                                            ],
-                                        },
-                                    },
-                                },
+                              { attributeName: 'outputData', value: outputData },
+                              { attributeName: 'completedAt', value: '2026-07-04T10:00:00Z' },
                             ],
+                          },
                         },
+                      ],
                     },
+                  },
                 },
-            }) as unknown as ReturnType<GetLatestValidationExecutionDtoGQL['fetch']>;
-        }
+              ],
+            },
+          },
+        },
+      }) as unknown as ReturnType<GetLatestValidationExecutionDtoGQL['fetch']>;
+    }
 
-        it('parses GenerateDataPointMappings statistics from OutputData', async () => {
-            getLatestValidationGQL.fetch.mockReturnValue(latestExecutionResponse(JSON.stringify({
-                totalContainers: 10,
-                matchedContainers: 8,
-                unmatchedContainers: 2,
-                unmatchedContainerNames: ['Keller', 'Dach'],
-                totalSuggestions: 42,
-                ruleHits: { temp: 20, co2: 22 },
-                definedRuleIds: ['temp', 'co2'],
-            })));
+    it('parses GenerateDataPointMappings statistics from OutputData', async () => {
+      getLatestValidationGQL.fetch.mockReturnValue(latestExecutionResponse(JSON.stringify({
+        totalContainers: 10,
+        matchedContainers: 8,
+        unmatchedContainers: 2,
+        unmatchedContainerNames: ['Keller', 'Dach'],
+        totalSuggestions: 42,
+        ruleHits: { temp: 20, co2: 22 },
+        definedRuleIds: ['temp', 'co2'],
+      })));
 
-            await component['loadGenerationResult']({
-                rtId: 'pipe-1',
-                ckTypeId: 'System.Communication/Pipeline',
-                name: 'Auto-Map',
-                definition: null,
-            });
+      await component['loadGenerationResult']({
+        rtId: 'pipe-1',
+        ckTypeId: 'System.Communication/Pipeline',
+        name: 'Auto-Map',
+        definition: null,
+      });
 
-            const stats = component['generationStats']();
-            expect(stats?.totalSuggestions).toBe(42);
-            expect(stats?.matchedContainers).toBe(8);
-            expect(stats?.unmatchedContainerNames).toEqual(['Keller', 'Dach']);
-            expect(component['generationCompletedAt']()).toBe('2026-07-04T10:00:00Z');
-        });
-
-        it('degrades to null statistics for a non-statistics OutputData payload', async () => {
-            getLatestValidationGQL.fetch.mockReturnValue(latestExecutionResponse(JSON.stringify({ summary: { ok: 1 }, nodes: [] })));
-
-            await component['loadGenerationResult']({
-                rtId: 'pipe-1',
-                ckTypeId: 'System.Communication/Pipeline',
-                name: 'Auto-Map',
-                definition: null,
-            });
-
-            expect(component['generationStats']()).toBeNull();
-            expect(component['generationCompletedAt']()).toBe('2026-07-04T10:00:00Z');
-        });
+      const stats = component['generationStats']();
+      expect(stats?.totalSuggestions).toBe(42);
+      expect(stats?.matchedContainers).toBe(8);
+      expect(stats?.unmatchedContainerNames).toEqual(['Keller', 'Dach']);
+      expect(component['generationCompletedAt']()).toBe('2026-07-04T10:00:00Z');
     });
 
-    describe('mapping backup export/import', () => {
-        const EXPORT_PIPELINE = {
-            rtId: 'exp-1',
-            ckTypeId: 'System.Communication/Pipeline',
-            name: 'Export DataPoint Mappings',
-            definition: 'transformations:\n  - type: ExportDataPointMappings@1\n',
-        };
-        const IMPORT_PIPELINE = {
-            rtId: 'imp-1',
-            ckTypeId: 'System.Communication/Pipeline',
-            name: 'Import DataPoint Mappings',
-            definition: 'transformations:\n  - type: ImportDataPointMappings@1\n',
-        };
+    it('degrades to null statistics for a non-statistics OutputData payload', async () => {
+      getLatestValidationGQL.fetch.mockReturnValue(latestExecutionResponse(JSON.stringify({ summary: { ok: 1 }, nodes: [] })));
 
-        function latestBackupExecutionResponse(outputData: string | null): ReturnType<GetLatestValidationExecutionDtoGQL['fetch']> {
-            return of({
-                data: {
-                    runtime: {
-                        runtimeEntities: {
+      await component['loadGenerationResult']({
+        rtId: 'pipe-1',
+        ckTypeId: 'System.Communication/Pipeline',
+        name: 'Auto-Map',
+        definition: null,
+      });
+
+      expect(component['generationStats']()).toBeNull();
+      expect(component['generationCompletedAt']()).toBe('2026-07-04T10:00:00Z');
+    });
+  });
+
+  describe('mapping backup export/import', () => {
+    const EXPORT_PIPELINE = {
+      rtId: 'exp-1',
+      ckTypeId: 'System.Communication/Pipeline',
+      name: 'Export DataPoint Mappings',
+      definition: 'transformations:\n  - type: ExportDataPointMappings@1\n',
+    };
+    const IMPORT_PIPELINE = {
+      rtId: 'imp-1',
+      ckTypeId: 'System.Communication/Pipeline',
+      name: 'Import DataPoint Mappings',
+      definition: 'transformations:\n  - type: ImportDataPointMappings@1\n',
+    };
+
+    function latestBackupExecutionResponse(outputData: string | null): ReturnType<GetLatestValidationExecutionDtoGQL['fetch']> {
+      return of({
+        data: {
+          runtime: {
+            runtimeEntities: {
+              items: [
+                {
+                  rtId: 'pipe-1',
+                  associations: {
+                    executions: {
+                      items: [
+                        {
+                          rtId: 'exec-1',
+                          attributes: {
                             items: [
-                                {
-                                    rtId: 'pipe-1',
-                                    associations: {
-                                        executions: {
-                                            items: [
-                                                {
-                                                    rtId: 'exec-1',
-                                                    attributes: {
-                                                        items: [
-                                                            { attributeName: 'outputData', value: outputData },
-                                                            { attributeName: 'completedAt', value: '2026-07-04T11:00:00Z' },
-                                                        ],
-                                                    },
-                                                },
-                                            ],
-                                        },
-                                    },
-                                },
+                              { attributeName: 'outputData', value: outputData },
+                              { attributeName: 'completedAt', value: '2026-07-04T11:00:00Z' },
                             ],
+                          },
                         },
+                      ],
                     },
+                  },
                 },
-            }) as unknown as ReturnType<GetLatestValidationExecutionDtoGQL['fetch']>;
-        }
+              ],
+            },
+          },
+        },
+      }) as unknown as ReturnType<GetLatestValidationExecutionDtoGQL['fetch']>;
+    }
 
-        beforeEach(() => {
-            component.tenantId = 'energyiq';
-            component['validationPipelines'].set([EXPORT_PIPELINE, IMPORT_PIPELINE]);
-            // Poll snapshot ('prev') + first poll result (new id, done).
-            communicationService.getLatestPipelineExecution.mockReturnValueOnce(Promise.resolve({ id: 'prev' } as never)).mockReturnValueOnce(Promise.resolve({ id: 'new', status: 'Completed' } as never));
-            communicationService.executePipeline.mockResolvedValue(null);
-        });
+    beforeEach(() => {
+      component.tenantId = 'energyiq';
+      component['validationPipelines'].set([EXPORT_PIPELINE, IMPORT_PIPELINE]);
+      // Poll snapshot ('prev') + first poll result (new id, done).
+      communicationService.getLatestPipelineExecution.mockReturnValueOnce(Promise.resolve({ id: 'prev' } as never)).mockReturnValueOnce(Promise.resolve({ id: 'new', status: 'Completed' } as never));
+      communicationService.executePipeline.mockResolvedValue(null);
+    });
 
-        it('detects the backup pipelines from their definitions', () => {
-            expect(component['exportBackupPipeline']()?.rtId).toBe('exp-1');
-            expect(component['importBackupPipeline']()?.rtId).toBe('imp-1');
+    it('detects the backup pipelines from their definitions', () => {
+      expect(component['exportBackupPipeline']()?.rtId).toBe('exp-1');
+      expect(component['importBackupPipeline']()?.rtId).toBe('imp-1');
 
-            component['validationPipelines'].set([
-                { rtId: 'x', ckTypeId: 'System.Communication/Pipeline', name: 'Other', definition: null },
-            ]);
-            expect(component['exportBackupPipeline']()).toBeNull();
-            expect(component['importBackupPipeline']()).toBeNull();
-        });
+      component['validationPipelines'].set([
+        { rtId: 'x', ckTypeId: 'System.Communication/Pipeline', name: 'Other', definition: null },
+      ]);
+      expect(component['exportBackupPipeline']()).toBeNull();
+      expect(component['importBackupPipeline']()).toBeNull();
+    });
 
-        it('exports: runs the export pipeline and downloads the OutputData document', async () => {
-            const exportDocument = JSON.stringify({ mappings: [{ name: 'M1' }] });
-            getLatestValidationGQL.fetch.mockReturnValue(latestBackupExecutionResponse(exportDocument));
-            const saveSpy = vi.spyOn(component as unknown as {
+    it('exports: runs the export pipeline and downloads the OutputData document', async () => {
+      const exportDocument = JSON.stringify({ mappings: [{ name: 'M1' }] });
+      getLatestValidationGQL.fetch.mockReturnValue(latestBackupExecutionResponse(exportDocument));
+      const saveSpy = vi.spyOn(component as unknown as {
                 saveJsonFile: (content: string, fileName: string) => void;
             }, 'saveJsonFile').mockReturnValue(undefined);
 
-            await component['exportMappings']();
+      await component['exportMappings']();
 
-            expect(communicationService.executePipeline).toHaveBeenCalledWith('energyiq', 'exp-1', null);
-            expect(saveSpy).toHaveBeenCalledWith(exportDocument, 'datapoint-mappings.json');
-            expect(component['backupError']()).toBeNull();
-            expect(component['backupRunning']()).toBeNull();
-        });
-
-        it('imports: sends { body: document } as pipeline input and shows statistics', async () => {
-            getLatestValidationGQL.fetch.mockReturnValue(latestBackupExecutionResponse(JSON.stringify({
-                total: 5,
-                resolved: 4,
-                unresolved: 1,
-                unresolvedEntries: [{ name: 'M5', reason: 'source not found' }],
-            })));
-            const documentContent = { mappings: [{ name: 'M1' }] };
-            const file = new File([JSON.stringify(documentContent)], 'datapoint-mappings.json', {
-                type: 'application/json',
-            });
-            const event = { target: { files: [file], value: '' } } as unknown as Event;
-
-            await component['onImportFileSelected'](event);
-
-            expect(communicationService.executePipeline).toHaveBeenCalledWith('energyiq', 'imp-1', { body: documentContent });
-            const stats = component['importStats']();
-            expect(stats?.resolved).toBe(4);
-            expect(stats?.unresolved).toBe(1);
-            expect(component['importCompletedAt']()).toBe('2026-07-04T11:00:00Z');
-            expect(component['unresolvedImportNames']()).toBe('M5 (source not found)');
-            expect(component['backupRunning']()).toBeNull();
-        });
-
-        it('rejects a non-JSON file without starting the pipeline', async () => {
-            const file = new File(['not json {'], 'broken.json', { type: 'application/json' });
-            const event = { target: { files: [file], value: '' } } as unknown as Event;
-
-            await component['onImportFileSelected'](event);
-
-            expect(communicationService.executePipeline).not.toHaveBeenCalled();
-            expect(component['backupError']()).toContain('broken.json');
-        });
+      expect(communicationService.executePipeline).toHaveBeenCalledWith('energyiq', 'exp-1', null);
+      expect(saveSpy).toHaveBeenCalledWith(exportDocument, 'datapoint-mappings.json');
+      expect(component['backupError']()).toBeNull();
+      expect(component['backupRunning']()).toBeNull();
     });
+
+    it('imports: sends { body: document } as pipeline input and shows statistics', async () => {
+      getLatestValidationGQL.fetch.mockReturnValue(latestBackupExecutionResponse(JSON.stringify({
+        total: 5,
+        resolved: 4,
+        unresolved: 1,
+        unresolvedEntries: [{ name: 'M5', reason: 'source not found' }],
+      })));
+      const documentContent = { mappings: [{ name: 'M1' }] };
+      const file = new File([JSON.stringify(documentContent)], 'datapoint-mappings.json', {
+        type: 'application/json',
+      });
+      const event = { target: { files: [file], value: '' } } as unknown as Event;
+
+      await component['onImportFileSelected'](event);
+
+      expect(communicationService.executePipeline).toHaveBeenCalledWith('energyiq', 'imp-1', { body: documentContent });
+      const stats = component['importStats']();
+      expect(stats?.resolved).toBe(4);
+      expect(stats?.unresolved).toBe(1);
+      expect(component['importCompletedAt']()).toBe('2026-07-04T11:00:00Z');
+      expect(component['unresolvedImportNames']()).toBe('M5 (source not found)');
+      expect(component['backupRunning']()).toBeNull();
+    });
+
+    it('rejects a non-JSON file without starting the pipeline', async () => {
+      const file = new File(['not json {'], 'broken.json', { type: 'application/json' });
+      const event = { target: { files: [file], value: '' } } as unknown as Event;
+
+      await component['onImportFileSelected'](event);
+
+      expect(communicationService.executePipeline).not.toHaveBeenCalled();
+      expect(component['backupError']()).toContain('broken.json');
+    });
+  });
 });
