@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
@@ -10,529 +11,528 @@ import { PagedResultDto } from '@meshmakers/shared-services';
 import { ImportStrategyDto } from '../shared/importStrategyDto';
 
 describe('AssetRepoService', () => {
-  let service: AssetRepoService;
-  let httpMock: HttpTestingController;
-  let mockConfigService: { config: AddInConfiguration | null; loadConfigAsync: jasmine.Spy };
-
-  const baseUrl = 'https://asset.example.com/';
-  const tenantId = 'meshtest';
-
-  const mockConfig: AddInConfiguration = {
-    assetServices: baseUrl,
-    issuer: 'https://identity.example.com/',
-    botServices: 'https://bot.example.com/',
-    communicationServices: 'https://comm.example.com/',
-    meshAdapterUrl: 'https://mesh.example.com/',
-    aiServices: 'https://ai.example.com/',
-    reportingServices: 'https://reporting.example.com/',
-    crateDbAdminUrl: 'https://crate.example.com/',
-    grafanaUrl: 'https://grafana.example.com/',
-    systemTenantId: 'system',
-    clientId: 'test-client',
-    redirectUri: 'https://app.example.com/',
-    postLogoutRedirectUri: 'https://app.example.com/logout'
-  };
-
-  const mockTenant: TenantDto = {
-    tenantId: 'tenant-1',
-    database: 'tenant_1_db'
-  };
-
-  const mockTenantsResponse: PagedResultDto<TenantDto> = {
-    skip: 0,
-    take: 10,
-    totalCount: 2,
-    list: [
-      { tenantId: 'tenant-1', database: 'tenant_1_db' },
-      { tenantId: 'tenant-2', database: 'tenant_2_db' }
-    ]
-  };
-
-  // Helper to flush the async tenant provider microtask
-  async function flushTenantProvider(): Promise<void> {
-    await Promise.resolve();
-  }
-
-  beforeEach(() => {
-    mockConfigService = {
-      config: mockConfig,
-      loadConfigAsync: jasmine.createSpy('loadConfigAsync').and.returnValue(Promise.resolve())
+    let service: AssetRepoService;
+    let httpMock: HttpTestingController;
+    let mockConfigService: {
+        config: AddInConfiguration | null;
+        loadConfigAsync: Mock;
     };
 
-    TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(withXhr()),
-        provideHttpClientTesting(),
-        AssetRepoService,
-        { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
-        { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(tenantId) }
-      ]
-    });
+    const baseUrl = 'https://asset.example.com/';
+    const tenantId = 'meshtest';
 
-    service = TestBed.inject(AssetRepoService);
-    httpMock = TestBed.inject(HttpTestingController);
-  });
+    const mockConfig: AddInConfiguration = {
+        assetServices: baseUrl,
+        issuer: 'https://identity.example.com/',
+        botServices: 'https://bot.example.com/',
+        communicationServices: 'https://comm.example.com/',
+        meshAdapterUrl: 'https://mesh.example.com/',
+        aiServices: 'https://ai.example.com/',
+        reportingServices: 'https://reporting.example.com/',
+        crateDbAdminUrl: 'https://crate.example.com/',
+        grafanaUrl: 'https://grafana.example.com/',
+        systemTenantId: 'system',
+        clientId: 'test-client',
+        redirectUri: 'https://app.example.com/',
+        postLogoutRedirectUri: 'https://app.example.com/logout'
+    };
 
-  afterEach(() => {
-    httpMock.verify();
-  });
+    const mockTenant: TenantDto = {
+        tenantId: 'tenant-1',
+        database: 'tenant_1_db'
+    };
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+    const mockTenantsResponse: PagedResultDto<TenantDto> = {
+        skip: 0,
+        take: 10,
+        totalCount: 2,
+        list: [
+            { tenantId: 'tenant-1', database: 'tenant_1_db' },
+            { tenantId: 'tenant-2', database: 'tenant_2_db' }
+        ]
+    };
 
-  describe('getOwnTenant', () => {
-    it('should return the current tenant from the self endpoint', async () => {
-      const ownTenant: TenantDto = { tenantId, database: 'meshtest_db' };
-
-      const resultPromise = service.getOwnTenant();
-      await flushTenantProvider();
-
-      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/self`);
-      expect(req.request.method).toBe('GET');
-      req.flush(ownTenant);
-
-      expect(await resultPromise).toEqual(ownTenant);
-    });
-
-    it('should return null when config is not loaded', async () => {
-      mockConfigService.config = null;
-
-      expect(await service.getOwnTenant()).toBeNull();
-    });
-  });
-
-  describe('getTenants', () => {
-    it('should return paged tenants on success', async () => {
-      const resultPromise = service.getTenants(0, 10);
-      await flushTenantProvider();
-
-      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?skip=0&take=10`);
-      expect(req.request.method).toBe('GET');
-      req.flush(mockTenantsResponse);
-
-      const result = await resultPromise;
-      expect(result).toEqual(mockTenantsResponse);
-      expect(result?.list.length).toBe(2);
-      expect(result?.totalCount).toBe(2);
-    });
-
-    it('should pass correct skip and take parameters', async () => {
-      const resultPromise = service.getTenants(5, 20);
-      await flushTenantProvider();
-
-      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?skip=5&take=20`);
-      expect(req.request.params.get('skip')).toBe('5');
-      expect(req.request.params.get('take')).toBe('20');
-      req.flush(mockTenantsResponse);
-
-      await resultPromise;
-    });
-
-    it('should return null when config is not available', async () => {
-      mockConfigService.config = null;
-
-      const result = await service.getTenants(0, 10);
-      expect(result).toBeNull();
-    });
-
-    it('should return null when assetServices is empty', async () => {
-      mockConfigService.config = { ...mockConfig, assetServices: '' };
-
-      const result = await service.getTenants(0, 10);
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('getTenantDetails', () => {
-    it('should return tenant details on success', async () => {
-      const resultPromise = service.getTenantDetails('tenant-1');
-      await flushTenantProvider();
-
-      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/tenant-1`);
-      expect(req.request.method).toBe('GET');
-      req.flush(mockTenant);
-
-      const result = await resultPromise;
-      expect(result).toEqual(mockTenant);
-    });
-
-    it('should return null when config is not available', async () => {
-      mockConfigService.config = null;
-
-      const result = await service.getTenantDetails('tenant-1');
-      expect(result).toBeNull();
-    });
-
-    it('should handle tenant not found', async () => {
-      const resultPromise = service.getTenantDetails('non-existent');
-      await flushTenantProvider();
-
-      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/non-existent`);
-      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
-
-      await expectAsync(resultPromise).toBeRejected();
-    });
-  });
-
-  describe('createTenant', () => {
-    it('should create tenant with correct parameters', async () => {
-      const resultPromise = service.createTenant(mockTenant);
-      await flushTenantProvider();
-
-      const req = httpMock.expectOne(
-        `${baseUrl}${tenantId}/v1/tenants?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`
-      );
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toBeNull();
-      req.flush(null);
-
-      await resultPromise;
-    });
-
-    it('should not make request when config is not available', async () => {
-      mockConfigService.config = null;
-
-      await service.createTenant(mockTenant);
-      // No HTTP request should be made
-    });
-  });
-
-  describe('attachTenant', () => {
-    it('should attach tenant with correct parameters', async () => {
-      const resultPromise = service.attachTenant(mockTenant);
-      await flushTenantProvider();
-
-      const req = httpMock.expectOne(
-        `${baseUrl}${tenantId}/v1/tenants/attach?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`
-      );
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toBeNull();
-      req.flush(null);
-
-      await resultPromise;
-    });
-
-    it('should not make request when config is not available', async () => {
-      mockConfigService.config = null;
-
-      await service.attachTenant(mockTenant);
-      // No HTTP request should be made
-    });
-  });
-
-  describe('detachTenant', () => {
-    it('should detach tenant with correct parameters', async () => {
-      const resultPromise = service.detachTenant('tenant-1');
-      await flushTenantProvider();
-
-      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/detach?childTenantId=tenant-1`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toBeNull();
-      req.flush(null);
-
-      await resultPromise;
-    });
-
-    it('should not make request when config is not available', async () => {
-      mockConfigService.config = null;
-
-      await service.detachTenant('tenant-1');
-      // No HTTP request should be made
-    });
-  });
-
-  describe('deleteTenant', () => {
-    it('should delete tenant with correct parameters', async () => {
-      const resultPromise = service.deleteTenant('tenant-1');
-      await flushTenantProvider();
-
-      const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?childTenantId=tenant-1`);
-      expect(req.request.method).toBe('DELETE');
-      req.flush(null);
-
-      await resultPromise;
-    });
-
-    it('should not make request when config is not available', async () => {
-      mockConfigService.config = null;
-
-      await service.deleteTenant('tenant-1');
-      // No HTTP request should be made
-    });
-  });
-
-  describe('with fallback tenant', () => {
-    let fallbackService: AssetRepoService;
-    let fallbackHttpMock: HttpTestingController;
+    // Helper to flush the async tenant provider microtask
+    async function flushTenantProvider(): Promise<void> {
+        await Promise.resolve();
+    }
 
     beforeEach(() => {
-      TestBed.resetTestingModule();
-      TestBed.configureTestingModule({
-        providers: [
-          provideHttpClient(withXhr()),
-          provideHttpClientTesting(),
-          AssetRepoService,
-          { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
-          { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(null) }
-        ]
-      });
+        mockConfigService = {
+            config: mockConfig,
+            loadConfigAsync: vi.fn().mockName('loadConfigAsync').mockResolvedValue()
+        };
 
-      fallbackService = TestBed.inject(AssetRepoService);
-      fallbackHttpMock = TestBed.inject(HttpTestingController);
+        TestBed.configureTestingModule({
+            providers: [
+                provideHttpClient(withXhr()),
+                provideHttpClientTesting(),
+                AssetRepoService,
+                { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
+                { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(tenantId) }
+            ]
+        });
+
+        service = TestBed.inject(AssetRepoService);
+        httpMock = TestBed.inject(HttpTestingController);
     });
 
     afterEach(() => {
-      fallbackHttpMock.verify();
+        httpMock.verify();
     });
 
-    it('should fall back to octosystem when tenant provider returns null', async () => {
-      const resultPromise = fallbackService.getTenants(0, 10);
-      await flushTenantProvider();
-
-      const req = fallbackHttpMock.expectOne(`${baseUrl}octosystem/v1/tenants?skip=0&take=10`);
-      expect(req.request.method).toBe('GET');
-      req.flush(mockTenantsResponse);
-
-      await resultPromise;
-    });
-  });
-
-  describe('enableStreamData', () => {
-    it('should POST the tenant-scoped enable endpoint', async () => {
-      const resultPromise = service.enableStreamData('tenant-1');
-
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/enable`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toBeNull();
-      req.flush(null);
-
-      await resultPromise;
+    it('should be created', () => {
+        expect(service).toBeTruthy();
     });
 
-    it('should propagate errors', async () => {
-      const resultPromise = service.enableStreamData('tenant-1');
+    describe('getOwnTenant', () => {
+        it('should return the current tenant from the self endpoint', async () => {
+            const ownTenant: TenantDto = { tenantId, database: 'meshtest_db' };
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/enable`);
-      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
+            const resultPromise = service.getOwnTenant();
+            await flushTenantProvider();
 
-      await expectAsync(resultPromise).toBeRejected();
+            const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/self`);
+            expect(req.request.method).toBe('GET');
+            req.flush(ownTenant);
+
+            expect(await resultPromise).toEqual(ownTenant);
+        });
+
+        it('should return null when config is not loaded', async () => {
+            mockConfigService.config = null;
+
+            expect(await service.getOwnTenant()).toBeNull();
+        });
     });
 
-    it('should not make request when config is not available', async () => {
-      mockConfigService.config = null;
+    describe('getTenants', () => {
+        it('should return paged tenants on success', async () => {
+            const resultPromise = service.getTenants(0, 10);
+            await flushTenantProvider();
 
-      await service.enableStreamData('tenant-1');
-      // No HTTP request should be made
-    });
-  });
+            const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?skip=0&take=10`);
+            expect(req.request.method).toBe('GET');
+            req.flush(mockTenantsResponse);
 
-  describe('disableStreamData', () => {
-    it('should POST the tenant-scoped disable endpoint', async () => {
-      const resultPromise = service.disableStreamData('tenant-1');
+            const result = await resultPromise;
+            expect(result).toEqual(mockTenantsResponse);
+            expect(result?.list.length).toBe(2);
+            expect(result?.totalCount).toBe(2);
+        });
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/disable`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toBeNull();
-      req.flush(null);
+        it('should pass correct skip and take parameters', async () => {
+            const resultPromise = service.getTenants(5, 20);
+            await flushTenantProvider();
 
-      await resultPromise;
-    });
+            const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?skip=5&take=20`);
+            expect(req.request.params.get('skip')).toBe('5');
+            expect(req.request.params.get('take')).toBe('20');
+            req.flush(mockTenantsResponse);
 
-    it('should propagate errors', async () => {
-      const resultPromise = service.disableStreamData('tenant-1');
+            await resultPromise;
+        });
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/disable`);
-      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
+        it('should return null when config is not available', async () => {
+            mockConfigService.config = null;
 
-      await expectAsync(resultPromise).toBeRejected();
-    });
+            const result = await service.getTenants(0, 10);
+            expect(result).toBeNull();
+        });
 
-    it('should not make request when config is not available', async () => {
-      mockConfigService.config = null;
+        it('should return null when assetServices is empty', async () => {
+            mockConfigService.config = { ...mockConfig, assetServices: '' };
 
-      await service.disableStreamData('tenant-1');
-      // No HTTP request should be made
-    });
-  });
-
-  describe('getTenantFeaturesStatus (AB#4884)', () => {
-    const statusBody = {
-      streamData: { instanceEnabled: true, tenantEnabled: false },
-      communication: { tenantEnabled: true },
-      reporting: { tenantEnabled: false },
-      aiServices: { tenantEnabled: false }
-    };
-
-    it('should GET the tenant-scoped features status endpoint and return the body', async () => {
-      const resultPromise = service.getTenantFeaturesStatus('tenant-1');
-
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/features/status`);
-      expect(req.request.method).toBe('GET');
-      req.flush(statusBody);
-
-      expect(await resultPromise).toEqual(statusBody);
+            const result = await service.getTenants(0, 10);
+            expect(result).toBeNull();
+        });
     });
 
-    it('should propagate errors', async () => {
-      const resultPromise = service.getTenantFeaturesStatus('tenant-1');
+    describe('getTenantDetails', () => {
+        it('should return tenant details on success', async () => {
+            const resultPromise = service.getTenantDetails('tenant-1');
+            await flushTenantProvider();
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/features/status`);
-      req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
+            const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/tenant-1`);
+            expect(req.request.method).toBe('GET');
+            req.flush(mockTenant);
 
-      await expectAsync(resultPromise).toBeRejected();
+            const result = await resultPromise;
+            expect(result).toEqual(mockTenant);
+        });
+
+        it('should return null when config is not available', async () => {
+            mockConfigService.config = null;
+
+            const result = await service.getTenantDetails('tenant-1');
+            expect(result).toBeNull();
+        });
+
+        it('should handle tenant not found', async () => {
+            const resultPromise = service.getTenantDetails('non-existent');
+            await flushTenantProvider();
+
+            const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/non-existent`);
+            req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+            await expect(resultPromise).rejects.toThrow();
+        });
     });
 
-    it('should return null without a request when config is not available', async () => {
-      mockConfigService.config = null;
+    describe('createTenant', () => {
+        it('should create tenant with correct parameters', async () => {
+            const resultPromise = service.createTenant(mockTenant);
+            await flushTenantProvider();
 
-      expect(await service.getTenantFeaturesStatus('tenant-1')).toBeNull();
-      httpMock.expectNone(`${baseUrl}tenant-1/v1/features/status`);
-    });
-  });
+            const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toBeNull();
+            req.flush(null);
 
-  describe('importRtModel', () => {
-    it('should import RT model with default strategy and return job ID', async () => {
-      const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
-      const mockResponse = { jobId: 'job-123' };
+            await resultPromise;
+        });
 
-      const resultPromise = service.importRtModel('tenant-1', mockFile);
+        it('should not make request when config is not available', async () => {
+            mockConfigService.config = null;
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=0`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBeTrue();
-      req.flush(mockResponse);
-
-      const result = await resultPromise;
-      expect(result).toBe('job-123');
+            await service.createTenant(mockTenant);
+            // No HTTP request should be made
+        });
     });
 
-    it('should import RT model with Upsert strategy', async () => {
-      const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
-      const mockResponse = { jobId: 'job-789' };
+    describe('attachTenant', () => {
+        it('should attach tenant with correct parameters', async () => {
+            const resultPromise = service.attachTenant(mockTenant);
+            await flushTenantProvider();
 
-      const resultPromise = service.importRtModel('tenant-1', mockFile, ImportStrategyDto.Upsert);
+            const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/attach?childTenantId=${mockTenant.tenantId}&databaseName=${mockTenant.database}`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toBeNull();
+            req.flush(null);
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=1`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBeTrue();
-      req.flush(mockResponse);
+            await resultPromise;
+        });
 
-      const result = await resultPromise;
-      expect(result).toBe('job-789');
+        it('should not make request when config is not available', async () => {
+            mockConfigService.config = null;
+
+            await service.attachTenant(mockTenant);
+            // No HTTP request should be made
+        });
     });
 
-    it('should return null when response has no jobId', async () => {
-      const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
+    describe('detachTenant', () => {
+        it('should detach tenant with correct parameters', async () => {
+            const resultPromise = service.detachTenant('tenant-1');
+            await flushTenantProvider();
 
-      const resultPromise = service.importRtModel('tenant-1', mockFile);
+            const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants/detach?childTenantId=tenant-1`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toBeNull();
+            req.flush(null);
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=0`);
-      req.flush({});
+            await resultPromise;
+        });
 
-      const result = await resultPromise;
-      expect(result).toBeNull();
+        it('should not make request when config is not available', async () => {
+            mockConfigService.config = null;
+
+            await service.detachTenant('tenant-1');
+            // No HTTP request should be made
+        });
     });
 
-    it('should return null when config is not available', async () => {
-      mockConfigService.config = null;
-      const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
+    describe('deleteTenant', () => {
+        it('should delete tenant with correct parameters', async () => {
+            const resultPromise = service.deleteTenant('tenant-1');
+            await flushTenantProvider();
 
-      const result = await service.importRtModel('tenant-1', mockFile);
-      expect(result).toBeNull();
-    });
-  });
+            const req = httpMock.expectOne(`${baseUrl}${tenantId}/v1/tenants?childTenantId=tenant-1`);
+            expect(req.request.method).toBe('DELETE');
+            req.flush(null);
 
-  describe('importCkModel', () => {
-    it('should import CK model and return job ID', async () => {
-      const mockFile = new File(['test content'], 'ck-model.json', { type: 'application/json' });
-      const mockResponse = { jobId: 'job-456' };
+            await resultPromise;
+        });
 
-      const resultPromise = service.importCkModel('tenant-1', mockFile);
+        it('should not make request when config is not available', async () => {
+            mockConfigService.config = null;
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportCk?importStrategy=0`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBeTrue();
-      req.flush(mockResponse);
-
-      const result = await resultPromise;
-      expect(result).toBe('job-456');
+            await service.deleteTenant('tenant-1');
+            // No HTTP request should be made
+        });
     });
 
-    it('should return null when config is not available', async () => {
-      mockConfigService.config = null;
-      const mockFile = new File(['test content'], 'ck-model.json', { type: 'application/json' });
+    describe('with fallback tenant', () => {
+        let fallbackService: AssetRepoService;
+        let fallbackHttpMock: HttpTestingController;
 
-      const result = await service.importCkModel('tenant-1', mockFile);
-      expect(result).toBeNull();
-    });
-  });
+        beforeEach(() => {
+            TestBed.resetTestingModule();
+            TestBed.configureTestingModule({
+                providers: [
+                    provideHttpClient(withXhr()),
+                    provideHttpClientTesting(),
+                    AssetRepoService,
+                    { provide: CONFIGURATION_SERVICE, useValue: mockConfigService },
+                    { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(null) }
+                ]
+            });
 
-  describe('exportRtModelByQuery', () => {
-    it('should export RT model by query and return job ID', async () => {
-      const mockResponse = { jobId: 'export-job-789' };
+            fallbackService = TestBed.inject(AssetRepoService);
+            fallbackHttpMock = TestBed.inject(HttpTestingController);
+        });
 
-      const resultPromise = service.exportRtModelByQuery('tenant-1', 'query-123');
+        afterEach(() => {
+            fallbackHttpMock.verify();
+        });
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByQuery`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ queryId: 'query-123' });
-      req.flush(mockResponse);
+        it('should fall back to octosystem when tenant provider returns null', async () => {
+            const resultPromise = fallbackService.getTenants(0, 10);
+            await flushTenantProvider();
 
-      const result = await resultPromise;
-      expect(result).toBe('export-job-789');
-    });
+            const req = fallbackHttpMock.expectOne(`${baseUrl}octosystem/v1/tenants?skip=0&take=10`);
+            expect(req.request.method).toBe('GET');
+            req.flush(mockTenantsResponse);
 
-    it('should return null when response has no jobId', async () => {
-      const resultPromise = service.exportRtModelByQuery('tenant-1', 'query-123');
-
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByQuery`);
-      req.flush({});
-
-      const result = await resultPromise;
-      expect(result).toBeNull();
-    });
-
-    it('should return null when config is not available', async () => {
-      mockConfigService.config = null;
-
-      const result = await service.exportRtModelByQuery('tenant-1', 'query-123');
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('exportRtModelDeepGraph', () => {
-    it('should export RT model deep graph and return job ID', async () => {
-      const mockResponse = { jobId: 'deep-export-job-101' };
-      const originRtIds = ['rt-1', 'rt-2'];
-      const originCkTypeId = 'ck-type-1';
-
-      const resultPromise = service.exportRtModelDeepGraph('tenant-1', originRtIds, originCkTypeId);
-
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ originRtIds, originCkTypeId });
-      req.flush(mockResponse);
-
-      const result = await resultPromise;
-      expect(result).toBe('deep-export-job-101');
+            await resultPromise;
+        });
     });
 
-    it('should return null when response has no jobId', async () => {
-      const resultPromise = service.exportRtModelDeepGraph('tenant-1', ['rt-1'], 'ck-type-1');
+    describe('enableStreamData', () => {
+        it('should POST the tenant-scoped enable endpoint', async () => {
+            const resultPromise = service.enableStreamData('tenant-1');
 
-      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
-      req.flush({});
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/enable`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toBeNull();
+            req.flush(null);
 
-      const result = await resultPromise;
-      expect(result).toBeNull();
+            await resultPromise;
+        });
+
+        it('should propagate errors', async () => {
+            const resultPromise = service.enableStreamData('tenant-1');
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/enable`);
+            req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
+
+            await expect(resultPromise).rejects.toThrow();
+        });
+
+        it('should not make request when config is not available', async () => {
+            mockConfigService.config = null;
+
+            await service.enableStreamData('tenant-1');
+            // No HTTP request should be made
+        });
     });
 
-    it('should return null when config is not available', async () => {
-      mockConfigService.config = null;
+    describe('disableStreamData', () => {
+        it('should POST the tenant-scoped disable endpoint', async () => {
+            const resultPromise = service.disableStreamData('tenant-1');
 
-      const result = await service.exportRtModelDeepGraph('tenant-1', ['rt-1'], 'ck-type-1');
-      expect(result).toBeNull();
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/disable`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toBeNull();
+            req.flush(null);
+
+            await resultPromise;
+        });
+
+        it('should propagate errors', async () => {
+            const resultPromise = service.disableStreamData('tenant-1');
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/streamdata/disable`);
+            req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
+
+            await expect(resultPromise).rejects.toThrow();
+        });
+
+        it('should not make request when config is not available', async () => {
+            mockConfigService.config = null;
+
+            await service.disableStreamData('tenant-1');
+            // No HTTP request should be made
+        });
     });
-  });
+
+    describe('getTenantFeaturesStatus (AB#4884)', () => {
+        const statusBody = {
+            streamData: { instanceEnabled: true, tenantEnabled: false },
+            communication: { tenantEnabled: true },
+            reporting: { tenantEnabled: false },
+            aiServices: { tenantEnabled: false }
+        };
+
+        it('should GET the tenant-scoped features status endpoint and return the body', async () => {
+            const resultPromise = service.getTenantFeaturesStatus('tenant-1');
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/features/status`);
+            expect(req.request.method).toBe('GET');
+            req.flush(statusBody);
+
+            expect(await resultPromise).toEqual(statusBody);
+        });
+
+        it('should propagate errors', async () => {
+            const resultPromise = service.getTenantFeaturesStatus('tenant-1');
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/features/status`);
+            req.flush({ errorMessage: 'boom' }, { status: 500, statusText: 'Server Error' });
+
+            await expect(resultPromise).rejects.toThrow();
+        });
+
+        it('should return null without a request when config is not available', async () => {
+            mockConfigService.config = null;
+
+            expect(await service.getTenantFeaturesStatus('tenant-1')).toBeNull();
+            httpMock.expectNone(`${baseUrl}tenant-1/v1/features/status`);
+        });
+    });
+
+    describe('importRtModel', () => {
+        it('should import RT model with default strategy and return job ID', async () => {
+            const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
+            const mockResponse = { jobId: 'job-123' };
+
+            const resultPromise = service.importRtModel('tenant-1', mockFile);
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=0`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body instanceof FormData).toBe(true);
+            req.flush(mockResponse);
+
+            const result = await resultPromise;
+            expect(result).toBe('job-123');
+        });
+
+        it('should import RT model with Upsert strategy', async () => {
+            const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
+            const mockResponse = { jobId: 'job-789' };
+
+            const resultPromise = service.importRtModel('tenant-1', mockFile, ImportStrategyDto.Upsert);
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=1`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body instanceof FormData).toBe(true);
+            req.flush(mockResponse);
+
+            const result = await resultPromise;
+            expect(result).toBe('job-789');
+        });
+
+        it('should return null when response has no jobId', async () => {
+            const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
+
+            const resultPromise = service.importRtModel('tenant-1', mockFile);
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportRt?importStrategy=0`);
+            req.flush({});
+
+            const result = await resultPromise;
+            expect(result).toBeNull();
+        });
+
+        it('should return null when config is not available', async () => {
+            mockConfigService.config = null;
+            const mockFile = new File(['test content'], 'model.json', { type: 'application/json' });
+
+            const result = await service.importRtModel('tenant-1', mockFile);
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('importCkModel', () => {
+        it('should import CK model and return job ID', async () => {
+            const mockFile = new File(['test content'], 'ck-model.json', { type: 'application/json' });
+            const mockResponse = { jobId: 'job-456' };
+
+            const resultPromise = service.importCkModel('tenant-1', mockFile);
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ImportCk?importStrategy=0`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body instanceof FormData).toBe(true);
+            req.flush(mockResponse);
+
+            const result = await resultPromise;
+            expect(result).toBe('job-456');
+        });
+
+        it('should return null when config is not available', async () => {
+            mockConfigService.config = null;
+            const mockFile = new File(['test content'], 'ck-model.json', { type: 'application/json' });
+
+            const result = await service.importCkModel('tenant-1', mockFile);
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('exportRtModelByQuery', () => {
+        it('should export RT model by query and return job ID', async () => {
+            const mockResponse = { jobId: 'export-job-789' };
+
+            const resultPromise = service.exportRtModelByQuery('tenant-1', 'query-123');
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByQuery`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toEqual({ queryId: 'query-123' });
+            req.flush(mockResponse);
+
+            const result = await resultPromise;
+            expect(result).toBe('export-job-789');
+        });
+
+        it('should return null when response has no jobId', async () => {
+            const resultPromise = service.exportRtModelByQuery('tenant-1', 'query-123');
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByQuery`);
+            req.flush({});
+
+            const result = await resultPromise;
+            expect(result).toBeNull();
+        });
+
+        it('should return null when config is not available', async () => {
+            mockConfigService.config = null;
+
+            const result = await service.exportRtModelByQuery('tenant-1', 'query-123');
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('exportRtModelDeepGraph', () => {
+        it('should export RT model deep graph and return job ID', async () => {
+            const mockResponse = { jobId: 'deep-export-job-101' };
+            const originRtIds = ['rt-1', 'rt-2'];
+            const originCkTypeId = 'ck-type-1';
+
+            const resultPromise = service.exportRtModelDeepGraph('tenant-1', originRtIds, originCkTypeId);
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
+            expect(req.request.method).toBe('POST');
+            expect(req.request.body).toEqual({ originRtIds, originCkTypeId });
+            req.flush(mockResponse);
+
+            const result = await resultPromise;
+            expect(result).toBe('deep-export-job-101');
+        });
+
+        it('should return null when response has no jobId', async () => {
+            const resultPromise = service.exportRtModelDeepGraph('tenant-1', ['rt-1'], 'ck-type-1');
+
+            const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/Models/ExportRtByDeepGraph`);
+            req.flush({});
+
+            const result = await resultPromise;
+            expect(result).toBeNull();
+        });
+
+        it('should return null when config is not available', async () => {
+            mockConfigService.config = null;
+
+            const result = await service.exportRtModelDeepGraph('tenant-1', ['rt-1'], 'ck-type-1');
+            expect(result).toBeNull();
+        });
+    });
 });
