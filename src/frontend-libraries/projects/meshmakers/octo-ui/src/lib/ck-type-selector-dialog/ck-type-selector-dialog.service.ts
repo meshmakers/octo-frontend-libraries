@@ -54,11 +54,11 @@ export class CkTypeSelectorDialogService {
     // is out of reach for its ContentChild query.
     const windowMessages = effectiveMessages
       ? {
-          closeTitle: effectiveMessages.closeTitle,
-          minimizeTitle: effectiveMessages.minimizeTitle,
-          maximizeTitle: effectiveMessages.maximizeTitle,
-          restoreTitle: effectiveMessages.restoreTitle,
-        }
+        closeTitle: effectiveMessages.closeTitle,
+        minimizeTitle: effectiveMessages.minimizeTitle,
+        maximizeTitle: effectiveMessages.maximizeTitle,
+        restoreTitle: effectiveMessages.restoreTitle,
+      }
       : undefined;
 
     const windowRef = this.windowService.open({

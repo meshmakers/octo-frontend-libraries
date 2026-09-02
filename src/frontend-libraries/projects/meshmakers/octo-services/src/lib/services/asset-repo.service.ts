@@ -181,7 +181,7 @@ export class AssetRepoService {
     if (this.configurationService.config?.assetServices) {
 
       const formData: FormData = new FormData();
-      formData.append("file", file);
+      formData.append('file', file);
       const r = await firstValueFrom(this.httpClient.post<ImportModelResponseDto>(this.configurationService.config.assetServices + tenantId + '/v1/Models/ImportRt', formData, {
         params,
         observe: 'response'
@@ -197,7 +197,7 @@ export class AssetRepoService {
       .set('importStrategy', importStrategy.toString());
     if (this.configurationService.config?.assetServices) {
       const formData: FormData = new FormData();
-      formData.append("file", file);
+      formData.append('file', file);
       const r = await firstValueFrom(this.httpClient.post<ImportModelResponseDto>(this.configurationService.config.assetServices + tenantId + '/v1/Models/ImportCk', formData, {
         params,
         observe: 'response'
@@ -233,7 +233,7 @@ export class AssetRepoService {
             observe: 'response'
           }
         ));
-        return r.body?.jobId ?? null;
+      return r.body?.jobId ?? null;
     }
     return null;
   }

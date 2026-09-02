@@ -4,9 +4,9 @@ import {TenantComponent} from './tenant.component';
 
 
 export const routes: Routes = [
-  {path: "", redirectTo: "/octosystem", pathMatch: "full"},
+  {path: '', redirectTo: '/octosystem', pathMatch: 'full'},
   {
-    path: ":tenantId",
+    path: ':tenantId',
     component: TenantComponent,
     canActivateChild: [authorizeChildGuard],
     loadChildren: () =>

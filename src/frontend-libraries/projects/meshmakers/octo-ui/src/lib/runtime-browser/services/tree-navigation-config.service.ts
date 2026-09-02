@@ -357,17 +357,17 @@ export class TreeNavigationConfigService {
             types?: {
               items?:
                 | ({
-                    associations?: {
-                      in?: {
-                        all?:
+                  associations?: {
+                    in?: {
+                      all?:
                           | ({
-                              rtRoleId?: string | null;
-                              navigationPropertyName?: string | null;
-                            } | null)[]
+                            rtRoleId?: string | null;
+                            navigationPropertyName?: string | null;
+                          } | null)[]
                           | null;
-                      } | null;
                     } | null;
-                  } | null)[]
+                  } | null;
+                } | null)[]
                 | null;
             } | null;
           };
@@ -614,9 +614,9 @@ export class TreeNavigationConfigService {
           systemUITreeNavigationConfiguration?: {
             items?:
               | ({
-                  rtId?: string;
-                  roles?: RawRole[] | null;
-                } | null)[]
+                rtId?: string;
+                roles?: RawRole[] | null;
+              } | null)[]
               | null;
           } | null;
         };

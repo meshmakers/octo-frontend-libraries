@@ -7,8 +7,8 @@ import { AssociationValidationService } from './association-validation.service';
 describe('AssociationValidationService', () => {
   let service: AssociationValidationService;
   let mockGetCkTypeAssociationRolesGQL: MockedObject<{
-        fetch: Mock;
-    }>;
+    fetch: Mock;
+  }>;
 
   const mockMachineRolesResponse = {
     data: {

@@ -39,7 +39,7 @@ import {
           <strong>Action:</strong> {{ lastActionResult?.confirmed ? 'Confirmed (OK)' : 'Cancelled' }}<br>
           <strong>Selected Count:</strong> {{ lastActionResult?.selectedAttributes?.length || 0 }}
         </div>
-        
+
         <h3 *ngIf="selectedAttributes.length > 0">Selected Attributes with Sort Order ({{ selectedAttributes.length }})</h3>
 
         <kendo-grid
@@ -80,7 +80,7 @@ import {
           <li>Use the Remove button (✕) to delete attributes from the selected list</li>
           <li>Click "Apply" to confirm selections or "Cancel" to discard changes</li>
         </ul>
-        
+
         <div class="sort-explanation">
           <h4>Sort Order Explanation:</h4>
           <ul>

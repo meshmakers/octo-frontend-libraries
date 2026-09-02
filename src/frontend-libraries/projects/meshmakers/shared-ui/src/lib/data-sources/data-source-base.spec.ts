@@ -1,4 +1,3 @@
-import type { MockedObject } from 'vitest';
 import { Observable, of } from 'rxjs';
 import { DataSourceBase, FetchDataOptions } from './data-source-base';
 import { FetchResult } from '../models/fetchResult';
@@ -17,12 +16,13 @@ class TestDataSource extends DataSourceBase {
 
 describe('DataSourceBase', () => {
   let dataSource: TestDataSource;
-  let mockListViewComponent: MockedObject<ListViewComponent>;
+  let mockListViewComponent: ListViewComponent;
 
   beforeEach(() => {
-    mockListViewComponent = {
-      refresh: vi.fn().mockName('ListViewComponent.refresh')
-    } as unknown as MockedObject<ListViewComponent>;
+    // DataSourceBase stores the ListViewComponent on `listViewComponent` and never calls a
+    // member on it, so the stub needs no members. (It used to mock `refresh`, which
+    // ListViewComponent does not have — its method is `onRefresh()`.)
+    mockListViewComponent = {} as unknown as ListViewComponent;
     dataSource = new TestDataSource(mockListViewComponent);
   });
 

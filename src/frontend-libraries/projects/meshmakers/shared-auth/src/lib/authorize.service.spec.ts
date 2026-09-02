@@ -79,11 +79,11 @@ describe('AuthorizeService', () => {
 
     // Spy on the protected reloadPage and navigateTo methods to prevent actual page navigation during tests
     _reloadPageSpy = vi.spyOn(service as unknown as {
-            reloadPage: () => void;
-        }, 'reloadPage').mockReturnValue(undefined);
+      reloadPage: () => void;
+    }, 'reloadPage').mockReturnValue(undefined);
     _navigateToSpy = vi.spyOn(service as unknown as {
-            navigateTo: (url: string) => void;
-        }, 'navigateTo').mockReturnValue(undefined);
+      navigateTo: (url: string) => void;
+    }, 'navigateTo').mockReturnValue(undefined);
   });
 
   // =============================================================================
@@ -999,9 +999,9 @@ describe('AuthorizeService', () => {
       await service.switchTenantByExchange('tecob');
 
       const [, init] = vi.mocked(fetchSpy).mock.calls[0] as [
-                string,
-                RequestInit
-            ];
+        string,
+        RequestInit
+      ];
       const body = new URLSearchParams(init.body as string);
       expect(body.get('grant_type')).toBe('urn:ietf:params:oauth:grant-type:token-exchange');
       expect(body.get('subject_token')).toBe(sourceToken);

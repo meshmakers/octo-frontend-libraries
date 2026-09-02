@@ -14,9 +14,9 @@ describe('AssetRepoService', () => {
   let service: AssetRepoService;
   let httpMock: HttpTestingController;
   let mockConfigService: {
-        config: AddInConfiguration | null;
-        loadConfigAsync: Mock;
-    };
+    config: AddInConfiguration | null;
+    loadConfigAsync: Mock;
+  };
 
   const baseUrl = 'https://asset.example.com/';
   const tenantId = 'meshtest';

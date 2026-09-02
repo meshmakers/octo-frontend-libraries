@@ -9,17 +9,17 @@ import { EntityIdInfoComponent } from './entity-id-info.component';
 
 /** Mirrors the CopyOption interface from the component for test access */
 interface CopyOption {
-    label: string;
-    value: string;
-    displayText: string;
+  label: string;
+  value: string;
+  displayText: string;
 }
 
 /** Interface exposing protected/private members of EntityIdInfoComponent for testing */
 interface EntityIdInfoTestAccess {
-    copyIcon: SVGIcon;
-    copyOptions: CopyOption[];
-    truncateValue(value: string, maxLength: number): string;
-    copyToClipboard(option: CopyOption): Promise<void>;
+  copyIcon: SVGIcon;
+  copyOptions: CopyOption[];
+  truncateValue(value: string, maxLength: number): string;
+  copyToClipboard(option: CopyOption): Promise<void>;
 }
 
 describe('EntityIdInfoComponent', () => {

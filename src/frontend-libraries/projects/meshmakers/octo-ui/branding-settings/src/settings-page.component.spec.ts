@@ -41,16 +41,16 @@ const TEST_MESSAGES: BrandingSettingsMessages = {
 
 describe('SettingsPageComponent', () => {
   function configure(): {
-        fixture: ReturnType<typeof TestBed.createComponent<SettingsPageComponent>>;
-        el: HTMLElement;
-        dataSource: {
-            branding: ReturnType<typeof signal<typeof NEUTRAL_BRANDING_DEFAULTS>>;
-            load: Mock;
-            save: Mock;
-            resetToDefaults: Mock;
-        };
-        msg: MockedObject<MessageService>;
-        } {
+    fixture: ReturnType<typeof TestBed.createComponent<SettingsPageComponent>>;
+    el: HTMLElement;
+    dataSource: {
+      branding: ReturnType<typeof signal<typeof NEUTRAL_BRANDING_DEFAULTS>>;
+      load: Mock;
+      save: Mock;
+      resetToDefaults: Mock;
+    };
+    msg: MockedObject<MessageService>;
+  } {
     const branding = signal(NEUTRAL_BRANDING_DEFAULTS);
     const dataSource = {
       branding,
@@ -93,8 +93,8 @@ describe('SettingsPageComponent', () => {
     const { fixture, dataSource, msg } = configure();
     await fixture.whenStable();
     const component = fixture.componentInstance as unknown as {
-            onSubmit: () => Promise<void>;
-        };
+      onSubmit: () => Promise<void>;
+    };
     await component.onSubmit();
     expect(dataSource.save).toHaveBeenCalled();
     expect(msg.showInformation).toHaveBeenCalled();
@@ -104,8 +104,8 @@ describe('SettingsPageComponent', () => {
     const { fixture, dataSource } = configure();
     await fixture.whenStable();
     const component = fixture.componentInstance as unknown as {
-            onResetDefaults: () => Promise<void>;
-        };
+      onResetDefaults: () => Promise<void>;
+    };
     await component.onResetDefaults();
     expect(dataSource.resetToDefaults).toHaveBeenCalled();
   });

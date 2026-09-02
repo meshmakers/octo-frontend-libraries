@@ -13,10 +13,10 @@ describe('CkModelService', () => {
   let getCkModelByIdGQLMock: MockedObject<GetCkModelByIdDtoGQL>;
 
   const createMockResponse = (version: string | number | {
-        major: number;
-        minor: number;
-        patch: number;
-    } | null) => ({
+    major: number;
+    minor: number;
+    patch: number;
+  } | null) => ({
     data: {
       __typename: 'OctoQuery',
       constructionKit: {

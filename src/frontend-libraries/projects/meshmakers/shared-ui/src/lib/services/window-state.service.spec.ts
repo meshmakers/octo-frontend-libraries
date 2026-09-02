@@ -172,9 +172,9 @@ describe('WindowStateService', () => {
 
   describe('applyModalBehavior', () => {
     function createMockWindowRef(): {
-            windowRef: Partial<WindowRef>;
-            resultSubject: Subject<WindowCloseResult>;
-            } {
+      windowRef: Partial<WindowRef>;
+      resultSubject: Subject<WindowCloseResult>;
+    } {
       const resultSubject = new Subject<WindowCloseResult>();
       const mockNativeElement = {
         style: { width: '800px', height: '600px' }

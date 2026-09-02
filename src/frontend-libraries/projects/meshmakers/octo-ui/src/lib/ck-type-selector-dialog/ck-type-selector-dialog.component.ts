@@ -346,11 +346,11 @@ export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {
     const source$ = this.derivedFromRtCkTypeId
       ? this.getDerivedTypes(this.searchText || undefined)
       : this.ckTypeSelectorService.getCkTypes({
-          ckModelIds: this.selectedModel ? [this.selectedModel] : this.initialCkModelIds,
-          searchText: this.searchText || undefined,
-          first: this.pageSize,
-          skip: this.skip
-        });
+        ckModelIds: this.selectedModel ? [this.selectedModel] : this.initialCkModelIds,
+        searchText: this.searchText || undefined,
+        first: this.pageSize,
+        skip: this.skip
+      });
 
     this.subscriptions.add(
       source$.subscribe({

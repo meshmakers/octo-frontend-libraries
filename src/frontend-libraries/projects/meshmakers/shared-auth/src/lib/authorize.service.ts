@@ -1,7 +1,7 @@
-import { Injectable, Signal, WritableSignal, computed, inject, signal } from "@angular/core";
-import { AuthConfig, OAuthService } from "angular-oauth2-oidc";
-import { Roles } from "./roles";
-import { TenantAwareOAuthStorage } from "./tenant-aware-oauth-storage";
+import { Injectable, Signal, WritableSignal, computed, inject, signal } from '@angular/core';
+import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
+import { Roles } from './roles';
+import { TenantAwareOAuthStorage } from './tenant-aware-oauth-storage';
 
 export interface IUser {
   family_name: string | null;
@@ -165,21 +165,21 @@ export class AuthorizeService {
   });
 
   constructor() {
-    console.debug("AuthorizeService::created");
+    console.debug('AuthorizeService::created');
 
     this.oauthService.discoveryDocumentLoaded$.subscribe((_) => {
-      console.debug("discoveryDocumentLoaded$");
+      console.debug('discoveryDocumentLoaded$');
     });
 
     this.oauthService.events.subscribe((e) => {
-      console.debug("oauth/oidc event", e);
+      console.debug('oauth/oidc event', e);
     });
 
     this.oauthService.events
       .pipe((source) => source)
       .subscribe((e) => {
-        if (e.type === "session_terminated") {
-          console.debug("Your session has been terminated!");
+        if (e.type === 'session_terminated') {
+          console.debug('Your session has been terminated!');
           this._accessToken.set(null);
           this._user.set(null);
           this._isAuthenticated.set(false);
@@ -188,8 +188,8 @@ export class AuthorizeService {
           this.reloadPage();
         }
 
-        if (e.type === "token_refresh_error") {
-          console.warn("AuthorizeService: Token refresh failed — clearing local session and reloading");
+        if (e.type === 'token_refresh_error') {
+          console.warn('AuthorizeService: Token refresh failed — clearing local session and reloading');
           this._accessToken.set(null);
           this._user.set(null);
           this._isAuthenticated.set(false);
@@ -208,14 +208,14 @@ export class AuthorizeService {
       });
 
     this.oauthService.events.subscribe(async (e) => {
-      if (e.type === "token_received") {
+      if (e.type === 'token_received') {
         this._loginInProgress = false;
         await this.loadUserAsync();
       }
     });
 
     this.oauthService.events.subscribe(async (e) => {
-      if (e.type === "session_unchanged") {
+      if (e.type === 'session_unchanged') {
         if (this._user() == null) {
           await this.loadUserAsync();
         }
@@ -223,8 +223,8 @@ export class AuthorizeService {
     });
 
     this.oauthService.events.subscribe((e) => {
-      if (e.type === "logout") {
-        console.debug("AuthorizeService: Logout event received");
+      if (e.type === 'logout') {
+        console.debug('AuthorizeService: Logout event received');
         this._accessToken.set(null);
         this._user.set(null);
         this._isAuthenticated.set(false);
@@ -241,13 +241,13 @@ export class AuthorizeService {
     // Listen for storage events from other tabs (e.g., SLO logout callback)
     // This enables immediate cross-tab logout detection
     window.addEventListener('storage', (event) => {
-      console.debug("AuthorizeService: Storage event received", event.key, event.newValue);
+      console.debug('AuthorizeService: Storage event received', event.key, event.newValue);
       // Check if the current tenant's access_token was removed (logout in another tab)
       // With per-tenant storage, the key is prefixed (e.g., "maco__access_token")
       // Note: OAuth library may set to empty string or null when clearing
       const expectedKey = this.tenantStorage.prefixKey('access_token');
       if (event.key === expectedKey && (event.newValue === null || event.newValue === '') && this._isAuthenticated()) {
-        console.debug("AuthorizeService: Access token removed in another tab - logging out and reloading");
+        console.debug('AuthorizeService: Access token removed in another tab - logging out and reloading');
         this._accessToken.set(null);
         this._user.set(null);
         this._isAuthenticated.set(false);
@@ -263,9 +263,9 @@ export class AuthorizeService {
       console.debug("AuthorizeService: Setting up BroadcastChannel listener for 'octo-auth-logout'");
       const logoutChannel = new BroadcastChannel('octo-auth-logout');
       logoutChannel.onmessage = (event) => {
-        console.debug("AuthorizeService: BroadcastChannel message received", event.data);
+        console.debug('AuthorizeService: BroadcastChannel message received', event.data);
         if (event.data?.type === 'logout' && this._isAuthenticated()) {
-          console.debug("AuthorizeService: Logout broadcast received - reloading");
+          console.debug('AuthorizeService: Logout broadcast received - reloading');
           this._accessToken.set(null);
           this._user.set(null);
           this._isAuthenticated.set(false);
@@ -274,7 +274,7 @@ export class AuthorizeService {
         }
       };
     } else {
-      console.warn("AuthorizeService: BroadcastChannel not supported in this browser");
+      console.warn('AuthorizeService: BroadcastChannel not supported in this browser');
     }
 
     // When the tab returns from the background and we previously failed to load
@@ -287,7 +287,7 @@ export class AuthorizeService {
           return;
         }
         if (this._discoveryDocumentError() && !this._isInitializing() && this.authorizeOptions) {
-          console.debug("AuthorizeService: visibilitychange → retrying after discovery-document failure");
+          console.debug('AuthorizeService: visibilitychange → retrying after discovery-document failure');
           // Re-run initialize() with the last options. We intentionally swallow
           // the error here — initialize() already records it in the signal.
           void this.initialize(this.authorizeOptions).catch(() => undefined);
@@ -745,7 +745,7 @@ export class AuthorizeService {
     this.oauthService.redirectUri = redirectUri;
     this.oauthService.postLogoutRedirectUri = postLogoutRedirectUri;
 
-    console.debug("AuthorizeService::updateRedirectUris::done");
+    console.debug('AuthorizeService::updateRedirectUris::done');
   }
 
   /**
@@ -753,17 +753,17 @@ export class AuthorizeService {
    * Call this after actions that change the user's tenant access (e.g., provisioning).
    */
   public async refreshAccessToken(): Promise<void> {
-    console.debug("AuthorizeService::refreshAccessToken::started");
+    console.debug('AuthorizeService::refreshAccessToken::started');
     await this.oauthService.refreshToken();
     await this.loadUserAsync();
-    console.debug("AuthorizeService::refreshAccessToken::done");
+    console.debug('AuthorizeService::refreshAccessToken::done');
   }
 
   /**
    * Initializes the authorization service with the specified options.
    */
   public async initialize(authorizeOptions: AuthorizeOptions): Promise<void> {
-    console.debug("AuthorizeService::initialize::started");
+    console.debug('AuthorizeService::initialize::started');
 
     await this.uninitialize();
 
@@ -771,14 +771,14 @@ export class AuthorizeService {
       return;
     }
     if (this._isInitialized()) {
-      console.debug("AuthorizeService::initialize::alreadyInitialized");
+      console.debug('AuthorizeService::initialize::alreadyInitialized');
       return;
     }
     this._isInitializing.set(true);
 
     try {
       const config: AuthConfig = {
-        responseType: "code",
+        responseType: 'code',
         issuer: authorizeOptions.issuer,
         redirectUri: authorizeOptions.redirectUri,
         postLogoutRedirectUri: authorizeOptions.postLogoutRedirectUri,
@@ -796,30 +796,30 @@ export class AuthorizeService {
       this.oauthService.setStorage(this.tenantStorage);
       this.oauthService.configure(config);
 
-      console.debug("AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin");
+      console.debug('AuthorizeService::initialize::loadingDiscoveryDocumentAndTryLogin');
       await this.loadDiscoveryDocumentAndTryLoginWithRetry(
         authorizeOptions.discoveryDocumentRetry ?? AuthorizeService.DEFAULT_DISCOVERY_RETRY
       );
 
-      console.debug("AuthorizeService::initialize::setupAutomaticSilentRefresh");
+      console.debug('AuthorizeService::initialize::setupAutomaticSilentRefresh');
       this.oauthService.setupAutomaticSilentRefresh();
 
       this._issuer.set(authorizeOptions.issuer ?? null);
 
       if (this.oauthService.hasValidIdToken()) {
         // if the idToken is still valid, we can use the session
-        console.debug("AuthorizeService::initialize::hasValidIdToken");
+        console.debug('AuthorizeService::initialize::hasValidIdToken');
         this._sessionLoading.set(true);
         await this.oauthService.refreshToken();
       }
 
       this._isInitialized.set(true);
-      console.debug("AuthorizeService::initialize::done");
+      console.debug('AuthorizeService::initialize::done');
     } finally {
       this._isInitializing.set(false);
     }
 
-    console.debug("AuthorizeService::initialize::completed");
+    console.debug('AuthorizeService::initialize::completed');
   }
 
   /**
@@ -891,13 +891,13 @@ export class AuthorizeService {
    * Uninitializes the authorization service.
    */
   public async uninitialize(): Promise<void> {
-    console.debug("AuthorizeService::uninitialize::started");
+    console.debug('AuthorizeService::uninitialize::started');
 
     if (this._isInitializing()) {
       return;
     }
     if (!this._isInitialized()) {
-      console.debug("AuthorizeService::uninitialize::alreadyUninitialized");
+      console.debug('AuthorizeService::uninitialize::alreadyUninitialized');
       return;
     }
 
@@ -916,18 +916,18 @@ export class AuthorizeService {
       // Signals are already properly cleared on logout/session_terminated events.
 
       this._isInitialized.set(false);
-      console.debug("AuthorizeService::uninitialize::done");
+      console.debug('AuthorizeService::uninitialize::done');
     } finally {
       this._isInitializing.set(false);
     }
 
-    console.debug("AuthorizeService::uninitialize::completed");
+    console.debug('AuthorizeService::uninitialize::completed');
   }
 
   private async loadUserAsync(): Promise<void> {
     const claims = this.oauthService.getIdentityClaims();
     if (!claims) {
-      console.error("claims where null when loading identity claims");
+      console.error('claims where null when loading identity claims');
       return;
     }
 

@@ -1,5 +1,5 @@
-import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
-import { Router } from "@angular/router";
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthorizeService } from '@meshmakers/shared-auth';
 
 interface NavItem {

@@ -1,5 +1,5 @@
-import {State} from "@progress/kendo-data-query/dist/npm/state";
-import {BehaviorSubject, Observable} from "rxjs";
+import {State} from '@progress/kendo-data-query/dist/npm/state';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {ListViewComponent} from '../list-view/list-view.component';
 import {EventEmitter, signal} from '@angular/core';
 import {FetchResult} from '../models/fetchResult';

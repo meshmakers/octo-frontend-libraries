@@ -166,15 +166,43 @@ unaffected — this is a test-runner-only defect. Symptom: a spec passes alone a
 as a second spec importing the same module joins the run, and `--isolate` does not help.
 Fields initialised from **node_modules** imports (Kendo SVG icons) are fine.
 
-Known **latent** sites (green today only because their modules are not in a lazy shared chunk):
+**Upstream:** this is `angular/angular-cli#33728`, fixed by commit `0ffe2d2` in `@angular/build`
+**≥ 22.1.5** (and independently by Vite 8). This workspace runs `@angular/build` 22.0.4 with
+vite 7.3.5 — exactly the failing combination — and the 22.0.x line will not receive the fix.
 
-| file | field |
-|---|---|
-| `shared-ui/src/lib/cron-builder/cron-builder.component.ts` | 6 fields from `./cron-builder.models` |
-| `shared-ui/src/lib/import-strategy-dialog/import-strategy-dialog.component.ts` | `ImportStrategyDto` |
-| `shared-ui/src/lib/upload-file-dialog/upload-file-dialog.component.ts` | `upload`, `deleteIcon` from `../svg-icons` |
-| `octo-meshboard/src/lib/dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component.ts` | `timeZoneMode` |
-| `octo-ui-legacy/src/lib/table/mm-octo-table.component.ts` | `getDisplayName`, `getDataKey` (project has no specs) |
+So the getter / constructor rule below stays in force until the workspace moves to the 22.1 line,
+which happens **in lockstep with Refinery Studio and as one bump**: every `@angular/*` package
+plus `@angular/build` and `@angular/cli` together, never `@angular/build` on its own. Once that
+lands, the conversions can be relaxed.
+
+The twelve sites that were latent (green only because their modules were not in a lazy shared
+chunk) were converted in AB#5075, together with three further fields in the same modules that
+read *through* a relative import rather than being a bare identifier: `hourOptions`,
+`minuteOptions` and `dayOfMonthOptions` in `shared-ui/src/lib/cron-builder/cron-builder.component.ts`
+(calls to the imported `generate*Options()`) and `selectedStrategy` in
+`shared-ui/src/lib/import-strategy-dialog/import-strategy-dialog.component.ts`
+(`ImportStrategyDto.Upsert`, a member access). Those forms fail louder — an `undefined` import
+binding makes the call or the member access throw instead of silently yielding `undefined` — but
+they fail for the same reason.
+
+The rule stays, and covers all three forms: **any new field initialised from a relative import —
+bare identifier, member access, or call — is written as a getter or assigned in the constructor
+from the start.** A reviewer should reject the field-initialiser form on sight. Prefer the
+constructor when the initialiser does work (a getter would re-run it on every template read) or
+when the field is written at runtime; a getter otherwise.
+
+| file | field | form used |
+|---|---|---|
+| `shared-ui/src/lib/cron-builder/cron-builder.component.ts` | `secondIntervalOptions`, `minuteIntervalOptions`, `hourIntervalOptions`, `weekdayOptions`, `weekdayAbbreviations`, `relativeWeekOptions` (from `./cron-builder.models`) | getter |
+| `shared-ui/src/lib/import-strategy-dialog/import-strategy-dialog.component.ts` | `ImportStrategyDto` | getter |
+| `shared-ui/src/lib/upload-file-dialog/upload-file-dialog.component.ts` | `upload`, `deleteIcon` (from `../svg-icons`) | getter |
+| `octo-meshboard/src/lib/dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component.ts` | `timeZoneMode` | constructor assignment (the field is written at runtime, so a getter is not an option) |
+| `octo-ui-legacy/src/lib/table/mm-octo-table.component.ts` | `getDisplayName`, `getDataKey` | getter (project has no specs; verified with `npm run build:octo-ui-legacy`) |
+| `shared-ui/src/lib/cron-builder/cron-builder.component.ts` | `hourOptions`, `minuteOptions`, `dayOfMonthOptions` | constructor assignment (calls `generate*Options()`; a getter would rebuild the arrays on every template read) |
+| `shared-ui/src/lib/import-strategy-dialog/import-strategy-dialog.component.ts` | `selectedStrategy` | constructor assignment (the field is written by the template's two-way binding) |
+
+A getter that returns a function keeps template call syntax working: the template's
+`getDisplayName(c)` reads the getter and calls the returned function.
 
 ### Matcher and mock semantics the schematic does not translate
 
@@ -229,7 +257,7 @@ and `playwright`. Do not install `happy-dom` (it silently wins over jsdom) or `@
 The CI/CD pipeline runs lint before building each library. If linting fails, the build fails.
 
 ```bash
-# Lint all projects
+# Lint all projects (12 targets: 10 libraries + demo-app + legacy-demo-app)
 npm run lint
 
 # Lint specific library
@@ -240,7 +268,49 @@ npm run lint:shared-ui
 npm run lint:shared-auth
 npm run lint:shared-services
 npm run lint:octo-process-diagrams
+npm run lint:demo-app
+npm run lint:legacy-demo-app
 ```
+
+`npm run lint` is a chain of the per-project scripts, so `npm run lint -- --fix` reaches only
+the **last** one. To auto-fix the whole workspace, loop over the lint targets:
+
+```bash
+for p in @meshmakers/shared-services @meshmakers/shared-auth @meshmakers/shared-ui \
+         @meshmakers/shared-ui-legacy @meshmakers/octo-services @meshmakers/octo-process-diagrams \
+         @meshmakers/octo-meshboard @meshmakers/octo-ai-console @meshmakers/octo-ui \
+         @meshmakers/octo-ui-legacy demo-app legacy-demo-app; do
+  npx ng lint $p --fix
+done
+```
+
+### `.editorconfig` enforced by ESLint
+
+`.editorconfig` is advisory — only the editor reads it — so the root `eslint.config.js` carries
+the same four rules via `@stylistic/eslint-plugin` (AB#5075). They are all auto-fixable:
+
+| rule | `.editorconfig` counterpart |
+|---|---|
+| `@stylistic/indent: ["error", 2, { SwitchCase: 1 }]` | `indent_style = space`, `indent_size = 2` |
+| `@stylistic/quotes: ["error", "single", { avoidEscape: true, allowTemplateLiterals: "always" }]` | `[*.ts] quote_type = single` |
+| `@stylistic/eol-last: ["error", "always"]` | `insert_final_newline = true` |
+| `@stylistic/no-trailing-spaces: "error"` | `trim_trailing_whitespace = true` |
+
+The rules live in the **root** config only; every `projects/*/eslint.config.js` spreads
+`...rootConfig`, so adding them per project would duplicate them.
+
+Generated code is excluded by a **global** ignore entry (an `ignores`-only config object) in the
+root config: `**/graphQL/**/*`, `**/environments/version.ts` and that script's output
+`**/environments/currentVersion.ts`. The last one is git-ignored and written by the `postinstall`
+hook with `JSON.stringify(…, null, 4)`, i.e. 4-space indent and double quotes, so without the
+ignore it fails `@stylistic/indent` and `@stylistic/quotes` on every machine that ran
+`npm install` — including CI, while a working copy whose file was auto-fixed once looks green.
+
+The entry has to be global rather than an `ignores` key on the rule block: a per-block `ignores`
+only removes that block's rules while another block still matches the file, and ESLint then
+parses it with the default (non-TypeScript) parser and reports `Parsing error: Unexpected token`.
+Never auto-fix generated files — `npm run codegen` and the `postinstall` hook reintroduce the
+violations on the next run.
 
 Common lint issues:
 - **Unused imports**: Auto-fix with `npm run lint:octo-ui -- --fix`

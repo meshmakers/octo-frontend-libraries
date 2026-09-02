@@ -10,7 +10,7 @@ import {ProgressWindowService} from './lib/progress-window/progress-window.servi
 import {NotificationDisplayService} from './lib/services/notification-display.service';
 import {MessageDetailsDialogService} from './lib/message-details-dialog/message-details-dialog.service';
 import {MessageListenerService} from './lib/services/message-listener.service';
-import { provideMmSharedServices } from "@meshmakers/shared-services";
+import { provideMmSharedServices } from '@meshmakers/shared-services';
 
 export * from './lib/list-view/list-view.component';
 export * from './lib/upload-file-dialog/upload-file-dialog.component';

@@ -14,9 +14,9 @@ import { CkTypeSelectorService, CkTypeSelectorItem } from '@meshmakers/octo-serv
 import { CkTypeSelectorDialogComponent, CkTypeSelectorDialogData, CkTypeSelectorDialogResult } from './ck-type-selector-dialog.component';
 
 interface MockWindowContent {
-    instance: {
-        data: CkTypeSelectorDialogData | Record<string, unknown> | null;
-    };
+  instance: {
+    data: CkTypeSelectorDialogData | Record<string, unknown> | null;
+  };
 }
 
 describe('CkTypeSelectorDialogComponent', () => {

@@ -63,10 +63,10 @@ export function provideOctoBranding(
       config?.defaults?.darkTheme === null
         ? null
         : {
-            ...(NEUTRAL_BRANDING_DEFAULTS.darkTheme ??
+          ...(NEUTRAL_BRANDING_DEFAULTS.darkTheme ??
               NEUTRAL_BRANDING_DEFAULTS.lightTheme),
-            ...(config?.defaults?.darkTheme ?? {}),
-          },
+          ...(config?.defaults?.darkTheme ?? {}),
+        },
   };
 
   const providers: Provider[] = [

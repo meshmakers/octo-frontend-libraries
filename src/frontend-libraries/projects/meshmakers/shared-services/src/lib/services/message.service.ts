@@ -41,7 +41,7 @@ export class MessageService {
       : details;
 
     const notificationMessage = {
-      level: "error",
+      level: 'error',
       details: displayDetails,
       message: displayMessage,
       timestamp: new Date()
@@ -62,7 +62,7 @@ export class MessageService {
     const displayDetails = transformed ? transformed.technicalDetails : undefined;
 
     const notificationMessage = {
-      level: "error",
+      level: 'error',
       message: displayMessage,
       details: displayDetails,
       timestamp: new Date()

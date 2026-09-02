@@ -92,7 +92,7 @@ export class DialogsDemoComponent {
   protected lastGraphQLSaveAsResult: { confirmed: boolean; name?: string } | null = null;
 
   protected async onUploadClick() {
-    const r = await this.fileUploadService.showUploadDialog("Upload File", "Please select a file to upload", "application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "pdf,xls,xlsx");
+    const r = await this.fileUploadService.showUploadDialog('Upload File', 'Please select a file to upload', 'application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'pdf,xls,xlsx');
     if (r) {
       console.log('onUploadClick', r);
     }
@@ -100,28 +100,28 @@ export class DialogsDemoComponent {
   }
 
   protected async onOkClick() {
-    const r = await this.confirmationService.showOkDialog("Demo Title", "Demo ok message text");
+    const r = await this.confirmationService.showOkDialog('Demo Title', 'Demo ok message text');
     if (r) {
       console.log('onOkClick', r);
     }
   }
 
   protected async onOkCancelClick() {
-    const r = await this.confirmationService.showOkCancelConfirmationDialog("Demo Title", "Demo ok cancel message text");
+    const r = await this.confirmationService.showOkCancelConfirmationDialog('Demo Title', 'Demo ok cancel message text');
     if (r) {
       console.log('onOkCancelClick', r);
     }
   }
 
   protected async onYesNoClick() {
-    const r = await this.confirmationService.showYesNoConfirmationDialog("Demo Title", "Demo yes no message text");
+    const r = await this.confirmationService.showYesNoConfirmationDialog('Demo Title', 'Demo yes no message text');
     if (r) {
       console.log('onYesNoClick', r);
     }
   }
 
   protected async onYesNoCancelClick() {
-    const r = await this.confirmationService.showYesNoCancelConfirmationDialog("Demo Title", "Demo yes no cancel message text");
+    const r = await this.confirmationService.showYesNoCancelConfirmationDialog('Demo Title', 'Demo yes no cancel message text');
     if (r) {
       console.log('onYesNoCancelClick', r);
     }

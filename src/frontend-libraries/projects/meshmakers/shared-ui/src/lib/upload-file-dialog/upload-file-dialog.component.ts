@@ -76,10 +76,10 @@ export class UploadFileDialogComponent extends DialogContentBase {
     if (!file) {
       return;
     }
-    console.debug("type: " + file.type);
-    console.debug("name: " + file.name);
+    console.debug('type: ' + file.type);
+    console.debug('name: ' + file.name);
     const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-    console.debug("extension: " + extension);
+    console.debug('extension: ' + extension);
 
     if ((allowedFileExtensions.includes(extension) || allowedMimeTypes.includes(file.type)) ||
       allowedFileExtensions.length > 0 && allowedMimeTypes.length > 0) {
@@ -96,9 +96,9 @@ export class UploadFileDialogComponent extends DialogContentBase {
       this.notificationService.show({
         content: 'File type not supported!',
         hideAfter: 600,
-        position: {horizontal: "right", vertical: "top"},
-        animation: {type: "fade", duration: 400},
-        type: {style: "error", icon: true},
+        position: {horizontal: 'right', vertical: 'top'},
+        animation: {type: 'fade', duration: 400},
+        type: {style: 'error', icon: true},
       });
     }
   }
@@ -123,6 +123,6 @@ export class UploadFileDialogComponent extends DialogContentBase {
     this.dialogRef.close(null);
   }
 
-  protected readonly upload = upload;
-  protected readonly deleteIcon = deleteIcon;
+  protected get upload(): typeof upload { return upload; }
+  protected get deleteIcon(): typeof deleteIcon { return deleteIcon; }
 }

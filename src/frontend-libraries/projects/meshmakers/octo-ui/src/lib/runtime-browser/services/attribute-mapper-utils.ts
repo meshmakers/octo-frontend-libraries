@@ -4,7 +4,7 @@
  */
 
 function isRecordValue(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
@@ -15,16 +15,16 @@ export function convertGeospatialPointToGeoJSON(point: unknown): unknown {
   if (!isRecordValue(point)) {
     return point;
   }
-  if ("longitude" in point && "latitude" in point) {
+  if ('longitude' in point && 'latitude' in point) {
     return {
-      type: "Point",
-      coordinates: [point["longitude"], point["latitude"]],
+      type: 'Point',
+      coordinates: [point['longitude'], point['latitude']],
     };
   }
-  if (point["type"] === "Point" && "longitude" in point && "latitude" in point) {
+  if (point['type'] === 'Point' && 'longitude' in point && 'latitude' in point) {
     return {
-      type: "Point",
-      coordinates: [point["longitude"], point["latitude"]],
+      type: 'Point',
+      coordinates: [point['longitude'], point['latitude']],
     };
   }
   return point;

@@ -29,13 +29,13 @@ describe('MeshBoardDataService', () => {
      * compact after the executor refactor.
      */
   function runtimeResult(rows: {
-        rtId?: string;
-        ckTypeId?: string;
-        cells: {
-            attributePath: string;
-            value: unknown;
-        }[];
-    }[], associatedCkTypeId?: string): QueryExecutionResult {
+    rtId?: string;
+    ckTypeId?: string;
+    cells: {
+      attributePath: string;
+      value: unknown;
+    }[];
+  }[], associatedCkTypeId?: string): QueryExecutionResult {
     return {
       family: 'runtime',
       queryRtId: null,

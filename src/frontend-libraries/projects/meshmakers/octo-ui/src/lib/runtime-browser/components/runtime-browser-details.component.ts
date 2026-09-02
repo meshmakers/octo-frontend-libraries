@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -10,53 +10,53 @@ import {
   SimpleChanges,
   ViewChild,
   ChangeDetectionStrategy
-} from "@angular/core";
-import { ActivatedRoute, Router } from "@angular/router";
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   CommandItemExecuteEventArgs,
   TreeItemDataTyped,
-} from "@meshmakers/shared-services";
-import { ListViewComponent } from "@meshmakers/shared-ui";
-import { ButtonModule } from "@progress/kendo-angular-buttons";
-import { SVGIconModule } from "@progress/kendo-angular-icons";
-import { NotificationService } from "@progress/kendo-angular-notification";
-import { eyeIcon } from "@progress/kendo-svg-icons";
-import { firstValueFrom } from "rxjs";
+} from '@meshmakers/shared-services';
+import { ListViewComponent } from '@meshmakers/shared-ui';
+import { ButtonModule } from '@progress/kendo-angular-buttons';
+import { SVGIconModule } from '@progress/kendo-angular-icons';
+import { NotificationService } from '@progress/kendo-angular-notification';
+import { eyeIcon } from '@progress/kendo-svg-icons';
+import { firstValueFrom } from 'rxjs';
 import {
   DeleteStrategiesDto,
   GraphDirectionDto,
   CkModelDto,
   CkTypeDto,
   RtEntityDto,
-} from "../../graphQL/globalTypes";
-import { CreateEntitiesDtoGQL } from "../../graphQL/createEntities";
-import { DeleteEntitiesDtoGQL } from "../../graphQL/deleteEntities";
-import { GetRuntimeEntityAssociationsByIdDtoGQL } from "../../graphQL/getRuntimeEntityAssociationsById";
-import { GetRuntimeEntityByIdDtoGQL } from "../../graphQL/getRuntimeEntityById";
-import { UpdateRuntimeEntitiesDtoGQL } from "../../graphQL/updateRuntimeEntities";
-import { AttributeSelectorDialogService } from "../../attribute-selector-dialog";
-import { EntitySelectorDialogService } from "../../entity-selector-dialog";
-import { DataPointMappingItem, ExpressionValidatorFn } from "./data-mapping/data-mapping-list.component";
-import { CkTypeEntitiesDataSourceDirective } from "../data-sources/ck-type-entities-data-source.directive";
-import { EntityDetailDataSource } from "../data-sources/entity-detail-data-source.service";
-import { RtEntityIdHelper } from "../models/rt-entity-id";
+} from '../../graphQL/globalTypes';
+import { CreateEntitiesDtoGQL } from '../../graphQL/createEntities';
+import { DeleteEntitiesDtoGQL } from '../../graphQL/deleteEntities';
+import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../graphQL/getRuntimeEntityAssociationsById';
+import { GetRuntimeEntityByIdDtoGQL } from '../../graphQL/getRuntimeEntityById';
+import { UpdateRuntimeEntitiesDtoGQL } from '../../graphQL/updateRuntimeEntities';
+import { AttributeSelectorDialogService } from '../../attribute-selector-dialog';
+import { EntitySelectorDialogService } from '../../entity-selector-dialog';
+import { DataPointMappingItem, ExpressionValidatorFn } from './data-mapping/data-mapping-list.component';
+import { CkTypeEntitiesDataSourceDirective } from '../data-sources/ck-type-entities-data-source.directive';
+import { EntityDetailDataSource } from '../data-sources/entity-detail-data-source.service';
+import { RtEntityIdHelper } from '../models/rt-entity-id';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
   RuntimeBrowserMessages,
-} from "../runtime-browser.model";
-import { RuntimeBrowserStateService } from "../services/runtime-browser-state.service";
-import { TypeHelperService } from "../services/type-helper.service";
+} from '../runtime-browser.model';
+import { RuntimeBrowserStateService } from '../services/runtime-browser-state.service';
+import { TypeHelperService } from '../services/type-helper.service';
 import {
   CreateEditorComponent,
   CreateInput,
   CreateOutput,
-} from "./create-editor/create-editor-component";
-import { EntityDetailViewComponent } from "./entity-detail-view.component";
+} from './create-editor/create-editor-component';
+import { EntityDetailViewComponent } from './entity-detail-view.component';
 import {
   UpdateEditorComponent,
   UpdateInput,
   UpdateOutput,
-} from "./update-editor/update-editor-component";
+} from './update-editor/update-editor-component';
 
 // Extended type to handle both Runtime Entities and CK Models/Types
 type BrowserItem =
@@ -74,7 +74,7 @@ export interface EntitySavedEvent {
 }
 
 @Component({
-  selector: "mm-runtime-browser-details",
+  selector: 'mm-runtime-browser-details',
   imports: [
     CommonModule,
     ButtonModule,
@@ -227,10 +227,10 @@ export interface EntitySavedEvent {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ["./runtime-browser-details.component.scss"],
+  styleUrls: ['./runtime-browser-details.component.scss'],
 })
 export class RuntimeBrowserDetailsComponent
-  implements OnChanges, AfterViewInit
+implements OnChanges, AfterViewInit
 {
   @Input() selectedItem: TreeItemDataTyped<BrowserItem> | null = null;
   @Input() showDataMapping = true;
@@ -241,7 +241,7 @@ export class RuntimeBrowserDetailsComponent
     ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
   };
   @Output() entitySaved = new EventEmitter<EntitySavedEvent | void>();
-  @ViewChild("dir", { static: false })
+  @ViewChild('dir', { static: false })
   dataSourceDirective?: CkTypeEntitiesDataSourceDirective;
 
   private readonly router = inject(Router);
@@ -274,39 +274,39 @@ export class RuntimeBrowserDetailsComponent
   protected get ckTypeColumns() {
     return [
       {
-        field: "rtId",
+        field: 'rtId',
         displayName: this._messages.runtimeId,
-        dataType: "text" as const,
+        dataType: 'text' as const,
       },
       {
-        field: "ckTypeId",
+        field: 'ckTypeId',
         displayName: this._messages.typeId,
-        dataType: "text" as const,
+        dataType: 'text' as const,
       },
       {
-        field: "rtWellKnownName",
+        field: 'rtWellKnownName',
         displayName: this._messages.wellKnownName,
-        dataType: "text" as const,
+        dataType: 'text' as const,
       },
       {
-        field: "rtCreationDateTime",
+        field: 'rtCreationDateTime',
         displayName: this._messages.created,
-        format: "short" as const,
-        dataType: "iso8601" as const,
+        format: 'short' as const,
+        dataType: 'iso8601' as const,
       },
       {
-        field: "rtChangedDateTime",
+        field: 'rtChangedDateTime',
         displayName: this._messages.modified,
-        format: "short" as const,
-        dataType: "iso8601" as const,
+        format: 'short' as const,
+        dataType: 'iso8601' as const,
       },
     ];
   }
 
   protected get ckTypeViewDetailsCommand() {
     return {
-      id: "view",
-      type: "link" as const,
+      id: 'view',
+      type: 'link' as const,
       text: this._messages.viewDetails,
       svgIcon: this.detailsIcon,
       onClick: this.onViewEntityDetails,
@@ -326,7 +326,7 @@ export class RuntimeBrowserDetailsComponent
     // If we have a pending CK type ID, set it now
     if (this.pendingRtCkTypeId && this.dataSourceDirective) {
       console.debug(
-        "AfterViewInit: Setting pending CK Type ID:",
+        'AfterViewInit: Setting pending CK Type ID:',
         this.pendingRtCkTypeId,
       );
       this.dataSourceDirective.setRtCkTypeId(this.pendingRtCkTypeId);
@@ -335,25 +335,25 @@ export class RuntimeBrowserDetailsComponent
   }
 
   public async ngOnChanges(changes: SimpleChanges): Promise<void> {
-    if (changes["selectedItem"] && this.selectedItem) {
-      console.debug("Selected item changed:", this.selectedItem);
+    if (changes['selectedItem'] && this.selectedItem) {
+      console.debug('Selected item changed:', this.selectedItem);
 
       // If it's a CK Type, update the data source with the type ID
       if (this.isCkType(this.selectedItem.item)) {
         const rtCkTypeId = this.getRtCkTypeId(this.selectedItem.item);
-        console.debug("Setting CK Type ID:", rtCkTypeId);
+        console.debug('Setting CK Type ID:', rtCkTypeId);
 
         // Use setTimeout to ensure ViewChild is initialized
         setTimeout(() => {
           if (this.dataSourceDirective) {
             console.debug(
-              "ngOnChanges: ViewChild ready, setting CK Type ID:",
+              'ngOnChanges: ViewChild ready, setting CK Type ID:',
               rtCkTypeId,
             );
             this.dataSourceDirective.setRtCkTypeId(rtCkTypeId);
           } else {
             console.debug(
-              "ngOnChanges: ViewChild not ready, storing pending CK Type ID:",
+              'ngOnChanges: ViewChild not ready, storing pending CK Type ID:',
               rtCkTypeId,
             );
             this.pendingRtCkTypeId = rtCkTypeId;
@@ -367,7 +367,7 @@ export class RuntimeBrowserDetailsComponent
         // Clear any pending CK type ID
         this.pendingRtCkTypeId = null;
       }
-    } else if (changes["selectedItem"] && !this.selectedItem) {
+    } else if (changes['selectedItem'] && !this.selectedItem) {
       this.fullEntity = null;
       this.error = null;
       this.pendingRtCkTypeId = null;
@@ -410,7 +410,7 @@ export class RuntimeBrowserDetailsComponent
       if (token !== this.loadRequestToken) {
         return;
       }
-      console.error("Failed to load full entity details:", error);
+      console.error('Failed to load full entity details:', error);
       this.error = this._messages.failedToLoadEntityDetails;
       // Fall back to the basic entity data
       this.fullEntity = runtimeEntity;
@@ -437,7 +437,7 @@ export class RuntimeBrowserDetailsComponent
       runtimeEntity.ckTypeId,
     );
 
-    await this.router.navigate(["entity", encodedId], {
+    await this.router.navigate(['entity', encodedId], {
       relativeTo: this.route,
     });
   }
@@ -446,12 +446,12 @@ export class RuntimeBrowserDetailsComponent
     rtId: string,
     ckTypeId: string,
   ): Promise<void> {
-    if (!rtId || !ckTypeId || rtId === "Unknown" || ckTypeId === "Unknown") {
+    if (!rtId || !ckTypeId || rtId === 'Unknown' || ckTypeId === 'Unknown') {
       return;
     }
 
     const encodedId = RtEntityIdHelper.encode(rtId, ckTypeId);
-    await this.router.navigate(["entity", encodedId], {
+    await this.router.navigate(['entity', encodedId], {
       relativeTo: this.route,
     });
   }
@@ -470,54 +470,54 @@ export class RuntimeBrowserDetailsComponent
   }
 
   protected isCkModel(item: BrowserItem): item is CkModelDto {
-    return !!item && "id" in item && !("rtId" in item) && !("ckTypeId" in item);
+    return !!item && 'id' in item && !('rtId' in item) && !('ckTypeId' in item);
   }
 
   protected isCkType(item: BrowserItem): item is CkTypeDto {
-    return !!item && "ckTypeId" in item && !("rtId" in item) && !("id" in item);
+    return !!item && 'ckTypeId' in item && !('rtId' in item) && !('id' in item);
   }
 
   protected isCkModelsRoot(
     item: BrowserItem,
   ): item is { isCkModelsRoot?: boolean; ckModelId?: string } {
-    return !!item && "isCkModelsRoot" in item;
+    return !!item && 'isCkModelsRoot' in item;
   }
 
   // Helper methods to get CK Model properties
   protected getCkModelIdFullName(item: BrowserItem): string {
-    if (!this.isCkModel(item)) return "Unknown";
-    return item.id.fullName || "Unknown";
+    if (!this.isCkModel(item)) return 'Unknown';
+    return item.id.fullName || 'Unknown';
   }
 
   protected getCkModelIdName(item: BrowserItem): string {
-    if (!this.isCkModel(item)) return "Unknown";
-    return item.id.name || "Unknown";
+    if (!this.isCkModel(item)) return 'Unknown';
+    return item.id.name || 'Unknown';
   }
 
   protected getCkModelIdVersion(item: BrowserItem): string {
-    if (!this.isCkModel(item)) return "Unknown";
-    return item.id.version || "Unknown";
+    if (!this.isCkModel(item)) return 'Unknown';
+    return item.id.version || 'Unknown';
   }
 
   protected getCkModelIdSemanticName(item: BrowserItem): string {
-    if (!this.isCkModel(item)) return "Unknown";
-    return item.id.semanticVersionedFullName || "Unknown";
+    if (!this.isCkModel(item)) return 'Unknown';
+    return item.id.semanticVersionedFullName || 'Unknown';
   }
 
   protected getCkModelState(item: BrowserItem): string {
-    if (!this.isCkModel(item)) return "Unknown";
-    return item.modelState || "Unknown";
+    if (!this.isCkModel(item)) return 'Unknown';
+    return item.modelState || 'Unknown';
   }
 
   // Helper methods to get CK Type properties
   protected getCkTypeId(item: BrowserItem): string {
-    if (!this.isCkType(item)) return "Unknown";
-    return item.ckTypeId.fullName || "Unknown";
+    if (!this.isCkType(item)) return 'Unknown';
+    return item.ckTypeId.fullName || 'Unknown';
   }
 
   protected getRtCkTypeId(item: BrowserItem): string {
-    if (!this.isCkType(item)) return "Unknown";
-    return item.rtCkTypeId || "Unknown";
+    if (!this.isCkType(item)) return 'Unknown';
+    return item.rtCkTypeId || 'Unknown';
   }
 
   protected isCkTypeAbstract(item: BrowserItem): boolean {
@@ -557,7 +557,7 @@ export class RuntimeBrowserDetailsComponent
       parent: {
         ckTypeId: rtEntityDto?.item.ckTypeId,
         rtId: rtEntityDto?.item.rtId,
-        name: parentNode?.text ?? "",
+        name: parentNode?.text ?? '',
       },
       derivedFromRtCkTypeId,
     };
@@ -572,18 +572,18 @@ export class RuntimeBrowserDetailsComponent
     rtCkTypeId: string | undefined,
   ): void {
     const rtEntityDto = selectedItem as TreeItemDataTyped<RtEntityDto>;
-    const rtId = rtEntityDto?.item?.rtId ?? "";
+    const rtId = rtEntityDto?.item?.rtId ?? '';
     const ckTypeId = rtEntityDto?.item?.ckTypeId;
 
     if (!rtId || !ckTypeId || !rtCkTypeId) {
       console.warn(
-        "Enter edit mode skipped: missing rtId, ckTypeId or rtCkTypeId.",
+        'Enter edit mode skipped: missing rtId, ckTypeId or rtCkTypeId.',
         { rtId, ckTypeId, rtCkTypeId },
       );
       return;
     }
 
-    const name = rtEntityDto?.text ?? "";
+    const name = rtEntityDto?.text ?? '';
     this.updateInput = {
       name,
       rtId,
@@ -593,7 +593,7 @@ export class RuntimeBrowserDetailsComponent
 
     this.isCreateModeEnabled = false;
     this.isUpdateModeEnabled = true;
-    console.debug("Entered update mode with input:", this.updateInput);
+    console.debug('Entered update mode with input:', this.updateInput);
   }
 
   /**
@@ -641,7 +641,7 @@ export class RuntimeBrowserDetailsComponent
   }
 
   onCancel() {
-    console.debug("Creation or update cancelled, resetting state.");
+    console.debug('Creation or update cancelled, resetting state.');
 
     this.isCreateModeEnabled = false;
     this.isUpdateModeEnabled = false;

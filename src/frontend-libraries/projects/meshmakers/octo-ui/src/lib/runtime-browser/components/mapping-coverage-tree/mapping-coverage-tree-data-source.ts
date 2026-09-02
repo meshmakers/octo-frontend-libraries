@@ -430,11 +430,11 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
     return new Set(
       config
         ? [
-            config.childRoleId,
-            config.mappingRoleId,
-            config.mappingSourceRoleId,
-            config.validationExecutesRoleId,
-          ]
+          config.childRoleId,
+          config.mappingRoleId,
+          config.mappingSourceRoleId,
+          config.validationExecutesRoleId,
+        ]
         : [],
     );
   }

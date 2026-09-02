@@ -1,4 +1,4 @@
-import { Directive, forwardRef, inject } from "@angular/core";
+import { Directive, forwardRef, inject } from '@angular/core';
 import {
   GetSdkMeteringPointDtoGQL,
   GetSdkMeteringPointQueryVariablesDto,
@@ -19,7 +19,7 @@ export interface MeteringPointDto {
 }
 
 @Directive({
-  selector: "[appMeteringPointsDataSource]",
+  selector: '[appMeteringPointsDataSource]',
   exportAs: 'appMeteringPointsDataSource',
   providers: [
     {

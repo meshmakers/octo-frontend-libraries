@@ -1,12 +1,12 @@
-import { ChangeDetectorRef, Directive, OnDestroy, OnInit, inject } from "@angular/core";
-import {DataBindingDirective, DataStateChangeEvent, GridComponent} from "@progress/kendo-angular-grid";
-import {CompositeFilterDescriptor} from "@progress/kendo-data-query";
-import {Observable, of, Subscription} from "rxjs";
-import {DataSourceBase, FetchAgainOptions} from "../data-sources/data-source-base";
-import {ListStateService} from "../services/list-state.service";
+import { ChangeDetectorRef, Directive, OnDestroy, OnInit, inject } from '@angular/core';
+import {DataBindingDirective, DataStateChangeEvent, GridComponent} from '@progress/kendo-angular-grid';
+import {CompositeFilterDescriptor} from '@progress/kendo-data-query';
+import {Observable, of, Subscription} from 'rxjs';
+import {DataSourceBase, FetchAgainOptions} from '../data-sources/data-source-base';
+import {ListStateService} from '../services/list-state.service';
 
 @Directive({
-  selector: "[mmListViewDataBinding]",
+  selector: '[mmListViewDataBinding]',
 })
 export class MmListViewDataBindingDirective extends DataBindingDirective implements OnInit, OnDestroy {
   private readonly dataSource = inject(DataSourceBase, { optional: true, skipSelf: true })!;
@@ -154,7 +154,7 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
     if (stored.filter) {
       this.filter = stored.filter;
     }
-    if (typeof stored.skip === "number") {
+    if (typeof stored.skip === 'number') {
       this.skip = stored.skip;
     }
     if (stored.textSearch) {
@@ -173,7 +173,7 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
    */
   public resetState(): void {
     this.sort = [];
-    this.filter = { logic: "and", filters: [] };
+    this.filter = { logic: 'and', filters: [] };
     this.skip = 0;
     this._textSearchValue = null;
     const key = this.stateKey();

@@ -22,11 +22,11 @@ export interface ParsedTokenUsage {
 export type ParsedAssistantPart =
   | { readonly type: 'text'; readonly text: string }
   | {
-      readonly type: 'tool_use';
-      readonly id: string;
-      readonly toolName: string;
-      readonly input: unknown;
-    };
+    readonly type: 'tool_use';
+    readonly id: string;
+    readonly toolName: string;
+    readonly input: unknown;
+  };
 
 /**
  * Discriminated union the chat-stream renders on. The component switches over
@@ -38,45 +38,45 @@ export type ParsedAssistantPart =
  */
 export type ParsedView =
   | {
-      readonly kind: 'system';
-      readonly subKind: 'init' | 'hook' | 'rate-limit' | 'other';
-      readonly summary: string;
-      readonly raw: unknown;
-    }
+    readonly kind: 'system';
+    readonly subKind: 'init' | 'hook' | 'rate-limit' | 'other';
+    readonly summary: string;
+    readonly raw: unknown;
+  }
   | {
-      readonly kind: 'assistant';
-      readonly parts: readonly ParsedAssistantPart[];
-      readonly model: string | null;
-      readonly usage: ParsedTokenUsage | null;
-      readonly raw: unknown;
-    }
+    readonly kind: 'assistant';
+    readonly parts: readonly ParsedAssistantPart[];
+    readonly model: string | null;
+    readonly usage: ParsedTokenUsage | null;
+    readonly raw: unknown;
+  }
   | {
-      readonly kind: 'tool-result';
-      readonly toolUseId: string;
-      readonly content: string;
-      readonly isError: boolean;
-      readonly raw: unknown;
-    }
+    readonly kind: 'tool-result';
+    readonly toolUseId: string;
+    readonly content: string;
+    readonly isError: boolean;
+    readonly raw: unknown;
+  }
   | {
-      readonly kind: 'result';
-      readonly text: string;
-      readonly durationMs: number;
-      readonly usage: ParsedTokenUsage | null;
-      readonly costUsd: number | null;
-      readonly reason: string;
-      readonly isError: boolean;
-      readonly raw: unknown;
-    }
+    readonly kind: 'result';
+    readonly text: string;
+    readonly durationMs: number;
+    readonly usage: ParsedTokenUsage | null;
+    readonly costUsd: number | null;
+    readonly reason: string;
+    readonly isError: boolean;
+    readonly raw: unknown;
+  }
   | {
-      readonly kind: 'status-change';
-      readonly status: string;
-      readonly raw: unknown;
-    }
+    readonly kind: 'status-change';
+    readonly status: string;
+    readonly raw: unknown;
+  }
   | {
-      readonly kind: 'unknown';
-      readonly summary: string;
-      readonly raw: unknown;
-    };
+    readonly kind: 'unknown';
+    readonly summary: string;
+    readonly raw: unknown;
+  };
 
 /**
  * Result of one parse step — wraps the source event so the renderer can still

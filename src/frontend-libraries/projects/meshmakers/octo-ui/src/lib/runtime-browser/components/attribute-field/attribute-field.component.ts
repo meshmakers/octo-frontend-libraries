@@ -1,17 +1,17 @@
-import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { AbstractControl, ReactiveFormsModule } from "@angular/forms";
-import { KENDO_LABEL } from "@progress/kendo-angular-label";
-import { KENDO_BUTTONS } from "@progress/kendo-angular-buttons";
-import { arrowRotateCcwIcon, SVGIcon } from "@progress/kendo-svg-icons";
-import { Attribute } from "../../models/attribute";
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
+import { KENDO_LABEL } from '@progress/kendo-angular-label';
+import { KENDO_BUTTONS } from '@progress/kendo-angular-buttons';
+import { arrowRotateCcwIcon, SVGIcon } from '@progress/kendo-svg-icons';
+import { Attribute } from '../../models/attribute';
 
 /**
  * Wraps a single form control with label, optional UNDO button, and error message.
  * Used by attributes-group for every scalar/geo/binary field. Baseline value for UNDO comes from parent.
  */
 @Component({
-  selector: "mm-attribute-field",
+  selector: 'mm-attribute-field',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, KENDO_LABEL, KENDO_BUTTONS],
   template: `
@@ -51,7 +51,7 @@ import { Attribute } from "../../models/attribute";
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ["./attribute-field.component.scss"],
+  styleUrls: ['./attribute-field.component.scss'],
 })
 export class AttributeFieldComponent {
   // ─── Required inputs (from parent attributes-group) ───────────────────────────────
@@ -61,11 +61,11 @@ export class AttributeFieldComponent {
   // ─── Optional inputs (display & behaviour) ──────────────────────────────────────────
   /** Value to restore on UNDO. If not set, UNDO resets to null. */
   baselineValue = input<unknown>();
-  fieldId = input<string>("");
+  fieldId = input<string>('');
   overrideLabelText = input<string>();
   showUndoButton = input(true);
-  undoButtonSize = input<"small" | "medium" | "large">("medium");
-  errorMessage = input<string>("This field is required or invalid.");
+  undoButtonSize = input<'small' | 'medium' | 'large'>('medium');
+  errorMessage = input<string>('This field is required or invalid.');
   hintText = input<string>();
 
   undo = output<void>();
@@ -87,6 +87,6 @@ export class AttributeFieldComponent {
   }
 
   hasHint(): boolean {
-    return this.hintText() != null && this.hintText() !== "";
+    return this.hintText() != null && this.hintText() !== '';
   }
 }

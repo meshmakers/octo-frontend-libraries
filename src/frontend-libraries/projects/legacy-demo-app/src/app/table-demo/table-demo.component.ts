@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { AssetRepoGraphQlDataSource } from "@meshmakers/octo-services";
+import { AssetRepoGraphQlDataSource } from '@meshmakers/octo-services';
 import { MessageService } from '@meshmakers/shared-services';
 import { GetSdkCustomersDtoGQL, OctoSdkDemoCustomerDto } from '../graphQL/get-sdk-customers';
 import { CustomerGraphQlDataSource } from '../services/customer-graphql-data-source';

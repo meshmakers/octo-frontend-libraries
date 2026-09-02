@@ -138,7 +138,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   @ViewChild(GridComponent) private gridComponent?: GridComponent;
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;
-  @ViewChild("gridmenu") public gridContextMenu?: ContextMenuComponent;
+  @ViewChild('gridmenu') public gridContextMenu?: ContextMenuComponent;
 
   @Output() rowClicked = new EventEmitter<unknown[]>();
 
@@ -182,8 +182,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this._contextMenuItems = this.buildMenuItems(commandItems);
   }
 
-  @Input() public excelExportFileName = "Export.xlsx";
-  @Input() public pdfExportFileName = "Export.pdf";
+  @Input() public excelExportFileName = 'Export.xlsx';
+  @Input() public pdfExportFileName = 'Export.pdf';
   @Input() public pageable: PagerSettings = {
     buttonCount: 5,
     info: true,
@@ -350,7 +350,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
     for (const column of cols) {
       if (typeof column === 'string') {
-        this._columns.push({field: column, dataType: "text"});
+        this._columns.push({field: column, dataType: 'text'});
       } else {
         this._columns.push(column);
       }
@@ -875,7 +875,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   protected onCellClick(e: CellClickEvent): void {
-    if (e.type === "contextmenu" && this.contextMenuType == 'contextMenu') {
+    if (e.type === 'contextmenu' && this.contextMenuType == 'contextMenu') {
       const originalEvent = e.originalEvent;
       originalEvent.preventDefault();
 

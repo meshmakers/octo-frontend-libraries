@@ -86,8 +86,8 @@ describe('EntitySelectDialogService', () => {
       });
 
       const component = (mockWindowRef.content as {
-                instance: Record<string, unknown>;
-            }).instance;
+        instance: Record<string, unknown>;
+      }).instance;
       expect(component['dataSource']).toBe(mockDataSource);
 
       resultSubject.next(new WindowCloseResult());
@@ -130,8 +130,8 @@ describe('EntitySelectDialogService', () => {
       });
 
       const component = (mockWindowRef.content as {
-                instance: Record<string, unknown>;
-            }).instance;
+        instance: Record<string, unknown>;
+      }).instance;
       expect(component['multiSelect']).toBe(true);
 
       resultSubject.next(new WindowCloseResult());
@@ -146,8 +146,8 @@ describe('EntitySelectDialogService', () => {
       });
 
       const component = (mockWindowRef.content as {
-                instance: Record<string, unknown>;
-            }).instance;
+        instance: Record<string, unknown>;
+      }).instance;
       expect(component['preSelectedEntities']).toEqual(['entity1', 'entity2']);
 
       resultSubject.next(new WindowCloseResult());

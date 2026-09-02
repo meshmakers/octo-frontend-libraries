@@ -209,7 +209,7 @@ export class CommandService extends CommandBaseService implements OnDestroy {
   public async setSelectedDrawerItem(value: DrawerItem): Promise<void> {
     console.debug('setSelectedDrawerItem', value);
 
-    if (typeof value.id !== "string") {
+    if (typeof value.id !== 'string') {
       return;
     }
     const commandItem = this._commandsMap.get(value.id);
