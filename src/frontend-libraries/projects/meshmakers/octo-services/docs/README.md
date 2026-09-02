@@ -1074,6 +1074,5 @@ npm run test:octo-services
 ng test @meshmakers/octo-services --watch=false --include=projects/meshmakers/octo-services/src/lib/services/ck-type-selector.service.spec.ts
 
 # With coverage
-npm install -D @vitest/coverage-v8   # provider is not a dependency
 ng test @meshmakers/octo-services --watch=false --coverage
 ```

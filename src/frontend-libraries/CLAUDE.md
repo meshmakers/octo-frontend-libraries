@@ -86,8 +86,7 @@ ng test @meshmakers/shared-auth --watch=false --include=projects/meshmakers/shar
 # Debug a run in the Node Inspector
 ng test @meshmakers/shared-auth --debug
 
-# Coverage for one project — install the provider first, it is not a dependency
-npm install -D @vitest/coverage-v8
+# Coverage for one project (@vitest/coverage-v8 is a devDependency)
 ng test @meshmakers/shared-auth --watch=false --coverage
 ```
 

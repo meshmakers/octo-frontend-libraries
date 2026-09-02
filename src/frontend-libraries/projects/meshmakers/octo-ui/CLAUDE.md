@@ -988,7 +988,6 @@ npm run test:octo-ui
 ng test @meshmakers/octo-ui --watch=false --include=projects/meshmakers/octo-ui/src/lib/ck-type-selector-dialog/ck-type-selector-dialog.service.spec.ts
 
 # Run with coverage
-npm install -D @vitest/coverage-v8   # provider is not a dependency
 ng test @meshmakers/octo-ui --watch=false --coverage
 ```
 

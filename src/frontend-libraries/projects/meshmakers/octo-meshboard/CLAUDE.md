@@ -862,7 +862,6 @@ npm run test:octo-meshboard
 ng test @meshmakers/octo-meshboard --watch=false --include=projects/meshmakers/octo-meshboard/src/lib/services/meshboard-grid.service.spec.ts
 
 # Run with coverage
-npm install -D @vitest/coverage-v8   # provider is not a dependency
 ng test @meshmakers/octo-meshboard --watch=false --coverage
 ```
 
