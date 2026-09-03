@@ -278,8 +278,8 @@ operations legitimately target a **child** tenant (backing up / restoring a chil
 Tenants list); the bot service's tenant controller permits that via
 `[AllowParentTenantAdministration]`. Do not reintroduce `?tenantId=` here: as a query parameter the
 call is invisible to the bot service's transport tenant gate, which is the cross-tenant hole
-AB#5060 closes. The `system/v1/jobs/…` variants still exist server-side but are deprecated and get
-removed in stage three.
+AB#5060 closes. The `system/v1/jobs/…` variants for these five operations no longer exist
+server-side — stage three of AB#5060 removed them.
 
 Three calls stay on `system/v1/jobs/…` deliberately — the backend gave them no tenant route:
 `downloadJobResultBinary` and `getJobStatus` (a Hangfire job id is global to the instance, so these
