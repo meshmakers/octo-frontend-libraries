@@ -298,11 +298,14 @@ something the frontend can or should compensate for.
 | `downloadJobResultBinary(tenantId, jobId)` | `GET system/v1/jobs/download` | Download job result as Blob (system-only, see above) |
 | `getJobStatus(jobId)` | `GET system/v1/jobs` | Get job status (system-only, see above) |
 | `startExportArchiveData(tenantId, archiveRtId, window?)` | `POST {tenantId}/v1/jobs/export-archive-data` | Start archive-data export job (AB#4230). Optional `TimeWindowDto` window scopes to `[fromUtc, toUtc)`; omit for whole archive. Returns `{ jobId }`. |
-| `startImportArchiveDataWithUpload(tenantId, archiveRtId, file, mode, onProgress?)` | TUS `system/v1/tus-upload` → `POST {tenantId}/v1/jobs/import-archive-data-from-upload` | TUS-upload a ZIP then start archive-data import job (AB#4230). `mode` is `ImportStrategyDto` (InsertOnly/Upsert). Returns `{ jobId }`. |
+| `startImportArchiveDataWithUpload(tenantId, archiveRtId, file, mode, onProgress?)` | TUS `{tenantId}/v1/tus-upload` → `POST {tenantId}/v1/jobs/import-archive-data-from-upload` | TUS-upload a ZIP then start archive-data import job (AB#4230). `mode` is `ImportStrategyDto` (InsertOnly/Upsert). Returns `{ jobId }`. |
 
-The tus upload sink stays tenant-neutral on purpose: the file is stored flat under its tus file id
-and nothing reads the `tenantId` upload metadata, so the tenant-carrying, gated decision is the
-job-start call that follows.
+Both hops are tenant-routed since stage 3 of AB#5060. The sink used to be `system/v1/tus-upload`
+with the tenant sent only as upload metadata, which the bot service's transport gate never saw and
+which bound nothing — the file was stored flat under its tus file id and no consumer read the
+metadata back. The service now stages uploads under the tenant's own directory. Build the endpoint
+with `buildTusEndpoint(botServicesUrl, tenantId)` rather than concatenating it, so the tenant segment
+stays escaped.
 
 ### JobManagementService
 
@@ -373,11 +376,17 @@ Resumable file uploads using the TUS protocol for large database restore operati
 |--------|-------------|
 | `startUpload(options: TusUploadOptions)` | Upload file and start restore job, returns `{ jobId }`. `TusUploadOptions.restoreArchiveData` (default `false`, AB#4231) opts into restoring CrateDB archive data when the artifact is an `.octobak.zip`; sent as `restoreArchiveData` query param to `restore-from-upload`. |
 
-Two hops with deliberately different tenant addressing (AB#5060): the tus transfer goes to the
-tenant-neutral sink `system/v1/tus-upload` (staging area keyed by tus file id), then the restore job
-is started on the tenant route `POST {tenantId}/v1/jobs/restore-from-upload` — that second call is
-the gated, tenant-carrying decision. `options.tenantId` may be a child tenant (restoring a child
-from the Child Tenants list), which the bot service allows via `[AllowParentTenantAdministration]`.
+Two hops, both on the tenant route (AB#5060): the tus transfer goes to
+`{tenantId}/v1/tus-upload`, then the restore job is started on
+`POST {tenantId}/v1/jobs/restore-from-upload`. Both are gated by the bot service's transport tenant
+gate, and both carry `[AllowParentTenantAdministration]` server-side — so `options.tenantId` may be a
+child tenant (restoring a child from the Child Tenants list), for the upload as well as the job
+start. Until stage 3 the upload went to an ungated `system/v1/tus-upload` sink.
+
+`buildTusEndpoint` (exported from `tus-upload.service.ts`) builds the upload URL for both callers;
+`bot-service.ts` imports it rather than repeating the concatenation. It is exported so the route can
+be asserted directly — specs stub the tus transfer out, since it needs a real tus server, and a
+stubbed transfer hides the URL.
 
 ---
 

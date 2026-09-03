@@ -2,7 +2,7 @@ import type { Mock, MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
-import { TusUploadService, TusUploadOptions } from './tus-upload.service';
+import { TusUploadService, TusUploadOptions, buildTusEndpoint } from './tus-upload.service';
 import { CONFIGURATION_SERVICE } from './configuration.service';
 import { AddInConfiguration } from '../shared/addInConfiguration';
 import { AuthorizeService } from '@meshmakers/shared-auth';
@@ -94,7 +94,8 @@ describe('TusUploadService', () => {
 
     // AB#5060: the restore job must be started on the tenant route. As `?tenantId=` it bypassed the
     // bot service's transport tenant gate, so a token for one tenant could restore another. The tus
-    // upload itself stays on the tenant-neutral system sink by design, hence it is stubbed here.
+    // upload is stubbed here because it needs a real tus server; its own route is asserted
+    // separately, against buildTusEndpoint.
     it('should start the restore job on the tenant route, not the system route', async () => {
       const mockFile = new File(['backup data'], 'backup.tar.gz', {type: 'application/gzip'});
       const options: TusUploadOptions = {
@@ -147,6 +148,22 @@ describe('TusUploadService', () => {
 
       const result = await resultPromise;
       expect(result.jobId).toBe('job-456');
+    });
+  });
+
+  describe('buildTusEndpoint', () => {
+    // AB#5060: the upload sink moved from the ungated `system/v1/tus-upload` onto the tenant route,
+    // so the transport tenant gate authorizes it and the service stages the file under the tenant's
+    // own directory. Asserted here rather than through startUpload because the transfer is stubbed
+    // out above, which hides the URL.
+    it('should address the tenant route', () => {
+      expect(buildTusEndpoint('https://bot.example/', 'tenant-1'))
+        .toBe('https://bot.example/tenant-1/v1/tus-upload');
+    });
+
+    it('should escape the tenant segment so it cannot walk out of the tenant scope', () => {
+      expect(buildTusEndpoint('https://bot.example/', '../system'))
+        .toBe('https://bot.example/..%2Fsystem/v1/tus-upload');
     });
   });
 

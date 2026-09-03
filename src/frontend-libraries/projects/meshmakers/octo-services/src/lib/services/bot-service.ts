@@ -8,6 +8,7 @@ import {JobDto} from '../shared/jobDto';
 import {ImportStrategyDto} from '../shared/importStrategyDto';
 import {TimeWindowDto} from '../shared/timeWindowDto';
 import {CONFIGURATION_SERVICE} from './configuration.service';
+import {buildTusEndpoint} from './tus-upload.service';
 
 @Injectable({
   providedIn: 'root'
@@ -188,9 +189,9 @@ export class BotService {
    * `JobManagementService.waitForJob` → `MessageService.showErrorWithDetails`.
    *
    * Bot contract:
-   * 1. TUS upload to `system/v1/tus-upload` (metadata: `filename`, `filetype`, `tenantId`,
-   *    `archiveRtId`, `importMode`). The upload sink stays tenant-neutral by design (AB#5060): it
-   *    is a staging area keyed by tus file id, and the tenant-carrying, gated decision is step 2.
+   * 1. TUS upload to `{tenantId}/v1/tus-upload` (metadata: `filename`, `filetype`, `tenantId`,
+   *    `archiveRtId`, `importMode`). Tenant-routed since AB#5060, so the transport tenant gate
+   *    authorizes the upload and the service stages it under the tenant's own directory.
    * 2. `POST {tenantId}/v1/jobs/import-archive-data-from-upload?tusFileId=&archiveRtId=&mode=`
    *    → `{ jobId }` (AB#5060).
    */
@@ -241,7 +242,7 @@ export class BotService {
       };
 
       const upload = new Upload(file, {
-        endpoint: botServicesUrl + 'system/v1/tus-upload',
+        endpoint: buildTusEndpoint(botServicesUrl, tenantId),
         retryDelays: [0, 1000, 3000, 5000, 10000],
         chunkSize: 50 * 1024 * 1024,
         metadata,

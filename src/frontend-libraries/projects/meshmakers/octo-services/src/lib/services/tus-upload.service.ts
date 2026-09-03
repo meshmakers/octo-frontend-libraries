@@ -6,6 +6,23 @@ import {AuthorizeService} from '@meshmakers/shared-auth';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {JobResponseDto} from '../shared/jobResponseDto';
 
+/**
+ * Builds the bot service's tus upload endpoint for a tenant.
+ *
+ * Tenant-routed since AB#5060. It used to be `system/v1/tus-upload` with the tenant sent only as
+ * upload metadata, which the bot service's transport tenant gate never saw — the gate reads the
+ * route value — and which bound nothing, because the file was stored flat under its tus file id and
+ * no consumer read the metadata back. The service now stages uploads under the tenant's own
+ * directory. `tenantId` is still sent as metadata for compatibility; the service refuses a metadata
+ * tenant that disagrees with the route rather than silently preferring one.
+ *
+ * Exported so it can be asserted directly: the upload itself needs a real tus server, so specs stub
+ * the transfer out — and a stubbed transfer hides the URL, which is the part that matters here.
+ */
+export function buildTusEndpoint(botServicesUrl: string, tenantId: string): string {
+  return `${botServicesUrl}${encodeURIComponent(tenantId)}/v1/tus-upload`;
+}
+
 export interface TusUploadOptions {
   file: File;
   tenantId: string;
@@ -63,7 +80,7 @@ export class TusUploadService {
       }
 
       const upload = new Upload(options.file, {
-        endpoint: botServicesUrl + 'system/v1/tus-upload',
+        endpoint: buildTusEndpoint(botServicesUrl, options.tenantId),
         retryDelays: [0, 1000, 3000, 5000, 10000],
         chunkSize: 50 * 1024 * 1024,
         metadata,
@@ -104,8 +121,8 @@ export class TusUploadService {
    * controller carries `[AllowParentTenantAdministration]`, which is what the Child Tenants restore
    * relies on.
    *
-   * The tus upload itself (above) stays on the tenant-neutral system sink by design: the file is
-   * stored flat under its tus id, and this call is the tenant-carrying, gated decision.
+   * The tus upload above is on the tenant route as well since stage 3 of AB#5060, so both hops are
+   * gated; the service stages the file under the tenant's own directory.
    */
   private async startRestoreJob(
     botServicesUrl: string,
