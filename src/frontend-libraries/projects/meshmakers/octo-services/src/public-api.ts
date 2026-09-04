@@ -39,6 +39,7 @@ export * from './lib/shared/groupDto';
 export * from './lib/shared/dataPermissionDto';
 export * from './lib/shared/identityProviderDto';
 export * from './lib/shared/emailDomainGroupRuleDto';
+export * from './lib/shared/emailIdentifierBindingDto';
 export * from './lib/shared/externalTenantUserMappingDto';
 export * from './lib/shared/provisioningSourceUserDto';
 export * from './lib/shared/provisioningGroupDto';

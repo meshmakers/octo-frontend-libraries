@@ -12,6 +12,7 @@ import {ClientMirrorBackfillResponseDto, ClientMirrorDto, ClientMirrorProvisionR
 import {CleanOverlayEntriesResultDto} from '../shared/clientOverlayDto';
 import {IdentityProviderDto, IdentityProvidersResult} from '../shared/identityProviderDto';
 import {EmailDomainGroupRuleDto, EmailDomainGroupRulesResult} from '../shared/emailDomainGroupRuleDto';
+import {CreateEmailIdentifierBindingDto, EmailIdentifierBindingDto} from '../shared/emailIdentifierBindingDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 import {CreateGroupDto, GroupDto, UpdateGroupDto} from '../shared/groupDto';
@@ -644,6 +645,50 @@ export class IdentityService {
     if (baseUrl) {
       await firstValueFrom(
         this.httpClient.delete<void>(baseUrl + `emaildomaingrouprules/${rtId}`, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  // ========================================
+  // E-mail Identifier Bindings (AB#5125)
+  // Admin-managed e-mail→user verified whitelist for the tenant. A whitelisted address is only as
+  // trusted per message as its DKIM/DMARC verdict (evaluated on ingest); a message without a valid,
+  // aligned DKIM/DMARC pass never authorizes an elevated operation.
+  // ========================================
+
+  async getEmailIdentifierBindings(): Promise<EmailIdentifierBindingDto[]> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const response = await firstValueFrom(
+        this.httpClient.get<EmailIdentifierBindingDto[] | null>(baseUrl + 'emailidentifierbindings', {
+          observe: 'response'
+        })
+      );
+      return response.body ?? [];
+    }
+    return [];
+  }
+
+  async createEmailIdentifierBinding(dto: CreateEmailIdentifierBindingDto): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      await firstValueFrom(
+        this.httpClient.post(baseUrl + 'emailidentifierbindings', dto, {
+          observe: 'response'
+        })
+      );
+    }
+  }
+
+  async deleteEmailIdentifierBinding(email: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (baseUrl) {
+      const params = new HttpParams().set('email', email);
+      await firstValueFrom(
+        this.httpClient.delete(baseUrl + 'emailidentifierbindings', {
+          params,
           observe: 'response'
         })
       );
