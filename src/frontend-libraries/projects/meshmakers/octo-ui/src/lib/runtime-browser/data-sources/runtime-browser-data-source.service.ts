@@ -530,7 +530,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       originRtId?: string | null;
       targetCkTypeId?: string | null;
       targetRtId?: string | null;
-    } | null)[] = [];
+    } | null)[];
     try {
       const response = await firstValueFrom(
         this.getRuntimeEntityAssociationsByIdDtoGQL.fetch({

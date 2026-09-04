@@ -5092,7 +5092,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     // Generate the shape SVG based on type
-    let shapeSvg = '';
+    let shapeSvg: string;
     // Use resolveStyle to merge style class with inline styles
     const resolvedStyle = this.resolveStyle(primitive);
     const fill = resolvedStyle?.fill?.color ?? 'none';
@@ -6152,7 +6152,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     // Generate the shape SVG based on type
-    let shapeSvg = '';
+    let shapeSvg: string;
     // Resolve style using symbol's styleClasses
     const resolvedStyle = this.resolveStyleWithClasses(primitive, styleClasses);
     const fill = resolvedStyle?.fill?.color ?? 'none';
@@ -6425,7 +6425,7 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
     const strokeWidth = resolvedStyle?.stroke?.width ?? 1;
     const strokeDashArray = this.getStrokeDashArray(resolvedStyle?.stroke?.dashArray);
 
-    let shapeSvg = '';
+    let shapeSvg: string;
     switch (primitive.type) {
       case 'rectangle': {
         const config = (primitive as RectanglePrimitive).config;

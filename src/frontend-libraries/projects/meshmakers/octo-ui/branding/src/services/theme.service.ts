@@ -52,7 +52,7 @@ export class ThemeService {
   }
 
   private getInitialThemeIsDark(): boolean {
-    let stored: string | null = null;
+    let stored: string | null;
     try {
       stored = this.document.defaultView?.localStorage.getItem('theme') ?? null;
     } catch {

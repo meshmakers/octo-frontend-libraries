@@ -5,7 +5,6 @@ import {
   provideHttpClient,
   withInterceptors,
   withInterceptorsFromDi,
-  withJsonpSupport,
   withXhr
 } from '@angular/common/http';
 import {authorizeInterceptor, AuthorizeService} from '@meshmakers/shared-auth';
@@ -75,7 +74,7 @@ export const appConfig: ApplicationConfig = {
       }
     },
     importProvidersFrom(GaugesModule),
-    provideHttpClient(withXhr(), withJsonpSupport(), withInterceptors([authorizeInterceptor]), withInterceptorsFromDi()),
+    provideHttpClient(withXhr(), withInterceptors([authorizeInterceptor]), withInterceptorsFromDi()),
     // Provide the app-specific ConfigurationService implementation
     { provide: CONFIGURATION_SERVICE, useClass: AppConfigurationService },
     provideAppInitializer(initServices),

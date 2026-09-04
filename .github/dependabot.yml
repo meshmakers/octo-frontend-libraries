@@ -13,5 +13,18 @@ updates:
     directories:
       - "/src/frontend-libraries"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     versioning-strategy: increase
+  # Dockerfile and Dockerfile.prebuilt both live in /src/frontend-libraries.
+  - package-ecosystem: "docker"
+    directory: "/src/frontend-libraries"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # The meshmakers platform images are bumped deliberately together with the
+      # platform toolchain. Dependabot misreads their legacy tag scheme
+      # (`8.0-<date>` sorts above `1.3.0.0`), so it must not propose them at all.
+      - dependency-name: "meshmakers/*"
+      # nginx: patch and minor updates are welcome, a major is a deliberate move.
+      - dependency-name: "nginx"
+        update-types: ["version-update:semver-major"]

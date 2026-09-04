@@ -19,7 +19,7 @@
 
 ## Toolchain Requirements
 
-- **Node.js ≥ 22.22.3** (or ≥ 24.15.0 / ≥ 26.0.0) — required by Angular 22 / Angular CLI 22. The CLI hard-refuses older Node (e.g. Node 20 and Node 24.14.x are rejected). CI (`azure-pipelines.yml`) uses Node 24.15.x.
+- **Node.js ≥ 22.22.3** (or ≥ 24.15.0 / ≥ 26.0.0) — required by Angular 22 / Angular CLI 22. The CLI hard-refuses older Node (e.g. Node 20 and Node 24.14.x are rejected). CI (`azure-pipelines.yml`) installs no Node of its own: the `meshmakers-ci-agents` image already ships Node 24, and the `Dockerfile` build stage gets it from `meshmakers/dotnet_sdk-node`.
 - **TypeScript ~6.0** — required by Angular 22 (`@angular/compiler-cli` peer is `>=6.0 <6.1`).
 - **Build system: `@angular/build` (esbuild/Vite) only** (AB#5050). Every `angular.json` target runs on `@angular/build:*` (`application`, `unit-test`, `ng-packagr`, `dev-server`, `extract-i18n`); the deprecated Webpack toolchain `@angular-devkit/build-angular` is removed. Both demo apps use the `application` builder with `outputPath: { "base": "dist/<app>", "browser": "" }` so the dist layout stays flat — the CI docker context (`Dockerfile.prebuilt` copies `dist/demo-app`) depends on that. The shared `karma.conf.js` is gone — the `karma` builder was replaced by `@angular/build:unit-test` with Vitest (AB#5071). Also removed as deprecated: `@angular/platform-browser-dynamic` (legacy-demo-app bootstraps via `platformBrowser().bootstrapModule`), `@types/expr-eval` (stub — `expr-eval` ships its own typings), `source-map-explorer` (unused). **Deliberately kept although deprecated:** `@angular/animations` — every Kendo 24 package peer-requires it (`"19 - 22"`), and `octo-ui` mirrors that peer; drop it only when Kendo does.
 - **`@progress/kendo-theme-material` / `@progress/kendo-theme-default` use `^14.2.0`.** Version `14.2.0` removed the standalone `scss/adaptive/` module (its rendering was folded into the component modules). `octo-ui`'s slim theme `projects/meshmakers/octo-ui/src/lib/runtime-browser/styles/_kendo-theme.scss` used to `@use` `@progress/kendo-theme-material/scss/adaptive/_index.scss` without a matching `@include kendo-adaptive--styles()` — dead code that broke the SCSS build on 14.2.0 (`Can't find stylesheet to import`). That import was removed (AB#4253), so the theme now builds on both 14.1.x and 14.2.x. When adding a new Kendo module to the slim theme, `@use` its `_index.scss` **and** call its `@include kendo-<module>--styles()` — an import without the include emits nothing and silently couples to a removable module.
@@ -276,6 +276,18 @@ for p in @meshmakers/shared-services @meshmakers/shared-auth @meshmakers/shared-
   npx ng lint $p --fix
 done
 ```
+
+### ESLint 10
+
+- **`@eslint/js` is an explicit devDependency.** ESLint 10 no longer exposes it transitively, so
+  the root `eslint.config.js` `require("@eslint/js")` fails with `Cannot find module '@eslint/js'`
+  unless it is installed in its own right. It is versioned independently of `eslint` (10.0.x while
+  `eslint` is 10.9.x).
+- **Two rules joined `eslint:recommended` in v10** and both found real code here:
+  `no-useless-assignment` (an initializer or assignment whose value no later statement reads —
+  cured by dropping the dead initializer, e.g. `let shapeSvg: string;` before an exhaustive
+  `switch`) and `preserve-caught-error` (a `throw new Error(...)` inside `catch` that discards the
+  original — cured by passing `{ cause: error }`). Neither is disabled.
 
 ### `.editorconfig` enforced by ESLint
 

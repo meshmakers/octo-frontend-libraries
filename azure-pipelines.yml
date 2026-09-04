@@ -93,11 +93,6 @@ stages:
               FilenamePattern: ^package.json
           - template: templates/steps/setup-telerik-license.yml@pipelineTemplates
 
-          - task: UseNode@1
-            displayName: 'Install Node.js 24.15.x'
-            inputs:
-              version: '24.15.x'
-
           - task: CmdLine@2
             displayName: 'npm ci'
             inputs:
@@ -369,11 +364,6 @@ stages:
           name: meshmakers-ci-agents
         steps:
           - template: templates/steps/setup-telerik-license.yml@pipelineTemplates
-
-          - task: UseNode@1
-            displayName: 'Install Node.js 24.15.x'
-            inputs:
-              version: '24.15.x'
 
           - task: CmdLine@2
             displayName: 'npm ci'

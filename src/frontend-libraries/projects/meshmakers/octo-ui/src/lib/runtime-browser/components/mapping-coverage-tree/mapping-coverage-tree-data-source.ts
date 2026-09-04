@@ -346,7 +346,7 @@ export class MappingCoverageTreeDataSource extends HierarchyDataSourceBase<Cover
       ckAssociationRoleId?: string | null;
       originCkTypeId?: string | null;
       originRtId?: string | null;
-    } | null)[] = [];
+    } | null)[];
     try {
       const response = await firstValueFrom(
         this.getEntityAssociationsGQL.fetch({
