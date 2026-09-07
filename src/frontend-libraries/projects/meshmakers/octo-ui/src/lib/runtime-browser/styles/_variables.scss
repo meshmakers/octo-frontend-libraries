@@ -59,7 +59,13 @@ $kendo-success: #37b400;
 
   // Kendo variable overrides - applied when Kendo is imported by host
   --kendo-color-primary: var(--octo-mint);
-  --kendo-color-primary-on-surface: var(--octo-mint);
+  // `primary-on-surface` is Kendo's "primary color used as INK on a surface"
+  // (breadcrumbs, selected tab text, flat/link primary buttons, floating
+  // labels, k-selected/k-today, …). Raw mint stays #64ceb9 in the light theme
+  // too (~1.9:1 on white — unreadable), so redirect it at the theme-aware
+  // accent text token (mint in dark, darkened teal in light); the mint
+  // fallback serves hosts that include variables() without theme().
+  --kendo-color-primary-on-surface: var(--theme-text-accent, var(--octo-mint));
   --kendo-color-app-surface: var(--theme-bg-app, var(--deep-sea));
   --kendo-color-on-app-surface: var(--octo-text-color);
   font-family: var(--lcars-font-primary);
