@@ -511,7 +511,7 @@ export type BasicAsset_EventSourceUnionEdgeDto = {
 };
 
 /** Union of types derived from Basic/Asset for RelatesFrom association */
-export type BasicAsset_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
+export type BasicAsset_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAiAiAgentConfigDto | SystemAiAiAgentJobDto | SystemAiAiAgentSessionDto | SystemAiAiApprovalRequestDto | SystemAiAiAuditEventDto | SystemAiAiCredentialBindingDto | SystemAiAiCredentialTicketDto | SystemAiAiKnowledgeSourceDto | SystemAiAiPromptTemplateDto | SystemAiAiQuotaLimitDto | SystemAiAiSessionEventDto | SystemAiAiTokenLeaseDto | SystemAiAiToolPolicyDto | SystemAiAiUsageRecordDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
 
 /** A connection to `BasicAsset_RelatesFromUnion`. */
 export type BasicAsset_RelatesFromUnionConnectionDto = {
@@ -6005,7 +6005,7 @@ export type BasicTreeNode_ParentUnionEdgeDto = {
 };
 
 /** Union of types derived from Basic/TreeNode for RelatesTo association */
-export type BasicTreeNode_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
+export type BasicTreeNode_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAiAiAgentConfigDto | SystemAiAiAgentJobDto | SystemAiAiAgentSessionDto | SystemAiAiApprovalRequestDto | SystemAiAiAuditEventDto | SystemAiAiCredentialBindingDto | SystemAiAiCredentialTicketDto | SystemAiAiKnowledgeSourceDto | SystemAiAiPromptTemplateDto | SystemAiAiQuotaLimitDto | SystemAiAiSessionEventDto | SystemAiAiTokenLeaseDto | SystemAiAiToolPolicyDto | SystemAiAiUsageRecordDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
 
 /** A connection to `BasicTreeNode_RelatesToUnion`. */
 export type BasicTreeNode_RelatesToUnionConnectionDto = {
@@ -21682,6 +21682,20 @@ export type OctoSubscriptionsDto = {
   octoSdkDemoOperatingFacilityEvents?: Maybe<OctoSdkDemoOperatingFacilityUpdateMessageDto>;
   systemAggregationRtQueryEvents?: Maybe<SystemAggregationRtQueryUpdateMessageDto>;
   systemAggregationSdQueryEvents?: Maybe<SystemAggregationSdQueryUpdateMessageDto>;
+  systemAiAiAgentConfigEvents?: Maybe<SystemAiAiAgentConfigUpdateMessageDto>;
+  systemAiAiAgentJobEvents?: Maybe<SystemAiAiAgentJobUpdateMessageDto>;
+  systemAiAiAgentSessionEvents?: Maybe<SystemAiAiAgentSessionUpdateMessageDto>;
+  systemAiAiApprovalRequestEvents?: Maybe<SystemAiAiApprovalRequestUpdateMessageDto>;
+  systemAiAiAuditEventEvents?: Maybe<SystemAiAiAuditEventUpdateMessageDto>;
+  systemAiAiCredentialBindingEvents?: Maybe<SystemAiAiCredentialBindingUpdateMessageDto>;
+  systemAiAiCredentialTicketEvents?: Maybe<SystemAiAiCredentialTicketUpdateMessageDto>;
+  systemAiAiKnowledgeSourceEvents?: Maybe<SystemAiAiKnowledgeSourceUpdateMessageDto>;
+  systemAiAiPromptTemplateEvents?: Maybe<SystemAiAiPromptTemplateUpdateMessageDto>;
+  systemAiAiQuotaLimitEvents?: Maybe<SystemAiAiQuotaLimitUpdateMessageDto>;
+  systemAiAiSessionEventEvents?: Maybe<SystemAiAiSessionEventUpdateMessageDto>;
+  systemAiAiTokenLeaseEvents?: Maybe<SystemAiAiTokenLeaseUpdateMessageDto>;
+  systemAiAiToolPolicyEvents?: Maybe<SystemAiAiToolPolicyUpdateMessageDto>;
+  systemAiAiUsageRecordEvents?: Maybe<SystemAiAiUsageRecordUpdateMessageDto>;
   systemAutoIncrementEvents?: Maybe<SystemAutoIncrementUpdateMessageDto>;
   systemBlueprintBackupEvents?: Maybe<SystemBlueprintBackupUpdateMessageDto>;
   systemBlueprintHistoryEvents?: Maybe<SystemBlueprintHistoryUpdateMessageDto>;
@@ -22339,6 +22353,118 @@ export type OctoSubscriptionsSystemAggregationRtQueryEventsArgsDto = {
 
 
 export type OctoSubscriptionsSystemAggregationSdQueryEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiAgentConfigEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiAgentJobEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiAgentSessionEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiApprovalRequestEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiAuditEventEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiCredentialBindingEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiCredentialTicketEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiKnowledgeSourceEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiPromptTemplateEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiQuotaLimitEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiSessionEventEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiTokenLeaseEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiToolPolicyEventsArgsDto = {
+  beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  updateTypes: Array<InputMaybe<UpdateTypeDto>>;
+};
+
+
+export type OctoSubscriptionsSystemAiAiUsageRecordEventsArgsDto = {
   beforeFieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
   rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
@@ -24058,6 +24184,34 @@ export type RuntimeDto = {
   systemAggregationRtQuerys?: Maybe<SystemAggregationRtQueryMutationsDto>;
   /** Mutation for entities of type 'SystemAggregationSdQuery'. */
   systemAggregationSdQuerys?: Maybe<SystemAggregationSdQueryMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiAgentConfig'. */
+  systemAiAiAgentConfigs?: Maybe<SystemAiAiAgentConfigMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiAgentJob'. */
+  systemAiAiAgentJobs?: Maybe<SystemAiAiAgentJobMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiAgentSession'. */
+  systemAiAiAgentSessions?: Maybe<SystemAiAiAgentSessionMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiApprovalRequest'. */
+  systemAiAiApprovalRequests?: Maybe<SystemAiAiApprovalRequestMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiAuditEvent'. */
+  systemAiAiAuditEvents?: Maybe<SystemAiAiAuditEventMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiCredentialBinding'. */
+  systemAiAiCredentialBindings?: Maybe<SystemAiAiCredentialBindingMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiCredentialTicket'. */
+  systemAiAiCredentialTickets?: Maybe<SystemAiAiCredentialTicketMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiKnowledgeSource'. */
+  systemAiAiKnowledgeSources?: Maybe<SystemAiAiKnowledgeSourceMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiPromptTemplate'. */
+  systemAiAiPromptTemplates?: Maybe<SystemAiAiPromptTemplateMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiQuotaLimit'. */
+  systemAiAiQuotaLimits?: Maybe<SystemAiAiQuotaLimitMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiSessionEvent'. */
+  systemAiAiSessionEvents?: Maybe<SystemAiAiSessionEventMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiTokenLease'. */
+  systemAiAiTokenLeases?: Maybe<SystemAiAiTokenLeaseMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiToolPolicy'. */
+  systemAiAiToolPolicys?: Maybe<SystemAiAiToolPolicyMutationsDto>;
+  /** Mutation for entities of type 'SystemAiAiUsageRecord'. */
+  systemAiAiUsageRecords?: Maybe<SystemAiAiUsageRecordMutationsDto>;
   /** Mutation for entities of type 'SystemAutoIncrement'. */
   systemAutoIncrements?: Maybe<SystemAutoIncrementMutationsDto>;
   /** Mutation for entities of type 'SystemBlueprintBackup'. */
@@ -24317,6 +24471,20 @@ export type RuntimeModelQueryDto = {
   runtimeQuery?: Maybe<RtQueryDtoConnectionDto>;
   systemAggregationRtQuery?: Maybe<SystemAggregationRtQueryConnectionDto>;
   systemAggregationSdQuery?: Maybe<SystemAggregationSdQueryConnectionDto>;
+  systemAiAiAgentConfig?: Maybe<SystemAiAiAgentConfigConnectionDto>;
+  systemAiAiAgentJob?: Maybe<SystemAiAiAgentJobConnectionDto>;
+  systemAiAiAgentSession?: Maybe<SystemAiAiAgentSessionConnectionDto>;
+  systemAiAiApprovalRequest?: Maybe<SystemAiAiApprovalRequestConnectionDto>;
+  systemAiAiAuditEvent?: Maybe<SystemAiAiAuditEventConnectionDto>;
+  systemAiAiCredentialBinding?: Maybe<SystemAiAiCredentialBindingConnectionDto>;
+  systemAiAiCredentialTicket?: Maybe<SystemAiAiCredentialTicketConnectionDto>;
+  systemAiAiKnowledgeSource?: Maybe<SystemAiAiKnowledgeSourceConnectionDto>;
+  systemAiAiPromptTemplate?: Maybe<SystemAiAiPromptTemplateConnectionDto>;
+  systemAiAiQuotaLimit?: Maybe<SystemAiAiQuotaLimitConnectionDto>;
+  systemAiAiSessionEvent?: Maybe<SystemAiAiSessionEventConnectionDto>;
+  systemAiAiTokenLease?: Maybe<SystemAiAiTokenLeaseConnectionDto>;
+  systemAiAiToolPolicy?: Maybe<SystemAiAiToolPolicyConnectionDto>;
+  systemAiAiUsageRecord?: Maybe<SystemAiAiUsageRecordConnectionDto>;
   systemAutoIncrement?: Maybe<SystemAutoIncrementConnectionDto>;
   systemBlueprintBackup?: Maybe<SystemBlueprintBackupConnectionDto>;
   systemBlueprintHistory?: Maybe<SystemBlueprintHistoryConnectionDto>;
@@ -25411,6 +25579,202 @@ export type RuntimeModelQuerySystemAggregationRtQueryArgsDto = {
 
 
 export type RuntimeModelQuerySystemAggregationSdQueryArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiAgentConfigArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiAgentJobArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiAgentSessionArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiApprovalRequestArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiAuditEventArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiCredentialBindingArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiCredentialTicketArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiKnowledgeSourceArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiPromptTemplateArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiQuotaLimitArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiSessionEventArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiTokenLeaseArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiToolPolicyArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  geoNearFilter?: InputMaybe<NearGeospatialFilterDto>;
+  options?: InputMaybe<GlobalQueryOptionsDto>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQuerySystemAiAiUsageRecordArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
@@ -27765,6 +28129,3321 @@ export enum SystemAggregationTypesDto {
   SumDto = 'SUM',
   /** Time-weighted average with last-observation-carried-forward interval weighting, for event-based archives. Yields the duty cycle on 0/100 or boolean-like signals. Resolvable against rollup archives that materialise a TimeWeightedAvg aggregation. AB#4336. */
   TimeWeightedAverageDto = 'TIME_WEIGHTED_AVERAGE'
+}
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentConfig-1' */
+export type SystemAiAiAgentConfigDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiAgentConfig';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  authMode: SystemAiAuthModeDto;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  defaultModel: SystemAiModelTierDto;
+  devBridgeEnabled: Scalars['Boolean']['output'];
+  hibernationIdleMinutes: Scalars['Int']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name: Scalars['String']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  subscriptionScope: SystemAiSubscriptionScopeDto;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  usedBy?: Maybe<SystemCommunicationPipeline_UsedByUnionConnectionDto>;
+  workerImageTag: Scalars['String']['output'];
+  workspaceMode: SystemAiWorkspaceModeDto;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentConfig-1' */
+export type SystemAiAiAgentConfigAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentConfig-1' */
+export type SystemAiAiAgentConfigConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentConfig-1' */
+export type SystemAiAiAgentConfigMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentConfig-1' */
+export type SystemAiAiAgentConfigMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentConfig-1' */
+export type SystemAiAiAgentConfigRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentConfig-1' */
+export type SystemAiAiAgentConfigRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentConfig-1' */
+export type SystemAiAiAgentConfigTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentConfig-1' */
+export type SystemAiAiAgentConfigUsedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiAgentConfig`. */
+export type SystemAiAiAgentConfigConnectionDto = {
+  __typename?: 'SystemAiAiAgentConfigConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiAgentConfigEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiAgentConfigDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiAgentConfig`. */
+export type SystemAiAiAgentConfigEdgeDto = {
+  __typename?: 'SystemAiAiAgentConfigEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiAgentConfigDto>;
+};
+
+export type SystemAiAiAgentConfigInputDto = {
+  authMode?: InputMaybe<SystemAiAuthModeDto>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  defaultModel?: InputMaybe<SystemAiModelTierDto>;
+  devBridgeEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  hibernationIdleMinutes?: InputMaybe<Scalars['Int']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  subscriptionScope?: InputMaybe<SystemAiSubscriptionScopeDto>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  usedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  workerImageTag?: InputMaybe<Scalars['String']['input']>;
+  workspaceMode?: InputMaybe<SystemAiWorkspaceModeDto>;
+};
+
+export type SystemAiAiAgentConfigInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiAgentConfigInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiAgentConfigMutationsDto = {
+  __typename?: 'SystemAiAiAgentConfigMutations';
+  /** Creates new entities of type 'SystemAiAiAgentConfig'. */
+  create?: Maybe<Array<Maybe<SystemAiAiAgentConfigDto>>>;
+  /** Updates existing entity of type 'SystemAiAiAgentConfig'. */
+  update?: Maybe<Array<Maybe<SystemAiAiAgentConfigDto>>>;
+};
+
+
+export type SystemAiAiAgentConfigMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiAgentConfigInputDto>>;
+};
+
+
+export type SystemAiAiAgentConfigMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiAgentConfigInputUpdateDto>>;
+};
+
+export type SystemAiAiAgentConfigUpdateDto = {
+  __typename?: 'SystemAiAiAgentConfigUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiAgentConfigDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiAgentConfigUpdateMessageDto = {
+  __typename?: 'SystemAiAiAgentConfigUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiAgentConfigUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentJob-1' */
+export type SystemAiAiAgentJobDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiAgentJob';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  completedAt?: Maybe<Scalars['DateTime']['output']>;
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  goal: Scalars['String']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  ownedByAiResource?: Maybe<SystemAiAiAgentSession_OwnedByAiResourceUnionConnectionDto>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  startedAt: Scalars['DateTime']['output'];
+  status: SystemAiJobStatusDto;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentJob-1' */
+export type SystemAiAiAgentJobAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentJob-1' */
+export type SystemAiAiAgentJobConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentJob-1' */
+export type SystemAiAiAgentJobMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentJob-1' */
+export type SystemAiAiAgentJobMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentJob-1' */
+export type SystemAiAiAgentJobOwnedByAiResourceArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentJob-1' */
+export type SystemAiAiAgentJobRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentJob-1' */
+export type SystemAiAiAgentJobRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentJob-1' */
+export type SystemAiAiAgentJobTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiAgentJob`. */
+export type SystemAiAiAgentJobConnectionDto = {
+  __typename?: 'SystemAiAiAgentJobConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiAgentJobEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiAgentJobDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiAgentJob`. */
+export type SystemAiAiAgentJobEdgeDto = {
+  __typename?: 'SystemAiAiAgentJobEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiAgentJobDto>;
+};
+
+export type SystemAiAiAgentJobInputDto = {
+  completedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  goal?: InputMaybe<Scalars['String']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  ownedByAiResource?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  startedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  status?: InputMaybe<SystemAiJobStatusDto>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type SystemAiAiAgentJobInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiAgentJobInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiAgentJobMutationsDto = {
+  __typename?: 'SystemAiAiAgentJobMutations';
+  /** Creates new entities of type 'SystemAiAiAgentJob'. */
+  create?: Maybe<Array<Maybe<SystemAiAiAgentJobDto>>>;
+  /** Updates existing entity of type 'SystemAiAiAgentJob'. */
+  update?: Maybe<Array<Maybe<SystemAiAiAgentJobDto>>>;
+};
+
+
+export type SystemAiAiAgentJobMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiAgentJobInputDto>>;
+};
+
+
+export type SystemAiAiAgentJobMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiAgentJobInputUpdateDto>>;
+};
+
+export type SystemAiAiAgentJobUpdateDto = {
+  __typename?: 'SystemAiAiAgentJobUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiAgentJobDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiAgentJobUpdateMessageDto = {
+  __typename?: 'SystemAiAiAgentJobUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiAgentJobUpdateDto>>>;
+};
+
+/** Union of types derived from System.Ai/AiAgentJob for AiResources association */
+export type SystemAiAiAgentJob_AiResourcesUnionDto = SystemAiAiAgentJobDto;
+
+/** A connection to `SystemAiAiAgentJob_AiResourcesUnion`. */
+export type SystemAiAiAgentJob_AiResourcesUnionConnectionDto = {
+  __typename?: 'SystemAiAiAgentJob_AiResourcesUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiAgentJob_AiResourcesUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiAgentJob_AiResourcesUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiAgentJob_AiResourcesUnion`. */
+export type SystemAiAiAgentJob_AiResourcesUnionEdgeDto = {
+  __typename?: 'SystemAiAiAgentJob_AiResourcesUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiAgentJob_AiResourcesUnionDto>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentSession-1' */
+export type SystemAiAiAgentSessionDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiAgentSession';
+  aiResources?: Maybe<SystemAiAiAgentJob_AiResourcesUnionConnectionDto>;
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  baseBranch?: Maybe<Scalars['String']['output']>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  completedAt?: Maybe<Scalars['DateTime']['output']>;
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  goalSummary: Scalars['String']['output'];
+  jobKind?: Maybe<SystemAiJobKindDto>;
+  lastEventSequence: Scalars['Int']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  ownerUserId: Scalars['String']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  sourceRepo?: Maybe<Scalars['String']['output']>;
+  startedAt: Scalars['DateTime']['output'];
+  status: SystemAiSessionStatusDto;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  tokensConsumed: Scalars['Int']['output'];
+  workspaceBranchRef?: Maybe<Scalars['String']['output']>;
+  workspaceWorktreePath?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentSession-1' */
+export type SystemAiAiAgentSessionAiResourcesArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentSession-1' */
+export type SystemAiAiAgentSessionAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentSession-1' */
+export type SystemAiAiAgentSessionConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentSession-1' */
+export type SystemAiAiAgentSessionMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentSession-1' */
+export type SystemAiAiAgentSessionMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentSession-1' */
+export type SystemAiAiAgentSessionRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentSession-1' */
+export type SystemAiAiAgentSessionRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAgentSession-1' */
+export type SystemAiAiAgentSessionTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiAgentSession`. */
+export type SystemAiAiAgentSessionConnectionDto = {
+  __typename?: 'SystemAiAiAgentSessionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiAgentSessionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiAgentSessionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiAgentSession`. */
+export type SystemAiAiAgentSessionEdgeDto = {
+  __typename?: 'SystemAiAiAgentSessionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiAgentSessionDto>;
+};
+
+export type SystemAiAiAgentSessionInputDto = {
+  aiResources?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  baseBranch?: InputMaybe<Scalars['String']['input']>;
+  completedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  goalSummary?: InputMaybe<Scalars['String']['input']>;
+  jobKind?: InputMaybe<SystemAiJobKindDto>;
+  lastEventSequence?: InputMaybe<Scalars['Int']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  ownerUserId?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  sourceRepo?: InputMaybe<Scalars['String']['input']>;
+  startedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  status?: InputMaybe<SystemAiSessionStatusDto>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  tokensConsumed?: InputMaybe<Scalars['Int']['input']>;
+  workspaceBranchRef?: InputMaybe<Scalars['String']['input']>;
+  workspaceWorktreePath?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SystemAiAiAgentSessionInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiAgentSessionInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiAgentSessionMutationsDto = {
+  __typename?: 'SystemAiAiAgentSessionMutations';
+  /** Creates new entities of type 'SystemAiAiAgentSession'. */
+  create?: Maybe<Array<Maybe<SystemAiAiAgentSessionDto>>>;
+  /** Updates existing entity of type 'SystemAiAiAgentSession'. */
+  update?: Maybe<Array<Maybe<SystemAiAiAgentSessionDto>>>;
+};
+
+
+export type SystemAiAiAgentSessionMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiAgentSessionInputDto>>;
+};
+
+
+export type SystemAiAiAgentSessionMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiAgentSessionInputUpdateDto>>;
+};
+
+export type SystemAiAiAgentSessionUpdateDto = {
+  __typename?: 'SystemAiAiAgentSessionUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiAgentSessionDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiAgentSessionUpdateMessageDto = {
+  __typename?: 'SystemAiAiAgentSessionUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiAgentSessionUpdateDto>>>;
+};
+
+/** Union of types derived from System.Ai/AiAgentSession for OwnedByAiResource association */
+export type SystemAiAiAgentSession_OwnedByAiResourceUnionDto = SystemAiAiAgentSessionDto;
+
+/** A connection to `SystemAiAiAgentSession_OwnedByAiResourceUnion`. */
+export type SystemAiAiAgentSession_OwnedByAiResourceUnionConnectionDto = {
+  __typename?: 'SystemAiAiAgentSession_OwnedByAiResourceUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiAgentSession_OwnedByAiResourceUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiAgentSession_OwnedByAiResourceUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiAgentSession_OwnedByAiResourceUnion`. */
+export type SystemAiAiAgentSession_OwnedByAiResourceUnionEdgeDto = {
+  __typename?: 'SystemAiAiAgentSession_OwnedByAiResourceUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiAgentSession_OwnedByAiResourceUnionDto>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiApprovalRequest-1' */
+export type SystemAiAiApprovalRequestDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiApprovalRequest';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  comment?: Maybe<Scalars['String']['output']>;
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  decidedAt?: Maybe<Scalars['DateTime']['output']>;
+  decidedBy?: Maybe<Scalars['String']['output']>;
+  expiresAt: Scalars['DateTime']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  payload: Scalars['String']['output'];
+  reason: SystemAiApprovalReasonDto;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  status: SystemAiApprovalStatusDto;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  toolName: Scalars['String']['output'];
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiApprovalRequest-1' */
+export type SystemAiAiApprovalRequestAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiApprovalRequest-1' */
+export type SystemAiAiApprovalRequestConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiApprovalRequest-1' */
+export type SystemAiAiApprovalRequestMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiApprovalRequest-1' */
+export type SystemAiAiApprovalRequestMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiApprovalRequest-1' */
+export type SystemAiAiApprovalRequestRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiApprovalRequest-1' */
+export type SystemAiAiApprovalRequestRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiApprovalRequest-1' */
+export type SystemAiAiApprovalRequestTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiApprovalRequest`. */
+export type SystemAiAiApprovalRequestConnectionDto = {
+  __typename?: 'SystemAiAiApprovalRequestConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiApprovalRequestEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiApprovalRequestDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiApprovalRequest`. */
+export type SystemAiAiApprovalRequestEdgeDto = {
+  __typename?: 'SystemAiAiApprovalRequestEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiApprovalRequestDto>;
+};
+
+export type SystemAiAiApprovalRequestInputDto = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  decidedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  decidedBy?: InputMaybe<Scalars['String']['input']>;
+  expiresAt?: InputMaybe<Scalars['DateTime']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  payload?: InputMaybe<Scalars['String']['input']>;
+  reason?: InputMaybe<SystemAiApprovalReasonDto>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<SystemAiApprovalStatusDto>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  toolName?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SystemAiAiApprovalRequestInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiApprovalRequestInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiApprovalRequestMutationsDto = {
+  __typename?: 'SystemAiAiApprovalRequestMutations';
+  /** Creates new entities of type 'SystemAiAiApprovalRequest'. */
+  create?: Maybe<Array<Maybe<SystemAiAiApprovalRequestDto>>>;
+  /** Updates existing entity of type 'SystemAiAiApprovalRequest'. */
+  update?: Maybe<Array<Maybe<SystemAiAiApprovalRequestDto>>>;
+};
+
+
+export type SystemAiAiApprovalRequestMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiApprovalRequestInputDto>>;
+};
+
+
+export type SystemAiAiApprovalRequestMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiApprovalRequestInputUpdateDto>>;
+};
+
+export type SystemAiAiApprovalRequestUpdateDto = {
+  __typename?: 'SystemAiAiApprovalRequestUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiApprovalRequestDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiApprovalRequestUpdateMessageDto = {
+  __typename?: 'SystemAiAiApprovalRequestUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiApprovalRequestUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAuditEvent-1' */
+export type SystemAiAiAuditEventDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiAuditEvent';
+  actorRef: Scalars['String']['output'];
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  at: Scalars['DateTime']['output'];
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  detail?: Maybe<Scalars['String']['output']>;
+  eventType: Scalars['String']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  targetRef?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAuditEvent-1' */
+export type SystemAiAiAuditEventAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAuditEvent-1' */
+export type SystemAiAiAuditEventConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAuditEvent-1' */
+export type SystemAiAiAuditEventMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAuditEvent-1' */
+export type SystemAiAiAuditEventMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAuditEvent-1' */
+export type SystemAiAiAuditEventRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAuditEvent-1' */
+export type SystemAiAiAuditEventRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiAuditEvent-1' */
+export type SystemAiAiAuditEventTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiAuditEvent`. */
+export type SystemAiAiAuditEventConnectionDto = {
+  __typename?: 'SystemAiAiAuditEventConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiAuditEventEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiAuditEventDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiAuditEvent`. */
+export type SystemAiAiAuditEventEdgeDto = {
+  __typename?: 'SystemAiAiAuditEventEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiAuditEventDto>;
+};
+
+export type SystemAiAiAuditEventInputDto = {
+  actorRef?: InputMaybe<Scalars['String']['input']>;
+  at?: InputMaybe<Scalars['DateTime']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  detail?: InputMaybe<Scalars['String']['input']>;
+  eventType?: InputMaybe<Scalars['String']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  targetRef?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SystemAiAiAuditEventInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiAuditEventInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiAuditEventMutationsDto = {
+  __typename?: 'SystemAiAiAuditEventMutations';
+  /** Creates new entities of type 'SystemAiAiAuditEvent'. */
+  create?: Maybe<Array<Maybe<SystemAiAiAuditEventDto>>>;
+  /** Updates existing entity of type 'SystemAiAiAuditEvent'. */
+  update?: Maybe<Array<Maybe<SystemAiAiAuditEventDto>>>;
+};
+
+
+export type SystemAiAiAuditEventMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiAuditEventInputDto>>;
+};
+
+
+export type SystemAiAiAuditEventMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiAuditEventInputUpdateDto>>;
+};
+
+export type SystemAiAiAuditEventUpdateDto = {
+  __typename?: 'SystemAiAiAuditEventUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiAuditEventDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiAuditEventUpdateMessageDto = {
+  __typename?: 'SystemAiAiAuditEventUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiAuditEventUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialBinding-1' */
+export type SystemAiAiCredentialBindingDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiCredentialBinding';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  encryptedValue: Scalars['String']['output'];
+  kind: SystemAiCredentialKindDto;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name: Scalars['String']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  scope: Scalars['String']['output'];
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  usedBy?: Maybe<SystemCommunicationPipeline_UsedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialBinding-1' */
+export type SystemAiAiCredentialBindingAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialBinding-1' */
+export type SystemAiAiCredentialBindingConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialBinding-1' */
+export type SystemAiAiCredentialBindingMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialBinding-1' */
+export type SystemAiAiCredentialBindingMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialBinding-1' */
+export type SystemAiAiCredentialBindingRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialBinding-1' */
+export type SystemAiAiCredentialBindingRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialBinding-1' */
+export type SystemAiAiCredentialBindingTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialBinding-1' */
+export type SystemAiAiCredentialBindingUsedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiCredentialBinding`. */
+export type SystemAiAiCredentialBindingConnectionDto = {
+  __typename?: 'SystemAiAiCredentialBindingConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiCredentialBindingEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiCredentialBindingDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiCredentialBinding`. */
+export type SystemAiAiCredentialBindingEdgeDto = {
+  __typename?: 'SystemAiAiCredentialBindingEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiCredentialBindingDto>;
+};
+
+export type SystemAiAiCredentialBindingInputDto = {
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  encryptedValue?: InputMaybe<Scalars['String']['input']>;
+  kind?: InputMaybe<SystemAiCredentialKindDto>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  scope?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  usedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type SystemAiAiCredentialBindingInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiCredentialBindingInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiCredentialBindingMutationsDto = {
+  __typename?: 'SystemAiAiCredentialBindingMutations';
+  /** Creates new entities of type 'SystemAiAiCredentialBinding'. */
+  create?: Maybe<Array<Maybe<SystemAiAiCredentialBindingDto>>>;
+  /** Updates existing entity of type 'SystemAiAiCredentialBinding'. */
+  update?: Maybe<Array<Maybe<SystemAiAiCredentialBindingDto>>>;
+};
+
+
+export type SystemAiAiCredentialBindingMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiCredentialBindingInputDto>>;
+};
+
+
+export type SystemAiAiCredentialBindingMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiCredentialBindingInputUpdateDto>>;
+};
+
+export type SystemAiAiCredentialBindingUpdateDto = {
+  __typename?: 'SystemAiAiCredentialBindingUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiCredentialBindingDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiCredentialBindingUpdateMessageDto = {
+  __typename?: 'SystemAiAiCredentialBindingUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiCredentialBindingUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialTicket-1' */
+export type SystemAiAiCredentialTicketDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiCredentialTicket';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  code: Scalars['String']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  expiresAt: Scalars['DateTime']['output'];
+  issuedByUserId: Scalars['String']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  scope: SystemAiTicketScopeDto;
+  status: SystemAiTicketStatusDto;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialTicket-1' */
+export type SystemAiAiCredentialTicketAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialTicket-1' */
+export type SystemAiAiCredentialTicketConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialTicket-1' */
+export type SystemAiAiCredentialTicketMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialTicket-1' */
+export type SystemAiAiCredentialTicketMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialTicket-1' */
+export type SystemAiAiCredentialTicketRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialTicket-1' */
+export type SystemAiAiCredentialTicketRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiCredentialTicket-1' */
+export type SystemAiAiCredentialTicketTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiCredentialTicket`. */
+export type SystemAiAiCredentialTicketConnectionDto = {
+  __typename?: 'SystemAiAiCredentialTicketConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiCredentialTicketEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiCredentialTicketDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiCredentialTicket`. */
+export type SystemAiAiCredentialTicketEdgeDto = {
+  __typename?: 'SystemAiAiCredentialTicketEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiCredentialTicketDto>;
+};
+
+export type SystemAiAiCredentialTicketInputDto = {
+  code?: InputMaybe<Scalars['String']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  expiresAt?: InputMaybe<Scalars['DateTime']['input']>;
+  issuedByUserId?: InputMaybe<Scalars['String']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  scope?: InputMaybe<SystemAiTicketScopeDto>;
+  status?: InputMaybe<SystemAiTicketStatusDto>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type SystemAiAiCredentialTicketInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiCredentialTicketInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiCredentialTicketMutationsDto = {
+  __typename?: 'SystemAiAiCredentialTicketMutations';
+  /** Creates new entities of type 'SystemAiAiCredentialTicket'. */
+  create?: Maybe<Array<Maybe<SystemAiAiCredentialTicketDto>>>;
+  /** Updates existing entity of type 'SystemAiAiCredentialTicket'. */
+  update?: Maybe<Array<Maybe<SystemAiAiCredentialTicketDto>>>;
+};
+
+
+export type SystemAiAiCredentialTicketMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiCredentialTicketInputDto>>;
+};
+
+
+export type SystemAiAiCredentialTicketMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiCredentialTicketInputUpdateDto>>;
+};
+
+export type SystemAiAiCredentialTicketUpdateDto = {
+  __typename?: 'SystemAiAiCredentialTicketUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiCredentialTicketDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiCredentialTicketUpdateMessageDto = {
+  __typename?: 'SystemAiAiCredentialTicketUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiCredentialTicketUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiKnowledgeSource-1' */
+export type SystemAiAiKnowledgeSourceDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiKnowledgeSource';
+  appliesToScopes: Scalars['String']['output'];
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  kind: SystemAiKnowledgeKindDto;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  path: Scalars['String']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  title: Scalars['String']['output'];
+  usedBy?: Maybe<SystemCommunicationPipeline_UsedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiKnowledgeSource-1' */
+export type SystemAiAiKnowledgeSourceAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiKnowledgeSource-1' */
+export type SystemAiAiKnowledgeSourceConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiKnowledgeSource-1' */
+export type SystemAiAiKnowledgeSourceMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiKnowledgeSource-1' */
+export type SystemAiAiKnowledgeSourceMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiKnowledgeSource-1' */
+export type SystemAiAiKnowledgeSourceRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiKnowledgeSource-1' */
+export type SystemAiAiKnowledgeSourceRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiKnowledgeSource-1' */
+export type SystemAiAiKnowledgeSourceTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiKnowledgeSource-1' */
+export type SystemAiAiKnowledgeSourceUsedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiKnowledgeSource`. */
+export type SystemAiAiKnowledgeSourceConnectionDto = {
+  __typename?: 'SystemAiAiKnowledgeSourceConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiKnowledgeSourceEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiKnowledgeSourceDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiKnowledgeSource`. */
+export type SystemAiAiKnowledgeSourceEdgeDto = {
+  __typename?: 'SystemAiAiKnowledgeSourceEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiKnowledgeSourceDto>;
+};
+
+export type SystemAiAiKnowledgeSourceInputDto = {
+  appliesToScopes?: InputMaybe<Scalars['String']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  kind?: InputMaybe<SystemAiKnowledgeKindDto>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  path?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  usedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type SystemAiAiKnowledgeSourceInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiKnowledgeSourceInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiKnowledgeSourceMutationsDto = {
+  __typename?: 'SystemAiAiKnowledgeSourceMutations';
+  /** Creates new entities of type 'SystemAiAiKnowledgeSource'. */
+  create?: Maybe<Array<Maybe<SystemAiAiKnowledgeSourceDto>>>;
+  /** Updates existing entity of type 'SystemAiAiKnowledgeSource'. */
+  update?: Maybe<Array<Maybe<SystemAiAiKnowledgeSourceDto>>>;
+};
+
+
+export type SystemAiAiKnowledgeSourceMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiKnowledgeSourceInputDto>>;
+};
+
+
+export type SystemAiAiKnowledgeSourceMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiKnowledgeSourceInputUpdateDto>>;
+};
+
+export type SystemAiAiKnowledgeSourceUpdateDto = {
+  __typename?: 'SystemAiAiKnowledgeSourceUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiKnowledgeSourceDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiKnowledgeSourceUpdateMessageDto = {
+  __typename?: 'SystemAiAiKnowledgeSourceUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiKnowledgeSourceUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiPromptTemplate-1' */
+export type SystemAiAiPromptTemplateDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiPromptTemplate';
+  appliesTo: SystemAiJobKindDto;
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  exampleGoals: Scalars['String']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  name: Scalars['String']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  systemPromptFragment: Scalars['String']['output'];
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  usedBy?: Maybe<SystemCommunicationPipeline_UsedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiPromptTemplate-1' */
+export type SystemAiAiPromptTemplateAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiPromptTemplate-1' */
+export type SystemAiAiPromptTemplateConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiPromptTemplate-1' */
+export type SystemAiAiPromptTemplateMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiPromptTemplate-1' */
+export type SystemAiAiPromptTemplateMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiPromptTemplate-1' */
+export type SystemAiAiPromptTemplateRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiPromptTemplate-1' */
+export type SystemAiAiPromptTemplateRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiPromptTemplate-1' */
+export type SystemAiAiPromptTemplateTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiPromptTemplate-1' */
+export type SystemAiAiPromptTemplateUsedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiPromptTemplate`. */
+export type SystemAiAiPromptTemplateConnectionDto = {
+  __typename?: 'SystemAiAiPromptTemplateConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiPromptTemplateEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiPromptTemplateDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiPromptTemplate`. */
+export type SystemAiAiPromptTemplateEdgeDto = {
+  __typename?: 'SystemAiAiPromptTemplateEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiPromptTemplateDto>;
+};
+
+export type SystemAiAiPromptTemplateInputDto = {
+  appliesTo?: InputMaybe<SystemAiJobKindDto>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  exampleGoals?: InputMaybe<Scalars['String']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  systemPromptFragment?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  usedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type SystemAiAiPromptTemplateInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiPromptTemplateInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiPromptTemplateMutationsDto = {
+  __typename?: 'SystemAiAiPromptTemplateMutations';
+  /** Creates new entities of type 'SystemAiAiPromptTemplate'. */
+  create?: Maybe<Array<Maybe<SystemAiAiPromptTemplateDto>>>;
+  /** Updates existing entity of type 'SystemAiAiPromptTemplate'. */
+  update?: Maybe<Array<Maybe<SystemAiAiPromptTemplateDto>>>;
+};
+
+
+export type SystemAiAiPromptTemplateMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiPromptTemplateInputDto>>;
+};
+
+
+export type SystemAiAiPromptTemplateMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiPromptTemplateInputUpdateDto>>;
+};
+
+export type SystemAiAiPromptTemplateUpdateDto = {
+  __typename?: 'SystemAiAiPromptTemplateUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiPromptTemplateDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiPromptTemplateUpdateMessageDto = {
+  __typename?: 'SystemAiAiPromptTemplateUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiPromptTemplateUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiQuotaLimit-1' */
+export type SystemAiAiQuotaLimitDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiQuotaLimit';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  concurrentJobs: Scalars['Int']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  costCapMonthlyEUR: Scalars['Decimal']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  maxSessionDurationMinutes: Scalars['Int']['output'];
+  maxSessionsQueued: Scalars['Int']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  tokensPerDay: Scalars['Int']['output'];
+  tokensPerJob: Scalars['Int']['output'];
+  usedBy?: Maybe<SystemCommunicationPipeline_UsedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiQuotaLimit-1' */
+export type SystemAiAiQuotaLimitAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiQuotaLimit-1' */
+export type SystemAiAiQuotaLimitConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiQuotaLimit-1' */
+export type SystemAiAiQuotaLimitMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiQuotaLimit-1' */
+export type SystemAiAiQuotaLimitMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiQuotaLimit-1' */
+export type SystemAiAiQuotaLimitRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiQuotaLimit-1' */
+export type SystemAiAiQuotaLimitRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiQuotaLimit-1' */
+export type SystemAiAiQuotaLimitTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiQuotaLimit-1' */
+export type SystemAiAiQuotaLimitUsedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiQuotaLimit`. */
+export type SystemAiAiQuotaLimitConnectionDto = {
+  __typename?: 'SystemAiAiQuotaLimitConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiQuotaLimitEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiQuotaLimitDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiQuotaLimit`. */
+export type SystemAiAiQuotaLimitEdgeDto = {
+  __typename?: 'SystemAiAiQuotaLimitEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiQuotaLimitDto>;
+};
+
+export type SystemAiAiQuotaLimitInputDto = {
+  concurrentJobs?: InputMaybe<Scalars['Int']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  costCapMonthlyEUR?: InputMaybe<Scalars['Decimal']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  maxSessionDurationMinutes?: InputMaybe<Scalars['Int']['input']>;
+  maxSessionsQueued?: InputMaybe<Scalars['Int']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  tokensPerDay?: InputMaybe<Scalars['Int']['input']>;
+  tokensPerJob?: InputMaybe<Scalars['Int']['input']>;
+  usedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type SystemAiAiQuotaLimitInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiQuotaLimitInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiQuotaLimitMutationsDto = {
+  __typename?: 'SystemAiAiQuotaLimitMutations';
+  /** Creates new entities of type 'SystemAiAiQuotaLimit'. */
+  create?: Maybe<Array<Maybe<SystemAiAiQuotaLimitDto>>>;
+  /** Updates existing entity of type 'SystemAiAiQuotaLimit'. */
+  update?: Maybe<Array<Maybe<SystemAiAiQuotaLimitDto>>>;
+};
+
+
+export type SystemAiAiQuotaLimitMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiQuotaLimitInputDto>>;
+};
+
+
+export type SystemAiAiQuotaLimitMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiQuotaLimitInputUpdateDto>>;
+};
+
+export type SystemAiAiQuotaLimitUpdateDto = {
+  __typename?: 'SystemAiAiQuotaLimitUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiQuotaLimitDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiQuotaLimitUpdateMessageDto = {
+  __typename?: 'SystemAiAiQuotaLimitUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiQuotaLimitUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiSessionEvent-1' */
+export type SystemAiAiSessionEventDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiSessionEvent';
+  actorRef: Scalars['String']['output'];
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  at: Scalars['DateTime']['output'];
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  kind: SystemAiSessionEventKindDto;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  payload: Scalars['String']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  sequence: Scalars['Int']['output'];
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiSessionEvent-1' */
+export type SystemAiAiSessionEventAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiSessionEvent-1' */
+export type SystemAiAiSessionEventConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiSessionEvent-1' */
+export type SystemAiAiSessionEventMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiSessionEvent-1' */
+export type SystemAiAiSessionEventMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiSessionEvent-1' */
+export type SystemAiAiSessionEventRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiSessionEvent-1' */
+export type SystemAiAiSessionEventRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiSessionEvent-1' */
+export type SystemAiAiSessionEventTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiSessionEvent`. */
+export type SystemAiAiSessionEventConnectionDto = {
+  __typename?: 'SystemAiAiSessionEventConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiSessionEventEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiSessionEventDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiSessionEvent`. */
+export type SystemAiAiSessionEventEdgeDto = {
+  __typename?: 'SystemAiAiSessionEventEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiSessionEventDto>;
+};
+
+export type SystemAiAiSessionEventInputDto = {
+  actorRef?: InputMaybe<Scalars['String']['input']>;
+  at?: InputMaybe<Scalars['DateTime']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  kind?: InputMaybe<SystemAiSessionEventKindDto>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  payload?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  sequence?: InputMaybe<Scalars['Int']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type SystemAiAiSessionEventInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiSessionEventInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiSessionEventMutationsDto = {
+  __typename?: 'SystemAiAiSessionEventMutations';
+  /** Creates new entities of type 'SystemAiAiSessionEvent'. */
+  create?: Maybe<Array<Maybe<SystemAiAiSessionEventDto>>>;
+  /** Updates existing entity of type 'SystemAiAiSessionEvent'. */
+  update?: Maybe<Array<Maybe<SystemAiAiSessionEventDto>>>;
+};
+
+
+export type SystemAiAiSessionEventMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiSessionEventInputDto>>;
+};
+
+
+export type SystemAiAiSessionEventMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiSessionEventInputUpdateDto>>;
+};
+
+export type SystemAiAiSessionEventUpdateDto = {
+  __typename?: 'SystemAiAiSessionEventUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiSessionEventDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiSessionEventUpdateMessageDto = {
+  __typename?: 'SystemAiAiSessionEventUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiSessionEventUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiTokenLease-1' */
+export type SystemAiAiTokenLeaseDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiTokenLease';
+  accessExpiresAt: Scalars['DateTime']['output'];
+  accessToken: Scalars['String']['output'];
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  generation: Scalars['Int']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  rateLimitTier: Scalars['String']['output'];
+  refreshExpiresAt: Scalars['DateTime']['output'];
+  refreshToken: Scalars['String']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  scopes: Scalars['String']['output'];
+  status: SystemAiLeaseStatusDto;
+  subscriptionType: Scalars['String']['output'];
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  trustedDeviceToken: Scalars['String']['output'];
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiTokenLease-1' */
+export type SystemAiAiTokenLeaseAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiTokenLease-1' */
+export type SystemAiAiTokenLeaseConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiTokenLease-1' */
+export type SystemAiAiTokenLeaseMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiTokenLease-1' */
+export type SystemAiAiTokenLeaseMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiTokenLease-1' */
+export type SystemAiAiTokenLeaseRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiTokenLease-1' */
+export type SystemAiAiTokenLeaseRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiTokenLease-1' */
+export type SystemAiAiTokenLeaseTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiTokenLease`. */
+export type SystemAiAiTokenLeaseConnectionDto = {
+  __typename?: 'SystemAiAiTokenLeaseConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiTokenLeaseEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiTokenLeaseDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiTokenLease`. */
+export type SystemAiAiTokenLeaseEdgeDto = {
+  __typename?: 'SystemAiAiTokenLeaseEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiTokenLeaseDto>;
+};
+
+export type SystemAiAiTokenLeaseInputDto = {
+  accessExpiresAt?: InputMaybe<Scalars['DateTime']['input']>;
+  accessToken?: InputMaybe<Scalars['String']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  generation?: InputMaybe<Scalars['Int']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rateLimitTier?: InputMaybe<Scalars['String']['input']>;
+  refreshExpiresAt?: InputMaybe<Scalars['DateTime']['input']>;
+  refreshToken?: InputMaybe<Scalars['String']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  scopes?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<SystemAiLeaseStatusDto>;
+  subscriptionType?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  trustedDeviceToken?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SystemAiAiTokenLeaseInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiTokenLeaseInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiTokenLeaseMutationsDto = {
+  __typename?: 'SystemAiAiTokenLeaseMutations';
+  /** Creates new entities of type 'SystemAiAiTokenLease'. */
+  create?: Maybe<Array<Maybe<SystemAiAiTokenLeaseDto>>>;
+  /** Updates existing entity of type 'SystemAiAiTokenLease'. */
+  update?: Maybe<Array<Maybe<SystemAiAiTokenLeaseDto>>>;
+};
+
+
+export type SystemAiAiTokenLeaseMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiTokenLeaseInputDto>>;
+};
+
+
+export type SystemAiAiTokenLeaseMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiTokenLeaseInputUpdateDto>>;
+};
+
+export type SystemAiAiTokenLeaseUpdateDto = {
+  __typename?: 'SystemAiAiTokenLeaseUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiTokenLeaseDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiTokenLeaseUpdateMessageDto = {
+  __typename?: 'SystemAiAiTokenLeaseUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiTokenLeaseUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiToolPolicy-1' */
+export type SystemAiAiToolPolicyDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiToolPolicy';
+  approvalMode: SystemAiApprovalModeDto;
+  approvalTimeoutMinutes?: Maybe<Scalars['Int']['output']>;
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  conflictMode: SystemAiConflictModeDto;
+  constructionKitType?: Maybe<CkTypeDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  risk: SystemAiRiskLevelDto;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+  toolName: Scalars['String']['output'];
+  usedBy?: Maybe<SystemCommunicationPipeline_UsedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiToolPolicy-1' */
+export type SystemAiAiToolPolicyAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiToolPolicy-1' */
+export type SystemAiAiToolPolicyConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiToolPolicy-1' */
+export type SystemAiAiToolPolicyMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiToolPolicy-1' */
+export type SystemAiAiToolPolicyMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiToolPolicy-1' */
+export type SystemAiAiToolPolicyRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiToolPolicy-1' */
+export type SystemAiAiToolPolicyRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiToolPolicy-1' */
+export type SystemAiAiToolPolicyTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiToolPolicy-1' */
+export type SystemAiAiToolPolicyUsedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiToolPolicy`. */
+export type SystemAiAiToolPolicyConnectionDto = {
+  __typename?: 'SystemAiAiToolPolicyConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiToolPolicyEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiToolPolicyDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiToolPolicy`. */
+export type SystemAiAiToolPolicyEdgeDto = {
+  __typename?: 'SystemAiAiToolPolicyEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiToolPolicyDto>;
+};
+
+export type SystemAiAiToolPolicyInputDto = {
+  approvalMode?: InputMaybe<SystemAiApprovalModeDto>;
+  approvalTimeoutMinutes?: InputMaybe<Scalars['Int']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  conflictMode?: InputMaybe<SystemAiConflictModeDto>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  risk?: InputMaybe<SystemAiRiskLevelDto>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  toolName?: InputMaybe<Scalars['String']['input']>;
+  usedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type SystemAiAiToolPolicyInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiToolPolicyInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiToolPolicyMutationsDto = {
+  __typename?: 'SystemAiAiToolPolicyMutations';
+  /** Creates new entities of type 'SystemAiAiToolPolicy'. */
+  create?: Maybe<Array<Maybe<SystemAiAiToolPolicyDto>>>;
+  /** Updates existing entity of type 'SystemAiAiToolPolicy'. */
+  update?: Maybe<Array<Maybe<SystemAiAiToolPolicyDto>>>;
+};
+
+
+export type SystemAiAiToolPolicyMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiToolPolicyInputDto>>;
+};
+
+
+export type SystemAiAiToolPolicyMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiToolPolicyInputUpdateDto>>;
+};
+
+export type SystemAiAiToolPolicyUpdateDto = {
+  __typename?: 'SystemAiAiToolPolicyUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiToolPolicyDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiToolPolicyUpdateMessageDto = {
+  __typename?: 'SystemAiAiToolPolicyUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiToolPolicyUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiUsageRecord-1' */
+export type SystemAiAiUsageRecordDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemAiAiUsageRecord';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  at: Scalars['DateTime']['output'];
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  costCents: Scalars['Decimal']['output'];
+  inputTokens: Scalars['Int']['output'];
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  model: Scalars['String']['output'];
+  outputTokens: Scalars['Int']['output'];
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  sessionRef: Scalars['String']['output'];
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiUsageRecord-1' */
+export type SystemAiAiUsageRecordAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiUsageRecord-1' */
+export type SystemAiAiUsageRecordConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiUsageRecord-1' */
+export type SystemAiAiUsageRecordMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiUsageRecord-1' */
+export type SystemAiAiUsageRecordMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiUsageRecord-1' */
+export type SystemAiAiUsageRecordRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiUsageRecord-1' */
+export type SystemAiAiUsageRecordRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Ai-3.5.0/AiUsageRecord-1' */
+export type SystemAiAiUsageRecordTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+/** A connection to `SystemAiAiUsageRecord`. */
+export type SystemAiAiUsageRecordConnectionDto = {
+  __typename?: 'SystemAiAiUsageRecordConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemAiAiUsageRecordEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemAiAiUsageRecordDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemAiAiUsageRecord`. */
+export type SystemAiAiUsageRecordEdgeDto = {
+  __typename?: 'SystemAiAiUsageRecordEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemAiAiUsageRecordDto>;
+};
+
+export type SystemAiAiUsageRecordInputDto = {
+  at?: InputMaybe<Scalars['DateTime']['input']>;
+  configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  costCents?: InputMaybe<Scalars['Decimal']['input']>;
+  inputTokens?: InputMaybe<Scalars['Int']['input']>;
+  mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  model?: InputMaybe<Scalars['String']['input']>;
+  outputTokens?: InputMaybe<Scalars['Int']['input']>;
+  relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
+  rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
+  rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
+  rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  sessionRef?: InputMaybe<Scalars['String']['input']>;
+  taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+};
+
+export type SystemAiAiUsageRecordInputUpdateDto = {
+  /** Item to update */
+  item: SystemAiAiUsageRecordInputDto;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+};
+
+export type SystemAiAiUsageRecordMutationsDto = {
+  __typename?: 'SystemAiAiUsageRecordMutations';
+  /** Creates new entities of type 'SystemAiAiUsageRecord'. */
+  create?: Maybe<Array<Maybe<SystemAiAiUsageRecordDto>>>;
+  /** Updates existing entity of type 'SystemAiAiUsageRecord'. */
+  update?: Maybe<Array<Maybe<SystemAiAiUsageRecordDto>>>;
+};
+
+
+export type SystemAiAiUsageRecordMutationsCreateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiUsageRecordInputDto>>;
+};
+
+
+export type SystemAiAiUsageRecordMutationsUpdateArgsDto = {
+  entities: Array<InputMaybe<SystemAiAiUsageRecordInputUpdateDto>>;
+};
+
+export type SystemAiAiUsageRecordUpdateDto = {
+  __typename?: 'SystemAiAiUsageRecordUpdate';
+  /** The corresponding item */
+  item?: Maybe<SystemAiAiUsageRecordDto>;
+  updateState?: Maybe<UpdateTypeDto>;
+};
+
+export type SystemAiAiUsageRecordUpdateMessageDto = {
+  __typename?: 'SystemAiAiUsageRecordUpdateMessage';
+  /** The corresponding items */
+  items?: Maybe<Array<Maybe<SystemAiAiUsageRecordUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit enum 'System.Ai/ApprovalMode' */
+export enum SystemAiApprovalModeDto {
+  AutoDto = 'AUTO',
+  DisabledDto = 'DISABLED',
+  RequiredDto = 'REQUIRED'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/ApprovalReason' */
+export enum SystemAiApprovalReasonDto {
+  ConflictDto = 'CONFLICT',
+  ManualDto = 'MANUAL',
+  QuotaOverrideDto = 'QUOTA_OVERRIDE',
+  RiskDto = 'RISK'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/ApprovalStatus' */
+export enum SystemAiApprovalStatusDto {
+  ApprovedDto = 'APPROVED',
+  PendingDto = 'PENDING',
+  RejectedDto = 'REJECTED',
+  TimedOutDto = 'TIMED_OUT'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/AuthMode' */
+export enum SystemAiAuthModeDto {
+  ByoKeyDto = 'BYO_KEY',
+  CentralKeyDto = 'CENTRAL_KEY',
+  SubscriptionDto = 'SUBSCRIPTION'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/ConflictMode' */
+export enum SystemAiConflictModeDto {
+  AlwaysApproveDto = 'ALWAYS_APPROVE',
+  AutoRetryDto = 'AUTO_RETRY',
+  RetryThenApproveDto = 'RETRY_THEN_APPROVE'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/CredentialKind' */
+export enum SystemAiCredentialKindDto {
+  DevSshAuthorizedKeyDto = 'DEV_SSH_AUTHORIZED_KEY',
+  EnvSecretDto = 'ENV_SECRET',
+  GitHubPatDto = 'GIT_HUB_PAT',
+  SshKeyDto = 'SSH_KEY'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/JobKind' */
+export enum SystemAiJobKindDto {
+  AdminDto = 'ADMIN',
+  ApplicationDto = 'APPLICATION',
+  BlueprintAuthoringDto = 'BLUEPRINT_AUTHORING',
+  DataModelDto = 'DATA_MODEL',
+  FreeFormDto = 'FREE_FORM',
+  PipelineDto = 'PIPELINE',
+  RuntimeDataDto = 'RUNTIME_DATA'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/JobStatus' */
+export enum SystemAiJobStatusDto {
+  ActiveDto = 'ACTIVE',
+  CancelledDto = 'CANCELLED',
+  CompletedDto = 'COMPLETED',
+  FailedDto = 'FAILED'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/KnowledgeKind' */
+export enum SystemAiKnowledgeKindDto {
+  ClaudeMdDto = 'CLAUDE_MD',
+  McpResourceDto = 'MCP_RESOURCE',
+  RagDocDto = 'RAG_DOC',
+  UrlDto = 'URL'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/LeaseStatus' */
+export enum SystemAiLeaseStatusDto {
+  ActiveDto = 'ACTIVE',
+  ExpiredDto = 'EXPIRED',
+  RefreshFailedDto = 'REFRESH_FAILED',
+  RevokedDto = 'REVOKED'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/ModelTier' */
+export enum SystemAiModelTierDto {
+  HaikuDto = 'HAIKU',
+  OpusDto = 'OPUS',
+  SonnetDto = 'SONNET'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/RiskLevel' */
+export enum SystemAiRiskLevelDto {
+  HighDto = 'HIGH',
+  LowDto = 'LOW',
+  MediumDto = 'MEDIUM'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/SessionEventKind' */
+export enum SystemAiSessionEventKindDto {
+  ErrorDto = 'ERROR',
+  HookDto = 'HOOK',
+  MessageDto = 'MESSAGE',
+  StatusChangeDto = 'STATUS_CHANGE',
+  ToolCallDto = 'TOOL_CALL',
+  ToolResultDto = 'TOOL_RESULT'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/SessionStatus' */
+export enum SystemAiSessionStatusDto {
+  CancelledDto = 'CANCELLED',
+  CompletedDto = 'COMPLETED',
+  FailedDto = 'FAILED',
+  PausedDto = 'PAUSED',
+  QueuedDto = 'QUEUED',
+  QuotaBlockedDto = 'QUOTA_BLOCKED',
+  RateLimitedDto = 'RATE_LIMITED',
+  RunningDto = 'RUNNING'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/SubscriptionScope' */
+export enum SystemAiSubscriptionScopeDto {
+  MeshmakersPoolDto = 'MESHMAKERS_POOL',
+  PerUserDto = 'PER_USER',
+  ServiceAccountDto = 'SERVICE_ACCOUNT'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/TicketScope' */
+export enum SystemAiTicketScopeDto {
+  CredentialRegisterDto = 'CREDENTIAL_REGISTER',
+  DevSshKeyRegisterDto = 'DEV_SSH_KEY_REGISTER'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/TicketStatus' */
+export enum SystemAiTicketStatusDto {
+  ExpiredDto = 'EXPIRED',
+  OpenDto = 'OPEN',
+  RedeemedDto = 'REDEEMED'
+}
+
+/** Runtime entities of construction kit enum 'System.Ai/WorkspaceMode' */
+export enum SystemAiWorkspaceModeDto {
+  PersistentHibernatingDto = 'PERSISTENT_HIBERNATING',
+  PerSessionDto = 'PER_SESSION',
+  PoolDto = 'POOL'
 }
 
 /** Runtime entities of construction kit record 'System/AttributeSearchFilter' */
@@ -37283,7 +40962,7 @@ export type SystemConfigurationUpdateMessageDto = {
 };
 
 /** Union of types derived from System/Configuration for IsUsing association */
-export type SystemConfiguration_IsUsingUnionDto = SystemCommunicationAiConfigurationDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationWeClappConfigurationDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationMailNotificationConfigurationDto | SystemReportingConnectionInfoDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto;
+export type SystemConfiguration_IsUsingUnionDto = SystemAiAiAgentConfigDto | SystemAiAiCredentialBindingDto | SystemAiAiKnowledgeSourceDto | SystemAiAiPromptTemplateDto | SystemAiAiQuotaLimitDto | SystemAiAiToolPolicyDto | SystemCommunicationAiConfigurationDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationWeClappConfigurationDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationMailNotificationConfigurationDto | SystemReportingConnectionInfoDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto;
 
 /** A connection to `SystemConfiguration_IsUsingUnion`. */
 export type SystemConfiguration_IsUsingUnionConnectionDto = {
@@ -37806,7 +41485,7 @@ export type SystemEntityUpdateMessageDto = {
 };
 
 /** Union of types derived from System/Entity for Configures association */
-export type SystemEntity_ConfiguresUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
+export type SystemEntity_ConfiguresUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAiAiAgentConfigDto | SystemAiAiAgentJobDto | SystemAiAiAgentSessionDto | SystemAiAiApprovalRequestDto | SystemAiAiAuditEventDto | SystemAiAiCredentialBindingDto | SystemAiAiCredentialTicketDto | SystemAiAiKnowledgeSourceDto | SystemAiAiPromptTemplateDto | SystemAiAiQuotaLimitDto | SystemAiAiSessionEventDto | SystemAiAiTokenLeaseDto | SystemAiAiToolPolicyDto | SystemAiAiUsageRecordDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
 
 /** A connection to `SystemEntity_ConfiguresUnion`. */
 export type SystemEntity_ConfiguresUnionConnectionDto = {
@@ -37835,7 +41514,7 @@ export type SystemEntity_ConfiguresUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for IsTagging association */
-export type SystemEntity_IsTaggingUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
+export type SystemEntity_IsTaggingUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAiAiAgentConfigDto | SystemAiAiAgentJobDto | SystemAiAiAgentSessionDto | SystemAiAiApprovalRequestDto | SystemAiAiAuditEventDto | SystemAiAiCredentialBindingDto | SystemAiAiCredentialTicketDto | SystemAiAiKnowledgeSourceDto | SystemAiAiPromptTemplateDto | SystemAiAiQuotaLimitDto | SystemAiAiSessionEventDto | SystemAiAiTokenLeaseDto | SystemAiAiToolPolicyDto | SystemAiAiUsageRecordDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
 
 /** A connection to `SystemEntity_IsTaggingUnion`. */
 export type SystemEntity_IsTaggingUnionConnectionDto = {
@@ -37864,7 +41543,7 @@ export type SystemEntity_IsTaggingUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for MappedAsSource association */
-export type SystemEntity_MappedAsSourceUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
+export type SystemEntity_MappedAsSourceUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAiAiAgentConfigDto | SystemAiAiAgentJobDto | SystemAiAiAgentSessionDto | SystemAiAiApprovalRequestDto | SystemAiAiAuditEventDto | SystemAiAiCredentialBindingDto | SystemAiAiCredentialTicketDto | SystemAiAiKnowledgeSourceDto | SystemAiAiPromptTemplateDto | SystemAiAiQuotaLimitDto | SystemAiAiSessionEventDto | SystemAiAiTokenLeaseDto | SystemAiAiToolPolicyDto | SystemAiAiUsageRecordDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
 
 /** A connection to `SystemEntity_MappedAsSourceUnion`. */
 export type SystemEntity_MappedAsSourceUnionConnectionDto = {
@@ -37893,7 +41572,7 @@ export type SystemEntity_MappedAsSourceUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for MappedAsTarget association */
-export type SystemEntity_MappedAsTargetUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
+export type SystemEntity_MappedAsTargetUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAiAiAgentConfigDto | SystemAiAiAgentJobDto | SystemAiAiAgentSessionDto | SystemAiAiApprovalRequestDto | SystemAiAiAuditEventDto | SystemAiAiCredentialBindingDto | SystemAiAiCredentialTicketDto | SystemAiAiKnowledgeSourceDto | SystemAiAiPromptTemplateDto | SystemAiAiQuotaLimitDto | SystemAiAiSessionEventDto | SystemAiAiTokenLeaseDto | SystemAiAiToolPolicyDto | SystemAiAiUsageRecordDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
 
 /** A connection to `SystemEntity_MappedAsTargetUnion`. */
 export type SystemEntity_MappedAsTargetUnionConnectionDto = {
@@ -37922,7 +41601,7 @@ export type SystemEntity_MappedAsTargetUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for RelatesFrom association */
-export type SystemEntity_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
+export type SystemEntity_RelatesFromUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAiAiAgentConfigDto | SystemAiAiAgentJobDto | SystemAiAiAgentSessionDto | SystemAiAiApprovalRequestDto | SystemAiAiAuditEventDto | SystemAiAiCredentialBindingDto | SystemAiAiCredentialTicketDto | SystemAiAiKnowledgeSourceDto | SystemAiAiPromptTemplateDto | SystemAiAiQuotaLimitDto | SystemAiAiSessionEventDto | SystemAiAiTokenLeaseDto | SystemAiAiToolPolicyDto | SystemAiAiUsageRecordDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
 
 /** A connection to `SystemEntity_RelatesFromUnion`. */
 export type SystemEntity_RelatesFromUnionConnectionDto = {
@@ -37951,7 +41630,7 @@ export type SystemEntity_RelatesFromUnionEdgeDto = {
 };
 
 /** Union of types derived from System/Entity for RelatesTo association */
-export type SystemEntity_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
+export type SystemEntity_RelatesToUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEmployeeDto | BasicEnergyConsentPeriodDto | BasicEnergyConsumerDto | BasicEnergyEdaMessageDto | BasicEnergyEdaMeteringPointDto | BasicEnergyEdaProcessDto | BasicEnergyEnergyMeasurementDto | BasicEnergyOperatingFacilityDto | BasicEnergyProducerDto | BasicStateDto | BasicTreeDto | BasicTreeNodeDto | EnergyCommunityBillingDocumentDto | EnergyCommunityBillingDocumentLineItemDto | EnergyCommunityConsumerDto | EnergyCommunityCustomerDto | EnergyCommunityEnergyPriceDto | EnergyCommunityParticipationPeriodDto | EnergyCommunityProducerDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicAlarmDto | IndustryBasicEventDto | IndustryBasicMachineDto | IndustryBasicRuntimeVariableDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceAccountDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceEnergyBalanceDto | IndustryMaintenanceJournalEntryDto | IndustryMaintenanceOrderDto | IndustryMaintenanceOrderCostsDto | IndustryMaintenanceOrderFeedbackDto | IndustryMaintenanceWorkplaceDto | IndustryManufacturingPartialFeedbackDto | IndustryManufacturingProductionOrderDto | IndustryManufacturingProductionOrderItemDto | IndustryManufacturingShiftDto | IndustryManufacturingShiftMachineDto | IndustryManufacturingShiftOrderItemDto | IndustryManufacturingShiftTemplateDto | OctoSdkDemoCustomerDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto | SystemAggregationRtQueryDto | SystemAggregationSdQueryDto | SystemAiAiAgentConfigDto | SystemAiAiAgentJobDto | SystemAiAiAgentSessionDto | SystemAiAiApprovalRequestDto | SystemAiAiAuditEventDto | SystemAiAiCredentialBindingDto | SystemAiAiCredentialTicketDto | SystemAiAiKnowledgeSourceDto | SystemAiAiPromptTemplateDto | SystemAiAiQuotaLimitDto | SystemAiAiSessionEventDto | SystemAiAiTokenLeaseDto | SystemAiAiToolPolicyDto | SystemAiAiUsageRecordDto | SystemAutoIncrementDto | SystemBlueprintBackupDto | SystemBlueprintHistoryDto | SystemBlueprintInstallationDto | SystemBotAttributeAggregateConfigurationDto | SystemBotFixupDto | SystemCommunicationAdapterDto | SystemCommunicationAiConfigurationDto | SystemCommunicationApplicationDto | SystemCommunicationDataFlowDto | SystemCommunicationDataPointMappingDto | SystemCommunicationDiscordConfigurationDto | SystemCommunicationEMailReceiverConfigurationDto | SystemCommunicationEMailSenderConfigurationDto | SystemCommunicationEdaConfigurationDto | SystemCommunicationEnergyCommunityConfigurationDto | SystemCommunicationFinApiConfigurationDto | SystemCommunicationGrafanaConfigurationDto | SystemCommunicationHelmRepositoryConfigurationDto | SystemCommunicationLoxoneConfigurationDto | SystemCommunicationMicrosoftGraphConfigurationDto | SystemCommunicationPipelineDto | SystemCommunicationPipelineExecutionDto | SystemCommunicationPipelineStatisticsDto | SystemCommunicationPipelineTriggerDto | SystemCommunicationPoolDto | SystemCommunicationSapConfigurationDto | SystemCommunicationServiceAccountConfigurationDto | SystemCommunicationSftpConfigurationDto | SystemCommunicationSignalChannelDto | SystemCommunicationTagDto | SystemCommunicationWeClappConfigurationDto | SystemDownsamplingSdQueryDto | SystemGroupingAggregationRtQueryDto | SystemGroupingAggregationSdQueryDto | SystemIdentityApiResourceDto | SystemIdentityApiScopeDto | SystemIdentityAzureEntraIdIdentityProviderDto | SystemIdentityClientDto | SystemIdentityClientMirrorDto | SystemIdentityDataPermissionDto | SystemIdentityDataPolicyDto | SystemIdentityDataProtectionKeyDto | SystemIdentityEmailDomainGroupRuleDto | SystemIdentityExternalTenantUserMappingDto | SystemIdentityFacebookIdentityProviderDto | SystemIdentityGoogleIdentityProviderDto | SystemIdentityGroupDto | SystemIdentityIdentityResourceDto | SystemIdentityMicrosoftAdIdentityProviderDto | SystemIdentityMicrosoftIdentityProviderDto | SystemIdentityOAuthAuthorizationDto | SystemIdentityOAuthTokenDto | SystemIdentityOctoTenantIdentityProviderDto | SystemIdentityOpenLdapIdentityProviderDto | SystemIdentityPermissionDto | SystemIdentityPermissionRoleDto | SystemIdentityPersistedGrantDto | SystemIdentityRoleDto | SystemIdentityServerSideSessionDto | SystemIdentityUserDto | SystemIdentityVerifiedExternalIdentifierDto | SystemMigrationHistoryDto | SystemNotificationCssTemplateConfigurationDto | SystemNotificationEventDto | SystemNotificationMailNotificationConfigurationDto | SystemNotificationNotificationTemplateDto | SystemNotificationStatefulEventDto | SystemReportingConnectionInfoDto | SystemReportingFileSystemItemDto | SystemReportingFolderDto | SystemReportingFolderRootDto | SystemSimpleRtQueryDto | SystemSimpleSdQueryDto | SystemStreamDataRawArchiveDto | SystemStreamDataRecomputeJobDto | SystemStreamDataRollupArchiveDto | SystemStreamDataTimeRangeArchiveDto | SystemTenantDto | SystemTenantConfigurationDto | SystemTenantModeConfigurationDto | SystemUiBrandingDto | SystemUiDashboardDto | SystemUiDashboardWidgetDto | SystemUiMappingCoverageConfigurationDto | SystemUiProcessDiagramDto | SystemUiSymbolDefinitionDto | SystemUiSymbolLibraryDto | SystemUiTreeNavigationConfigurationDto;
 
 /** A connection to `SystemEntity_RelatesToUnion`. */
 export type SystemEntity_RelatesToUnionConnectionDto = {
