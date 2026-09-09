@@ -8,7 +8,7 @@ export type ResolveSeriesQueryQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type ResolveSeriesQueryQueryDto = { __typename?: 'OctoQuery', streamData?: { __typename?: 'StreamDataModelQuery', resolveSeriesQuery?: { __typename?: 'ResolveSeriesQueryResult', archiveRtId: any, effectiveBucketMs: any, points: number, reducingFunction: Types.CkRollupFunctionDto, signal: Types.SeriesResolutionSignalDto, actualPoints?: number | null, diagnostic?: string | null } | null } | null };
+export type ResolveSeriesQueryQueryDto = { __typename?: 'OctoQuery', streamData?: { __typename?: 'StreamDataModelQuery', resolveSeriesQuery?: { __typename?: 'ResolveSeriesQueryResult', archiveRtId: any, effectiveBucketMs: any, points: number, reducingFunction: Types.CkRollupFunctionDto, signal: Types.SeriesResolutionSignalDto, actualPoints?: number | null, diagnostic?: string | null, finerRungAvailableFrom?: any | null } | null } | null };
 
 export const ResolveSeriesQueryDocumentDto = gql`
     query resolveSeriesQuery($input: ResolveSeriesQueryInput!) {
@@ -21,6 +21,7 @@ export const ResolveSeriesQueryDocumentDto = gql`
       signal
       actualPoints
       diagnostic
+      finerRungAvailableFrom
     }
   }
 }

@@ -374,12 +374,29 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * Resolution-aware hint (AB#4290): a short badge describing the archive-selection outcome —
    * `null` for a clean reduction (signal OK), a warning otherwise (fewer points delivered, or no
    * compatible rollup so the raw archive was returned unreduced). Mirrors the resolver's signal.
+   * `CoverageLimited` (AB#5157) is a distinct badge: a finer rung was skipped for holding no data
+   * over the window, which is a history gap rather than a density problem — so it is always shown,
+   * bypassing the {@link RESOLUTION_LIMIT_WARN_PX} suppression that mutes a merely coarse line.
    */
   readonly resolutionHint = computed((): { text: string; title: string } | null => {
     const s = this._resolutionSignal();
     if (!s) return null;
     const diag = s.diagnostic ?? '';
     switch (s.signal) {
+      case SeriesResolutionSignalDto.CoverageLimitedDto: {
+        // Coverage, not density (AB#5157): the finer rung was skipped because it holds NO data
+        // over the window, so the pixel-density suppression must not apply — a dense-looking
+        // coarse line is still the wrong answer to "where is my history?". Always flagged.
+        const availableFrom = formatInstant(s.finerRungAvailableFrom, this.stateService.timeZoneMode(), {
+          day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+        return {
+          text: '⚠ no history',
+          title: availableFrom
+            ? `History at this resolution is available from ${availableFrom}`
+            : diag || 'A finer resolution exists but holds no data for this time range.'
+        };
+      }
       case SeriesResolutionSignalDto.ResolutionLimitedDto: {
         const delivered = s.actualPoints ?? s.points;
         const requested = this._resolutionTarget();
@@ -412,7 +429,20 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const delivered = s.actualPoints ?? s.points;
     const requested = this._resolutionTarget();
     const ofReq = requested ? ` (the chart could show ~${requested})` : '';
+    const diag = s.diagnostic ?? '';
     switch (s.signal) {
+      case SeriesResolutionSignalDto.CoverageLimitedDto: {
+        const availableFrom = formatInstant(s.finerRungAvailableFrom, this.stateService.timeZoneMode(), {
+          day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+        const from = availableFrom
+          ? ` That resolution only has history from ${availableFrom} onwards.`
+          : '';
+        return `A finer resolution exists for this series, but it holds no data for the selected time range, `
+          + `so the chart fell back to a coarser one (${delivered} point(s)${ofReq}).${from} `
+          + `The values are correct — narrow the range to a covered period to see finer detail.`
+          + (diag ? ` ${diag}` : '');
+      }
       case SeriesResolutionSignalDto.ResolutionLimitedDto:
         return `This chart auto-selects the coarsest stored resolution that still fits the view. `
           + `For this time range the finest matching rollup only provides ${delivered} point(s)${ofReq}, `

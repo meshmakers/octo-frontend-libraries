@@ -395,6 +395,31 @@ describe('QueryExecutorService', () => {
       expect(result!.signal).toBe(SeriesResolutionSignalDto.OkDto);
     });
 
+    it('passes the coverage signal through unchanged (AB#5157)', async () => {
+      const diagnostic = 'Skipped rollup-15m: no measured coverage in the requested window.';
+      resolveSeriesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
+        streamData: {
+          resolveSeriesQuery: {
+            archiveRtId: 'rollup-1d',
+            effectiveBucketMs: 86400000,
+            points: 365,
+            reducingFunction: CkRollupFunctionDto.SumDto,
+            signal: SeriesResolutionSignalDto.CoverageLimitedDto,
+            actualPoints: 365,
+            diagnostic,
+            finerRungAvailableFrom: '2026-06-01T00:00:00Z'
+          }
+        }
+      })) as ReturnType<typeof resolveSeriesGqlSpy.fetch>);
+
+      const result = await service.resolveSeriesQuery(input);
+
+      expect(result!.signal).toBe(SeriesResolutionSignalDto.CoverageLimitedDto);
+      expect(result!.actualPoints).toBe(365);
+      expect(result!.diagnostic).toBe(diagnostic);
+      expect(result!.finerRungAvailableFrom).toBe('2026-06-01T00:00:00Z');
+    });
+
     it('returns null when StreamData is not enabled (no decision)', async () => {
       resolveSeriesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
         streamData: { resolveSeriesQuery: null }
