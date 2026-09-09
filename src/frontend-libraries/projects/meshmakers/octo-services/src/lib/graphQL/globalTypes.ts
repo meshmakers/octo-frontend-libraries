@@ -233,6 +233,8 @@ export type BasicAssetDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -576,6 +578,8 @@ export type BasicCityDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -862,6 +866,8 @@ export type BasicCountryDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -1115,6 +1121,8 @@ export type BasicDistrictDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -1365,6 +1373,8 @@ export type BasicDocumentDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -1515,6 +1525,8 @@ export type BasicDocumentInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -1660,6 +1672,8 @@ export type BasicEmployeeDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -1987,6 +2001,8 @@ export type BasicEnergyConsentPeriodDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -2296,6 +2312,8 @@ export type BasicEnergyConsumerDto = BasicEnergyMeteringPointInterfaceDto & Basi
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -2603,6 +2621,8 @@ export type BasicEnergyEdaMessageDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -2863,6 +2883,8 @@ export type BasicEnergyEdaMeteringPointDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -3082,6 +3104,8 @@ export type BasicEnergyEdaProcessDto = BasicNamedEntityInterfaceDto & SystemEnti
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -3392,6 +3416,8 @@ export type BasicEnergyEnergyMeasurementDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -3669,6 +3695,8 @@ export type BasicEnergyMeteringPointDto = BasicNamedEntityInterfaceDto & SystemE
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -3899,6 +3927,8 @@ export type BasicEnergyMeteringPointInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -4188,6 +4218,8 @@ export type BasicEnergyOperatingFacilityDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -4525,6 +4557,8 @@ export type BasicEnergyProducerDto = BasicEnergyMeteringPointInterfaceDto & Basi
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -4907,6 +4941,8 @@ export type BasicNamedEntityDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -5057,6 +5093,8 @@ export type BasicNamedEntityInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -5210,6 +5248,8 @@ export type BasicStateDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -5474,6 +5514,8 @@ export type BasicTreeDto = BasicNamedEntityInterfaceDto & SystemEntityInterfaceD
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -5684,6 +5726,8 @@ export type BasicTreeNodeDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -6106,8 +6150,12 @@ export enum BasicUnitOfMeasureDto {
 /** Blueprint listing entry surfaced from any configured catalog. */
 export type BlueprintDto = {
   __typename?: 'Blueprint';
+  /** Blueprint dependency id strings as declared in the blueprint's blueprintDependencies (e.g. "MeshmakersAccounting-[1.0.0,)"). Empty when none — use it to filter the catalog to add-ons that depend on a given base blueprint. */
+  blueprintDependencies: Array<Scalars['String']['output']>;
   /** Name of the catalog this entry was found in (e.g. "PublicGitHubBlueprintCatalog"). */
   catalogName: Scalars['String']['output'];
+  /** CK model dependency id strings as declared in the blueprint's ckModelDependencies (e.g. "Meshmakers.Accounting-[1.24.0,2.0)"). Empty when none. */
+  ckModelDependencies: Array<Scalars['String']['output']>;
   /** Optional description. */
   description?: Maybe<Scalars['String']['output']>;
   /** Fully-qualified blueprint id (Name-Version), e.g. "InfrastructureStarter-1.0.0". */
@@ -6789,6 +6837,8 @@ export type CkTypeDto = {
   isAbstract: Scalars['Boolean']['output'];
   /** Indicates if the type is final. */
   isFinal: Scalars['Boolean']['output'];
+  /** Effective owner attribute path for owned-only data permissions (AB#4978), e.g. 'AssigneeId' or 'Owner.UserId' - the nearest declared path along the base-type chain, resolved from the runtime type graph. Null means ownership is the server-stamped rtCreatedBy. */
+  ownerAttributePath?: Maybe<Scalars['String']['output']>;
   /** Runtime construction kit type id, the unique identifier of the type. */
   rtCkTypeId: Scalars['RtCkTypeId']['output'];
 };
@@ -7159,6 +7209,8 @@ export type EnergyCommunityBillingDocumentDto = BasicDocumentInterfaceDto & Syst
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -7384,6 +7436,8 @@ export type EnergyCommunityBillingDocumentLineItemDto = SystemEntityInterfaceDto
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -7813,6 +7867,8 @@ export type EnergyCommunityConsumerDto = BasicEnergyMeteringPointInterfaceDto & 
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -8107,6 +8163,8 @@ export type EnergyCommunityCustomerDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -8408,6 +8466,8 @@ export type EnergyCommunityEnergyPriceDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -8612,6 +8672,8 @@ export type EnergyCommunityParticipationPeriodDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -8873,6 +8935,8 @@ export type EnergyCommunityProducerDto = BasicEnergyMeteringPointInterfaceDto & 
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -9180,6 +9244,8 @@ export type EnvironmentCarbonBudgetDto = BasicNamedEntityInterfaceDto & SystemEn
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -9409,6 +9475,8 @@ export type EnvironmentCarbonEmissionDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -9646,6 +9714,8 @@ export type EnvironmentCertificateOfOriginDto = BasicNamedEntityInterfaceDto & S
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -9886,6 +9956,8 @@ export type EnvironmentComplianceRecordDto = BasicNamedEntityInterfaceDto & Syst
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -10133,6 +10205,8 @@ export type EnvironmentEnvironmentalGoalDto = BasicNamedEntityInterfaceDto & Sys
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -10366,6 +10440,8 @@ export type EnvironmentWasteMeterDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -10705,6 +10781,8 @@ export type IndustryBasicAlarmDto = BasicNamedEntityInterfaceDto & SystemEntityI
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -11049,6 +11127,8 @@ export type IndustryBasicEventDto = BasicNamedEntityInterfaceDto & SystemEntityI
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -11403,6 +11483,8 @@ export type IndustryBasicMachineDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -11773,6 +11855,8 @@ export type IndustryBasicRuntimeVariableDto = BasicNamedEntityInterfaceDto & Sys
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -12037,6 +12121,8 @@ export type IndustryEnergyDemandResponseEventDto = BasicNamedEntityInterfaceDto 
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -12293,6 +12379,8 @@ export type IndustryEnergyEnergyConsumerDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -12617,6 +12705,8 @@ export type IndustryEnergyEnergyCostDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -12843,6 +12933,8 @@ export type IndustryEnergyEnergyForecastDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -13086,6 +13178,8 @@ export type IndustryEnergyEnergyMeterDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -13421,6 +13515,8 @@ export type IndustryEnergyEnergyPerformanceIndicatorDto = BasicNamedEntityInterf
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -13662,6 +13758,8 @@ export type IndustryEnergyEnergyStorageDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -14013,6 +14111,8 @@ export type IndustryEnergyInverterDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -14363,6 +14463,8 @@ export type IndustryEnergyPhotovoltaicSystemDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -14609,6 +14711,8 @@ export type IndustryEnergyPhotovoltaicSystemModuleDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -14954,6 +15058,8 @@ export type IndustryEnergyPhotovoltaicSystemStringDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -15256,6 +15362,8 @@ export type IndustryFluidHeatMeterDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -15597,6 +15705,8 @@ export type IndustryFluidWaterMeterDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -15924,6 +16034,8 @@ export type IndustryMaintenanceAccountDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -16192,6 +16304,8 @@ export type IndustryMaintenanceCostCenterDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -16506,6 +16620,8 @@ export type IndustryMaintenanceEmployeeDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -16820,6 +16936,8 @@ export type IndustryMaintenanceEnergyBalanceDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -17091,6 +17209,8 @@ export type IndustryMaintenanceJournalEntryDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -17396,6 +17516,8 @@ export type IndustryMaintenanceOrderDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -17599,6 +17721,8 @@ export type IndustryMaintenanceOrderCostsDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -17862,6 +17986,8 @@ export type IndustryMaintenanceOrderFeedbackDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -18332,6 +18458,8 @@ export type IndustryMaintenanceWorkplaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -18623,6 +18751,8 @@ export type IndustryManufacturingPartialFeedbackDto = SystemEntityInterfaceDto &
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -18924,6 +19054,8 @@ export type IndustryManufacturingProductionOrderDto = SystemEntityInterfaceDto &
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -19123,6 +19255,8 @@ export type IndustryManufacturingProductionOrderItemDto = SystemEntityInterfaceD
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -19550,6 +19684,8 @@ export type IndustryManufacturingShiftDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -19742,6 +19878,8 @@ export type IndustryManufacturingShiftMachineDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -20104,6 +20242,8 @@ export type IndustryManufacturingShiftOrderItemDto = SystemEntityInterfaceDto & 
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -20434,6 +20574,8 @@ export type IndustryManufacturingShiftTemplateDto = BasicNamedEntityInterfaceDto
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -20758,6 +20900,8 @@ export type OctoSdkDemoCustomerDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -21047,6 +21191,8 @@ export type OctoSdkDemoMeteringPointDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -21326,6 +21472,8 @@ export type OctoSdkDemoOperatingFacilityDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -23568,6 +23716,8 @@ export type RtEntityDto = {
   attributes?: Maybe<RtEntityAttributeDtoConnectionDto>;
   ckTypeId: Scalars['RtCkTypeId']['output'];
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -23941,6 +24091,8 @@ export type RtSimpleQueryRowDto = RtQueryRowDto & {
   cells?: Maybe<RtQueryCellDtoConnectionDto>;
   ckTypeId?: Maybe<Scalars['RtCkTypeId']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -27695,6 +27847,8 @@ export type SystemAggregationRtQueryDto = SystemEntityInterfaceDto & SystemPersi
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -27914,6 +28068,8 @@ export type SystemAggregationSdQueryDto = SystemEntityInterfaceDto & SystemPersi
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -28151,6 +28307,8 @@ export type SystemAiAiAgentConfigDto = SystemConfigurationInterfaceDto & SystemE
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -28382,6 +28540,8 @@ export type SystemAiAiAgentJobDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -28640,6 +28800,8 @@ export type SystemAiAiAgentSessionDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -28909,6 +29071,8 @@ export type SystemAiAiApprovalRequestDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -29124,6 +29288,8 @@ export type SystemAiAiAuditEventDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -29334,6 +29500,8 @@ export type SystemAiAiCredentialBindingDto = SystemConfigurationInterfaceDto & S
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -29559,6 +29727,8 @@ export type SystemAiAiCredentialTicketDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -29770,6 +29940,8 @@ export type SystemAiAiKnowledgeSourceDto = SystemConfigurationInterfaceDto & Sys
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -29995,6 +30167,8 @@ export type SystemAiAiPromptTemplateDto = SystemConfigurationInterfaceDto & Syst
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -30221,6 +30395,8 @@ export type SystemAiAiQuotaLimitDto = SystemConfigurationInterfaceDto & SystemEn
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -30450,6 +30626,8 @@ export type SystemAiAiSessionEventDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -30663,6 +30841,8 @@ export type SystemAiAiTokenLeaseDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -30882,6 +31062,8 @@ export type SystemAiAiToolPolicyDto = SystemConfigurationInterfaceDto & SystemEn
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -31110,6 +31292,8 @@ export type SystemAiAiUsageRecordDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -31477,6 +31661,8 @@ export type SystemAutoIncrementDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -31684,6 +31870,8 @@ export type SystemBlueprintBackupDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -31899,6 +32087,8 @@ export type SystemBlueprintHistoryDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -32117,6 +32307,8 @@ export type SystemBlueprintInstallationDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -32330,6 +32522,8 @@ export type SystemBotAttributeAggregateConfigurationDto = SystemEntityInterfaceD
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -32586,6 +32780,8 @@ export type SystemBotFixupDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -32825,6 +33021,8 @@ export type SystemCommunicationAdapterDto = SystemCommunicationDeployableEntityI
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -33221,6 +33419,8 @@ export type SystemCommunicationAiConfigurationDto = SystemConfigurationInterface
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -33462,6 +33662,8 @@ export type SystemCommunicationApplicationDto = SystemCommunicationDeployableEnt
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -33733,6 +33935,8 @@ export type SystemCommunicationDataFlowDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -34002,6 +34206,8 @@ export type SystemCommunicationDataPointMappingDto = SystemEntityInterfaceDto & 
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -34303,6 +34509,8 @@ export type SystemCommunicationDeployableEntityDto = SystemEntityInterfaceDto & 
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -34457,6 +34665,8 @@ export type SystemCommunicationDeployableEntityInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -34599,6 +34809,8 @@ export type SystemCommunicationDeployableWorkloadDto = SystemCommunicationDeploy
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -34796,6 +35008,8 @@ export type SystemCommunicationDeployableWorkloadInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -35019,6 +35233,8 @@ export type SystemCommunicationDiscordConfigurationDto = SystemConfigurationInte
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -35243,6 +35459,8 @@ export type SystemCommunicationEMailReceiverConfigurationDto = SystemConfigurati
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -35471,6 +35689,8 @@ export type SystemCommunicationEMailSenderConfigurationDto = SystemConfiguration
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -35698,6 +35918,8 @@ export type SystemCommunicationEdaConfigurationDto = SystemConfigurationInterfac
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -35942,6 +36164,8 @@ export type SystemCommunicationEnergyCommunityConfigurationDto = SystemConfigura
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -36197,6 +36421,8 @@ export type SystemCommunicationFinApiConfigurationDto = SystemConfigurationInter
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -36427,6 +36653,8 @@ export type SystemCommunicationGrafanaConfigurationDto = SystemConfigurationInte
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -36660,6 +36888,8 @@ export type SystemCommunicationHelmRepositoryConfigurationDto = SystemConfigurat
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -36947,6 +37177,8 @@ export type SystemCommunicationLoxoneConfigurationDto = SystemConfigurationInter
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -37190,6 +37422,8 @@ export type SystemCommunicationMicrosoftGraphConfigurationDto = SystemConfigurat
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -37423,6 +37657,8 @@ export type SystemCommunicationPipelineDto = SystemCommunicationDeployableEntity
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -37698,6 +37934,8 @@ export type SystemCommunicationPipelineExecutionDto = SystemEntityInterfaceDto &
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -38078,6 +38316,8 @@ export type SystemCommunicationPipelineStatisticsDto = SystemEntityInterfaceDto 
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -38365,6 +38605,8 @@ export type SystemCommunicationPipelineTriggerDto = SystemCommunicationDeployabl
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -38900,6 +39142,8 @@ export type SystemCommunicationPoolDto = SystemCommunicationDeployableEntityInte
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -39166,6 +39410,8 @@ export type SystemCommunicationSapConfigurationDto = SystemConfigurationInterfac
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -39405,6 +39651,8 @@ export type SystemCommunicationServiceAccountConfigurationDto = SystemConfigurat
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -39679,6 +39927,8 @@ export type SystemCommunicationSftpConfigurationDto = SystemConfigurationInterfa
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -39911,6 +40161,8 @@ export type SystemCommunicationSignalChannelDto = SystemConfigurationInterfaceDt
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -40174,6 +40426,8 @@ export type SystemCommunicationTagDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -40456,6 +40710,8 @@ export type SystemCommunicationWeClappConfigurationDto = SystemConfigurationInte
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -40675,6 +40931,8 @@ export type SystemConfigurationDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -40838,6 +41096,8 @@ export type SystemConfigurationInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -41014,6 +41274,8 @@ export type SystemDownsamplingSdQueryDto = SystemEntityInterfaceDto & SystemPers
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -41228,6 +41490,8 @@ export type SystemEntityDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -41376,6 +41640,8 @@ export type SystemEntityInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -41738,6 +42004,8 @@ export type SystemGroupingAggregationRtQueryDto = SystemEntityInterfaceDto & Sys
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -41959,6 +42227,8 @@ export type SystemGroupingAggregationSdQueryDto = SystemEntityInterfaceDto & Sys
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -42182,6 +42452,8 @@ export type SystemIdentityApiResourceDto = SystemEntityInterfaceDto & SystemIden
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -42402,6 +42674,8 @@ export type SystemIdentityApiScopeDto = SystemEntityInterfaceDto & SystemIdentit
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -42621,6 +42895,8 @@ export type SystemIdentityAzureEntraIdIdentityProviderDto = SystemEntityInterfac
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -42890,6 +43166,8 @@ export type SystemIdentityClientDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -43200,6 +43478,8 @@ export type SystemIdentityClientMirrorDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -43542,6 +43822,8 @@ export type SystemIdentityDataPermissionDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -43836,6 +44118,8 @@ export type SystemIdentityDataPolicyDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -44101,6 +44385,8 @@ export type SystemIdentityDataProtectionKeyDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -44308,6 +44594,8 @@ export type SystemIdentityEmailDomainGroupRuleDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -44515,6 +44803,8 @@ export type SystemIdentityExternalTenantUserMappingDto = SystemEntityInterfaceDt
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -44746,6 +45036,8 @@ export type SystemIdentityFacebookIdentityProviderDto = SystemEntityInterfaceDto
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -44963,6 +45255,8 @@ export type SystemIdentityGoogleIdentityProviderDto = SystemEntityInterfaceDto &
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -45179,6 +45473,8 @@ export type SystemIdentityGroupDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -45551,6 +45847,8 @@ export type SystemIdentityIdentityProviderDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -45705,6 +46003,8 @@ export type SystemIdentityIdentityProviderInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -45835,6 +46135,8 @@ export type SystemIdentityIdentityResourceDto = SystemEntityInterfaceDto & Syste
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -46053,6 +46355,8 @@ export type SystemIdentityMicrosoftAdIdentityProviderDto = SystemEntityInterface
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -46276,6 +46580,8 @@ export type SystemIdentityMicrosoftIdentityProviderDto = SystemEntityInterfaceDt
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -46489,6 +46795,8 @@ export type SystemIdentityOAuthAuthorizationDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -46708,6 +47016,8 @@ export type SystemIdentityOAuthTokenDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -46930,6 +47240,8 @@ export type SystemIdentityOctoTenantIdentityProviderDto = SystemEntityInterfaceD
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -47146,6 +47458,8 @@ export type SystemIdentityOpenLdapIdentityProviderDto = SystemEntityInterfaceDto
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -47363,6 +47677,8 @@ export type SystemIdentityPermissionDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -47556,6 +47872,8 @@ export type SystemIdentityPermissionRoleDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -47783,6 +48101,8 @@ export type SystemIdentityPersistedGrantDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -48001,6 +48321,8 @@ export type SystemIdentityResourceDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -48155,6 +48477,8 @@ export type SystemIdentityResourceInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -48285,6 +48609,8 @@ export type SystemIdentityRoleDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -48614,6 +48940,8 @@ export type SystemIdentityServerSideSessionDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -48872,6 +49200,8 @@ export type SystemIdentityUserDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -49258,6 +49588,8 @@ export type SystemIdentityVerifiedExternalIdentifierDto = SystemEntityInterfaceD
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -49534,6 +49866,8 @@ export type SystemMigrationHistoryDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -49760,6 +50094,8 @@ export type SystemNotificationCssTemplateConfigurationDto = SystemConfigurationI
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -49980,6 +50316,8 @@ export type SystemNotificationEventDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -50226,6 +50564,8 @@ export type SystemNotificationMailNotificationConfigurationDto = SystemConfigura
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -50447,6 +50787,8 @@ export type SystemNotificationNotificationTemplateDto = SystemEntityInterfaceDto
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -50669,6 +51011,8 @@ export type SystemNotificationStatefulEventDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -50880,6 +51224,8 @@ export type SystemPersistentQueryDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -51032,6 +51378,8 @@ export type SystemPersistentQueryInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -51165,6 +51513,8 @@ export type SystemReportingConnectionInfoDto = SystemConfigurationInterfaceDto &
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -51386,6 +51736,8 @@ export type SystemReportingFileSystemContainerDto = SystemEntityInterfaceDto & S
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -51550,6 +51902,8 @@ export type SystemReportingFileSystemContainerInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -51717,6 +52071,8 @@ export type SystemReportingFileSystemEntityDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -51866,6 +52222,8 @@ export type SystemReportingFileSystemEntityInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -51992,6 +52350,8 @@ export type SystemReportingFileSystemItemDto = SystemEntityInterfaceDto & System
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -52213,6 +52573,8 @@ export type SystemReportingFolderDto = SystemEntityInterfaceDto & SystemReportin
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -52434,6 +52796,8 @@ export type SystemReportingFolderRootDto = SystemEntityInterfaceDto & SystemRepo
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -52700,6 +53064,8 @@ export type SystemSimpleRtQueryDto = SystemEntityInterfaceDto & SystemPersistent
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -52921,6 +53287,8 @@ export type SystemSimpleSdQueryDto = SystemEntityInterfaceDto & SystemPersistent
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -53170,6 +53538,8 @@ export type SystemStreamDataArchiveDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -53330,6 +53700,8 @@ export type SystemStreamDataArchiveInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -53663,6 +54035,8 @@ export type SystemStreamDataQueryDto = SystemEntityInterfaceDto & SystemPersiste
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -53821,6 +54195,8 @@ export type SystemStreamDataQueryInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -53956,6 +54332,8 @@ export type SystemStreamDataRawArchiveDto = SystemEntityInterfaceDto & SystemStr
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -54178,6 +54556,8 @@ export type SystemStreamDataRecomputeJobDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -54415,6 +54795,8 @@ export type SystemStreamDataRollupArchiveDto = SystemEntityInterfaceDto & System
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -54652,6 +55034,8 @@ export type SystemStreamDataTimeRangeArchiveDto = SystemEntityInterfaceDto & Sys
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -54870,6 +55254,8 @@ export type SystemTenantDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -54997,6 +55383,8 @@ export type SystemTenantConfigurationDto = SystemConfigurationInterfaceDto & Sys
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -55265,6 +55653,8 @@ export type SystemTenantModeConfigurationDto = SystemConfigurationInterfaceDto &
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -55548,6 +55938,8 @@ export type SystemUiBrandingDto = SystemEntityInterfaceDto & SystemUiuiElementIn
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -55764,6 +56156,8 @@ export type SystemUiDashboardDto = SystemEntityInterfaceDto & SystemUiuiElementI
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -55995,6 +56389,8 @@ export type SystemUiDashboardWidgetDto = SystemEntityInterfaceDto & SystemUiuiEl
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -56282,6 +56678,8 @@ export type SystemUiMappingCoverageConfigurationDto = SystemEntityInterfaceDto &
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -56498,6 +56896,8 @@ export type SystemUiProcessDiagramDto = SystemEntityInterfaceDto & SystemUiuiEle
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -56731,6 +57131,8 @@ export type SystemUiSymbolDefinitionDto = SystemEntityInterfaceDto & SystemUiuiE
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -57000,6 +57402,8 @@ export type SystemUiSymbolLibraryDto = SystemEntityInterfaceDto & SystemUiuiElem
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -57292,6 +57696,8 @@ export type SystemUiTreeNavigationConfigurationDto = SystemEntityInterfaceDto & 
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -57547,6 +57953,8 @@ export type SystemUiuiElementDto = SystemEntityInterfaceDto & {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;
@@ -57695,6 +58103,8 @@ export type SystemUiuiElementInterfaceDto = {
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
   rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
   rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
   /** Engine-computed display description (from the CK type's displayDescriptionRule). */
   rtDisplayDescription?: Maybe<Scalars['String']['output']>;

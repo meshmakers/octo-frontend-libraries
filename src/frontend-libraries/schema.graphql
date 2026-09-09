@@ -115,6 +115,8 @@ interface BasicDocumentInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -358,6 +360,8 @@ interface BasicEnergyMeteringPointInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -498,6 +502,8 @@ interface BasicNamedEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -655,6 +661,8 @@ interface SystemCommunicationDeployableEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -849,6 +857,8 @@ interface SystemCommunicationDeployableWorkloadInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -989,6 +999,8 @@ interface SystemConfigurationInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -1146,6 +1158,8 @@ interface SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -1289,6 +1303,8 @@ interface SystemIdentityIdentityProviderInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -1431,6 +1447,8 @@ interface SystemIdentityResourceInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -1573,6 +1591,8 @@ interface SystemPersistentQueryInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -1731,6 +1751,8 @@ interface SystemReportingFileSystemContainerInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -1869,6 +1891,8 @@ interface SystemReportingFileSystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -2016,6 +2040,8 @@ interface SystemStreamDataArchiveInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -2163,6 +2189,8 @@ interface SystemStreamDataQueryInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -2302,6 +2330,8 @@ interface SystemUIUIElementInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -2943,6 +2973,8 @@ type BasicAsset {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -3264,6 +3296,8 @@ type BasicCity {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -3545,6 +3579,8 @@ type BasicCountry {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -3809,6 +3845,8 @@ type BasicDistrict {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -4013,6 +4051,8 @@ type BasicDocument implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -4241,6 +4281,8 @@ type BasicEmployee implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -4576,6 +4618,8 @@ type BasicEnergyConsentPeriod implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -4934,6 +4978,8 @@ type BasicEnergyConsumer implements BasicEnergyMeteringPointInterface & BasicNam
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -5165,6 +5211,8 @@ type BasicEnergyEdaMessage implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -5397,6 +5445,8 @@ type BasicEnergyEdaMeteringPoint implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -5650,6 +5700,8 @@ type BasicEnergyEdaProcess implements BasicNamedEntityInterface & SystemEntityIn
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -5926,6 +5978,8 @@ type BasicEnergyEnergyMeasurement implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -6259,6 +6313,8 @@ type BasicEnergyMeteringPoint implements BasicNamedEntityInterface & SystemEntit
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -6611,6 +6667,8 @@ type BasicEnergyOperatingFacility {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -6969,6 +7027,8 @@ type BasicEnergyProducer implements BasicEnergyMeteringPointInterface & BasicNam
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -7202,6 +7262,8 @@ type BasicNamedEntity implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -7466,6 +7528,8 @@ type BasicState {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -7697,6 +7761,8 @@ type BasicTree implements BasicNamedEntityInterface & SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -7950,6 +8016,8 @@ type BasicTreeNode {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -8155,8 +8223,12 @@ type BasicTree_ParentUnionEdge {
 
 "Blueprint listing entry surfaced from any configured catalog."
 type Blueprint {
+  "Blueprint dependency id strings as declared in the blueprint's blueprintDependencies (e.g. \"MeshmakersAccounting-[1.0.0,)\"). Empty when none — use it to filter the catalog to add-ons that depend on a given base blueprint."
+  blueprintDependencies: [String!]!
   "Name of the catalog this entry was found in (e.g. \"PublicGitHubBlueprintCatalog\")."
   catalogName: String!
+  "CK model dependency id strings as declared in the blueprint's ckModelDependencies (e.g. \"Meshmakers.Accounting-[1.24.0,2.0)\"). Empty when none."
+  ckModelDependencies: [String!]!
   "Optional description."
   description: String
   "Fully-qualified blueprint id (Name-Version), e.g. \"InfrastructureStarter-1.0.0\"."
@@ -8756,6 +8828,8 @@ type CkType {
   isAbstract: Boolean!
   "Indicates if the type is final."
   isFinal: Boolean!
+  "Effective owner attribute path for owned-only data permissions (AB#4978), e.g. 'AssigneeId' or 'Owner.UserId' - the nearest declared path along the base-type chain, resolved from the runtime type graph. Null means ownership is the server-stamped rtCreatedBy."
+  ownerAttributePath: String
   "Runtime construction kit type id, the unique identifier of the type."
   rtCkTypeId: RtCkTypeId!
 }
@@ -9212,6 +9286,8 @@ type EnergyCommunityBillingDocument implements BasicDocumentInterface & SystemEn
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -9448,6 +9524,8 @@ type EnergyCommunityBillingDocumentLineItem implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -9875,6 +9953,8 @@ type EnergyCommunityConsumer implements BasicEnergyMeteringPointInterface & Basi
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -10124,6 +10204,8 @@ type EnergyCommunityCustomer implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -10378,6 +10460,8 @@ type EnergyCommunityEnergyPrice implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -10600,6 +10684,8 @@ type EnergyCommunityParticipationPeriod implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -10936,6 +11022,8 @@ type EnergyCommunityProducer implements BasicEnergyMeteringPointInterface & Basi
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -11166,6 +11254,8 @@ type EnvironmentCarbonBudget implements BasicNamedEntityInterface & SystemEntity
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -11392,6 +11482,8 @@ type EnvironmentCarbonEmission implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -11623,6 +11715,8 @@ type EnvironmentCertificateOfOrigin implements BasicNamedEntityInterface & Syste
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -11852,6 +11946,8 @@ type EnvironmentComplianceRecord implements BasicNamedEntityInterface & SystemEn
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -12078,6 +12174,8 @@ type EnvironmentEnvironmentalGoal implements BasicNamedEntityInterface & SystemE
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -12363,6 +12461,8 @@ type EnvironmentWasteMeter {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -12619,6 +12719,8 @@ type IndustryBasicAlarm implements BasicNamedEntityInterface & SystemEntityInter
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -12870,6 +12972,8 @@ type IndustryBasicEvent implements BasicNamedEntityInterface & SystemEntityInter
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -13228,6 +13332,8 @@ type IndustryBasicMachine {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -13523,6 +13629,8 @@ type IndustryBasicRuntimeVariable implements BasicNamedEntityInterface & SystemE
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -13777,6 +13885,8 @@ type IndustryEnergyDemandResponseEvent implements BasicNamedEntityInterface & Sy
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -14092,6 +14202,8 @@ type IndustryEnergyEnergyConsumer {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -14357,6 +14469,8 @@ type IndustryEnergyEnergyCost implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -14584,6 +14698,8 @@ type IndustryEnergyEnergyForecast implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -14904,6 +15020,8 @@ type IndustryEnergyEnergyMeter {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -15173,6 +15291,8 @@ type IndustryEnergyEnergyPerformanceIndicator implements BasicNamedEntityInterfa
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -15489,6 +15609,8 @@ type IndustryEnergyEnergyStorage {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -15851,6 +15973,8 @@ type IndustryEnergyInverter {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -16186,6 +16310,8 @@ type IndustryEnergyPhotovoltaicSystem {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -16479,6 +16605,8 @@ type IndustryEnergyPhotovoltaicSystemModule {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -16813,6 +16941,8 @@ type IndustryEnergyPhotovoltaicSystemString {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -17138,6 +17268,8 @@ type IndustryFluidHeatMeter {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -17494,6 +17626,8 @@ type IndustryFluidWaterMeter {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -17760,6 +17894,8 @@ type IndustryMaintenanceAccount implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -18088,6 +18224,8 @@ type IndustryMaintenanceCostCenter {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -18416,6 +18554,8 @@ type IndustryMaintenanceEmployee {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -18667,6 +18807,8 @@ type IndustryMaintenanceEnergyBalance implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -18936,6 +19078,8 @@ type IndustryMaintenanceJournalEntry implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -19276,6 +19420,8 @@ type IndustryMaintenanceOrder implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -19476,6 +19622,8 @@ type IndustryMaintenanceOrderCosts implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -19753,6 +19901,8 @@ type IndustryMaintenanceOrderFeedback implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -20176,6 +20326,8 @@ type IndustryMaintenanceWorkplace {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -20430,6 +20582,8 @@ type IndustryManufacturingPartialFeedback implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -20705,6 +20859,8 @@ type IndustryManufacturingProductionOrder implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -20937,6 +21093,8 @@ type IndustryManufacturingProductionOrderItem implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -21295,6 +21453,8 @@ type IndustryManufacturingShift implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -21541,6 +21701,8 @@ type IndustryManufacturingShiftMachine implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -21908,6 +22070,8 @@ type IndustryManufacturingShiftOrderItem implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -22162,6 +22326,8 @@ type IndustryManufacturingShiftTemplate implements BasicNamedEntityInterface & S
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -22464,6 +22630,8 @@ type OctoSdkDemoCustomer implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -22786,6 +22954,8 @@ type OctoSdkDemoMeteringPoint {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -23070,6 +23240,8 @@ type OctoSdkDemoOperatingFacility {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -23570,6 +23742,8 @@ type RtEntity {
   ): RtEntityAttributeDtoConnection
   ckTypeId: RtCkTypeId!
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -23840,6 +24014,8 @@ type RtSimpleQueryRow implements RtQueryRow {
   ): RtQueryCellDtoConnection
   ckTypeId: RtCkTypeId
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -28900,6 +29076,8 @@ type SystemAggregationRtQuery implements SystemEntityInterface & SystemPersisten
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -29112,6 +29290,8 @@ type SystemAggregationSdQuery implements SystemEntityInterface & SystemPersisten
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -29321,6 +29501,8 @@ type SystemAiAiAgentConfig implements SystemConfigurationInterface & SystemEntit
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -29568,6 +29750,8 @@ type SystemAiAiAgentJob implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -29822,6 +30006,8 @@ type SystemAiAiAgentSession implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -30060,6 +30246,8 @@ type SystemAiAiApprovalRequest implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -30268,6 +30456,8 @@ type SystemAiAiAuditEvent implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -30474,6 +30664,8 @@ type SystemAiAiCredentialBinding implements SystemConfigurationInterface & Syste
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -30700,6 +30892,8 @@ type SystemAiAiCredentialTicket implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -30907,6 +31101,8 @@ type SystemAiAiKnowledgeSource implements SystemConfigurationInterface & SystemE
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -31133,6 +31329,8 @@ type SystemAiAiPromptTemplate implements SystemConfigurationInterface & SystemEn
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -31360,6 +31558,8 @@ type SystemAiAiQuotaLimit implements SystemConfigurationInterface & SystemEntity
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -31588,6 +31788,8 @@ type SystemAiAiSessionEvent implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -31797,6 +31999,8 @@ type SystemAiAiTokenLease implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -32007,6 +32211,8 @@ type SystemAiAiToolPolicy implements SystemConfigurationInterface & SystemEntity
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -32235,6 +32441,8 @@ type SystemAiAiUsageRecord implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -32448,6 +32656,8 @@ type SystemAutoIncrement implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -32653,6 +32863,8 @@ type SystemBlueprintBackup implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -32865,6 +33077,8 @@ type SystemBlueprintHistory implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -33074,6 +33288,8 @@ type SystemBlueprintInstallation implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -33300,6 +33516,8 @@ type SystemBotAttributeAggregateConfiguration implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -33534,6 +33752,8 @@ type SystemBotFixup implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -33860,6 +34080,8 @@ type SystemCommunicationAdapter implements SystemCommunicationDeployableEntityIn
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -34141,6 +34363,8 @@ type SystemCommunicationAiConfiguration implements SystemConfigurationInterface 
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -34420,6 +34644,8 @@ type SystemCommunicationApplication implements SystemCommunicationDeployableEnti
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -34647,6 +34873,8 @@ type SystemCommunicationDataFlow implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -34925,6 +35153,8 @@ type SystemCommunicationDataPointMapping implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -35182,6 +35412,8 @@ type SystemCommunicationDeployableEntity implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -35434,6 +35666,8 @@ type SystemCommunicationDeployableWorkload implements SystemCommunicationDeploya
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -35682,6 +35916,8 @@ type SystemCommunicationDiscordConfiguration implements SystemConfigurationInter
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -35909,6 +36145,8 @@ type SystemCommunicationEMailReceiverConfiguration implements SystemConfiguratio
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -36136,6 +36374,8 @@ type SystemCommunicationEMailSenderConfiguration implements SystemConfigurationI
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -36362,6 +36602,8 @@ type SystemCommunicationEdaConfiguration implements SystemConfigurationInterface
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -36609,6 +36851,8 @@ type SystemCommunicationEnergyCommunityConfiguration implements SystemConfigurat
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -36837,6 +37081,8 @@ type SystemCommunicationFinApiConfiguration implements SystemConfigurationInterf
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -37066,6 +37312,8 @@ type SystemCommunicationGrafanaConfiguration implements SystemConfigurationInter
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -37311,6 +37559,8 @@ type SystemCommunicationHelmRepositoryConfiguration implements SystemConfigurati
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -37564,6 +37814,8 @@ type SystemCommunicationLoxoneConfiguration implements SystemConfigurationInterf
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -37798,6 +38050,8 @@ type SystemCommunicationMicrosoftGraphConfiguration implements SystemConfigurati
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -38128,6 +38382,8 @@ type SystemCommunicationPipeline implements SystemCommunicationDeployableEntityI
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -38419,6 +38675,8 @@ type SystemCommunicationPipelineExecution implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -38714,6 +38972,8 @@ type SystemCommunicationPipelineStatistics implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -38977,6 +39237,8 @@ type SystemCommunicationPipelineTrigger implements SystemCommunicationDeployable
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -39458,6 +39720,8 @@ type SystemCommunicationPool implements SystemCommunicationDeployableEntityInter
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -39693,6 +39957,8 @@ type SystemCommunicationSapConfiguration implements SystemConfigurationInterface
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -39944,6 +40210,8 @@ type SystemCommunicationServiceAccountConfiguration implements SystemConfigurati
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -40197,6 +40465,8 @@ type SystemCommunicationSftpConfiguration implements SystemConfigurationInterfac
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -40427,6 +40697,8 @@ type SystemCommunicationSignalChannel implements SystemConfigurationInterface & 
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -40679,6 +40951,8 @@ type SystemCommunicationTag implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -40925,6 +41199,8 @@ type SystemCommunicationWeClappConfiguration implements SystemConfigurationInter
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -41147,6 +41423,8 @@ type SystemConfiguration implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -41395,6 +41673,8 @@ type SystemDownsamplingSdQuery implements SystemEntityInterface & SystemPersiste
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -41599,6 +41879,8 @@ type SystemEntity {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -41954,6 +42236,8 @@ type SystemGroupingAggregationRtQuery implements SystemEntityInterface & SystemP
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -42167,6 +42451,8 @@ type SystemGroupingAggregationSdQuery implements SystemEntityInterface & SystemP
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -42379,6 +42665,8 @@ type SystemIdentityApiResource implements SystemEntityInterface & SystemIdentity
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -42590,6 +42878,8 @@ type SystemIdentityApiScope implements SystemEntityInterface & SystemIdentityRes
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -42802,6 +43092,8 @@ type SystemIdentityAzureEntraIdIdentityProvider implements SystemEntityInterface
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -43138,6 +43430,8 @@ type SystemIdentityClient implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -43338,6 +43632,8 @@ type SystemIdentityClientMirror implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -43680,6 +43976,8 @@ type SystemIdentityDataPermission implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -43952,6 +44250,8 @@ type SystemIdentityDataPolicy implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -44182,6 +44482,8 @@ type SystemIdentityDataProtectionKey implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -44387,6 +44689,8 @@ type SystemIdentityEmailDomainGroupRule implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -44611,6 +44915,8 @@ type SystemIdentityExternalTenantUserMapping implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -44824,6 +45130,8 @@ type SystemIdentityFacebookIdentityProvider implements SystemEntityInterface & S
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -45034,6 +45342,8 @@ type SystemIdentityGoogleIdentityProvider implements SystemEntityInterface & Sys
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -45319,6 +45629,8 @@ type SystemIdentityGroup implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -45599,6 +45911,8 @@ type SystemIdentityIdentityProvider implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -45801,6 +46115,8 @@ type SystemIdentityIdentityResource implements SystemEntityInterface & SystemIde
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -46012,6 +46328,8 @@ type SystemIdentityMicrosoftAdIdentityProvider implements SystemEntityInterface 
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -46225,6 +46543,8 @@ type SystemIdentityMicrosoftIdentityProvider implements SystemEntityInterface & 
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -46431,6 +46751,8 @@ type SystemIdentityOAuthAuthorization implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -46644,6 +46966,8 @@ type SystemIdentityOAuthToken implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -46856,6 +47180,8 @@ type SystemIdentityOctoTenantIdentityProvider implements SystemEntityInterface &
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -47066,6 +47392,8 @@ type SystemIdentityOpenLdapIdentityProvider implements SystemEntityInterface & S
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -47273,6 +47601,8 @@ type SystemIdentityPermission implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -47467,6 +47797,8 @@ type SystemIdentityPermissionRole implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -47689,6 +48021,8 @@ type SystemIdentityPersistedGrant implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -47898,6 +48232,8 @@ type SystemIdentityResource implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -48138,6 +48474,8 @@ type SystemIdentityRole implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -48409,6 +48747,8 @@ type SystemIdentityServerSideSession implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -48672,6 +49012,8 @@ type SystemIdentityUser implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -48979,6 +49321,8 @@ type SystemIdentityVerifiedExternalIdentifier implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -49237,6 +49581,8 @@ type SystemMigrationHistory implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -49443,6 +49789,8 @@ type SystemNotificationCssTemplateConfiguration implements SystemConfigurationIn
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -49667,6 +50015,8 @@ type SystemNotificationEvent implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -49872,6 +50222,8 @@ type SystemNotificationMailNotificationConfiguration implements SystemConfigurat
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -50096,6 +50448,8 @@ type SystemNotificationNotificationTemplate implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -50302,6 +50656,8 @@ type SystemNotificationStatefulEvent implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -50510,6 +50866,8 @@ type SystemPersistentQuery implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -50707,6 +51065,8 @@ type SystemReportingConnectionInfo implements SystemConfigurationInterface & Sys
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -50950,6 +51310,8 @@ type SystemReportingFileSystemContainer implements SystemEntityInterface & Syste
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -51170,6 +51532,8 @@ type SystemReportingFileSystemEntity implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -51387,6 +51751,8 @@ type SystemReportingFileSystemItem implements SystemEntityInterface & SystemRepo
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -51630,6 +51996,8 @@ type SystemReportingFolder implements SystemEntityInterface & SystemReportingFil
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -51842,6 +52210,8 @@ type SystemReportingFolderRoot implements SystemEntityInterface & SystemReportin
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -52086,6 +52456,8 @@ type SystemSimpleRtQuery implements SystemEntityInterface & SystemPersistentQuer
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -52299,6 +52671,8 @@ type SystemSimpleSdQuery implements SystemEntityInterface & SystemPersistentQuer
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -52521,6 +52895,8 @@ type SystemStreamDataArchive implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -52769,6 +53145,8 @@ type SystemStreamDataQuery implements SystemEntityInterface & SystemPersistentQu
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -52976,6 +53354,8 @@ type SystemStreamDataRawArchive implements SystemEntityInterface & SystemStreamD
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -53187,6 +53567,8 @@ type SystemStreamDataRecomputeJob implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -53412,6 +53794,8 @@ type SystemStreamDataRollupArchive implements SystemEntityInterface & SystemStre
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -53629,6 +54013,8 @@ type SystemStreamDataTimeRangeArchive implements SystemEntityInterface & SystemS
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -53835,6 +54221,8 @@ type SystemTenant implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -53997,6 +54385,8 @@ type SystemTenantConfiguration implements SystemConfigurationInterface & SystemE
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -54245,6 +54635,8 @@ type SystemTenantModeConfiguration implements SystemConfigurationInterface & Sys
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -54507,6 +54899,8 @@ type SystemUIBranding implements SystemEntityInterface & SystemUIUIElementInterf
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -54734,6 +55128,8 @@ type SystemUIDashboard implements SystemEntityInterface & SystemUIUIElementInter
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -54965,6 +55361,8 @@ type SystemUIDashboardWidget implements SystemEntityInterface & SystemUIUIElemen
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -55218,6 +55616,8 @@ type SystemUIMappingCoverageConfiguration implements SystemEntityInterface & Sys
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -55432,6 +55832,8 @@ type SystemUIProcessDiagram implements SystemEntityInterface & SystemUIUIElement
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -55670,6 +56072,8 @@ type SystemUISymbolDefinition implements SystemEntityInterface & SystemUIUIEleme
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -55924,6 +56328,8 @@ type SystemUISymbolLibrary implements SystemEntityInterface & SystemUIUIElementI
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -56174,6 +56580,8 @@ type SystemUITreeNavigationConfiguration implements SystemEntityInterface & Syst
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
@@ -56402,6 +56810,8 @@ type SystemUIUIElement implements SystemEntityInterface {
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtChangedDateTime: DateTime
+  "Subject id of the identity that created the entity (engine-stamped; read-only)."
+  rtCreatedBy: String
   rtCreationDateTime: DateTime
   "Engine-computed display description (from the CK type's displayDescriptionRule)."
   rtDisplayDescription: String
