@@ -233,7 +233,7 @@ export class AssetRepoService {
    * roles and child groups. Omitting it keeps the historical body and behaviour.
    */
   public async exportRtModelDeepGraph(tenantId: string, originRtIds: string[], originCkTypeId: string,
-                                       followSpecs?: DeepGraphFollowSpecDto[]): Promise<string | null> {
+    followSpecs?: DeepGraphFollowSpecDto[]): Promise<string | null> {
     if (this.configurationService.config?.assetServices) {
       const body: { originRtIds: string[]; originCkTypeId: string; followSpecs?: DeepGraphFollowSpecDto[] } =
         {originRtIds, originCkTypeId};
