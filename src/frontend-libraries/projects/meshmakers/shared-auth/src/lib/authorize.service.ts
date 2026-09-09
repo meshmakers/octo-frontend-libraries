@@ -2,6 +2,7 @@ import { Injectable, Signal, WritableSignal, computed, inject, signal } from '@a
 import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
 import { Roles } from './roles';
 import { TenantAwareOAuthStorage } from './tenant-aware-oauth-storage';
+import { allowedTenantsFromToken, tenantIdFromToken } from './jwt-claims';
 
 export interface IUser {
   family_name: string | null;
@@ -323,16 +324,25 @@ export class AuthorizeService {
 
   /**
    * Sets the tenant ID for per-tenant token storage isolation.
-   * Must be called BEFORE initialize() to ensure tokens are stored/retrieved
-   * under the correct tenant prefix in localStorage.
+   * Call it BEFORE initialize() so tokens are stored/retrieved under the correct tenant prefix
+   * in localStorage.
    *
    * When set, all OAuth storage keys are prefixed with `{tenantId}__`
    * (e.g., `maco__access_token`), preventing token collisions between tenants.
    * The tenant ID is also persisted in sessionStorage so it survives OAuth redirects.
    *
+   * It may also be called AFTER initialize(), once the app has learned the tenant from the
+   * token: a sign-in that started without a tenant — identity resolved it through tenant
+   * discovery — leaves its session in the unprefixed slot, and that session is then moved into
+   * the tenant's slot (see {@link TenantAwareOAuthStorage.adoptUnprefixedSession}). Without
+   * the move, the next reload on a tenant URL finds an empty slot and re-authenticates silently.
+   *
    * @param tenantId The tenant ID to use for storage key prefixing, or null for unprefixed mode.
    */
   public setStorageTenantId(tenantId: string | null): void {
+    if (tenantId && this.tenantStorage.adoptUnprefixedSession(tenantId)) {
+      console.debug(`AuthorizeService::setStorageTenantId — adopted the unprefixed session for "${tenantId}"`);
+    }
     this.tenantStorage.setTenantId(tenantId);
     console.debug(`AuthorizeService::setStorageTenantId("${tenantId}")`);
   }
@@ -616,8 +626,8 @@ export class AuthorizeService {
     this._accessToken.set(accessToken);
     this._isAuthenticated.set(true);
     this._sessionLoading.set(false);
-    this._allowedTenants.set(this.parseAllowedTenantsFromToken(accessToken));
-    this._tokenTenantId.set(this.parseTenantIdFromToken(accessToken));
+    this._allowedTenants.set(allowedTenantsFromToken(accessToken));
+    this._tokenTenantId.set(tenantIdFromToken(accessToken));
 
     // No redirect happened, so nothing downstream should still believe a switch is in flight.
     this.clearPendingTenantSwitch();
@@ -950,8 +960,8 @@ export class AuthorizeService {
     this._sessionLoading.set(false);
 
     // Parse allowed_tenants from the access token
-    this._allowedTenants.set(this.parseAllowedTenantsFromToken(accessToken));
-    const tokenTenantId = this.parseTenantIdFromToken(accessToken);
+    this._allowedTenants.set(allowedTenantsFromToken(accessToken));
+    const tokenTenantId = tenantIdFromToken(accessToken);
     this._tokenTenantId.set(tokenTenantId);
 
     // Detect tenant mismatch after silent refresh: if we were already authenticated
@@ -982,63 +992,6 @@ export class AuthorizeService {
    * Decodes the JWT access token payload and extracts allowed_tenants claims.
    * The claim can be a single string or an array of strings.
    */
-  private parseAllowedTenantsFromToken(accessToken: string | null): string[] {
-    if (!accessToken) {
-      return [];
-    }
-
-    try {
-      const parts = accessToken.split('.');
-      if (parts.length !== 3) {
-        return [];
-      }
-
-      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-      const payload = JSON.parse(atob(base64));
-      const allowedTenants = payload['allowed_tenants'];
-
-      if (!allowedTenants) {
-        return [];
-      }
-
-      if (Array.isArray(allowedTenants)) {
-        return allowedTenants;
-      }
-
-      // Single value claim
-      if (typeof allowedTenants === 'string') {
-        return [allowedTenants];
-      }
-
-      return [];
-    } catch (e) {
-      console.warn('Failed to parse allowed_tenants from access token', e);
-      return [];
-    }
-  }
-
-  /**
-   * Decodes the JWT access token payload and extracts the tenant_id claim.
-   */
-  private parseTenantIdFromToken(accessToken: string | null): string | null {
-    if (!accessToken) {
-      return null;
-    }
-
-    try {
-      const parts = accessToken.split('.');
-      if (parts.length !== 3) {
-        return null;
-      }
-
-      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-      const payload = JSON.parse(atob(base64));
-      return payload['tenant_id'] ?? null;
-    } catch {
-      return null;
-    }
-  }
-
   private deriveDisplayNameFromUsername(username: string): string {
     let name = username;
     // Strip xt_{tenantId}_ prefix

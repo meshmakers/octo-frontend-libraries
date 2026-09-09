@@ -1,4 +1,5 @@
 import { OAuthStorage } from 'angular-oauth2-oidc';
+import { tenantIdFromToken } from './jwt-claims';
 
 /**
  * Known OAuth storage keys used by angular-oauth2-oidc.
@@ -100,6 +101,52 @@ export class TenantAwareOAuthStorage extends OAuthStorage {
    */
   getTenantId(): string | null {
     return this.tenantId;
+  }
+
+  /**
+   * Moves a session that was stored without a tenant prefix into this tenant's slot.
+   *
+   * A sign-in that starts without a tenant — the app let identity resolve it through tenant
+   * discovery — completes before any storage tenant is known, so its tokens land unprefixed.
+   * When the app then learns the tenant, from the URL or from the token itself, and sets it, the
+   * prefixed slot would be empty and the OAuth library would treat the user as signed out, at
+   * the cost of a silent round trip through identity. Adopting the session avoids that.
+   *
+   * Only a session that belongs to `tenantId` is adopted — the access token's `tenant_id`
+   * claim must match — and only into an empty slot: if any OAuth key already exists under the
+   * tenant's prefix, even a partial session, nothing is overwritten. Session-scoped keys (nonce,
+   * PKCE verifier) belong to the finished flow and stay where they are. Apps that never set a
+   * storage tenant are not affected.
+   *
+   * @returns true when a session was moved.
+   */
+  adoptUnprefixedSession(tenantId: string): boolean {
+    const prefix = `${tenantId}__`;
+    const slotKeys = OAUTH_STORAGE_KEYS.filter(key => !SESSION_SCOPED_KEYS.has(key));
+    let unprefixedAccessToken: string | null;
+    try {
+      if (slotKeys.some(key => localStorage.getItem(prefix + key) !== null)) {
+        return false;
+      }
+      unprefixedAccessToken = localStorage.getItem('access_token');
+    } catch {
+      return false;
+    }
+
+    const issuedFor = tenantIdFromToken(unprefixedAccessToken);
+    if (!issuedFor || issuedFor.toLowerCase() !== tenantId.toLowerCase()) {
+      return false;
+    }
+
+    for (const key of slotKeys) {
+      const value = localStorage.getItem(key);
+      if (value === null) {
+        continue;
+      }
+      localStorage.setItem(prefix + key, value);
+      localStorage.removeItem(key);
+    }
+    return true;
   }
 
   /**

@@ -707,6 +707,11 @@ describe('AuthorizeService', () => {
     // =============================================================================
 
     describe('setStorageTenantId', () => {
+      afterEach(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+
       it('should pass TenantAwareOAuthStorage with correct tenant to setStorage', async () => {
         service.setStorageTenantId('maco');
         await service.initialize(mockOptions);
@@ -714,6 +719,34 @@ describe('AuthorizeService', () => {
         const storageArg = vi.mocked(oauthServiceMock.setStorage).mock.lastCall![0] as TenantAwareOAuthStorage;
         expect(storageArg).toBeInstanceOf(TenantAwareOAuthStorage);
         expect(storageArg.getTenantId()).toBe('maco');
+      });
+
+      // A sign-in that started without a tenant — identity resolved it through tenant discovery —
+      // stores its session unprefixed. Setting the tenant afterwards, once the token names it,
+      // must move that session into the tenant's slot instead of leaving the slot empty.
+      it('should adopt an unprefixed session issued for that tenant when set after initialize', async () => {
+        await service.initialize(mockOptions);
+        localStorage.setItem('access_token', createMockJwt({ sub: 'u1', tenant_id: 'eg1' }));
+        localStorage.setItem('refresh_token', 'refresh-1');
+
+        service.setStorageTenantId('eg1');
+
+        const storageArg = vi.mocked(oauthServiceMock.setStorage).mock.lastCall![0] as TenantAwareOAuthStorage;
+        expect(storageArg.getTenantId()).toBe('eg1');
+        expect(storageArg.getItem('access_token')).toBe(createMockJwt({ sub: 'u1', tenant_id: 'eg1' }));
+        expect(storageArg.getItem('refresh_token')).toBe('refresh-1');
+        expect(localStorage.getItem('access_token')).toBeNull();
+      });
+
+      it('should leave an unprefixed session of another tenant where it is', async () => {
+        await service.initialize(mockOptions);
+        localStorage.setItem('access_token', createMockJwt({ sub: 'u1', tenant_id: 'octosystem' }));
+
+        service.setStorageTenantId('eg1');
+
+        const storageArg = vi.mocked(oauthServiceMock.setStorage).mock.lastCall![0] as TenantAwareOAuthStorage;
+        expect(storageArg.getItem('access_token')).toBeNull();
+        expect(localStorage.getItem('access_token')).toBe(createMockJwt({ sub: 'u1', tenant_id: 'octosystem' }));
       });
     });
 

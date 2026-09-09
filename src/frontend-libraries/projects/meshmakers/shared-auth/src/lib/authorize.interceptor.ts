@@ -198,7 +198,10 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
   // Inject acr_values=tenant:{tenantId} into refresh_token grant requests only.
   // This ensures the Identity Server resolves the correct tenant during
   // refresh token exchanges, even after a service restart when its
-  // in-memory token-to-tenant cache is lost.
+  // in-memory token-to-tenant cache is lost. The storage tenant wins; a session
+  // stored without one — a sign-in that let identity resolve the tenant, or a
+  // single-tenant app — falls back to the tenant the current token was issued for,
+  // which is the only tenant a refresh of that token can be scoped to.
   //
   // Authorization-code exchanges must NOT carry acr_values from local storage:
   // the tenant is already bound to the authorization code on the server side,
@@ -207,7 +210,7 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
   // causing an infinite reload loop.
   if (req.method === 'POST' && isTokenEndpointUrl(req.url) && req.body instanceof HttpParams) {
     if (req.body.get('grant_type') === 'refresh_token') {
-      const tenantId = authorizeService.getStorageTenantId();
+      const tenantId = authorizeService.getStorageTenantId() ?? authorizeService.tokenTenantId();
       if (tenantId) {
         req = req.clone({
           body: req.body.set('acr_values', `tenant:${tenantId}`)
