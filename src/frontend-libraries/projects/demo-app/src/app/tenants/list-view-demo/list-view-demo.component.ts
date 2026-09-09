@@ -19,7 +19,7 @@ import {
   fileTxtIcon
 } from '@progress/kendo-svg-icons';
 import {CommandItemExecuteEventArgs, CommandItem} from '../../../../../meshmakers/shared-services/src/lib/models/commandItem';
-import {OctoSdkDemoCustomerStatusDto, BasicLegalEntityTypeDto} from '../../graphQL/globalTypes';
+import {OctoSdkDemoCustomerStatusDto, BasicLegalEntityTypeDto} from '@meshmakers/octo-services';
 import {SelectableSettings} from '@progress/kendo-angular-grid';
 import {ContextMenuType, TableColumn} from '../../../../../meshmakers/shared-ui/src/lib/list-view/list-view.model';
 import {FormsModule} from '@angular/forms';

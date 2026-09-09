@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { FetchDataOptions, ListViewComponent } from '@meshmakers/shared-ui';
 import { of } from 'rxjs';
 import { GetRuntimeEntitiesByTypeDtoGQL } from '../../graphQL/getRuntimeEntitiesByType';
-import { RtEntityDto } from '../../graphQL/globalTypes';
+import { RtEntityDto } from '@meshmakers/octo-services';
 import { CkTypeEntitiesDataSourceDirective } from './ck-type-entities-data-source.directive';
 
 describe('CkTypeEntitiesDataSourceDirective', () => {

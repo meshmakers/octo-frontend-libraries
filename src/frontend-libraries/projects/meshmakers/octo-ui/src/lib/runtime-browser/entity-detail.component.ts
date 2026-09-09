@@ -10,7 +10,7 @@ import {
   DeleteStrategiesDto,
   GraphDirectionDto,
   RtEntityDto,
-} from '../graphQL/globalTypes';
+} from '@meshmakers/octo-services';
 import { CreateEntitiesDtoGQL } from '../graphQL/createEntities';
 import { DeleteEntitiesDtoGQL } from '../graphQL/deleteEntities';
 import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../graphQL/getRuntimeEntityAssociationsById';

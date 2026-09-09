@@ -8,7 +8,7 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: globalTypes.ts
+      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
@@ -21,7 +21,7 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: globalTypes.ts
+      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
@@ -34,7 +34,7 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: globalTypes.ts
+      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
@@ -80,35 +80,20 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: globalTypes.ts
+      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
 
-  # octo-ui/branding feature (own globalTypes.ts; isolated from main octo-ui graphQL)
-  projects/meshmakers/octo-ui/branding/src/graphQL/globalTypes.ts:
-    documents: "projects/meshmakers/octo-ui/branding/src/graphQL/*.graphql"
-    plugins:
-      - typescript
-    config:
-      typesSuffix: Dto
-      enumPrefix: false
-      scalars:
-        DateTime: Date
-        Decimal: number
-        OctoObjectId: string
-        CkAttributeId: string
-        CkEnumId: string
-        CkRecordId: string
-        CkTypeId: string
+  # octo-ui/branding feature
   projects/meshmakers/octo-ui/branding/src/graphQL/:
     documents: "projects/meshmakers/octo-ui/branding/src/graphQL/*.graphql"
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: globalTypes.ts
+      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"

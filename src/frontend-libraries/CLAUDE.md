@@ -578,11 +578,27 @@ npm run codegen:demo-app
 
 **File Structure:**
 ```
-projects/meshmakers/<library>/src/lib/graphQL/
+projects/meshmakers/octo-services/src/lib/graphQL/
 ├── *.graphql          # ← EDIT THESE (source files)
 ├── *.ts               # ← GENERATED (do not edit!)
-└── globalTypes.ts     # ← GENERATED from schema
+├── globalTypes.ts     # ← GENERATED from schema — the ONLY copy of the base types
+└── possibleTypes.ts   # ← GENERATED fragment matcher
+
+projects/meshmakers/<other library>/src/lib/graphQL/   (octo-ui, octo-ui/branding,
+├── *.graphql          # ← EDIT THESE                   octo-meshboard, octo-process-diagrams,
+└── *.ts               # ← GENERATED; imports the base  demo-app)
+                         types from '@meshmakers/octo-services'
 ```
+
+The base types (`Scalars`, `*Dto` types, enums) exist exactly once, in `octo-services`. Every
+other codegen target uses `baseTypesPath: ~@meshmakers/octo-services`, so its generated files
+import them from the package, and hand-written code imports them from the package as well.
+Do not add a per-library `globalTypes.ts` that re-exports the package (`export * from
+'@meshmakers/octo-services'`) and do not generate a second full copy: a star re-export of an
+external package turns into a lazily initialised namespace object under the vitest builder
+(`externalPackages: true`) and fails at the first enum access, and a second copy produces
+nominally different enum types (see the refinery-studio CLAUDE.md, "GraphQL types come from
+the package", for the full history).
 
 ### GraphQL Queries
 

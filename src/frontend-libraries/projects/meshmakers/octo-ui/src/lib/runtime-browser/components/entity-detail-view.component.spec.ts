@@ -2,12 +2,11 @@ import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { PropertyConverterService } from '../../property-grid';
-import { CkTypeAttributeService } from '@meshmakers/octo-services';
+import { CkTypeAttributeService, RtEntityDto } from '@meshmakers/octo-services';
 import { SelectEvent } from '@progress/kendo-angular-layout';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import { of } from 'rxjs';
 import { GetBinaryInfoDtoGQL } from '../../graphQL/getBinaryInfo';
-import { RtEntityDto } from '../../graphQL/globalTypes';
 import { AttributeValueTypeDto, PropertyGridItem } from '../../property-grid';
 import { EntityDetailViewComponent } from './entity-detail-view.component';
 

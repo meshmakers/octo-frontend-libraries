@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GetRuntimeEntityByIdDtoGQL } from '../../graphQL/getRuntimeEntityById';
-import { RtEntityDto } from '../../graphQL/globalTypes';
+import { RtEntityDto } from '@meshmakers/octo-services';
 
 @Injectable({
   providedIn: 'root',

@@ -6,7 +6,7 @@ import { TextBoxModule } from '@progress/kendo-angular-inputs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { hyperlinkOpenIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
 import { DataPointPickerComponent } from '../../../data-point-picker/data-point-picker.component';
-import { RtEntityDto } from '../../../graphQL/globalTypes';
+import { RtEntityDto } from '@meshmakers/octo-services';
 import { RuntimeBrowserMessages } from '../../runtime-browser.model';
 
 /**

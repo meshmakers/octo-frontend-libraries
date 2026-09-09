@@ -8,7 +8,7 @@ import { UpdateDashboardWidgetDtoGQL } from '../graphQL/updateDashboardWidget';
 import { DeleteEntitiesDtoGQL } from '../graphQL/deleteEntities';
 import { GetDashboardWithWidgetsDtoGQL } from '../graphQL/getDashboardWithWidgets';
 import { MeshBoardConfig, AnyWidgetConfig, MeshBoardVariable, MeshBoardTimeFilterConfig, MeshBoardTimeZoneMode, EntitySelectorConfig } from '../models/meshboard.models';
-import { AssociationModOptionsDto, DeleteStrategiesDto, RtAssociationInputDto, SystemUiDashboardWidgetInputDto } from '../graphQL/globalTypes';
+import { AssociationModOptionsDto, DeleteStrategiesDto, RtAssociationInputDto, SystemUiDashboardWidgetInputDto } from '@meshmakers/octo-services';
 import { WidgetRegistryService, PersistedWidgetData } from './widget-registry.service';
 
 /**

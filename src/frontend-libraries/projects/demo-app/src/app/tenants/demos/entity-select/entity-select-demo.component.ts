@@ -10,7 +10,7 @@ import {
 } from '@meshmakers/shared-ui';
 import { EntitySelectDataSource, EntitySelectResult } from '@meshmakers/shared-services';
 import { GetSdkCustomersDtoGQL, GetSdkCustomersQueryVariablesDto } from '../../../graphQL/getSdkCustomers';
-import { OctoSdkDemoCustomerDto, SearchFilterTypesDto } from '../../../graphQL/globalTypes';
+import { OctoSdkDemoCustomerDto, SearchFilterTypesDto } from '@meshmakers/octo-services';
 import { firstValueFrom, Observable, from, map } from 'rxjs';
 import { ColumnDefinition } from '@meshmakers/shared-ui';
 

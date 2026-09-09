@@ -12,7 +12,7 @@ import {
 } from '@meshmakers/shared-ui';
 import { Subject, Observable, of, delay, from, map } from 'rxjs';
 import { GetSdkCustomersDtoGQL, GetSdkCustomersQueryVariablesDto } from '../../../../graphQL/getSdkCustomers';
-import { FieldFilterOperatorsDto } from '../../../../graphQL/globalTypes';
+import { FieldFilterOperatorsDto } from '@meshmakers/octo-services';
 
 /**
  * Demo data source that simulates checking name availability

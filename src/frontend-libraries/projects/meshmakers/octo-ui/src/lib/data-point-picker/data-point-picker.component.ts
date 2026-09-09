@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, output, signal, untracked } from '@angular/core';
 import { ComboBoxModule } from '@progress/kendo-angular-dropdowns';
-import { RtEntityDto } from '../graphQL/globalTypes';
+import { RtEntityDto } from '@meshmakers/octo-services';
 import { AttributeItemLike, DataPointInfo } from './data-point-picker.utils';
 import { DataPointResolverService } from './data-point-resolver.service';
 

@@ -33,7 +33,7 @@ import {
 import { firstValueFrom, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { GetBinaryInfoDtoGQL } from '../../graphQL/getBinaryInfo';
-import { GraphDirectionDto, RtEntityDto } from '../../graphQL/globalTypes';
+import { GraphDirectionDto, RtEntityDto } from '@meshmakers/octo-services';
 import {
   BinaryDownloadEvent,
   PropertyChangeEvent,

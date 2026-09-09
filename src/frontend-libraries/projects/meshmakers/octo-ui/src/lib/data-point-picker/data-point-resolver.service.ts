@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom, map } from 'rxjs';
 import { GetRuntimeEntityByIdDtoGQL } from '../graphQL/getRuntimeEntityById';
-import { RtEntityDto } from '../graphQL/globalTypes';
+import { RtEntityDto } from '@meshmakers/octo-services';
 import {
   extractDataPoints,
   AttributeItemLike,

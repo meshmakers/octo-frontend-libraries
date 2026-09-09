@@ -16,15 +16,11 @@ module.exports = tseslint.config(
       // `**/*` rather than `**`: a bare `**` also matches the directory itself, ESLint then
       // stops descending into it and the un-ignore patterns below never take effect.
       "**/graphQL/**/*",
-      // …except the hand-written files that live in those generated folders (checked against
-      // codegen.yml): the small `globalTypes.ts` re-export stubs that satisfy codegen's
-      // `baseTypesPath`, and legacy-demo-app's hand-written Apollo SDK client. The two large
-      // real `globalTypes.ts` (octo-services, octo-ui/branding) and `possibleTypes.ts` are
+      // …except the hand-written file that lives in such a generated folder (checked against
+      // codegen.yml): legacy-demo-app's hand-written Apollo SDK client. The single real
+      // `globalTypes.ts` (octo-services; every other codegen target imports the base types from
+      // the package via `baseTypesPath: ~@meshmakers/octo-services`) and `possibleTypes.ts` are
       // codegen output and stay ignored.
-      "!**/demo-app/src/app/graphQL/globalTypes.ts",
-      "!**/octo-meshboard/src/lib/graphQL/globalTypes.ts",
-      "!**/octo-process-diagrams/src/lib/graphQL/globalTypes.ts",
-      "!**/octo-ui/src/lib/graphQL/globalTypes.ts",
       "!**/legacy-demo-app/src/app/graphQL/get-sdk-customers.ts",
       "**/environments/version.ts",
       "**/environments/currentVersion.ts"

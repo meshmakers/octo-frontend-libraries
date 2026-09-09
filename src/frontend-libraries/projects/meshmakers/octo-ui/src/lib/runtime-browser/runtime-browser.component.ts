@@ -31,7 +31,7 @@ import {
   CkTypeDto,
   GetCkTypesDtoGQL,
   RtEntityDto,
-} from '../graphQL/globalTypes';
+} from '@meshmakers/octo-services';
 import { AssociationValidationService } from './services/association-validation.service';
 import {
   EntitySavedEvent,

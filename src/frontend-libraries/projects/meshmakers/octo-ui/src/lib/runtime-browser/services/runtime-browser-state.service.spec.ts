@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { RuntimeBrowserStateService, BrowserState, BrowserItem, } from './runtime-browser-state.service';
 import { TreeItemDataTyped } from '@meshmakers/shared-services';
-import { CkModelDto, CkTypeDto, RtEntityDto } from '../../graphQL/globalTypes';
+import { CkModelDto, CkTypeDto, RtEntityDto } from '@meshmakers/octo-services';
 import { fileIcon } from '@progress/kendo-svg-icons';
 
 describe('RuntimeBrowserStateService', () => {

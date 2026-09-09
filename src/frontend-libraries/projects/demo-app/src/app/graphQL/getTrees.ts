@@ -1,4 +1,4 @@
-import * as Types from './globalTypes';
+import * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';

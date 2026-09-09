@@ -6,7 +6,7 @@ import { KENDO_DROPDOWNS } from '@progress/kendo-angular-dropdowns';
 import { KENDO_LABELS } from '@progress/kendo-angular-label';
 import { KENDO_INPUTS } from '@progress/kendo-angular-inputs';
 import { GetSdkCustomersDtoGQL, GetSdkCustomersQueryVariablesDto } from '../../../graphQL/getSdkCustomers';
-import { OctoSdkDemoCustomerDto, SearchFilterTypesDto } from '../../../graphQL/globalTypes';
+import { OctoSdkDemoCustomerDto, SearchFilterTypesDto } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 
 // Mock entity interface

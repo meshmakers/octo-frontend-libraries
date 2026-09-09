@@ -6,8 +6,7 @@ import {
 import {Observable} from 'rxjs';
 import {OctoGraphQlDataSource} from '@meshmakers/octo-ui';
 import {DataSourceBase, FetchDataOptions, FetchResultTyped, ListViewComponent} from '@meshmakers/shared-ui';
-import {GraphQL} from '@meshmakers/octo-services';
-import {OctoSdkDemoCustomerDto} from '../../graphQL/globalTypes';
+import {GraphQL, OctoSdkDemoCustomerDto} from '@meshmakers/octo-services';
 import {map} from 'rxjs/operators';
 
 

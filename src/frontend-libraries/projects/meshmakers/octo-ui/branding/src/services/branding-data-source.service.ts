@@ -11,7 +11,7 @@ import {
 import {
   SystemUiBrandingInputDto,
   SystemUiThemePaletteInputDto,
-} from '../graphQL/globalTypes';
+} from '@meshmakers/octo-services';
 import {
   UpdateBrandingDtoGQL,
   UpdateBrandingMutationDto,

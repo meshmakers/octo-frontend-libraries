@@ -10,7 +10,7 @@ import { GetCkTypeAssociationRolesDtoGQL } from '../../graphQL/getCkTypeAssociat
 import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../graphQL/getRuntimeEntityAssociationsById';
 import { GetTreeAssociationTargetsDtoGQL } from '../../graphQL/getTreeAssociationTargets';
 import { GetTreesDtoGQL } from '../../graphQL/getTrees';
-import { AssociationModOptionsDto, CkModelDto, CkTypeDto, GetCkModelByIdDtoGQL, GetCkTypesDtoGQL, GraphDirectionDto, RtAssociationDto, RtEntityDto, } from '../../graphQL/globalTypes';
+import { AssociationModOptionsDto, CkModelDto, CkTypeDto, GetCkModelByIdDtoGQL, GetCkTypesDtoGQL, GraphDirectionDto, RtAssociationDto, RtEntityDto, } from '@meshmakers/octo-services';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../graphQL/updateRuntimeEntities';
 import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
 import { TreeNavigationConfigService } from '../services/tree-navigation-config.service';

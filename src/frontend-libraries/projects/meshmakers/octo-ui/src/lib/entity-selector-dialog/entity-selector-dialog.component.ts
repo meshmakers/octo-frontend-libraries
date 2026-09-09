@@ -11,7 +11,7 @@ import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { TreeItemData } from '@meshmakers/shared-services';
 import { TreeComponent } from '@meshmakers/shared-ui';
-import { RtEntityDto } from '../graphQL/globalTypes';
+import { RtEntityDto } from '@meshmakers/octo-services';
 import { RuntimeBrowserDataSource } from '../runtime-browser/data-sources/runtime-browser-data-source.service';
 import { PerspectiveSwitcherComponent } from '../runtime-browser/components/perspective-switcher/perspective-switcher.component';
 import { PerspectiveDefinition } from '../runtime-browser/services/tree-navigation-config.service';
