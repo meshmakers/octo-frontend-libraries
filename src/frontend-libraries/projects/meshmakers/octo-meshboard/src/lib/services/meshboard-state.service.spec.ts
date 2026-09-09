@@ -420,8 +420,12 @@ describe('MeshBoardStateService', () => {
     });
 
     describe('resolveStreamDataTimeZone', () => {
-      it('returns undefined for local (browser zone has no server meaning)', () => {
-        expect(service.resolveStreamDataTimeZone()).toBeUndefined();
+      // Local mode must name the browser's own zone, not send nothing: a missing zone leaves the
+      // resolver on UTC, which drops every calendar rung stored in another zone out of the ladder
+      // and makes the board draw a finer rung's window while still reporting signal Ok.
+      it('names the browser IANA zone for local (AB#5157)', () => {
+        expect(service.resolveStreamDataTimeZone())
+          .toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
       });
 
       it('maps utc to "UTC"', () => {
