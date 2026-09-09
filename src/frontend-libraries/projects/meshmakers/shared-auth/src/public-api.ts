@@ -10,6 +10,7 @@ import { provideOAuthClient } from 'angular-oauth2-oidc';
 export * from './lib/authorize.service';
 export * from './lib/roles';
 export { TenantAwareOAuthStorage } from './lib/tenant-aware-oauth-storage';
+export { decodeJwtPayload, tenantIdFromToken, allowedTenantsFromToken } from './lib/jwt-claims';
 
 // Functional interceptor
 export { authorizeInterceptor } from './lib/authorize.interceptor';

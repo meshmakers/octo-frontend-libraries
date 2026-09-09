@@ -301,10 +301,12 @@ describe('authorizeInterceptor (functional)', () => {
       authServiceMock = {
         getAccessTokenSync: vi.fn().mockName('AuthorizeService.getAccessTokenSync'),
         getServiceUris: vi.fn().mockName('AuthorizeService.getServiceUris'),
-        getStorageTenantId: vi.fn().mockName('AuthorizeService.getStorageTenantId')
+        getStorageTenantId: vi.fn().mockName('AuthorizeService.getStorageTenantId'),
+        tokenTenantId: vi.fn().mockName('AuthorizeService.tokenTenantId')
       } as unknown as MockedObject<AuthorizeService>;
       authServiceMock.getAccessTokenSync.mockReturnValue('test-token');
       authServiceMock.getServiceUris.mockReturnValue(null);
+      (authServiceMock.tokenTenantId as unknown as Mock).mockReturnValue(null);
 
       TestBed.overrideProvider(AuthorizeService, { useValue: authServiceMock });
     });
@@ -348,8 +350,9 @@ describe('authorizeInterceptor (functional)', () => {
       });
     }));
 
-    it('should not inject acr_values when no tenantId in storage', () => new Promise<void>((done) => {
+    it('should not inject acr_values when neither storage nor the token names a tenant', () => new Promise<void>((done) => {
       authServiceMock.getStorageTenantId.mockReturnValue(null);
+      (authServiceMock.tokenTenantId as unknown as Mock).mockReturnValue(null);
 
       const body = new HttpParams().set('grant_type', 'refresh_token');
       const req = new HttpRequest('POST', 'https://auth.example.com/connect/token', body);
@@ -358,6 +361,42 @@ describe('authorizeInterceptor (functional)', () => {
         authorizeInterceptor(req, nextFn).subscribe(() => {
           const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
           expect((handledReq.body as HttpParams).has('acr_values')).toBe(false);
+          done();
+        });
+      });
+    }));
+
+    // A session stored without a storage tenant — a sign-in that let identity resolve the
+    // tenant, or a single-tenant app — can still only be refreshed in the tenant the token was
+    // issued for, so that tenant is what the refresh names. Without it identity falls back to
+    // its in-memory token-to-tenant map, which a restart empties.
+    it('should fall back to the tenant the token was issued for when no storage tenant is set', () => new Promise<void>((done) => {
+      authServiceMock.getStorageTenantId.mockReturnValue(null);
+      (authServiceMock.tokenTenantId as unknown as Mock).mockReturnValue('eg1');
+
+      const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
+      const req = new HttpRequest('POST', 'https://auth.example.com/connect/token', body);
+
+      TestBed.runInInjectionContext(() => {
+        authorizeInterceptor(req, nextFn).subscribe(() => {
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
+          expect((handledReq.body as HttpParams).get('acr_values')).toBe('tenant:eg1');
+          done();
+        });
+      });
+    }));
+
+    it('should prefer the storage tenant over the tenant of the token', () => new Promise<void>((done) => {
+      authServiceMock.getStorageTenantId.mockReturnValue('meshtest');
+      (authServiceMock.tokenTenantId as unknown as Mock).mockReturnValue('eg1');
+
+      const body = new HttpParams().set('grant_type', 'refresh_token').set('refresh_token', 'abc123');
+      const req = new HttpRequest('POST', 'https://auth.example.com/connect/token', body);
+
+      TestBed.runInInjectionContext(() => {
+        authorizeInterceptor(req, nextFn).subscribe(() => {
+          const handledReq = vi.mocked(nextFn).mock.lastCall![0] as HttpRequest<HttpParams>;
+          expect((handledReq.body as HttpParams).get('acr_values')).toBe('tenant:meshtest');
           done();
         });
       });

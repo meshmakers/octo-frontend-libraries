@@ -1,5 +1,11 @@
 import { TenantAwareOAuthStorage } from './tenant-aware-oauth-storage';
 
+function jwtFor(tenantId: string): string {
+  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }));
+  const body = btoa(JSON.stringify({ sub: 'u1', tenant_id: tenantId }));
+  return `${header}.${body}.signature`;
+}
+
 describe('TenantAwareOAuthStorage', () => {
   let storage: TenantAwareOAuthStorage;
 
@@ -223,6 +229,89 @@ describe('TenantAwareOAuthStorage', () => {
       storage.restoreTenantId();
 
       expect(storage.getItem('access_token')).toBe('maco-token');
+    });
+  });
+
+  // A sign-in that started without a tenant leaves its session unprefixed. Once the app knows
+  // the tenant, that session is moved into the tenant's slot — otherwise the OAuth library
+  // finds the slot empty and re-authenticates silently on the next reload.
+  describe('adoptUnprefixedSession', () => {
+    function storeUnprefixedSession(tenantId: string): void {
+      localStorage.setItem('access_token', jwtFor(tenantId));
+      localStorage.setItem('refresh_token', 'refresh-1');
+      localStorage.setItem('expires_at', '123');
+      localStorage.setItem('id_token_claims_obj', '{"sub":"u1"}');
+      sessionStorage.setItem('nonce', 'nonce-1');
+    }
+
+    it('moves the session into the tenant slot and clears the unprefixed keys', () => {
+      storeUnprefixedSession('eg1');
+
+      expect(storage.adoptUnprefixedSession('eg1')).toBe(true);
+
+      expect(localStorage.getItem('eg1__access_token')).toBe(jwtFor('eg1'));
+      expect(localStorage.getItem('eg1__refresh_token')).toBe('refresh-1');
+      expect(localStorage.getItem('eg1__expires_at')).toBe('123');
+      expect(localStorage.getItem('eg1__id_token_claims_obj')).toBe('{"sub":"u1"}');
+      expect(localStorage.getItem('access_token')).toBeNull();
+      expect(localStorage.getItem('refresh_token')).toBeNull();
+    });
+
+    it('is readable through the storage once the tenant is set', () => {
+      storeUnprefixedSession('eg1');
+
+      storage.adoptUnprefixedSession('eg1');
+      storage.setTenantId('eg1');
+
+      expect(storage.getItem('access_token')).toBe(jwtFor('eg1'));
+      expect(storage.getItem('refresh_token')).toBe('refresh-1');
+    });
+
+    it('leaves the flow-scoped keys in sessionStorage alone', () => {
+      storeUnprefixedSession('eg1');
+
+      storage.adoptUnprefixedSession('eg1');
+
+      expect(sessionStorage.getItem('nonce')).toBe('nonce-1');
+      expect(sessionStorage.getItem('eg1__nonce')).toBeNull();
+    });
+
+    it('matches the tenant case-insensitively but keeps the requested prefix', () => {
+      storeUnprefixedSession('EG1');
+
+      expect(storage.adoptUnprefixedSession('eg1')).toBe(true);
+      expect(localStorage.getItem('eg1__access_token')).toBe(jwtFor('EG1'));
+    });
+
+    it('never overwrites a session already stored for the tenant', () => {
+      localStorage.setItem('eg1__access_token', 'existing');
+      storeUnprefixedSession('eg1');
+
+      expect(storage.adoptUnprefixedSession('eg1')).toBe(false);
+
+      expect(localStorage.getItem('eg1__access_token')).toBe('existing');
+      expect(localStorage.getItem('access_token')).toBe(jwtFor('eg1'));
+    });
+
+    it('leaves an unprefixed session that belongs to another tenant alone', () => {
+      storeUnprefixedSession('octosystem');
+
+      expect(storage.adoptUnprefixedSession('eg1')).toBe(false);
+
+      expect(localStorage.getItem('eg1__access_token')).toBeNull();
+      expect(localStorage.getItem('access_token')).toBe(jwtFor('octosystem'));
+    });
+
+    it('does nothing without an unprefixed session', () => {
+      expect(storage.adoptUnprefixedSession('eg1')).toBe(false);
+      expect(localStorage.length).toBe(0);
+    });
+
+    it('ignores an unprefixed token that carries no tenant', () => {
+      localStorage.setItem('access_token', 'opaque-token');
+
+      expect(storage.adoptUnprefixedSession('eg1')).toBe(false);
+      expect(localStorage.getItem('access_token')).toBe('opaque-token');
     });
   });
 

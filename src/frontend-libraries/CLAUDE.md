@@ -392,6 +392,29 @@ them up" without checking the reason first.
 - **`npm approve-scripts` requires an installed `node_modules`.** Without one it is a silent
   no-op, so run it after `npm install`, never on a clean checkout.
 
+## shared-auth: tenant-scoped sessions
+
+- **Storage tenant.** `AuthorizeService.setStorageTenantId(x)` makes `TenantAwareOAuthStorage`
+  prefix every OAuth key with `x__`, so tokens of different tenants never collide. Multi-tenant
+  apps (Refinery Studio, energy-community, meshmakers-app) set it from the URL before
+  `initialize()`; single-tenant apps (voest-app) never set it and live in the unprefixed slot.
+- **A sign-in that starts without a tenant** — the app calls `login()` with no tenant and lets
+  identity resolve it through its email-first tenant discovery (AB#5170) — completes before a
+  storage tenant is known, so its session lands in the unprefixed slot. Calling
+  `setStorageTenantId(x)` afterwards, with `x` taken from the token's `tenant_id`, moves that
+  session into the `x__` slot (`TenantAwareOAuthStorage.adoptUnprefixedSession`): only when the
+  slot is empty and the unprefixed token was issued for `x`, never overwriting, never touching the
+  flow-scoped sessionStorage keys. Without the move the next reload on a tenant URL finds an empty
+  slot and re-authenticates silently through identity's session cookie.
+- **Refresh grants name the tenant.** `authorizeInterceptor` puts `acr_values=tenant:<id>` on
+  every `refresh_token` grant — the storage tenant when one is set, else the tenant of the current
+  token (`tokenTenantId()`). Identity otherwise resolves the tenant from an in-memory
+  token-to-tenant map that a restart empties. Authorization-code exchanges deliberately carry no
+  `acr_values`: the code is already bound to its tenant, and a stale storage tenant there caused a
+  reload loop.
+- **JWT claims** are read through `jwt-claims.ts` (`tenantIdFromToken`, `allowedTenantsFromToken`,
+  `decodeJwtPayload`), exported for apps — decoding only, no signature validation.
+
 ## MeshBoard Widget System (octo-meshboard)
 
 > **Note:** Detailed documentation for the MeshBoard system is available in `projects/meshmakers/octo-meshboard/CLAUDE.md`
