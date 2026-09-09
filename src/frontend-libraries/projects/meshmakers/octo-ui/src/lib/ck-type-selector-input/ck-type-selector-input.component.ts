@@ -407,10 +407,10 @@ export class CkTypeSelectorInputComponent implements OnInit, OnDestroy, ControlV
           const source$ = this.derivedFromRtCkTypeId
             ? this.getDerivedTypes(filter)
             : this.ckTypeSelectorService.getCkTypes({
-                ckModelIds: this.ckModelIds,
-                searchText: filter,
-                first: this.maxResults
-              });
+              ckModelIds: this.ckModelIds,
+              searchText: filter,
+              first: this.maxResults
+            });
           return source$.pipe(
             catchError(error => {
               console.error('CK type search error:', error);

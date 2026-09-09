@@ -165,8 +165,8 @@ describe('EntityDetailViewComponent', () => {
 
     it('should load associations when Associations tab is selected', fakeAsync(() => {
       const loadAssociationsSpy = vi.spyOn(component as unknown as {
-                loadAssociations: () => void;
-            }, 'loadAssociations');
+        loadAssociations: () => void;
+      }, 'loadAssociations');
 
       // Select Associations tab (index 1)
       component['onTabSelect']({ index: 1 } as SelectEvent);
@@ -176,8 +176,8 @@ describe('EntityDetailViewComponent', () => {
 
     it('should load associations every time Associations tab is selected (regression test for disappearing data)', fakeAsync(() => {
       const loadAssociationsSpy = vi.spyOn(component as unknown as {
-                loadAssociations: () => void;
-            }, 'loadAssociations');
+        loadAssociations: () => void;
+      }, 'loadAssociations');
 
       // First selection of Associations tab
       component['onTabSelect']({ index: 1 } as SelectEvent);
@@ -198,8 +198,8 @@ describe('EntityDetailViewComponent', () => {
 
     it('should not load associations when Attributes tab is selected', fakeAsync(() => {
       const loadAssociationsSpy = vi.spyOn(component as unknown as {
-                loadAssociations: () => void;
-            }, 'loadAssociations');
+        loadAssociations: () => void;
+      }, 'loadAssociations');
 
       // Select Attributes tab (index 0)
       component['onTabSelect']({ index: 0 } as SelectEvent);

@@ -20,29 +20,29 @@ export class TreeDemoDataSource extends OctoGraphQlHierarchyDataSource<RtEntityD
 
 
   private static readonly levelMetaData: LevelMetaData[] = [
-    new LevelMetaData("Basic/Tree",
+    new LevelMetaData('Basic/Tree',
       [
-        new RtAssociationMetaData("System/ParentChild", "Basic/TreeNode")
+        new RtAssociationMetaData('System/ParentChild', 'Basic/TreeNode')
       ],
       [
-        new RtAssociationMetaData("System/ParentChild", "Basic/TreeNode"),
-        new RtAssociationMetaData("Basic/RelatedClassification", "Basic/Asset")
+        new RtAssociationMetaData('System/ParentChild', 'Basic/TreeNode'),
+        new RtAssociationMetaData('Basic/RelatedClassification', 'Basic/Asset')
       ]
     ),
-    new LevelMetaData("*",
+    new LevelMetaData('*',
       [
-        new RtAssociationMetaData("System/ParentChild", "Basic/TreeNode"),
-        new RtAssociationMetaData("Basic/RelatedClassification", "Basic/Asset")
+        new RtAssociationMetaData('System/ParentChild', 'Basic/TreeNode'),
+        new RtAssociationMetaData('Basic/RelatedClassification', 'Basic/Asset')
       ],
       [
-        new RtAssociationMetaData("System/ParentChild", "Basic/TreeNode"),
-        new RtAssociationMetaData("Basic/RelatedClassification", "Basic/Asset")
+        new RtAssociationMetaData('System/ParentChild', 'Basic/TreeNode'),
+        new RtAssociationMetaData('Basic/RelatedClassification', 'Basic/Asset')
       ]
     )
   ];
 
   private static readonly ckTypeMetaData: CkTypeMetaData[] = [
-    new CkTypeMetaData("Basic/Tree", "Tree", "Tree", folderMoreIcon)
+    new CkTypeMetaData('Basic/Tree', 'Tree', 'Tree', folderMoreIcon)
   ];
 
 
@@ -50,7 +50,7 @@ export class TreeDemoDataSource extends OctoGraphQlHierarchyDataSource<RtEntityD
 
     let metaData = TreeDemoDataSource.levelMetaData.find(x => x.ckTypeId === item.item.ckTypeId);
     if (!metaData) {
-      metaData = TreeDemoDataSource.levelMetaData.find(x => x.ckTypeId === "*");
+      metaData = TreeDemoDataSource.levelMetaData.find(x => x.ckTypeId === '*');
     }
     if (!metaData) {
       return [];
@@ -96,8 +96,8 @@ export class TreeDemoDataSource extends OctoGraphQlHierarchyDataSource<RtEntityD
               metaData = new CkTypeMetaData(child?.ckTypeId, child?.ckTypeId, child?.ckTypeId, computer);
             }
 
-            const text = child.attributes?.items?.find(x=> x?.attributeName === "name")?.value;
-            const tooltip = child.attributes?.items?.find(x=> x?.attributeName === "description")?.value;
+            const text = child.attributes?.items?.find(x=> x?.attributeName === 'name')?.value;
+            const tooltip = child.attributes?.items?.find(x=> x?.attributeName === 'description')?.value;
 
             mergedResultsMap[rtId] = new TreeItemDataTyped<RtEntityDto>(
               child.rtId,
@@ -119,7 +119,7 @@ export class TreeDemoDataSource extends OctoGraphQlHierarchyDataSource<RtEntityD
   }
 
   public override async fetchRootNodes(): Promise<TreeItemDataTyped<RtEntityDto>[]> {
-    const r = await firstValueFrom(this.getTreesDtoGQL.fetch({variables: {ckTypeId: "Basic/Tree"}}));
+    const r = await firstValueFrom(this.getTreesDtoGQL.fetch({variables: {ckTypeId: 'Basic/Tree'}}));
     const result = new Array<TreeItemDataTyped<RtEntityDto>>();
     for (const item of r.data?.runtime?.runtimeEntities?.items as RtEntityDto[] ?? []) {
 
@@ -128,8 +128,8 @@ export class TreeDemoDataSource extends OctoGraphQlHierarchyDataSource<RtEntityD
         metaData = new CkTypeMetaData(item?.ckTypeId, item?.ckTypeId, item?.ckTypeId, computer);
       }
 
-      const text = item.attributes?.items?.find(x=> x?.attributeName === "name")?.value;
-      const tooltip = item.attributes?.items?.find(x=> x?.attributeName === "description")?.value;
+      const text = item.attributes?.items?.find(x=> x?.attributeName === 'name')?.value;
+      const tooltip = item.attributes?.items?.find(x=> x?.attributeName === 'description')?.value;
 
       result.push(new TreeItemDataTyped<RtEntityDto>(item.rtId, text, tooltip, item, metaData.svgIcon, true));
     }

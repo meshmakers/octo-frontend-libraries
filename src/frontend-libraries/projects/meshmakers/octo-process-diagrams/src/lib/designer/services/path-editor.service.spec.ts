@@ -356,9 +356,9 @@ describe('PathEditorService', () => {
 
     it('should serialize multiple segments', () => {
       const segments: PathSegment[] = [
-                { id: '1', command: 'M', isRelative: false, point: { x: 0, y: 0 } } as MoveToSegment,
-                { id: '2', command: 'L', isRelative: false, point: { x: 50, y: 50 } } as LineToSegment,
-                { id: '3', command: 'Z', isRelative: false } as ClosePathSegment
+        { id: '1', command: 'M', isRelative: false, point: { x: 0, y: 0 } } as MoveToSegment,
+        { id: '2', command: 'L', isRelative: false, point: { x: 50, y: 50 } } as LineToSegment,
+        { id: '3', command: 'Z', isRelative: false } as ClosePathSegment
       ];
 
       expect(service.serialize(segments)).toBe('M0,0 L50,50 Z');

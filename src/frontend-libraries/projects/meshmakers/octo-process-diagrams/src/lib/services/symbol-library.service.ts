@@ -461,9 +461,9 @@ export class SymbolLibraryService {
     // Build canvasSize if either width or height is present
     const canvasSize = (item.canvasSizeWidth != null || item.canvasSizeHeight != null)
       ? {
-          width: item.canvasSizeWidth ?? item.boundsWidth,
-          height: item.canvasSizeHeight ?? item.boundsHeight
-        }
+        width: item.canvasSizeWidth ?? item.boundsWidth,
+        height: item.canvasSizeHeight ?? item.boundsHeight
+      }
       : undefined;
 
     return {

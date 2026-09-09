@@ -1,8 +1,8 @@
 import {onError} from '@apollo/client/link/error';
-import { inject, Injectable, Injector } from "@angular/core";
-import {MessageService} from "@meshmakers/shared-services";
+import { inject, Injectable, Injector } from '@angular/core';
+import {MessageService} from '@meshmakers/shared-services';
 import {ApolloLink} from '@apollo/client/core';
-import { CombinedGraphQLErrors, ErrorLike } from "@apollo/client";
+import { CombinedGraphQLErrors, ErrorLike } from '@apollo/client';
 
 @Injectable()
 export class OctoErrorLink extends ApolloLink {

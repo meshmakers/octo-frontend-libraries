@@ -1,6 +1,6 @@
-import {DataSourceBase, FetchDataOptions} from "./data-source-base";
-import {ListViewComponent} from "../list-view/list-view.component";
-import {Observable} from "rxjs";
+import {DataSourceBase, FetchDataOptions} from './data-source-base';
+import {ListViewComponent} from '../list-view/list-view.component';
+import {Observable} from 'rxjs';
 import {FetchResultTyped} from '../models/fetchResult';
 
 export abstract class DataSourceTyped<TDto> extends DataSourceBase {

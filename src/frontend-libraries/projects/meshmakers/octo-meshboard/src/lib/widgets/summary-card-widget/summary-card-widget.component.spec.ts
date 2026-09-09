@@ -75,8 +75,8 @@ describe('SummaryCardWidgetComponent — stream-data persistent-query tiles', ()
 
   async function load(cmp: SummaryCardWidgetComponent): Promise<void> {
     await (cmp as unknown as {
-            loadData(): Promise<void>;
-        }).loadData();
+      loadData(): Promise<void>;
+    }).loadData();
   }
 
   it('renders totalCount for a simpleCount SD query', async () => {

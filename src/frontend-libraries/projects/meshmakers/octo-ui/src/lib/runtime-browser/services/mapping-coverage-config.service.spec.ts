@@ -19,9 +19,9 @@ describe('MappingCoverageConfigService', () => {
   });
 
   const configResponse = (items: {
-        rtId: string;
-        sourceCandidateCkTypeIds: (string | null)[];
-    }[]) => ({
+    rtId: string;
+    sourceCandidateCkTypeIds: (string | null)[];
+  }[]) => ({
     data: {
       runtime: {
         systemUIMappingCoverageConfiguration: { items },
@@ -33,8 +33,8 @@ describe('MappingCoverageConfigService', () => {
   // A microtask yield is not enough: Apollo's testing backend delivers the previous
   // flush across a timer, so the follow-up query is only issued after the task queue drains.
   async function flushOp(operationName: string, response: {
-        data: Record<string, unknown>;
-    }): Promise<void> {
+    data: Record<string, unknown>;
+  }): Promise<void> {
     for (let i = 0; i < 10; i++) {
       const matches = controller.match((op) => op.operationName === operationName);
       if (matches.length > 0) {

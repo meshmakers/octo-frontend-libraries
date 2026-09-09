@@ -8,13 +8,13 @@ import { CkTypeSelectorDialogComponent, CkTypeSelectorDialogResult } from './ck-
 import { CkTypeSelectorItem } from '@meshmakers/octo-services';
 
 interface MockComponentInstance {
-    data?: {
-        selectedCkTypeId?: string;
-        ckModelIds?: string[];
-        dialogTitle?: string;
-        allowAbstract?: boolean;
-        derivedFromRtCkTypeId?: string;
-    };
+  data?: {
+    selectedCkTypeId?: string;
+    ckModelIds?: string[];
+    dialogTitle?: string;
+    allowAbstract?: boolean;
+    derivedFromRtCkTypeId?: string;
+  };
 }
 
 describe('CkTypeSelectorDialogService', () => {

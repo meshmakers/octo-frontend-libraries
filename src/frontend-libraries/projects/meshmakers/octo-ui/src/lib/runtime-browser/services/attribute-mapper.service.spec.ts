@@ -255,11 +255,11 @@ describe('AttributeMapperService', () => {
 
     it('resolves sub-metadata once for RECORD_ARRAY (shared across items)', async () => {
       resolverSpy.getRawAttributes$.mockReturnValue(of([
-                {
-                  attributeName: 'qty',
-                  attributeValueType: 'INTEGER',
-                  isOptional: false,
-                } as unknown as CkAttributeMetadata,
+        {
+          attributeName: 'qty',
+          attributeValueType: 'INTEGER',
+          isOptional: false,
+        } as unknown as CkAttributeMetadata,
       ]));
 
       await service.mapFormValueToGraphQLAttributes({ lines: [{ qty: 1 }, { qty: 2 }, { qty: 3 }] }, [attr('lines', 'RECORD_ARRAY', false, 'Basic/OrderLine-1')]);

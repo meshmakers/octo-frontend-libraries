@@ -72,8 +72,8 @@ describe('LineChartWidgetComponent dataInfo (load counter)', () => {
     ], 3);
 
     await (cmp as unknown as {
-            loadData(): Promise<void>;
-        }).loadData();
+      loadData(): Promise<void>;
+    }).loadData();
 
     expect(cmp.dataInfo()).toEqual({ rows: 3, points: 3, total: 3 });
   });
@@ -88,8 +88,8 @@ describe('LineChartWidgetComponent dataInfo (load counter)', () => {
     ], 3);
 
     await (cmp as unknown as {
-            loadData(): Promise<void>;
-        }).loadData();
+      loadData(): Promise<void>;
+    }).loadData();
 
     const info = cmp.dataInfo();
     expect(info?.rows).toBe(3);
@@ -165,8 +165,8 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
     const qe = TestBed.inject(QueryExecutorService) as MockedObject<QueryExecutorService>;
 
     await (cmp as unknown as {
-            loadData(): Promise<void>;
-        }).loadData();
+      loadData(): Promise<void>;
+    }).loadData();
 
     const opts = vi.mocked(qe.execute).mock.lastCall![2];
     expect(opts?.streamDataArgs?.queryMode).toBe(QueryModeDto.DownsamplingDto);
@@ -181,8 +181,8 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
     ]);
 
     await (cmp as unknown as {
-            loadData(): Promise<void>;
-        }).loadData();
+      loadData(): Promise<void>;
+    }).loadData();
 
     expect(cmp.categories().length).toBe(2);
     const series = cmp.seriesData();
@@ -196,9 +196,9 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
 // persisted query execution, so the widget must re-apply the query's RtIds pin itself.
 describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () => {
   function createResolutionAware(selectorRtIds: string[] | undefined, pinnedRtIds: string[] | null): {
-        cmp: LineChartWidgetComponent;
-        qe: MockedObject<QueryExecutorService>;
-    } {
+    cmp: LineChartWidgetComponent;
+    qe: MockedObject<QueryExecutorService>;
+  } {
     const qe = {
       execute: vi.fn().mockName('QueryExecutorService.execute'),
       fetchQueryArchive: vi.fn().mockName('QueryExecutorService.fetchQueryArchive'),
@@ -256,8 +256,8 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
     const { cmp, qe } = createResolutionAware(undefined, ['sensor-1', 'sensor-2']);
 
     await (cmp as unknown as {
-            loadData(): Promise<void>;
-        }).loadData();
+      loadData(): Promise<void>;
+    }).loadData();
 
     expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toEqual(['sensor-1', 'sensor-2']);
     // Default fan-out: one downsampling call per pinned source rtId.
@@ -269,8 +269,8 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
     const { cmp, qe } = createResolutionAware(['selected-1'], ['sensor-1', 'sensor-2']);
 
     await (cmp as unknown as {
-            loadData(): Promise<void>;
-        }).loadData();
+      loadData(): Promise<void>;
+    }).loadData();
 
     expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toEqual(['selected-1']);
     const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);
@@ -281,8 +281,8 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
     const { cmp, qe } = createResolutionAware(undefined, null);
 
     await (cmp as unknown as {
-            loadData(): Promise<void>;
-        }).loadData();
+      loadData(): Promise<void>;
+    }).loadData();
 
     expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toBeUndefined();
     const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);

@@ -1,8 +1,8 @@
-FROM nginx:1.27.2-bookworm AS base
+FROM nginx:1.31.5-alpine AS base
 WORKDIR /usr/share/nginx/html
 EXPOSE 80
 
-FROM node:24.15-bookworm-slim AS build
+FROM --platform=$BUILDPLATFORM meshmakers/dotnet_sdk-node:1.3.0.0 AS build
 
 # Telerik/Kendo UI License (passed as build argument)
 ARG TELERIK_LICENSE

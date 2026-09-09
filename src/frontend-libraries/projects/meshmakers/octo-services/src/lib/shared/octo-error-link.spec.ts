@@ -60,10 +60,10 @@ describe('OctoErrorLink', () => {
     // full Apollo operation through onError only exercises Apollo internals, not our rendering.
     function invokeShowError(errors: unknown[]): void {
       (octoErrorLink as unknown as {
-                showError(e: {
-                    errors: unknown[];
-                }): void;
-            })
+        showError(e: {
+          errors: unknown[];
+        }): void;
+      })
         .showError({ errors });
     }
 

@@ -21,25 +21,25 @@ import { MappingCoverageTreeComponent } from './mapping-coverage-tree.component'
 import { MappingEditDialogService } from './mapping-edit-dialog.service';
 
 interface OrphanItemStub {
-    rtId: string;
-    ckTypeId: string;
-    rtDisplayName: string;
-    rtDisplayDescription: string | null;
-    rtWellKnownName: string | null;
-    attributes: {
-        items: {
-            attributeName: string;
-            value: unknown;
-        }[];
+  rtId: string;
+  ckTypeId: string;
+  rtDisplayName: string;
+  rtDisplayDescription: string | null;
+  rtWellKnownName: string | null;
+  attributes: {
+    items: {
+      attributeName: string;
+      value: unknown;
+    }[];
+  };
+  associations: {
+    mappings: {
+      totalCount: number;
     };
-    associations: {
-        mappings: {
-            totalCount: number;
-        };
-        parent: {
-            items: never[];
-        };
+    parent: {
+      items: never[];
     };
+  };
 }
 
 function orphanItem(rtId: string, name: string, mappingCount = 0): OrphanItemStub {
@@ -461,24 +461,24 @@ describe('MappingCoverageTreeComponent', () => {
       expect(createEntitiesGQL.mutate).toHaveBeenCalledTimes(1);
       const variables = vi.mocked(createEntitiesGQL.mutate).mock.lastCall![0]
         ?.variables as {
-                entities: Record<string, unknown>[];
-            };
+        entities: Record<string, unknown>[];
+      };
       expect(variables.entities.length).toBe(2);
       const first = variables.entities[0] as {
-                ckTypeId: string;
-                attributes: {
-                    attributeName: string;
-                    value: unknown;
-                }[];
-                associations: {
-                    roleName: string;
-                    targets: {
-                        target: {
-                            rtId: string;
-                        };
-                    }[];
-                }[];
+        ckTypeId: string;
+        attributes: {
+          attributeName: string;
+          value: unknown;
+        }[];
+        associations: {
+          roleName: string;
+          targets: {
+            target: {
+              rtId: string;
             };
+          }[];
+        }[];
+      };
       expect(first.ckTypeId).toBe(component.config.mappingCkTypeId);
       expect(first.attributes.find(a => a.attributeName === 'TargetAttributePath')?.value)
         .toBe('Temperature');
@@ -644,8 +644,8 @@ describe('MappingCoverageTreeComponent', () => {
       const exportDocument = JSON.stringify({ mappings: [{ name: 'M1' }] });
       getLatestValidationGQL.fetch.mockReturnValue(latestBackupExecutionResponse(exportDocument));
       const saveSpy = vi.spyOn(component as unknown as {
-                saveJsonFile: (content: string, fileName: string) => void;
-            }, 'saveJsonFile').mockReturnValue(undefined);
+        saveJsonFile: (content: string, fileName: string) => void;
+      }, 'saveJsonFile').mockReturnValue(undefined);
 
       await component['exportMappings']();
 

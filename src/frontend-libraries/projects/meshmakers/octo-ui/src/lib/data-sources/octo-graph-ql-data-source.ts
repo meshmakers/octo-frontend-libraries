@@ -145,9 +145,9 @@ export abstract class OctoGraphQlDataSource<TDto> extends DataSourceTyped<TDto |
       case 'isnotnull':
         return {operator: FieldFilterOperatorsDto.NotEqualsDto, value: null};
       case 'isempty':
-        return {operator: FieldFilterOperatorsDto.EqualsDto, value: ""};
+        return {operator: FieldFilterOperatorsDto.EqualsDto, value: ''};
       case 'isnotempty':
-        return {operator: FieldFilterOperatorsDto.NotEqualsDto, value: ""};
+        return {operator: FieldFilterOperatorsDto.NotEqualsDto, value: ''};
       default:
         throw new Error('The filter operator is not supported');
     }

@@ -530,7 +530,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       originRtId?: string | null;
       targetCkTypeId?: string | null;
       targetRtId?: string | null;
-    } | null)[] = [];
+    } | null)[];
     try {
       const response = await firstValueFrom(
         this.getRuntimeEntityAssociationsByIdDtoGQL.fetch({
@@ -1251,9 +1251,9 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     rtId: string,
   ): Promise<
     | {
-        ckTypeId: string;
-        rtId: string;
-      }
+      ckTypeId: string;
+      rtId: string;
+    }
     | undefined
   > {
     const isParentAssoc = true;

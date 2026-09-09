@@ -27,10 +27,10 @@ export class InputDialogComponent extends DialogContentBase {
   private readonly dialogRef: DialogRef;
 
   @Input() public buttonOkText = DEFAULT_INPUT_DIALOG_MESSAGES.ok;
-  @Input() public message = "";
+  @Input() public message = '';
   @Input() public placeholder = DEFAULT_INPUT_DIALOG_MESSAGES.placeholder;
 
-  @Input() protected inputValue: string | null = "";
+  @Input() protected inputValue: string | null = '';
 
   public _messages: InputDialogMessages = { ...DEFAULT_INPUT_DIALOG_MESSAGES };
 

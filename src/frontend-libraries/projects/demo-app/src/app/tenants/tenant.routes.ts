@@ -11,13 +11,13 @@ import { UnsavedChangesGuard } from '@meshmakers/shared-ui';
 
 export const routes: Routes = [
   {
-    path: "",
-    pathMatch: "full",
-    redirectTo: "cockpit",
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'cockpit',
     data: {}
   },
   {
-    path: "cockpit",
+    path: 'cockpit',
     loadComponent: () =>
       import('@meshmakers/octo-meshboard').then(m => m.MeshBoardViewComponent),
     canDeactivate: [UnsavedChangesGuard],
@@ -26,209 +26,209 @@ export const routes: Routes = [
       meshBoardWellKnownName: 'cockpit',
       breadcrumb: [
         {
-          label: "Cockpit",
+          label: 'Cockpit',
           svgIcon: dashboard,
-          url: "cockpit"
+          url: 'cockpit'
         }
       ]
     }
   },
   {
-    path: "tenants",
+    path: 'tenants',
     loadComponent: () =>
       import('./tenants/tenants.component').then(m => m.TenantsComponent),
     data: {
-      roles: ["TenantManagement"],
+      roles: ['TenantManagement'],
       breadcrumb: [
         {
-          label: "Tenants",
+          label: 'Tenants',
           svgIcon: tenancy,
-          url: "tenants"
+          url: 'tenants'
         }
       ],
       navigationMenu: [
         {
           id: '1', text: 'Tenants', type: 'section', children: [
-            {id: '2', text: 'New', type: 'link', link: "tenants/new", svgIcon: add},
+            {id: '2', text: 'New', type: 'link', link: 'tenants/new', svgIcon: add},
             {id: '3', type: 'separator'},
-            {id: '4', text: 'Attach', type: 'link', link: "tenants/attach", svgIcon: insert_link},
+            {id: '4', text: 'Attach', type: 'link', link: 'tenants/attach', svgIcon: insert_link},
           ]
         },
       ]
     }
   },
   {
-    path: "tenants/attach",
+    path: 'tenants/attach',
     loadComponent: () =>
       import('./fake/fake.component').then(m => m.FakeComponent),
     data: {
-      roles: ["TenantManagement"],
+      roles: ['TenantManagement'],
       breadcrumb: [
         {
-          label: "Tenants",
+          label: 'Tenants',
           svgIcon: tenancy,
-          url: "tenants"
+          url: 'tenants'
         },
         {
-          label: "Attach",
-          url: "tenants/attach"
+          label: 'Attach',
+          url: 'tenants/attach'
         }
       ]
     }
   },
   {
-    path: "tenants/new",
+    path: 'tenants/new',
     loadComponent: () =>
       import('./fake/fake.component').then(m => m.FakeComponent),
     data: {
-      roles: ["TenantManagement"],
+      roles: ['TenantManagement'],
       breadcrumb: [
         {
-          label: "Tenants",
+          label: 'Tenants',
           svgIcon: tenancy,
-          url: "tenants"
+          url: 'tenants'
         },
         {
-          label: "New",
-          url: "tenants/new"
+          label: 'New',
+          url: 'tenants/new'
         }
       ]
     }
   },
   {
-    path: "list-view",
+    path: 'list-view',
     loadComponent: () =>
       import('./list-view-demo/list-view-demo.component').then(m => m.ListViewDemoComponent),
     data: {
       breadcrumb: [
         {
-          label: "List View",
+          label: 'List View',
           svgIcon: event_list,
-          url: "list-view"
+          url: 'list-view'
         }
       ]
     }
   },
   {
-    path: "list-view/details/:id",
+    path: 'list-view/details/:id',
     loadComponent: () =>
       import('./list-view-demo/details/details.component').then(m => m.ListViewDetailsComponent),
     canDeactivate: [UnsavedChangesGuard],
     data: {
       breadcrumb: [
         {
-          label: "List View",
+          label: 'List View',
           svgIcon: event_list,
-          url: "list-view"
+          url: 'list-view'
         },
         {
-          label: "Details",
-          url: "list-view/details"
+          label: 'Details',
+          url: 'list-view/details'
         }
       ]
     }
   },
   {
-    path: "list-view/view/:id",
+    path: 'list-view/view/:id',
     loadComponent: () =>
       import('./list-view-demo/details/details.component').then(m => m.ListViewDetailsComponent),
     data: {
       isViewMode: true,
       breadcrumb: [
         {
-          label: "List View",
+          label: 'List View',
           svgIcon: event_list,
-          url: "list-view"
+          url: 'list-view'
         },
         {
-          label: "View",
-          url: "list-view/view"
+          label: 'View',
+          url: 'list-view/view'
         }
       ]
     }
   },
   {
-    path: "meshboard",
+    path: 'meshboard',
     loadComponent: () =>
       import('@meshmakers/octo-meshboard').then(m => m.MeshBoardViewComponent),
     canDeactivate: [UnsavedChangesGuard],
     data: {
       breadcrumb: [
         {
-          label: "MeshBoard",
+          label: 'MeshBoard',
           svgIcon: dashboard,
-          url: "meshboard"
+          url: 'meshboard'
         }
       ]
     }
   },
   {
-    path: "meshboard/:rtId",
+    path: 'meshboard/:rtId',
     loadComponent: () =>
       import('@meshmakers/octo-meshboard').then(m => m.MeshBoardViewComponent),
     canDeactivate: [UnsavedChangesGuard],
     data: {
       breadcrumb: [
         {
-          label: "MeshBoard",
+          label: 'MeshBoard',
           svgIcon: dashboard,
-          url: "meshboard"
+          url: 'meshboard'
         }
       ]
     }
   },
   {
-    path: "process-designer",
+    path: 'process-designer',
     loadChildren: () =>
       import('./process-designer/process-designer.routes').then(m => m.routes),
     data: {
       breadcrumb: [
         {
-          label: "Process Diagrams",
+          label: 'Process Diagrams',
           svgIcon: settings,
-          url: "process-designer"
+          url: 'process-designer'
         }
       ]
     }
   },
   {
-    path: "symbol-library",
+    path: 'symbol-library',
     loadChildren: () =>
       import('./symbol-library/symbol-library.routes').then(m => m.routes),
     data: {
       breadcrumb: [
         {
-          label: "Symbol Libraries",
+          label: 'Symbol Libraries',
           svgIcon: category,
-          url: "symbol-library"
+          url: 'symbol-library'
         }
       ]
     }
   },
   {
-    path: "data-mappings",
+    path: 'data-mappings',
     loadComponent: () =>
       import('@meshmakers/octo-ui').then(m => m.DataMappingOverviewComponent),
     data: {
       breadcrumb: [
         {
-          label: "Data Mappings",
+          label: 'Data Mappings',
           svgIcon: insert_link,
-          url: "data-mappings"
+          url: 'data-mappings'
         }
       ]
     }
   },
   {
-    path: "demos",
+    path: 'demos',
     loadChildren: () =>
       import('./demos/demos.routes').then(m => m.routes),
     data: {
       breadcrumb: [
         {
-          label: "Demos",
+          label: 'Demos',
           svgIcon: storage,
-          url: "demos"
+          url: 'demos'
         }
       ]
     }

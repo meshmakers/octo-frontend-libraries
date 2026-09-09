@@ -24,11 +24,11 @@ export class MessageDetailsDialogService {
     // would stay on Kendo defaults. Forward the title slots explicitly.
     const windowMessages = effectiveMessages
       ? {
-          closeTitle: effectiveMessages.closeTitle,
-          minimizeTitle: effectiveMessages.minimizeTitle,
-          maximizeTitle: effectiveMessages.maximizeTitle,
-          restoreTitle: effectiveMessages.restoreTitle,
-        }
+        closeTitle: effectiveMessages.closeTitle,
+        minimizeTitle: effectiveMessages.minimizeTitle,
+        maximizeTitle: effectiveMessages.maximizeTitle,
+        restoreTitle: effectiveMessages.restoreTitle,
+      }
       : undefined;
 
     const windowRef = this.windowService.open({

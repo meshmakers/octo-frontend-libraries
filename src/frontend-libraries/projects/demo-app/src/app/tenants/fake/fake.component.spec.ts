@@ -11,9 +11,9 @@ describe('FakeComponent', () => {
   let fixture: ComponentFixture<FakeComponent>;
   let mockBreadCrumbService: MockedObject<BreadCrumbService>;
   let mockRouter: {
-        events: Subject<RouterEvent>;
-        navigate: Mock;
-    };
+    events: Subject<RouterEvent>;
+    navigate: Mock;
+  };
 
   beforeEach(async () => {
     mockBreadCrumbService = {

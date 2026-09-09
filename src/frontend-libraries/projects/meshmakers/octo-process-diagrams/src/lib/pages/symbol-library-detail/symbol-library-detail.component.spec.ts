@@ -14,10 +14,10 @@ import { By } from '@angular/platform-browser';
  * Test helper interface to access protected members of SymbolLibraryDetailComponent
  */
 interface SymbolLibraryDetailTestAccess {
-    getPointsString(points: string | {
-        x?: number;
-        y?: number;
-    }[] | null | undefined): string;
+  getPointsString(points: string | {
+    x?: number;
+    y?: number;
+  }[] | null | undefined): string;
 }
 
 // Helper to create primitives with config (using type assertion for tests)

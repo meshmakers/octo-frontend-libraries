@@ -24,9 +24,9 @@ export class TreeDemoComponent {
   }
 
   onTestExpand() {
-     if (this.expandedKeys) {
-       this.treeComponent.setExpandedKeys(this.expandedKeys);
-     }
+    if (this.expandedKeys) {
+      this.treeComponent.setExpandedKeys(this.expandedKeys);
+    }
   }
 
   onTestCollapse() {

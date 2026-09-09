@@ -5,7 +5,6 @@ import {
   provideHttpClient,
   withInterceptors,
   withInterceptorsFromDi,
-  withJsonpSupport,
   withXhr
 } from '@angular/common/http';
 import {authorizeInterceptor, AuthorizeService} from '@meshmakers/shared-auth';
@@ -17,7 +16,7 @@ import {provideRouter} from '@angular/router';
 import {routes} from './app.routes';
 import {CommandService, CommandSettingsService, MmHttpErrorInterceptor} from '@meshmakers/shared-services';
 import {provideApollo} from 'apollo-angular';
-import {ApolloLink, InMemoryCache} from "@apollo/client/core";
+import {ApolloLink, InMemoryCache} from '@apollo/client/core';
 import {MyCommandSettingsService} from './services/my-command-settings.service';
 import { registerLocaleData } from '@angular/common';
 import localeDe from '@angular/common/locales/de';
@@ -75,12 +74,12 @@ export const appConfig: ApplicationConfig = {
       }
     },
     importProvidersFrom(GaugesModule),
-    provideHttpClient(withXhr(), withJsonpSupport(), withInterceptors([authorizeInterceptor]), withInterceptorsFromDi()),
+    provideHttpClient(withXhr(), withInterceptors([authorizeInterceptor]), withInterceptorsFromDi()),
     // Provide the app-specific ConfigurationService implementation
     { provide: CONFIGURATION_SERVICE, useClass: AppConfigurationService },
     provideAppInitializer(initServices),
     provideApollo(() : ApolloClient.Options => {
-      const tenantId = "octosystem";
+      const tenantId = 'octosystem';
       const httpLink = inject(HttpLink);
       const octoErrorLink = inject(OctoErrorLink);
       const configurationService = inject(CONFIGURATION_SERVICE);
@@ -99,7 +98,7 @@ export const appConfig: ApplicationConfig = {
       };
     }),
     {provide: HTTP_INTERCEPTORS, useClass: MmHttpErrorInterceptor, multi: true},
-    {provide: LOCALE_ID, useValue: "de-DE"},
+    {provide: LOCALE_ID, useValue: 'de-DE'},
     {provide: CommandSettingsService, useClass: MyCommandSettingsService}
   ]
 };

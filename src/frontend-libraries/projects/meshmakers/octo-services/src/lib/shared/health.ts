@@ -4,17 +4,17 @@ export enum HealthStatus{
   /*
    * Indicates that the health check determined that the component was unhealthy, or an unhandled
    */
-  Unhealthy = "Unhealthy",
+  Unhealthy = 'Unhealthy',
 
   /*
    * Indicates that the health check determined that the component was in a degraded state.
    */
-  Degraded = "Degraded",
+  Degraded = 'Degraded',
 
   /*
    * Indicates that the health check determined that the component was healthy.
    */
-  Healthy = "Healthy"
+  Healthy = 'Healthy'
 }
 
 export interface HealthCheckResult{

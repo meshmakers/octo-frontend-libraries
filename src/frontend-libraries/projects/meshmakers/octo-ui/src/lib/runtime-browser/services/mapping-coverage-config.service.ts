@@ -122,9 +122,9 @@ export class MappingCoverageConfigService {
           systemUIMappingCoverageConfiguration?: {
             items?:
               | ({
-                  rtId?: string;
-                  sourceCandidateCkTypeIds?: (string | null)[] | null;
-                } | null)[]
+                rtId?: string;
+                sourceCandidateCkTypeIds?: (string | null)[] | null;
+              } | null)[]
               | null;
           } | null;
         };

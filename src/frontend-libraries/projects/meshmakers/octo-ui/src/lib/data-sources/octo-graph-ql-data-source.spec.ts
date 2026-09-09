@@ -6,8 +6,8 @@ import { State } from '@progress/kendo-data-query/dist/npm/state';
 import { Observable, of } from 'rxjs';
 
 interface TestDto {
-    id: string;
-    name: string;
+  id: string;
+  name: string;
 }
 
 /**
@@ -85,9 +85,9 @@ describe('OctoGraphQlDataSource', () => {
 
     it('should return null when filter has no filters array', () => {
       const state: State = { filter: { logic: 'and', filters: [] } };
-            state.filter!.filters = undefined as never;
-            const result = dataSource.testGetFieldFilterDefinitions(state);
-            expect(result).toBeNull();
+      state.filter!.filters = undefined as never;
+      const result = dataSource.testGetFieldFilterDefinitions(state);
+      expect(result).toBeNull();
     });
 
     it('should return empty array when filters array is empty', () => {

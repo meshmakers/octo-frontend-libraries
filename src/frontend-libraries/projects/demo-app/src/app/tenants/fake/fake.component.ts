@@ -31,7 +31,7 @@ export class FakeComponent implements OnInit {
 
     this.uri = this.createRouteString(this.activatedRoute.root);
 
-    await this.breadCrumbService.updateBreadcrumbLabels({ queryName: "demo" });
+    await this.breadCrumbService.updateBreadcrumbLabels({ queryName: 'demo' });
   }
 
   private createRouteString(route: ActivatedRoute, path = ''): string {

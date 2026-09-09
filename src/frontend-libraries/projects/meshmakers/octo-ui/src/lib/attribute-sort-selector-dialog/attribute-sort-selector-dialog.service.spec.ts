@@ -8,15 +8,15 @@ import { AttributeSortSelectorDialogService } from './attribute-sort-selector-di
 import { AttributeSortSelectorDialogComponent, AttributeSortSelectorDialogResult, AttributeSortItem } from './attribute-sort-selector-dialog.component';
 
 interface MockComponentInstance {
-    data?: {
-        ckTypeId: string;
-        selectedAttributes?: AttributeSortItem[];
-        dialogTitle?: string;
-        includeNavigationProperties?: boolean;
-        hideNavigationControls?: boolean;
-        attributePaths?: string[];
-        additionalAttributes?: AttributeItem[];
-    };
+  data?: {
+    ckTypeId: string;
+    selectedAttributes?: AttributeSortItem[];
+    dialogTitle?: string;
+    includeNavigationProperties?: boolean;
+    hideNavigationControls?: boolean;
+    attributePaths?: string[];
+    additionalAttributes?: AttributeItem[];
+  };
 }
 
 describe('AttributeSortSelectorDialogService', () => {

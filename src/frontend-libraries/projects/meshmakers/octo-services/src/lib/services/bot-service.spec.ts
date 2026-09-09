@@ -14,9 +14,9 @@ describe('BotService', () => {
   let service: BotService;
   let httpMock: HttpTestingController;
   let mockConfigService: {
-        config: AddInConfiguration | null;
-        loadConfigAsync: Mock;
-    };
+    config: AddInConfiguration | null;
+    loadConfigAsync: Mock;
+  };
 
   const baseUrl = 'https://bot.example.com/';
 

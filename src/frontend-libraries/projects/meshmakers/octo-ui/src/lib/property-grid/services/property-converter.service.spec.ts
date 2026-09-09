@@ -506,29 +506,29 @@ describe('PropertyConverterService', () => {
 
   describe('CK Type Mapping', () => {
     const testCases: {
-            ckType: string;
-            expectedDto: AttributeValueTypeDto;
-        }[] = [
-          { ckType: 'BINARY', expectedDto: AttributeValueTypeDto.BinaryDto },
-          { ckType: 'BINARY_LINKED', expectedDto: AttributeValueTypeDto.BinaryLinkedDto },
-          { ckType: 'BOOLEAN', expectedDto: AttributeValueTypeDto.BooleanDto },
-          { ckType: 'DATE_TIME', expectedDto: AttributeValueTypeDto.DateTimeDto },
-          { ckType: 'DATE_TIME_OFFSET', expectedDto: AttributeValueTypeDto.DateTimeOffsetDto },
-          { ckType: 'DOUBLE', expectedDto: AttributeValueTypeDto.DoubleDto },
-          { ckType: 'ENUM', expectedDto: AttributeValueTypeDto.EnumDto },
-          { ckType: 'GEOSPATIAL_POINT', expectedDto: AttributeValueTypeDto.GeospatialPointDto },
-          { ckType: 'INT', expectedDto: AttributeValueTypeDto.IntDto },
-          { ckType: 'INTEGER', expectedDto: AttributeValueTypeDto.IntegerDto },
-          { ckType: 'INTEGER_64', expectedDto: AttributeValueTypeDto.Integer_64Dto },
-          { ckType: 'INTEGER_ARRAY', expectedDto: AttributeValueTypeDto.IntegerArrayDto },
-          { ckType: 'INT_64', expectedDto: AttributeValueTypeDto.Int_64Dto },
-          { ckType: 'INT_ARRAY', expectedDto: AttributeValueTypeDto.IntArrayDto },
-          { ckType: 'RECORD', expectedDto: AttributeValueTypeDto.RecordDto },
-          { ckType: 'RECORD_ARRAY', expectedDto: AttributeValueTypeDto.RecordArrayDto },
-          { ckType: 'STRING', expectedDto: AttributeValueTypeDto.StringDto },
-          { ckType: 'STRING_ARRAY', expectedDto: AttributeValueTypeDto.StringArrayDto },
-          { ckType: 'TIME_SPAN', expectedDto: AttributeValueTypeDto.TimeSpanDto }
-        ];
+      ckType: string;
+      expectedDto: AttributeValueTypeDto;
+    }[] = [
+      { ckType: 'BINARY', expectedDto: AttributeValueTypeDto.BinaryDto },
+      { ckType: 'BINARY_LINKED', expectedDto: AttributeValueTypeDto.BinaryLinkedDto },
+      { ckType: 'BOOLEAN', expectedDto: AttributeValueTypeDto.BooleanDto },
+      { ckType: 'DATE_TIME', expectedDto: AttributeValueTypeDto.DateTimeDto },
+      { ckType: 'DATE_TIME_OFFSET', expectedDto: AttributeValueTypeDto.DateTimeOffsetDto },
+      { ckType: 'DOUBLE', expectedDto: AttributeValueTypeDto.DoubleDto },
+      { ckType: 'ENUM', expectedDto: AttributeValueTypeDto.EnumDto },
+      { ckType: 'GEOSPATIAL_POINT', expectedDto: AttributeValueTypeDto.GeospatialPointDto },
+      { ckType: 'INT', expectedDto: AttributeValueTypeDto.IntDto },
+      { ckType: 'INTEGER', expectedDto: AttributeValueTypeDto.IntegerDto },
+      { ckType: 'INTEGER_64', expectedDto: AttributeValueTypeDto.Integer_64Dto },
+      { ckType: 'INTEGER_ARRAY', expectedDto: AttributeValueTypeDto.IntegerArrayDto },
+      { ckType: 'INT_64', expectedDto: AttributeValueTypeDto.Int_64Dto },
+      { ckType: 'INT_ARRAY', expectedDto: AttributeValueTypeDto.IntArrayDto },
+      { ckType: 'RECORD', expectedDto: AttributeValueTypeDto.RecordDto },
+      { ckType: 'RECORD_ARRAY', expectedDto: AttributeValueTypeDto.RecordArrayDto },
+      { ckType: 'STRING', expectedDto: AttributeValueTypeDto.StringDto },
+      { ckType: 'STRING_ARRAY', expectedDto: AttributeValueTypeDto.StringArrayDto },
+      { ckType: 'TIME_SPAN', expectedDto: AttributeValueTypeDto.TimeSpanDto }
+    ];
 
     testCases.forEach(({ ckType, expectedDto }) => {
       it(`should map CK type ${ckType} to ${expectedDto}`, () => new Promise<void>((done) => {

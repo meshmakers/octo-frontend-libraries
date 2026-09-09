@@ -842,10 +842,10 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
     // Convert filters to DTO format
     const filtersDto: FieldFilterDto[] | undefined = this.filters.length > 0
       ? this.filters.map(f => ({
-          attributePath: f.attributePath,
-          operator: f.operator,
-          comparisonValue: f.comparisonValue
-        }))
+        attributePath: f.attributePath,
+        operator: f.operator,
+        comparisonValue: f.comparisonValue
+      }))
       : undefined;
 
     const family = this.dataSourceMode === 'persistentQuery' && this.selectedPersistentQuery

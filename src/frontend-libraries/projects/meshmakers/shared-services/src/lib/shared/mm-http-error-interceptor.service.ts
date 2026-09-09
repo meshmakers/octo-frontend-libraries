@@ -1,9 +1,9 @@
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { inject, Injectable, InjectionToken } from "@angular/core";
-import { MessageService } from "../services/message.service";
-import { ApiErrorDto } from "../models/apiErrorDto";
+import { inject, Injectable, InjectionToken } from '@angular/core';
+import { MessageService } from '../services/message.service';
+import { ApiErrorDto } from '../models/apiErrorDto';
 
 /**
  * Optional callback invoked when a network connectivity error (HTTP status 0) is detected.

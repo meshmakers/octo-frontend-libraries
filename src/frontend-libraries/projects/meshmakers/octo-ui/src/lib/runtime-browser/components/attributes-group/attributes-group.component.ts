@@ -7,12 +7,12 @@ import {
   input,
   effect,
   ChangeDetectionStrategy
-} from "@angular/core";
+} from '@angular/core';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
   RuntimeBrowserMessages,
-} from "../../runtime-browser.model";
-import { CommonModule } from "@angular/common";
+} from '../../runtime-browser.model';
+import { CommonModule } from '@angular/common';
 import {
   FormArray,
   FormGroup,
@@ -20,33 +20,33 @@ import {
   AbstractControl,
   FormControl,
   Validators,
-} from "@angular/forms";
-import { AttributeFieldComponent } from "../attribute-field/attribute-field.component";
-import { rxResource } from "@angular/core/rxjs-interop";
-import { finalize } from "rxjs";
-import { Attribute } from "../../models/attribute";
-import { AttributeDataService } from "../../services/attribute-data.service";
-import { AttributeCoordinatorService } from "../../services/attribute-coordinator.service";
-import { AttributeRecognitionService } from "../../services/attribute-recognition.service";
-import { KENDO_LAYOUT, SelectEvent } from "@progress/kendo-angular-layout";
-import { KENDO_DATEINPUTS } from "@progress/kendo-angular-dateinputs";
-import { KENDO_BUTTONS } from "@progress/kendo-angular-buttons";
-import { KENDO_INPUTS } from "@progress/kendo-angular-inputs";
-import { KENDO_LABEL } from "@progress/kendo-angular-label";
-import { KENDO_DROPDOWNS } from "@progress/kendo-angular-dropdowns";
-import { KENDO_UPLOADS } from "@progress/kendo-angular-upload";
+} from '@angular/forms';
+import { AttributeFieldComponent } from '../attribute-field/attribute-field.component';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
+import { Attribute } from '../../models/attribute';
+import { AttributeDataService } from '../../services/attribute-data.service';
+import { AttributeCoordinatorService } from '../../services/attribute-coordinator.service';
+import { AttributeRecognitionService } from '../../services/attribute-recognition.service';
+import { KENDO_LAYOUT, SelectEvent } from '@progress/kendo-angular-layout';
+import { KENDO_DATEINPUTS } from '@progress/kendo-angular-dateinputs';
+import { KENDO_BUTTONS } from '@progress/kendo-angular-buttons';
+import { KENDO_INPUTS } from '@progress/kendo-angular-inputs';
+import { KENDO_LABEL } from '@progress/kendo-angular-label';
+import { KENDO_DROPDOWNS } from '@progress/kendo-angular-dropdowns';
+import { KENDO_UPLOADS } from '@progress/kendo-angular-upload';
 import {
   BINARY_LINKED_REFERENCE_FLAG,
   BINARY_REFERENCE_FLAG,
   AttributeMapperService,
-} from "../../services/attribute-mapper.service";
+} from '../../services/attribute-mapper.service';
 
 /**
  * Attributes group: dynamic form for a CK type or record.
  * Loads definitions via rxResource, syncs initial values in an effect, supports RECORD/RECORD_ARRAY/scalars/geo/binary.
  */
 @Component({
-  selector: "mm-attributes-group",
+  selector: 'mm-attributes-group',
   standalone: true,
   imports: [
     CommonModule,
@@ -365,7 +365,7 @@ import {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ["./attributes-group.component.scss"],
+  styleUrls: ['./attributes-group.component.scss'],
 })
 /**
  * Renders a dynamic form group for a CK type or record: loads attribute definitions,
@@ -379,7 +379,7 @@ export class AttributesGroupComponent {
   protected recognition = inject(AttributeRecognitionService);
   private mapper = inject(AttributeMapperService);
   private isRecordValue(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 
   // ─── Inputs (public API for parent / template) ─────────────────────────────────────
@@ -522,11 +522,11 @@ export class AttributesGroupComponent {
       const geoValue = this.isRecordValue(initialValue) ? initialValue : {};
       const geoGroup = new FormGroup({
         longitude: new FormControl(
-          geoValue["longitude"] ?? null,
+          geoValue['longitude'] ?? null,
           longitudeValidators,
         ),
         latitude: new FormControl(
-          geoValue["latitude"] ?? null,
+          geoValue['latitude'] ?? null,
           latitudeValidators,
         ),
       });
@@ -554,12 +554,12 @@ export class AttributesGroupComponent {
     if (this.recognition.isGeoSpatialPoint(attr.attributeValueType)) {
       const v = this.isRecordValue(value) ? value : {};
       this.baselineValues.set(
-        key + ".longitude",
-        this.cloneForBaseline(v["longitude"] ?? null),
+        key + '.longitude',
+        this.cloneForBaseline(v['longitude'] ?? null),
       );
       this.baselineValues.set(
-        key + ".latitude",
-        this.cloneForBaseline(v["latitude"] ?? null),
+        key + '.latitude',
+        this.cloneForBaseline(v['latitude'] ?? null),
       );
     } else if (
       !this.recognition.isRecord(attr.attributeValueType) &&
@@ -572,7 +572,7 @@ export class AttributesGroupComponent {
   private cloneForBaseline(v: unknown): unknown {
     if (v === null || v === undefined) return v;
     if (v instanceof Date) return new Date(v.getTime());
-    if (typeof v === "object" && v instanceof File) return v;
+    if (typeof v === 'object' && v instanceof File) return v;
     if (Array.isArray(v)) return v.map((x) => this.cloneForBaseline(x));
     if (this.isRecordValue(v)) {
       const out: Record<string, unknown> = {};
@@ -602,7 +602,7 @@ export class AttributesGroupComponent {
         : !this.isRecordValue(value) || Object.keys(value).length === 0;
     if (this.recognition.isGeoSpatialPoint(type)) {
       const v = this.isRecordValue(value) ? value : {};
-      return v["longitude"] == null && v["latitude"] == null;
+      return v['longitude'] == null && v['latitude'] == null;
     }
     if (this.recognition.isArray(type)) return Array.isArray(value) && value.length === 0;
     return false;
@@ -610,10 +610,10 @@ export class AttributesGroupComponent {
 
   private isControlValueEmpty(control: AbstractControl, type: string): boolean {
     const value = control.value;
-    if (value === null || value === undefined || value === "") return true;
+    if (value === null || value === undefined || value === '') return true;
     if (this.recognition.isRecordArray(type) || this.recognition.isRecord(type)) {
       if (Array.isArray(value)) return value.length === 0;
-      const obj = value && typeof value === "object" ? value : {};
+      const obj = value && typeof value === 'object' ? value : {};
       return Object.keys(obj).length === 0;
     }
     if (this.recognition.isGeoSpatialPoint(type)) {
@@ -734,8 +734,8 @@ export class AttributesGroupComponent {
       const item = raw[index]?.attributes ?? EMPTY_INITIAL_VALUES;
       return Array.isArray(item) ? item : EMPTY_INITIAL_VALUES;
     }
-    if (this.isRecordValue(raw) && Array.isArray(raw["attributes"])) {
-      return raw["attributes"];
+    if (this.isRecordValue(raw) && Array.isArray(raw['attributes'])) {
+      return raw['attributes'];
     }
     if (raw !== undefined && raw !== null && Array.isArray(raw)) {
       return raw;

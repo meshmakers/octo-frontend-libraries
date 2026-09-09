@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+import { CommonModule } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -10,30 +10,30 @@ import {
   SimpleChanges,
   ViewChild,
   ChangeDetectionStrategy
-} from "@angular/core";
-import { CommandItemExecuteEventArgs } from "@meshmakers/shared-services";
-import { ListViewComponent } from "@meshmakers/shared-ui";
-import { ButtonModule } from "@progress/kendo-angular-buttons";
-import { DropDownListModule } from "@progress/kendo-angular-dropdowns";
-import { SVGIconModule } from "@progress/kendo-angular-icons";
-import { TextBoxModule } from "@progress/kendo-angular-inputs";
+} from '@angular/core';
+import { CommandItemExecuteEventArgs } from '@meshmakers/shared-services';
+import { ListViewComponent } from '@meshmakers/shared-ui';
+import { ButtonModule } from '@progress/kendo-angular-buttons';
+import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
+import { SVGIconModule } from '@progress/kendo-angular-icons';
+import { TextBoxModule } from '@progress/kendo-angular-inputs';
 import {
   CardModule,
   SelectEvent,
   TabStripModule,
-} from "@progress/kendo-angular-layout";
-import { NotificationService } from "@progress/kendo-angular-notification";
+} from '@progress/kendo-angular-layout';
+import { NotificationService } from '@progress/kendo-angular-notification';
 import {
   copyIcon,
   eyeIcon,
   gearIcon,
   hyperlinkOpenIcon,
   infoCircleIcon,
-} from "@progress/kendo-svg-icons";
-import { firstValueFrom, Subject } from "rxjs";
-import { debounceTime, distinctUntilChanged, takeUntil } from "rxjs/operators";
-import { GetBinaryInfoDtoGQL } from "../../graphQL/getBinaryInfo";
-import { GraphDirectionDto, RtEntityDto } from "../../graphQL/globalTypes";
+} from '@progress/kendo-svg-icons';
+import { firstValueFrom, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { GetBinaryInfoDtoGQL } from '../../graphQL/getBinaryInfo';
+import { GraphDirectionDto, RtEntityDto } from '../../graphQL/globalTypes';
 import {
   BinaryDownloadEvent,
   PropertyChangeEvent,
@@ -41,20 +41,20 @@ import {
   PropertyGridComponent,
   PropertyGridConfig,
   PropertyGridItem,
-} from "../../property-grid";
+} from '../../property-grid';
 import {
   AssociationDisplayItem,
   EntityAssociationsDataSourceDirective,
-} from "../data-sources/entity-associations-data-source.directive";
+} from '../data-sources/entity-associations-data-source.directive';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
   RuntimeBrowserMessages,
-} from "../runtime-browser.model";
+} from '../runtime-browser.model';
 import {
   DataMappingListComponent,
   DataPointMappingItem,
   ExpressionValidatorFn,
-} from "./data-mapping/data-mapping-list.component";
+} from './data-mapping/data-mapping-list.component';
 
 interface DirectionOption {
   text: string;
@@ -62,7 +62,7 @@ interface DirectionOption {
 }
 
 @Component({
-  selector: "mm-entity-detail-view",
+  selector: 'mm-entity-detail-view',
   standalone: true,
   imports: [
     CommonModule,
@@ -315,7 +315,7 @@ interface DirectionOption {
     }
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ["./entity-detail-view.component.scss"],
+  styleUrls: ['./entity-detail-view.component.scss'],
 })
 export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   @Input() entity: RtEntityDto | null = null;
@@ -353,7 +353,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   @Output() mappingChanged = new EventEmitter<DataPointMappingItem>();
   @Output() saveAllMappingsRequested = new EventEmitter<void>();
 
-  @ViewChild("associationsDir", { static: false })
+  @ViewChild('associationsDir', { static: false })
   associationsDataSource?: EntityAssociationsDataSourceDirective;
 
   private readonly notificationService = inject(NotificationService);
@@ -373,7 +373,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   propertyGridConfig: PropertyGridConfig = {
     readOnlyMode: false,
     showTypeIcons: true,
-    height: "500px",
+    height: '500px',
     showSearch: true,
   };
 
@@ -450,7 +450,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes["entity"] && this.entity) {
+    if (changes['entity'] && this.entity) {
       this.updatePropertyGrid();
     }
   }
@@ -473,7 +473,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
         this.propertyGridItems = items;
       },
       error: (err: unknown) => {
-        console.error("Error converting entity to properties:", err);
+        console.error('Error converting entity to properties:', err);
         this.propertyGridItems = [];
       },
     });
@@ -505,7 +505,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
   }
 
   private normalizeDateValue(value: unknown): string | undefined {
-    if (typeof value === "string") {
+    if (typeof value === 'string') {
       return value;
     }
     if (value instanceof Date) {
@@ -575,7 +575,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   getEntityIdentifier(): string {
     if (!this.entity?.ckTypeId || !this.entity?.rtId) {
-      return "Unknown";
+      return 'Unknown';
     }
     return `${this.entity.ckTypeId}@${this.entity.rtId}`;
   }
@@ -612,20 +612,20 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
       .then(() => {
         this.notificationService.show({
           content: `${label} ${this._messages.copiedToClipboard}`,
-          type: { style: "success", icon: true },
-          position: { horizontal: "right", vertical: "top" },
+          type: { style: 'success', icon: true },
+          position: { horizontal: 'right', vertical: 'top' },
           hideAfter: 2000,
-          animation: { type: "fade", duration: 400 },
+          animation: { type: 'fade', duration: 400 },
         });
       })
       .catch((err) => {
-        console.error("Failed to copy:", err);
+        console.error('Failed to copy:', err);
         this.notificationService.show({
           content: this._messages.failedToCopyToClipboard,
-          type: { style: "error", icon: true },
-          position: { horizontal: "right", vertical: "top" },
+          type: { style: 'error', icon: true },
+          position: { horizontal: 'right', vertical: 'top' },
           hideAfter: 3000,
-          animation: { type: "fade", duration: 400 },
+          animation: { type: 'fade', duration: 400 },
         });
       });
   }
@@ -636,7 +636,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
    */
   protected async onBinaryDownload(_event: BinaryDownloadEvent): Promise<void> {
     if (!this.entity?.rtId) {
-      console.warn("Cannot download: no entity rtId available");
+      console.warn('Cannot download: no entity rtId available');
       return;
     }
 
@@ -652,25 +652,25 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
         result.data?.runtime?.systemReportingFileSystemItem?.items?.[0];
       if (item?.content?.downloadUri) {
         // Open download in new tab
-        window.open(item.content.downloadUri, "_blank", "noopener,noreferrer");
+        window.open(item.content.downloadUri, '_blank', 'noopener,noreferrer');
       } else {
-        console.warn("No downloadUri found for binary");
+        console.warn('No downloadUri found for binary');
         this.notificationService.show({
           content: this._messages.downloadNotAvailable,
-          type: { style: "warning", icon: true },
-          position: { horizontal: "right", vertical: "top" },
+          type: { style: 'warning', icon: true },
+          position: { horizontal: 'right', vertical: 'top' },
           hideAfter: 3000,
-          animation: { type: "fade", duration: 400 },
+          animation: { type: 'fade', duration: 400 },
         });
       }
     } catch (error) {
-      console.error("Failed to load binary info:", error);
+      console.error('Failed to load binary info:', error);
       this.notificationService.show({
         content: this._messages.failedToLoadDownloadInfo,
-        type: { style: "error", icon: true },
-        position: { horizontal: "right", vertical: "top" },
+        type: { style: 'error', icon: true },
+        position: { horizontal: 'right', vertical: 'top' },
         hideAfter: 3000,
-        animation: { type: "fade", duration: 400 },
+        animation: { type: 'fade', duration: 400 },
       });
     }
   }

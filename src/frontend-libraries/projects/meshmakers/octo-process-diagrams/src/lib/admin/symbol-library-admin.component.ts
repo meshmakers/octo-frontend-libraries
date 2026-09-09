@@ -1588,10 +1588,10 @@ export class SymbolLibraryAdminComponent implements OnInit {
       const primitives = this.newSymbol.template === 'fromSvg' && this.newSymbol.svgPrimitives
         ? this.newSymbol.svgPrimitives
         : this.createPrimitivesFromTemplate(
-            this.newSymbol.template,
-            this.newSymbol.width,
-            this.newSymbol.height
-          );
+          this.newSymbol.template,
+          this.newSymbol.width,
+          this.newSymbol.height
+        );
 
       const symbol = await this.symbolLibraryService.createSymbol(library.id, {
         name: this.newSymbol.name,

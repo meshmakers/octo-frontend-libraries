@@ -7,10 +7,10 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { HeatmapWidgetConfig } from '../../models/meshboard.models';
 
 interface HeatmapCell {
-    date: string;
-    hour: string;
-    value: number;
-    color: string;
+  date: string;
+  hour: string;
+  value: number;
+  color: string;
 }
 
 // Band colors mirrored from THRESHOLD_COLORS in the component.
@@ -59,30 +59,30 @@ describe('HeatmapWidgetComponent — threshold coloring', () => {
   describe('getThresholdColor', () => {
     it('greens a cell equal to the target', () => {
       expect((component as unknown as {
-                getThresholdColor(v: number, t: number): string;
-            }).getThresholdColor(2, 2)).toBe(OK);
+        getThresholdColor(v: number, t: number): string;
+      }).getThresholdColor(2, 2)).toBe(OK);
     });
 
     it('ambers a cell below the target, including empty 0-cells', () => {
       const c = component as unknown as {
-                getThresholdColor(v: number, t: number): string;
-            };
+        getThresholdColor(v: number, t: number): string;
+      };
       expect(c.getThresholdColor(1, 2)).toBe(WARN);
       expect(c.getThresholdColor(0, 2)).toBe(WARN);
     });
 
     it('reds a cell above the target', () => {
       expect((component as unknown as {
-                getThresholdColor(v: number, t: number): string;
-            }).getThresholdColor(8, 2)).toBe(HIGH);
+        getThresholdColor(v: number, t: number): string;
+      }).getThresholdColor(8, 2)).toBe(HIGH);
     });
   });
 
   describe('resolveThresholdTarget', () => {
     function resolve(): number | null {
       return (component as unknown as {
-                resolveThresholdTarget(): number | null;
-            }).resolveThresholdTarget();
+        resolveThresholdTarget(): number | null;
+      }).resolveThresholdTarget();
     }
 
     it('uses the explicit thresholdTarget when set', () => {
@@ -107,8 +107,8 @@ describe('HeatmapWidgetComponent — threshold coloring', () => {
   describe('assignColors', () => {
     function assign(data: HeatmapCell[]): void {
       (component as unknown as {
-                assignColors(d: HeatmapCell[]): void;
-            }).assignColors(data);
+        assignColors(d: HeatmapCell[]): void;
+      }).assignColors(data);
     }
 
     it('bands cells around the target in threshold mode (0 → warn, target → ok, above → high)', () => {

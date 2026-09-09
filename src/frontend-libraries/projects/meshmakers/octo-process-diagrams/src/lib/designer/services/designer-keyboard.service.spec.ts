@@ -6,12 +6,12 @@ describe('DesignerKeyboardService', () => {
 
   // Helper to create mock keyboard event
   function createKeyEvent(key: string, options: {
-        ctrlKey?: boolean;
-        shiftKey?: boolean;
-        altKey?: boolean;
-        metaKey?: boolean;
-        target?: Partial<HTMLElement>;
-    } = {}): KeyboardEvent {
+    ctrlKey?: boolean;
+    shiftKey?: boolean;
+    altKey?: boolean;
+    metaKey?: boolean;
+    target?: Partial<HTMLElement>;
+  } = {}): KeyboardEvent {
     const event = new KeyboardEvent('keydown', {
       key,
       ctrlKey: options.ctrlKey ?? false,

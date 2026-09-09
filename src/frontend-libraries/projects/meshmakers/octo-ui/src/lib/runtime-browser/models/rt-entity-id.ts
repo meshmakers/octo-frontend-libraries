@@ -71,7 +71,7 @@ export class RtEntityIdHelper {
 
       return { rtId, ckTypeId };
     } catch (error) {
-      throw new Error(`Failed to decode entity ID: ${error}`);
+      throw new Error(`Failed to decode entity ID: ${error}`, { cause: error });
     }
   }
 

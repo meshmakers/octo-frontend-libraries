@@ -50,10 +50,10 @@ export class LoginAppBarSectionComponent implements OnInit {
     return null;
   });
 
-  @ViewChild("user", { read: ElementRef })
+  @ViewChild('user', { read: ElementRef })
   private anchor: ElementRef | null = null;
 
-  @ViewChild("popup", { read: ElementRef })
+  @ViewChild('popup', { read: ElementRef })
   private popup: ElementRef | null = null;
 
   constructor() {
@@ -86,14 +86,14 @@ export class LoginAppBarSectionComponent implements OnInit {
     this._showRegister = value;
   }
 
-  @HostListener("document:keydown", ["$event"])
+  @HostListener('document:keydown', ['$event'])
   public keydown(event: KeyboardEvent): void {
-    if (event.code === "Escape") {
+    if (event.code === 'Escape') {
       this.onToggle(false);
     }
   }
 
-  @HostListener("document:click", ["$event"])
+  @HostListener('document:click', ['$event'])
   public documentClick(event: MouseEvent): void {
     if (!this.contains(event.target)) {
       this.onToggle(false);

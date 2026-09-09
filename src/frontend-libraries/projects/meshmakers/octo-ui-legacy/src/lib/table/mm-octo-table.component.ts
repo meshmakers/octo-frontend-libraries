@@ -108,13 +108,13 @@ export interface ToolbarAction {
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './mm-octo-table.component.scss'
 })
- 
+
 export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContentInit, OnDestroy {
-   
+
   @Input() dataSource!: AssetRepoGraphQlDataSource<any, any, any>;
-   
+
   @ContentChildren(TemplateRef) cellTemplates!: QueryList<TemplateRef<any>>;
-   
+
   templateMap = new Map<string, TemplateRef<any>>();
 
   @Input() actionColumns: ActionColumn[] = [];
@@ -128,12 +128,12 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   @Input() pageSizeOptions = [5, 10, 20, 50];
   @Input() selectedPageSize = 5;
 
-   
+
   @Output() rowClicked = new EventEmitter<any>();
   @Output() searchFilterStringUpdated = new EventEmitter<string>();
   @Input() selectedRowId = '';
 
-   
+
   @Output() actionColumnClick = new EventEmitter<{ action: string; id: string; entry: any }>();
 
   @Input() set columns(cols: ColumnDefinition[]) {
@@ -158,7 +158,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   }
   _columns: TableColumn[] = [];
 
-   
+
   selectedRow: any = null;
 
   selectedPageSizeSubject: BehaviorSubject<number> = new BehaviorSubject<number>(this.selectedPageSize);
@@ -192,7 +192,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   ngAfterContentInit(): void {
     this.templateMap.clear();
     if (this.cellTemplates) {
-       
+
       this.cellTemplates.forEach((template: any) => {
         const refName = template._declarationTContainer?.localNames?.[0];
         if (refName) {
@@ -282,7 +282,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
 
   protected readonly encodeURIComponent = encodeURIComponent;
 
-   
+
   accessElement(element: any, column: TableColumn): any {
     if (column.templateName) {
       return element;
@@ -306,7 +306,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
     return this.actionColumns.map((ac) => ac.displayText);
   }
 
-   
+
   onRowClick(row: any) {
     if (this.rowIsClickable) {
       this.selectedRow = row;
@@ -314,13 +314,13 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
     }
   }
 
-   
+
   isRowSelected(row: any): boolean {
     return this.selectedRow === row;
   }
 
   checkSelectedRow() {
-     
+
     this.dataSource.connect(null as any).subscribe((data) => {
       for (const entry of data) {
         if (entry.rtId === this.selectedRowId) {
@@ -330,7 +330,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
     });
   }
 
-   
+
   emitRowData(data: { action: string; id: string; entry: any }) {
     this.actionColumnClick.emit(data);
   }
@@ -342,8 +342,8 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
   hasActionColumns = () => {
     return this.actionColumns.length > 0 || this.optionActions.length > 0;
   };
-  protected readonly getDisplayName = getDisplayName;
-  protected readonly getDataKey = getDataKey;
+  protected get getDisplayName(): typeof getDisplayName { return getDisplayName; }
+  protected get getDataKey(): typeof getDataKey { return getDataKey; }
 
   isSortable(column: TableColumn): boolean {
     if (column.sortingDisabled !== undefined) {
@@ -352,7 +352,7 @@ export class MmOctoTableComponent implements OnInit, AfterViewInit, AfterContent
     return true;
   }
 
-   
+
   getTemplate(templateName: string): TemplateRef<any> | undefined {
     return this.templateMap.get(templateName);
   }

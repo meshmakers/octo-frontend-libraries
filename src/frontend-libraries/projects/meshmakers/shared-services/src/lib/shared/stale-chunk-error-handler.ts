@@ -18,7 +18,7 @@ function isStaleChunkError(error: unknown): boolean {
     message.includes('Loading chunk') ||
     message.includes('JIT compiler unavailable') ||
     message.includes('Failed to fetch dynamically imported module') ||
-    message.includes("Importing a module script failed") ||
+    message.includes('Importing a module script failed') ||
     message.includes('ChunkLoadError')
   );
 }

@@ -895,8 +895,8 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.get<ExternalTenantUserMappingDto[]>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}`, {
-          observe: 'response'
-        })
+            observe: 'response'
+          })
       );
       return response.body;
     }
@@ -909,8 +909,8 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.post<ExternalTenantUserMappingDto>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/provisionCurrentUser`, null, {
-          observe: 'response'
-        })
+            observe: 'response'
+          })
       );
       return response.body;
     }
@@ -923,8 +923,8 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.post<ExternalTenantUserMappingDto>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}`, dto, {
-          observe: 'response'
-        })
+            observe: 'response'
+          })
       );
       return response.body;
     }
@@ -937,8 +937,8 @@ export class IdentityService {
       await firstValueFrom(
         this.httpClient.delete<void>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/${encodeURIComponent(mappingRtId)}`, {
-          observe: 'response'
-        })
+            observe: 'response'
+          })
       );
     }
   }
@@ -959,9 +959,9 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.get<ProvisioningSourceUserDto[]>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/sourceUsers`, {
-          params,
-          observe: 'response'
-        })
+            params,
+            observe: 'response'
+          })
       );
       return response.body;
     }
@@ -978,8 +978,8 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.get<RoleDto[]>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/roles`, {
-          observe: 'response'
-        })
+            observe: 'response'
+          })
       );
       return response.body;
     }
@@ -997,8 +997,8 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.get<ProvisioningGroupDto[]>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/groups`, {
-          observe: 'response'
-        })
+            observe: 'response'
+          })
       );
       return response.body;
     }
@@ -1016,8 +1016,8 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.post<ExternalTenantUserMappingDto>(
           baseUrl + `adminProvisioning/${encodeURIComponent(targetTenantId)}/withGroups`, dto, {
-          observe: 'response'
-        })
+            observe: 'response'
+          })
       );
       return response.body;
     }

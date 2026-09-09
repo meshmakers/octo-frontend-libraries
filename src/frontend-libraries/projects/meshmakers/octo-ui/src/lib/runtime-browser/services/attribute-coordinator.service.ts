@@ -1,11 +1,11 @@
-import { computed, Injectable, signal } from "@angular/core";
+import { computed, Injectable, signal } from '@angular/core';
 
 /**
  * Coordinates loading state across attributes-group (and nested RECORD/RECORD_ARRAY).
  * Used by create-editor and update-editor to enable Save only when structure is ready and form is valid/dirty.
  * Singleton: call reset() when entering create or edit mode so stale state from the other mode does not affect the Save button.
  */
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class AttributeCoordinatorService {
   private loadingCount = signal(0);
   private structureReady = signal(false);

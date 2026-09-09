@@ -10,9 +10,9 @@ describe('DesignerRenderingService', () => {
 
   // Helper to create a test element
   function createElement(id: string, position: Position, size: {
-        width: number;
-        height: number;
-    }): ProcessElement {
+    width: number;
+    height: number;
+  }): ProcessElement {
     return {
       id,
       type: 'tank',
@@ -369,8 +369,8 @@ describe('DesignerRenderingService', () => {
 
       // Override to simulate missing values
       (group.config as unknown as {
-                originalBounds: unknown;
-            }).originalBounds = undefined;
+        originalBounds: unknown;
+      }).originalBounds = undefined;
 
       const bounds = service.getPrimitiveBounds(group);
 

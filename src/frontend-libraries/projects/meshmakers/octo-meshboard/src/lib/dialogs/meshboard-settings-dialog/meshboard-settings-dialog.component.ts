@@ -86,7 +86,7 @@ export class MeshBoardSettingsDialogComponent {
    * Timezone basis for time-filter boundaries and datetime display across all
    * widgets. Defaults to `'local'` (browser timezone).
    */
-  timeZoneMode: MeshBoardTimeZoneMode = DEFAULT_TIME_ZONE_MODE;
+  timeZoneMode: MeshBoardTimeZoneMode;
 
   /**
    * Curated IANA zones offered in the "Specific time zone" picker (AB#4190). Not exhaustive —
@@ -108,6 +108,13 @@ export class MeshBoardSettingsDialogComponent {
 
   /** The IANA id bound to the picker; only applied to {@link timeZoneMode} while "Specific time zone" is selected. */
   zoneSelection = 'Europe/Vienna';
+
+  constructor() {
+    // Assigned here rather than as a field initialiser: a class field initialised with a bare
+    // imported identifier reads `undefined` under the Vitest module runner (see CLAUDE.md,
+    // "Vite/esbuild class-field snapshot").
+    this.timeZoneMode = DEFAULT_TIME_ZONE_MODE;
+  }
 
   /** True when the board zone is an explicit IANA id (i.e. neither `'local'` nor `'utc'`). */
   get isSpecificZone(): boolean {

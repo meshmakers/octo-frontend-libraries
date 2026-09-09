@@ -8,8 +8,8 @@ import { BrandingDataSource } from './branding-data-source.service';
 import { NEUTRAL_BRANDING_DEFAULTS } from '../branding.tokens';
 
 interface MutableRouteSnapshot {
-    data: Record<string, unknown>;
-    children: MutableRouteSnapshot[];
+  data: Record<string, unknown>;
+  children: MutableRouteSnapshot[];
 }
 
 function makeRouterState(...breadcrumbs: string[]): RouterStateSnapshot {
@@ -30,14 +30,14 @@ function makeRouterState(...breadcrumbs: string[]): RouterStateSnapshot {
 
 describe('AppTitleService', () => {
   function configure(opts?: {
-        appTitle?: string;
-        appName?: string;
-        translator?: (k: string) => string;
-    }): {
-        service: AppTitleService;
-        titleStub: MockedObject<Title>;
-        brandingSignal: ReturnType<typeof signal<typeof NEUTRAL_BRANDING_DEFAULTS>>;
-    } {
+    appTitle?: string;
+    appName?: string;
+    translator?: (k: string) => string;
+  }): {
+    service: AppTitleService;
+    titleStub: MockedObject<Title>;
+    brandingSignal: ReturnType<typeof signal<typeof NEUTRAL_BRANDING_DEFAULTS>>;
+  } {
     const branding = signal({
       ...NEUTRAL_BRANDING_DEFAULTS,
       appTitle: opts?.appTitle ?? 'TabTitle',

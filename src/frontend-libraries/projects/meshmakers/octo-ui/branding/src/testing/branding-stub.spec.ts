@@ -24,7 +24,7 @@ describe('createBrandingStub / provideBrandingTesting', () => {
     });
     const ds = TestBed.inject(BrandingDataSource);
     expect((ds.branding as () => {
-            appName: string;
-        })().appName).toBe('X');
+      appName: string;
+    })().appName).toBe('X');
   });
 });

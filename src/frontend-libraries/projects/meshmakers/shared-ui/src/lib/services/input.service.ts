@@ -21,7 +21,7 @@ export class InputService {
     const dialogRef = this.dialogService.open({
       title,
       content: InputDialogComponent,
-      autoFocusedElement: "input"
+      autoFocusedElement: 'input'
     });
 
     const component = dialogRef.content.instance;

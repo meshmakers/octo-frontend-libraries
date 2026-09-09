@@ -8,7 +8,7 @@ import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { QueryExecutionResult, QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
-import {CollectionChangesService, KENDO_GAUGES} from "@progress/kendo-angular-gauges";
+import {CollectionChangesService, KENDO_GAUGES} from '@progress/kendo-angular-gauges';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 
@@ -316,15 +316,15 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
   public pointers = [
     {
       value: 10,
-      color: "#ffd246",
+      color: '#ffd246',
     },
     {
       value: 20,
-      color: "#28b4c8",
+      color: '#28b4c8',
     },
     {
       value: 30,
-      color: "#78d237",
+      color: '#78d237',
     },
   ];
 

@@ -65,12 +65,12 @@ describe('DesignerDeletionService', () => {
         createTestPrimitive('prim-1'),
         createTestPrimitive('prim-2'),
         createTestPrimitive('prim-3'),
-                {
-                  id: 'group-1',
-                  type: 'group',
-                  position: { x: 0, y: 200 },
-                  config: { childIds: ['prim-1', 'prim-2'], originalBounds: { x: 0, y: 100, width: 200, height: 80 } }
-                } as GroupPrimitive
+        {
+          id: 'group-1',
+          type: 'group',
+          position: { x: 0, y: 200 },
+          config: { childIds: ['prim-1', 'prim-2'], originalBounds: { x: 0, y: 100, width: 200, height: 80 } }
+        } as GroupPrimitive
       ],
       symbolInstances: [
         createTestSymbol('sym-1'),

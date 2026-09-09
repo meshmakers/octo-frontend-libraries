@@ -24,13 +24,17 @@ export class ImportStrategyDialogComponent extends DialogContentBase {
 
   @Input() message = '';
 
-  protected selectedStrategy = ImportStrategyDto.Upsert;
-  protected readonly ImportStrategyDto = ImportStrategyDto;
+  protected selectedStrategy: ImportStrategyDto;
+  protected get ImportStrategyDto(): typeof ImportStrategyDto { return ImportStrategyDto; }
 
   constructor() {
     const dialogRef = inject(DialogRef);
     super(dialogRef);
     this.dialogRef = dialogRef;
+    // Assigned here rather than as a field initialiser: a class field initialised from a
+    // relative import reads `undefined` under the Vitest module runner, so the member access
+    // would throw (see CLAUDE.md, "Vite/esbuild class-field snapshot").
+    this.selectedStrategy = ImportStrategyDto.Upsert;
   }
 
   onImport(): void {

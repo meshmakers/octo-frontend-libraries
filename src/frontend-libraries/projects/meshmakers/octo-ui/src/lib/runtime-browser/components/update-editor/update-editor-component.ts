@@ -7,31 +7,31 @@ import {
   output,
   signal,
   ChangeDetectionStrategy
-} from "@angular/core";
-import { toObservable, toSignal } from "@angular/core/rxjs-interop";
-import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import type { RtEntityUpdateDto } from "@meshmakers/octo-services";
-import { KENDO_BUTTONS } from "@progress/kendo-angular-buttons";
-import { KENDO_DATEINPUTS } from "@progress/kendo-angular-dateinputs";
-import { KENDO_DROPDOWNS } from "@progress/kendo-angular-dropdowns";
-import { KENDO_INPUTS } from "@progress/kendo-angular-inputs";
-import { KENDO_LABEL } from "@progress/kendo-angular-label";
-import { CardModule } from "@progress/kendo-angular-layout";
-import { firstValueFrom, of, startWith, switchMap } from "rxjs";
-import { UpdateRuntimeEntitiesDtoGQL } from "../../../graphQL/updateRuntimeEntities";
-import { Attribute } from "../../models/attribute";
+} from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import type { RtEntityUpdateDto } from '@meshmakers/octo-services';
+import { KENDO_BUTTONS } from '@progress/kendo-angular-buttons';
+import { KENDO_DATEINPUTS } from '@progress/kendo-angular-dateinputs';
+import { KENDO_DROPDOWNS } from '@progress/kendo-angular-dropdowns';
+import { KENDO_INPUTS } from '@progress/kendo-angular-inputs';
+import { KENDO_LABEL } from '@progress/kendo-angular-label';
+import { CardModule } from '@progress/kendo-angular-layout';
+import { firstValueFrom, of, startWith, switchMap } from 'rxjs';
+import { UpdateRuntimeEntitiesDtoGQL } from '../../../graphQL/updateRuntimeEntities';
+import { Attribute } from '../../models/attribute';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
   RuntimeBrowserMessages,
-} from "../../runtime-browser.model";
-import { AttributeCoordinatorService } from "../../services/attribute-coordinator.service";
-import { AttributeDataService } from "../../services/attribute-data.service";
-import { AttributeMapperService } from "../../services/attribute-mapper.service";
-import { AttributesGroupComponent } from "../attributes-group/attributes-group.component";
-import { SharedEditor } from "../shared-editor/shared-editor";
+} from '../../runtime-browser.model';
+import { AttributeCoordinatorService } from '../../services/attribute-coordinator.service';
+import { AttributeDataService } from '../../services/attribute-data.service';
+import { AttributeMapperService } from '../../services/attribute-mapper.service';
+import { AttributesGroupComponent } from '../attributes-group/attributes-group.component';
+import { SharedEditor } from '../shared-editor/shared-editor';
 
 @Component({
-  selector: "mm-update-editor-component",
+  selector: 'mm-update-editor-component',
   imports: [
     ReactiveFormsModule,
     CardModule,
@@ -120,7 +120,7 @@ import { SharedEditor } from "../shared-editor/shared-editor";
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ["../shared-editor/shared-editor.scss"],
+  styleUrls: ['../shared-editor/shared-editor.scss'],
 })
 /**
  * Editor for updating an existing runtime entity: loads entity data by rtId/ckTypeId, builds attribute form
@@ -168,7 +168,7 @@ export class UpdateEditorComponent {
     return (
       !this.isUpdating() &&
       !this.isCanceling() &&
-      status === "VALID" &&
+      status === 'VALID' &&
       isLoaded &&
       isDirty
     );
@@ -181,7 +181,7 @@ export class UpdateEditorComponent {
   formStatusSignal = toSignal(
     toObservable(this.form).pipe(
       switchMap((f) => {
-        if (!f) return of("INVALID");
+        if (!f) return of('INVALID');
         return f.statusChanges.pipe(startWith(f.status));
       }),
     ),
@@ -309,7 +309,7 @@ export class UpdateEditorComponent {
         );
       }
     } catch (error) {
-      console.error("Error updating entity:", error);
+      console.error('Error updating entity:', error);
       this.sharedEditor.showErrorNotification(
         this.resolvedMessages().failedToUpdateEntity,
       );

@@ -8,12 +8,12 @@ import { NEUTRAL_BRANDING_DEFAULTS } from '../../branding.tokens';
 
 describe('ThemeSwitcherComponent', () => {
   function configure(opts: {
-        isDark: boolean;
-        darkAvailable: boolean;
-    }): {
-        el: HTMLElement;
-        setDark: Mock;
-    } {
+    isDark: boolean;
+    darkAvailable: boolean;
+  }): {
+    el: HTMLElement;
+    setDark: Mock;
+  } {
     const isDarkSignal = signal(opts.isDark);
     const setDarkSpy = vi.fn().mockName('setDark').mockImplementation((v: boolean) => isDarkSignal.set(v));
     const themeStub = {

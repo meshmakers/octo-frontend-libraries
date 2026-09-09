@@ -702,10 +702,10 @@ export class HeatmapConfigDialogComponent implements OnInit {
 
     const filtersDto: FieldFilterDto[] | undefined = this.filters.length > 0
       ? this.filters.map(f => ({
-          attributePath: f.attributePath,
-          operator: f.operator,
-          comparisonValue: f.comparisonValue
-        }))
+        attributePath: f.attributePath,
+        operator: f.operator,
+        comparisonValue: f.comparisonValue
+      }))
       : undefined;
 
     const family = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;

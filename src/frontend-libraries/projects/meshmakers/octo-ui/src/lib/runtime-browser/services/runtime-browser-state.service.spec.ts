@@ -139,8 +139,8 @@ describe('RuntimeBrowserStateService', () => {
 
       // Modify timestamp to be older than 5 minutes
       const state = (service as unknown as {
-                currentState: BrowserState;
-            }).currentState;
+        currentState: BrowserState;
+      }).currentState;
       state.timestamp = Date.now() - 300001; // 5 minutes + 1 ms
 
       expect(service.getState()).toBeNull();
@@ -155,14 +155,14 @@ describe('RuntimeBrowserStateService', () => {
 
       service.saveState(item);
       const state = (service as unknown as {
-                currentState: BrowserState;
-            }).currentState;
+        currentState: BrowserState;
+      }).currentState;
       state.timestamp = Date.now() - 400000; // Expired
 
       service.getState(); // Should clear state
       expect((service as unknown as {
-                currentState: BrowserState | null;
-            }).currentState).toBeNull();
+        currentState: BrowserState | null;
+      }).currentState).toBeNull();
     });
   });
 

@@ -109,7 +109,8 @@
             "runner": "vitest",
             "setupFiles": [
               "testing/vitest-setup.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
@@ -166,7 +167,8 @@
             "runner": "vitest",
             "setupFiles": [
               "testing/vitest-setup.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
@@ -224,7 +226,8 @@
             "runner": "vitest",
             "setupFiles": [
               "testing/vitest-setup.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
@@ -318,7 +321,8 @@
             "include": [
               "**/*.spec.ts",
               "../login-ui/**/*.spec.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
@@ -374,7 +378,8 @@
             "runner": "vitest",
             "setupFiles": [
               "testing/vitest-setup.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
@@ -430,7 +435,8 @@
             "runner": "vitest",
             "setupFiles": [
               "testing/vitest-setup.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
@@ -491,7 +497,8 @@
             "include": [
               "**/*.spec.ts",
               "../**/*.spec.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
@@ -580,7 +587,8 @@
             "runner": "vitest",
             "setupFiles": [
               "testing/vitest-setup.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
@@ -703,7 +711,8 @@
             "runner": "vitest",
             "setupFiles": [
               "testing/vitest-setup.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {
@@ -759,7 +768,8 @@
             "runner": "vitest",
             "setupFiles": [
               "testing/vitest-setup.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         },
         "lint": {

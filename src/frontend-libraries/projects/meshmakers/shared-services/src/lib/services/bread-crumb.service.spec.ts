@@ -6,22 +6,22 @@ import { BreadCrumbRouteItem } from '../models/breadCrumbRouteItem';
 import { BreadCrumbData } from '../models/breadCrumbData';
 
 interface MockRoute {
-    snapshot: {
-        data: Record<string, unknown>;
-        params: Record<string, string>;
-        url: {
-            path: string;
-        }[];
-    };
-    children: MockRoute[];
+  snapshot: {
+    data: Record<string, unknown>;
+    params: Record<string, string>;
+    url: {
+      path: string;
+    }[];
+  };
+  children: MockRoute[];
 }
 
 describe('BreadCrumbService', () => {
   let service: BreadCrumbService;
   let routerEvents$: Subject<RouterEvent>;
   let mockActivatedRoute: {
-        root: MockRoute;
-    };
+    root: MockRoute;
+  };
   let mockRouter: unknown;
 
   function createMockRoute(breadcrumb: BreadCrumbRouteItem[] | undefined, params: Record<string, string> = {}, children: MockRoute[] = []): MockRoute {

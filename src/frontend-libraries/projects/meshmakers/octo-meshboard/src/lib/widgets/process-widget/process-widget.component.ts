@@ -1313,10 +1313,10 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     // Build property values from bound data
     const propertyValues = boundData
       ? this.buildPropertyValuesFromBoundData(
-          diagram.transformProperties ?? [],
-          this.config.propertyMappings ?? [],
-          boundData
-        )
+        diagram.transformProperties ?? [],
+        this.config.propertyMappings ?? [],
+        boundData
+      )
       : {};
 
     // Evaluate each animation binding

@@ -95,7 +95,7 @@ import { CommonModule } from '@angular/common';
     }
   ]
 })
- 
+
 export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck, ControlValueAccessor, MatFormFieldControl<unknown>, Validator {
   elRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
@@ -104,7 +104,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
   private static nextId = 0;
   public readonly searchFormControl: FormControl;
   public isLoading: boolean;
-   
+
   public filteredEntities: any[] = [];
   public ngControl: NgControl | null;
   public errorState: boolean;
@@ -113,13 +113,13 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
   @HostBinding()
   public readonly id = `ia-entity-select-${MmEntitySelectInputComponent.nextId++}`;
 
-   
+
   public valueChange: EventEmitter<any> = new EventEmitter<any>();
-   
+
   private _selectedEntity: any;
   @ViewChild('input') private readonly inputField: MatInput | null;
   protected describedBy = '';
-   
+
   private activatedValue: any;
 
   constructor() {
@@ -143,16 +143,16 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     });
   }
 
-   
+
   private _dataSource: EntitySelectDataSource<any> | null;
 
-   
+
   public get dataSource(): EntitySelectDataSource<any> | null {
     return this._dataSource;
   }
 
   @Input()
-   
+
   public set dataSource(value: EntitySelectDataSource<any> | null) {
     this._dataSource = value;
   }
@@ -164,7 +164,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     return this._disabled;
   }
 
-   
+
   public set disabled(dis: any) {
     this._disabled = coerceBooleanProperty(dis);
     if (this._disabled) {
@@ -182,7 +182,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     return this._placeholder;
   }
 
-   
+
   public set placeholder(plh: any) {
     this._placeholder = plh;
     this.stateChanges.next();
@@ -195,7 +195,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     return this._required;
   }
 
-   
+
   public set required(req: any) {
     this._required = coerceBooleanProperty(req);
     if (this.inputField != null) {
@@ -217,12 +217,12 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     }
   }
 
-   
+
   public get value(): any {
     return this._selectedEntity;
   }
 
-   
+
   public set value(value: any) {
     if (value !== this._selectedEntity) {
       this.searchFormControl.setValue(value);
@@ -278,7 +278,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
       .pipe(
         debounceTime(300),
         tap(() => (this.filteredEntities = [])),
-         
+
         filter((value: any) => typeof value === 'string'),
         tap(() => {
           this.setValue(null);
@@ -354,17 +354,17 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     this.stateChanges.next();
   }
 
-   
+
   public registerOnChange(fn: any): void {
     this._propagateChange = fn;
   }
 
-   
+
   public registerOnTouched(fn: any): void {
     this.onTouched = fn;
   }
 
-   
+
   public writeValue(obj: any): void {
     this.clear();
     this.value = obj;
@@ -385,7 +385,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
   }
 
   validate(control: AbstractControl): ValidationErrors | null {
-     
+
     const selection: any = control.value;
     if (typeof selection === 'string') {
       return { incorrect: true };
@@ -393,7 +393,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     return null;
   }
 
-   
+
   private _propagateChange = (_: any): void => {
     // noop
   };
@@ -402,7 +402,7 @@ export class MmEntitySelectInputComponent implements OnInit, OnDestroy, DoCheck,
     // noop
   };
 
-   
+
   private setValue(value: any): void {
     if (value !== this._selectedEntity) {
       this._selectedEntity = value;

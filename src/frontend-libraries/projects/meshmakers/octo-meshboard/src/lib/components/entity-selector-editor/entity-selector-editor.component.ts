@@ -125,11 +125,11 @@ export class EntitySelectorEditorComponent {
     this.editChildScopeTargetCkTypeId = selector.childScope?.targetCkTypeId ?? '';
     this.editChildScopeTargetCkTypeItem = selector.childScope?.targetCkTypeId
       ? {
-          fullName: selector.childScope.targetCkTypeId,
-          rtCkTypeId: selector.childScope.targetCkTypeId,
-          isAbstract: false,
-          isFinal: false
-        }
+        fullName: selector.childScope.targetCkTypeId,
+        rtCkTypeId: selector.childScope.targetCkTypeId,
+        isAbstract: false,
+        isFinal: false
+      }
       : null;
     this.editChildScopeRoleId = selector.childScope?.roleId ?? 'System/ParentChild';
     this.editChildScopeDirection = selector.childScope?.direction ?? 'in';
@@ -236,10 +236,10 @@ export class EntitySelectorEditorComponent {
     const childScope: EntitySelectorChildScope | undefined =
       this.editChildScopeTargetCkTypeId && this.editChildScopeRoleId.trim()
         ? {
-            targetCkTypeId: this.editChildScopeTargetCkTypeId,
-            roleId: this.editChildScopeRoleId.trim(),
-            direction: this.editChildScopeDirection
-          }
+          targetCkTypeId: this.editChildScopeTargetCkTypeId,
+          roleId: this.editChildScopeRoleId.trim(),
+          direction: this.editChildScopeDirection
+        }
         : undefined;
 
     const selector: EntitySelectorConfig = {

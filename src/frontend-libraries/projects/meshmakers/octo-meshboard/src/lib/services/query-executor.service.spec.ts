@@ -30,10 +30,10 @@ describe('QueryExecutorService', () => {
   let entitiesGqlSpy: MockedObject<GetEntitiesByCkTypeDtoGQL>;
 
   function makeApolloResult(data: unknown): {
-        data: unknown;
-        loading: false;
-        networkStatus: 7;
-    } {
+    data: unknown;
+    loading: false;
+    networkStatus: 7;
+  } {
     return { data, loading: false, networkStatus: 7 };
   }
 
@@ -224,8 +224,8 @@ describe('QueryExecutorService', () => {
       await firstValueFrom(service.executeStreamData('q'));
 
       const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as {
-                variables: Record<string, unknown>;
-            };
+        variables: Record<string, unknown>;
+      };
       expect(opts.variables['arg']).toBeUndefined();
     });
 
@@ -241,8 +241,8 @@ describe('QueryExecutorService', () => {
       }));
 
       const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as {
-                variables: Record<string, unknown>;
-            };
+        variables: Record<string, unknown>;
+      };
       const arg = opts.variables['arg'] as Record<string, unknown>;
       expect(arg).toBeDefined();
       expect(arg['from']).toBe(from);
@@ -263,8 +263,8 @@ describe('QueryExecutorService', () => {
       }));
 
       const opts = vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as {
-                variables: Record<string, unknown>;
-            };
+        variables: Record<string, unknown>;
+      };
       const arg = opts.variables['arg'] as Record<string, unknown>;
       expect(arg['queryMode']).toBe(QueryModeDto.DownsamplingDto);
     });
@@ -463,8 +463,8 @@ describe('QueryExecutorService', () => {
       });
 
       const options = vi.mocked(downsampleGqlSpy.fetch).mock.lastCall![0] as {
-                variables: Record<string, unknown>;
-            };
+        variables: Record<string, unknown>;
+      };
       expect(options.variables['columnPaths']).toEqual([{ attributePath: 'Amount.Value', aggregationType: 'SUM' }]);
       expect(options.variables['rtIds']).toEqual(['em-1']);
       expect(rows.length).toBe(1);
@@ -488,9 +488,9 @@ describe('QueryExecutorService', () => {
   describe('fetchEntityGroups (AB#4714)', () => {
     // Domain-neutral fixtures: the mechanism buckets by whatever `groupField` is configured.
     const entities = (rows: {
-            rtId: string;
-            group: string | null;
-        }[]) => makeApolloResult({
+      rtId: string;
+      group: string | null;
+    }[]) => makeApolloResult({
       runtime: { runtimeEntities: { totalCount: rows.length, items: rows.map(r => ({
         rtId: r.rtId,
         attributes: { items: r.group == null ? [] : [{ attributeName: 'category', value: r.group }] }

@@ -14,14 +14,14 @@ import { SymbolSettings } from '../../designer/process-designer.component';
  * Test helper interface to access protected/private members of SymbolEditorPageComponent
  */
 interface SymbolEditorPageTestAccess {
-    onSymbolChange(symbol: SymbolDefinition): void;
-    saveSymbol(): Promise<void>;
-    isSaving: WritableSignal<boolean>;
-    _currentSymbol: SymbolDefinition | null;
-    onSymbolSettingsChange(event: {
-        key: string;
-        value: unknown;
-    }): void;
+  onSymbolChange(symbol: SymbolDefinition): void;
+  saveSymbol(): Promise<void>;
+  isSaving: WritableSignal<boolean>;
+  _currentSymbol: SymbolDefinition | null;
+  onSymbolSettingsChange(event: {
+    key: string;
+    value: unknown;
+  }): void;
 }
 
 // Mock SymbolEditorComponent to avoid complex dependencies
@@ -32,41 +32,41 @@ interface SymbolEditorPageTestAccess {
   template: '<div>Mock Symbol Editor</div>'
 })
 class MockSymbolEditorComponent {
-    @Input()
-      symbol: SymbolDefinition | null = null;
-    @Input()
-      canvasWidth?: number;
-    @Input()
-      canvasHeight?: number;
-    @Input()
-      gridSize?: number;
-    @Input()
-      useDockview = false;
-    @Input()
-      symbolSettings: SymbolSettings | null = null;
-    @Output()
-      symbolChange = new EventEmitter<SymbolDefinition>();
-    @Output()
-      saveRequest = new EventEmitter<SymbolDefinition>();
-    @Output()
-      symbolSettingsChange = new EventEmitter<{
-        key: string;
-        value: unknown;
-    }>();
+  @Input()
+  symbol: SymbolDefinition | null = null;
+  @Input()
+  canvasWidth?: number;
+  @Input()
+  canvasHeight?: number;
+  @Input()
+  gridSize?: number;
+  @Input()
+  useDockview = false;
+  @Input()
+  symbolSettings: SymbolSettings | null = null;
+  @Output()
+  symbolChange = new EventEmitter<SymbolDefinition>();
+  @Output()
+  saveRequest = new EventEmitter<SymbolDefinition>();
+  @Output()
+  symbolSettingsChange = new EventEmitter<{
+    key: string;
+    value: unknown;
+  }>();
 
-    private _clearChangesCalled = false;
+  private _clearChangesCalled = false;
 
-    clearChanges(): void {
-      this._clearChangesCalled = true;
-    }
+  clearChanges(): void {
+    this._clearChangesCalled = true;
+  }
 
-    get clearChangesCalled(): boolean {
-      return this._clearChangesCalled;
-    }
+  get clearChangesCalled(): boolean {
+    return this._clearChangesCalled;
+  }
 
-    resetClearChangesCalled(): void {
-      this._clearChangesCalled = false;
-    }
+  resetClearChangesCalled(): void {
+    this._clearChangesCalled = false;
+  }
 }
 
 describe('SymbolEditorPageComponent', () => {

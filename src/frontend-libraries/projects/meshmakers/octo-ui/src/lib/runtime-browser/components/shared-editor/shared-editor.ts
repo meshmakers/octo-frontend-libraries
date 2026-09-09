@@ -1,6 +1,6 @@
-import { inject, Injectable } from "@angular/core";
-import { RtEntityInputDto, RtEntityUpdateDto } from "@meshmakers/octo-services";
-import { NotificationService } from "@progress/kendo-angular-notification";
+import { inject, Injectable } from '@angular/core';
+import { RtEntityInputDto, RtEntityUpdateDto } from '@meshmakers/octo-services';
+import { NotificationService } from '@progress/kendo-angular-notification';
 
 interface MutationOptions<TVariables> {
   variables: TVariables;
@@ -13,7 +13,7 @@ interface MutationOptions<TVariables> {
  * UpdateEditorComponent.
  */
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class SharedEditor {
   private readonly notificationService = inject(NotificationService);
@@ -45,9 +45,9 @@ export class SharedEditor {
     this.notificationService.show({
       content: message,
       hideAfter: 3000,
-      position: { horizontal: "right", vertical: "top" },
-      animation: { type: "fade", duration: 400 },
-      type: { style: "error", icon: true },
+      position: { horizontal: 'right', vertical: 'top' },
+      animation: { type: 'fade', duration: 400 },
+      type: { style: 'error', icon: true },
     });
   }
 
@@ -73,7 +73,7 @@ export class SharedEditor {
     if (Array.isArray(value)) {
       return value.some((item) => this.containsFile(item));
     }
-    if (typeof value === "object") {
+    if (typeof value === 'object') {
       return Object.values(value as Record<string, unknown>).some((v) =>
         this.containsFile(v),
       );
