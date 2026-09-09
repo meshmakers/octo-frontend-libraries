@@ -44,17 +44,28 @@ $kendo-success: #37b400;
   --bubblegum: #{$bubblegum};
   --lilac-glow: #{$lilac-glow};
   --royal-violet: #{$royal-violet};
-  --ash-blue: #{$ash-blue};
-  --iron-navy: #{$iron-navy};
-  --deep-sea: #{$deep-sea};
-  --surface-elevated: #{$surface-elevated};
+  // Brand "neutral" colors. These are redirected at the semantic --theme-*
+  // tokens (see _theme.scss) so that every hardcoded `var(--iron-navy)` usage
+  // in library and host styles follows the active theme automatically. The
+  // SCSS hex only serves as the LCARS-dark fallback for hosts that include
+  // `variables()` without `theme()`.
+  --ash-blue: var(--theme-text-secondary, #{$ash-blue});
+  --iron-navy: var(--theme-bg-surface, #{$iron-navy});
+  --deep-sea: var(--theme-bg-app, #{$deep-sea});
+  --surface-elevated: var(--theme-bg-elevated, #{$surface-elevated});
   // Theme-aware text/surface tokens — fall back to LCARS-dark when host has no theme tokens
   --octo-text-color: var(--theme-text-primary, #{$octo-text-color});
   --kendo-success: #{$kendo-success};
 
   // Kendo variable overrides - applied when Kendo is imported by host
   --kendo-color-primary: var(--octo-mint);
-  --kendo-color-primary-on-surface: var(--octo-mint);
+  // `primary-on-surface` is Kendo's "primary color used as INK on a surface"
+  // (breadcrumbs, selected tab text, flat/link primary buttons, floating
+  // labels, k-selected/k-today, …). Raw mint stays #64ceb9 in the light theme
+  // too (~1.9:1 on white — unreadable), so redirect it at the theme-aware
+  // accent text token (mint in dark, darkened teal in light); the mint
+  // fallback serves hosts that include variables() without theme().
+  --kendo-color-primary-on-surface: var(--theme-text-accent, var(--octo-mint));
   --kendo-color-app-surface: var(--theme-bg-app, var(--deep-sea));
   --kendo-color-on-app-surface: var(--octo-text-color);
   font-family: var(--lcars-font-primary);

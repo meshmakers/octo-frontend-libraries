@@ -6,6 +6,23 @@ import {AuthorizeService} from '@meshmakers/shared-auth';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {JobResponseDto} from '../shared/jobResponseDto';
 
+/**
+ * Builds the bot service's tus upload endpoint for a tenant.
+ *
+ * Tenant-routed since AB#5060. It used to be `system/v1/tus-upload` with the tenant sent only as
+ * upload metadata, which the bot service's transport tenant gate never saw — the gate reads the
+ * route value — and which bound nothing, because the file was stored flat under its tus file id and
+ * no consumer read the metadata back. The service now stages uploads under the tenant's own
+ * directory. `tenantId` is still sent as metadata for compatibility; the service refuses a metadata
+ * tenant that disagrees with the route rather than silently preferring one.
+ *
+ * Exported so it can be asserted directly: the upload itself needs a real tus server, so specs stub
+ * the transfer out — and a stubbed transfer hides the URL, which is the part that matters here.
+ */
+export function buildTusEndpoint(botServicesUrl: string, tenantId: string): string {
+  return `${botServicesUrl}${encodeURIComponent(tenantId)}/v1/tus-upload`;
+}
+
 export interface TusUploadOptions {
   file: File;
   tenantId: string;
@@ -63,7 +80,7 @@ export class TusUploadService {
       }
 
       const upload = new Upload(options.file, {
-        endpoint: botServicesUrl + 'system/v1/tus-upload',
+        endpoint: buildTusEndpoint(botServicesUrl, options.tenantId),
         retryDelays: [0, 1000, 3000, 5000, 10000],
         chunkSize: 50 * 1024 * 1024,
         metadata,
@@ -94,6 +111,19 @@ export class TusUploadService {
     });
   }
 
+  /**
+   * Starts the restore job for the uploaded artifact.
+   *
+   * The tenant travels as a **route segment** (`{tenantId}/v1/jobs/restore-from-upload`, AB#5060),
+   * matching the `{serviceUrl}{tenantId}/v1/...` shape of the other tenant-addressed services. That
+   * is what puts the call in front of the bot service's transport tenant gate; as a `?tenantId=`
+   * query parameter it was invisible to it. The route accepts a child tenant too — the tenant
+   * controller carries `[AllowParentTenantAdministration]`, which is what the Child Tenants restore
+   * relies on.
+   *
+   * The tus upload above is on the tenant route as well since stage 3 of AB#5060, so both hops are
+   * gated; the service stages the file under the tenant's own directory.
+   */
   private async startRestoreJob(
     botServicesUrl: string,
     tusFileId: string,
@@ -101,7 +131,6 @@ export class TusUploadService {
   ): Promise<JobResponseDto | null> {
     let params = new HttpParams()
       .set('tusFileId', tusFileId)
-      .set('tenantId', options.tenantId)
       .set('databaseName', options.databaseName)
       .set('restoreArchiveData', options.restoreArchiveData ?? false);
 
@@ -110,7 +139,7 @@ export class TusUploadService {
     }
 
     const r = await firstValueFrom(this.httpClient.post<JobResponseDto>(
-      botServicesUrl + 'system/v1/jobs/restore-from-upload',
+      `${botServicesUrl}${options.tenantId}/v1/jobs/restore-from-upload`,
       null,
       {params, observe: 'response'}
     ));

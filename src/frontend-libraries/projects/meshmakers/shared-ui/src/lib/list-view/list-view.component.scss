@@ -65,6 +65,14 @@
   kendo-grid-spacer {
     display: none;
   }
+
+  // With the spacer gone the command menu would sit immediately next to a
+  // host's own overflow group — two "more" menus touching, with page actions in
+  // one and table commands in the other. Keep it pinned to the right edge of
+  // its row so position alone says which is which.
+  .mm-toolbar-commands {
+    margin-left: auto;
+  }
 }
 
 // Single-line, ellipsised cell text. Pairs with the cell's native `title` tooltip so the
@@ -411,4 +419,25 @@
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+// Host filter controls projected into the toolbar (ListViewFiltersDirective).
+// Layout only — the controls themselves stay the host's business.
+::ng-deep .k-grid-toolbar .mm-toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+// Vertical rule between the host's toolbar actions and its filter controls.
+// Kendo's separator is horizontal by default; inside a row it has to be turned
+// and given a height, or it collapses to nothing.
+::ng-deep .k-grid-toolbar .mm-toolbar-filters-separator {
+  align-self: center;
+  height: 22px;
+  margin: 0 4px;
+  border-left: 1px solid var(--theme-border-subtle, rgba(0, 0, 0, 0.16));
+  border-top: none;
+  width: 0;
 }

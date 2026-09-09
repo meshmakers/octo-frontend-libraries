@@ -11,6 +11,7 @@ import {
   DebugPointNode,
   DebugPointDataDto,
   NodeDescriptorDto,
+  RotateServiceAccountSecretResultDto,
   SetPipelineDebugResultDto
 } from '../shared/communicationDtos';
 import {
@@ -398,6 +399,44 @@ export class CommunicationService {
     }
     const uri = `${this.communicationServicesUrl}${tenantId}/v1/adapter/${workloadRtId}/wake`;
     await firstValueFrom(this.httpClient.post<void>(uri, null));
+  }
+
+  /**
+   * Rotates the client secret of an adapter's pipeline service account (`POST
+   * /adapter/{adapterRtId}/serviceAccount/rotateSecret`, OctoMesh AB#5032).
+   *
+   * The route takes the **plain runtime object id**, not a composite
+   * `RtEntityId` like the adapter read endpoints: `Adapter` is polymorphic, so
+   * the controller resolves it through the tenant's adapter list.
+   *
+   * The old secret is invalid the moment this resolves, while a running adapter
+   * keeps presenting it until its pipelines are redeployed — the credentials are
+   * frozen into the pipeline's `GlobalConfiguration` at registration time. That
+   * is what `requiresPipelineRedeploy` and `message` in the result are for; a
+   * caller that reduces this to a "done" toast leaves the adapter broken with
+   * nothing on screen saying why.
+   *
+   * Unlike {@link wakeWorkload} this throws rather than no-opping when the
+   * communication services URL is missing, and never substitutes a default
+   * result: an undescribable rotation reported as success would tell the user
+   * "nothing left to do" about a secret that was in fact replaced.
+   *
+   * Rotation is deliberately not doable from a blueprint — the secret attribute
+   * is runtime state, so a blueprint import cannot change a live secret. This
+   * call (and `octo-cli`'s `RotateAdapterServiceAccountSecret`) is the supported
+   * path.
+   */
+  async rotateAdapterServiceAccountSecret(
+    tenantId: string,
+    adapterRtId: string
+  ): Promise<RotateServiceAccountSecretResultDto> {
+    if (!this.communicationServicesUrl) {
+      throw new Error('Communication services URL is not configured');
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/adapter/${adapterRtId}/serviceAccount/rotateSecret`;
+    return await firstValueFrom(
+      this.httpClient.post<RotateServiceAccountSecretResultDto>(uri, null)
+    );
   }
 
   /**

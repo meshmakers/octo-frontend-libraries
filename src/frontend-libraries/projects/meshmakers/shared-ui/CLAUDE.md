@@ -252,6 +252,90 @@ selection-dependent actions instead of answering an empty-selection click with
 a hint message. In the actions column and context menu the callback receives
 the single row item, as before.
 
+**Actions column width (`actionsColumnWidth`, AB#3444)**
+
+Default 220, and the value passed is a **minimum request, not the final width**.
+The component raises it to whatever the column actually needs, because sizing it
+by eye goes wrong in both directions:
+
+- **Header floor, 90px.** The title is a translated word: at the grid's header
+  font "Actions" needs 73px once cell padding is counted, German "Aktionen" 83px,
+  Spanish "Acciones" 82px. Three Studio lists passed 70 and rendered "ACTIO…".
+- **Content floor, computed.** `21 + n × 36 + (n − 1) × 6` for n buttons —
+  measured off a rendered command cell. n is one per non-separator
+  `actionCommandItems` entry plus the context-menu button when
+  `contextMenuType` is `'actionMenu'`. Item visibility is per row, so the width
+  uses the worst case; an archives row with three buttons needs 141px, and 90
+  clipped the third.
+
+Pass a larger value when you want more room; passing a smaller one has no
+effect. If the button metrics ever change, the three constants at the top of the
+component are the single place to correct.
+
+**Host filter controls in the toolbar (`mmListViewFilters`, AB#3444)**
+
+A page's scope/filter controls — view switches, "only in clarification"
+toggles — belong in the same band as the table's search and options, because
+they steer the same table. Project them with the `ListViewFiltersDirective`:
+
+```html
+<mm-list-view …>
+  <ng-template mmListViewFilters>
+    <kendo-buttongroup selection="single" [attr.aria-label]="'View' | translate">…</kendo-buttongroup>
+  </ng-template>
+</mm-list-view>
+```
+
+They render between the host's toolbar actions and the search box, with a
+vertical rule separating them from those actions (drawn only when there are
+actions to separate from). Both groups sit on the left of the same band but do
+different things — the actions act on records, the filters change what the list
+shows. A directive
+rather than plain `<ng-content>`: the toolbar itself is a
+`kendoGridToolbarTemplate`, and projected content cannot be placed inside an
+`<ng-template>` — the TemplateRef is captured and rendered with
+`ngTemplateOutlet` instead.
+
+Worth knowing when a page has MANY filters (the Meshmakers App's transactions
+list carries six: view, category, period, from/to dates, clarification): that
+is more than the band can hold, and such a page is better off keeping a filter
+strip of its own. The slot suits the two-or-three-control case.
+
+**Built-in commands (`collapseCommandsBelow`, AB#3444)**
+
+The toolbar's own command group — row filter, Excel, PDF, reset filters,
+refresh — lays each command out as an icon button while there is room, and
+collapses all of them into a single overflow `kendo-dropdownbutton` once the
+list gets narrow. Reaching a command in one click beats hiding it behind a menu
+whenever the space exists, so this is width-driven rather than a host opt-in:
+every app behaves the same at the same size.
+
+The threshold is `collapseCommandsBelow` (default `900`), measured against the
+component's **own** width via its existing `ResizeObserver`, not the viewport —
+expanding or collapsing the app drawer changes a list's available width by
+~240px without the window ever resizing.
+
+In card mode the **row filter command is omitted**: cards have no column
+headers for a filter row to appear in, and the grid already drops `filterable`
+there, so the button offered to toggle something that cannot exist. Reset
+filters deliberately stays, or a filter set before the switch to cards could
+never be cleared.
+
+Hosts must not render their own "clear filters" control next to the list — the
+reset command is part of this group and belongs to the table, not to the page.
+
+The collapsed menu is told apart from a host's own overflow group two ways, and
+both matter because the toolbar can wrap them onto the same row:
+
+- **Icon:** `slidersIcon`, not an ellipsis. Host overflow groups conventionally
+  use the vertical ellipsis, and two "more" menus side by side say nothing about
+  which holds what. These commands are the table's *options*, so the icon says
+  so.
+- **Position:** the menu carries `.mm-toolbar-commands`, which pins it to the
+  right of its row in the narrow layout. The narrow layout hides
+  `kendo-grid-spacer`, and without the pin the menu would slide up against the
+  host's overflow button.
+
 **Reset filters button (`resetFilters` output)**
 
 A toolbar "Reset Filters" button (`filterClearIcon`) sits next to the reload

@@ -320,6 +320,138 @@ describe('MmTableComponent', () => {
     });
   });
 
+  describe('actions column width (AB#3444)', () => {
+    interface WidthApi {
+      effectiveActionsColumnWidth: number;
+      _actionMenuItems: { text?: string; separator?: boolean }[];
+      _contextMenuItems: unknown[];
+    }
+    const api = () => component as unknown as WidthApi;
+    // padding 21 + n*36 + (n-1)*6, measured off a rendered command cell
+    const fitting = (n: number) => 21 + n * 36 + (n - 1) * 6;
+
+    beforeEach(() => {
+      api()._actionMenuItems = [];
+      api()._contextMenuItems = [];
+    });
+
+    it('keeps a host width that fits header and buttons', () => {
+      component.actionsColumnWidth = 150;
+      expect(api().effectiveActionsColumnWidth).toBe(150);
+    });
+
+    it('raises a width too narrow for the header', () => {
+      // Archives, child-tenants and provisioning all passed 70, clipping the
+      // title to "ACTIO…" — 73px is what the English word needs.
+      component.actionsColumnWidth = 70;
+      expect(api().effectiveActionsColumnWidth).toBe(90);
+    });
+
+    it('raises a width too narrow for the buttons it renders', () => {
+      // Three buttons need 140px; 90 fits the header but clipped the third.
+      component.actionsColumnWidth = 90;
+      api()._actionMenuItems = [{ text: 'Edit' }, { text: 'Disable' }];
+      api()._contextMenuItems = [{}];
+      expect(api().effectiveActionsColumnWidth).toBe(fitting(3));
+    });
+
+    it('counts the context-menu button only when it renders inline', () => {
+      component.actionsColumnWidth = 0;
+      api()._actionMenuItems = [{ text: 'Edit' }];
+      api()._contextMenuItems = [{}];
+
+      component.contextMenuType = 'actionMenu';
+      expect(api().effectiveActionsColumnWidth).toBe(Math.max(90, fitting(2)));
+
+      component.contextMenuType = 'contextMenu';
+      expect(api().effectiveActionsColumnWidth).toBe(Math.max(90, fitting(1)));
+    });
+
+    it('ignores separators, which render no button', () => {
+      component.actionsColumnWidth = 0;
+      api()._actionMenuItems = [{ text: 'Edit' }, { separator: true }, { text: 'Delete' }];
+      expect(api().effectiveActionsColumnWidth).toBe(Math.max(90, fitting(2)));
+    });
+
+    it('falls back to the header floor when there are no buttons', () => {
+      component.actionsColumnWidth = 0;
+      expect(api().effectiveActionsColumnWidth).toBe(90);
+    });
+
+    it('leaves the default alone', () => {
+      expect(api().effectiveActionsColumnWidth).toBe(220);
+    });
+  });
+
+  describe('toolbar commands (AB#3444)', () => {
+    interface CommandApi {
+      containerWidth: { set: (value: number | null) => void };
+      commandsCollapsed: boolean;
+      toolbarCommands: { id: string; text: string }[];
+      onCommand: (id: string) => void;
+      onShowRowFilter: () => void;
+      onReset: () => void;
+      onRefresh: () => void;
+    }
+    const api = () => component as unknown as CommandApi;
+    const ids = () => api().toolbarCommands.map(c => c.id);
+
+    it('lays the commands out while the list is wide and collapses them when narrow', () => {
+      api().containerWidth.set(900);
+      expect(api().commandsCollapsed).toBe(false);
+      api().containerWidth.set(899);
+      expect(api().commandsCollapsed).toBe(true);
+    });
+
+    it('does not collapse before the width has been measured', () => {
+      api().containerWidth.set(null);
+      expect(api().commandsCollapsed).toBe(false);
+    });
+
+    it('honours a host-supplied collapse threshold', () => {
+      component.collapseCommandsBelow = 500;
+      api().containerWidth.set(600);
+      expect(api().commandsCollapsed).toBe(false);
+      api().containerWidth.set(499);
+      expect(api().commandsCollapsed).toBe(true);
+    });
+
+    it('offers the row filter only when the host enabled it', () => {
+      component.rowFilterEnabled = false;
+      expect(ids()).not.toContain('rowFilter');
+      component.rowFilterEnabled = true;
+      expect(ids()).toContain('rowFilter');
+    });
+
+    it('drops the row filter in card mode but keeps reset available', () => {
+      component.rowFilterEnabled = true;
+      component.cardModeBelow = 600;
+      api().containerWidth.set(400);
+
+      // Cards have no column headers for a filter row to live in, so toggling
+      // it would do nothing — but a filter set before the switch must still be
+      // clearable.
+      expect(ids()).not.toContain('rowFilter');
+      expect(ids()).toContain('reset');
+    });
+
+    it('routes each command to its handler', () => {
+      // vi.spyOn calls through where Jasmine's spyOn stubbed, so stub explicitly —
+      // these handlers touch the grid state and emit outputs.
+      const showRowFilter = vi.spyOn(api(), 'onShowRowFilter').mockImplementation(() => undefined);
+      const reset = vi.spyOn(api(), 'onReset').mockImplementation(() => undefined);
+      const refresh = vi.spyOn(api(), 'onRefresh').mockImplementation(() => undefined);
+
+      api().onCommand('rowFilter');
+      api().onCommand('reset');
+      api().onCommand('refresh');
+
+      expect(showRowFilter).toHaveBeenCalled();
+      expect(reset).toHaveBeenCalled();
+      expect(refresh).toHaveBeenCalled();
+    });
+  });
+
   describe('card mode (AB#4930)', () => {
     interface CardApi {
       containerWidth: {

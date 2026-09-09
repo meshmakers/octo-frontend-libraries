@@ -110,6 +110,43 @@ export interface DebugPointDataDto {
 }
 
 /**
+ * Result of rotating the client secret of an adapter's pipeline service account
+ * (`POST /adapter/{adapterRtId}/serviceAccount/rotateSecret`, AB#5032; .NET client
+ * surface AB#5048). Shape-identical to the controller's
+ * `RotateServiceAccountSecretResultDto` and to the SDK mirror in
+ * `Meshmakers.Octo.Communication.Contracts`.
+ *
+ * 🔴 It deliberately carries **no secret**. The plaintext lives in exactly two
+ * places — the tenant's `ServiceAccountConfiguration` entity and the identity
+ * client's hash — and a third copy travelling to a browser would end up in
+ * devtools, proxy logs and screenshots. Do not add a convenience property; the
+ * server pins the absence in its own contract tests.
+ */
+export interface RotateServiceAccountSecretResultDto {
+  /** The identity client whose secret was replaced. */
+  clientId: string;
+  /**
+   * `RtWellKnownName` of the configuration entity holding the new secret — the
+   * key the mesh adapter resolves its execution identity by.
+   */
+  configurationWellKnownName: string;
+  /**
+   * `true` when the adapter had no service account yet and the call provisioned
+   * one instead of rotating. Nothing was invalidated in that case.
+   */
+  wasCreated: boolean;
+  /**
+   * `true` when the adapter's pipelines / data flows must be redeployed before
+   * the new secret takes effect — the adapter freezes the credentials into the
+   * pipeline's `GlobalConfiguration` at registration time and never refreshes
+   * them. A UI that drops this flag produces "rotation done, still broken".
+   */
+  requiresPipelineRedeploy: boolean;
+  /** Operator-facing summary, including the redeploy instruction when one is needed. */
+  message: string;
+}
+
+/**
  * Resource-utilisation snapshot of a running adapter process. Returned by the
  * communication controller's `GET /v1/adapter/{rtId}/metrics` endpoint to back
  * the live CPU / memory sparklines in the UI. Phase 1 of the adapter telemetry

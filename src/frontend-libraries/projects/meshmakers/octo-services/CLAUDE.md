@@ -137,7 +137,7 @@ Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `importRtModel(tenantId, file)` | Import runtime model from file |
 | `importCkModel(tenantId, file)` | Import construction kit model |
 | `exportRtModelByQuery(tenantId, queryId)` | Export RT model by query |
-| `exportRtModelDeepGraph(tenantId, rtIds, ckTypeId)` | Export deep graph |
+| `exportRtModelDeepGraph(tenantId, rtIds, ckTypeId, followSpecs?)` | Export deep graph. Optional `followSpecs: DeepGraphFollowSpecDto[]` (`{roleId, direction}`, direction `DeepGraphDirectionDto.Inbound=1`/`Outbound=2`) switches from the default ParentChild descent to directed role-set traversal (AB#5003) — how identity exchange drags a permission's policies/grants, a role's permissions, a group's roles/child-groups. Omitted/empty ⇒ historical body/behaviour. Direction travels as the backend GraphDirections integer. |
 
 **Tenant Feature Toggle — Stream Data (AB#4215) + aggregate status (AB#4884):**
 
@@ -253,19 +253,59 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `getProvisioningGroups(targetTenantId)` | List the target tenant's groups (assignable options for a mapping) |
 | `createAdminProvisioningWithGroups(targetTenantId, dto)` | Create a mapping and make it a member of the given target-tenant groups (group-based grant used by the Studio Add User dialog) |
 
+**Data Permission Management** (AB#4977, epic AB#4969 — DTOs in `shared/dataPermissionDto.ts`, REST base `{issuer}{tenantId}/v1/dataPermissions`):
+
+| Method | Description |
+|--------|-------------|
+| `getDataPermissions()` | List all data permissions incl. their policies and granted role names — `GET .../dataPermissions` |
+| `createDataPermission(dto)` | Create a data permission (`DataPermissionDto`; policies/grants in the DTO are ignored by the backend — add them via the dedicated calls) — `POST .../dataPermissions` |
+| `deleteDataPermission(permissionId)` | Delete a data permission incl. its policies and grants — `DELETE .../dataPermissions/{permissionId}` |
+| `createDataPolicy(permissionId, policyDto)` | Add a policy (`DataPolicyDto`: targetCkTypeIds, actions, scope `All`/`OwnedOnly`, enforcementMode `Enforce`/`AuditOnly`) — `POST .../dataPermissions/{permissionId}/policies` |
+| `deleteDataPolicy(permissionId, policyRtId)` | Remove a policy — `DELETE .../dataPermissions/{permissionId}/policies/{policyRtId}` |
+| `setDataPolicyEnforcementMode(permissionId, policyRtId, mode)` | Flip a policy between `Enforce` and `AuditOnly`. Sends the bare mode string as a JSON body (`JSON.stringify(mode)` with explicit `Content-Type: application/json`) — `PUT .../policies/{policyRtId}/enforcementMode` |
+| `grantDataPermissionToRole(permissionId, roleName)` | Grant the permission to a role (server-side effect is immediate) — `PUT .../dataPermissions/{permissionId}/roles/{roleName}` |
+| `revokeDataPermissionFromRole(permissionId, roleName)` | Revoke the permission from a role — `DELETE .../dataPermissions/{permissionId}/roles/{roleName}` |
+
 ### BotService
 
 Manages background jobs and repository operations.
 
-| Method | Description |
-|--------|-------------|
-| `runFixupScripts(tenantId)` | Run fixup scripts |
-| `dumpRepository(tenantId, includeArchiveData?)` | Create repository dump. `includeArchiveData` (default `false`, AB#4231) additionally bundles the tenant's CrateDB archive row data → larger `.octobak.zip` instead of `.tar.gz`. |
-| `restoreRepository(tenantId, dbName, file)` | Restore from dump |
-| `downloadJobResultBinary(tenantId, jobId)` | Download job result as Blob |
-| `getJobStatus(jobId)` | Get job status |
-| `startExportArchiveData(tenantId, archiveRtId, window?)` | Start archive-data export job (AB#4230). Optional `TimeWindowDto` window scopes to `[fromUtc, toUtc)`; omit for whole archive. Returns `{ jobId }`. |
-| `startImportArchiveDataWithUpload(tenantId, archiveRtId, file, mode, onProgress?)` | TUS-upload a ZIP then start archive-data import job (AB#4230). `mode` is `ImportStrategyDto` (InsertOnly/Upsert). Returns `{ jobId }`. |
+**Tenant addressing (AB#5060).** The five tenant-securing verbs address their tenant through a
+**route segment** — `{botServices}{tenantId}/v1/jobs/…` — the same
+`{serviceUrl}{tenantId}/v1/…` shape `AssetRepoService` and `IdentityService` use. The tenant is an
+explicit method argument rather than the ambient `TENANT_ID_PROVIDER` route tenant, because these
+operations legitimately target a **child** tenant (backing up / restoring a child from the Child
+Tenants list); the bot service's tenant controller permits that via
+`[AllowParentTenantAdministration]`. Do not reintroduce `?tenantId=` here: as a query parameter the
+call is invisible to the bot service's transport tenant gate, which is the cross-tenant hole
+AB#5060 closes. The `system/v1/jobs/…` variants for these five operations no longer exist
+server-side — stage three of AB#5060 removed them.
+
+Three calls stay on `system/v1/jobs/…` deliberately — the backend gave them no tenant route:
+`downloadJobResultBinary` and `getJobStatus` (a Hangfire job id is global to the instance, so these
+are instance-scoped, not tenant-scoped) and the deprecated multipart `restoreRepository`. Because a
+system route carries no route tenant, the transport tenant gate does not apply to them; they are
+guarded by the job API scope alone (`OctoApiReadOnly` / `OctoApiFullAccess`). The tenant-admin
+backup flow therefore works end to end — but knowing a job id is enough to fetch its artifact from
+any tenant, which is a backend decision (AB#5060 deliberately left the download unmarked), not
+something the frontend can or should compensate for.
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| `runFixupScripts(tenantId)` | `POST {tenantId}/v1/jobs/run-fixup-scripts` | Run fixup scripts |
+| `dumpRepository(tenantId, includeArchiveData?)` | `POST {tenantId}/v1/jobs/dump-repository` | Create repository dump. `includeArchiveData` (default `false`, AB#4231) additionally bundles the tenant's CrateDB archive row data → larger `.octobak.zip` instead of `.tar.gz`. |
+| `restoreRepository(tenantId, dbName, file)` | `POST system/v1/jobs/restore-repository` | Restore from dump. **Deprecated** — use `TusUploadService.startUpload()`; no tenant route exists |
+| `downloadJobResultBinary(tenantId, jobId)` | `GET system/v1/jobs/download` | Download job result as Blob (system-only, see above) |
+| `getJobStatus(jobId)` | `GET system/v1/jobs` | Get job status (system-only, see above) |
+| `startExportArchiveData(tenantId, archiveRtId, window?)` | `POST {tenantId}/v1/jobs/export-archive-data` | Start archive-data export job (AB#4230). Optional `TimeWindowDto` window scopes to `[fromUtc, toUtc)`; omit for whole archive. Returns `{ jobId }`. |
+| `startImportArchiveDataWithUpload(tenantId, archiveRtId, file, mode, onProgress?)` | TUS `{tenantId}/v1/tus-upload` → `POST {tenantId}/v1/jobs/import-archive-data-from-upload` | TUS-upload a ZIP then start archive-data import job (AB#4230). `mode` is `ImportStrategyDto` (InsertOnly/Upsert). Returns `{ jobId }`. |
+
+Both hops are tenant-routed since stage 3 of AB#5060. The sink used to be `system/v1/tus-upload`
+with the tenant sent only as upload metadata, which the bot service's transport gate never saw and
+which bound nothing — the file was stored flat under its tus file id and no consumer read the
+metadata back. The service now stages uploads under the tenant's own directory. Build the endpoint
+with `buildTusEndpoint(botServicesUrl, tenantId)` rather than concatenating it, so the tenant segment
+stays escaped.
 
 ### JobManagementService
 
@@ -294,6 +334,7 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, definition)` | Deploy pipeline definition (NB: force-enables debug) |
 | `setPipelineDebugging(tenantId, pipelineRtId, enabled)` | Toggle pipeline debug capture via `PATCH /pipeline/{id}/debug` — persists the flag exactly + re-pushes the adapter without force-enabling (use this, not a redeploy, to enable/disable debug) |
 | `wakeWorkload(tenantId, workloadRtId)` | Wake an on-demand workload that has scaled to zero (`POST /adapter/{id}/wake`). No-ops for AlwaysOn / already-running workloads, so the caller needs no lifecycle state. **Resolves only when the workload is ready** — up to the controller's wake budget (default 60s), so show progress, not a spinner |
+| `rotateAdapterServiceAccountSecret(tenantId, adapterRtId)` | Rotate the client secret of the adapter's pipeline service account (`POST /adapter/{adapterRtId}/serviceAccount/rotateSecret`, AB#5032). Route takes the **plain rtId**, not a composite RtEntityId — `Adapter` is polymorphic and the controller resolves it via the tenant's adapter list. Returns `RotateServiceAccountSecretResultDto`, which **carries no secret by design**; `requiresPipelineRedeploy` + `message` are the substance and must reach the user, because a running adapter keeps presenting the withdrawn secret until its data flows are redeployed. Throws (never returns a default) when the URL is unconfigured or the call fails. A blueprint cannot do this — the secret attribute is runtime state |
 | `deployDataFlow(tenantId, dataFlowRtId)` | Deploy data flow |
 | `undeployDataFlow(tenantId, dataFlowRtId)` | Undeploy data flow |
 | `getPipelineStatus(tenantId, pipelineRtId, pipelineCkTypeId)` | Get deployment status |
@@ -334,6 +375,18 @@ Resumable file uploads using the TUS protocol for large database restore operati
 | Method | Description |
 |--------|-------------|
 | `startUpload(options: TusUploadOptions)` | Upload file and start restore job, returns `{ jobId }`. `TusUploadOptions.restoreArchiveData` (default `false`, AB#4231) opts into restoring CrateDB archive data when the artifact is an `.octobak.zip`; sent as `restoreArchiveData` query param to `restore-from-upload`. |
+
+Two hops, both on the tenant route (AB#5060): the tus transfer goes to
+`{tenantId}/v1/tus-upload`, then the restore job is started on
+`POST {tenantId}/v1/jobs/restore-from-upload`. Both are gated by the bot service's transport tenant
+gate, and both carry `[AllowParentTenantAdministration]` server-side — so `options.tenantId` may be a
+child tenant (restoring a child from the Child Tenants list), for the upload as well as the job
+start. Until stage 3 the upload went to an ungated `system/v1/tus-upload` sink.
+
+`buildTusEndpoint` (exported from `tus-upload.service.ts`) builds the upload URL for both callers;
+`bot-service.ts` imports it rather than repeating the concatenation. It is exported so the route can
+be asserted directly — specs stub the tus transfer out, since it needs a real tus server, and a
+stubbed transfer hides the URL.
 
 ---
 

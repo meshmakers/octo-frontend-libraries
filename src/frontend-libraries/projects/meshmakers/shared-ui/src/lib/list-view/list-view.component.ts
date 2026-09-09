@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ContentChild, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
 import {
   BooleanFilterCellComponent,
   CellClickEvent,
@@ -17,11 +17,12 @@ import {
 } from '@progress/kendo-angular-grid';
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
-import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
+import {ListViewFiltersDirective} from './list-view-filters.directive';
+import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewCommand, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
-import {fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
+import {fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, slidersIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
 import {ButtonComponent, DropDownButtonComponent, SplitButtonComponent} from '@progress/kendo-angular-buttons';
@@ -135,6 +136,12 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   /** Last measured row height — reused while a page renders no rows (e.g. empty filter result). */
   private lastMeasuredRowHeight: number | null = null;
   private readonly autoPageSizeRecompute$ = new Subject<void>();
+
+  /**
+   * Host-supplied scope/filter controls, rendered in the toolbar rather than in
+   * a strip of their own above the grid — see ListViewFiltersDirective.
+   */
+  @ContentChild(ListViewFiltersDirective) protected filtersTemplate?: ListViewFiltersDirective;
 
   @ViewChild(GridComponent) private gridComponent?: GridComponent;
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;
@@ -259,6 +266,55 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public actionsColumnWidth = 220;
 
   /**
+   * Floor for the actions column HEADER. The header is a translated word, and
+   * at the grid's header font "Actions" needs 73px once the cell's padding is
+   * counted, German "Aktionen" 83px, Spanish "Acciones" 82px.
+   */
+  private static readonly MIN_ACTIONS_HEADER_WIDTH = 90;
+
+  /** Measured geometry of one flat icon button in a command cell. */
+  private static readonly ACTION_BUTTON_WIDTH = 36;
+  private static readonly ACTION_BUTTON_GAP = 6;
+  private static readonly COMMAND_CELL_PADDING = 21;
+
+  /**
+   * Buttons the actions cell can render at once: one per non-separator action
+   * item, plus the context-menu button when that menu is shown inline. Item
+   * visibility is evaluated per row, so this is the worst case — which is the
+   * case the column has to be wide enough for.
+   */
+  private get maxActionButtons(): number {
+    const actions = this._actionMenuItems.filter(item => !item.separator).length;
+    const contextButton =
+      this._contextMenuItems.length > 0 && this.contextMenuType === 'actionMenu' ? 1 : 0;
+    return actions + contextButton;
+  }
+
+  /**
+   * The actions column width actually used.
+   *
+   * A host sizes this by eye and gets it wrong in both directions: too narrow
+   * for the header (three Studio lists passed 70 and rendered "ACTIO…") or too
+   * narrow for the buttons (the same 70, and even a 90 that fits the header,
+   * clipped the third button off an archives row). Both floors are computed
+   * rather than guessed, so the column always fits its own content.
+   */
+  protected get effectiveActionsColumnWidth(): number {
+    const buttons = this.maxActionButtons;
+    const contentWidth = buttons === 0
+      ? 0
+      : ListViewComponent.COMMAND_CELL_PADDING +
+        buttons * ListViewComponent.ACTION_BUTTON_WIDTH +
+        (buttons - 1) * ListViewComponent.ACTION_BUTTON_GAP;
+
+    return Math.max(
+      this.actionsColumnWidth,
+      ListViewComponent.MIN_ACTIONS_HEADER_WIDTH,
+      contentWidth,
+    );
+  }
+
+  /**
    * Hides the row-checkbox column while the list view is narrower than this many
    * pixels — on phone-sized layouts multi-select via checkboxes is impractical and
    * the 40px are better spent on the data columns. Pass `null` to always show them.
@@ -287,6 +343,61 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    * `null` (the default) keeps the table at every width.
    */
   @Input() public cardModeBelow: number | null = null;
+
+  /**
+   * Below this component width the toolbar's command buttons (row filter,
+   * exports, reset, refresh) collapse into a single overflow menu. Above it
+   * they stay laid out, because reaching a command in one click beats hiding
+   * it behind a menu whenever there is room.
+   *
+   * Measured against the component's OWN width, not the viewport: expanding or
+   * collapsing the app drawer changes the space a list has by ~240px without
+   * the window ever resizing.
+   */
+  @Input() public collapseCommandsBelow = 900;
+
+  /** True while the command buttons are collapsed into the overflow menu. */
+  protected get commandsCollapsed(): boolean {
+    const width = this.containerWidth();
+    return width !== null && width < this.collapseCommandsBelow;
+  }
+
+  /**
+   * The commands available right now, in toolbar order. The row filter is
+   * omitted in card mode: cards have no column headers for a filter row to
+   * appear in, and the grid already drops `filterable` there — leaving the
+   * button visible offered to toggle something that cannot exist. Reset stays
+   * available, or a filter set before the switch could never be cleared.
+   */
+  protected get toolbarCommands(): ListViewCommand[] {
+    const commands: ListViewCommand[] = [];
+    if (this.rowFilterEnabled && !this.isCardMode) {
+      commands.push({ id: 'rowFilter', text: this._messages.showRowFilter, svgIcon: this.filterIcon });
+    }
+    commands.push(
+      { id: 'excel', text: this._messages.exportToExcel, svgIcon: this.excelSVG },
+      { id: 'pdf', text: this._messages.exportToPdf, svgIcon: this.pdfSVG },
+      { id: 'reset', text: this._messages.resetFilters, svgIcon: this.resetFilterIcon },
+      { id: 'refresh', text: this._messages.refreshData, svgIcon: this.refreshIcon },
+    );
+    return commands;
+  }
+
+  /**
+   * Runs a command by id. Excel and PDF are driven by Kendo's own
+   * `kendoGridExcelCommand` / `kendoGridPDFCommand` directives when the buttons
+   * are laid out; from the overflow menu there is no directive to attach to, so
+   * the grid API is called directly.
+   */
+  protected onCommand(id: string): void {
+    switch (id) {
+      case 'rowFilter': this.onShowRowFilter(); break;
+      case 'excel': this.gridComponent?.saveAsExcel(); break;
+      case 'pdf': this.gridComponent?.saveAsPDF(); break;
+      case 'reset': this.onReset(); break;
+      case 'refresh': this.onRefresh(); break;
+    }
+  }
 
   @HostBinding('class.mm-list-view-cards')
   protected get isCardMode(): boolean {
@@ -546,7 +657,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       fixedWidth += this.checkboxColumnWidth;
     }
     if (this._actionMenuItems.length > 0 || (this._contextMenuItems.length > 0 && this.contextMenuType == 'actionMenu')) {
-      fixedWidth += this.actionsColumnWidth;
+      fixedWidth += this.effectiveActionsColumnWidth;
     }
 
     const autoColumns = visibleColumns.filter(c => c.width === undefined);
@@ -1025,6 +1136,14 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   protected readonly moreVerticalIcon = moreVerticalIcon;
+  /**
+   * Sliders, not an ellipsis. Host toolbars conventionally use the vertical
+   * ellipsis for their own overflow group, and two "more" menus side by side
+   * say nothing about which holds what. These commands are the table's options
+   * — filter, exports, refresh — so the icon says "options" and the two menus
+   * are told apart by meaning rather than by dot orientation.
+   */
+  protected readonly commandsIcon = slidersIcon;
 
 
 }
